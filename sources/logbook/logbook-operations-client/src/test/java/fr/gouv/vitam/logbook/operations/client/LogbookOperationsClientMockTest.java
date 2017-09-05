@@ -157,10 +157,9 @@ public class LogbookOperationsClientMockTest {
             LogbookParameterName.agentIdentifierApplicationSession.name());
         logbookParamaters.putParameterValue(LogbookParameterName.eventIdentifierRequest,
             LogbookParameterName.eventIdentifierRequest.name());
-        logbookParamaters.putParameterValue(LogbookParameterName.agentIdentifierSubmission,
-            LogbookParameterName.agentIdentifierSubmission.name());
-        logbookParamaters.putParameterValue(LogbookParameterName.agentIdentifierOriginating,
-            LogbookParameterName.agentIdentifierOriginating.name());
+        logbookParamaters.putParameterValue(LogbookParameterName.agIdExt,
+            LogbookParameterName.agIdExt.name());
+
         logbookParamaters.putParameterValue(LogbookParameterName.objectIdentifier,
             LogbookParameterName.objectIdentifier.name());
         logbookParamaters.putParameterValue(LogbookParameterName.objectIdentifierRequest,

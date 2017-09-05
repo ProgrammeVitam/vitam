@@ -41,8 +41,7 @@ public class PaginationHelperTest {
             "    \"agIdApp\": null," +
             "    \"evIdAppSession\": null," +
             "    \"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "    \"agIdSubm\": null," +
-            "    \"agIdOrig\": null," +
+            "    \"agIdExt\": null," +
             "    \"obId\": null," +
             "    \"obIdReq\": null," +
             "    \"obIdIn\": null," +

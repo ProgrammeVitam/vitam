@@ -616,7 +616,6 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         File file = File.createTempFile(documentId, null);
         JsonHandler.writeAsFile(jsonNode, file);
-
         return new FileInputStream(file);
     }
 

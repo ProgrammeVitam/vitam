@@ -77,8 +77,8 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
         final File lifecycleGlobalTmpFile = handlerIO.getNewLocalFile(lfGuid);
         try (FileWriter fw = new FileWriter(lifecycleGlobalTmpFile);) {
             ArrayNode events = (ArrayNode) lifecycle.get(LogbookDocument.EVENTS);
+            String objectGroupId = lifecycle.get(LogbookMongoDbName.objectIdentifier.getDbname()).asText();
             JsonNode lastEvent = (JsonNode) Iterables.getLast(events);
-            String objectGroupId = lastEvent.get(LogbookMongoDbName.objectIdentifier.getDbname()).asText();
             String finalOutcome = lastEvent.get(LogbookMongoDbName.outcome.getDbname()).asText();
             String finalEvDateTime = lastEvent.get(LogbookMongoDbName.eventDateTime.getDbname()).asText();
             String hashLFCOgOrUnit = null;

@@ -86,14 +86,17 @@ public enum LogbookMongoDbName {
      * eventIdentifierRequest
      */
     eventIdentifierRequest("evIdReq", LogbookParameterName.eventIdentifierRequest),
+
+
     /**
-     * agentIdentifierSubmission
+     * agencies details
      */
-    agentIdentifierSubmission("agIdSubm", LogbookParameterName.agentIdentifierSubmission),
+    agIdExt("agIdExt",LogbookParameterName.agIdExt),
     /**
-     * agentIdentifierOriginating
+     * rightsStatementIdentifier
      */
-    agentIdentifierOriginating("agIdOrig", LogbookParameterName.agentIdentifierOriginating),
+    rightsStatementIdentifier("rightsStatementIdentifier",LogbookParameterName.rightsStatementIdentifier),
+
     /**
      * objectIdentifier
      */
@@ -153,10 +156,11 @@ public enum LogbookMongoDbName {
                 return LogbookMongoDbName.agentIdentifierApplication;
             case "evIdAppSession":
                 return LogbookMongoDbName.agentIdentifierApplicationSession;
-            case "agIdOrig":
-                return LogbookMongoDbName.agentIdentifierOriginating;
-            case "agIdSubm":
-                return LogbookMongoDbName.agentIdentifierSubmission;
+
+            case "agIdExt":
+              return LogbookMongoDbName.agIdExt;
+            case "rightsStatementIdentifier":
+              return LogbookMongoDbName.rightsStatementIdentifier;
             case "evDateTime":
                 return LogbookMongoDbName.eventDateTime;
             case "evId":

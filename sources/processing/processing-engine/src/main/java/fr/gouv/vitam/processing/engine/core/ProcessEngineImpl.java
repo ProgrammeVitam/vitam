@@ -28,6 +28,7 @@ package fr.gouv.vitam.processing.engine.core;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
@@ -64,9 +65,12 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.RIGHTS_STATEMENT_IDENTIFIER;
 
 /**
  * ProcessEngineImpl class manages the context and call a process distributor
@@ -74,7 +78,9 @@ import java.util.concurrent.CompletableFuture;
 public class ProcessEngineImpl implements ProcessEngine {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessEngineImpl.class);
-
+    private static final String TRANSFER_AGENCY = "TransferringAgency";
+    private static final String AGENCY_DETAIL = "agIdExt";
+    private static String ORIGIN_AGENCY_NAME = "OriginatingAgency";
     private static final String OBJECTS_LIST_EMPTY = "OBJECTS_LIST_EMPTY";
 
     private final Map<String, String> messageIdentifierMap = new HashMap<>();
@@ -117,7 +123,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         if (null == callback)
             throw new ProcessingEngineException("IEventsProcessEngine is required");
         if (null == step)
-            throw new ProcessingEngineException("The paramter step cannot be null");;
+            throw new ProcessingEngineException("The paramter step cannot be null");
 
         if (null != params)
             this.engineParams = params;
@@ -268,14 +274,12 @@ public class ProcessEngineImpl implements ProcessEngine {
     }
 
 
-
     /**
      * Call distributor to start the given step
      *
      * @param step
      * @param workParams
      * @param operationId
-     * @param recoverFromStop should be true only for the first step to be executed after stop of the process workflow
      * @return
      */
     private ItemStatus callDistributor(ProcessStep step, WorkerParameters workParams, String operationId,
@@ -291,7 +295,7 @@ public class ProcessEngineImpl implements ProcessEngine {
 
     /**
      * Log operation after distributor response
-     * 
+     *
      * @param step
      * @param workParams
      * @param tenantId
@@ -422,16 +426,41 @@ public class ProcessEngineImpl implements ProcessEngine {
                 messageIdentifierMap.put(processId.getId(), messageIdentifier);
             }
         }
+        JsonNode node = null;
 
-        String prodService = prodserviceMap.get(processId);
-        if (prodService == null) {
-            if (stepResponse.getData(LogbookParameterName.agentIdentifierOriginating.name()) != null) {
-                prodService =
-                    (String) stepResponse.getData(LogbookParameterName.agentIdentifierOriginating.name().toString());
-                prodserviceMap.put(processId.getId(), prodService);
+        if (stepResponse.getData(AGENCY_DETAIL) == null) {
+            node = (ObjectNode) JsonHandler.createObjectNode();
+        } else {
+            node = (JsonNode) JsonHandler.getFromString(
+                (String) stepResponse.getData(AGENCY_DETAIL));
+        }
+        ObjectNode agIdExt = null;
+        try {
+            JsonHandler.validate(node.asText());
+            agIdExt = (ObjectNode) JsonHandler.getFromString(node.asText());
+        } catch (InvalidParseOperationException e) {
+            agIdExt = JsonHandler.createObjectNode();
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Invalid Json");
             }
         }
 
+        String rightsStatementIdentifier = (String) stepResponse.getData(RIGHTS_STATEMENT_IDENTIFIER);
+
+
+        if (rightsStatementIdentifier != null) {
+            parameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier, rightsStatementIdentifier);
+        }
+
+        String prodService = prodserviceMap.get(processId);
+
+        if (prodService == null && stepResponse.getData(AGENCY_DETAIL) != null) {
+            if (node.get(ORIGIN_AGENCY_NAME) != null) {
+                prodService =
+                    node.get(ORIGIN_AGENCY_NAME).asText();
+                prodserviceMap.put(processId.getId(), prodService);
+            }
+        }
         if (messageIdentifier != null && !messageIdentifier.isEmpty()) {
             callback.onUpdate(messageIdentifier, null);
             parameters.putParameterValue(LogbookParameterName.objectIdentifierIncome, messageIdentifier);
@@ -442,10 +471,17 @@ public class ProcessEngineImpl implements ProcessEngine {
 
         if (prodService != null && !prodService.isEmpty()) {
             callback.onUpdate(null, prodService);
-            parameters.putParameterValue(LogbookParameterName.agentIdentifierOriginating, prodService);
-        } else {
-            parameters.putParameterValue(LogbookParameterName.agentIdentifierOriginating,
-                engineParams.get(SedaConstants.TAG_ORIGINATINGAGENCY));
+            agIdExt.put(ORIGIN_AGENCY_NAME, prodService);
+        }
+
+        else {
+            agIdExt.put(ORIGIN_AGENCY_NAME, engineParams.get(SedaConstants.TAG_ORIGINATINGAGENCY));
+            parameters.putParameterValue(LogbookParameterName.agIdExt, agIdExt.toString());
+        }
+
+
+        if( agIdExt != null ){
+            parameters.putParameterValue(LogbookParameterName.agIdExt, agIdExt.toString());
         }
 
         parameters.putParameterValue(LogbookParameterName.eventIdentifier,

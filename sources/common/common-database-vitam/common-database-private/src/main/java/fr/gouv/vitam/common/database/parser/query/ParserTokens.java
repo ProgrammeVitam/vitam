@@ -551,15 +551,13 @@ public class ParserTokens extends BuilderToken {
             case "agIdApp":
             case "evIdAppSession":
             case "evIdReq":
-            case "agIdSubm":
-            case "agIdOrig":
+            case "agIdExt":
             case "obIdReq":
             case "obIdIn":
             case "events.agIdApp":
             case "events.evIdAppSession": 
             case "events.evIdReq":
             case "events.agIdSubm":
-            case "events.agIdOrig":
             case "events.obIdReq":
             case "events.obIdIn":
             // Unit

@@ -44,6 +44,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.RIGHTS_STATEMENT_IDENTIFIER;
+
 /**
  * Logbook Operation item
  */
@@ -59,7 +61,6 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
      * Events
      */
     public static final String EVENTS = "events";
-    public static final String RIGHTS_STATEMENT_IDENTIFIER = "rightsStatementIdentifier";
 
 
     /**
@@ -84,7 +85,6 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
         "FileName : { type : \"string\", index : \"not_analyzed\" }, " +
         "EvDetailReq: { type: \"string\", index: \"not_analyzed\" }, " +
         "EvDateTimeReq: { type: \"date\", index: \"not_analyzed\" }, " +
-        "AgIfTrans: { type: \"string\", index: \"not_analyzed\" }, " +
         "ArchivalAgreement: { type: \"string\", index: \"not_analyzed\" }, " +
         "ServiceLevel: { type: \"string\", index: \"not_analyzed\" }" +
         "AccessStatus: { type: \"string\", index: \"not_analyzed\" }" +
@@ -117,7 +117,7 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
             append(name.getDbname(), map.get(name.getLogbookParameterName()));
         }
         append(LogbookDocument.EVENTS, Arrays.asList(new String[0]));
-        append(RIGHTS_STATEMENT_IDENTIFIER, new ArrayList<String>());
+        append(RIGHTS_STATEMENT_IDENTIFIER, "");
         checkId();
     }
 
@@ -137,8 +137,8 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
                 switch (name) {
                     case agentIdentifierApplication:
                     case agentIdentifierApplicationSession:
-                    case agentIdentifierOriginating:
-                    case agentIdentifierSubmission:
+                    case agIdExt:
+
                         break;
                     default:
                         append(name.getDbname(), map.get(name.getLogbookParameterName()));

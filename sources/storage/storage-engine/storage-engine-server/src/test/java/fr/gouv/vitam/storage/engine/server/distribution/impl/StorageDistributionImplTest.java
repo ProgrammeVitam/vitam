@@ -36,8 +36,6 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -84,17 +82,20 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
+
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -127,14 +128,15 @@ public class StorageDistributionImplTest {
         final StorageConfiguration configuration = new StorageConfiguration();
         configuration.setUrlWorkspace("http://localhost:8080");
         client = Mockito.mock(WorkspaceClient.class);
-        List<Integer> list = new ArrayList<>() ;
+        List<Integer> list = new ArrayList<>();
         list.add(0);
         list.add(1);
 
-            folder.create();
-        StorageLogbookServiceImpl storageLogbookService = new StorageLogbookServiceImpl(list, Paths.get(folder.getRoot().getAbsolutePath()));
+        folder.create();
+        StorageLogbookServiceImpl storageLogbookService =
+            new StorageLogbookServiceImpl(list, Paths.get(folder.getRoot().getAbsolutePath()));
         simpleDistribution = new StorageDistributionImpl(configuration, storageLogbookService);
-        customDistribution = new StorageDistributionImpl(client, DigestType.SHA1,storageLogbookService);
+        customDistribution = new StorageDistributionImpl(client, DigestType.SHA1, storageLogbookService);
     }
 
     @AfterClass
@@ -234,11 +236,11 @@ public class StorageDistributionImplTest {
         // check digest algorithm
         assertEquals(storedInfoResult.getDigestType(), DigestType.SHA1.getName());
         // Check stored file by comparing digest
-        final String expectedDigest = Digest.digest(PropertiesUtils.findFile("unit_lfc_result.json"), 
-                DigestType.SHA1).digestHex();
+        final String expectedDigest = Digest.digest(PropertiesUtils.findFile("unit_lfc_result.json"),
+            DigestType.SHA1).digestHex();
         final String actualDigest = storedInfoResult.getDigest();
         assertEquals(expectedDigest, actualDigest);
-        
+
         // Store logbook
         stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         stream2 = new FileInputStream(PropertiesUtils.findFile("object.zip"));
@@ -303,17 +305,17 @@ public class StorageDistributionImplTest {
         assertEquals(storedInfoResult.getDigestType(), DigestType.SHA1.getName());
         // Check stored file by comparing digest
         final String expectedDigest2 = Digest.digest(PropertiesUtils.findFile("got_lfc_result.json"),
-                DigestType.SHA1).digestHex();
+            DigestType.SHA1).digestHex();
         final String actualDigest2 = storedInfoResult.getDigest();
         assertEquals(expectedDigest2, actualDigest2);
-        
+
         Digest digest = Digest.digest(new FileInputStream(PropertiesUtils.findFile("object.zip")),
             VitamConfiguration.getDefaultDigestType());
         // lets delete the object on offers
         customDistribution.deleteObject(STRATEGY_ID, objectId, digest.toString(), DigestType.SHA1);
 
     }
-    
+
     @Test(expected = StorageTechnicalException.class)
     @RunWithCustomExecutor
     public void testStoreData_retry_KO() throws Exception {
@@ -671,7 +673,8 @@ public class StorageDistributionImplTest {
     @Test
     public void listContainerObjectsCustomTest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        RequestResponse<JsonNode> result = customDistribution.listContainerObjects(STRATEGY_ID, DataCategory.OBJECT, null);
+        RequestResponse<JsonNode> result =
+            customDistribution.listContainerObjects(STRATEGY_ID, DataCategory.OBJECT, null);
         assertNotNull(result);
         assertTrue(result.isOk());
         assertFalse(Boolean.valueOf(result.getHeaderString(GlobalDataRest.X_CURSOR)));

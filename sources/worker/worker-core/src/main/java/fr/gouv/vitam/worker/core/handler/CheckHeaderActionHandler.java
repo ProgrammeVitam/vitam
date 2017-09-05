@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.handler;
 import java.util.HashMap;
 import java.util.Map;
 
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
@@ -40,8 +41,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -59,6 +60,8 @@ public class CheckHeaderActionHandler extends ActionHandler {
     private static final int CHECK_ORIGINATING_AGENCY_RANK = 1;
     private static final String EV_DETAIL_REQ = "EvDetailReq";
     private static final int CHECK_PROFILE_RANK = 2;
+
+
     /**
      * empty Constructor
      *
@@ -66,6 +69,7 @@ public class CheckHeaderActionHandler extends ActionHandler {
     public CheckHeaderActionHandler() {
         // empty constructor
     }
+
 
     /**
      * @return HANDLER_ID
@@ -75,7 +79,7 @@ public class CheckHeaderActionHandler extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO)  {
         checkMandatoryParameters(params);
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
@@ -113,16 +117,8 @@ public class CheckHeaderActionHandler extends ActionHandler {
             itemStatus.increment(StatusCode.KO);
             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
-        
-        if (madatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER) != null) {
-            itemStatus.setMasterData(LogbookParameterName.agentIdentifierOriginating.name(),
-                madatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
-        }
-        
-        if (madatoryValueMap.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER) != null) {
-            itemStatus.setMasterData(LogbookParameterName.agentIdentifierSubmission.name(),
-                madatoryValueMap.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
-        }
+
+
 
         if (madatoryValueMap.get(SedaConstants.TAG_COMMENT) != null) {
             itemStatus.setMasterData(LogbookParameterName.objectIdentifierIncome.name(), madatoryValueMap.get

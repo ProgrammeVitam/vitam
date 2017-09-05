@@ -620,7 +620,9 @@ public class ExtractSedaActionHandlerTest {
 
         // Check other fields
         assertEquals("ArchivalAgreement0", evDetData.get("ArchivalAgreement").asText());
-        assertEquals("Identifier1", evDetData.get("AgIfTrans").asText());
+        assertNotNull( response.getData("agIdExt"));
+       JsonNode node = JsonHandler.getFromString(response.getData("agIdExt").toString());
+        assertEquals("Identifier1",node.get("TransferringAgency").asText());
         assertEquals("2016-06-23T09:45:51.0", evDetData.get("EvDateTimeReq").asText());
     }
 

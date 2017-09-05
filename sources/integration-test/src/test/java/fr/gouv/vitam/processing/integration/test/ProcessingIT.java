@@ -608,7 +608,9 @@ public class ProcessingIT {
 
             assertEquals(logbookResult.get("$results").get(0).get("obIdIn").asText(),
                 "bug2721_2racines_meme_rattachement");
-            assertEquals(logbookResult.get("$results").get(0).get("agIdOrig").asText(), "producteur1");
+
+            JsonNode agIdExt = JsonHandler.getFromString(logbookResult.get("$results").get(0).get("agIdExt").asText());
+            assertEquals(agIdExt.get("originatingAgency").asText(), "producteur1");
 
 
             // Test Audit
@@ -635,7 +637,7 @@ public class ProcessingIT {
             assertEquals(StatusCode.OK, processAuditWorkflow.getStatus());
         } catch (final Exception e) {
             LOGGER.error(e);
-            fail("should not raized an exception");
+            fail("should not raized an exception"+e);
         }
     }
 
@@ -688,10 +690,13 @@ public class ProcessingIT {
             JsonNode logbookNode = logbookResult.get("$results").get(0);
             assertEquals(logbookNode.get("obIdIn").asText(),
                 "Transfert des enregistrements des délibérations de l'assemblée départementale");
-            assertEquals(logbookNode.get("agIdSubm").asText(),
-                "https://demo.logilab.fr/seda/157118");
-            assertEquals(logbookNode.get("agIdOrig").asText(),
-                "https://demo.logilab.fr/seda/157118");
+            JsonNode agIdExt = JsonHandler.getFromString(logbookNode.get("agIdExt").asText());
+
+            assertEquals(agIdExt.get("submissionAgency").asText(), "https://demo.logilab.fr/seda/157118");
+            assertEquals(agIdExt.get("originatingAgency").asText(),"https://demo.logilab.fr/seda/157118");
+            assertEquals(agIdExt.get("ArchivalAgency").asText(),"https://demo.logilab.fr/seda/213109");
+            assertEquals(agIdExt.get("TransferringAgency").asText(),"https://demo.logilab.fr/seda/157118");
+
             assertTrue(logbookNode.get("evDetData").asText().contains("EvDetailReq"));
             assertTrue(logbookNode.get("evDetData").asText().contains("EvDateTimeReq"));
             assertTrue(logbookNode.get("evDetData").asText().contains("ArchivalAgreement"));
