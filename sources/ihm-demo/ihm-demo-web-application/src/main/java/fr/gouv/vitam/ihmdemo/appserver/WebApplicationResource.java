@@ -165,7 +165,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String CONTENT_DISPOSITION = "Content-Disposition";
-    private static final String ATTACHMENT_FILENAME_ERROR_REPORT_JSON = "attachment; filename=ErrorReport.json";
+    private static final String ATTACHMENT_FILENAME_ERROR_REPORT_JSON = "attachment; filename=rapport.json";
     private static final String IDENTIFIER = "Identifier";
     public static final String X_SIZE_TOTAL = "X-Size-Total";
     public static final String X_CHUNK_OFFSET = "X-Chunk-Offset";

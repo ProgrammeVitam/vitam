@@ -609,7 +609,7 @@ public class AdminManagementResourceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void given600000DAYCSVInputstreamCheckThenReturnOK() throws FileNotFoundException {
+    public void given600000DAYCSVInputstreamCheckThenReturnKO() throws FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_600000_DAY.csv");
         given().contentType(ContentType.BINARY).body(stream)
@@ -620,7 +620,7 @@ public class AdminManagementResourceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void given90000YEARCSVInputstreamCheckThenReturnOK() throws FileNotFoundException {
+    public void given90000YEARCSVInputstreamCheckThenReturnKO() throws FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_90000_YEAR.csv");
         given().contentType(ContentType.BINARY).body(stream)

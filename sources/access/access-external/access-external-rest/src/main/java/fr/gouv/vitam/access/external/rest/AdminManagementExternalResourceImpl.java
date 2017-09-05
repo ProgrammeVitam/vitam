@@ -103,7 +103,10 @@ import java.util.Map;
 @Path("/admin-external/v1")
 @javax.ws.rs.ApplicationPath("webresources")
 public class AdminManagementExternalResourceImpl {
-    private static final String ATTACHEMENT_FILENAME = "attachment; filename=ErrorReport.json";
+
+    private static final String CONTENT_TYPE = "Content-Type";
+    private static final String CONTENT_DISPOSITION = "Content-Disposition";
+    private static final String ATTACHEMENT_FILENAME = "attachment; filename=rapport.json";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementExternalResourceImpl.class);
     private static final String ACCESS_EXTERNAL_MODULE = "ADMIN_EXTERNAL";
     private static final String CODE_VITAM = "code_vitam";
@@ -1079,7 +1082,6 @@ public class AdminManagementExternalResourceImpl {
      * findFormatByID
      *
      * @param documentId the document id to find
-     * @param select 
      * @return Response
      */
     @Path("/formats/{id_document:.+}")

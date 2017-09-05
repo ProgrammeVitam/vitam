@@ -1625,7 +1625,7 @@ public class IngestInternalIT {
             final JsonNode expectedNode = JsonHandler.getFromInputStream(expectedStreamErrorReport);
             final JsonNode expectedError = expectedNode.get("error");
             assertEquals(expectedError, responseError);
-            assertEquals(response.getStatus(), Status.BAD_REQUEST.getStatusCode());
+            assertEquals(Status.BAD_REQUEST.getStatusCode(), response.getStatus());
         } catch (final ReferentialException e) {
             fail(String.format("ReferentialException %s", e.getCause()));
         } catch (InvalidParseOperationException e) {
