@@ -40,6 +40,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 
 public class ReportGeneratorTest {
 
@@ -54,7 +55,9 @@ public class ReportGeneratorTest {
         Path path = temporaryFolder.newFile().toPath();
         ReportGenerator reportGenerator = new ReportGenerator(path);
 
-        JsonNode logbook = JsonHandler.getFromInputStream(getClass().getResourceAsStream("/logbook-operation.json"));
+        JsonNode logbookJsonNode =
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/logbook-operation.json"));
+        LogbookOperation logbook = JsonHandler.getFromJsonNode(logbookJsonNode, LogbookOperation.class);
         String operationId = "123456789";
 
         // When
@@ -65,8 +68,10 @@ public class ReportGeneratorTest {
         // Then
         assertThat(path).hasContent(
             "operationId,PROCESS_SIP_UNITARY,STP_SANITY_CHECK_SIP,SANITY_CHECK_SIP,CHECK_CONTAINER,STP_UPLOAD_SIP,STP_INGEST_CONTROL_SIP,CHECK_SEDA,CHECK_HEADER,CHECK_HEADER.CHECK_CONTRACT_INGEST,CHECK_HEADER.CHECK_IC_AP_RELATION,CHECK_HEADER.CHECK_ARCHIVEPROFILE,CHECK_DATAOBJECTPACKAGE,CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_DATAOBJECT_VERSION,CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_OBJECTNUMBER,CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST,CHECK_DATAOBJECTPACKAGE.CHECK_CONSISTENCY,STP_OG_CHECK_AND_TRANSFORME,CHECK_DIGEST,OG_OBJECTS_FORMAT_CHECK,STP_UNIT_CHECK_AND_PROCESS,CHECK_UNIT_SCHEMA,UNITS_RULES_COMPUTE,STP_STORAGE_AVAILABILITY_CHECK,STORAGE_AVAILABILITY_CHECK,STORAGE_AVAILABILITY_CHECK.STORAGE_AVAILABILITY_CHECK,STP_OBJ_STORING,OBJ_STORAGE,OG_METADATA_INDEXATION,STP_UNIT_METADATA,UNIT_METADATA_INDEXATION,STP_OG_STORING,COMMIT_LIFE_CYCLE_OBJECT_GROUP,OG_METADATA_STORAGE,STP_UNIT_STORING,COMMIT_LIFE_CYCLE_UNIT,UNIT_METADATA_STORAGE,STP_ACCESSION_REGISTRATION,ACCESSION_REGISTRATION,STP_INGEST_FINALISATION,ATR_NOTIFICATION,ROLL_BACK" +
-                lineSeparator + "123456789,9193,394,13,16,119,716,0,2,0,0,0,2,0,1,0,0,475,0,0,355,0,1,425,4,0,680,0,1,269,0,724,0,0,1671,1,0,290,0,1308,0,0" +
-                lineSeparator + "123456789,9193,394,13,16,119,716,0,2,0,0,0,2,0,1,0,0,475,0,0,355,0,1,425,4,0,680,0,1,269,0,724,0,0,1671,1,0,290,0,1308,0,0");
+                lineSeparator +
+                "123456789,9193,394,13,16,119,716,0,2,0,0,0,2,0,1,0,0,475,0,0,355,0,1,425,4,0,680,0,1,269,0,724,0,0,1671,1,0,290,0,1308,0,0" +
+                lineSeparator +
+                "123456789,9193,394,13,16,119,716,0,2,0,0,0,2,0,1,0,0,475,0,0,355,0,1,425,4,0,680,0,1,269,0,724,0,0,1671,1,0,290,0,1308,0,0");
     }
 
 }

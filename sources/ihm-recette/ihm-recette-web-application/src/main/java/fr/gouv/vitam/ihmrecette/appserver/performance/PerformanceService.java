@@ -57,6 +57,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
@@ -151,13 +152,14 @@ public class PerformanceService {
     private void generateReport(ReportGenerator reportGenerator, String operationId, int tenantId) {
         try {
             LOGGER.debug("generate report");
-            final RequestResponse<JsonNode> requestResponse =
+            final RequestResponse<LogbookOperation> requestResponse =
                 UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId, DEFAULT_CONTRACT_NAME);
 
             if (requestResponse.isOk()) {
-                RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
+                RequestResponseOK<LogbookOperation> requestResponseOK =
+                    (RequestResponseOK<LogbookOperation>) requestResponse;
 
-                final JsonNode logbookOperation = requestResponseOK.getResults().get(0);
+                final LogbookOperation logbookOperation = requestResponseOK.getFirstResult();
                 reportGenerator.generateReport(operationId, logbookOperation);
             }
         } catch (IOException | VitamException | ParseException e) {

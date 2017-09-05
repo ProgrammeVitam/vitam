@@ -690,7 +690,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     public void testCheckTraceabilityOperation()
         throws Exception {
         when(mock.post()).thenReturn(
-            Response.status(Status.OK).entity(ClientMockResultHelper.getLogbooksRequestResponse()).build());
+            Response.status(Status.OK).entity(ClientMockResultHelper.getLogbooksRequestResponseJsonNode()).build());
         client.checkTraceabilityOperation(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT);
     }
 

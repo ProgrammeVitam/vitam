@@ -50,15 +50,12 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.error.VitamCode;
-import fr.gouv.vitam.common.model.StatusCode;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 
@@ -72,19 +69,23 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServer
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
@@ -102,7 +103,6 @@ import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -435,14 +435,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 return Response.status(Response.Status.BAD_REQUEST).build();
             }
             tenantId = Integer.parseInt(xTenantId);
-            final RequestResponse<JsonNode> result =
+            final RequestResponse<LogbookOperation> result =
                 UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId, DEFAULT_CONTRACT_NAME);
             return Response.status(Status.OK).entity(result).build();
-        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+        } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (final LogbookClientException e) {
-            LOGGER.error("Logbook Client NOT FOUND Exception ", e);
+        } catch (final VitamClientException e) {
+            LOGGER.error("Vitam Client NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
         } catch (final Exception e) {
             LOGGER.error("INTERNAL SERVER ERROR", e);
@@ -492,17 +492,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
      */
     private void downloadObjectAsync(final AsyncResponse asyncResponse, String operationId, int tenantId) {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-            final RequestResponse<JsonNode> result =
+            final RequestResponse<LogbookOperation> result =
                 UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId, DEFAULT_CONTRACT_NAME);
 
-            RequestResponseOK<JsonNode> responseOK = (RequestResponseOK<JsonNode>) result;
-            List<JsonNode> results = responseOK.getResults();
-            JsonNode operation = results.get(0);
+            RequestResponseOK<LogbookOperation> responseOK = (RequestResponseOK<LogbookOperation>) result;
+            LogbookOperation operation = responseOK.getFirstResult();
+            LogbookEventOperation lastEvent = Iterables.getLast(operation.getEvents());
 
-            ArrayNode events = (ArrayNode) operation.get(LogbookDocument.EVENTS);
-            JsonNode lastEvent = Iterables.getLast(events);
-
-            String evDetData = lastEvent.get("evDetData").textValue();
+            String evDetData = lastEvent.getEvDetData();
             JsonNode traceabilityEvent = JsonHandler.getFromString(evDetData);
             String fileName = traceabilityEvent.get("FileName").textValue();
             StorageCollectionType documentType = StorageCollectionType.LOGBOOKS;
@@ -526,8 +523,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             LOGGER.error("Storage error was thrown : ", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        } catch (LogbookClientException e) {
-            LOGGER.error("Logbook Client NOT FOUND Exception ", e);
+        } catch (VitamClientException e) {
+            LOGGER.error("Vitam Client NOT FOUND Exception ", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.NOT_FOUND).build());
         } catch (final Exception e) {
             LOGGER.error("INTERNAL SERVER ERROR", e);
@@ -726,8 +723,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                         }
                                     case HTTP_PUT:
                                         if (!StringUtils.isBlank(objectID)) {
-                                            ingestExternalClient.updateOperationActionProcess(xAction, objectID, tenantId);
-                                            result = ingestExternalClient.getOperationProcessExecutionDetails(objectID, tenantId);
+                                            ingestExternalClient.updateOperationActionProcess(xAction, objectID,
+                                                tenantId);
+                                            result = ingestExternalClient.getOperationProcessExecutionDetails(objectID,
+                                                tenantId);
                                             return result.toResponse();
                                         } else {
                                             throw new InvalidParseOperationException(
@@ -735,7 +734,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                         }
                                     case HTTP_DELETE:
                                         if (!StringUtils.isBlank(objectID)) {
-                                            result = ingestExternalClient.cancelOperationProcessExecution(objectID, tenantId);
+                                            result = ingestExternalClient.cancelOperationProcessExecution(objectID,
+                                                tenantId);
                                             return result.toResponse();
                                         } else {
                                             throw new InvalidParseOperationException(

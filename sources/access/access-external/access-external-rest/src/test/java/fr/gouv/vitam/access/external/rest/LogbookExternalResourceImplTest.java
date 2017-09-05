@@ -23,7 +23,6 @@ import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -63,8 +62,8 @@ public class LogbookExternalResourceImplTest {
     private static final String OPERATIONS_URI = "/operations";
     private static final String OPERATION_ID_URI = "/{id_op}";
 
-    private static final String CHECK_TRACEABILITY_OPERATION_URI =  AccessExtAPI.TRACEABILITY_API + "/check";
-    private static final String TRACEABILITY_OPERATION_BASE_URI = AccessExtAPI.TRACEABILITY_API  + "/";
+    private static final String CHECK_TRACEABILITY_OPERATION_URI = AccessExtAPI.TRACEABILITY_API + "/check";
+    private static final String TRACEABILITY_OPERATION_BASE_URI = AccessExtAPI.TRACEABILITY_API + "/";
 
     private static final String MOCK_SELECT_RESULT = "{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
         "    \"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
@@ -417,6 +416,7 @@ public class LogbookExternalResourceImplTest {
 
     @Test
     public void testSelectOperations() throws Exception {
+
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)

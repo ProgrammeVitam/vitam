@@ -26,9 +26,6 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.performance;
 
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDateTime;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventType;
-
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -39,17 +36,16 @@ import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
+import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 
 /**
  *
@@ -67,45 +63,46 @@ public class ReportGenerator implements AutoCloseable {
         headerAlreadyGenerated = false;
     }
 
-    public void generateReport(String operationId, JsonNode logbookOperation) throws IOException, ParseException {
+    public void generateReport(String operationId, LogbookOperation logbookOperation)
+        throws IOException, ParseException {
         if (!headerAlreadyGenerated) {
             generateReportHeader(logbookOperation);
         }
         generateReportLine(operationId, logbookOperation);
     }
 
-    private void generateReportHeader(JsonNode logbookOperation) throws IOException {
+    private void generateReportHeader(LogbookOperation logbookOperation) throws IOException {
         Set<String> headers = new LinkedHashSet<>();
         headers.add("operationId");
-        headers.add(logbookOperation.get(eventType.getDbname()).asText());
+        headers.add(logbookOperation.getEvType());
 
-        ArrayNode events = (ArrayNode) logbookOperation.get(LogbookDocument.EVENTS);
-        events.iterator().forEachRemaining(event -> headers.add(event.get(eventType.getDbname()).asText()));
+        List<LogbookEventOperation> events = logbookOperation.getEvents();
+        events.iterator().forEachRemaining(event -> headers.add(event.getEvType()));
 
         writer.write(headers.stream().collect(Collectors.joining(",")));
         writer.newLine();
         headerAlreadyGenerated = true;
     }
 
-    private void generateReportLine(String operationId, JsonNode logbookOperation) throws ParseException, IOException {
-        String startOperation = logbookOperation.get(eventDateTime.getDbname()).asText();
-        String firstEventType = logbookOperation.get(eventType.getDbname()).asText();
+    private void generateReportLine(String operationId, LogbookOperation logbookOperation)
+        throws ParseException, IOException {
+        String startOperation = logbookOperation.getEvDateTime();
+        String firstEventType = logbookOperation.getEvType();
 
-        ArrayNode events = (ArrayNode) logbookOperation.get(LogbookDocument.EVENTS);
+        List<LogbookEventOperation> events = logbookOperation.getEvents();
 
         Map<String, Interval> map = new LinkedHashMap<>();
         map.put(firstEventType, new Interval(startOperation));
 
         events.iterator().forEachRemaining(event -> {
-                String evType = event.get(eventType.getDbname()).asText();
-                if (map.containsKey(evType)) {
-                    String lastDate = event.get(eventDateTime.getDbname()).asText();
-                    map.get(evType).setEndDate(lastDate);
-                } else {
-                    map.put(evType, new Interval(event.get(eventDateTime.getDbname()).asText()));
-                }
+            String evType = event.getEvType();
+            if (map.containsKey(evType)) {
+                String lastDate = event.getEvDateTime();
+                map.get(evType).setEndDate(lastDate);
+            } else {
+                map.put(evType, new Interval(event.getEvDateTime()));
             }
-        );
+        });
 
         writer.write(String.format("%s,%s", operationId, map.entrySet().stream()
             .map(entry -> entry.getValue().total())

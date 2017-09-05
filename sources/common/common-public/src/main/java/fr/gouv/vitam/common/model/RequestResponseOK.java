@@ -189,8 +189,6 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
         return this;
     }
 
-
-
     /**
      * @return the result of RequestResponse as a list of <T>
      */
@@ -244,6 +242,22 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
      */
     public static RequestResponseOK getFromJsonNode(JsonNode node) throws InvalidParseOperationException {
         return JsonHandler.getFromString(node.toString(), RequestResponseOK.class, JsonNode.class);
+    }
+
+    /**
+     * @return the result of RequestResponse as a list of jsonNode
+     * @throws InvalidParseOperationException
+     */
+    @JsonIgnore
+    public List<JsonNode> getResultsAsJsonNodes() throws InvalidParseOperationException {
+        if (results != null) {
+            List<JsonNode> jsonNodeResults = new ArrayList<>();
+            for (T result : results) {
+                jsonNodeResults.add(JsonHandler.toJsonNode(result));
+            }
+            return jsonNodeResults;
+        }
+        return null;
     }
 
     /**
