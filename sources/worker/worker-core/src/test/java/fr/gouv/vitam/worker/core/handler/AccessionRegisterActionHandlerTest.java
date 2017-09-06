@@ -49,6 +49,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -76,15 +77,15 @@ public class AccessionRegisterActionHandlerTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Before
     public void setUp() throws Exception {
         AdminManagementClientFactory.changeMode(null);
         guid = GUIDFactory.newGUID();
         params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
+                        .setObjectNameList(Lists.newArrayList("objectName.json")).setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         handlerIO = new HandlerIOImpl(guid.getId(), "workerId");
     }
 
@@ -109,7 +110,7 @@ public class AccessionRegisterActionHandlerTest {
         originatingAgencies.add(new UnitPerOriginatingAgency("sp1", 3));
 
         when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString()))
-            .thenReturn(originatingAgencies);
+                .thenReturn(originatingAgencies);
 
         AdminManagementClientFactory.changeMode(null);
         final List<IOParameter> in = new ArrayList<>();

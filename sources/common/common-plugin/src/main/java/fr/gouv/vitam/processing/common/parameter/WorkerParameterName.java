@@ -60,6 +60,12 @@ public enum WorkerParameterName {
      * Name/path of the object to be processed
      */
     objectName,
+
+    /**
+     * List Name/path of the object to be processed
+     */
+    objectNameList,
+
     /**
      * Id of the object to be processed (not used, except in test classes)
      */

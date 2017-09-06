@@ -45,6 +45,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.IOUtils;
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -111,13 +112,14 @@ public class ArchiveUnitRulesUpdateActionPluginTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private final WorkerParameters params =
-        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-            .setUrlMetadata("http://localhost:8083")
-            .setObjectName(guidAu + ".json").setCurrentStep("currentStep")
-            .setContainerName(guid.getId()).setLogbookTypeProcess(LogbookTypeProcess.UPDATE);
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                    .setUrlMetadata("http://localhost:8083")
+                    .setObjectNameList(Lists.newArrayList(guidAu + ".json"))
+                    .setObjectName(guidAu + ".json").setCurrentStep("currentStep")
+                    .setContainerName(guid.getId()).setLogbookTypeProcess(LogbookTypeProcess.UPDATE);
 
     public ArchiveUnitRulesUpdateActionPluginTest() {
         // do nothing
@@ -139,15 +141,15 @@ public class ArchiveUnitRulesUpdateActionPluginTest {
 
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(metadataClientFactory);
         PowerMockito.when(MetaDataClientFactory.getInstance().getClient())
-            .thenReturn(metadataClient);
+                .thenReturn(metadataClient);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient())
-            .thenReturn(workspaceClient);
+                .thenReturn(workspaceClient);
 
         action = new HandlerIOImpl(guid.getId(), "workerId");
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE,
-            UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.AU_TO_BE_UPDATED_JSON)));
+                UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.AU_TO_BE_UPDATED_JSON)));
     }
 
     @After
@@ -161,17 +163,17 @@ public class ArchiveUnitRulesUpdateActionPluginTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         action.addOutIOParameters(out);
         final JsonNode archiveUnitToBeUpdated =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_DETAIL));
+                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_DETAIL));
         final InputStream archiveUnitRules =
-            PropertiesUtils.getResourceAsStream(AU_RULES);
+                PropertiesUtils.getResourceAsStream(AU_RULES);
         final JsonNode archiveUnitUpdated =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UPDATED_AU));
+                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UPDATED_AU));
         try {
             reset(workspaceClient);
             reset(metadataClient);
             when(metadataClient.selectUnitbyId(anyObject(), eq(guidAu))).thenReturn(archiveUnitToBeUpdated);
             when(workspaceClient.getObject(anyObject(),
-                eq(UpdateWorkflowConstants.UNITS_FOLDER + "/" + guidAu + ".json")))
+                    eq(UpdateWorkflowConstants.UNITS_FOLDER + "/" + guidAu + ".json")))
                     .thenReturn(Response.status(Status.OK).entity(archiveUnitRules).build());
             when(metadataClient.updateUnitbyId(anyObject(), eq(guidAu))).thenReturn(archiveUnitUpdated);
             params.setProcessId(GUIDFactory.newOperationLogbookGUID(0).toString());
@@ -197,7 +199,7 @@ public class ArchiveUnitRulesUpdateActionPluginTest {
         reset(metadataClient);
         reset(workspaceClient);
         when(metadataClient.selectUnitbyId(anyObject(), eq(guidAu)))
-            .thenThrow(new MetaDataExecutionException("MetaDataExecutionException"));
+                .thenThrow(new MetaDataExecutionException("MetaDataExecutionException"));
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
@@ -220,15 +222,15 @@ public class ArchiveUnitRulesUpdateActionPluginTest {
     public void givenIncorrectXMLFileFromWorkspaceWhenExecuteThenReturnResponseFatal() throws Exception {
         action.addOutIOParameters(out);
         final JsonNode archiveUnitToBeUpdated =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_DETAIL));
+                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_DETAIL));
         reset(metadataClient);
         reset(workspaceClient);
 
         when(metadataClient.selectUnitbyId(anyObject(), eq(guidAu))).thenReturn(archiveUnitToBeUpdated);
         when(workspaceClient.getObject(anyObject(),
-            eq(UpdateWorkflowConstants.UNITS_FOLDER + "/" + guidAu + ".json")))
+                eq(UpdateWorkflowConstants.UNITS_FOLDER + "/" + guidAu + ".json")))
                 .thenReturn(Response.status(Status.OK)
-                    .entity(IOUtils.toInputStream("<root><random>Random XML tags</random></root>", "UTF-8")).build());
+                        .entity(IOUtils.toInputStream("<root><random>Random XML tags</random></root>", "UTF-8")).build());
         final ItemStatus response2 = plugin.execute(params, action);
         assertEquals(StatusCode.FATAL, response2.getGlobalStatus());
 
@@ -238,15 +240,15 @@ public class ArchiveUnitRulesUpdateActionPluginTest {
     public void givenWorkspaceErrorWhenExecuteThenReturnResponseFatal() throws Exception {
         action.addOutIOParameters(out);
         final JsonNode archiveUnitToBeUpdated =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_DETAIL));
+                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_DETAIL));
         reset(metadataClient);
         reset(workspaceClient);
 
         when(metadataClient.selectUnitbyId(anyObject(), eq(guidAu))).thenReturn(archiveUnitToBeUpdated);
         when(workspaceClient.getObject(anyObject(),
-            eq(UpdateWorkflowConstants.UNITS_FOLDER + "/" + guidAu + ".json")))
+                eq(UpdateWorkflowConstants.UNITS_FOLDER + "/" + guidAu + ".json")))
                 .thenThrow(
-                    new ContentAddressableStorageNotFoundException("ContentAddressableStorageNotFoundException"));
+                        new ContentAddressableStorageNotFoundException("ContentAddressableStorageNotFoundException"));
         final ItemStatus response2 = plugin.execute(params, action);
         assertEquals(StatusCode.FATAL, response2.getGlobalStatus());
 
@@ -256,19 +258,19 @@ public class ArchiveUnitRulesUpdateActionPluginTest {
     public void givenUpdateErrorWhenExecuteThenReturnResponseFatal() throws Exception {
         action.addOutIOParameters(out);
         final JsonNode archiveUnitToBeUpdated =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_DETAIL));
+                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_DETAIL));
         final InputStream archiveUnitRules =
-            PropertiesUtils.getResourceAsStream(AU_RULES);
+                PropertiesUtils.getResourceAsStream(AU_RULES);
         reset(metadataClient);
         reset(workspaceClient);
         try {
             when(metadataClient.selectUnitbyId(anyObject(), eq(guidAu))).thenReturn(archiveUnitToBeUpdated);
             when(workspaceClient.getObject(anyObject(),
-                eq(UpdateWorkflowConstants.UNITS_FOLDER + "/" + guidAu + ".json")))
+                    eq(UpdateWorkflowConstants.UNITS_FOLDER + "/" + guidAu + ".json")))
                     .thenReturn(Response.status(Status.OK).entity(archiveUnitRules).build());
 
             when(metadataClient.updateUnitbyId(anyObject(), eq(guidAu)))
-                .thenThrow(new InvalidParseOperationException("Bad Request"));
+                    .thenThrow(new InvalidParseOperationException("Bad Request"));
 
             final ItemStatus response2 = plugin.execute(params, action);
             assertEquals(StatusCode.KO, response2.getGlobalStatus());

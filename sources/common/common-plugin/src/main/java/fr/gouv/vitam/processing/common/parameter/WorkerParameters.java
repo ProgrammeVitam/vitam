@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.processing.common.parameter;
 
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -151,6 +152,24 @@ public interface WorkerParameters extends VitamParameter<WorkerParameterName> {
      * @throws IllegalArgumentException if the objectName is null or empty
      */
     WorkerParameters setObjectName(String objectName);
+
+    /**
+     * Get the object name parameter
+     *
+     * @return the object name value
+     */
+    List<String> getObjectNameList();
+
+    /**
+     * Set the object name value
+     *
+     * @param objectNameList the object name value
+     * @return the current instance of WorkerParameter
+     * @throws IllegalArgumentException if the objectName is null or empty
+     */
+    WorkerParameters setObjectNameList(List<String> objectNameList);
+
+
 
     /**
      * Get the metadata request parameter

@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -85,7 +86,9 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
 
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
         .newGUID()).setContainerName(OBJ).setUrlWorkspace("http://localhost:8083")
-        .setUrlMetadata("http://localhost:8083").setObjectName(OBJ)
+        .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList(OBJ))
+            .setObjectName(OBJ)
         .setCurrentStep("TEST").setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
     @Before

@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.google.common.collect.Lists;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.guid.GUID;
@@ -145,14 +146,14 @@ public class WorkerParametersTest {
             "  \"processId\" : \"processId\",\n" +
             "  \"stepUniqId\" : \"stepUniqId\",\n" +
             "  \"containerName\" : \"containerName\",\n" +
-            "  \"objectName\" : \"objectName\",\n" +
+            "  \"objectNameList\" : \"[ \\\"objectName\\\" ]\",\n" +
             "  \"objectId\" : \"objectId\",\n" +
             "  \"workerGUID\" : \"" + guid.getId() + "\",\n" +
             "  \"metadataRequest\" : \"metadataRequest\",\n" +
             "  \"currentStep\" : \"currentStep\"\n" +
             "}";
         final WorkerParameters parameters = WorkerParametersFactory.newWorkerParameters("processId", "stepUniqId",
-            "containerName", "currentStep", "objectName", "urlMetadata", "urlWorkspace");
+            "containerName", "currentStep", Lists.newArrayList("objectName"), "urlMetadata", "urlWorkspace");
         assertNotNull(parameters);
         parameters.setObjectId("objectId");
         parameters.setMetadataRequest("metadataRequest");

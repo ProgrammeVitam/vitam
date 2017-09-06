@@ -35,6 +35,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -62,10 +63,11 @@ public class CheckVersionActionHandlerTest {
     private static final String HANDLER_ID = "CHECK_MANIFEST_DATAOBJECT_VERSION";
     private SedaUtils sedaUtils;
     private final WorkerParameters params =
-        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-            .setUrlMetadata("http://localhost:8083")
-            .setObjectName("objectName.json").setCurrentStep("currentStep")
-            .setContainerName("CheckVersionActionHandlerTest");
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                    .setUrlMetadata("http://localhost:8083")
+                    .setObjectNameList(Lists.newArrayList("objectName.json"))
+                    .setObjectName("objectName.json").setCurrentStep("currentStep")
+                    .setContainerName("CheckVersionActionHandlerTest");
     private final HandlerIOImpl handlerIO = new HandlerIOImpl("CheckVersionActionHandlerTest", "workerId");
 
     @Before
@@ -82,7 +84,7 @@ public class CheckVersionActionHandlerTest {
 
     @Test
     public void givenWorkspaceExistWhenCheckIsTrueThenReturnResponseOK()
-        throws ProcessingException, IOException, URISyntaxException {
+            throws ProcessingException, IOException, URISyntaxException {
         final List<String> invalidVersionList = new ArrayList<>();
         Mockito.doReturn(invalidVersionList).when(sedaUtils).checkSupportedDataObjectVersion(anyObject());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
@@ -92,7 +94,7 @@ public class CheckVersionActionHandlerTest {
 
     @Test
     public void givenWorkspaceExistWhenCheckIsFalseThenReturnResponseWarning()
-        throws ProcessingException, IOException, URISyntaxException {
+            throws ProcessingException, IOException, URISyntaxException {
         final List<String> invalidVersionList = new ArrayList<>();
         invalidVersionList.add("PhysicalMaste");
         Mockito.doReturn(invalidVersionList).when(sedaUtils).checkSupportedDataObjectVersion(anyObject());
@@ -103,7 +105,7 @@ public class CheckVersionActionHandlerTest {
 
     @Test
     public void givenWorkspaceExistWhenExceptionExistThenReturnResponseFatal()
-        throws ProcessingException, IOException, URISyntaxException {
+            throws ProcessingException, IOException, URISyntaxException {
         Mockito.doThrow(new ProcessingException("")).when(sedaUtils).checkSupportedDataObjectVersion(anyObject());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final ItemStatus response = handlerVersion.execute(params, handlerIO);

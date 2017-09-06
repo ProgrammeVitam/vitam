@@ -83,7 +83,7 @@ vitam_storageengine_port: 9102
 vitam_storageengine_port_admin: 29102
 vitam_storageengine_baseurl: "http://{{vitam_storageengine_host}}:{{vitam_storageengine_port}}"
 vitam_storageengine_baseuri: "/storage-engine"
-test_tls_offer_enabled: true
+test_tls_offer_enabled: false
 
 vitam_storageofferdefault_port: 9900
 vitam_storageofferdefault_port_admin: 29900

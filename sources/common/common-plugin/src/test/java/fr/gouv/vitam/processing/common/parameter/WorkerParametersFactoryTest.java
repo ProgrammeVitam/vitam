@@ -35,6 +35,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.google.common.collect.Lists;
 import org.junit.Test;
 
 public class WorkerParametersFactoryTest {
@@ -60,7 +61,7 @@ public class WorkerParametersFactoryTest {
         assertEquals(0, parameters.getMapParameters().size());
 
         final WorkerParameters parameters2 = WorkerParametersFactory.newWorkerParameters("processId", "stepUniqId",
-            "containerName", "currentStep", "objectName", "urlMetadata", "urlWorkspace");
+            "containerName", "currentStep", Lists.newArrayList("objectName"), "urlMetadata", "urlWorkspace");
         assertNotNull(parameters2);
         assertEquals(7, parameters2.getMapParameters().size());
     }

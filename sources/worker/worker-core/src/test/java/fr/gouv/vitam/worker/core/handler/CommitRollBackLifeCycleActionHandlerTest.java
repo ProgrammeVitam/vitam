@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -48,12 +49,13 @@ public class CommitRollBackLifeCycleActionHandlerTest {
         commitAction = new HandlerIOImpl(containerName.getId(), "workerId");
 
         WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters()
-                .setUrlWorkspace(WORKSPACE_URL)
-                .setUrlMetadata(METADATA_URL)
-                .setObjectName(unit)
-                .setCurrentStep(COMMIT_STEP)
-                .setContainerName(containerName.getId());
+                WorkerParametersFactory.newWorkerParameters()
+                        .setUrlWorkspace(WORKSPACE_URL)
+                        .setUrlMetadata(METADATA_URL)
+                        .setObjectNameList(Lists.newArrayList(unit))
+                        .setObjectName(unit)
+                        .setCurrentStep(COMMIT_STEP)
+                        .setContainerName(containerName.getId());
 
         // Commit a Unit lifeCycle
         ItemStatus response = commitUnitHandler.execute(params, commitAction);
@@ -72,12 +74,13 @@ public class CommitRollBackLifeCycleActionHandlerTest {
         commitAction = new HandlerIOImpl(containerName.getId(), "workerId");
 
         WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters()
-                .setUrlWorkspace(WORKSPACE_URL)
-                .setUrlMetadata(METADATA_URL)
-                .setObjectName(unit)
-                .setCurrentStep(COMMIT_STEP)
-                .setContainerName(containerName.getId());
+                WorkerParametersFactory.newWorkerParameters()
+                        .setUrlWorkspace(WORKSPACE_URL)
+                        .setUrlMetadata(METADATA_URL)
+                        .setObjectNameList(Lists.newArrayList(unit))
+                        .setObjectName(unit)
+                        .setCurrentStep(COMMIT_STEP)
+                        .setContainerName(containerName.getId());
 
         // Commit a Unit lifeCycle
         List<IOParameter> in = new ArrayList<>();

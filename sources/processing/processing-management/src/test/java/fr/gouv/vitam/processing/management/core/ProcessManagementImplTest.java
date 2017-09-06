@@ -26,31 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.eq;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
-
-import java.time.LocalDate;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Matchers;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
@@ -83,8 +59,32 @@ import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
-import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImpl;
-import fr.gouv.vitam.processing.distributor.core.WorkerManager;
+import fr.gouv.vitam.processing.distributor.v2.ProcessDistributorImpl;
+import fr.gouv.vitam.processing.distributor.v2.WorkerManager;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Matchers;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.eq;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*"})
@@ -108,13 +108,8 @@ public class ProcessManagementImplTest {
         processDataManagement = PowerMockito.mock(WorkspaceProcessDataManagement.class);
         PowerMockito.when(WorkspaceProcessDataManagement.getInstance()).thenReturn(processDataManagement);
 
-        if (VitamConfiguration.isEnableDistributorV2()) {
-            workerManager = new fr.gouv.vitam.processing.distributor.v2.WorkerManager();
-            processDistributor= new fr.gouv.vitam.processing.distributor.v2.ProcessDistributorImpl(workerManager);
-        } else {
-            workerManager = new WorkerManager();
-            processDistributor= new ProcessDistributorImpl((WorkerManager)workerManager);
-        }
+        workerManager = new WorkerManager();
+        processDistributor = new ProcessDistributorImpl(workerManager);
     }
 
     @Test(expected = ProcessingException.class)
@@ -127,7 +122,7 @@ public class ProcessManagementImplTest {
         processManagementImpl =
             new ProcessManagementImpl(new ServerConfiguration(), processDistributor);
         processManagementImpl.resume(
-            WorkerParametersFactory.newWorkerParameters(ID, ID, CONTAINER_NAME, ID, ID,
+            WorkerParametersFactory.newWorkerParameters(ID, ID, CONTAINER_NAME, ID, Lists.newArrayList(ID),
                 "http://localhost:8083",
                 "http://localhost:8083"),
             1);
@@ -301,7 +296,8 @@ public class ProcessManagementImplTest {
             processWorkflow.setMessageIdentifier("MessageIdentifier");
             processWorkflow.setOperationId("operationId" + j);
             for (int i = 0; i < 20; i++) {
-                processWorkflow.getSteps().add(getProcessStep("key-map-" + i, "name-" + i, "element-" + i, "groupID-" + i));
+                processWorkflow.getSteps()
+                    .add(getProcessStep("key-map-" + i, "name-" + i, "element-" + i, "groupID-" + i));
             }
             date = date.plusDays(j == 0 ? 0 : 1);
             processWorkflow.setProcessDate(Date.from(date.atStartOfDay(ZoneOffset.UTC).toInstant()));

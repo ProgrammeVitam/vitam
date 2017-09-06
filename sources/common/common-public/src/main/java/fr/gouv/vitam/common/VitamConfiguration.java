@@ -26,13 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.common;
 
-import java.io.File;
-import java.util.Locale;
-
 import com.google.common.base.Strings;
-
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+
+import java.io.File;
+import java.util.Locale;
 
 /**
  * This class contains default values shared among all services in Vitam
@@ -243,7 +242,14 @@ public class VitamConfiguration {
 
     private static boolean exportScore = false;
 
-    private static int distributeurBatchSize = 10;
+    /**
+     * Distributor batch size
+     */
+    private static int distributeurBatchSize = 100;
+    /**
+     * Worker bulk size
+     */
+    private static int workerBulkSize = 10;
     /*
      * Cache delay = 60 seconds
      */
@@ -283,8 +289,6 @@ public class VitamConfiguration {
     private static Boolean filterActivation;
 
     private Integer connectTimeout = CONNECT_TIMEOUT;
-
-    private static boolean enableDistributorV2 = true;
 
     private static int asyncWorkspaceQueueSize = 10;
 
@@ -572,14 +576,14 @@ public class VitamConfiguration {
         if (null != parameters.getVitamCleanPeriod()) {
             setVitamCleanPeriod(parameters.getVitamCleanPeriod());
         }
-        if (null != parameters.isEnableDistributorV2()) {
-            setEnableDistributorV2(parameters.isEnableDistributorV2());
-        }
         if (null != parameters.isExportScore()) {
             setExportScore(parameters.isExportScore());
         }
         if (null != parameters.getDistributeurBatchSize()) {
             setDistributeurBatchSize(parameters.getDistributeurBatchSize());
+        }
+        if (null != parameters.getWorkerBulkSize()) {
+            setWorkerBulkSize(parameters.getWorkerBulkSize());
         }
         if (null != parameters.getMaxElasticsearchBulk()) {
             setMaxElasticsearchBulk(parameters.getMaxElasticsearchBulk());
@@ -1355,22 +1359,6 @@ public class VitamConfiguration {
     }
 
     /**
-     * Getter for enableDistributorV2;
-     */
-    public static boolean isEnableDistributorV2() {
-        return enableDistributorV2;
-    }
-
-    /**
-     * Setter for enableDistributorV2;
-     */
-    private static void setEnableDistributorV2(boolean enableDistributorV2) {
-        VitamConfiguration.enableDistributorV2 = enableDistributorV2;
-    }
-
-
-
-    /**
      * Getter for distributeurBatchSize;
      */
     public static int getDistributeurBatchSize() {
@@ -1380,8 +1368,24 @@ public class VitamConfiguration {
     /**
      * Setter for distributeurBatchSize;
      */
-    private static void setDistributeurBatchSize(int distributeurBatchSize) {
+    public static void setDistributeurBatchSize(int distributeurBatchSize) {
         VitamConfiguration.distributeurBatchSize = distributeurBatchSize;
+    }
+
+    /**
+     * Getter for worker bulk size
+     * @return
+     */
+    public static int getWorkerBulkSize() {
+        return workerBulkSize;
+    }
+
+    /**
+     * Setter worker bulk size
+     * @param workerBulkSize
+     */
+    public static void setWorkerBulkSize(int workerBulkSize) {
+        VitamConfiguration.workerBulkSize = workerBulkSize;
     }
 
     /**

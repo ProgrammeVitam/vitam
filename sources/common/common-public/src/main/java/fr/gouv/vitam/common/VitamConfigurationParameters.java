@@ -28,9 +28,6 @@ package fr.gouv.vitam.common;
 
 import com.google.common.base.Strings;
 
-import java.util.List;
-import java.util.Map;
-
 
 /**
  * This class contains Vitam Data
@@ -47,9 +44,14 @@ public class VitamConfigurationParameters {
      */
     public Boolean enableJaxbParser;
     /**
-     *
+     * Distributor batch size
      */
     private Integer distributeurBatchSize;
+    /**
+     * Worker bulk size
+     */
+    private Integer workerBulkSize;
+
     /**
      *
      */
@@ -75,7 +77,6 @@ public class VitamConfigurationParameters {
     }
 
 
-    public Boolean enableDistributorV2;
     /**
      * /**
      * Default Vitam Config Folder
@@ -747,20 +748,6 @@ public class VitamConfigurationParameters {
         this.maxConcurrentMultipleInputstreamHandler = maxConcurrentMultipleInputstreamHandler;
     }
 
-    /**
-     * Getter for   enableDistributorV2;
-     */
-    public Boolean isEnableDistributorV2() {
-        return enableDistributorV2;
-    }
-
-    /**
-     * Setter for   enableDistributorV2;
-     */
-    public void setEnableDistributorV2(boolean ENABLE_DISTRIBUTOR_V2) {
-        this.enableDistributorV2 = ENABLE_DISTRIBUTOR_V2;
-    }
-
     public Integer getVitamCleanPeriod() {
         return vitamCleanPeriod;
     }
@@ -792,10 +779,26 @@ public class VitamConfigurationParameters {
     /**
      * Setter for   distributeurBatchSize;
      */
-    public void setDistributeurBatchSize(int distributeurBatchSize) {
+    public void setDistributeurBatchSize(Integer distributeurBatchSize) {
         this.distributeurBatchSize = distributeurBatchSize;
     }
 
+
+    /**
+     * Getter for worker bulk size
+     * @return
+     */
+    public Integer getWorkerBulkSize() {
+        return workerBulkSize;
+    }
+
+    /**
+     * Setter for worker bulk size
+     * @param workerBulkSize
+     */
+    public void setWorkerBulkSize(Integer workerBulkSize) {
+        this.workerBulkSize = workerBulkSize;
+    }
 
     /**
      * Getter for   maxElasticsearchBulk;

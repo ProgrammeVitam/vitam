@@ -43,6 +43,7 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -354,7 +355,7 @@ public class FormatIdentificationActionPluginTest {
 
     private DefaultWorkerParameters getDefaultWorkerParameters() {
         return WorkerParametersFactory.newWorkerParameters("pId", "stepId", guid.getId(),
-            "currentStep", "objName", "metadataURL", "workspaceURL");
+            "currentStep", Lists.newArrayList("objName"), "metadataURL", "workspaceURL");
     }
 
     private List<FormatIdentifierResponse> getFormatIdentifierResponseList() {
