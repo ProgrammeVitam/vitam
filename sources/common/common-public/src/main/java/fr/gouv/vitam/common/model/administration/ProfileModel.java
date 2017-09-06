@@ -15,13 +15,9 @@
  * generally, to use and operate it in the same conditions as regards security. <p> The fact that you are presently
  * reading this means that you have had knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
-package fr.gouv.vitam.functional.administration.client.model;
+package fr.gouv.vitam.common.model.administration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.functional.administration.common.embed.ProfileFormat;
-import fr.gouv.vitam.functional.administration.common.embed.ProfileStatus;
 
 /**
  * Data Transfer Object Model of Profile (DTO).
@@ -39,7 +35,7 @@ public class ProfileModel {
      * tenant id
      */
     @JsonProperty("_tenant")
-    private int tenant;
+    private Integer tenant;
 
     @JsonProperty("Identifier")
     private String identifier;
@@ -79,7 +75,7 @@ public class ProfileModel {
      * Constructor without fields use for jackson
      */
     public ProfileModel() {
-        setTenant(ParameterHelper.getTenantParameter());
+        super();
     }
 
     /**
@@ -101,7 +97,7 @@ public class ProfileModel {
     /**
      * @return tenant
      */
-    public int getTenant() {
+    public Integer getTenant() {
         return tenant;
     }
 
@@ -109,7 +105,7 @@ public class ProfileModel {
      * @param tenant value to set working tenant
      * @return this
      */
-    public ProfileModel setTenant(int tenant) {
+    public ProfileModel setTenant(Integer tenant) {
         this.tenant = tenant;
         return this;
     }

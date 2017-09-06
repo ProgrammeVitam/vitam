@@ -34,8 +34,8 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.client.model.IndexOptions;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 
 /**

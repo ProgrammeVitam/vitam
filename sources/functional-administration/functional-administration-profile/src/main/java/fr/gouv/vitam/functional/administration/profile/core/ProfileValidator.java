@@ -26,10 +26,10 @@
  */
 package fr.gouv.vitam.functional.administration.profile.core;
 
-import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
-
 import java.io.InputStream;
 import java.util.Optional;
+
+import fr.gouv.vitam.common.model.administration.ProfileModel;
 
 /**
  * Used to validate profiles and to apply acceptance rules.

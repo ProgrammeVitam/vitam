@@ -25,12 +25,52 @@
  *  accept its terms.
  */
 
-package fr.gouv.vitam.functional.administration.common.embed;
+package fr.gouv.vitam.common.model.administration;
+
+import static org.junit.Assert.assertEquals;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import org.junit.Test;
 
 /**
- * Created by djamel Hamas on 5/9/17.
+ * Data Transfer Object Model of access contract (DTO).
  */
-public enum ProfileFormat {
-    XSD,
-    RNG
+
+public class IngestContractModelTest {
+
+
+    private static final Integer TENANT_ID = 0;
+
+    @Test
+    public void testConstructor() throws Exception {
+
+        IngestContractModel contract = new IngestContractModel();
+        final String id = "aeaqaaaaaahfrfvaaahrgak25v5fttiaaaaq";
+        String name = "aName";
+        String description = "aDescription of the contract";
+        String lastupdate = "10/12/2016";
+        Set<String> archiveProfiles = new HashSet<>();
+        archiveProfiles.add("FR_FAKE");
+        contract
+            .setId(id)
+            .setTenant(TENANT_ID)
+            .setName(name)
+            .setDescription(description).setStatus(ContractStatus.ACTIVE.name())
+            .setLastupdate(lastupdate)
+            .setCreationdate(lastupdate)
+            .setActivationdate(lastupdate).
+            setDeactivationdate(lastupdate);
+        contract.setArchiveProfiles(archiveProfiles);
+
+        assertEquals(id, contract.getId());
+        assertEquals(name, contract.getName());
+        assertEquals(description, contract.getDescription());
+        assertEquals(lastupdate, contract.getCreationdate());
+        assertEquals(lastupdate, contract.getActivationdate());
+        assertEquals(lastupdate, contract.getDeactivationdate());
+        assertEquals(archiveProfiles, contract.getArchiveProfiles());
+    }
+
 }

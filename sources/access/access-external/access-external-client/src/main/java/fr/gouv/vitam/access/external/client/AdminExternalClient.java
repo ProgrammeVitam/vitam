@@ -26,7 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.client;
 
+import java.io.InputStream;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
@@ -34,12 +40,16 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServer
 import fr.gouv.vitam.access.external.common.exception.AccessExternalNotFoundException;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.BasicClient;
 import fr.gouv.vitam.common.model.RequestResponse;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.InputStream;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.common.model.administration.FileFormatModel;
+import fr.gouv.vitam.common.model.administration.FileRulesModel;
+import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ProfileModel;
 
 /**
  * Admin External Client Interface
@@ -52,14 +62,11 @@ public interface AdminExternalClient extends BasicClient {
      * @param documentType
      * @param stream
      * @param tenantId
-     * @return response 
-     * @throws AccessExternalClientNotFoundException
-     * @throws AccessExternalClientException
-     * @throws AccessExternalClientServerException
+     * @return response
+     * @throws VitamClientException
      */
     Response checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
-        throws AccessExternalClientNotFoundException,
-        AccessExternalClientException, AccessExternalClientServerException;
+        throws VitamClientException;
 
 
     /**
@@ -77,33 +84,91 @@ public interface AdminExternalClient extends BasicClient {
         throws AccessExternalClientNotFoundException, AccessExternalClientException;
 
     /**
-     * findDocuments
-     *
-     * @param documentType
-     * @param select
-     * @param tenantId
-     * @return the JsonNode results
-     * @throws AccessExternalClientNotFoundException
-     * @throws AccessExternalClientException
-     * @throws InvalidParseOperationException
+     * Find formats.
+     * 
+     * @param select select query
+     * @param tenantId tenant id
+     * @param contractName contract name
+     * @return list of formats
+     * @throws VitamClientException
      */
-    RequestResponse findDocuments(AdminCollections documentType, JsonNode select, Integer tenantId)
-        throws AccessExternalClientException, InvalidParseOperationException;
+    RequestResponse<FileFormatModel> findFormats(JsonNode select, Integer tenantId, String contractName)
+        throws VitamClientException;
 
     /**
-     * findDocuments with contractName used by accesion-registers
-     *
-     * @param documentType
-     * @param select
-     * @param tenantId
-     * @param contractName
-     * @return the JsonNode results
-     * @throws AccessExternalClientNotFoundException
-     * @throws AccessExternalClientException
-     * @throws InvalidParseOperationException
+     * Find rules.
+     * 
+     * @param select select query
+     * @param tenantId tenant id
+     * @param contractName contract name
+     * @return list of rules
+     * @throws VitamClientException
      */
-    RequestResponse findDocuments(AdminCollections documentType, JsonNode select, Integer tenantId, String contractName)
-        throws AccessExternalClientException, InvalidParseOperationException;
+    RequestResponse<FileRulesModel> findRules(JsonNode select, Integer tenantId, String contractName)
+        throws VitamClientException;
+
+    /**
+     * Find entry contracts.
+     * 
+     * @param select select query
+     * @param tenantId tenant id
+     * @param contractName contract name
+     * @return list of ingest contrats
+     * @throws VitamClientException
+     */
+    RequestResponse<IngestContractModel> findIngestContracts(JsonNode select, Integer tenantId, String contractName)
+        throws VitamClientException;
+
+
+    /**
+     * Find access contracts.
+     * 
+     * @param select select query
+     * @param tenantId tenant id
+     * @param contractName contract name
+     * @return list of access contrats
+     * @throws VitamClientException
+     */
+    RequestResponse<AccessContractModel> findAccessContracts(JsonNode select, Integer tenantId, String contractName)
+        throws VitamClientException;
+
+
+    /**
+     * Find contexts.
+     * 
+     * @param select select query
+     * @param tenantId tenant id
+     * @param contractName contract name
+     * @return list of contexts
+     * @throws VitamClientException
+     */
+    RequestResponse<ContextModel> findContexts(JsonNode select, Integer tenantId, String contractName)
+        throws VitamClientException;
+
+    /**
+     * Find profiles.
+     * 
+     * @param select select query
+     * @param tenantId tenant id
+     * @param contractName contract name
+     * @return list of profiles
+     * @throws VitamClientException
+     */
+    RequestResponse<ProfileModel> findProfiles(JsonNode select, Integer tenantId, String contractName)
+        throws VitamClientException;
+
+    /**
+     * Find accessing registers.
+     * 
+     * @param select select query
+     * @param tenantId tenant id
+     * @param contractName contract name
+     * @return list of accessing registers
+     * @throws VitamClientException
+     */
+    RequestResponse<AccessionRegisterSummaryModel> findAccessionRegister(JsonNode select, Integer tenantId,
+        String contractName)
+        throws VitamClientException;
 
     /**
      * findDocumentById
@@ -136,7 +201,8 @@ public interface AdminExternalClient extends BasicClient {
 
     /**
      * Import a set of contracts after passing the validation steps. If all the contracts are valid, they are stored in
-     * the collection and indexed. </BR> The input is invalid in the following situations : </BR>
+     * the collection and indexed. </BR>
+     * The input is invalid in the following situations : </BR>
      * <ul>
      * <li>The json is invalid</li>
      * <li>The json contains 2 ore many contracts having the same name</li>
@@ -186,7 +252,8 @@ public interface AdminExternalClient extends BasicClient {
 
     /**
      * Create a profile metadata after passing the validation steps. If profile are json and valid, they are stored in
-     * the collection and indexed. </BR> The input is invalid in the following situations : </BR>
+     * the collection and indexed. </BR>
+     * The input is invalid in the following situations : </BR>
      * <ul>
      * <li>The json of file is invalid</li>
      * <li>One or more mandatory field is missing</li>
@@ -277,7 +344,7 @@ public interface AdminExternalClient extends BasicClient {
      */
     Response downloadTraceabilityOperationFile(String operationId, Integer tenantId, String contractName)
         throws AccessExternalClientServerException, AccessUnauthorizedException;
-    
+
     /**
      * Check the existence of objects in the context of an audit
      * 
@@ -287,5 +354,6 @@ public interface AdminExternalClient extends BasicClient {
      * @return Status
      * @throws AccessExternalClientServerException
      */
-    Status launchAudit(JsonNode auditOption, Integer tenantId, String contractName) throws AccessExternalClientServerException;
+    Status launchAudit(JsonNode auditOption, Integer tenantId, String contractName)
+        throws AccessExternalClientServerException;
 }

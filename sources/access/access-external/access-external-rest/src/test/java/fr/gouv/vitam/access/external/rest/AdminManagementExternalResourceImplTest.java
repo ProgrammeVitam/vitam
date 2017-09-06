@@ -191,7 +191,7 @@ public class AdminManagementExternalResourceImplTest {
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        doThrow(new ReferentialException("")).when(adminCLient).checkFormat(anyObject());
+        doThrow(new ReferentialException("Referential Exception")).when(adminCLient).checkFormat(anyObject());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)

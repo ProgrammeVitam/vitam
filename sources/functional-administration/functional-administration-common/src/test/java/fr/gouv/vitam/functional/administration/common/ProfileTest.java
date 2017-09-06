@@ -28,12 +28,13 @@
 package fr.gouv.vitam.functional.administration.common;
 
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.administration.ProfileFormat;
+import fr.gouv.vitam.common.model.administration.ProfileStatus;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.embed.ProfileFormat;
-import fr.gouv.vitam.functional.administration.common.embed.ProfileStatus;
+
 import org.junit.Rule;
 import org.junit.Test;
 

@@ -74,14 +74,14 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.AbstractContractModel;
-import fr.gouv.vitam.common.model.ContractStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AbstractContractModel;
+import fr.gouv.vitam.common.model.administration.ContractStatus;
+import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -199,6 +199,11 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     final JsonNode ingestContractModel = JsonHandler.toJsonNode(acm);
 
                 }
+                if (acm.getTenant() == null) {
+                    acm.setTenant(ParameterHelper.getTenantParameter());
+                }
+
+
                 if (slaveMode) {
                     final Optional<GenericContractValidator.GenericRejectionCause> result =
                         manager.checkDuplicateInIdentifierSlaveModeValidator().validate(acm, acm.getIdentifier());
@@ -571,7 +576,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
 
         /**
-         * Check if the Id of the  contract  already exists in database
+         * Check if the Id of the contract already exists in database
          *
          * @return
          */
@@ -735,9 +740,9 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         final JsonNode queryDsl = select.getFinalSelect();
         // if the filing id is in the filing schema
         if (metadataClient.selectUnitbyId(queryDsl, id).get("$hits").get("size").asInt() == 0) {
-                return false;
-            } else {
-                return true;
-            }
+            return false;
+        } else {
+            return true;
+        }
     }
 }

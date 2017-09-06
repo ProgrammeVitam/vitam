@@ -125,6 +125,11 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.VitamConstants;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.common.model.administration.FileFormatModel;
+import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
@@ -820,13 +825,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
             final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            final RequestResponse result = adminClient.findDocuments(AdminCollections.FORMATS, query,
-                getTenantId(headers));
+            final RequestResponse<FileFormatModel> result = adminClient.findFormats(query, getTenantId(headers), null);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("Bad request Exception ", e);
             return Response.status(Status.BAD_REQUEST).build();
-        } catch (final AccessExternalClientNotFoundException e) {
+        } catch (final VitamClientException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
         } catch (final Exception e) {
@@ -884,8 +888,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             Response response = adminClient.checkDocuments(AdminCollections.FORMATS, input, getTenantId(headers));
             return response;
-        } catch (final AccessExternalClientNotFoundException e) {
-            LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
+        } catch (final VitamClientException e) {
+            LOGGER.error("VitamClientException ", e);
             return Response.status(Status.NOT_FOUND).build();
         } catch (final Exception e) {
             LOGGER.error(e);
@@ -1186,8 +1190,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
                 final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
                 final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-                result = adminClient.findDocuments(AdminCollections.RULES, query,
-                    getTenantId(headers));
+                result = adminClient.findRules(query, getTenantId(headers), getAccessContractId(headers));
 
                 // save result
                 PaginationHelper.setResult(sessionId, result.toJsonNode());
@@ -1198,7 +1201,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
                 LOGGER.error("Bad request Exception ", e);
                 return Response.status(Status.BAD_REQUEST).build();
-            } catch (final AccessExternalClientNotFoundException e) {
+            } catch (final VitamClientException e) {
                 LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
                 return Response.status(Status.OK)
                     .entity(new RequestResponseOK<>().setHttpCode(Status.OK.getStatusCode())).build();
@@ -1324,7 +1327,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                     .header(CONTENT_DISPOSITION, ATTACHMENT_FILENAME_ERROR_REPORT_JSON)
                     .header(CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
             helper.writeResponse(responseBuilder);
-        } catch (final AccessExternalClientException exc) {
+        } catch (final VitamClientException exc) {
             LOGGER.error(exc.getMessage(), exc);
             asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR)
@@ -1798,15 +1801,15 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("contracts:read")
-    public Response findDocuments(@Context HttpHeaders headers, String select) {
+    public Response findIngestContracts(@Context HttpHeaders headers, String select) {
         try {
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(select);
 
             final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
             try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-                RequestResponse response =
-                    adminClient.findDocuments(AdminCollections.ENTRY_CONTRACTS, query, getTenantId(headers));
+                RequestResponse<IngestContractModel> response =
+                    adminClient.findIngestContracts(query, getTenantId(headers), getAccessContractId(headers));
                 if (response != null && response instanceof RequestResponseOK) {
                     return Response.status(Status.OK).entity(response).build();
                 }
@@ -1951,8 +1954,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
             try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-                RequestResponse response =
-                    adminClient.findDocuments(AdminCollections.ACCESS_CONTRACTS, query, getTenantId(headers));
+                RequestResponse<AccessContractModel> response =
+                    adminClient.findAccessContracts(query, getTenantId(headers), getAccessContractId(headers));
                 if (response != null && response instanceof RequestResponseOK) {
                     return Response.status(Status.OK).entity(response).build();
                 }
@@ -2142,8 +2145,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
             try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-                RequestResponse response =
-                    adminClient.findDocuments(AdminCollections.CONTEXTS, query, getTenantId(headers));
+                RequestResponse<ContextModel> response =
+                    adminClient.findContexts(query, getTenantId(headers), getAccessContractId(headers));
                 if (response != null && response instanceof RequestResponseOK) {
                     return Response.status(Status.OK).entity(response).build();
                 }
@@ -2313,8 +2316,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
             try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-                RequestResponse response =
-                    adminClient.findDocuments(AdminCollections.PROFILE, query, getTenantId(headers));
+                RequestResponse<ProfileModel> response =
+                    adminClient.findProfiles(query, getTenantId(headers), getAccessContractId(headers));
                 if (response != null && response instanceof RequestResponseOK) {
                     return Response.status(Status.OK).entity(response).build();
                 }

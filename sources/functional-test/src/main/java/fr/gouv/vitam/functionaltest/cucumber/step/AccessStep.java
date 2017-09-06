@@ -72,15 +72,16 @@ import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
-import fr.gouv.vitam.functional.administration.client.model.ContextModel;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
 /**
@@ -557,14 +558,40 @@ public class AccessStep {
     public void search_in_admin_collection(String collection) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(query);
         AdminCollections adminCollection = AdminCollections.valueOf(collection);
-        RequestResponse<JsonNode> requestResponse =
-            world.getAdminClient().findDocuments(adminCollection, queryJSON, world.getTenantId());
-        if (requestResponse.isOk()) {
-            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
-            results = requestResponseOK.getResults();
-        } else {
+        RequestResponse requestResponse = null;
+        switch (adminCollection) {
+            case FORMATS:
+                requestResponse = world.getAdminClient().findFormats(queryJSON, world.getTenantId(), null);
+                break;
+            case RULES:
+                requestResponse = world.getAdminClient().findRules(queryJSON, world.getTenantId(), null);
+                break;
+            case ACCESS_CONTRACTS:
+                requestResponse = world.getAdminClient().findAccessContracts(queryJSON, world.getTenantId(), null);
+                break;
+            case ENTRY_CONTRACTS:
+                requestResponse = world.getAdminClient().findIngestContracts(queryJSON, world.getTenantId(), null);
+                break;
+            case CONTEXTS:
+                requestResponse = world.getAdminClient().findContexts(queryJSON, world.getTenantId(), null);
+                break;
+            case PROFILE:
+                requestResponse = world.getAdminClient().findProfiles(queryJSON, world.getTenantId(), null);
+                break;
+            case ACCESSION_REGISTERS:
+                requestResponse = world.getAdminClient().findAccessionRegister(queryJSON, world.getTenantId(), null);
+                break;
+            default:
+                break;
+        }
+
+        if (requestResponse != null && requestResponse.isOk()) {
+            results = ((RequestResponseOK) requestResponse).getResultsAsJsonNodes();
+        } else if (requestResponse != null) {
             VitamError vitamError = (VitamError) requestResponse;
             Fail.fail("request findDocuments return an error: " + vitamError.getCode());
+        } else {
+            Fail.fail("Collection not found " + collection);
         }
     }
 
@@ -700,15 +727,19 @@ public class AccessStep {
     }
 
     private String get_contract_id_by_name(String name)
-        throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException {
+        throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException,
+        VitamClientException {
 
         String QUERY = "{\"$query\":{\"$and\":[{\"$eq\":{\"Name\":\"" + name +
             "\"}}]},\"$filter\":{},\"$projection\":{}}";
         JsonNode queryDsl = JsonHandler.getFromString(QUERY);
 
-        RequestResponse<ContextModel> requestResponse =
-            world.getAdminClient().findDocuments(AdminCollections.ACCESS_CONTRACTS, queryDsl, world.getTenantId());
-        return requestResponse.toJsonNode().findValue("_id").asText();
+        RequestResponse<AccessContractModel> requestResponse =
+            world.getAdminClient().findAccessContracts(queryDsl, world.getTenantId(), null);
+        if (requestResponse.isOk()) {
+            return ((RequestResponseOK<AccessContractModel>) requestResponse).getFirstResult().getId();
+        }
+        throw new VitamClientException("Access contract was found");
     }
 
     @When("^je veux faire l'audit des objets du service producteur \"([^\"]*)\"$")

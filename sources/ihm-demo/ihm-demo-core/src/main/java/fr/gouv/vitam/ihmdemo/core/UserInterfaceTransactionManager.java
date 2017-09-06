@@ -48,12 +48,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -69,6 +67,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
@@ -352,23 +351,18 @@ public class UserInterfaceTransactionManager {
      * @param options for creating query
      * @param tenantId the working tenant
      * @param contractId the access contract Id
-     * @return JsonNode result
-     * @throws LogbookClientException if the request with illegal parameter
+     * @return AccessionRegisterSummaryModel result
+     * @throws VitamClientException if the request with illegal parameter
      * @throws InvalidParseOperationException if json data not well-formed
-     * @throws AccessExternalClientServerException if access internal server error
-     * @throws AccessExternalClientNotFoundException if access external resource not found
      * @throws InvalidCreateOperationException if error when create query
-     * @throws AccessUnauthorizedException
      */
-    public static RequestResponse<JsonNode> findAccessionRegisterSummary(String options, Integer tenantId,
+    public static RequestResponse<AccessionRegisterSummaryModel> findAccessionRegisterSummary(String options, Integer tenantId,
         String contractId)
-        throws LogbookClientException, InvalidParseOperationException, AccessExternalClientException,
-        InvalidCreateOperationException, AccessUnauthorizedException {
+        throws VitamClientException, InvalidParseOperationException, InvalidCreateOperationException {
         try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()) {
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
             final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            return adminExternalClient.findDocuments(AdminCollections.ACCESSION_REGISTERS, query, tenantId,
-                contractId);
+            return adminExternalClient.findAccessionRegister(query, tenantId, contractId);
         }
     }
 

@@ -27,30 +27,9 @@
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
 
-import com.fasterxml.jackson.databind.JsonNode;
-
-import cucumber.api.DataTable;
-import cucumber.api.java.en.Given;
-import cucumber.api.java.en.Then;
-import cucumber.api.java.en.When;
-import fr.gouv.vitam.access.external.api.AdminCollections;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
-import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
-
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.model.AccessContractModel;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-
-import javax.ws.rs.core.Response;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -59,6 +38,25 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
+
+import javax.ws.rs.core.Response;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
+import cucumber.api.DataTable;
+import cucumber.api.java.en.Given;
+import cucumber.api.java.en.Then;
+import cucumber.api.java.en.When;
+import fr.gouv.vitam.access.external.api.AdminCollections;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
 public class ContractsStep {
 
@@ -119,12 +117,13 @@ public class ContractsStep {
         try {
             uploadContract(type);
         } catch (AccessExternalClientException | IllegalStateException | InvalidParseOperationException e) {
-            fail("should not produce an exception"+e);
+            fail("should not produce an exception" + e);
         }
     }
 
     /**
      * Tentative d'import d'un contrat si jamais il n'existe pas
+     * 
      * @param type
      * @throws IOException
      */
@@ -133,7 +132,7 @@ public class ContractsStep {
         try {
             uploadContract(type);
         } catch (AccessExternalClientException | IllegalStateException | InvalidParseOperationException e) {
-            //catch nothing
+            // catch nothing
         }
     }
 
@@ -164,18 +163,19 @@ public class ContractsStep {
             this.setContractType(collection.getName());
             RequestResponse response =
                 world.getAdminClient().importContracts(inputStream, world.getTenantId(), collection);
-            // TODO : this has to be fixed, the returned response is not correct, Bad request must me obtained            
+            // TODO : this has to be fixed, the returned response is not correct, Bad request must me obtained
             assertThat(Response.Status.BAD_REQUEST.getStatusCode() == response.getStatus());
         } catch (IllegalStateException e) {
             // Do nothing
         } catch (Exception e) {
-            fail("should not produce this exception"+e);
+            fail("should not produce this exception" + e);
         }
     }
 
     @When("^je cherche un contrat de type (.*) et nommé (.*)")
     public void search_contracts(String type, String name)
-        throws AccessExternalClientException, InvalidParseOperationException, InvalidCreateOperationException {
+        throws AccessExternalClientException, InvalidParseOperationException, InvalidCreateOperationException,
+        VitamClientException {
         AdminCollections collection = AdminCollections.valueOf(type);
         final fr.gouv.vitam.common.database.builder.request.single.Select select =
             new fr.gouv.vitam.common.database.builder.request.single.Select();
@@ -183,13 +183,26 @@ public class ContractsStep {
         select.setQuery(eq("Name", name));
 
         final JsonNode query = select.getFinalSelect();
-        RequestResponse response =
-            world.getAdminClient().findDocuments(collection, query, world.getTenantId());
-        assertThat(response).isInstanceOf(RequestResponseOK.class);
-        RequestResponseOK<AccessContractModel> res = (RequestResponseOK) response;
-        Object o = (res.getResults().stream().findFirst()).get();
-        JsonNode model = (JsonNode) o;
-        this.setModel(model);
+        switch (collection) {
+            case ACCESS_CONTRACTS:
+                RequestResponse<AccessContractModel> accessResponse =
+                    world.getAdminClient().findAccessContracts(query, world.getTenantId(), null);
+                if (accessResponse.isOk()) {
+                    this.setModel(
+                        ((RequestResponseOK<AccessContractModel>) accessResponse).getResultsAsJsonNodes().get(0));
+                }
+                break;
+            case ENTRY_CONTRACTS:
+                RequestResponse<IngestContractModel> ingestResponse =
+                    world.getAdminClient().findIngestContracts(query, world.getTenantId(), null);
+                if (ingestResponse.isOk()) {
+                    this.setModel(
+                        ((RequestResponseOK<IngestContractModel>) ingestResponse).getResultsAsJsonNodes().get(0));
+                }
+                break;
+            default:
+                throw new VitamClientException("Contract type not valid");
+        }
     }
 
     @Then("^le contrat existe$")

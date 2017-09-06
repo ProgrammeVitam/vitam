@@ -20,12 +20,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -36,22 +36,27 @@ import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.external.client.AbstractMockClient;
+import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.common.model.administration.FileFormatModel;
+import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 public class AdminExternalClientRestTest extends VitamJerseyTest {
 
@@ -61,10 +66,6 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     protected AdminExternalClientRest client;
     final int TENANT_ID = 0;
     final String CONTRACT = "contract";
-
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     final String queryDsql =
         "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ]}";
@@ -149,15 +150,13 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
             return expectedResponse.delete();
         }
 
-
-        @POST
+        @GET
         @Path("{collections}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response findDocuments(@PathParam("collections") String collection, JsonNode select) {
-            return expectedResponse.post();
+            return expectedResponse.get();
         }
-
 
         @POST
         @Path("/{collections}/{id_document}")
@@ -210,12 +209,19 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         assertEquals(Status.OK.getStatusCode(), checkDocumentsResponse.getStatus());
     }
 
-    @Test(expected = AccessExternalClientNotFoundException.class)
-    public void testCheckDocumentAccessExternalClientNotFoundException()
+    @Test
+    public void testCheckDocumentVitamClientException()
         throws Exception {
-        when(mock.put()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        Response checkDocuments =
+        VitamError error =
+            VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_CHECK_DOCUMENT_NOT_FOUND, "Collection nout found");
+        AbstractMockClient.FakeInboundResponse fakeResponse =
+            new AbstractMockClient.FakeInboundResponse(Status.NOT_FOUND, JsonHandler.writeToInpustream(error),
+                MediaType.APPLICATION_OCTET_STREAM_TYPE, new MultivaluedHashMap<String, Object>());
+        when(mock.put()).thenReturn(fakeResponse);
+        Response response =
             client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
+        assertNotNull(response);
+        assertEquals(Status.NOT_FOUND.getStatusCode(), response.getStatus());
     }
 
 
@@ -257,32 +263,32 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     }
 
     @Test
-    public void testFindDocuments()
+    public void testFindFormats()
         throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getFormatList()).build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getFormatList()).build());
         assertEquals(
-            client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode(), TENANT_ID).toString(),
+            client.findFormats(JsonHandler.createObjectNode(), TENANT_ID, null).toString(),
             ClientMockResultHelper.getFormatList().toString());
     }
 
     @Test
-    public void testFindDocumentAccessExternalClientNotFoundException()
+    public void testFindFormatsNotFound()
         throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        assertThat(client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode(), TENANT_ID)
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        assertThat(client.findFormats(JsonHandler.createObjectNode(), TENANT_ID, null)
             .getHttpCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
-    public void testFindDocumentAccessExternalClientException()
+    public void testFindFormatsPreconditionFailed()
         throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        assertThat(client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode(), TENANT_ID)
+        when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        assertThat(client.findFormats(JsonHandler.createObjectNode(), TENANT_ID, null)
             .getHttpCode()).isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
-    public void testFindDocumentById()
+    public void testFindFormatsById()
         throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getFormat()).build());
         assertEquals(
@@ -308,12 +314,10 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
 
 
     @Test()
-    @RunWithCustomExecutor
     public void importContractsWithCorrectJsonReturnCreated()
         throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
         when(mock.post()).thenReturn(
             Response.status(Status.CREATED).entity(new RequestResponseOK<>().addAllResults(getContracts())).build());
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         InputStream fileContracts = PropertiesUtils.getResourceAsStream("referential_contracts_ok.json");
         RequestResponse resp = client.importContracts(fileContracts, TENANT_ID, AdminCollections.ENTRY_CONTRACTS);
         Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
@@ -329,13 +333,11 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     }
 
     @Test()
-    @RunWithCustomExecutor
     public void importContractsWithIncorrectJsonReturnBadRequest()
         throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
         VitamError error = new VitamError("vitam_code").setHttpCode(400).setContext("ADMIN").setState("INVALID")
             .setMessage("invalid input").setDescription("Input file of contracts is malformed");
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(error).build());
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         RequestResponse resp =
             client.importContracts(new FakeInputStream(0), TENANT_ID, AdminCollections.ENTRY_CONTRACTS);
         Assert.assertTrue(VitamError.class.isAssignableFrom(resp.getClass()));
@@ -343,23 +345,19 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @RunWithCustomExecutor
     public void importContractsWithNullStreamThrowIllegalArgException()
         throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         client.importContracts(null, TENANT_ID, AdminCollections.ENTRY_CONTRACTS);
     }
 
 
 
     @Test()
-    @RunWithCustomExecutor
     public void importAccessContractsWithCorrectJsonReturnCreated()
         throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
         when(mock.post()).thenReturn(
             Response.status(Status.CREATED).entity(new RequestResponseOK<>().addAllResults(getAccessContracts()))
                 .build());
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         InputStream fileContracts = PropertiesUtils.getResourceAsStream("contracts_access_ok.json");
         RequestResponse resp = client.importContracts(fileContracts, TENANT_ID, AdminCollections.ACCESS_CONTRACTS);
         Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
@@ -374,14 +372,12 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         return res;
     }
 
-    @Test()
-    @RunWithCustomExecutor
+    @Test
     public void importAccessContractsWithIncorrectJsonReturnBadRequest()
         throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
         VitamError error = new VitamError("vitam_code").setHttpCode(400).setContext("ADMIN").setState("INVALID")
             .setMessage("invalid input").setDescription("Input file of contracts is malformed");
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(error).build());
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         RequestResponse resp =
             client.importContracts(new FakeInputStream(0), TENANT_ID, AdminCollections.ACCESS_CONTRACTS);
         Assert.assertTrue(VitamError.class.isAssignableFrom(resp.getClass()));
@@ -389,10 +385,8 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @RunWithCustomExecutor
     public void importAccessContractsWithNullStreamThrowIllegalArgException()
         throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         client.importContracts(null, TENANT_ID, AdminCollections.ACCESS_CONTRACTS);
     }
 
@@ -400,63 +394,59 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     /**
      * Test that findAccessContracts is reachable and does not return elements
      *
-     * @throws FileNotFoundException
-     * @throws InvalidParseOperationException
      * @throws VitamClientInternalException
      */
     @Test
-    @RunWithCustomExecutor
     public void findAllAccessContractsThenReturnEmpty()
-        throws FileNotFoundException, InvalidParseOperationException, VitamClientInternalException,
-        AccessExternalClientException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        throws VitamClientException {
 
-        when(mock.post()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
-        RequestResponse resp =
-            client.findDocuments(AdminCollections.ACCESS_CONTRACTS, JsonHandler.createObjectNode(), TENANT_ID);
-        assertThat(resp).isInstanceOf(RequestResponseOK.class);
-        assertThat(((RequestResponseOK) resp).getResults()).hasSize(0);
+        when(mock.get()).thenReturn(Response.status(Status.OK)
+            .entity(new RequestResponseOK<AccessContractModel>().setHttpCode(Status.OK.getStatusCode())).build());
+        RequestResponse<AccessContractModel> resp =
+            client.findAccessContracts(JsonHandler.createObjectNode(), TENANT_ID, null);
+        assertThat(resp.isOk()).isTrue();
+        assertThat(resp.getStatus()).isEqualTo(Status.OK.getStatusCode());
+        assertThat(((RequestResponseOK<AccessContractModel>) resp).getResults()).hasSize(0);
     }
 
+    @Test
+    public void findAllFormatsThenReturnOk()
+        throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException,
+        VitamClientException {
+
+        when(mock.get()).thenReturn(
+            Response.status(Status.OK).entity(ClientMockResultHelper.getFormatList()).build());
+        RequestResponse<FileFormatModel> resp =
+            client.findFormats(JsonHandler.createObjectNode(), TENANT_ID, null);
+        assertThat(resp).isInstanceOf(RequestResponseOK.class);
+        assertThat(((RequestResponseOK<FileFormatModel>) resp).getResults()).hasSize(1);
+        assertThat(((RequestResponseOK<FileFormatModel>) resp).getFirstResult().getPuid()).isEqualTo("x-fmt/20");
+    }
+
+    @Test
+    public void findAllFormatsThenCollectionNotFound() throws VitamClientException {
+
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        RequestResponse<FileFormatModel> response = client.findFormats(JsonHandler.createObjectNode(), TENANT_ID, null);
+        assertThat(response.getHttpCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
+    }
 
     /**
      * Test that findAccessContracts is reachable and return two elements as expected
      *
-     * @throws FileNotFoundException
-     * @throws InvalidParseOperationException
      * @throws VitamClientInternalException
      */
     @Test
-    @RunWithCustomExecutor
-    public void findAllAccessContractsThenReturnTwo()
-        throws FileNotFoundException, InvalidParseOperationException, VitamClientInternalException,
-        AccessExternalClientException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+    public void findAllAccessContractsThenReturnOne()
+        throws VitamClientException {
 
-        when(mock.post()).thenReturn(
-            Response.status(Status.OK).entity(new RequestResponseOK<>().addAllResults(getAccessContracts())).build());
-        RequestResponse resp =
-            client.findDocuments(AdminCollections.ACCESS_CONTRACTS, JsonHandler.createObjectNode(), TENANT_ID);
-        assertThat(resp).isInstanceOf(RequestResponseOK.class);
-        assertThat(((RequestResponseOK) resp).getResults()).hasSize(2);
+        when(mock.get())
+            .thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getAccessContracts()).build());
+        RequestResponse<AccessContractModel> resp =
+            client.findAccessContracts(JsonHandler.createObjectNode(), TENANT_ID, null);
+        assertThat(resp.isOk()).isTrue();
+        assertThat(((RequestResponseOK<AccessContractModel>) resp).getResults()).hasSize(1);
     }
-
-    @Test
-    @RunWithCustomExecutor
-    public void updateAccessContract()
-        throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
-        importContractsWithCorrectJsonReturnCreated();
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.post()).thenReturn(
-            Response.status(Status.OK).entity(new RequestResponseOK<>().addAllResults(getAccessContracts())).build());
-
-        RequestResponse resp =
-            client.findDocuments(AdminCollections.ACCESS_CONTRACTS, JsonHandler.createObjectNode(), TENANT_ID);
-        assertThat(resp).isInstanceOf(RequestResponseOK.class);
-        assertThat(((RequestResponseOK) resp).getResults()).hasSize(2);
-    }
-
-
 
     /**
      * Test that findAccessContractsByID is reachable
@@ -466,11 +456,9 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
      * @throws VitamClientInternalException
      */
     @Test
-    @RunWithCustomExecutor
     public void findAccessContractsByIdThenReturnEmpty()
         throws FileNotFoundException, InvalidParseOperationException, VitamClientInternalException,
         AccessExternalClientException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
         RequestResponse resp = client.findDocumentById(AdminCollections.ACCESS_CONTRACTS, "fakeId", TENANT_ID);
@@ -478,38 +466,96 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         assertThat(((RequestResponseOK) resp).getResults()).hasSize(0);
     }
 
+    /**
+     * Test that findIngestContracts is reachable and return two elements as expected
+     *
+     * @throws VitamClientInternalException
+     */
+    @Test
+    public void findAllIngestContractsThenReturnOne()
+        throws VitamClientException {
 
+        when(mock.get())
+            .thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getIngestContracts()).build());
+        RequestResponse<IngestContractModel> resp =
+            client.findIngestContracts(JsonHandler.createObjectNode(), TENANT_ID, null);
+        assertThat(resp.isOk()).isTrue();
+        assertThat(((RequestResponseOK<IngestContractModel>) resp).getResults()).hasSize(1);
+    }
+
+    /**
+     * Test that findIngestContractsByID is reachable
+     *
+     * @throws FileNotFoundException
+     * @throws InvalidParseOperationException
+     * @throws VitamClientInternalException
+     */
+    @Test
+    public void findIngestContractsByIdThenReturnEmpty()
+        throws FileNotFoundException, InvalidParseOperationException, VitamClientInternalException,
+        AccessExternalClientException {
+
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
+        RequestResponse resp = client.findDocumentById(AdminCollections.ENTRY_CONTRACTS, "fakeId", TENANT_ID);
+        assertThat(resp).isInstanceOf(RequestResponseOK.class);
+        assertThat(((RequestResponseOK) resp).getResults()).hasSize(0);
+    }
+
+    /**
+     * Test that findContexts is reachable and return two elements as expected
+     *
+     * @throws VitamClientInternalException
+     */
+    @Test
+    public void findAllContextsThenReturnOne()
+        throws VitamClientException {
+
+        when(mock.get())
+            .thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getContexts(Status.OK.getStatusCode()))
+                .build());
+        RequestResponse<ContextModel> resp =
+            client.findContexts(JsonHandler.createObjectNode(), TENANT_ID, null);
+        assertThat(resp.isOk()).isTrue();
+        assertThat(((RequestResponseOK<ContextModel>) resp).getResults()).hasSize(1);
+    }
+
+    /**
+     * Test that findContextsByID is reachable
+     *
+     * @throws FileNotFoundException
+     * @throws InvalidParseOperationException
+     * @throws VitamClientInternalException
+     */
+    @Test
+    public void findContextsByIdThenReturnEmpty()
+        throws FileNotFoundException, InvalidParseOperationException, VitamClientInternalException,
+        AccessExternalClientException {
+
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
+        RequestResponse resp = client.findDocumentById(AdminCollections.CONTEXTS, "fakeId", TENANT_ID);
+        assertThat(resp).isInstanceOf(RequestResponseOK.class);
+        assertThat(((RequestResponseOK) resp).getResults()).hasSize(0);
+    }
 
     @Test
-    @RunWithCustomExecutor
     public void createProfilesWithCorrectJsonReturnCreated()
         throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
         when(mock.post()).thenReturn(
-            Response.status(Status.CREATED).entity(new RequestResponseOK<>().addAllResults(getAccessContracts()))
+            Response.status(Status.CREATED)
+                .entity(ClientMockResultHelper.getProfiles(Status.CREATED.getStatusCode()))
                 .build());
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         InputStream fileProfiles = PropertiesUtils.getResourceAsStream("contracts_access_ok.json");
         RequestResponse resp = client.createProfiles(fileProfiles, TENANT_ID);
         Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
         Assert.assertTrue((((RequestResponseOK) resp).isOk()));
     }
 
-    private List<Object> getProfiles() throws FileNotFoundException, InvalidParseOperationException {
-        InputStream fileProfiles = PropertiesUtils.getResourceAsStream("profiles_ok.json");
-        ArrayNode array = (ArrayNode) JsonHandler.getFromInputStream(fileProfiles);
-        List<Object> res = new ArrayList<>();
-        array.forEach(e -> res.add(e));
-        return res;
-    }
-
     @Test()
-    @RunWithCustomExecutor
     public void createProfilesWithIncorrectJsonReturnBadRequest()
         throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
         VitamError error = new VitamError("vitam_code").setHttpCode(400).setContext("ADMIN").setState("INVALID")
             .setMessage("invalid input").setDescription("Input file of profiles is malformed");
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(error).build());
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         RequestResponse resp =
             client.createProfiles(new FakeInputStream(0), TENANT_ID);
         Assert.assertTrue(VitamError.class.isAssignableFrom(resp.getClass()));
@@ -517,36 +563,30 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @RunWithCustomExecutor
     public void createProfilesWithNullStreamThrowIllegalArgException()
         throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         client.createProfiles(null, TENANT_ID);
     }
 
 
 
     @Test
-    @RunWithCustomExecutor
     public void importProfileFileXSDReturnCreated()
         throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
         when(mock.put()).thenReturn(
             Response.status(Status.CREATED).entity(new RequestResponseOK<>())
                 .build());
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         RequestResponse resp = client.importProfileFile("FakeIdXSD", new FakeInputStream(0), TENANT_ID);
         Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
         Assert.assertTrue((((RequestResponseOK) resp).isOk()));
     }
 
     @Test
-    @RunWithCustomExecutor
     public void importProfileFileRNGReturnCreated()
         throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
         when(mock.put()).thenReturn(
             Response.status(Status.CREATED).entity(new RequestResponseOK<>())
                 .build());
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         RequestResponse resp = client.importProfileFile("FakeIdRNG", new FakeInputStream(0), TENANT_ID);
         Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
         Assert.assertTrue((((RequestResponseOK) resp).isOk()));
@@ -555,7 +595,6 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
 
 
     @Test
-    @RunWithCustomExecutor
     public void givenProfileIdWhenDownloadProfileFileThenOK() throws Exception {
 
         when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
@@ -565,47 +604,36 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     }
 
     /**
-     * Test that findAccessContracts is reachable and does not return elements
+     * Test that findProfiles is reachable and does not return elements
      *
-     * @throws FileNotFoundException
-     * @throws InvalidParseOperationException
-     * @throws VitamClientInternalException
+     * @throws VitamClientException
      */
     @Test
-    @RunWithCustomExecutor
     public void findAllProfilesThenReturnEmpty()
-        throws FileNotFoundException, InvalidParseOperationException, VitamClientInternalException,
-        AccessExternalClientException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        throws VitamClientException {
 
-        when(mock.post()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
-        RequestResponse resp =
-            client.findDocuments(AdminCollections.PROFILE, JsonHandler.createObjectNode(), TENANT_ID);
-        assertThat(resp).isInstanceOf(RequestResponseOK.class);
-        assertThat(((RequestResponseOK) resp).getResults()).hasSize(0);
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
+        RequestResponse<ProfileModel> resp =
+            client.findProfiles(JsonHandler.createObjectNode(), TENANT_ID, null);
+        assertThat(resp.isOk()).isTrue();
+        assertThat(((RequestResponseOK<ProfileModel>) resp).getResults()).hasSize(0);
     }
 
-
     /**
-     * Test that findAccessContracts is reachable and return two elements as expected
+     * Test that findProfiles is reachable and return one elements as expected
      *
-     * @throws FileNotFoundException
-     * @throws InvalidParseOperationException
-     * @throws VitamClientInternalException
+     * @throws VitamClientException
      */
     @Test
-    @RunWithCustomExecutor
     public void findAllProfilesThenReturnOne()
-        throws FileNotFoundException, InvalidParseOperationException, VitamClientInternalException,
-        AccessExternalClientException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        throws VitamClientException {
 
-        when(mock.post()).thenReturn(
-            Response.status(Status.OK).entity(new RequestResponseOK<>().addAllResults(getProfiles())).build());
-        RequestResponse resp =
-            client.findDocuments(AdminCollections.PROFILE, JsonHandler.createObjectNode(), TENANT_ID);
-        assertThat(resp).isInstanceOf(RequestResponseOK.class);
-        assertThat(((RequestResponseOK) resp).getResults()).hasSize(1);
+        when(mock.get()).thenReturn(
+            Response.status(Status.OK).entity(ClientMockResultHelper.getProfiles(Status.OK.getStatusCode())).build());
+        RequestResponse<ProfileModel> resp =
+            client.findProfiles(JsonHandler.createObjectNode(), TENANT_ID, null);
+        assertThat(resp.isOk()).isTrue();
+        assertThat(((RequestResponseOK<ProfileModel>) resp).getResults()).hasSize(1);
     }
 
     /**
@@ -614,11 +642,9 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
      * @throws VitamClientInternalException
      */
     @Test
-    @RunWithCustomExecutor
     public void findProfilesByIdThenReturnEmpty()
         throws FileNotFoundException, InvalidParseOperationException, VitamClientInternalException,
         AccessExternalClientException {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
         RequestResponse resp = client.findDocumentById(AdminCollections.PROFILE, "fakeId", TENANT_ID);
@@ -626,13 +652,11 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         assertThat(((RequestResponseOK) resp).getResults()).hasSize(0);
     }
 
-    @Test()
-    @RunWithCustomExecutor
+    @Test
     public void importContextsWithCorrectJsonReturnCreated()
         throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
         when(mock.post()).thenReturn(
             Response.status(Status.CREATED).entity(new RequestResponseOK<>().addAllResults(getContracts())).build());
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         InputStream fileContexts = PropertiesUtils.getResourceAsStream("contexts_ok.json");
         RequestResponse resp = client.importContexts(fileContexts, TENANT_ID);
         Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
@@ -645,25 +669,25 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
      *
      ***/
 
+    // TODO gafou
+
     @Test
-    @RunWithCustomExecutor
     public void selectAccessionExternalSumary() throws Exception {
-        when(mock.post()).thenReturn(
+        when(mock.get()).thenReturn(
             Response.status(Status.OK).entity(ClientMockResultHelper.getAccessionRegisterSummary()).build());
-        assertThat(client.findDocuments(AdminCollections.ACCESSION_REGISTERS, JsonHandler.getFromString(queryDsql),
-            TENANT_ID, CONTRACT).getHttpCode()).isEqualTo(Status.OK.getStatusCode());
+        assertThat(
+            client.findAccessionRegister(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT).getHttpCode())
+                .isEqualTo(Status.OK.getStatusCode());
     }
 
     @Test
-    @RunWithCustomExecutor
     public void selectAccessionExternalSumaryError() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        assertThat(client.findDocuments(AdminCollections.ACCESSION_REGISTERS, JsonHandler.getFromString(queryDsql),
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        assertThat(client.findAccessionRegister(JsonHandler.getFromString(queryDsql),
             TENANT_ID, CONTRACT).getHttpCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
-    @RunWithCustomExecutor
     public void selectAccessionExternalDetail() throws Exception {
         when(mock.post()).thenReturn(
             Response.status(Status.OK).entity(ClientMockResultHelper.getAccessionRegisterDetail()).build());
@@ -672,7 +696,6 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     }
 
     @Test
-    @RunWithCustomExecutor
     public void selectAccessionExternalDetailError() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
         assertThat(client.getAccessionRegisterDetail(ID, JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT)
@@ -686,7 +709,6 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
      ***/
 
     @Test
-    @RunWithCustomExecutor
     public void testCheckTraceabilityOperation()
         throws Exception {
         when(mock.post()).thenReturn(
@@ -695,7 +717,6 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     }
 
     @Test
-    @RunWithCustomExecutor
     public void testDownloadTraceabilityOperationFile()
         throws Exception {
         when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());

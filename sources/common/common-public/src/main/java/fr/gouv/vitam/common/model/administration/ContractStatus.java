@@ -1,4 +1,4 @@
-package fr.gouv.vitam.common.model;
+package fr.gouv.vitam.common.model.administration;
 
 /**
  * Enum for contract status

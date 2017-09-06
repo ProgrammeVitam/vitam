@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
-import fr.gouv.vitam.functional.administration.client.model.FileRulesModel;
+import fr.gouv.vitam.common.model.administration.FileRulesModel;
 
 /**
  * error report for generate error Report when some think is wrong in import referential This class contain code in

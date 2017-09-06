@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,29 +23,8 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
+ *******************************************************************************/
+/**
+ * Provides common public Model classes for the administration module.
  */
-package fr.gouv.vitam.functional.administration.context.api;
-
-import java.util.List;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.database.server.DbRequestResult;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.common.model.administration.ContextModel;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-
-public interface ContextService extends VitamAutoCloseable {
-
-
-    RequestResponse<ContextModel> createContexts(List<ContextModel> contextModelList) throws VitamException;
-
-    DbRequestResult findContexts(JsonNode queryDsl) throws ReferentialException, InvalidParseOperationException;
-
-    RequestResponse<ContextModel> updateContext(String id, JsonNode queryDsl) throws VitamException;
-
-    ContextModel findOneContextById(String id) throws ReferentialException, InvalidParseOperationException;
-}
+package fr.gouv.vitam.common.model.administration;

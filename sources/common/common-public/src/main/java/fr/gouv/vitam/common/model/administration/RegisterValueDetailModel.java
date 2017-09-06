@@ -24,60 +24,94 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.functional.administration.client.model;
+package fr.gouv.vitam.common.model.administration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import fr.gouv.vitam.common.SingletonUtils;
-import fr.gouv.vitam.common.model.AbstractContractModel;
-
-import java.util.HashSet;
-import java.util.Set;
-
 /**
- * Data Transfer Object Model of contract (DTO).
+ * POJO java use for mapping @{@link fr.gouv.vitam.functional.administration.common.RegisterValueDetail}
  */
+public class RegisterValueDetailModel {
 
-public class IngestContractModel extends AbstractContractModel {
-
-    public static final String ARCHIVE_PROFILES = "ArchiveProfiles";
-
-    public static final String FILING_PARENT_ID = "FilingParentId";
-
-    @JsonProperty(FILING_PARENT_ID)
-    private String filingParentId;
-
-    @JsonProperty(ARCHIVE_PROFILES)
-    private Set<String> archiveProfiles;
-
-    public IngestContractModel() {
-        super();
-    }
-    
-    
-    /**
-     * @return filingParentId
-     */
-    public String getFilingParentId() {
-        return filingParentId;
-    }
+    @JsonProperty("total")
+    private long total;
+    @JsonProperty("deleted")
+    private long deleted;
+    @JsonProperty("remained")
+    private long remained;
 
     /**
-     * @param filingParentId
+     * Constructor without fields
+     * 
+     * use for jackson
      */
-    public void setFilingParentId(String filingParentId) {
-        this.filingParentId = filingParentId;
+    public RegisterValueDetailModel() {
     }
-
-    public Set<String> getArchiveProfiles() {
-        if (archiveProfiles == null) {
-            return SingletonUtils.singletonSet();
-        }
-        return archiveProfiles;
+    
+    /**
+     * Constructor using fields
+     * 
+     * @param total             number of objects
+     * @param deleted           number of deleted object
+     * @param remained          number of remaining object
+     */
+    public RegisterValueDetailModel(long total, long deleted, long remained) {
+        this.total = total;
+        this.deleted = deleted;
+        this.remained = remained;
     }
-
-    public IngestContractModel setArchiveProfiles(Set<String> archiveProfiles) {
-        this.archiveProfiles = archiveProfiles;
+    
+    /**
+     * 
+     * @return total
+     */
+    public long getTotal() {
+        return total;
+    }
+    
+    /**
+     * 
+     * @param total value to set field  
+     * @return this
+     */
+    public RegisterValueDetailModel setTotal(long total) {
+        this.total = total;
+        return this;
+    }
+    
+    /**
+     * 
+     * @return deleted value to set field
+     */
+    public long getDeleted() {
+        return deleted;
+    }
+    
+    /**
+     * 
+     * @param deleted value to set field
+     * @return this
+     */
+    public RegisterValueDetailModel setDeleted(long deleted) {
+        this.deleted = deleted;
+        return this;
+    }
+    
+    /**
+     * 
+     * @return remained
+     */
+    public long getRemained() {
+        return remained;
+    }
+    
+    /**
+     * 
+     * @param remained value to set field
+     * @return this
+     */
+    public RegisterValueDetailModel setRemained(long remained) {
+        this.remained = remained;
         return this;
     }
 }

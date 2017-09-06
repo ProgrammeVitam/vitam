@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,29 +23,42 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
+ *******************************************************************************/
+package fr.gouv.vitam.common.model.administration;
+
+/**
+ * Enum AccessionRegisterStatus
+ *
+ * different constants status code for Accession register
+ *
  */
-package fr.gouv.vitam.functional.administration.context.api;
+public enum AccessionRegisterStatus {
 
-import java.util.List;
+    /**
+     * STORED_AND_COMPLETED : indicates that the Accession register stored and completed
+     */
+    STORED_AND_COMPLETED("stored and completed"),
+    /**
+     * STORED_AND_UPDATED : indicates that the Accession register stored and updated
+     */
+    STORED_AND_UPDATED("stored and updated"),
 
-import com.fasterxml.jackson.databind.JsonNode;
+    /**
+     * UNSTORED : indicates that the Accession register is not stored
+     */
+    UNSTORED("stored");
 
-import fr.gouv.vitam.common.database.server.DbRequestResult;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.common.model.administration.ContextModel;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+    private final String value;
 
-public interface ContextService extends VitamAutoCloseable {
+    private AccessionRegisterStatus(String val) {
+        value = val;
+    }
 
+    /**
+     * @return value
+     */
+    public String value() {
+        return value;
+    }
 
-    RequestResponse<ContextModel> createContexts(List<ContextModel> contextModelList) throws VitamException;
-
-    DbRequestResult findContexts(JsonNode queryDsl) throws ReferentialException, InvalidParseOperationException;
-
-    RequestResponse<ContextModel> updateContext(String id, JsonNode queryDsl) throws VitamException;
-
-    ContextModel findOneContextById(String id) throws ReferentialException, InvalidParseOperationException;
 }

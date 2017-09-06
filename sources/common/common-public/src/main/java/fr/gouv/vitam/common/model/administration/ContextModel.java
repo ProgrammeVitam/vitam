@@ -24,19 +24,19 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.functional.administration.client.model;
+package fr.gouv.vitam.common.model.administration;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-
 /**
  * Data Transfer Object Model of Context
  */
 public class ContextModel {
+    public static final String ID = "_id";
+    
     private static final String DEACTIVATION_DATE = "DeactivationDate";
 
     private static final String ACTIVATION_DATE = "ActivationDate";
@@ -56,7 +56,7 @@ public class ContextModel {
     /**
      * unique identifier
      */
-    @JsonProperty(VitamDocument.ID)
+    @JsonProperty(ID)
     private String id;
 
     @JsonProperty(NAME)

@@ -1,27 +1,37 @@
 package fr.gouv.vitam.access.external.client;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.io.IOUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.common.model.administration.FileFormatModel;
+import fr.gouv.vitam.common.model.administration.FileRulesModel;
+import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.stream.StreamUtils;
-
-import org.apache.commons.io.IOUtils;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 
 /**
  * Mock client implementation for Admin External
@@ -32,13 +42,24 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
 
     @Override
     public Response checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
-        throws AccessExternalClientNotFoundException, AccessExternalClientException {
+        throws VitamClientException {
         StreamUtils.closeSilently(stream);
+
         if (AdminCollections.RULES.equals(documentType) || AdminCollections.FORMATS.equals(documentType)) {
             return new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream("Vitam Test"),
                 MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+        } else {
+            try {
+                return new AbstractMockClient.FakeInboundResponse(Status.INTERNAL_SERVER_ERROR,
+                    JsonHandler.writeToInpustream(VitamCodeHelper
+                        .toVitamError(VitamCode.ADMIN_EXTERNAL_CHECK_DOCUMENT_ERROR, "Collection not found")),
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+            } catch (InvalidParseOperationException e) {
+                return new AbstractMockClient.FakeInboundResponse(Status.INTERNAL_SERVER_ERROR,
+                    new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes()),
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+            }
         }
-        throw new AccessExternalClientNotFoundException(COLLECTION_NOT_VALID);
     }
 
     @Override
@@ -46,31 +67,6 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         throws AccessExternalClientNotFoundException, AccessExternalClientException {
         StreamUtils.closeSilently(stream);
         return Status.CREATED;
-    }
-
-    @Override
-    public RequestResponse findDocuments(AdminCollections documentType, JsonNode select, Integer tenantId)
-        throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException {
-        if (AdminCollections.RULES.equals(documentType)) {
-            return ClientMockResultHelper.getRuleList();
-        }
-        if (AdminCollections.FORMATS.equals(documentType)) {
-            return ClientMockResultHelper.getFormatList();
-        }
-        throw new AccessExternalClientNotFoundException(COLLECTION_NOT_VALID);
-    }
-
-    @Override
-    public RequestResponse findDocuments(AdminCollections documentType, JsonNode select, Integer tenantId,
-        String contractName)
-        throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException {
-        if (AdminCollections.RULES.equals(documentType)) {
-            return ClientMockResultHelper.getRuleList();
-        }
-        if (AdminCollections.FORMATS.equals(documentType)) {
-            return ClientMockResultHelper.getFormatList();
-        }
-        throw new AccessExternalClientNotFoundException(COLLECTION_NOT_VALID);
     }
 
     @Override
@@ -168,4 +164,50 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     public Status launchAudit(JsonNode auditOption, Integer tenantId, String contractName) {
         return Status.OK;
     }
+
+    @Override
+    public RequestResponse<FileFormatModel> findFormats(JsonNode select, Integer tenantId, String contractName)
+        throws VitamClientException {
+        return ClientMockResultHelper.getFormat();
+    }
+
+    @Override
+    public RequestResponse<FileRulesModel> findRules(JsonNode select, Integer tenantId, String contractName)
+        throws VitamClientException {
+        return ClientMockResultHelper.getRuleList();
+    }
+
+    @Override
+    public RequestResponse<IngestContractModel> findIngestContracts(JsonNode select, Integer tenantId,
+        String contractName)
+        throws VitamClientException {
+        return ClientMockResultHelper.getIngestContracts();
+    }
+
+    @Override
+    public RequestResponse<AccessContractModel> findAccessContracts(JsonNode select, Integer tenantId,
+        String contractName)
+        throws VitamClientException {
+        return ClientMockResultHelper.getAccessContracts();
+    }
+
+    @Override
+    public RequestResponse<ContextModel> findContexts(JsonNode select, Integer tenantId, String contractName)
+        throws VitamClientException {
+        return ClientMockResultHelper.getContexts(Status.OK.getStatusCode());
+    }
+
+    @Override
+    public RequestResponse<ProfileModel> findProfiles(JsonNode select, Integer tenantId, String contractName)
+        throws VitamClientException {
+        return ClientMockResultHelper.getProfiles(Status.OK.getStatusCode());
+    }
+
+    @Override
+    public RequestResponse<AccessionRegisterSummaryModel> findAccessionRegister(JsonNode select, Integer tenantId,
+        String contractName)
+        throws VitamClientException {
+        return ClientMockResultHelper.getAccessionRegisterSummary();
+    }
+
 }

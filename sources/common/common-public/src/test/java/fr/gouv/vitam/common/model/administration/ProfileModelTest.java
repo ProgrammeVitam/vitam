@@ -25,26 +25,11 @@
  *  accept its terms.
  */
 
-package fr.gouv.vitam.functional.administration.common.client.model;
-
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.model.AccessContractModel;
-import fr.gouv.vitam.common.model.ContractStatus;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
-import fr.gouv.vitam.functional.administration.common.embed.ProfileFormat;
-import fr.gouv.vitam.functional.administration.common.embed.ProfileStatus;
-
-import org.junit.Rule;
-import org.junit.Test;
-
-import java.util.HashSet;
-import java.util.Set;
+package fr.gouv.vitam.common.model.administration;
 
 import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 /**
  */
@@ -52,24 +37,21 @@ import static org.junit.Assert.assertEquals;
 public class ProfileModelTest {
 
 
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
     private static final Integer TENANT_ID = 0;
 
     @Test
-    @RunWithCustomExecutor
     public void testConstructor() throws Exception {
 
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        
         ProfileModel profile = new ProfileModel();
-        final String id = GUIDFactory.newIngestContractGUID(TENANT_ID).getId();
+        final String id = "aeaqaaaaaahfrfvaaahrgak25v5fttiaaaaq";
         String identifier = "aIdentifier";
         String name = "aName";
         String description = "aDescription of the contract";
         String lastupdate = "10/12/2016";
         profile
             .setId(id)
+            .setTenant(TENANT_ID)
             .setIdentifier(identifier)
             .setName(name)
             .setDescription(description)
