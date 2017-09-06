@@ -102,7 +102,7 @@ import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
-import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
+import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
@@ -204,7 +204,7 @@ public class IngestInternalIT {
     private static AdminManagementMain adminApplication;
     private static LogbookMain logbookApplication;
     private static WorkspaceMain workspaceMain;
-    private static ProcessManagementApplication processManagementApplication;
+    private static ProcessManagementMain processManagementMain;
     private static AccessInternalMain accessInternalApplication;
     private static IngestInternalMain ingestInternalApplication;
 
@@ -338,11 +338,11 @@ public class IngestInternalIT {
         LogbookLifeCyclesClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
 
         // launch processing
-        SystemPropertyUtil.set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT,
+        SystemPropertyUtil.set(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_PROCESSING));
-        processManagementApplication = new ProcessManagementApplication(CONFIG_PROCESSING_PATH);
-        processManagementApplication.start();
-        SystemPropertyUtil.clear(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT);
+        processManagementMain = new ProcessManagementMain(CONFIG_PROCESSING_PATH);
+        processManagementMain.start();
+        SystemPropertyUtil.clear(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT);
 
         // launch worker
         SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
@@ -388,7 +388,7 @@ public class IngestInternalIT {
             workspaceMain.stop();
             wkrapplication.stop();
             logbookApplication.stop();
-            processManagementApplication.stop();
+            processManagementMain.stop();
             medtadataApplication.stop();
             adminApplication.stop();
             accessInternalApplication.stop();

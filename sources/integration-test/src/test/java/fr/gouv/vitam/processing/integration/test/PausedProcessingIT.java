@@ -79,14 +79,17 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
+import fr.gouv.vitam.processing.common.model.DistributorIndex;
 import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
+import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
+import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
-import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
+import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -104,6 +107,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -115,7 +119,6 @@ public class PausedProcessingIT {
     private final static String CLUSTER_NAME = "vitam-cluster";
     private static final Integer TENANT_ID = 0;
     private static final int DATABASE_PORT = 12346;
-    private static final String UNIT_PLAN_ATTACHEMENT_ID = "aeaqaaaaaagbcaacabht2ak4x66x2baaaaaq";
 
     private static final long SLEEP_TIME = 100l;
     private static final long NB_TRY = 4800; // equivalent to 4 minute
@@ -132,8 +135,6 @@ public class PausedProcessingIT {
     private static final int PORT_SERVICE_FUNCTIONAL_ADMIN = 8093;
     private static final int PORT_SERVICE_LOGBOOK = 8099;
 
-    private static final String WORKSPACE_PATH = "/workspace/v1";
-    private static final String PROCESSING_PATH = "/processing/v1";
     private static final String SIP_FOLDER = "SIP";
 
     @ClassRule
@@ -157,8 +158,8 @@ public class PausedProcessingIT {
     private static WorkerMain workerApplication;
     private static AdminManagementMain adminManagementApplication;
     private static LogbookMain logbookApplication;
+    private static ProcessManagementMain processManagementMain;
     private static WorkspaceMain workspaceMain;
-    private static ProcessManagementApplication processManagementApplication;
 
     private static JunitHelper.ElasticsearchTestConfiguration configES;
     private static MongodExecutable mongodExecutable;
@@ -226,11 +227,11 @@ public class PausedProcessingIT {
         LogbookLifeCyclesClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
 
         // launch processing
-        SystemPropertyUtil.set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT,
+        SystemPropertyUtil.set(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_PROCESSING));
-        processManagementApplication = new ProcessManagementApplication(CONFIG_PROCESSING_PATH);
-        processManagementApplication.start();
-        SystemPropertyUtil.clear(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT);
+        processManagementMain = new ProcessManagementMain(CONFIG_PROCESSING_PATH);
+        processManagementMain.start();
+        SystemPropertyUtil.clear(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT);
 
         ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
 
@@ -264,7 +265,7 @@ public class PausedProcessingIT {
             adminManagementApplication.stop();
             workerApplication.stop();
             logbookApplication.stop();
-            processManagementApplication.stop();
+            processManagementMain.stop();
             metadataApplication.stop();
         } catch (final Exception e) {
             LOGGER.error(e);
@@ -323,7 +324,7 @@ public class PausedProcessingIT {
 
                 RequestResponseOK<ProfileModel> response =
                     (RequestResponseOK<ProfileModel>) client.findProfiles(new Select().getFinalSelect());
-                client.importProfileFile(response.getResults().get(0).getId(),
+                client.importProfileFile(response.getResults().get(0).getIdentifier(),
                     PropertiesUtils.getResourceAsStream("integration-processing/Profil20.rng"));
 
                 // import contract
@@ -396,15 +397,15 @@ public class PausedProcessingIT {
         // wait a little bit
 
         // shutdown processing
-        processManagementApplication.stop();
+        processManagementMain.stop();
         // wait a little bit
         LOGGER.info("After STOP");
         // restart processing
-        SystemPropertyUtil.set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT,
+        SystemPropertyUtil.set(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_PROCESSING));
-        processManagementApplication = new ProcessManagementApplication(CONFIG_PROCESSING_PATH);
-        processManagementApplication.start();
-        SystemPropertyUtil.clear(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT);
+        processManagementMain = new ProcessManagementMain(CONFIG_PROCESSING_PATH);
+        processManagementMain.start();
+        SystemPropertyUtil.clear(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT);
 
         // wait a little bit until jetty start
 
@@ -493,7 +494,7 @@ public class PausedProcessingIT {
         waitStep(processWorkflow, 5);
 
         // shutdown processing
-        processManagementApplication.stop();
+        processManagementMain.stop();
 
         // wait a little bit
         LOGGER.info("After STOP");
@@ -501,12 +502,19 @@ public class PausedProcessingIT {
         assertEquals(ProcessState.PAUSE, processWorkflow.getState());
         assertTrue(PauseRecover.RECOVER_FROM_SERVER_PAUSE.equals(processWorkflow.getPauseRecover()));
 
+        DistributorIndex distributorIndex =
+            WorkspaceProcessDataManagement.getInstance()
+                .getDistributorIndex(ProcessDistributor.DISTRIBUTOR_INDEX, containerName);
+
+        assertThat(distributorIndex).isNotNull();
+        assertThat(distributorIndex.getItemStatus()).isNotNull();
+        assertThat(distributorIndex.getItemStatus().getItemsStatus()).isNotEmpty();
         // restart processing
-        SystemPropertyUtil.set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT,
+        SystemPropertyUtil.set(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_PROCESSING));
-        processManagementApplication = new ProcessManagementApplication(CONFIG_PROCESSING_PATH);
-        processManagementApplication.start();
-        SystemPropertyUtil.clear(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT);
+        processManagementMain = new ProcessManagementMain(CONFIG_PROCESSING_PATH);
+        processManagementMain.start();
+        SystemPropertyUtil.clear(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT);
 
         // wait a little bit until jetty start
 
@@ -518,10 +526,12 @@ public class PausedProcessingIT {
         wait(containerName);
 
 
-        assertNotNull(processWorkflow);
-        assertTrue(PauseRecover.NO_RECOVER.equals(processWorkflow.getPauseRecover()));
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        processWorkflow =
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
+        assertThat(processWorkflow).isNotNull();
+        assertThat(processWorkflow.getPauseRecover()).isEqualTo(PauseRecover.NO_RECOVER);
+        assertThat(processWorkflow.getState()).isEqualTo(ProcessState.COMPLETED);
+        assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.WARNING);
     }
 
     private void waitServerStart() {

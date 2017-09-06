@@ -72,12 +72,12 @@ public class VitamRequestIterator<T> implements VitamAutoCloseable, Iterator<T> 
      * </br>
      * Note: if of type AbstractMockClient or derived, request will be the returned unique result.
      *
-     * @param client the client to use
-     * @param method the method to use
-     * @param path the path to use
+     * @param client       the client to use
+     * @param method       the method to use
+     * @param path         the path to use
      * @param responseType the type of the response to be returned
-     * @param headers the headers to use, could be null
-     * @param request the request to use, could be null
+     * @param headers      the headers to use, could be null
+     * @param request      the request to use, could be null
      * @throws IllegalArgumentException if one of mandatory arguments is null or empty
      */
     // TODO P1 Add later on capability to handle maxNbPart in order to control the rate
@@ -134,7 +134,8 @@ public class VitamRequestIterator<T> implements VitamAutoCloseable, Iterator<T> 
         }
 
         try {
-            objectResponse = JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class, responseType);
+            objectResponse =
+                JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class, responseType);
         } catch (InvalidParseOperationException e) {
             LOGGER.error("Invalid response, json parsing fail", e);
             return false;
@@ -152,7 +153,8 @@ public class VitamRequestIterator<T> implements VitamAutoCloseable, Iterator<T> 
     private boolean handleNext(Response response) {
         // TODO P1 Ignore for the moment X-Cursor-Timeout
         try {
-            objectResponse = JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class, responseType);
+            objectResponse =
+                JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class, responseType);
         } catch (InvalidParseOperationException e) {
             LOGGER.error("Invalid response, json parsing fail", e);
             return false;
@@ -216,8 +218,10 @@ public class VitamRequestIterator<T> implements VitamAutoCloseable, Iterator<T> 
         } else {
             Response response = null;
             try {
-                response = ((AbstractCommonClient) client).performRequest(method, path, headers,
-                    MediaType.APPLICATION_JSON_TYPE);
+                response = ((AbstractCommonClient) client)
+                    .performRequest(method, path, headers, JsonHandler.createObjectNode(),
+                        MediaType.APPLICATION_JSON_TYPE,
+                        MediaType.APPLICATION_JSON_TYPE);
                 LOGGER.info(response.toString());
                 switch (Response.Status.fromStatusCode(response.getStatus())) {
                     case NOT_FOUND:
@@ -353,8 +357,8 @@ public class VitamRequestIterator<T> implements VitamAutoCloseable, Iterator<T> 
     /**
      * Helper for server and client to set the needed headers
      *
-     * @param builder the current ResponseBuilder
-     * @param active True for create or continue, False for inactive (X-Cursor)
+     * @param builder   the current ResponseBuilder
+     * @param active    True for create or continue, False for inactive (X-Cursor)
      * @param xcursorId may be null, else contains the current X-Cursor-Id
      * @return the ResponseBuilder with the new required header
      */
@@ -365,7 +369,7 @@ public class VitamRequestIterator<T> implements VitamAutoCloseable, Iterator<T> 
         }
         return builder;
     }
-    
+
     private static boolean isNullOrEmpty(String string) {
         return string == null || string.isEmpty();
     }

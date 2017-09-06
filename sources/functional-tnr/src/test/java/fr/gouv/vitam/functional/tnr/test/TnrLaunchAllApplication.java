@@ -55,11 +55,25 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.exception.PluginException;
-import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
+import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
+import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -202,7 +216,7 @@ public class TnrLaunchAllApplication {
     private static AdminManagementMain adminApplication;
     private static LogbookMain logbookMain;
     private static WorkspaceMain workspaceMain;
-    private static ProcessManagementApplication processManagementApplication;
+    private static ProcessManagementMain processManagementApplication;
     private static AccessInternalMain accessInternalApplication;
     private static IngestInternalMain ingestInternalApplication;
     private static IngestExternalMain ingestExternalApplication;
@@ -406,16 +420,16 @@ public class TnrLaunchAllApplication {
 
         // launch processing
         LOGGER.warn("Start Processing");
-        SystemPropertyUtil.set(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT,
+        SystemPropertyUtil.set(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_PROCESSING));
-        processManagementApplication = new ProcessManagementApplication(CONFIG_PROCESSING_PATH);
+        processManagementApplication = new ProcessManagementMain(CONFIG_PROCESSING_PATH);
         try {
             processManagementApplication.start();
         } catch (VitamApplicationServerException e) {
             LOGGER.error(e);
             earlyShutdown();
         }
-        SystemPropertyUtil.clear(ProcessManagementApplication.PARAMETER_JETTY_SERVER_PORT);
+        SystemPropertyUtil.clear(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT);
 
         // Launch Siegfried
         if (launchSiegfried) {

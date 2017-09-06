@@ -335,4 +335,8 @@ public class VitamStarter {
         return vitamServer.isStarted();
     }
 
+    public VitamServer getVitamServer() {
+        return vitamServer;
+    }
+
 }

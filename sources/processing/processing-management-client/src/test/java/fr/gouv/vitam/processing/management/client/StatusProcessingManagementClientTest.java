@@ -26,71 +26,63 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.client;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.util.function.Supplier;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.function.Supplier;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.test.JerseyTest;
-import org.glassfish.jersey.test.TestProperties;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.junit.JunitHelper;
-
-public class StatusProcessingManagementClientTest extends JerseyTest {
+public class StatusProcessingManagementClientTest {
 
     private static String url;
     private static ProcessingManagementClient client;
-    Supplier<Response> mock;
-    private static JunitHelper junitHelper;
-    private static int port;
+    static Supplier<Response> mock;
+    private static JunitHelper junitHelper = JunitHelper.getInstance();
+
+    private static int port = junitHelper.findAvailablePort();
+
+    @ClassRule
+    public static WireMockClassRule wireMockRule = new WireMockClassRule(port);
+
+    @Rule
+    public WireMockClassRule instanceRule = wireMockRule;
+
+
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = JunitHelper.getInstance();
-        port = junitHelper.findAvailablePort();
         url = "http://localhost:" + port;
         ProcessingManagementClientFactory.changeConfigurationUrl(url);
         client = ProcessingManagementClientFactory.getInstance().getClient();
+        mock = mock(Supplier.class);
     }
 
+
+    @Before
+    public void setUp() throws Exception {
+
+        instanceRule.stubFor(WireMock.get(urlMatching("/processing/v1/status"))
+            .willReturn(
+                aResponse()
+                    .withStatus(200)));
+    }
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         junitHelper.releasePort(port);
-    }
-
-    @Override
-    protected Application configure() {
-        enable(TestProperties.LOG_TRAFFIC);
-        enable(TestProperties.DUMP_ENTITY);
-        forceSet(TestProperties.CONTAINER_PORT, Integer.toString(port));
-        mock = mock(Supplier.class);
-        return new ResourceConfig().registerInstances(new ProcessingResource(mock));
-    }
-
-    @Path("/processing/v1")
-    public static class ProcessingResource {
-        private final Supplier<Response> expectedResponse;
-
-        public ProcessingResource(Supplier<Response> expectedResponse) {
-            this.expectedResponse = expectedResponse;
-        }
-
-        @Path("status")
-        @GET
-        public Response status(String url) {
-            return Response.status(Status.OK).build();
-        }
     }
 
     @Test

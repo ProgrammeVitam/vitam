@@ -53,6 +53,7 @@ import fr.gouv.vitam.worker.client.exception.WorkerUnreachableException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.net.URI;
@@ -100,6 +101,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     private final IWorkerManager workerManager;
     private Map<String, Step> currentSteps = new HashMap<>();
     private WorkspaceClientFactory workspaceClientFactory;
+
     /**
      * Empty constructor
      *
@@ -109,6 +111,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         this(workerManager, ProcessDataAccessImpl.getInstance(), WorkspaceProcessDataManagement.getInstance(),
             WorkspaceClientFactory.getInstance());
     }
+
     @VisibleForTesting
     public ProcessDistributorImpl(IWorkerManager workerManager, ProcessDataAccess processDataAccess,
         ProcessDataManagement processDataManagement, WorkspaceClientFactory workspaceClientFactory) {
@@ -120,6 +123,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             .checkParameter("Parameters are required.", workerManager, processDataAccess, processDataManagement,
                 workspaceClientFactory);
     }
+
     @Override
     synchronized public boolean pause(String operationId) {
         ParametersChecker.checkParameter("The parameter operationId is required", operationId);
@@ -130,6 +134,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         }
         return false;
     }
+
     @Override
     synchronized public boolean cancel(String operationId) {
         ParametersChecker.checkParameter("The parameter operationId is required", operationId);
@@ -140,6 +145,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         }
         return false;
     }
+
     /**
      * Temporary method for distribution supporting multi-list
      *
@@ -224,7 +230,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                         distributeOnList(workParams, step, NOLEVEL, objectsList, useDistributorIndex, tenantId);
                     }
                 }
-            }  else if (step.getDistribution().getKind().equals(DistributionKind.LIST_IN_FILE)) {
+            } else if (step.getDistribution().getKind().equals(DistributionKind.LIST_IN_FILE)) {
                 try (final WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
                     // List from Workspace
                     Response response =
@@ -270,6 +276,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         }
         return step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_COMPLETE).getStepResponses();
     }
+
     /**
      * The returned boolean is used in case where useDistributorIndex is true
      * if the returned boolean false, means that we want that useDistributorIndex should keep true
@@ -338,7 +345,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                          * Initialize from distributor index
                          */
                         offset = distributorIndex.getOffset();
-                        distributorIndex.getItemStatus().getItemsStatus().remove(PauseOrCancelAction.ACTION_PAUSE.name());
+                        distributorIndex.getItemStatus().getItemsStatus()
+                            .remove(PauseOrCancelAction.ACTION_PAUSE.name());
                         step.setStepResponses(distributorIndex.getItemStatus());
                         /**
                          * As elements to process are calculated before stop of the server,
@@ -418,38 +426,35 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             try {
                 // store information
                 final ItemStatus itemStatus = reduce.get();
-                if (sizeList > 1) {
-                    /**
-                     * As pause can occurs on not started WorkerTask,
-                     * so we have to get the corresponding elements in order to execute them after restart
-                     */
-                    List<String> remainingElements = new ArrayList<>();
-                    currentWorkerTaskList.forEach(e -> {
-                        if (!e.isCompleted()) {
-                            remainingElements.add(e.getObjectName());
-                        }
-                    });
-                    if (remainingElements.isEmpty()) {
-                        offset = nextOffset;
+                /**
+                 * As pause can occurs on not started WorkerTask,
+                 * so we have to get the corresponding elements in order to execute them after restart
+                 */
+                List<String> remainingElements = new ArrayList<>();
+                currentWorkerTaskList.forEach(e -> {
+                    if (!e.isCompleted()) {
+                        remainingElements.add(e.getObjectName());
                     }
-                    distributorIndex =
-                        new DistributorIndex(level, offset, itemStatus, requestId, uniqueStepId, remainingElements);
-                    // All elements of the current level are treated so finish it
-                    if (offset >= sizeList) {
-                        distributorIndex.setLevelFinished(true);
-                    }
-                    try {
-                        processDataManagement.persistDistributorIndex(DISTRIBUTOR_INDEX, operationId, distributorIndex);
-                        LOGGER
-                            .debug("Store for the container " + operationId + " the DistributorIndex offset" + offset +
-                                " GlobalStatus " + itemStatus.getGlobalStatus());
-                    } catch (Exception e) {
-                        LOGGER.error("Error while persist DistributorIndex", e);
-                        throw new ProcessingException("Error while persist DistributorIndex", e);
-                    }
-                } else {
+                });
+                if (remainingElements.isEmpty()) {
                     offset = nextOffset;
                 }
+                distributorIndex =
+                    new DistributorIndex(level, offset, itemStatus, requestId, uniqueStepId, remainingElements);
+                // All elements of the current level are treated so finish it
+                if (offset >= sizeList) {
+                    distributorIndex.setLevelFinished(true);
+                }
+                try {
+                    processDataManagement.persistDistributorIndex(DISTRIBUTOR_INDEX, operationId, distributorIndex);
+                    LOGGER
+                        .debug("Store for the container " + operationId + " the DistributorIndex offset" + offset +
+                            " GlobalStatus " + itemStatus.getGlobalStatus());
+                } catch (Exception e) {
+                    LOGGER.error("Error while persist DistributorIndex", e);
+                    throw new ProcessingException("Error while persist DistributorIndex", e);
+                }
+
                 if (cancelled.size() > 0) {
                     throw new PauseCancelException(PauseOrCancelAction.ACTION_CANCEL);
                 }
@@ -462,6 +467,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         }
         return true;
     }
+
     private CompletableFuture<ItemStatus> prepare(WorkerTask task, String operationId, int tenantId) {
         Step step = task.getStep();
         final WorkerFamilyManager wmf = workerManager.findWorkerBy(step.getWorkerGroupId());
@@ -496,12 +502,14 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 return is;
             });
     }
+
     private static <T> CompletableFuture<List<T>> sequence(List<CompletableFuture<T>> futures) {
         CompletableFuture<Void> allDoneFuture =
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]));
         return allDoneFuture
             .thenApply(v -> futures.stream().map(CompletableFuture::join).collect(Collectors.<T>toList()));
     }
+
     @Override
     public void close() {
         // Nothing
