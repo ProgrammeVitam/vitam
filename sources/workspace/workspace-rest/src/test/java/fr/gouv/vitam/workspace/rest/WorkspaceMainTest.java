@@ -26,19 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.rest;
 
-import static org.junit.Assert.assertEquals;
-
+import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.storage.StorageConfiguration;
-
-public class WorkspaceApplicationTest {
+public class WorkspaceMainTest {
     private static final String CONFIG_FILE_NAME = "workspace-test.conf";
 
-    private WorkspaceApplication application;
+
+    private WorkspaceMain application;
     private static JunitHelper junitHelper;
     private static int port;
 
@@ -54,38 +52,29 @@ public class WorkspaceApplicationTest {
         junitHelper.releasePort(port);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void givenEmptyArgsWhenConfigureApplicationOThenRaiseAnException() throws Exception {
-        application = new WorkspaceApplication((String) null);
+        application = new WorkspaceMain((String) null);
     }
 
-    @Test(expected = Exception.class)
+    @Test(expected = IllegalStateException.class)
     public void givenFileNotFoundWhenConfigureApplicationOThenRaiseAnException() throws Exception {
-        application = new WorkspaceApplication("notFound.conf");
+        application = new WorkspaceMain("notFound.conf");
     }
 
     @Test
     public void givenFileAlreadyExistsWhenConfigureApplicationOKThenRunServer() throws Exception {
-        application = new WorkspaceApplication(CONFIG_FILE_NAME);
+        application = new WorkspaceMain(CONFIG_FILE_NAME);
         application.stop();
     }
 
     @Test
-    public void givenConfigFileWhenGetConfigThenReturnCorrectConfig() {
-        application = new WorkspaceApplication(CONFIG_FILE_NAME);
-        assertEquals("workspace-test.conf", application.getConfigFilename());
+    public void givenFileExistsWhenStartupApplicationThenRunServer() throws Exception {
+        SystemPropertyUtil
+            .set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
+        application = new WorkspaceMain(CONFIG_FILE_NAME);
+        application.start();
+        application.stop();
     }
-
-    @Test(expected = Exception.class)
-    public void givenNullConfigWhenRunAppThenThrowException() throws Exception {
-        final StorageConfiguration config = new StorageConfiguration();
-        application = new WorkspaceApplication(config);
-    }
-
-    @Test(expected = Exception.class)
-    public void givenNullConfigWhenStartAppThenThrowException() throws Exception {
-        application = new WorkspaceApplication((StorageConfiguration) null);
-    }
-
 
 }

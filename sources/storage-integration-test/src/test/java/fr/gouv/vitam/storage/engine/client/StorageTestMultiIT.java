@@ -27,11 +27,51 @@
 
 package fr.gouv.vitam.storage.engine.client;
 
-import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
-import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.client.VitamRequestIterator;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.junit.FakeInputStream;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.rules.core.RulesSecurisator;
+import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
+import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
+import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import junit.framework.TestCase;
+import org.apache.commons.io.FileUtils;
+import org.jhades.JHades;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
-import static org.junit.Assert.assertTrue;
-
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -46,53 +86,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.functional.administration.rules.core.RulesSecurisator;
-import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
-import org.apache.commons.io.FileUtils;
-import org.jhades.JHades;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
-import fr.gouv.vitam.common.client.VitamRequestIterator;
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.junit.FakeInputStream;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
-import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
-import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
-import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
-import junit.framework.TestCase;
+import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
+import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
+import static org.junit.Assert.assertTrue;
 
 public class StorageTestMultiIT {
     private static final int NB_MULTIPLE_THREADS = 100;
@@ -107,7 +103,7 @@ public class StorageTestMultiIT {
     private static StorageClient storageClient;
     private static final String STORAGE_CONF = "storage-test/storage-engine.conf";
 
-    private static WorkspaceApplication workspaceApplication;
+    private static WorkspaceMain workspaceMain;
     private static WorkspaceClient workspaceClient;
     private static int workspacePort = 8987;
     private static final String WORKSPACE_CONF = "storage-test/workspace.conf";
@@ -128,15 +124,15 @@ public class StorageTestMultiIT {
         new JHades().overlappingJarsReport();
 
         // workspace
-        workspaceApplication = new WorkspaceApplication(WORKSPACE_CONF);
-        workspaceApplication.start();
+        workspaceMain = new WorkspaceMain(WORKSPACE_CONF);
+        workspaceMain.start();
 
         WorkspaceClientFactory.changeMode("http://localhost:" + workspacePort);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
 
         // first offer
         final fr.gouv.vitam.common.storage.StorageConfiguration offerConfiguration =
-                readYaml(PropertiesUtils.findFile(DEFAULT_OFFER_CONF),
+            readYaml(PropertiesUtils.findFile(DEFAULT_OFFER_CONF),
                 fr.gouv.vitam.common.storage.StorageConfiguration.class);
         defaultOfferApplication = new DefaultOfferMain(DEFAULT_OFFER_CONF);
         defaultOfferApplication.start();
@@ -189,7 +185,7 @@ public class StorageTestMultiIT {
             }
         }
         workspaceClient.close();
-        workspaceApplication.stop();
+        workspaceMain.stop();
         cleanOffers();
         // delete offer parent folder
         File offerFolder = new File(OFFER_FOLDER);
@@ -252,21 +248,21 @@ public class StorageTestMultiIT {
 
     @Test
     @RunWithCustomExecutor
-    public void testRulesSecurisator () throws Exception {
+    public void testRulesSecurisator() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
         RulesSecurisator rulesSecurisator = new RulesSecurisator();
         final GUID eipMaster = GUIDFactory.newOperationLogbookGUID(0);
 
-        File  file = PropertiesUtils.findFile("static-offer.json");
+        File file = PropertiesUtils.findFile("static-offer.json");
         final DigestType digestType = VitamConfiguration.getDefaultTimestampDigestType();
         final Digest digest = new Digest(digestType);
         digest.update(new FileInputStream(file));
-        rulesSecurisator.secureFileRules(1 , new FileInputStream(file), "json", eipMaster,
-                digest.toString());
-        rulesSecurisator.secureFileRules(2 , new FileInputStream(file), "json",eipMaster,
-                digest.toString());
+        rulesSecurisator.secureFileRules(1, new FileInputStream(file), "json", eipMaster,
+            digest.toString());
+        rulesSecurisator.secureFileRules(2, new FileInputStream(file), "json", eipMaster,
+            digest.toString());
         VitamRequestIterator<JsonNode> result = storageClient.listContainer("default", DataCategory.RULES);
 
         TestCase.assertNotNull(result);
@@ -583,7 +579,8 @@ public class StorageTestMultiIT {
                     break;
                 }
                 try {
-                    storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS, OBJECT_ID, description);
+                    storageClient
+                        .storeFileFromWorkspace("default", StorageCollectionType.OBJECTS, OBJECT_ID, description);
                 } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
                     StorageServerClientException e) {
                     LOGGER.error("Size: " + size, e);

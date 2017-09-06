@@ -26,30 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.client;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyObject;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import fr.gouv.vitam.common.SingletonUtils;
-import org.jhades.JHades;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
-
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -68,7 +48,24 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
+import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import org.jhades.JHades;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * !!! WARNING !!! : in case of modification of class fr.gouv.vitam.driver.fake.FakeDriverImpl, you need to recompile
@@ -78,7 +75,7 @@ import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
 public class StorageClientIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageClientIT.class);
     private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not have raized an exception";
-    private static WorkspaceApplication workspaceApplication;
+    private static WorkspaceMain workspaceMain;
 
     private static final String REST_URI = StorageClientFactory.RESOURCE_PATH;
     private static final String STORAGE_CONF = "integration-storage/storage-engine.conf";
@@ -112,8 +109,8 @@ public class StorageClientIT {
         // junitHelper = JunitHelper.getInstance();
         // serverPort = junitHelper.findAvailablePort();
         // launch workspace
-        workspaceApplication = new WorkspaceApplication("integration-storage/workspace.conf");
-        workspaceApplication.start();
+        workspaceMain = new WorkspaceMain("integration-storage/workspace.conf");
+        workspaceMain.start();
         RestAssured.port = serverPort;
         RestAssured.basePath = REST_URI;
         File storageConfigurationFile = PropertiesUtils.findFile(STORAGE_CONF);
@@ -202,7 +199,7 @@ public class StorageClientIT {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         destroyWorkspaceFiles();
-        workspaceApplication.stop();
+        workspaceMain.stop();
         storageMain.stop();
         // junitHelper.releasePort(workspacePort);
         // junitHelper.releasePort(serverPort);
@@ -300,7 +297,8 @@ public class StorageClientIT {
             }
 
             try {
-                assertTrue(storageClient.exists("default", StorageCollectionType.MANIFESTS, MANIFEST, SingletonUtils.singletonList()));
+                assertTrue(storageClient
+                    .exists("default", StorageCollectionType.MANIFESTS, MANIFEST, SingletonUtils.singletonList()));
             } catch (StorageServerClientException svce) { // not yet implemented
                 LOGGER.error(svce);
                 fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
@@ -323,7 +321,7 @@ public class StorageClientIT {
 
         } catch (
 
-        final Exception e) {
+            final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }

@@ -26,38 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import fr.gouv.vitam.common.database.builder.query.action.SetAction;
-import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
-import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
-import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
-import org.jhades.JHades;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.jayway.restassured.RestAssured;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -69,7 +43,9 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.builder.query.CompareQuery;
+import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -86,9 +62,11 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
 import fr.gouv.vitam.functional.administration.profile.api.ProfileService;
@@ -104,7 +82,26 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
+import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import org.jhades.JHades;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * !!! WARNING !!! : in case of modification of class fr.gouv.vitam.driver.fake.FakeDriverImpl, you need to recompile
@@ -145,7 +142,7 @@ public class FunctionalAdminIT {
 
     private static StorageMain storageMain;
     private static LogbookMain logbookMain;
-    private static WorkspaceApplication workspaceApplication;
+    private static WorkspaceMain workspaceMain;
 
     private static VitamCounterService vitamCounterService;
     private static ProfileService profileService;
@@ -190,8 +187,8 @@ public class FunctionalAdminIT {
         // launch workspace
         try {
             SystemPropertyUtil.set("jetty.port", workspacePort);
-            workspaceApplication = new WorkspaceApplication("functional-admin/workspace.conf");
-            workspaceApplication.start();
+            workspaceMain = new WorkspaceMain("functional-admin/workspace.conf");
+            workspaceMain.start();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
             throw new IllegalStateException(
@@ -259,7 +256,7 @@ public class FunctionalAdminIT {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         logbookMain.stop();
-        workspaceApplication.stop();
+        workspaceMain.stop();
         storageMain.stop();
         if (config != null) {
             JunitHelper.stopElasticsearchForTest(config);

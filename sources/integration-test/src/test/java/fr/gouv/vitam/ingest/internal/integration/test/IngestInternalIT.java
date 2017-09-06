@@ -26,43 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.integration.test;
 
-import static com.jayway.restassured.RestAssured.get;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-
-import org.bson.Document;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.jayway.restassured.RestAssured;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -141,7 +108,37 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
+import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import org.bson.Document;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.jayway.restassured.RestAssured.get;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Ingest Internal integration test
@@ -206,7 +203,7 @@ public class IngestInternalIT {
     private static WorkerMain wkrapplication;
     private static AdminManagementMain adminApplication;
     private static LogbookMain logbookApplication;
-    private static WorkspaceApplication workspaceApplication;
+    private static WorkspaceMain workspaceMain;
     private static ProcessManagementApplication processManagementApplication;
     private static AccessInternalMain accessInternalApplication;
     private static IngestInternalMain ingestInternalApplication;
@@ -323,11 +320,11 @@ public class IngestInternalIT {
         MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA));
 
         // launch workspace
-        SystemPropertyUtil.set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT,
+        SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_WORKSPACE));
-        workspaceApplication = new WorkspaceApplication(CONFIG_WORKSPACE_PATH);
-        workspaceApplication.start();
-        SystemPropertyUtil.clear(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT);
+        workspaceMain = new WorkspaceMain(CONFIG_WORKSPACE_PATH);
+        workspaceMain.start();
+        SystemPropertyUtil.clear(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT);
         WorkspaceClientFactory.changeMode(WORKSPACE_URL);
 
         // launch logbook
@@ -388,7 +385,7 @@ public class IngestInternalIT {
         mongodExecutable.stop();
         try {
             ingestInternalApplication.stop();
-            workspaceApplication.stop();
+            workspaceMain.stop();
             wkrapplication.stop();
             logbookApplication.stop();
             processManagementApplication.stop();
@@ -440,14 +437,16 @@ public class IngestInternalIT {
                 File fileContracts =
                     PropertiesUtils.getResourceFile("integration-ingest-internal/referential_contracts_ok.json");
                 List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
-                    new TypeReference<List<IngestContractModel>>() {});
+                    new TypeReference<List<IngestContractModel>>() {
+                    });
 
                 client.importIngestContracts(IngestContractModelList);
 
                 // import contrat
                 File fileAccessContracts = PropertiesUtils.getResourceFile("access_contrats.json");
                 List<AccessContractModel> accessContractModelList = JsonHandler
-                    .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {});
+                    .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
+                    });
                 client.importAccessContracts(accessContractModelList);
             } catch (final Exception e) {
                 LOGGER.error(e);
@@ -1612,8 +1611,8 @@ public class IngestInternalIT {
 
     /**
      * Check error report
-     * 
-     * @param fileInputStreamToImport the given FileInputStream
+     *
+     * @param fileInputStreamToImport   the given FileInputStream
      * @param expectedStreamErrorReport expected Stream error report
      */
     private void checkFileRulesWithCustomReferential(final FileInputStream fileInputStreamToImport,

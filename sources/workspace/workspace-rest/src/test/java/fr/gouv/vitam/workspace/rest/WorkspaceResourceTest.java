@@ -33,10 +33,13 @@ import static com.jayway.restassured.RestAssured.with;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
+import com.google.common.collect.Lists;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -71,7 +74,7 @@ public class WorkspaceResourceTest {
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
-    private WorkspaceApplication workspaceApplication;
+    private static WorkspaceMain workspaceMain;
 
     private static final String RESOURCE_URI = "/workspace/v1";
 
@@ -86,7 +89,8 @@ public class WorkspaceResourceTest {
     private static JunitHelper junitHelper;
     private static int port;
     private static final ObjectMapper OBJECT_MAPPER;
-
+    static final int tenantId = 0;
+    static final List tenantList = Lists.newArrayList(tenantId);
 
     static {
 
@@ -101,7 +105,7 @@ public class WorkspaceResourceTest {
     }
 
     @AfterClass
-    public static void shutdownAfterClass() {
+    public static void shutdownAfterClass() throws VitamApplicationServerException {
         junitHelper.releasePort(port);
     }
 
@@ -111,19 +115,25 @@ public class WorkspaceResourceTest {
         final File tempDir = tempFolder.newFolder();
         configuration.setStoragePath(tempDir.getCanonicalPath());
         configuration.setJettyConfig("jetty-config-test.xml");
+        configuration.setTenants(tenantList);
 
         port = junitHelper.findAvailablePort();
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
 
-        workspaceApplication = new WorkspaceApplication(configuration);
-        workspaceApplication.start();
+        File configurationFile = tempFolder.newFile();
+
+        PropertiesUtils.writeYaml(configurationFile, configuration);
+
+        //FIXME: should we start and stop workspace for each test ?!!
+        workspaceMain = new WorkspaceMain(configurationFile.getAbsolutePath());
+        workspaceMain.start();
         RestAssured.port = port;
         RestAssured.basePath = RESOURCE_URI;
     }
 
     @After
     public void tearDown() throws Exception {
-        workspaceApplication.stop();
+        workspaceMain.stop();
     }
 
     // Status

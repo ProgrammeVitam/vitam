@@ -66,7 +66,7 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFact
 import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
+import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -121,7 +121,7 @@ public class ProperlyStopStartProcessingIT {
     private static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
     private static final String PROCESSING_URL = "http://localhost:" + PORT_SERVICE_PROCESSING;
 
-    private static WorkspaceApplication workspaceApplication;
+    private static WorkspaceMain workspaceMain;
     private static ProcessManagementApplication processManagementApplication;
 
     private WorkspaceClient workspaceClient;
@@ -170,11 +170,11 @@ public class ProperlyStopStartProcessingIT {
         CONFIG_PROCESSING_PATH = PropertiesUtils.getResourcePath("integration-processing/processing.conf").toString();
 
         // launch workspace
-        SystemPropertyUtil.set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT,
+        SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_WORKSPACE));
-        workspaceApplication = new WorkspaceApplication(CONFIG_WORKSPACE_PATH);
-        workspaceApplication.start();
-        SystemPropertyUtil.clear(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT);
+        workspaceMain = new WorkspaceMain(CONFIG_WORKSPACE_PATH);
+        workspaceMain.start();
+        SystemPropertyUtil.clear(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT);
 
         WorkspaceClientFactory.changeMode(WORKSPACE_URL);
 
@@ -194,7 +194,7 @@ public class ProperlyStopStartProcessingIT {
         workspaceClient.deleteContainer("process", true);
 
         try {
-            workspaceApplication.stop();
+            workspaceMain.stop();
             processManagementApplication.stop();
         } catch (final Exception e) {
             LOGGER.error(e);

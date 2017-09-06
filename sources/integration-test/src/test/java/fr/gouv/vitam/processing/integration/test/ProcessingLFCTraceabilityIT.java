@@ -26,33 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.integration.test;
 
-import static com.jayway.restassured.RestAssured.get;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.InputStream;
-import java.util.List;
-
-import javax.ws.rs.core.Response.Status;
-
-import org.bson.Document;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -113,7 +92,25 @@ import fr.gouv.vitam.processing.management.rest.ProcessManagementApplication;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import fr.gouv.vitam.workspace.rest.WorkspaceApplication;
+import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import org.bson.Document;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.InputStream;
+import java.util.List;
+
+import static com.jayway.restassured.RestAssured.get;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 /**
  * Processing integration test
@@ -168,7 +165,7 @@ public class ProcessingLFCTraceabilityIT {
     private static WorkerMain workerApplication;
     private static AdminManagementMain adminApplication;
     private static LogbookMain logbookApplication;
-    private static WorkspaceApplication workspaceApplication;
+    private static WorkspaceMain workspaceMain;
     private static ProcessManagementApplication processManagementApplication;
     private WorkspaceClient workspaceClient;
     private ProcessingManagementClient processingClient;
@@ -233,11 +230,11 @@ public class ProcessingLFCTraceabilityIT {
         MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA));
 
         // launch workspace
-        SystemPropertyUtil.set(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT,
+        SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_WORKSPACE));
-        workspaceApplication = new WorkspaceApplication(CONFIG_WORKSPACE_PATH);
-        workspaceApplication.start();
-        SystemPropertyUtil.clear(WorkspaceApplication.PARAMETER_JETTY_SERVER_PORT);
+        workspaceMain = new WorkspaceMain(CONFIG_WORKSPACE_PATH);
+        workspaceMain.start();
+        SystemPropertyUtil.clear(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT);
 
         WorkspaceClientFactory.changeMode(WORKSPACE_URL);
 
@@ -291,7 +288,7 @@ public class ProcessingLFCTraceabilityIT {
         mongodExecutable.stop();
 
         try {
-            workspaceApplication.stop();
+            workspaceMain.stop();
             adminApplication.stop();
             workerApplication.stop();
             logbookApplication.stop();
@@ -356,7 +353,8 @@ public class ProcessingLFCTraceabilityIT {
 
                 File fileProfiles = PropertiesUtils.getResourceFile("integration-processing/OK_profil.json");
                 List<ProfileModel> profileModelList =
-                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {});
+                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {
+                    });
                 RequestResponse improrResponse = client.createProfiles(profileModelList);
 
                 RequestResponseOK<ProfileModel> response =
@@ -368,7 +366,8 @@ public class ProcessingLFCTraceabilityIT {
                 File fileContracts =
                     PropertiesUtils.getResourceFile("integration-processing/referential_contracts_ok.json");
                 List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
-                    new TypeReference<List<IngestContractModel>>() {});
+                    new TypeReference<List<IngestContractModel>>() {
+                    });
 
                 Status importStatus = client.importIngestContracts(IngestContractModelList);
             } catch (final Exception e) {
