@@ -58,6 +58,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.ihmdemo.common.pagination.PaginationHelper;
 import fr.gouv.vitam.ihmdemo.common.utils.PermissionReader;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
@@ -155,6 +156,7 @@ public class WebApplicationResourceTest {
     private static final String ACTIVATION_DATE_FIELD_QUERY = "ActivationDate";
     private static final String LAST_UPDATE_FIELD_QUERY = "LastUpdate";
     private static final String NAME_FIELD_QUERY = "Name";
+    private static final String ADMIN_EXTERNAL_MODULE = "AdminExternalModule";
 
     @BeforeClass
     public static void setup() throws Exception {
@@ -1343,6 +1345,30 @@ public class WebApplicationResourceTest {
 
         given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.OK.getStatusCode()).when()
+            .post("/admin/accession-register");
+    }
+    
+    @Test
+    public void testSerachFundsRegisterNotFound() throws Exception {
+        VitamError vitamError =
+            new VitamError(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getItem())
+                .setMessage(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getMessage())
+                .setState(StatusCode.KO.name())
+                .setContext(ADMIN_EXTERNAL_MODULE)
+                .setDescription(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getMessage())
+                .setHttpCode(Status.NOT_FOUND.getStatusCode())
+                .setDescription(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_ERROR.getMessage() + " Cause : " +
+                    Status.NOT_FOUND.getReasonPhrase());
+        
+        PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterSummary(anyObject(), anyObject(),
+            anyObject())).thenReturn(vitamError);
+        
+        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
+        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
+            .thenReturn(JsonHandler.createObjectNode());
+        
+        given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
+            .statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .post("/admin/accession-register");
     }
 

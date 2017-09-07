@@ -1478,11 +1478,15 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 result = UserInterfaceTransactionManager.findAccessionRegisterSummary(options, getTenantId(headers),
                     contractName);
 
-                // save result
-                PaginationHelper.setResult(sessionId, result.toJsonNode());
-                // pagination
-                result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(result.toJsonNode(), pagination));
-
+                if (result.isOk()){
+                 // save result
+                    PaginationHelper.setResult(sessionId, result.toJsonNode());
+                    // pagination
+                    result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(result.toJsonNode(), pagination));
+                } else {
+                    return Response.status(Status.fromStatusCode(result.getHttpCode())).entity(result).build();
+                }
+                
             } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
                 LOGGER.error("Bad request Exception ", e);
                 return Response.status(Status.BAD_REQUEST).build();
