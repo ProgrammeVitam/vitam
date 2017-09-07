@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
@@ -126,6 +127,7 @@ public class FinalizeLifecycleTraceabilityActionHandlerTest {
 
     private static final String HANDLER_ID = "FINALIZE_LC_TRACEABILITY";
     private static final String LAST_OPERATION = "FinalizeLifecycleTraceabilityActionHandler/lastOperation.json";
+    private static final String LAST_OPERATION_EMPTY = "FinalizeLifecycleTraceabilityActionHandler/lastOperationEmpty.json";
     private static final String TRACEABILITY_INFO =
         "FinalizeLifecycleTraceabilityActionHandler/traceabilityInformation.json";
     private static final String OBJECT_FILE =
@@ -241,6 +243,36 @@ public class FinalizeLifecycleTraceabilityActionHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenNoLifecycleWhenExecuteThenReturnResponseOKWithNoZipCreated() throws Exception {
+        handlerIO.addOutIOParameters(in);
+        handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(LAST_OPERATION_EMPTY), false);
+        handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(TRACEABILITY_INFO), false);
+        handlerIO.addInIOParameters(in);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        Mockito.reset(workspaceClient);
+        when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), eq(SedaConstants.LFC_OBJECTS_FOLDER)))
+            .thenReturn(new RequestResponseOK().addResult(new ArrayList<>()));
+        when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), eq(SedaConstants.LFC_UNITS_FOLDER)))
+            .thenReturn(new RequestResponseOK().addResult(new ArrayList<>()));
+
+        Mockito.doNothing().when(workspaceClient).createContainer(anyObject());
+
+        Mockito.doReturn(JsonHandler.createObjectNode()).when(logbookOperationsClient).selectOperation(anyObject());
+
+        saveWorkspacePutObject("LogbookLifecycles", ".zip");
+
+        final ItemStatus response = plugin.execute(params, handlerIO);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+        try {
+        getSavedWorkspaceObject("LogbookLifecycles", ".zip");
+        fail("Should throw an exception");
+        } catch (FileNotFoundException e) {
+            // do nothing
+        }        
     }
 
     @Test

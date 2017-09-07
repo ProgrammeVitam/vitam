@@ -232,7 +232,7 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
         tmpFolder.mkdir();
         final File zipFile = new File(tmpFolder, fileName);
         final String uri = String.format("%s/%s", LOGBOOK, fileName);
-        TraceabilityEvent traceabilityEvent;
+        TraceabilityEvent traceabilityEvent = null;
 
         try (TraceabilityFile traceabilityFile = new TraceabilityFile(zipFile)) {
             String rootHash = null;
@@ -248,88 +248,96 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
                 SedaConstants.LFC_UNITS_FOLDER);
             traceabilityFile.closeStoreLifecycleLog();
 
-            final String timestampToken1 = extractTimestampToken(lastTraceabilityOperation);
-            try (final LogbookOperationsClient logbookOperationsClient =
-                LogbookOperationsClientFactory.getInstance().getClient();) {
-                final String timestampToken2 =
-                    findHashByTraceabilityEventExpect(logbookOperationsClient, expectedLogbookId,
-                        currentDate.minusMonths(1));
-                final String timestampToken3 =
-                    findHashByTraceabilityEventExpect(logbookOperationsClient, expectedLogbookId,
-                        currentDate.minusYears(1));
-                final String timestampToken1Base64 =
-                    (timestampToken1 == null) ? null : BaseXx.getBase64(timestampToken1.getBytes());
-                final String timestampToken2Base64 =
-                    (timestampToken2 == null) ? null : BaseXx.getBase64(timestampToken2.getBytes());
-                final String timestampToken3Base64 =
-                    (timestampToken3 == null) ? null : BaseXx.getBase64(timestampToken3.getBytes());
+            if (uriListLFCUnitsWorkspace.size() > 0 || uriListLFCObjectsWorkspace.size() > 0) {
+                final String timestampToken1 = extractTimestampToken(lastTraceabilityOperation);
+                try (final LogbookOperationsClient logbookOperationsClient =
+                    LogbookOperationsClientFactory.getInstance().getClient();) {
+                    final String timestampToken2 =
+                        findHashByTraceabilityEventExpect(logbookOperationsClient, expectedLogbookId,
+                            currentDate.minusMonths(1));
+                    final String timestampToken3 =
+                        findHashByTraceabilityEventExpect(logbookOperationsClient, expectedLogbookId,
+                            currentDate.minusYears(1));
+                    final String timestampToken1Base64 =
+                        (timestampToken1 == null) ? null : BaseXx.getBase64(timestampToken1.getBytes());
+                    final String timestampToken2Base64 =
+                        (timestampToken2 == null) ? null : BaseXx.getBase64(timestampToken2.getBytes());
+                    final String timestampToken3Base64 =
+                        (timestampToken3 == null) ? null : BaseXx.getBase64(timestampToken3.getBytes());
 
-                final byte[] timeStampToken =
-                    generateTimeStampToken(GUIDReader.getGUID(params.getProcessId()), tenantId, rootHash,
-                        timestampToken1, timestampToken2, timestampToken3, itemStatus);
-                traceabilityFile.storeTimeStampToken(timeStampToken);
+                    final byte[] timeStampToken =
+                        generateTimeStampToken(GUIDReader.getGUID(params.getProcessId()), tenantId, rootHash,
+                            timestampToken1, timestampToken2, timestampToken3, itemStatus);
+                    traceabilityFile.storeTimeStampToken(timeStampToken);
 
-                long numberOfLifecycles = 0;
-                String startDate = null;
-                String endDate = null;
-                if (traceabilityInformation != null && traceabilityInformation.get("numberUnitLifecycles") != null &&
-                    traceabilityInformation.get("numberObjectLifecycles") != null &&
-                    traceabilityInformation.get("endDate") != null &&
-                    traceabilityInformation.get("startDate") != null) {
-                    numberOfLifecycles = traceabilityInformation.get("numberUnitLifecycles").asLong() +
-                        traceabilityInformation.get("numberObjectLifecycles").asLong();
-                    startDate = traceabilityInformation.get("startDate").asText();
-                    endDate = traceabilityInformation.get("endDate").asText();
-                }
-
-                traceabilityFile.storeAdditionalInformation(numberOfLifecycles, startDate, endDate);
-                traceabilityFile.storeHashCalculationInformation(rootHash, timestampToken1Base64, timestampToken2Base64,
-                    timestampToken3Base64);
-
-                String previousDate = null;
-                String previousMonthDate = null;
-                String previousYearDate = null;
-                if (lastTraceabilityOperation != null) {
-                    TraceabilityEvent lastTraceabilityEvent = extractEventDetData(lastTraceabilityOperation);
-                    if (lastTraceabilityEvent != null) {
-                        previousDate = lastTraceabilityEvent.getStartDate();
+                    long numberOfLifecycles = 0;
+                    String startDate = null;
+                    String endDate = null;
+                    if (traceabilityInformation != null &&
+                        traceabilityInformation.get("numberUnitLifecycles") != null &&
+                        traceabilityInformation.get("numberObjectLifecycles") != null &&
+                        traceabilityInformation.get("endDate") != null &&
+                        traceabilityInformation.get("startDate") != null) {
+                        numberOfLifecycles = traceabilityInformation.get("numberUnitLifecycles").asLong() +
+                            traceabilityInformation.get("numberObjectLifecycles").asLong();
+                        startDate = traceabilityInformation.get("startDate").asText();
+                        endDate = traceabilityInformation.get("endDate").asText();
                     }
-                }
 
-                final LogbookOperation oneMounthBeforeTraceabilityOperation =
-                    findFirstTraceabilityOperationOKAfterDate(logbookOperationsClient, currentDate.minusMonths(1));
-                if (oneMounthBeforeTraceabilityOperation != null) {
-                    TraceabilityEvent oneMonthBeforeTraceabilityEvent =
-                        extractEventDetData(oneMounthBeforeTraceabilityOperation);
-                    if (oneMonthBeforeTraceabilityEvent != null) {
-                        previousMonthDate = oneMonthBeforeTraceabilityEvent.getStartDate();
+                    traceabilityFile.storeAdditionalInformation(numberOfLifecycles, startDate, endDate);
+                    traceabilityFile.storeHashCalculationInformation(rootHash, timestampToken1Base64,
+                        timestampToken2Base64,
+                        timestampToken3Base64);
+
+                    String previousDate = null;
+                    String previousMonthDate = null;
+                    String previousYearDate = null;
+                    if (lastTraceabilityOperation != null) {
+                        TraceabilityEvent lastTraceabilityEvent = extractEventDetData(lastTraceabilityOperation);
+                        if (lastTraceabilityEvent != null) {
+                            previousDate = lastTraceabilityEvent.getStartDate();
+                        }
                     }
-                }
 
-                final LogbookOperation oneYearBeforeTraceabilityOperation =
-                    findFirstTraceabilityOperationOKAfterDate(logbookOperationsClient, currentDate.minusYears(1));
-                if (oneYearBeforeTraceabilityOperation != null) {
-                    TraceabilityEvent oneYearBeforeTraceabilityEvent =
-                        extractEventDetData(oneYearBeforeTraceabilityOperation);
-                    if (oneYearBeforeTraceabilityEvent != null) {
-                        previousYearDate = oneYearBeforeTraceabilityEvent.getStartDate();
+                    final LogbookOperation oneMounthBeforeTraceabilityOperation =
+                        findFirstTraceabilityOperationOKAfterDate(logbookOperationsClient, currentDate.minusMonths(1));
+                    if (oneMounthBeforeTraceabilityOperation != null) {
+                        TraceabilityEvent oneMonthBeforeTraceabilityEvent =
+                            extractEventDetData(oneMounthBeforeTraceabilityOperation);
+                        if (oneMonthBeforeTraceabilityEvent != null) {
+                            previousMonthDate = oneMonthBeforeTraceabilityEvent.getStartDate();
+                        }
                     }
+
+                    final LogbookOperation oneYearBeforeTraceabilityOperation =
+                        findFirstTraceabilityOperationOKAfterDate(logbookOperationsClient, currentDate.minusYears(1));
+                    if (oneYearBeforeTraceabilityOperation != null) {
+                        TraceabilityEvent oneYearBeforeTraceabilityEvent =
+                            extractEventDetData(oneYearBeforeTraceabilityOperation);
+                        if (oneYearBeforeTraceabilityEvent != null) {
+                            previousYearDate = oneYearBeforeTraceabilityEvent.getStartDate();
+                        }
+                    }
+
+                    long size = zipFile.length();
+
+                    traceabilityEvent = new TraceabilityEvent(TraceabilityType.LIFECYCLE, startDate, endDate,
+                        rootHash, timeStampToken, previousDate, previousMonthDate, previousYearDate, numberOfLifecycles,
+                        fileName, size, VitamConfiguration.getDefaultDigestType());
+
+                    itemStatus.setEvDetailData(JsonHandler.unprettyPrint(traceabilityEvent));
+                    itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(),
+                        JsonHandler.unprettyPrint(traceabilityEvent));
+                } catch (LogbookNotFoundException | LogbookDatabaseException | LogbookClientException |
+                    InvalidCreateOperationException | InvalidGuidOperationException e) {
+                    zipFile.delete();
+                    LOGGER.error("error with logbook ", e);
+                    throw new LogbookException(e);
                 }
-
-                long size = zipFile.length();
-
-                traceabilityEvent = new TraceabilityEvent(TraceabilityType.LIFECYCLE, startDate, endDate,
-                    rootHash, timeStampToken, previousDate, previousMonthDate, previousYearDate, numberOfLifecycles,
-                    fileName, size, VitamConfiguration.getDefaultDigestType());
-
-                itemStatus.setEvDetailData(JsonHandler.unprettyPrint(traceabilityEvent));
-                itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(),
-                    JsonHandler.unprettyPrint(traceabilityEvent));
-            } catch (LogbookNotFoundException | LogbookDatabaseException | LogbookClientException |
-                InvalidCreateOperationException | InvalidGuidOperationException e) {
-                zipFile.delete();
-                LOGGER.error("error with logbook ", e);
-                throw new LogbookException(e);
+            } else {
+                // do nothing, nothing to be handled
+                LOGGER.warn("No lifecycle to be processed");
+                return;
             }
 
         } catch (IOException | ArchiveException e) {
