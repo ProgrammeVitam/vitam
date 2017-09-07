@@ -73,8 +73,6 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientNotFoundException;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientServerException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.tools.SipTool;
 
@@ -309,14 +307,11 @@ public class IngestStep {
     /**
      * check if the atr is available
      * 
-     * @throws InvalidParseOperationException
-     * @throws IngestExternalClientNotFoundException
-     * @throws IngestExternalClientServerException
+     * @throws VitamClientException
      */
     @Then("je peux télécharger son ATR")
     public void download_atr()
-        throws IngestExternalException, IOException, IngestExternalClientServerException,
-        IngestExternalClientNotFoundException, InvalidParseOperationException {
+        throws VitamClientException {
         Response response = world.getIngestClient()
             .downloadObjectAsync(world.getOperationId(), IngestCollection.REPORTS, world.getTenantId());
         InputStream inputStream = response.readEntity(InputStream.class);

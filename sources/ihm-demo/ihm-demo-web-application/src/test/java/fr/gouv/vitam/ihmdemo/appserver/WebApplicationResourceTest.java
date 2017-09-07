@@ -50,6 +50,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -90,9 +91,13 @@ import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -103,7 +108,6 @@ import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UiConstants;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientNotFoundException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
@@ -1399,14 +1403,19 @@ public class WebApplicationResourceTest {
             .when().get(INGEST_URI + "/1/unknown")
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
-        Mockito.doThrow(new IngestExternalClientNotFoundException("")).when(ingestClient).downloadObjectAsync(
+        VitamError error = VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_NOT_FOUND, "NOT FOUND");
+        AbstractMockClient.FakeInboundResponse fakeResponse =
+            new AbstractMockClient.FakeInboundResponse(Status.NOT_FOUND, JsonHandler.writeToInpustream(error),
+                MediaType.APPLICATION_OCTET_STREAM_TYPE, new MultivaluedHashMap<String, Object>());
+        
+        Mockito.doReturn(fakeResponse).when(ingestClient).downloadObjectAsync(
             anyObject(),
             anyObject(), anyObject());
         RestAssured.given()
             .when().get(INGEST_URI + "/1/" + IngestCollection.MANIFESTS.getCollectionName())
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
 
-        Mockito.doThrow(new IngestExternalException("")).when(ingestClient).downloadObjectAsync(anyObject(),
+        Mockito.doThrow(new VitamClientException("")).when(ingestClient).downloadObjectAsync(anyObject(),
             anyObject(), anyObject());
         RestAssured.given()
             .when().get(INGEST_URI + "/1/" + IngestCollection.MANIFESTS.getCollectionName())

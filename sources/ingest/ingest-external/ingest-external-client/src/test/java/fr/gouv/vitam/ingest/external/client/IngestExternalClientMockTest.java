@@ -41,11 +41,10 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.CharsetUtils;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.IngestCollection;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientNotFoundException;
-import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientServerException;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
 public class IngestExternalClientMockTest {
@@ -74,7 +73,7 @@ public class IngestExternalClientMockTest {
             IngestExternalClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final InputStream firstStream = IOUtils.toInputStream(MOCK_INPUT_STREAM);
+        final InputStream firstStream = IOUtils.toInputStream(MOCK_INPUT_STREAM, CharsetUtils.UTF8);
         RequestResponse<JsonNode> requestResponse =
             client.upload(firstStream, TENANT_ID, CONTEXT_ID, EXECUTION_MODE);
 
@@ -83,8 +82,7 @@ public class IngestExternalClientMockTest {
 
     @Test
     public void givenNonEmptyStreamWhenDownloadSuccess()
-        throws IngestExternalException, XMLStreamException, IngestExternalClientServerException,
-        IngestExternalClientNotFoundException, InvalidParseOperationException {
+        throws VitamClientException {
         IngestExternalClientFactory.changeMode(null);
 
         final IngestExternalClient client =
