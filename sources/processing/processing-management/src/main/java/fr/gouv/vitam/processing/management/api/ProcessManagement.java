@@ -74,6 +74,17 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
         StateNotAllowedException;
 
     /**
+     * Handle a replay action for the corresponding process workflow
+     * 
+     * @param workerParameters parameters to be passed to ProcessEngine
+     * @param tenantId
+     * @throws ProcessingException
+     * @throws StateNotAllowedException
+     */
+    ItemStatus replay(WorkerParameters workerParameters, Integer tenantId) throws ProcessingException,
+        StateNotAllowedException;
+
+    /**
      * Handle a resume action for the corresponding process workflow
      * 
      * @param workerParameters parameters to be passed to ProcessEngine
@@ -150,13 +161,17 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
      * @return WorkFlow List
      */
     Map<Integer, Map<String, ProcessWorkflow>> getWorkFlowList();
+
     /**
      * sProcessMonitorList
+     * 
      * @return
      */
-    Map<String, IEventsState>  getProcessMonitorList();
+    Map<String, IEventsState> getProcessMonitorList();
+
     /**
-     *server configuration
+     * server configuration
+     * 
      * @return
      */
     ServerConfiguration getConfiguration();

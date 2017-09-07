@@ -153,7 +153,8 @@ public class ProcessEngineImpl implements ProcessEngine {
         final LogbookOperationParameters logbookParameter = parameters;
 
         // update the process monitoring for this step
-        if (!PauseOrCancelAction.ACTION_RECOVER.equals(step.getPauseOrCancelAction())) {
+        if (!PauseOrCancelAction.ACTION_RECOVER.equals(step.getPauseOrCancelAction()) &&
+            !PauseOrCancelAction.ACTION_REPLAY.equals(step.getPauseOrCancelAction())) {
             callback.onUpdate(StatusCode.STARTED);
         }
 
@@ -172,7 +173,7 @@ public class ProcessEngineImpl implements ProcessEngine {
             // When the distributor responds, finalize the logbook persistence
             .thenApply(distributorResponse -> {
                 try {
-                    // Do not log if stop or cancel occurs
+                    // Do not log if stop, replay or cancel occurs
 
                     ItemStatus pauseCancel =
                         distributorResponse.getItemsStatus().get(PauseOrCancelAction.ACTION_PAUSE.name());
@@ -181,6 +182,11 @@ public class ProcessEngineImpl implements ProcessEngine {
                     }
 
                     pauseCancel = distributorResponse.getItemsStatus().get(PauseOrCancelAction.ACTION_CANCEL.name());
+                    if (null != pauseCancel) {
+                        return distributorResponse;
+                    }
+
+                    pauseCancel = distributorResponse.getItemsStatus().get(PauseOrCancelAction.ACTION_REPLAY.name());
                     if (null != pauseCancel) {
                         return distributorResponse;
                     }
@@ -250,7 +256,8 @@ public class ProcessEngineImpl implements ProcessEngine {
             messageLogbookEngineHelper.getOutcomeDetail(step.getStepName(), StatusCode.STARTED));
 
         // do not re-save the logbook as saved before stop
-        if (PauseOrCancelAction.ACTION_RECOVER.equals(step.getPauseOrCancelAction())) {
+        if (PauseOrCancelAction.ACTION_RECOVER.equals(step.getPauseOrCancelAction()) ||
+            PauseOrCancelAction.ACTION_REPLAY.equals(step.getPauseOrCancelAction())) {
             return parameters;
         }
 
@@ -303,7 +310,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         throws InvalidGuidOperationException, LogbookClientNotFoundException, LogbookClientBadRequestException,
         LogbookClientServerException, JsonProcessingException, InvalidParseOperationException {
         MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
-        final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
+        final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();        
         for (final Action action : step.getActions()) {
             final String handlerId = action.getActionDefinition().getActionKey();
             // Each handler could have a list itself => ItemStatus

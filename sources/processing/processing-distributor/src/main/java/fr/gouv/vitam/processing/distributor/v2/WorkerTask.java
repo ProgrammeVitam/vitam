@@ -89,6 +89,7 @@ public class WorkerTask implements Supplier<ItemStatus> {
                 switch (descriptionStep.getStep().getPauseOrCancelAction()) {
                     case ACTION_RUN:
                     case ACTION_RECOVER:
+                    case ACTION_REPLAY:
                         workerTaskState = WorkerTaskState.RUNNING;
                         return workerClient.submitStep(descriptionStep);
                     case ACTION_PAUSE:

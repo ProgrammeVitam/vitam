@@ -268,7 +268,8 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @param asyncIO asynchronously send to the workspace
      * @throws ProcessingException
      */
-    void transferJsonToWorkspace(String collectionName, String workspacePath, JsonNode jsonNode, boolean toDelete, boolean asyncIO)
+    void transferJsonToWorkspace(String collectionName, String workspacePath, JsonNode jsonNode, boolean toDelete,
+        boolean asyncIO)
         throws ProcessingException;
 
     /**
@@ -291,7 +292,19 @@ public interface HandlerIO extends VitamAutoCloseable {
 
     /**
      * If true then start async manager, if false then waitEndOfTransfer and stop asyncManager
+     * 
      * @param asyncIo
      */
     void enableAsync(boolean asyncIo) throws WorkerspaceQueueException;
+
+
+    /**
+     * Remove a specific folder
+     * 
+     * @param folderName the folderName to delete
+     * @return true if the folder was removed, false if it does not exist
+     * @throws ContentAddressableStorageException when storage error occurs
+     */
+    public boolean removeFolder(String folderName)
+        throws ContentAddressableStorageException;
 }

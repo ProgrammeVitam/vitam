@@ -40,7 +40,7 @@
 		"Name":"aName4",
 		"Description":"aDescription of the contract",
 		"Status":"ACTIVE",
-		"OriginatingAgencies":["NO_SP"],
+		"OriginatingAgencies":["NO_SP", "TestReplayOriginAgency2", "TestReplayOriginAgency1"],
 		"DataObjectVersion": ["PhysicalMaster", "BinaryMaster"],
 		"LastUpdate":"10/12/2016",
 		"CreationDate":"10/12/2016",

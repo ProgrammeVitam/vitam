@@ -40,9 +40,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -258,6 +255,31 @@ public class ProcessManagementImpl implements ProcessManagement {
         final ProcessWorkflow processWorkflow = findOneProcessWorkflow(operationId, tenantId);
 
         stateMachine.next(workerParameters);
+
+
+        return new ItemStatus(operationId)
+            .increment(processWorkflow.getStatus())
+            .setGlobalState(processWorkflow.getState())
+            .setLogbookTypeProcess(processWorkflow.getLogbookTypeProcess().toString());
+    }
+    
+    @Override
+    public ItemStatus replay(WorkerParameters workerParameters, Integer tenantId)
+        throws ProcessingException,
+        StateNotAllowedException {
+
+        final String operationId = workerParameters.getContainerName();
+
+        final IEventsState stateMachine = PROCESS_MONITORS.get(operationId);
+
+        if (null == stateMachine) {
+            throw new ProcessingException(
+                "StateMachine not found with id " + operationId + ". Handle INIT before next");
+        }
+
+        final ProcessWorkflow processWorkflow = findOneProcessWorkflow(operationId, tenantId);
+
+        stateMachine.replay(workerParameters);
 
 
         return new ItemStatus(operationId)

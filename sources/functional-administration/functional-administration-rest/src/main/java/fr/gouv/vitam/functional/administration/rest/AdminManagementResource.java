@@ -88,6 +88,7 @@ import fr.gouv.vitam.common.model.ContractStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
@@ -156,6 +157,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private static final String OPTIONS_IS_MANDATORY_PATAMETER =
         "The json option is mandatory";
 
+    private final static String ORIGINATING_AGENCY = "OriginatingAgency";
+
     private static final SingleVarNameAdapter DEFAULT_VARNAME_ADAPTER = new SingleVarNameAdapter();
     public static final String AUDIT_TYPE = "auditType";
     public static final String OBJECT_ID = "objectId";
@@ -191,7 +194,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         LOGGER.debug("init Admin Management Resource server");
     }
 
-    @VisibleForTesting AdminManagementResource(AdminManagementConfiguration configuration,
+    @VisibleForTesting
+    AdminManagementResource(AdminManagementConfiguration configuration,
         RulesSecurisator securisator) {
         this(configuration);
         this.securisator = securisator;
@@ -245,7 +249,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * import the file format
      *
-     * @param headers   http headers
+     * @param headers http headers
      * @param xmlPronom as InputStream
      * @return Response jersey response
      */
@@ -286,7 +290,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * @param formatId path param as String
      * @return Response jersey response
      * @throws InvalidParseOperationException when transform result to json exception occurred
-     * @throws IOException                    when error json occurs
+     * @throws IOException when error json occurs
      */
     @GET
     @Path("format/{id_format:.+}")
@@ -336,7 +340,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param select as String the query to get format
      * @return Response jersey Response
-     * @throws IOException                    when error json occurs
+     * @throws IOException when error json occurs
      * @throws InvalidParseOperationException when error json occurs
      */
     @Path("format/document")
@@ -374,10 +378,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param rulesStream as InputStream
      * @return Response response jersey
-     * @throws IOException                     convert inputstream rule to File exception occurred
+     * @throws IOException convert inputstream rule to File exception occurred
      * @throws InvalidCreateOperationException if exception occurred when create query
-     * @throws InvalidParseOperationException  if parsing json data exception occurred
-     * @throws ReferentialException            if exception occurred when create rule file manager
+     * @throws InvalidParseOperationException if parsing json data exception occurred
+     * @throws ReferentialException if exception occurred when create rule file manager
      */
     @Path("rules/check")
     @POST
@@ -396,7 +400,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * async Download Report
      *
-     * @param document      the document to check
+     * @param document the document to check
      * @param asyncResponse asyncResponse
      */
     private void asyncDownloadErrorReport(InputStream document, final AsyncResponse asyncResponse) {
@@ -450,12 +454,12 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * import the rules file
      *
-     * @param headers     http headers
+     * @param headers http headers
      * @param rulesStream as InputStream
      * @return Response jersey response
-     * @throws IOException                    when error json occurs
+     * @throws IOException when error json occurs
      * @throws InvalidParseOperationException when error json occurs
-     * @throws ReferentialException           when the mongo insert throw error
+     * @throws ReferentialException when the mongo insert throw error
      */
     @Path("rules/import")
     @POST
@@ -494,12 +498,12 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * findRuleByID : find the rules details based on a given Id
      *
-     * @param ruleId  path param as String
+     * @param ruleId path param as String
      * @param request the request
      * @return Response jersey response
-     * @throws InvalidParseOperationException  if exception occurred when transform json rule id
-     * @throws IOException                     when error json occurs
-     * @throws ReferentialException            when the mongo search throw error or search result is null
+     * @throws InvalidParseOperationException if exception occurred when transform json rule id
+     * @throws IOException when error json occurs
+     * @throws ReferentialException when the mongo search throw error or search result is null
      * @throws InvalidCreateOperationException if exception occurred when create query
      */
     @GET
@@ -553,7 +557,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param select as String
      * @return Response jersey Response
-     * @throws IOException                    when error json occurs
+     * @throws IOException when error json occurs
      * @throws InvalidParseOperationException when error json occurs
      */
     @Path("rules/document")
@@ -621,9 +625,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param select as String the query to find accession register
      * @return Response jersey Response
-     * @throws IOException                    when error json occurs
+     * @throws IOException when error json occurs
      * @throws InvalidParseOperationException when error json occurs
-     * @throws ReferentialException           when the mongo search throw error or search result is null
+     * @throws ReferentialException when the mongo search throw error or search result is null
      */
     @Path("accession-register/document")
     @POST
@@ -680,7 +684,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             parser.parse(select);
 
             if (!isEveryOriginatingAgency) {
-                parser.addCondition(QueryHelper.in("OriginatingAgency",
+                parser.addCondition(QueryHelper.in(ORIGINATING_AGENCY,
                     prodServices.toArray(new String[0])));
             }
 
@@ -696,11 +700,11 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * retrieve accession register detail based on a given dsl query
      *
      * @param documentId
-     * @param select     as String the query to find the accession register
+     * @param select as String the query to find the accession register
      * @return Response jersey Response
-     * @throws IOException                    when error json occurs
+     * @throws IOException when error json occurs
      * @throws InvalidParseOperationException when error json occurs
-     * @throws ReferentialException           when the mongo search throw error or search result is null
+     * @throws ReferentialException when the mongo search throw error or search result is null
      */
     @Path("accession-register/detail/{id}")
     @POST
@@ -715,27 +719,30 @@ public class AdminManagementResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(select);
             SanityChecker.checkParameter(documentId);
 
-            AccessContractModel contract = getContractDetails(VitamThreadUtils.getVitamSession().getContractId());
-            if (contract == null) {
-                throw new AccessUnauthorizedException("Contract Not Found");
-            }
-            boolean isEveryOriginatingAgency = contract.getEveryOriginatingAgency();
-            Set<String> prodServices = contract.getOriginatingAgencies();
-
             SelectParserSingle parser = new SelectParserSingle(DEFAULT_VARNAME_ADAPTER);
             parser.parse(select);
+            if (!VitamConstants.EVERY_ORIGINATING_AGENCY.equals(VitamThreadUtils.getVitamSession().getContractId())) {
+                AccessContractModel contract = getContractDetails(VitamThreadUtils.getVitamSession().getContractId());
+                if (contract == null) {
+                    throw new AccessUnauthorizedException("Contract Not Found");
+                }
+                boolean isEveryOriginatingAgency = contract.getEveryOriginatingAgency();
+                Set<String> prodServices = contract.getOriginatingAgencies();
 
-            if (!isEveryOriginatingAgency && !prodServices.contains(documentId)) {
-                return Response.status(Status.UNAUTHORIZED).entity(Status.UNAUTHORIZED).build();
+                if (!isEveryOriginatingAgency && !prodServices.contains(documentId)) {
+                    return Response.status(Status.UNAUTHORIZED).entity(Status.UNAUTHORIZED).build();
+                }
+                if (!isEveryOriginatingAgency) {
+                    parser.addCondition(QueryHelper.in(ORIGINATING_AGENCY,
+                        prodServices.stream().toArray(String[]::new)).setDepthLimit(0));
+                }
             }
-            if (!isEveryOriginatingAgency) {
-                parser.addCondition(QueryHelper.in("OriginatingAgency",
-                    prodServices.stream().toArray(String[]::new)).setDepthLimit(0));
-            }
-            parser.addCondition(eq("OriginatingAgency", URLDecoder.decode(documentId, CharsetUtils.UTF_8)));
+            parser.addCondition(
+                eq(ORIGINATING_AGENCY, URLDecoder.decode(documentId, CharsetUtils.UTF_8)));
 
             accessionRegisterDetails =
                 accessionRegisterManagement.findDetail(parser.getRequest().getFinalSelect()).setQuery(select);
+
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -780,10 +787,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 if (!options.get(OBJECT_ID).textValue().equals(String.valueOf(tenantId))) {
                     return Response.status(Status.BAD_REQUEST).build();
                 }
-            } else if (auditType.toLowerCase().equals("originatingagency")) {
+            } else if (auditType.toLowerCase().equals(ORIGINATING_AGENCY.toLowerCase())) {
                 RequestResponseOK<AccessionRegisterSummary> fileFundRegisters;
                 Select selectRequest = new Select();
-                selectRequest.setQuery(QueryHelper.eq("OriginatingAgency",
+                selectRequest.setQuery(QueryHelper.eq(ORIGINATING_AGENCY,
                     options.get(OBJECT_ID).textValue()));
                 fileFundRegisters = findFundRegisters(selectRequest.getFinalSelect());
                 if (fileFundRegisters.getResults().size() == 0) {

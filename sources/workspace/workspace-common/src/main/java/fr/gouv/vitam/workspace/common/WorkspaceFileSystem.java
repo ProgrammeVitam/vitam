@@ -213,8 +213,13 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
         try {
             Files.delete(folderPath);
         } catch (DirectoryNotEmptyException ex) {
-            // TODO: keep this old none recursive delete workspace container style ?
-            LOGGER.warn("Directory {} not empty, do nothing", folderPath.toString());
+            LOGGER.warn("Directory {} not empty, then we delete files and folder", folderPath.toString());
+            try {
+                Files.walk(folderPath, FileVisitOption.FOLLOW_LINKS).sorted(Comparator.reverseOrder())
+                    .map(Path::toFile).forEach(File::delete);
+            } catch (IOException exc) {                
+                throw new ContentAddressableStorageServerException(exc);
+            }
         } catch (IOException ex) {
             throw new ContentAddressableStorageServerException(ex);
         }

@@ -136,6 +136,7 @@ import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
 import fr.gouv.vitam.worker.core.extractseda.ArchiveUnitListener;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
@@ -1750,6 +1751,16 @@ public class ExtractSedaActionHandler extends ActionHandler {
         } catch (final IOException e1) {
             LOGGER.error("Can not write to tmp folder ", e1);
             throw new ProcessingException(e1);
+        }
+
+        // check if folder OBJECT_GROUP_FOLDER is not empty, if it is not, that means we 're in the replay mode, so lets
+        // purge it
+        try {
+            if (handlerIO.removeFolder(IngestWorkflowConstants.OBJECT_GROUP_FOLDER)) {
+                LOGGER.warn("Folder has been deleted, it's a replay for this operation : " + containerId);
+            }
+        } catch (ContentAddressableStorageException e1) {
+            LOGGER.warn("Couldnt delete folder", e1);
         }
 
         for (final Entry<String, List<String>> entry : objectGroupIdToDataObjectId.entrySet()) {

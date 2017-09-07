@@ -35,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Stopwatch;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -109,7 +110,8 @@ public class WorkerImpl implements Worker {
     private static final String STEP_NULL = "step paramaters is null";
     private static final String HANDLER_NOT_FOUND = ": handler not found exception: ";
     private static final String UNIT_LIST_WITHOUT_LEVEL = "UnitsWithoutLevel";
-    private static final String OG_LIST_WITHOUT_LEVEL = "ObjectGroupWithoutLevel";    
+    private static final String OG_LIST_WITHOUT_LEVEL = "ObjectGroupWithoutLevel";
+    private static final String DETAIL = "Detail";
     private final Map<String, ActionHandler> actions = new HashMap<>();
     private final String workerId;
     private final PluginLoader pluginLoader;
@@ -236,15 +238,19 @@ public class WorkerImpl implements Worker {
 
                         ItemStatus pluginResponse;
                         LOGGER.debug("START plugin ", actionDefinition.getActionKey(), step.getStepName());
-                        boolean shouldWriteLFC = (step.getDistribution().getKind().equals(DistributionKind.LIST)
-                            || step.getDistribution().getKind().equals(DistributionKind.LIST_IN_FILE))
-                            && !step.getDistribution().getElement().equals(UNIT_LIST_WITHOUT_LEVEL)
-                            && !step.getDistribution().getElement().equals(OG_LIST_WITHOUT_LEVEL);
+                        boolean shouldWriteLFC = (step.getDistribution().getKind().equals(DistributionKind.LIST) ||
+                            step.getDistribution().getKind().equals(DistributionKind.LIST_IN_FILE)) &&
+                            !step.getDistribution().getElement().equals(UNIT_LIST_WITHOUT_LEVEL) &&
+                            !step.getDistribution().getElement().equals(OG_LIST_WITHOUT_LEVEL);
                         if (shouldWriteLFC) {
                             LogbookLifeCycleParameters lfcParam = createStartLogbookLfc(step, handlerName, workParams);
-                            logbookLfcClient.update(lfcParam);
                             pluginResponse = actionPlugin.execute(workParams, handlerIO);
-                            writeLogBookLfcFromResponse(handlerName, logbookLfcClient, pluginResponse, lfcParam);
+                            if (!StatusCode.ALREADY_EXECUTED.equals(pluginResponse.getGlobalStatus())) {
+                                // LFC STARTED
+                                logbookLfcClient.update(lfcParam);
+                                // LFC AFTER
+                                writeLogBookLfcFromResponse(handlerName, logbookLfcClient, pluginResponse, lfcParam);
+                            }
                         } else {
                             pluginResponse = actionPlugin.execute(workParams, handlerIO);
                         }
@@ -333,24 +339,27 @@ public class WorkerImpl implements Worker {
                 VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.STARTED),
                 GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(workParams)));
         }
+        lfcParam.putParameterValue(LogbookParameterName.eventDateTime,
+            LocalDateUtil.now().toString());
         return lfcParam;
     }
 
     private void writeLogBookLfcFromResponse(String handlerName, LogbookLifeCyclesClient logbookLfcClient,
         ItemStatus actionResponse, LogbookLifeCycleParameters logbookParam)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
-
+        logbookParam.putParameterValue(LogbookParameterName.eventDateTime, null);
         List<LogbookLifeCycleParameters> logbookParamList = new ArrayList<>();
         LogbookLifeCycleParameters finalLogbookLfcParam = LogbookLifeCyclesClientHelper.copy(logbookParam);
         finalLogbookLfcParam.setFinalStatus(handlerName, null, actionResponse.getGlobalStatus(),
             actionResponse.getMessage());
         if (!actionResponse.getEvDetailData().isEmpty()) {
             finalLogbookLfcParam.putParameterValue(LogbookParameterName.eventDetailData,
-                    actionResponse.getEvDetailData());
+                actionResponse.getEvDetailData());
         }
-        if (actionResponse.getData("Detail") != null) {
-            String outcomeDetailMessage = finalLogbookLfcParam.getParameterValue(LogbookParameterName.outcomeDetailMessage)
-                + " " + actionResponse.getData("Detail");
+        if (actionResponse.getData(DETAIL) != null) {
+            String outcomeDetailMessage =
+                finalLogbookLfcParam.getParameterValue(LogbookParameterName.outcomeDetailMessage) + " " +
+                    actionResponse.getData(DETAIL);
             finalLogbookLfcParam.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 outcomeDetailMessage);
         }

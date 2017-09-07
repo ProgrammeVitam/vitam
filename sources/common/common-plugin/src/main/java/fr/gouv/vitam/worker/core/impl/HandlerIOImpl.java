@@ -26,9 +26,27 @@
  */
 package fr.gouv.vitam.worker.core.impl;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -57,22 +75,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
-import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Handler input and output parameter
@@ -106,18 +108,17 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
      * Constructor with local root path
      *
      * @param containerName the container name
-     * @param workerId      the worker id
+     * @param workerId the worker id
      */
     public HandlerIOImpl(String containerName, String workerId) {
         this(WorkspaceClientFactory.getInstance().getClient(), containerName, workerId);
     }
 
     /**
-     * Constructor with workspaceClient, local root path
-     * he is used for test purpose
+     * Constructor with workspaceClient, local root path he is used for test purpose
      *
      * @param containerName the container name
-     * @param workerId      the worker id
+     * @param workerId the worker id
      */
     @VisibleForTesting
     public HandlerIOImpl(WorkspaceClient workspaceClient, String containerName, String workerId) {
@@ -369,7 +370,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
      * Resources file
      *
      * @param objectName object name
-     * @param optional   if file is optional
+     * @param optional if file is optional
      * @return file if found, if not found, null if optional
      * @throws FileNotFoundException if file is not found and not optional
      */
@@ -491,8 +492,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         try {
             return JsonHandler
                 .getFromStringAsTypeRefence(client.getListUriDigitalObjectFromFolder(containerName, folderName)
-                    .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
-                });
+                    .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {});
         } catch (ContentAddressableStorageServerException | InvalidParseOperationException e) {
             LOGGER.debug("Workspace Server Error", e);
             throw new ProcessingException(e);
@@ -560,4 +560,26 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
             this.asyncWorkspaceTransfer.waitEndOfTransfer();
         }
     }
+
+    @Override
+    public boolean removeFolder(String folderName) throws ContentAddressableStorageException {
+        if (!isFolderExist(folderName)) {
+            return false;
+        }
+        try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
+            client.deleteFolder(this.containerName, folderName);
+            return true;
+        } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException exc) {
+            throw new ContentAddressableStorageException(exc);
+        }
+    }
+
+    private boolean isFolderExist(String folderName) throws ContentAddressableStorageException {
+        try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
+            return client.isExistingFolder(this.containerName, folderName);
+        } catch (ContentAddressableStorageServerException exc) {
+            throw new ContentAddressableStorageException(exc);
+        }
+    }
+
 }

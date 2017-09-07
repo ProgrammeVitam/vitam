@@ -125,6 +125,19 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
         mapParameters.put(WorkerParameterName.currentStep, currentStep);
         return this;
     }
+    
+    @JsonIgnore
+    @Override
+    public String getPreviousStep() {
+        return mapParameters.get(WorkerParameterName.previousStep);
+    }
+
+    @JsonIgnore
+    @Override
+    public WorkerParameters setPreviousStep(String previousStep) {
+        mapParameters.put(WorkerParameterName.previousStep, previousStep);
+        return this;
+    }
 
     @JsonIgnore
     @Override

@@ -1,8 +1,8 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -23,78 +23,27 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.common.model;
+ *******************************************************************************/
+package fr.gouv.vitam.processing.common.exception;
 
-/**
- * Enum of process workflow execution mode
- * 
- */
-public enum ProcessAction {
-    /**
-     * initial execution mode for process workflow
-     */
-    INIT("init"),
-    /**
-     * execute only next step
-     */
-    NEXT("next"),
-    /**
-     * resume execution mode (all step will be executed)
-     * 
-     */
-    RESUME("resume"),
-    /**
-     * pause execution mode
-     * 
-     */
-    PAUSE("pause"),
-    /**
-     * execute one more time last executed step
-     */
-    REPLAY("replay"),
-    /**
-     * start execution mode for process workflow
-     */
-    START("start");
+import static org.junit.Assert.assertEquals;
 
+import org.junit.Test;
 
-    private String value;
+public class StepAlreadyExecutedExceptionTest {
 
-    /**
-     * Constructor
-     * 
-     * @param processAction
-     */
+    private static final String ERROR = "ERROR";
+    private static final String EXCEPTION =
+        "fr.gouv.vitam.processing.common.exception.StepAlreadyExecutedException";
 
-    ProcessAction(String processAction) {
-        this.value = processAction;
+    @Test
+    public void testConstructor() {
+        StepAlreadyExecutedException exception =
+            new StepAlreadyExecutedException(ERROR, new Exception());
+        assertEquals(EXCEPTION + ": " + ERROR,
+            exception.toString());
+        exception = new StepAlreadyExecutedException(ERROR);
+        assertEquals(ERROR, exception.getMessage());
     }
-
-    /**
-     * 
-     * @return value of process workflow in String format
-     */
-    public String getValue() {
-        return this.value;
-    }
-
-    /**
-     * Returns Enum from value
-     * 
-     * @param value of process workflow in String format
-     * @return ProcessAction
-     */
-    public static ProcessAction getProcessAction(String value) {
-        if (value != null) {
-            for (ProcessAction action : ProcessAction.values()) {
-                if (value.equalsIgnoreCase(action.value)) {
-                    return action;
-                }
-            }
-        }
-        return null;
-    }
-
 
 }
