@@ -121,6 +121,7 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
             }
             fw.flush();
             fw.close();
+            // TODO : this is not a json file
             handlerIO
                 .transferFileToWorkspace(folder + "/" + lfGuid + JSON_EXTENSION,
                     lifecycleGlobalTmpFile, true, false);

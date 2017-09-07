@@ -10,6 +10,7 @@
    masterdata/_toc_masterdata.rst
    audit/_toc_audit.rst
    traceability/_toc_traceability.rst
+   rules_update/_toc_rules_update.rst
 
 .. only:: latex
 
