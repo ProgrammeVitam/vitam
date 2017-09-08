@@ -154,8 +154,6 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      *            container where this exists.
      * @param objectName
      *            fully qualified name relative to the container.
-     * @param asyncResponse
-     *            the asyncResponse
      * @return the object you intended to receive
      *
      * @throws ContentAddressableStorageNotFoundException
@@ -165,7 +163,7 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @throws ContentAddressableStorageAlreadyExistException
      *             Thrown when object creating exists
      */
-    Response getObjectAsync(String containerName, String objectName, AsyncResponse asyncResponse)
+    Response getObjectAsync(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**

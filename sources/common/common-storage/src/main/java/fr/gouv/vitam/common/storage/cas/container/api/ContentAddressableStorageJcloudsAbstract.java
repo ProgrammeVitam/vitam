@@ -50,7 +50,6 @@ import org.jclouds.blobstore.domain.PageSet;
 import org.jclouds.blobstore.domain.StorageMetadata;
 import org.jclouds.blobstore.options.ListContainerOptions;
 
-import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
@@ -232,7 +231,7 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
 
     @Override
     // TODO P1 : asyncResponse not used !
-    public Response getObjectAsync(String containerName, String objectName, AsyncResponse asyncResponse)
+    public Response getObjectAsync(String containerName, String objectName)
         throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);

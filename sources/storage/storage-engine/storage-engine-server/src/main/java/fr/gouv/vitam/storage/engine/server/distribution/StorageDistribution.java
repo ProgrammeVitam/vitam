@@ -160,18 +160,13 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * @param objectId
      *            id of the object
      * @param category
-     * @param asyncResponse
-     *            asyncResponse
      * @return an object as a Response with an InputStream
      * @throws StorageNotFoundException
      *             Thrown if the Container or the object does not exist
      * @throws StorageTechnicalException
      *             thrown if a technical error happened
      */
-    // TODO P1 : "bonus" code, this is NOT to be handled in item #72. No need to
-    // review this code then
-    Response getContainerByCategory(String strategyId, String objectId, DataCategory category, AsyncResponse asyncResponse)
-            throws StorageException;
+    Response getContainerByCategory(String strategyId, String objectId, DataCategory category) throws StorageException;
 
     /**
      * Get a specific Object informations

@@ -240,10 +240,10 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         @Path("/objects/{id_object_group}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
-        public void getObjectStreamAsync(@Context HttpHeaders headers,
+        public Response getObjectStreamAsync(@Context HttpHeaders headers,
             @PathParam("id_object_group") String idObjectGroup,
-            JsonNode query, @Suspended final AsyncResponse asyncResponse) {
-            asyncResponse.resume(expectedResponse.get());
+            JsonNode query) {
+            return expectedResponse.get();
         }
 
         // Functionalities related to TRACEABILITY operation
@@ -537,7 +537,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         final InputStream stream = client.getObject(queryJson, ID, USAGE, VERSION).readEntity(InputStream.class);
         final InputStream stream2 = StreamUtils.toInputStream("Vitam test");
         assertNotNull(stream);
-        assertTrue(IOUtils.contentEquals(stream, stream2));
+        assertTrue(StreamUtils.contentEquals(stream, stream2));
     }
 
     @Test

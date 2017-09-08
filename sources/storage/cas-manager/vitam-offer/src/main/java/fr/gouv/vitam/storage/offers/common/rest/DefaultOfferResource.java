@@ -41,8 +41,6 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -67,12 +65,10 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
@@ -271,8 +267,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
      *            provided
      * @param headers
      *            http header
-     * @param asyncResponse
-     *            async response
+     * @return response
      * @throws IOException
      *             when there is an error of get object
      */
@@ -280,16 +275,24 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     @Path("/objects/{type}/{id_object}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces({ MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP })
-    public void getObject(@PathParam("type") DataCategory type, @NotNull @PathParam("id_object") String objectId,
-            @Context HttpHeaders headers, @Suspended final AsyncResponse asyncResponse) throws IOException {
+    public Response getObject(@PathParam("type") DataCategory type, @NotNull @PathParam("id_object") String objectId,
+            @Context HttpHeaders headers) throws IOException {
         final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
-
-            @Override
-            public void run() {
-                getObjectAsync(type, objectId, xTenantId, asyncResponse);
+        try {
+            SanityChecker.checkParameter(objectId);
+            if (Strings.isNullOrEmpty(xTenantId)) {
+                LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
+                return Response.status(Status.PRECONDITION_FAILED).build();
             }
-        });
+            final String containerName = buildContainerName(type, xTenantId);
+            return DefaultOfferServiceImpl.getInstance().getObject(containerName, objectId);
+        } catch (final ContentAddressableStorageNotFoundException e) {
+            LOGGER.error(e);
+            return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
+        } catch (final ContentAddressableStorageException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+        }
     }
 
     /**
@@ -528,6 +531,12 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * @param type
+     * @param idObject
+     * @param xTenantId
+     * @return metadatas
+     */
     @GET
     @Path("/objects/{type}/{id:.+}/metadatas")
     @Produces(MediaType.APPLICATION_JSON)
@@ -551,52 +560,20 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         }
     }
 
-    private void getObjectAsync(DataCategory type, String objectId, String xTenantId, AsyncResponse asyncResponse) {
-        try {
-            SanityChecker.checkParameter(objectId);
-            if (Strings.isNullOrEmpty(xTenantId)) {
-                LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
-                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                    Response.status(Status.PRECONDITION_FAILED).build());
-                return;
-            }
-            final String containerName = buildContainerName(type, xTenantId);
-            DefaultOfferServiceImpl.getInstance().getObject(containerName, objectId, asyncResponse);
-        } catch (final ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e);
-            buildErrorResponseAsync(VitamCode.STORAGE_NOT_FOUND, asyncResponse);
-        } catch (final ContentAddressableStorageException | InvalidParseOperationException e) {
-            LOGGER.error(e);
-            buildErrorResponseAsync(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, asyncResponse);
-        }
-
-    }
-
     /**
-     * Add error response in async response using with vitamCode
+     * Add error response using with vitamCode
      *
      * @param vitamCode
      *            vitam error Code
-     * @param asyncResponse
-     *            asynchronous response
      */
-    private void buildErrorResponseAsync(VitamCode vitamCode, AsyncResponse asyncResponse) {
-        AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-            Response.status(vitamCode.getStatus()).entity(new RequestResponseError().setError(
+    private Response buildErrorResponse(VitamCode vitamCode) {
+        return Response.status(vitamCode.getStatus()).entity(new RequestResponseError().setError(
                 new VitamError(VitamCodeHelper.getCode(vitamCode))
                     .setContext(vitamCode.getService().getName())
                     .setState(vitamCode.getDomain().getName())
                     .setMessage(vitamCode.getMessage())
                     .setDescription(vitamCode.getMessage()))
-                .toString()).build());
-    }
-
-    private VitamError getErrorEntity(Status status, String message) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
-        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(DEFAULT_OFFER_MODULE)
-                .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
+                .toString()).build();
     }
 
     private String buildContainerName(DataCategory type, String tenantId) {

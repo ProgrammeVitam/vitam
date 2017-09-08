@@ -107,7 +107,7 @@ public class BenchmarkResourceInputStreamIT {
             BenchmarkClientFactory.getInstance().getClient()) {
             String method = HttpMethod.GET;
             long start = System.nanoTime();
-            Response response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD + method,
+            Response response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_ASYNC + method,
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             try (final InputStream inputStream =
                 StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
@@ -121,7 +121,7 @@ public class BenchmarkResourceInputStreamIT {
 
             method = HttpMethod.POST;
             start = System.nanoTime();
-            response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD + method,
+            response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_ASYNC + method,
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             try (final InputStream inputStream =
                 StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
@@ -135,7 +135,7 @@ public class BenchmarkResourceInputStreamIT {
 
             method = HttpMethod.PUT;
             start = System.nanoTime();
-            response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD + method,
+            response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_ASYNC + method,
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             try (final InputStream inputStream =
                 StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
@@ -152,6 +152,104 @@ public class BenchmarkResourceInputStreamIT {
 
     @Test
     public void testIndirectStream() throws VitamClientInternalException, IOException {
+        try (final BenchmarkClientRest client =
+            BenchmarkClientFactory.getInstance().getClient()) {
+            String method = HttpMethod.GET;
+            long start = System.nanoTime();
+            Response response =
+                client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_INDIRECT_ASYNC + method,
+                    null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            try (final InputStream inputStream =
+                StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
+                assertEquals(BenchmarkResourceProduceInputStream.size, JunitHelper.consumeInputStream(inputStream));
+            }
+            client.consumeAnyEntityAndClose(response);
+            long stop = System.nanoTime();
+            LOGGER.warn(method + " Download " + BenchmarkResourceProduceInputStream.size + " in " +
+                (stop - start) / 1000000 + "ms so " +
+                (stop - start) / BenchmarkResourceProduceInputStream.size + " ns/bytes");
+
+            method = HttpMethod.POST;
+            start = System.nanoTime();
+            response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_INDIRECT_ASYNC + method,
+                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            try (final InputStream inputStream =
+                StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
+                assertEquals(BenchmarkResourceProduceInputStream.size, JunitHelper.consumeInputStream(inputStream));
+            }
+            client.consumeAnyEntityAndClose(response);
+            stop = System.nanoTime();
+            LOGGER.warn(method + " Download " + BenchmarkResourceProduceInputStream.size + " in " +
+                (stop - start) / 1000000 + "ms so " +
+                (stop - start) / BenchmarkResourceProduceInputStream.size + " ns/bytes");
+
+            method = HttpMethod.PUT;
+            start = System.nanoTime();
+            response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_INDIRECT_ASYNC + method,
+                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            try (final InputStream inputStream =
+                StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
+                assertEquals(BenchmarkResourceProduceInputStream.size, JunitHelper.consumeInputStream(inputStream));
+            }
+            client.consumeAnyEntityAndClose(response);
+            stop = System.nanoTime();
+            LOGGER.warn(method + " Download " + BenchmarkResourceProduceInputStream.size + " in " +
+                (stop - start) / 1000000 + "ms so " +
+                (stop - start) / BenchmarkResourceProduceInputStream.size + " ns/bytes");
+        }
+    }
+
+    @Test
+    public void testStreamNotAsync() throws VitamClientInternalException, IOException {
+        try (final BenchmarkClientRest client =
+            BenchmarkClientFactory.getInstance().getClient()) {
+            String method = HttpMethod.GET;
+            long start = System.nanoTime();
+            Response response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_DIRECT + method,
+                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            try (final InputStream inputStream =
+                StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
+                assertEquals(BenchmarkResourceProduceInputStream.size, JunitHelper.consumeInputStream(inputStream));
+            }
+            client.consumeAnyEntityAndClose(response);
+            long stop = System.nanoTime();
+            LOGGER.warn(method + " Download " + BenchmarkResourceProduceInputStream.size + " in " +
+                (stop - start) / 1000000 + "ms so " +
+                (stop - start) / BenchmarkResourceProduceInputStream.size + " ns/bytes");
+
+            method = HttpMethod.POST;
+            start = System.nanoTime();
+            response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_DIRECT + method,
+                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            try (final InputStream inputStream =
+                StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
+                assertEquals(BenchmarkResourceProduceInputStream.size, JunitHelper.consumeInputStream(inputStream));
+            }
+            client.consumeAnyEntityAndClose(response);
+            stop = System.nanoTime();
+            LOGGER.warn(method + " Download " + BenchmarkResourceProduceInputStream.size + " in " +
+                (stop - start) / 1000000 + "ms so " +
+                (stop - start) / BenchmarkResourceProduceInputStream.size + " ns/bytes");
+
+            method = HttpMethod.PUT;
+            start = System.nanoTime();
+            response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_DIRECT + method,
+                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            try (final InputStream inputStream =
+                StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
+                assertEquals(BenchmarkResourceProduceInputStream.size, JunitHelper.consumeInputStream(inputStream));
+            }
+            client.consumeAnyEntityAndClose(response);
+            stop = System.nanoTime();
+            LOGGER.warn(method + " Download " + BenchmarkResourceProduceInputStream.size + " in " +
+                (stop - start) / 1000000 + "ms so " +
+                (stop - start) / BenchmarkResourceProduceInputStream.size + " ns/bytes");
+        }
+    }
+
+
+    @Test
+    public void testIndirectStreamNotAsync() throws VitamClientInternalException, IOException {
         try (final BenchmarkClientRest client =
             BenchmarkClientFactory.getInstance().getClient()) {
             String method = HttpMethod.GET;

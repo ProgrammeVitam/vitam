@@ -26,6 +26,27 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.rest;
 
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.datatype.DatatypeConfigurationException;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -71,36 +92,13 @@ import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.unit.TextByLang;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.Set;
 
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCIES;
 
@@ -430,17 +428,15 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
 
 
-    private void asyncObjectStream(AsyncResponse asyncResponse, MultivaluedMap<String, String> multipleMap,
+    private Response asyncObjectStream(MultivaluedMap<String, String> multipleMap,
         String idObjectGroup,
         JsonNode query, boolean post) {
 
         if (post) {
             if (!multipleMap.containsKey(GlobalDataRest.X_HTTP_METHOD_OVERRIDE)) {
-                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                    Response.status(Status.PRECONDITION_FAILED)
+                return Response.status(Status.PRECONDITION_FAILED)
                         .entity(getErrorStream(Status.PRECONDITION_FAILED, "method POST without Override = GET"))
-                        .build());
-                return;
+                        .build();
             }
         }
         if (!multipleMap.containsKey(GlobalDataRest.X_TENANT_ID) ||
@@ -448,25 +444,21 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             !multipleMap.containsKey(GlobalDataRest.X_VERSION)) {
             LOGGER.error("At least one required header is missing. Required headers: (" + VitamHttpHeader.TENANT_ID
                 .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.PRECONDITION_FAILED)
+            return Response.status(Status.PRECONDITION_FAILED)
                     .entity(getErrorStream(Status.PRECONDITION_FAILED,
                         "At least one required header is missing. Required headers: (" + VitamHttpHeader.TENANT_ID
                             .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() +
                             ")"))
-                    .build());
-            return;
-        }
+                    .build();
+        }        
         final String xQualifier = multipleMap.get(GlobalDataRest.X_QUALIFIER).get(0);
         final String xVersion = multipleMap.get(GlobalDataRest.X_VERSION).get(0);
 
         if (!VitamThreadUtils.getVitamSession().getContract().isEveryDataObjectVersion() &&
             !validUsage(xQualifier.split("_")[0])) {
-            final Response errorResponse = Response.status(Status.UNAUTHORIZED)
+            return Response.status(Status.UNAUTHORIZED)
                 .entity(getErrorStream(Status.UNAUTHORIZED, "Qualifier unallowed"))
                 .build();
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
-            return;
         }
 
         try {
@@ -474,25 +466,20 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             HttpHeaderHelper.checkVitamHeadersMap(multipleMap);
             SanityChecker.checkJsonAll(query);
             SanityChecker.checkParameter(idObjectGroup);
-            accessModule.getOneObjectFromObjectGroup(asyncResponse, idObjectGroup, query, xQualifier,
+            return accessModule.getOneObjectFromObjectGroup(idObjectGroup, query, xQualifier,
                 Integer.valueOf(xVersion));
         } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
             LOGGER.error(exc);
-            final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
+            return Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorStream(Status.PRECONDITION_FAILED, exc.getMessage()))
                 .build();
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         } catch (final AccessInternalExecutionException exc) {
             LOGGER.error(exc.getMessage(), exc);
-            final Response errorResponse =
-                Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorStream(Status.INTERNAL_SERVER_ERROR,
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorStream(Status.INTERNAL_SERVER_ERROR,
                     exc.getMessage())).build();
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         } catch (MetaDataNotFoundException | StorageNotFoundException exc) {
             LOGGER.error(exc);
-            final Response errorResponse =
-                Response.status(Status.NOT_FOUND).entity(getErrorStream(Status.NOT_FOUND, exc.getMessage())).build();
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+            return Response.status(Status.NOT_FOUND).entity(getErrorStream(Status.NOT_FOUND, exc.getMessage())).build();
         }
     }
 
@@ -560,16 +547,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @Path("/objects/{id_object_group}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void getObjectStreamAsync(@Context HttpHeaders headers, @PathParam("id_object_group") String idObjectGroup,
-        JsonNode query, @Suspended final AsyncResponse asyncResponse) {
+    public Response getObjectStreamAsync(@Context HttpHeaders headers, @PathParam("id_object_group") String idObjectGroup,
+        JsonNode query) {
         MultivaluedMap<String, String> multipleMap = headers.getRequestHeaders();
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
-
-            @Override
-            public void run() {
-                asyncObjectStream(asyncResponse, multipleMap, idObjectGroup, query, false);
-            }
-        });
+        return asyncObjectStream(multipleMap, idObjectGroup, query, false);
     }
 
     private VitamError getErrorEntity(Status status, String message) {

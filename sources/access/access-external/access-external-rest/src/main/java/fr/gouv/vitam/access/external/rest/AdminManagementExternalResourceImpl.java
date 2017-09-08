@@ -26,29 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.OPTIONS;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -84,9 +61,8 @@ import fr.gouv.vitam.common.security.rest.EndpointInfo;
 import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
 import fr.gouv.vitam.common.security.rest.Secured;
 import fr.gouv.vitam.common.security.rest.Unsecured;
-import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
@@ -99,14 +75,34 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.OPTIONS;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriInfo;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Admin Management External Resource Implement
  */
 @Path("/admin-external/v1")
 @javax.ws.rs.ApplicationPath("webresources")
 public class AdminManagementExternalResourceImpl {
-    private static final String CONTENT_TYPE = "Content-Type";
-    private static final String CONTENT_DISPOSITION = "Content-Disposition";
     private static final String ATTACHEMENT_FILENAME = "attachment; filename=ErrorReport.json";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementExternalResourceImpl.class);
     private static final String ACCESS_EXTERNAL_MODULE = "ADMIN_EXTERNAL";
@@ -144,7 +140,6 @@ public class AdminManagementExternalResourceImpl {
      * checkFormat
      *
      * @param document the document to check
-     * @param asyncResponse
      * @return Response
      */
     @Path("/formats")
@@ -153,14 +148,13 @@ public class AdminManagementExternalResourceImpl {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Secured(permission = "formats:check",
         description = "Vérifier si le référentiel des formats que l'on souhaite importer est valide")
-    public void checkFormat(InputStream document, @Suspended final AsyncResponse asyncResponse) {
+    public Response checkDocument(InputStream document) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         addRequestId();
 
         ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
-        VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> asyncCheckFormat(document, asyncResponse));
+        return asyncCheckFormat(document);
     }
 
     /**
@@ -175,31 +169,30 @@ public class AdminManagementExternalResourceImpl {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Secured(permission = "rules:check",
         description = "Vérifier si le référentiel de règles de gestions que l'on souhaite importer est valide")
-    public void checkRules(InputStream document,
-        @Suspended final AsyncResponse asyncResponse) {
+    public Response checkRules(InputStream document) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         LOGGER.debug(String.format("tenant Id %d", tenantId));
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         addRequestId();
 
-        VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> asyncDownloadErrorReport(document, asyncResponse));
+        return asyncDownloadErrorReport(document);
     }
 
     /**
      * Check Format async call
      * 
      * @param document inputStream to check
-     * @param asyncResponse asyncResponse
      */
-    private void asyncCheckFormat(InputStream document, AsyncResponse asyncResponse) {
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            Response response = client.checkFormat(document);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, response);
-        } catch (ReferentialException ex) {
-            asyncResponseResume(asyncResponse, VitamCode.ADMIN_EXTERNAL_CHECK_DOCUMENT_BAD_REQUEST,
-                ex.getLocalizedMessage(), document);
-        }
+    private Response asyncCheckFormat(InputStream document) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                Response response = client.checkFormat(document);
+                return new VitamAsyncInputStreamResponse(response);
+            } catch (ReferentialException ex) {
+                StreamUtils.closeSilently(document);
+                return Response.status(Status.BAD_REQUEST)
+                        .entity(getErrorStream(Status.BAD_REQUEST, ex.getMessage(), null).toString())
+                        .build();
+            }
     }
 
 
@@ -207,42 +200,31 @@ public class AdminManagementExternalResourceImpl {
      * Return the Error Report or close the asyncResonse
      * 
      * @param document the referential to check
-     * @param asyncResponse asyncResponse
      */
-    private void asyncDownloadErrorReport(InputStream document, final AsyncResponse asyncResponse) {
+    private Response asyncDownloadErrorReport(InputStream document) {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             final Response response = client.checkRulesFile(document);
-            final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
-            final ResponseBuilder responseBuilder =
-                Response.status(response.getStatus())
-                    .header(CONTENT_DISPOSITION, ATTACHEMENT_FILENAME)
-                    .header(CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
-            helper.writeResponse(responseBuilder);
+            Map<String, String> headers = VitamAsyncInputStreamResponse.getDefaultMapFromResponse(response);
+            headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHEMENT_FILENAME);
+            return new VitamAsyncInputStreamResponse(response,
+                (Status) response.getStatusInfo(), headers);
         } catch (Exception e) {
-            asyncResponseResume(asyncResponse, VitamCode.ADMIN_EXTERNAL_CHECK_DOCUMENT_ERROR, e.getLocalizedMessage(),
-                document);
+            return asyncResponseResume(e, document);
         }
     }
 
     /**
-     * Resume the asyncResponse in case of Exception
+     * Resume in case of Exception
      * 
-     * @param asyncResponse the given asyncResponse
-     * @param vitamCode the vitam code
-     * @param message message
+     * @param ex exception to handle
      * @param document the given document to import
      */
-    private void asyncResponseResume(AsyncResponse asyncResponse, VitamCode vitamCode, String message,
-        InputStream document) {
-        LOGGER.error(message);
-        AsyncInputStreamHelper
-            .asyncResponseResume(
-                asyncResponse,
-                Response.status(vitamCode.getStatus())
-                    .entity(getErrorStream(VitamCodeHelper
-                        .toVitamError(vitamCode, message)).toString())
-                    .build(),
-                document);
+    private Response asyncResponseResume(Exception ex, InputStream document) {
+        LOGGER.error(ex);
+        StreamUtils.closeSilently(document);
+        return Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, ex.getMessage(), null).toString())
+                    .build();
     }
 
     /**
@@ -384,35 +366,28 @@ public class AdminManagementExternalResourceImpl {
         }
     }
 
-    private void downloadTraceabilityOperationFile(String operationId, final AsyncResponse asyncResponse) {
-        AsyncInputStreamHelper helper;
+    private Response downloadTraceabilityOperationFile(String operationId) {
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             final Response response = client.downloadTraceabilityFile(operationId);
-            helper = new AsyncInputStreamHelper(asyncResponse, response);
-            final ResponseBuilder responseBuilder = Response.status(Status.OK)
-                .header("Content-Disposition", response.getHeaderString("Content-Disposition"))
-                .type(response.getMediaType());
-            helper.writeResponse(responseBuilder);
+            Map<String, String> headers = VitamAsyncInputStreamResponse.getDefaultMapFromResponse(response);
+            return new VitamAsyncInputStreamResponse(response,
+                Status.OK, headers);
         } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
             LOGGER.error(exc);
-            final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
+            return Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorStream(Status.PRECONDITION_FAILED, exc.getMessage(), null)).build();
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         } catch (final AccessInternalClientServerException exc) {
             LOGGER.error(exc.getMessage(), exc);
-            final Response errorResponse = Response.status(Status.INTERNAL_SERVER_ERROR)
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, exc.getMessage(), null)).build();
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         } catch (final AccessInternalClientNotFoundException exc) {
             LOGGER.error(exc.getMessage(), exc);
-            final Response errorResponse = Response.status(Status.NOT_FOUND)
+            return Response.status(Status.NOT_FOUND)
                 .entity(getErrorStream(Status.NOT_FOUND, exc.getMessage(), null)).build();
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
-            final Response errorResponse = Response.status(Status.UNAUTHORIZED)
+            return Response.status(Status.UNAUTHORIZED)
                 .entity(getErrorStream(Status.UNAUTHORIZED, e.getMessage(), null)).build();
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         }
     }
 
@@ -742,21 +717,18 @@ public class AdminManagementExternalResourceImpl {
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
      * @param fileId
-     * @param asyncResponse
      */
     @GET
     @Path("/profiles/{id:.+}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Secured(permission = "profiles:id:read:binary",
         description = "Télecharger le fichier xsd ou rng attaché à un profil")
-    public void downloadProfileFile(
-        @PathParam("id") String fileId,
-        @Suspended final AsyncResponse asyncResponse) {
+    public Response downloadProfileFile(
+            @PathParam("id") String fileId) {
 
         ParametersChecker.checkParameter("Profile id should be filled", fileId);
         addRequestId();
-        VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> asyncDownloadProfileFile(fileId, asyncResponse));
+        return asyncDownloadProfileFile(fileId);
     }
 
     /**
@@ -765,57 +737,44 @@ public class AdminManagementExternalResourceImpl {
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
      * @param fileId
-     * @param asyncResponse
      */
     @GET
     @Path("/traceability/{id:.+}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Secured(permission = "traceability:id:read",
         description = "Télécharger le logbook sécurisé attaché à une opération de sécurisation")
-    public void downloadTraceabilityFile(
-        @PathParam("id") String fileId,
-        @Suspended final AsyncResponse asyncResponse) {
+    public Response downloadTraceabilityFile(
+            @PathParam("id") String fileId) {
 
         try {
             ParametersChecker.checkParameter("Traceability operation should be filled", fileId);
 
             addRequestId();
 
-            VitamThreadPoolExecutor.getDefaultExecutor()
-                .execute(() -> downloadTraceabilityOperationFile(fileId, asyncResponse));
+            return downloadTraceabilityOperationFile(fileId);
         } catch (IllegalArgumentException | VitamThreadAccessException e) {
             LOGGER.error(e);
-            final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorStream(Status.PRECONDITION_FAILED, e.getMessage(), null))
-                .build();
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+            return Response.status(Status.PRECONDITION_FAILED)
+                    .entity(getErrorStream(Status.PRECONDITION_FAILED, e.getMessage(), null))
+                    .build();
         }
     }
 
-    private void asyncDownloadProfileFile(String profileMetadataId, final AsyncResponse asyncResponse) {
+    private Response asyncDownloadProfileFile(String profileMetadataId) {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             final Response response = client.downloadProfileFile(profileMetadataId);
-            final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
-            final ResponseBuilder responseBuilder =
-                Response.status(Status.OK)
-                    .header(CONTENT_DISPOSITION, response.getHeaderString(CONTENT_DISPOSITION))
-                    .type(response.getMediaType());
-            helper.writeResponse(responseBuilder);
+            Map<String, String> headers = VitamAsyncInputStreamResponse.getDefaultMapFromResponse(response);
+            return new VitamAsyncInputStreamResponse(response,
+                Status.OK, headers);
         } catch (final ProfileNotFoundException exc) {
             LOGGER.error(exc.getMessage(), exc);
-            AsyncInputStreamHelper
-                .asyncResponseResume(
-                    asyncResponse,
-                    Response.status(Status.NOT_FOUND)
-                        .entity(getErrorStream(Status.NOT_FOUND, exc.getMessage(), null).toString()).build());
+            return Response.status(Status.NOT_FOUND)
+                        .entity(getErrorStream(Status.NOT_FOUND, exc.getMessage(), null).toString()).build();
         } catch (final AdminManagementClientServerException exc) {
             LOGGER.error(exc.getMessage(), exc);
-            AsyncInputStreamHelper
-                .asyncResponseResume(
-                    asyncResponse,
-                    Response.status(Status.INTERNAL_SERVER_ERROR)
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
                         .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, exc.getMessage(), null).toString())
-                        .build());
+                        .build();
         }
     }
 
@@ -1083,6 +1042,7 @@ public class AdminManagementExternalResourceImpl {
      *
      * @param select the select query to find document
      * @return Response
+     * @throws DatabaseConflictException 
      */
     @Path("/accession-registers")
     @POST
@@ -1119,6 +1079,7 @@ public class AdminManagementExternalResourceImpl {
      * findFormatByID
      *
      * @param documentId the document id to find
+     * @param select 
      * @return Response
      */
     @Path("/formats/{id_document:.+}")
@@ -1541,7 +1502,7 @@ public class AdminManagementExternalResourceImpl {
      * launch Audit
      *
      * @param options
-     * @return
+     * @return response
      */
     @POST
     @Path(AccessExtAPI.AUDITS_API)

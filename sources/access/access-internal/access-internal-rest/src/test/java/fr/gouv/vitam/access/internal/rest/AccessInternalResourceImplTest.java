@@ -531,7 +531,7 @@ public class AccessInternalResourceImplTest {
         reset(mock);
 
         doThrow(new StorageNotFoundException("test")).when(mock)
-            .getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt());
+            .getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
@@ -541,7 +541,7 @@ public class AccessInternalResourceImplTest {
 
         reset(mock);
         doThrow(new MetaDataNotFoundException("test")).when(mock)
-            .getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt());
+            .getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
@@ -558,7 +558,7 @@ public class AccessInternalResourceImplTest {
 
         reset(mock);
         doThrow(new AccessInternalExecutionException("Wanted exception")).when(mock)
-            .getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt());
+            .getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
@@ -584,7 +584,7 @@ public class AccessInternalResourceImplTest {
         doAnswer(invocation -> {
             return null;
         }).when(mock)
-            .getOneObjectFromObjectGroup(anyObject(), anyString(), anyObject(), anyString(), anyInt());
+            .getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders())

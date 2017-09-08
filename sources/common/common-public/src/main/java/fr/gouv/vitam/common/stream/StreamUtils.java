@@ -31,6 +31,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
+import java.util.Arrays;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
@@ -236,5 +237,41 @@ public class StreamUtils {
      */
     public static InputStream toInputStream(String source) {
         return new ByteArrayInputStream(source.getBytes(CharsetUtils.UTF8));
+    }
+
+    /**
+     * @param is1
+     * @param is2
+     * @return True if equals
+     */
+    public static boolean contentEquals(InputStream is1, InputStream is2) {
+        byte [] buffer = new byte[BUFFER_SIZE];
+        byte [] buffer2 = new byte[BUFFER_SIZE];
+        Arrays.fill(buffer, (byte) 0);
+        Arrays.fill(buffer2, (byte) 0);
+        boolean equals = true;
+        try {
+            int n1 = 0;
+            int n2 = 0;
+            do {
+                n1 = is1.read(buffer);
+                n2 = is2.read(buffer2);
+                if (n1 != n2) {
+                    return false;
+                }
+                if (n1 == -1) {
+                    return true;
+                }
+                if (!Arrays.equals(buffer, buffer2)) {
+                    return false;
+                }
+            } while (n1 != -1);
+            return true;
+        } catch (IOException e) {
+            return false;
+        } finally {
+            consumeInputStream(is1);
+            consumeInputStream(is2);
+        }
     }
 }

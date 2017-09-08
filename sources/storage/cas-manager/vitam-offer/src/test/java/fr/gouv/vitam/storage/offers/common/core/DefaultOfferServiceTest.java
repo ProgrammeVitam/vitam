@@ -272,7 +272,7 @@ public class DefaultOfferServiceTest {
         final InputStream streamToStore = StreamUtils.toInputStream(OBJECT_ID_2_CONTENT);
         offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, true, OBJECT_TYPE);
 
-        final Response response = offerService.getObject(CONTAINER_PATH, OBJECT_ID_2, new AsyncResponseJunitTest());
+        final Response response = offerService.getObject(CONTAINER_PATH, OBJECT_ID_2);
         assertNotNull(response);
     }
 
@@ -345,7 +345,7 @@ public class DefaultOfferServiceTest {
         String digest = offerService.createObject(CONTAINER_PATH, OBJECT_ID_DELETE, streamToStore, true, DataCategory.UNIT);
 
         // check if the object has been created
-        final Response response = offerService.getObject(CONTAINER_PATH, OBJECT_ID_DELETE, new AsyncResponseJunitTest());
+        final Response response = offerService.getObject(CONTAINER_PATH, OBJECT_ID_DELETE);
         assertNotNull(response);
 
         try {
@@ -375,7 +375,7 @@ public class DefaultOfferServiceTest {
 
         try {
             // check that the object has been deleted
-            offerService.getObject(CONTAINER_PATH, OBJECT_ID_DELETE, new AsyncResponseJunitTest());
+            offerService.getObject(CONTAINER_PATH, OBJECT_ID_DELETE);
             fail("Should raized an exception");
         } catch (ContentAddressableStorageNotFoundException exc) {
 

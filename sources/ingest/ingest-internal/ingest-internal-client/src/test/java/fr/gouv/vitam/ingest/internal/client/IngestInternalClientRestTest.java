@@ -215,7 +215,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id,
-            ProcessingEntry process, @Suspended final AsyncResponse asyncResponse) {
+            ProcessingEntry process) {
             return expectedResponse.put();
         }
 

@@ -1,28 +1,19 @@
 /*
- *  Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *  <p>
- *  contact.vitam@culture.gouv.fr
- *  <p>
- *  This software is a computer program whose purpose is to implement a digital archiving back-office system managing
- *  high volumetry securely and efficiently.
- *  <p>
- *  This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
- *  software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- *  circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *  <p>
- *  As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
- *  users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
- *  successive licensors have only limited liability.
- *  <p>
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
- *  developing or reproducing the software by the user in light of its specific status of free software, that may mean
- *  that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
- *  experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
- *  software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
- *  to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *  <p>
- *  The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
- *  accept its terms.
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019) <p> contact.vitam@culture.gouv.fr <p>
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently. <p> This software is governed by the CeCILL 2.1 license under French law and
+ * abiding by the rules of distribution of free software. You can use, modify and/ or redistribute the software under
+ * the terms of the CeCILL 2.1 license as circulated by CEA, CNRS and INRIA at the following URL
+ * "http://www.cecill.info". <p> As a counterpart to the access to the source code and rights to copy, modify and
+ * redistribute granted by the license, users are provided only with a limited warranty and the software's author, the
+ * holder of the economic rights, and the successive licensors have only limited liability. <p> In this respect, the
+ * user's attention is drawn to the risks associated with loading, using, modifying and/or developing or reproducing the
+ * software by the user in light of its specific status of free software, that may mean that it is complicated to
+ * manipulate, and that also therefore means that it is reserved for developers and experienced professionals having
+ * in-depth computer knowledge. Users are therefore encouraged to load and test the software's suitability as regards
+ * their requirements in conditions enabling the security of their systems and/or data to be ensured and, more
+ * generally, to use and operate it in the same conditions as regards security. <p> The fact that you are presently
+ * reading this means that you have had knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 package fr.gouv.vitam.functional.administration.rest;
 
@@ -102,7 +93,8 @@ public class ProfileResource {
      * @param mongoAccess
      * @param vitamCounterService
      */
-    public ProfileResource(AdminManagementConfiguration configuration, MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService) {
+    public ProfileResource(AdminManagementConfiguration configuration, MongoDbAccessAdminImpl mongoAccess,
+        VitamCounterService vitamCounterService) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         this.workspaceClientFactory = WorkspaceClientFactory.getInstance();
@@ -112,7 +104,8 @@ public class ProfileResource {
 
 
     @VisibleForTesting
-    public ProfileResource(WorkspaceClientFactory workspaceClientFactory, MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService) {
+    public ProfileResource(WorkspaceClientFactory workspaceClientFactory, MongoDbAccessAdminImpl mongoAccess,
+        VitamCounterService vitamCounterService) {
         this.mongoAccess = mongoAccess;
         this.workspaceClientFactory = workspaceClientFactory;
         this.vitamCounterService = vitamCounterService;
@@ -122,11 +115,9 @@ public class ProfileResource {
 
 
 
-
     /**
-     * Import a set of profiles.
-     * If all the profiles are valid, they will be stored in the collection and indexed.
-     * </BR> The input is invalid in the following situations : </BR>
+     * Import a set of profiles. If all the profiles are valid, they will be stored in the collection and indexed. </BR>
+     * The input is invalid in the following situations : </BR>
      * <ul>
      * <li>The json is invalid</li>
      * <li>The json contains 2 ore many profiles having the same identifier</li>
@@ -146,7 +137,8 @@ public class ProfileResource {
     public Response createProfiles(List<ProfileModel> profileModelList, @Context UriInfo uri) {
         ParametersChecker.checkParameter(PROFILE_JSON_IS_MANDATORY_PATAMETER, profileModelList);
 
-        try (ProfileService profileService = new ProfileServiceImpl(mongoAccess, workspaceClientFactory, vitamCounterService)) {
+        try (ProfileService profileService =
+            new ProfileServiceImpl(mongoAccess, workspaceClientFactory, vitamCounterService)) {
             RequestResponse requestResponse = profileService.createProfiles(profileModelList);
 
             if (!requestResponse.isOk()) {
@@ -185,7 +177,8 @@ public class ProfileResource {
         ParametersChecker.checkParameter(PROFILE_FILE_IS_MANDATORY_PATAMETER, profileFile);
         ParametersChecker.checkParameter(PROFILE_ID_IS_MANDATORY_PATAMETER, profileMetadataId);
 
-        try (ProfileService profileService = new ProfileServiceImpl(mongoAccess, workspaceClientFactory, vitamCounterService)) {
+        try (ProfileService profileService =
+            new ProfileServiceImpl(mongoAccess, workspaceClientFactory, vitamCounterService)) {
             SanityChecker.checkParameter(profileMetadataId);
             RequestResponse requestResponse = profileService.importProfileFile(profileMetadataId, profileFile);
 
@@ -213,42 +206,32 @@ public class ProfileResource {
     @GET
     @Path(PROFILE_URI + "/{id}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void downloadProfileFile(@PathParam("id") String profileMetadataId,
-        @Suspended final AsyncResponse asyncResponse) {
+    public Response downloadProfileFile(@PathParam("id") String profileMetadataId) {
 
         try {
             ParametersChecker.checkParameter("Profile id should be filled", profileMetadataId);
-    
+
             Integer tenantId = ParameterHelper.getTenantParameter();
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         } catch (IllegalArgumentException | VitamThreadAccessException e) {
             LOGGER.error(e.getMessage(), e);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build());
-            return;
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
         }
-        VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> {
-                try (ProfileService profileService = new ProfileServiceImpl(mongoAccess, workspaceClientFactory, vitamCounterService)) {
+        try (ProfileService profileService =
+            new ProfileServiceImpl(mongoAccess, workspaceClientFactory, vitamCounterService)) {
 
-                    profileService.downloadProfileFile(profileMetadataId, asyncResponse);
+            return profileService.downloadProfileFile(profileMetadataId);
 
-                }  catch (final ProfileNotFoundException exc) {
-                    LOGGER.error(exc.getMessage(), exc);
-                    AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                        Response.status(Status.NOT_FOUND)
-                            .entity(getErrorStream(Status.NOT_FOUND, exc.getMessage(), null).toString()
-                            ).build());
-
-                }  catch (final ReferentialException | InvalidParseOperationException exc) {
-                    LOGGER.error(exc.getMessage(), exc);
-                    AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                        Response.status(Status.INTERNAL_SERVER_ERROR)
-                            .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, exc.getMessage(), null).toString()
-                            ).build());
-                }
-            });
+        } catch (final ProfileNotFoundException exc) {
+            LOGGER.error(exc.getMessage(), exc);
+            return Response.status(Status.NOT_FOUND)
+                .entity(getErrorStream(Status.NOT_FOUND, exc.getMessage(), null).toString()).build();
+        } catch (final ReferentialException | InvalidParseOperationException exc) {
+            LOGGER.error(exc.getMessage(), exc);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, exc.getMessage(), null).toString()).build();
+        }
     }
 
 
@@ -264,9 +247,11 @@ public class ProfileResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findProfiles(JsonNode queryDsl) {
 
-        try (ProfileService profileService = new ProfileServiceImpl(mongoAccess, workspaceClientFactory, vitamCounterService)) {
+        try (ProfileService profileService =
+            new ProfileServiceImpl(mongoAccess, workspaceClientFactory, vitamCounterService)) {
 
-            final RequestResponseOK<ProfileModel> profileModelList = profileService.findProfiles(queryDsl).setQuery(queryDsl);
+            final RequestResponseOK<ProfileModel> profileModelList =
+                profileService.findProfiles(queryDsl).setQuery(queryDsl);
 
             return Response.status(Status.OK)
                 .entity(profileModelList)
@@ -282,6 +267,7 @@ public class ProfileResource {
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
         }
     }
+
     /**
      * Construct the error following input
      *
@@ -299,7 +285,7 @@ public class ProfileResource {
             .setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
             .setState("ko").setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
-    
+
     private InputStream getErrorStream(Status status, String message, String code) {
         String aMessage =
             (message != null && !message.trim().isEmpty()) ? message

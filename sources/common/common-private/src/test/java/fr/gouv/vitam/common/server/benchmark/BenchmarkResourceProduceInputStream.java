@@ -48,6 +48,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 
 /**
@@ -58,8 +59,10 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 public class BenchmarkResourceProduceInputStream extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BenchmarkResourceProduceInputStream.class);
 
-    public static final String DOWNLOAD = "/download";
+    public static final String DOWNLOAD_DIRECT = "/downloaddirect";
+    public static final String DOWNLOAD_ASYNC = "/download";
     public static final String DOWNLOAD_INDIRECT = "/downloadindirect";
+    public static final String DOWNLOAD_INDIRECT_ASYNC = "/downloadindirectasync";
     public static long size = 10000000L;
 
     /**
@@ -95,6 +98,10 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
         return Response.status(Status.NO_CONTENT).build();
     }
 
+    private Response buildDirectReponse() {
+        return Response.ok().entity(new FakeInputStream(size)).type(MediaType.APPLICATION_OCTET_STREAM_TYPE).build();
+    }
+
     private void buildReponse(AsyncResponse asyncResponse) {
         new AsyncInputStreamHelper(asyncResponse, new FakeInputStream(size, true, true))
             .writeResponse(Response.ok());
@@ -110,7 +117,7 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
      *
      * @param asyncResponse AsyncResponse model
      */
-    @Path(DOWNLOAD + HttpMethod.POST)
+    @Path(DOWNLOAD_ASYNC + HttpMethod.POST)
     @POST
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Consumes(MediaType.WILDCARD)
@@ -131,7 +138,7 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
      *
      * @param asyncResponse AsyncResponse model
      */
-    @Path(DOWNLOAD + HttpMethod.PUT)
+    @Path(DOWNLOAD_ASYNC + HttpMethod.PUT)
     @PUT
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Consumes(MediaType.WILDCARD)
@@ -152,7 +159,7 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
      *
      * @param asyncResponse AsyncResponse model
      */
-    @Path(DOWNLOAD + HttpMethod.GET)
+    @Path(DOWNLOAD_ASYNC + HttpMethod.GET)
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Consumes(MediaType.WILDCARD)
@@ -168,13 +175,56 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
         });
     }
 
+
+    /**
+     * Download using POST
+     *
+     * @param asyncResponse AsyncResponse model
+     */
+    @Path(DOWNLOAD_DIRECT + HttpMethod.POST)
+    @POST
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Consumes(MediaType.WILDCARD)
+    public Response downloadPostDirect() {
+        LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
+        return buildDirectReponse();
+    }
+
+    /**
+     * Download using PUT
+     *
+     * @param asyncResponse AsyncResponse model
+     */
+    @Path(DOWNLOAD_DIRECT + HttpMethod.PUT)
+    @PUT
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Consumes(MediaType.WILDCARD)
+    public Response downloadPutDirect() {
+        LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
+        return buildDirectReponse();
+    }
+
+    /**
+     * Download using GET
+     *
+     * @param asyncResponse AsyncResponse model
+     */
+    @Path(DOWNLOAD_DIRECT + HttpMethod.GET)
+    @GET
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Consumes(MediaType.WILDCARD)
+    public Response downloadGetDirect() {
+        LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
+        return buildDirectReponse();
+    }
+
     /**
      * Download indirect using POST
      *
      * @param asyncResponse AsyncResponse model
      * @throws VitamClientInternalException
      */
-    @Path(DOWNLOAD_INDIRECT + HttpMethod.POST)
+    @Path(DOWNLOAD_INDIRECT_ASYNC + HttpMethod.POST)
     @POST
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Consumes(MediaType.WILDCARD)
@@ -189,8 +239,9 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
                 Response response = null;
                 try (final BenchmarkClientRest client =
                     BenchmarkClientFactory.getInstance().getClient()) {
-                    response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD + method,
-                        null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                    response =
+                        client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_ASYNC + method,
+                            null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
                     buildReponse(asyncResponse, response);
                 } catch (final VitamClientInternalException e) {
                     AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
@@ -206,7 +257,7 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
      * @param asyncResponse AsyncResponse model
      * @throws VitamClientInternalException
      */
-    @Path(DOWNLOAD_INDIRECT + HttpMethod.PUT)
+    @Path(DOWNLOAD_INDIRECT_ASYNC + HttpMethod.PUT)
     @PUT
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Consumes(MediaType.WILDCARD)
@@ -221,8 +272,9 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
                 Response response = null;
                 try (final BenchmarkClientRest client =
                     BenchmarkClientFactory.getInstance().getClient()) {
-                    response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD + method,
-                        null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                    response =
+                        client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_ASYNC + method,
+                            null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
                     buildReponse(asyncResponse, response);
                 } catch (final VitamClientInternalException e) {
                     AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
@@ -238,7 +290,7 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
      * @param asyncResponse AsyncResponse model
      * @throws VitamClientInternalException
      */
-    @Path(DOWNLOAD_INDIRECT + HttpMethod.GET)
+    @Path(DOWNLOAD_INDIRECT_ASYNC + HttpMethod.GET)
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Consumes(MediaType.WILDCARD)
@@ -253,8 +305,9 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
                 Response response = null;
                 try (final BenchmarkClientRest client =
                     BenchmarkClientFactory.getInstance().getClient()) {
-                    response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD + method,
-                        null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                    response =
+                        client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_ASYNC + method,
+                            null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
                     buildReponse(asyncResponse, response);
                 } catch (final VitamClientInternalException e) {
                     AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
@@ -262,5 +315,82 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
                 }
             }
         });
+    }
+
+    /**
+     * Download indirect using POST
+     *
+     * @param asyncResponse AsyncResponse model
+     * @throws VitamClientInternalException
+     */
+    @Path(DOWNLOAD_INDIRECT + HttpMethod.POST)
+    @POST
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Consumes(MediaType.WILDCARD)
+    public Response downloadPostIndirect() throws VitamClientInternalException {
+        LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
+        final String method = HttpMethod.POST;
+        Response response = null;
+        try (final BenchmarkClientRest client =
+            BenchmarkClientFactory.getInstance().getClient()) {
+            response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_ASYNC + method,
+                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            return new VitamAsyncInputStreamResponse(response);
+        } catch (final VitamClientInternalException e) {
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Download indirect using PUT
+     *
+     * @param asyncResponse AsyncResponse model
+     * @throws VitamClientInternalException
+     */
+    @Path(DOWNLOAD_INDIRECT + HttpMethod.PUT)
+    @PUT
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Consumes(MediaType.WILDCARD)
+    public Response downloadPutIndirect() throws VitamClientInternalException {
+        LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
+        final String method = HttpMethod.PUT;
+        Response response = null;
+        try (final BenchmarkClientRest client =
+            BenchmarkClientFactory.getInstance().getClient()) {
+            response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_ASYNC + method,
+                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_ASYNC + method,
+                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            return new VitamAsyncInputStreamResponse(response);
+        } catch (final VitamClientInternalException e) {
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Download indirect using GET
+     *
+     * @param asyncResponse AsyncResponse model
+     * @throws VitamClientInternalException
+     */
+    @Path(DOWNLOAD_INDIRECT + HttpMethod.GET)
+    @GET
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Consumes(MediaType.WILDCARD)
+    public Response downloadGetIndirect() throws VitamClientInternalException {
+        LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
+        final String method = HttpMethod.GET;
+        Response response = null;
+        try (final BenchmarkClientRest client =
+            BenchmarkClientFactory.getInstance().getClient()) {
+            response =
+                client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_ASYNC + method,
+                    null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_ASYNC + method,
+                null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            return new VitamAsyncInputStreamResponse(response);
+        } catch (final VitamClientInternalException e) {
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }
