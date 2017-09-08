@@ -758,8 +758,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     public Response launchAudit(JsonNode options) {
         ParametersChecker.checkParameter(OPTIONS_IS_MANDATORY_PATAMETER, options);
         try (ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance()
-            .getClient()) {
-            createAuditLogbookOperation();
+            .getClient()) {            
             final int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
             final ProcessingEntry entry = new ProcessingEntry(VitamThreadUtils.getVitamSession().getRequestId(),
                 Contexts.AUDIT_WORKFLOW.getEventType());
@@ -783,6 +782,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             } else {
                 return Response.status(Status.BAD_REQUEST).build();
             }
+            createAuditLogbookOperation();
             entry.getExtraParams().put(OBJECT_ID, options.get(OBJECT_ID).textValue());
             entry.getExtraParams().put(AUDIT_TYPE, options.get(AUDIT_TYPE).textValue());
             processingClient.initVitamProcess(Contexts.AUDIT_WORKFLOW.name(), entry);
