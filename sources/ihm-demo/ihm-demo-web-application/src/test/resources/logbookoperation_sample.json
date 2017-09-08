@@ -15,7 +15,7 @@
       "outMessg": "aeaaaaaaaaagszlsaapruakxpkqv4lyaaabq",
       "agId": "{\"name\":\"vitam-02.coraud.com\",\"role\":\"UnknownRole\",\"pid\":6907250}",
       "agIdApp": null,
-      "agIdAppSession": null,
+      "evIdAppSession": null,
       "evIdReq": "aeaaaaaaaaagszlsaapruakxpkqv4lyaaabq",
       "agIdSubm": null,
       "agIdOrig": null,

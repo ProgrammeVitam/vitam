@@ -267,9 +267,9 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
                         "    \"evIdProc\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
                         "    \"evTypeProc\" : \"INGEST\"," + "    \"outcome\" : \"STARTED\"," +
                         "    \"outDetail\" : null," + "    \"outMessg\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
-                        "    \"agIdApp\" : null," + "    \"agIdAppSession\" : null," +
-                        "    \"evIdReq\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," + "    \"agIdSubm\" : null," +
-                        "    \"agIdOrig\" : null," + "    \"obId\" : null," + "    \"obIdReq\" : null," +
+                        "    \"agIdApp\" : null," + "    \"evIdAppSession\" : null," +
+                        "    \"evIdReq\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
+                        "    \"agIdExt\" : null," + "    \"obId\" : null," + "    \"obIdReq\" : null," +
                         "    \"obIdIn\" : null," + "    \"events\" : [ " + "        " + "    ]," +
                         "    \"_tenant\" : 0" + "}")
                     .build());
@@ -290,9 +290,9 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
                         "    \"evIdProc\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
                         "    \"evTypeProc\" : \"INGEST\"," + "    \"outcome\" : \"STARTED\"," +
                         "    \"outDetail\" : null," + "    \"outMessg\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
-                        "    \"agIdApp\" : null," + "    \"agIdAppSession\" : null," +
-                        "    \"evIdReq\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," + "    \"agIdSubm\" : null," +
-                        "    \"agIdOrig\" : null," + "    \"obId\" : null," + "    \"obIdReq\" : null," +
+                        "    \"agIdApp\" : null," + "    \"evIdAppSession\" : null," +
+                        "    \"evIdReq\" : \"aedqaaaaacaam7mxaa72uakyaznzeoiaaaaq\"," +
+                        "    \"agIdExt\" : null," + "    \"obId\" : null," + "    \"obIdReq\" : null," +
                         "    \"obIdIn\" : null," + "    \"events\" : [ " + "        " + "    ]," +
                         "    \"_tenant\" : 0" + "}")
                     .build());

@@ -54,6 +54,11 @@ public abstract class LogbookDocument<E> extends Document {
      * Contains the specific data as a json string
      */
     public static final String EVENT_DETAILS = "evDetData";
+    /**
+     *
+     */
+
+
 
     /**
      * Empty constructor
@@ -87,7 +92,6 @@ public abstract class LogbookDocument<E> extends Document {
     /**
      * Create a new ID
      *
-     * @param tenantId
      * @return this
      * @throws IllegalArgumentException if Id is not a GUID
      */

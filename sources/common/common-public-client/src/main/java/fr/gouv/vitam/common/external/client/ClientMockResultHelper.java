@@ -79,10 +79,9 @@ public class ClientMockResultHelper {
             "\"outMessg\": \"SIP entry : SIP.zip\"," +
             "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
             "\"agIdApp\": null," +
-            "\"agIdAppSession\": null," +
+            "\"evIdAppSession\": null," +
             "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "\"agIdSubm\": null," +
-            "\"agIdOrig\": null," +
+            "\"agIdExt\": null," +
             "\"obId\": null," +
             "\"obIdReq\": null," +
             "\"obIdIn\": null," +
@@ -231,10 +230,9 @@ public class ClientMockResultHelper {
             "\"outMessg\": \"SIP entry : SIP.zip\"," +
             "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"storage\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
             "\"agIdApp\": null," +
-            "\"agIdAppSession\": null," +
+            "\"evIdAppSession\": null," +
             "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "\"agIdSubm\": null," +
-            "\"agIdOrig\": null," +
+            "\"agIdExt\": null," +
             "\"obId\": null," +
             "\"obIdReq\": null," +
             "\"obIdIn\": null," +
@@ -290,7 +288,7 @@ public class ClientMockResultHelper {
         logbookOperation.setAgId(
             "\"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"");
         logbookOperation.setAgIdApp(null);
-        logbookOperation.setAgIdAppSession(null);
+        logbookOperation.setEvIdAppSession(null);
         logbookOperation.setEvIdReq("aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq");
         return logbookOperation;
     }

@@ -44,6 +44,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
+
 /**
  * Logbook Operation item
  */
@@ -59,6 +60,7 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
      * Events
      */
     public static final String EVENTS = "events";
+
 
     /**
      * Mapping of this Collection.
@@ -82,7 +84,6 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
         "FileName : { type : \"string\", index : \"not_analyzed\" }, " +
         "EvDetailReq: { type: \"string\", index: \"not_analyzed\" }, " +
         "EvDateTimeReq: { type: \"date\", index: \"not_analyzed\" }, " +
-        "AgIfTrans: { type: \"string\", index: \"not_analyzed\" }, " +
         "ArchivalAgreement: { type: \"string\", index: \"not_analyzed\" }, " +
         "ServiceLevel: { type: \"string\", index: \"not_analyzed\" }" +
         "AccessStatus: { type: \"string\", index: \"not_analyzed\" }" +
@@ -134,8 +135,8 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
                 switch (name) {
                     case agentIdentifierApplication:
                     case agentIdentifierApplicationSession:
-                    case agentIdentifierOriginating:
-                    case agentIdentifierSubmission:
+                    case agIdExt:
+
                         break;
                     default:
                         append(name.getDbname(), map.get(name.getLogbookParameterName()));

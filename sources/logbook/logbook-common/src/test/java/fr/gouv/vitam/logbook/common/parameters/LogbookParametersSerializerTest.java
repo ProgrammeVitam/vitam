@@ -66,9 +66,9 @@ public class LogbookParametersSerializerTest {
                 "\"outcome\":\"outcome\",\"outcomeDetail\":\"outcomeDetail\",\"outcomeDetailMessage\":\"outcomeDetailMessage\"," +
                 "\"agentIdentifier\":\"agentIdentifier\",\"agentIdentifierApplication\":\"agentIdentifierApplication\"," +
                 "\"agentIdentifierApplicationSession\":\"agentIdentifierApplicationSession\",\"eventIdentifierRequest\":\"eventIdentifierRequest\"," +
-                "\"agentIdentifierSubmission\":\"agentIdentifierSubmission\",\"agentIdentifierOriginating\":\"agentIdentifierOriginating\"," +
                 "\"objectIdentifier\":\"objectIdentifier\",\"objectIdentifierRequest\":\"objectIdentifierRequest\"," +
-                "\"objectIdentifierIncome\":\"objectIdentifierIncome\",\"masterData\":\"masterData\",\"eventDetailData\":\"eventDetailData\"}")));
+                "\"objectIdentifierIncome\":\"objectIdentifierIncome\",\"masterData\":\"masterData\",\"rightsStatementIdentifier\":\"rightsStatementIdentifier\"," +
+                "\"agIdExt\":\"agIdExt\",\"eventDetailData\":\"eventDetailData\"}")));
     }
 
 

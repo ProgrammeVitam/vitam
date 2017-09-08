@@ -76,10 +76,9 @@ public class LogbookExternalResourceImplTest {
         "    \"outMessg\": \"SIP entry : SIP.zip\"," +
         "    \"agId\": {\"name\":\"ingest_1\",\"role\":\"ingest\",\"pid\":425367}," +
         "    \"agIdApp\": null," +
-        "    \"agIdAppSession\": null," +
+        "    \"evIdAppSession\": null," +
         "    \"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-        "    \"agIdSubm\": null," +
-        "    \"agIdOrig\": null," +
+        "    \"agIdExt\": null," +
         "    \"obId\": null," +
         "    \"obIdReq\": null," +
         "    \"obIdIn\": null," +

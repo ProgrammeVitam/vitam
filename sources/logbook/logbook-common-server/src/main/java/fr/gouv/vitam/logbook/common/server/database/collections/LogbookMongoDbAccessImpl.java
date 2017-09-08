@@ -1500,5 +1500,48 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         document.remove(LogbookDocument.EVENTS);
         document.remove(LogbookDocument.ID);
         document.remove(LogbookDocument.TENANT_ID);
+        if(document.get(LogbookMongoDbName.rightsStatementIdentifier.getDbname()) == null ||
+            ((String)document.get(LogbookMongoDbName.rightsStatementIdentifier.getDbname())).isEmpty() ){
+            document.remove(LogbookMongoDbName.rightsStatementIdentifier.getDbname());
+        }
+
+        if(document.get(LogbookMongoDbName.agentIdentifierApplication.getDbname()) == null ||
+            ((String)document.get(LogbookMongoDbName.agentIdentifierApplication.getDbname())).isEmpty() ){
+            document.remove(LogbookMongoDbName.agentIdentifierApplication.getDbname());
+        }
+        if(document.get(LogbookMongoDbName.agentIdentifierApplicationSession.getDbname()) == null ||
+            ((String)document.get(LogbookMongoDbName.agentIdentifierApplicationSession.getDbname())).isEmpty() ){
+            document.remove(LogbookMongoDbName.agentIdentifierApplicationSession.getDbname());
+        }
+        if(document.get(LogbookMongoDbName.agIdExt.getDbname()) == null ||
+            ((String)document.get(LogbookMongoDbName.agIdExt.getDbname())).isEmpty() ){
+            document.remove(LogbookMongoDbName.agIdExt.getDbname());
+        }
+        if(document.get(LogbookMongoDbName.objectIdentifier.getDbname()) == null ||
+            ((String)document.get(LogbookMongoDbName.objectIdentifier.getDbname())).isEmpty() ){
+            document.remove(LogbookMongoDbName.objectIdentifier.getDbname());
+        }
+
+
+        if(document.get(LogbookMongoDbName.eventIdentifierRequest.getDbname()) == null ||
+            ((String)document.get(LogbookMongoDbName.eventIdentifierRequest.getDbname())).isEmpty() ){
+            document.remove(LogbookMongoDbName.eventIdentifierRequest.getDbname());
+        }
+
+
+        if(document.get(LogbookMongoDbName.objectIdentifierRequest.getDbname()) == null ||
+            ((String)document.get(LogbookMongoDbName.objectIdentifierRequest.getDbname())).isEmpty() ){
+            document.remove(LogbookMongoDbName.objectIdentifierRequest.getDbname());
+        }
+
+        if(document.get(LogbookMongoDbName.objectIdentifierIncome.getDbname()) == null ||
+            ((String)document.get(LogbookMongoDbName.objectIdentifierIncome.getDbname())).isEmpty() ){
+            document.remove(LogbookMongoDbName.objectIdentifierIncome.getDbname());
+        }
+
+
+
+
+
     }
 }

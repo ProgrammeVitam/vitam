@@ -35,17 +35,16 @@ public class LogbookEventOperation extends LogbookEvent {
     @JsonProperty("agIdApp")
     private String agIdApp;
 
-    @JsonProperty("agIdAppSession")
-    private String agIdAppSession;
+    @JsonProperty("evIdAppSession")
+    private String evIdAppSession;
 
     @JsonProperty("evIdReq")
     private String evIdReq;
 
-    @JsonProperty("agIdSubm")
-    private String agIdSubm;
+    @JsonProperty("agIdExt")
+    private String agIdExt;
 
-    @JsonProperty("agIdOrig")
-    private String agIdOrig;
+
 
     @JsonProperty("obIdReq")
     private String obIdReq;
@@ -70,19 +69,19 @@ public class LogbookEventOperation extends LogbookEvent {
     }
 
     /**
-     * @return the agIdAppSession
+     * @return the evIdAppSession
      */
-    public String getAgIdAppSession() {
-        return agIdAppSession;
+    public String getEvIdAppSession() {
+        return evIdAppSession;
     }
 
     /**
-     * @param agIdAppSession the agIdAppSession to set
+     * @param evIdAppSession the evIdAppSession to set
      *
      * @return this
      */
-    public void setAgIdAppSession(String agIdAppSession) {
-        this.agIdAppSession = agIdAppSession;
+    public void setEvIdAppSession(String evIdAppSession) {
+        this.evIdAppSession = evIdAppSession;
     }
 
     /**
@@ -102,36 +101,21 @@ public class LogbookEventOperation extends LogbookEvent {
     }
 
     /**
-     * @return the agIdSubm
+     * @return the agIdExt
      */
-    public String getAgIdSubm() {
-        return agIdSubm;
+    public String getAgIdExt() {
+        return agIdExt;
     }
 
     /**
-     * @param agIdSubm the agIdSubm to set
+     * @param agIdExt the agIdExt to set
      *
      * @return this
      */
-    public void setAgIdSubm(String agIdSubm) {
-        this.agIdSubm = agIdSubm;
+    public void setAgIdExt(String agIdExt) {
+        this.agIdExt = agIdExt;
     }
 
-    /**
-     * @return the agIdOrig
-     */
-    public String getAgIdOrig() {
-        return agIdOrig;
-    }
-
-    /**
-     * @param agIdOrig the agIdOrig to set
-     *
-     * @return this
-     */
-    public void setAgIdOrig(String agIdOrig) {
-        this.agIdOrig = agIdOrig;
-    }
 
     /**
      * @return the obIdReq

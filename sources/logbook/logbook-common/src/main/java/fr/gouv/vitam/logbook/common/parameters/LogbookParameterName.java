@@ -99,18 +99,7 @@ public enum LogbookParameterName {
      *
      */
     eventIdentifierRequest,
-    /**
-     * Submission agency identifier <br>
-     * <br>
-     * Can be null
-     */
-    agentIdentifierSubmission,
-    /**
-     * Originating agency <br>
-     * <br>
-     * Can be null
-     */
-    agentIdentifierOriginating,
+
     /**
      * Object Identifier of the "process". <br>
      * <br>
@@ -139,6 +128,16 @@ public enum LogbookParameterName {
      * Master Data Identifier
      */
     masterData,
+
+    /**
+     * Master Data Identifier
+     */
+    rightsStatementIdentifier,
+
+    /**
+     * Master Data Identifier
+     */
+    agIdExt,
     /**
      * Event Detail Data on the current "process <br>
      * <br>

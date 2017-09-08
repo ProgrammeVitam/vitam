@@ -206,15 +206,17 @@ public class LogbookMongoDbAccessFactoryTest {
         assertTrue(operation1String.contains(LogbookMongoDbName.eventDetailData.getDbname()));
         assertFalse(operation1String.contains(LogbookMongoDbName.agentIdentifierApplication.getDbname()));
         assertFalse(operation1String.contains(LogbookMongoDbName.agentIdentifierApplicationSession.getDbname()));
-        assertFalse(operation1String.contains(LogbookMongoDbName.agentIdentifierOriginating.getDbname()));
-        assertFalse(operation1String.contains(LogbookMongoDbName.agentIdentifierSubmission.getDbname()));
+
+        assertFalse(operation1String.contains(LogbookMongoDbName.agIdExt.getDbname()));
 
         final String operation3String = MongoDbHelper.bsonToString(operation3, true);
         assertTrue(operation3String.contains(LogbookMongoDbName.eventDetailData.getDbname()));
         assertTrue(operation3String.contains(LogbookMongoDbName.agentIdentifierApplication.getDbname()));
         assertTrue(operation3String.contains(LogbookMongoDbName.agentIdentifierApplicationSession.getDbname()));
-        assertTrue(operation3String.contains(LogbookMongoDbName.agentIdentifierOriginating.getDbname()));
-        assertTrue(operation3String.contains(LogbookMongoDbName.agentIdentifierSubmission.getDbname()));
+        // TODO REPLACE TEST HERE
+       // assertTrue(operation3String.contains(LogbookMongoDbName.agentIdentifierOriginating.getDbname()));
+        //assertTrue(operation3String.contains(LogbookMongoDbName.agentIdentifierSubmission.getDbname()));
+        assertTrue(operation3String.contains(LogbookMongoDbName.agIdExt.getDbname()));
 
         assertTrue(LogbookOperation.getIdName().equals(LogbookMongoDbName.eventIdentifierProcess));
         assertTrue(LogbookOperation.getIdParameterName().equals(LogbookParameterName.eventIdentifierProcess));
@@ -354,16 +356,15 @@ public class LogbookMongoDbAccessFactoryTest {
         assertNotNull(operation0);
         assertNotNull(operation0.getParameterValue(LogbookParameterName.agentIdentifierApplication));
         assertNotNull(operation0.getParameterValue(LogbookParameterName.agentIdentifierApplicationSession));
-        assertNotNull(operation0.getParameterValue(LogbookParameterName.agentIdentifierOriginating));
-        assertNotNull(operation0.getParameterValue(LogbookParameterName.agentIdentifierSubmission));
+        assertNotNull(operation0.getParameterValue(LogbookParameterName.agIdExt));
+
         assertNotNull(operation0.getParameterValue(LogbookParameterName.eventDetailData));
         // Operation 1 is the update, so it should contain restricted fields
         final LogbookOperationParameters operation1 = listeOperations.get(1);
         assertNotNull(operation1);
         assertNull(operation1.getParameterValue(LogbookParameterName.agentIdentifierApplication));
         assertNull(operation1.getParameterValue(LogbookParameterName.agentIdentifierApplicationSession));
-        assertNull(operation1.getParameterValue(LogbookParameterName.agentIdentifierOriginating));
-        assertNull(operation1.getParameterValue(LogbookParameterName.agentIdentifierSubmission));
+        assertNull(operation1.getParameterValue(LogbookParameterName.agIdExt));
         assertNotNull(operation1.getParameterValue(LogbookParameterName.eventDetailData));
         try {
             mongoDbAccess.updateLogbookOperation(parametersWrong);
