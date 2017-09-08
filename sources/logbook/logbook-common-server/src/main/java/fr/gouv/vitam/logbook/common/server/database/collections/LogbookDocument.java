@@ -57,9 +57,7 @@ public abstract class LogbookDocument<E> extends Document {
     /**
      *
      */
-    public static final String RIGHTS_STATEMENT_IDENTIFIER = "rightsStatementIdentifier";
 
-    public static final String AGENCY_DETAILS= "agIdExt";
 
 
     /**

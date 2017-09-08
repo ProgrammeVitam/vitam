@@ -27,7 +27,6 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.RIGHTS_STATEMENT_IDENTIFIER;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -396,20 +395,19 @@ public class ExtractSedaActionHandler extends ActionHandler {
              * setting rightsStatementIdentifier informations
              */
             if (rightsStatementIdentifier.size() > 0) {
-                globalCompositeItemStatus.setData(RIGHTS_STATEMENT_IDENTIFIER, rightsStatementIdentifier.toString());
+                globalCompositeItemStatus.setData(LogbookMongoDbName.rightsStatementIdentifier.getDbname(), rightsStatementIdentifier.toString());
                 globalCompositeItemStatus
-                    .setMasterData(RIGHTS_STATEMENT_IDENTIFIER, rightsStatementIdentifier.toString());
+                    .setMasterData(LogbookMongoDbName.rightsStatementIdentifier.getDbname(), rightsStatementIdentifier.toString());
                 ObjectNode data = null ;
                 try {
                     data = (ObjectNode) JsonHandler.getFromString(globalCompositeItemStatus.getEvDetailData());
-                    data.set(RIGHTS_STATEMENT_IDENTIFIER, rightsStatementIdentifier);
+                    data.set(LogbookMongoDbName.rightsStatementIdentifier.getDbname(), rightsStatementIdentifier);
                     globalCompositeItemStatus.setEvDetailData(data.toString());
+                    globalCompositeItemStatus.setData(LogbookMongoDbName.rightsStatementIdentifier.getDbname(), rightsStatementIdentifier.toString());
 
                 } catch (InvalidParseOperationException e) {
-                    //nothing
+                    LOGGER.debug("Invalid Json", e);
                 }
-
-
             }
 
         } catch (final ProcessingDuplicatedVersionException e) {

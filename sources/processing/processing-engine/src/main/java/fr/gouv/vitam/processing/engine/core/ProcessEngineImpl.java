@@ -54,6 +54,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.automation.IEventsProcessEngine;
@@ -70,7 +71,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.RIGHTS_STATEMENT_IDENTIFIER;
 
 /**
  * ProcessEngineImpl class manages the context and call a process distributor
@@ -372,7 +372,14 @@ public class ProcessEngineImpl implements ProcessEngine {
                                     handlerId + "." + sub.getItemId() + "." + sub.getGlobalOutcomeDetailSubcode(),
                                     sub.getGlobalStatus()) + " Detail= " + sub.computeStatusMeterMessage());
                         }
-
+                        if (sub.getData(LogbookMongoDbName.rightsStatementIdentifier.getDbname()) != null) {
+                            sublogbook.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
+                                sub.getData(LogbookMongoDbName.rightsStatementIdentifier.getDbname()).toString());
+                        }
+                        if (sub.getData(AGENCY_DETAIL) != null) {
+                            sublogbook
+                                .putParameterValue(LogbookParameterName.agIdExt, sub.getData(AGENCY_DETAIL).toString());
+                        }
                         helper.updateDelegate(sublogbook);
                     }
                 }
@@ -445,7 +452,7 @@ public class ProcessEngineImpl implements ProcessEngine {
             }
         }
 
-        String rightsStatementIdentifier = (String) stepResponse.getData(RIGHTS_STATEMENT_IDENTIFIER);
+        String rightsStatementIdentifier = (String) stepResponse.getData(LogbookMongoDbName.rightsStatementIdentifier.getDbname());
 
 
         if (rightsStatementIdentifier != null) {
@@ -474,13 +481,12 @@ public class ProcessEngineImpl implements ProcessEngine {
             agIdExt.put(ORIGIN_AGENCY_NAME, prodService);
         }
 
-        else {
+        else if (engineParams.get(SedaConstants.TAG_ORIGINATINGAGENCY) !=null ){
             agIdExt.put(ORIGIN_AGENCY_NAME, engineParams.get(SedaConstants.TAG_ORIGINATINGAGENCY));
             parameters.putParameterValue(LogbookParameterName.agIdExt, agIdExt.toString());
         }
 
-
-        if( agIdExt != null ){
+        if( agIdExt != null && agIdExt.elements().hasNext() ){
             parameters.putParameterValue(LogbookParameterName.agIdExt, agIdExt.toString());
         }
 
