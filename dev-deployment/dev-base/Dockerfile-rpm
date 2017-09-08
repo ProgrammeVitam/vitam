@@ -37,6 +37,7 @@ RUN yum install -y \
         initscripts.x86_64 \
         golang \
         npm \
+        https_proxy=http://10.210.123.1:3128 yum install -y https://kojipkgs.fedoraproject.org/packages/http-parser/2.7.1/3.el7/x86_64/http-parser-2.7.1-3.el7.x86_64.rpm \
     && yum clean all
 
 # Add Java to path

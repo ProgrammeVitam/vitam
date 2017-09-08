@@ -3,7 +3,7 @@
   <parent>
     <groupId>fr.gouv.vitam</groupId>
     <artifactId>logbook</artifactId>
-	<version>0.20.0</version>
+	<version>0.20.1</version>
   </parent>
   <artifactId>logbook-administration</artifactId>
   <name>Logbook Administration</name>
