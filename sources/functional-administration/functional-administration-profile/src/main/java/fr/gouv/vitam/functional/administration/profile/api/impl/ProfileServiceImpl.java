@@ -259,9 +259,6 @@ public class ProfileServiceImpl implements ProfileService {
         throws VitamException {
 
         final ProfileModel profileMetadata = findByIdentifier(profileIdentifier);
-
-        manager.logStarted(PROFILES_FILE_IMPORT_EVENT, profileMetadata.getId());
-
         final VitamError vitamError =
             getVitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(), "Global import profile error").setHttpCode(
                 Response.Status.BAD_REQUEST.getStatusCode());
@@ -276,6 +273,8 @@ public class ProfileServiceImpl implements ProfileService {
                 "No profile metadata found with identifier : " + profileIdentifier +
                     ", to import the file, the metadata profile must be created first"));
         }
+
+        manager.logStarted(PROFILES_FILE_IMPORT_EVENT, profileMetadata.getId());
 
 
         boolean cannotCopy = false;

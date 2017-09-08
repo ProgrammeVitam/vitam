@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.security.rest.Secured;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
@@ -89,6 +90,7 @@ public class LogbookExternalResourceImpl {
     @Path("/operations")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "operations:read", description = "Lister toutes les opérations")
     public Response selectOperation(JsonNode query) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
@@ -136,6 +138,7 @@ public class LogbookExternalResourceImpl {
     @Path("/operations/{id_op}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "operations:id:read", description = "Récupérer le journal d'une opération donnée")
     public Response getOperationById(@PathParam("id_op") String operationId, JsonNode queryDsl) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
@@ -197,6 +200,7 @@ public class LogbookExternalResourceImpl {
      */
     @GET
     @Path("/unitlifecycles/{id_lc}")
+    @Secured(permission = "unitlifecycles:id:read", description = "Récupérer le journal de cycle de vie d'une unité archivistique")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUnitLifeCycle(@PathParam("id_lc") String unitLifeCycleId, JsonNode queryDsl) {
         Integer tenantId = ParameterHelper.getTenantParameter();
@@ -258,6 +262,7 @@ public class LogbookExternalResourceImpl {
      */
     @GET
     @Path("/objectgrouplifecycles/{id_lc}")
+    @Secured(permission = "objectgrouplifecycles:id:read", description = "Récupérer le journal de cycle de vie d'un groupe d'objet")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectGroupLifeCycle(@PathParam("id_lc") String objectGroupLifeCycleId,
         JsonNode queryDsl) {

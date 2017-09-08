@@ -41,11 +41,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
+import org.hamcrest.CoreMatchers;
+import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
@@ -1218,7 +1215,7 @@ public class AccessExternalResourceImplTest {
 
 
     @Test
-    public void getObjectGroupMetadatas() throws Exception {
+    public void getObjectGroupMetadata() throws Exception {
         reset(clientAccessInternal);
         JsonNode objectGroup = JsonHandler.getFromString(
             "{\"$hint\":{\"total\":1},\"$context\":{\"$query\":{\"$eq\":{\"id\":\"1\"}},\"$projection\":{},\"$filter\":{}},\"$result\":[{\"#id\":\"1\",\"#object\":\"goodResult\",\"Title\":\"Archive 1\",\"DescriptionLevel\":\"Archive Mock\"}]}");
@@ -1265,12 +1262,12 @@ public class AccessExternalResourceImplTest {
             .when().get("/units/" + OBJECT_ID + "/object").then()
             .statusCode(Status.OK.getStatusCode());
 
-        // POST (PUT override isn't filtered) ok
+        // POST (PUT override isn't filtered) unmapped
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON).body(BODY_TEST)
             .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
                 "PUT")
             .when().post("/units/" + OBJECT_ID + "/object").then()
-            .statusCode(Status.OK.getStatusCode());
+            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
 
         // applicative error 500
         reset(clientAccessInternal);
@@ -1388,7 +1385,7 @@ public class AccessExternalResourceImplTest {
             .headers(getStreamHeaders())
             .body(JsonHandler.getFromString(BODY_TEST)).when().post(GET_OBJECT_STREAM_URI)
             .then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeadersUnknwonTenant())
@@ -1524,4 +1521,14 @@ public class AccessExternalResourceImplTest {
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
+    @Test
+    public void listResourceEndpoints()
+        throws Exception {
+        RestAssured.given()
+            .accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().options("/")
+            .then().statusCode(Status.OK.getStatusCode())
+            .body(CoreMatchers.containsString("units:read"));
+    }
 }

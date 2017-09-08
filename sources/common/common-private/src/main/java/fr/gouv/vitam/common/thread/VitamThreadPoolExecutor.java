@@ -115,14 +115,18 @@ public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements Threa
      */
     @Override
     public void execute(Runnable command) {
+
+
         final Thread currentThread = Thread.currentThread();
 
-        final String formattedStack = Arrays.stream(currentThread.getStackTrace())
-            .map(StackTraceElement::toString)
-            .skip(2)
-            .limit(3)
-            .collect(Collectors.joining(" -> ", "[", "]"));
-        LOGGER.debug(command.toString() + " from " + formattedStack);
+        if(LOGGER.isDebugEnabled()) {
+            final String formattedStack = Arrays.stream(currentThread.getStackTrace())
+                    .map(StackTraceElement::toString)
+                    .skip(2)
+                    .limit(3)
+                    .collect(Collectors.joining(" -> ", "[", "]"));
+            LOGGER.debug(command.toString() + " from " + formattedStack);
+        }
 
         final VitamRunnable vitamRunnable;
         if (currentThread instanceof VitamThread) {

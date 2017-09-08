@@ -26,6 +26,31 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.rest;
 
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.List;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.Produces;
+import javax.ws.rs.OPTIONS;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -53,6 +78,10 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.security.rest.EndpointInfo;
+import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
+import fr.gouv.vitam.common.security.rest.Secured;
+import fr.gouv.vitam.common.security.rest.Unsecured;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -66,27 +95,6 @@ import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFou
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.Produces;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-
 /**
  * The Ingest External Resource
  */
@@ -95,15 +103,37 @@ import java.io.InputStream;
 public class IngestExternalResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalResource.class);
     private final IngestExternalConfiguration ingestExternalConfiguration;
+    private final SecureEndpointRegistry secureEndpointRegistry;
 
     /**
      * Constructor IngestExternalResource
      *
      * @param ingestExternalConfiguration the configuration of server resource
      */
-    public IngestExternalResource(IngestExternalConfiguration ingestExternalConfiguration) {
+    public IngestExternalResource(
+            IngestExternalConfiguration ingestExternalConfiguration,
+            SecureEndpointRegistry secureEndpointRegistry
+            ) {
         this.ingestExternalConfiguration = ingestExternalConfiguration;
+        this.secureEndpointRegistry = secureEndpointRegistry;
         LOGGER.info("init Ingest External Resource server");
+    }
+
+
+    /**
+     * List secured resource end points
+     */
+    @Path("/")
+    @OPTIONS
+    @Produces(MediaType.APPLICATION_JSON)
+    @Unsecured()
+    public Response listResourceEndpoints() {
+
+        String resourcePath = IngestExternalResource.class.getAnnotation(Path.class).value();
+
+        List<EndpointInfo> securedEndpointList = secureEndpointRegistry.getEndPointsByResourcePath(resourcePath);
+
+        return Response.status(Status.OK).entity(securedEndpointList).build();
     }
 
     /**
@@ -117,6 +147,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Path("ingests")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Secured(permission = "ingests:create", description = "Envoyer un SIP à Vitam afin qu'il en réalise l'entrée")
     public void upload(@HeaderParam(GlobalDataRest.X_CONTEXT_ID) String contextId,
         @HeaderParam(GlobalDataRest.X_ACTION) String action, InputStream uploadedInputStream,
         @Suspended final AsyncResponse asyncResponse) {
@@ -162,33 +193,53 @@ public class IngestExternalResource extends ApplicationStatusResource {
     }
 
     /**
-     * Download object stored by Ingest operation (currently reports and manifests)
+     * Download reports stored by Ingest operation (currently reports and manifests)
      * <p>
-     * Return the object as stream asynchronously<br/>
+     * Return the reports as stream asynchronously<br/>
      * <br/>
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
-     * @param objectId      the id of object to download
-     * @param type          of collection
+     * @param objectId the id of object to download
      * @param asyncResponse the asynchronized response
      */
     @GET
-    @Path("/ingests/{objectId}/{type}")
+    @Path("/ingests/{objectId}/reports")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void downloadObjectAsStream(@PathParam("objectId") String objectId, @PathParam("type") String type,
+    @Secured(permission = "ingests:id:reports:read", description = "Récupérer l'accusé de récéption pour une opération d'entrée donnée")
+    public void downloadIngestReportsAsStream(@PathParam("objectId") String objectId,
+                                       @Suspended final AsyncResponse asyncResponse) {
+        VitamThreadPoolExecutor.getDefaultExecutor()
+                .execute(() -> downloadObjectAsync(asyncResponse, objectId, IngestCollection.REPORTS));
+    }
+
+    /**
+     * Download manifest stored by Ingest operation (currently reports and manifests)
+     * <p>
+     * Return the manifest as stream asynchronously<br/>
+     * <br/>
+     * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
+     *
+     *
+     * @param objectId the id of object to download
+     * @param asyncResponse the asynchronized response
+     *
+     */
+    @GET
+    @Path("/ingests/{objectId}/manifests")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Secured(permission = "ingests:id:manifests:read", description = "Récupérer le bordereau de versement pour une opération d'entrée donnée")
+    public void downloadIngestManifestsAsStream(@PathParam("objectId") String objectId,
         @Suspended final AsyncResponse asyncResponse) {
         VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> downloadObjectAsync(asyncResponse, objectId, type));
+            .execute(() -> downloadObjectAsync(asyncResponse, objectId, IngestCollection.MANIFESTS));
     }
 
     private void downloadObjectAsync(final AsyncResponse asyncResponse, String objectId,
-        String type) {
+             IngestCollection collection) {
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
-            IngestCollection collection = IngestCollection.valueOf(type.toUpperCase());
             final Response response = ingestInternalClient.downloadObjectAsync(objectId, collection);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             helper.writeResponse(Response.status(response.getStatus()));
-
 
         } catch (IllegalArgumentException e) {
             LOGGER.error("IllegalArgumentException was thrown : ", e);
@@ -233,6 +284,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Path("/operations")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "operations:read", description = "Récupérer les informations sur une opération donnée")
     public Response listOperationsDetails(@Context HttpHeaders headers, ProcessQuery query) {
         try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
             return client.listOperationsDetails(query).toResponse();
@@ -266,6 +318,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR,
         CommonMediaType.BZIP2})
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Secured(permission = "operations:id:update #2", description = "Gérer le cycle de vie d'un workflow donné")
     @Deprecated // FIXME see 2745 to decide if we need the method or not
     public Response executeWorkFlow(@Context HttpHeaders headers, @PathParam("id") String id,
         InputStream uploadedInputStream) {
@@ -341,6 +394,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Path("operations/{id}")
     @HEAD
     @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "operations:id:read:status", description = "Récupérer le code HTTP d'une opération donnée")
     public Response getWorkFlowExecutionStatus(@PathParam("id") String id) {
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkParameter(id);
@@ -378,12 +432,12 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * get the workflow status
      *
      * @param id    operation identifier
-     * @param query the query
      * @return http response
      */
     @Path("operations/{id}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "operations:id:read", description = "Récupérer le statut d'une opération donnée")
     public Response getOperationProcessExecutionDetails(@PathParam("id") String id) {
         Status status;
         ItemStatus itemStatus = null;
@@ -438,6 +492,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "operations:id:update #1", description = "Changer le statut d'une opération donnée")
     public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id,
         @Suspended final AsyncResponse asyncResponse) {
 
@@ -492,6 +547,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Path("operations/{id}")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission ="operations:id:delete", description = "Annuler une opération donnée")
     public Response interruptWorkFlowExecution(@PathParam("id") String id) {
 
         ParametersChecker.checkParameter("operationId must not be null", id);
@@ -533,6 +589,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @GET
     @Path("/workflows")
     @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "workflows:read", description = "Récupérer la liste des tâches des workflows")
     public Response getWorkflowDefinitions(@Context HttpHeaders headers) {
         try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
             return client.getWorkflowDefinitions().toResponse();

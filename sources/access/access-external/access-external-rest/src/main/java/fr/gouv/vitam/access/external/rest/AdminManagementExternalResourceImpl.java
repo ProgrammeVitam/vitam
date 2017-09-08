@@ -26,36 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.access.external.api.AccessCollections;
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
-import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
@@ -76,6 +49,10 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.security.rest.EndpointInfo;
+import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
+import fr.gouv.vitam.common.security.rest.Secured;
+import fr.gouv.vitam.common.security.rest.Unsecured;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -89,13 +66,34 @@ import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
 import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
-import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.OPTIONS;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriInfo;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 
 /**
  * Admin Management External Resource Implement
@@ -110,47 +108,76 @@ public class AdminManagementExternalResourceImpl {
     private static final String ACCESS_EXTERNAL_MODULE = "ADMIN_EXTERNAL";
     private static final String CODE_VITAM = "code_vitam";
 
+    private final SecureEndpointRegistry secureEndpointRegistry;
+
     /**
      * Constructor
+     * @param secureEndpointRegistry endpoint list registry
      */
-    public AdminManagementExternalResourceImpl() {
+    public AdminManagementExternalResourceImpl(SecureEndpointRegistry secureEndpointRegistry) {
+        this.secureEndpointRegistry = secureEndpointRegistry;
         LOGGER.debug("init Admin Management Resource server");
     }
 
     /**
-     * checkDocument
+     * List secured resource end points
+     */
+    @Path("/")
+    @OPTIONS
+    @Produces(MediaType.APPLICATION_JSON)
+    @Unsecured()
+    public Response listResourceEndpoints() {
+
+        String resourcePath = AdminManagementExternalResourceImpl.class.getAnnotation(Path.class).value();
+
+        List<EndpointInfo> securedEndpointList = this.secureEndpointRegistry.getEndPointsByResourcePath(resourcePath);
+
+        return Response.status(Status.OK).entity(securedEndpointList).build();
+    }
+
+    /**
+     * checkFormat
      *
-     * @param collection the working collection top check document
-     * @param document the document to check
+     * @param document   the document to check
      * @return Response
      */
-    @Path("/{collection}")
+    @Path("/formats")
     @PUT
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void checkDocument(@PathParam("collection") String collection, InputStream document,
-        @Suspended final AsyncResponse asyncResponse) {
+    @Secured(permission = "formats:check", description = "Vérifier si le référentiel des formats que l'on souhaite importer est valide")
+    public void checkFormat(InputStream document,
+                                           @Suspended final AsyncResponse asyncResponse) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         LOGGER.debug(String.format("tenant Id %d", tenantId));
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         addRequestId();
         ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
-        if (AdminCollections.FORMATS.compareTo(collection)) {
-            VitamThreadPoolExecutor.getDefaultExecutor()
+        VitamThreadPoolExecutor.getDefaultExecutor()
                 .execute(() -> asyncCheckFormat(document, asyncResponse));
-        } else if (AdminCollections.RULES.compareTo(collection)) {
-            VitamThreadPoolExecutor.getDefaultExecutor()
-                .execute(() -> asyncDownloadErrorReport(document, asyncResponse));
-        } else {
-            AsyncInputStreamHelper
-                .asyncResponseResume(
-                    asyncResponse,
-                    Response.status(Status.NOT_FOUND)
-                        .entity(getErrorEntity(Status.NOT_FOUND, "Collection nout found", null).toString())
-                        .build());
-        }      
     }
 
+    /**
+     * checkRules
+     *
+     * @param document the document to check
+     * @return Response
+     */
+    @Path("/rules")
+    @PUT
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Secured(permission = "rules:check", description = "Vérifier si le référentiel de règles de gestions que l'on souhaite importer est valide")
+    public void checkRules(InputStream document,
+                           @Suspended final AsyncResponse asyncResponse) {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        LOGGER.debug(String.format("tenant Id %d", tenantId));
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        addRequestId();
+
+        VitamThreadPoolExecutor.getDefaultExecutor()
+                .execute(() -> asyncDownloadErrorReport(document, asyncResponse));
+    }
 
     /**
      * Check Format async call
@@ -211,64 +238,75 @@ public class AdminManagementExternalResourceImpl {
                 document);
     }
 
-
     /**
-     * Import a referential document
+     * Import a format
      *
-     * @param headers http headers
-     * @param uriInfo used to construct the created resource and send it back as location in the response
-     * @param collection target collection type
+     * @param headers  http headers
+     * @param uriInfo  used to construct the created resource and send it back as location in the response
      * @param document inputStream representing the data to import
      * @return The jaxRs Response
      */
-    @Path("/{collection}")
+    @Path("/formats")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importDocument(@Context HttpHeaders headers, @Context UriInfo uriInfo,
-        @PathParam("collection") String collection, InputStream document) {
+    @Secured(permission = "formats:create", description = "Importer un référentiel des formats")
+    public Response importFormat(@Context HttpHeaders headers, @Context UriInfo uriInfo,
+                                 InputStream document) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         try {
-            ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
-            ParametersChecker.checkParameter(collection, "The collection is mandatory");
+            ParametersChecker.checkParameter("document is a mandatory parameter", document);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                Status status = Status.CREATED;
-                if (AdminCollections.FORMATS.compareTo(collection)) {
-                    status = client.importFormat(document, filename);
-                }
-                if (AdminCollections.RULES.compareTo(collection)) {
-                    status = client.importRulesFile(document, filename);
-                }
-                if (AdminCollections.ENTRY_CONTRACTS.compareTo(collection)) {
-                    JsonNode json = JsonHandler.getFromInputStream(document);
-                    SanityChecker.checkJsonAll(json);
-                    status =
-                        client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(json.toString(),
-                            new TypeReference<List<IngestContractModel>>() {}));
-                }
-                if (AdminCollections.ACCESS_CONTRACTS.compareTo(collection)) {
-                    JsonNode json = JsonHandler.getFromInputStream(document);
-                    SanityChecker.checkJsonAll(json);
-                    status = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(json.toString(),
-                        new TypeReference<List<AccessContractModel>>() {}));
-                }
-                if (AdminCollections.CONTEXTS.compareTo(collection)) {
-                    JsonNode json = JsonHandler.getFromInputStream(document);
-                    SanityChecker.checkJsonAll(json);
-                    status = client.importContexts(JsonHandler.getFromStringAsTypeRefence(json.toString(),
-                        new TypeReference<List<ContextModel>>() {}));
-                }
-                if (AdminCollections.PROFILE.compareTo(collection)) {
-                    JsonNode json = JsonHandler.getFromInputStream(document);
-                    SanityChecker.checkJsonAll(json);
-                    RequestResponse requestResponse =
-                        client.createProfiles(JsonHandler.getFromStringAsTypeRefence(json.toString(),
-                            new TypeReference<List<ProfileModel>>() {}));
-                    return Response.status(requestResponse.getStatus())
-                        .entity(requestResponse).build();
-                }
+                Status status = client.importFormat(document, filename);
+                // Send the http response with no entity and the status got from internalService;
+                ResponseBuilder ResponseBuilder = Response.status(status);
+                return ResponseBuilder.build();
+            } catch (final DatabaseConflictException e) {
+                LOGGER.error(e);
+                final Status status = Status.CONFLICT;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final FileRulesImportInProgressException e) {
+                LOGGER.warn(e);
+                return Response.status(Status.FORBIDDEN)
+                        .entity(getErrorEntity(Status.FORBIDDEN, e.getMessage(), null)).build();
+            } catch (final ReferentialException e) {
+                LOGGER.error(e);
+                return Response.status(Status.BAD_REQUEST)
+                        .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            }
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        } finally {
+            StreamUtils.closeSilently(document);
+        }
+    }
+
+
+    /**
+     * Import a rules document
+     *
+     * @param headers  http headers
+     * @param document inputStream representing the data to import
+     * @return The jaxRs Response
+     */
+    @Path("/rules")
+    @POST
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "rules:create", description = "Importer un référentiel des règles de gestion")
+    public Response importRulesFile(@Context HttpHeaders headers,
+                                    InputStream document) {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        try {
+            ParametersChecker.checkParameter("document is a mandatory parameter", document);
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                Status status = client.importRulesFile(document, filename);
 
                 // Send the http response with no entity and the status got from internalService;
                 ResponseBuilder ResponseBuilder = Response.status(status);
@@ -280,7 +318,288 @@ public class AdminManagementExternalResourceImpl {
             } catch (final FileRulesImportInProgressException e) {
                 LOGGER.warn(e);
                 return Response.status(Status.FORBIDDEN)
-                    .entity(getErrorEntity(Status.FORBIDDEN, e.getMessage(), null)).build();
+                        .entity(getErrorEntity(Status.FORBIDDEN, e.getMessage(), null)).build();
+            } catch (final ReferentialException e) {
+                LOGGER.error(e);
+                return Response.status(Status.BAD_REQUEST)
+                        .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            }
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        } finally {
+            StreamUtils.closeSilently(document);
+        }
+    }
+
+    /**
+     * Import an entry contract
+     *
+     * @param document inputStream representing the data to import
+     * @return The jaxRs Response
+     */
+    @Path("/entrycontracts")
+    @POST
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "entrycontracts:create:binary", description = "Importer des contrats d'entrées dans le référentiel")
+    public Response importIngestContracts(InputStream document) {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        try {
+            ParametersChecker.checkParameter("document is a mandatory parameter", document);
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                JsonNode json = JsonHandler.getFromInputStream(document);
+                SanityChecker.checkJsonAll(json);
+                Status status =
+                        client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(json.toString(),
+                                new TypeReference<List<IngestContractModel>>() {}));
+                // Send the http response with no entity and the status got from internalService;
+                ResponseBuilder ResponseBuilder = Response.status(status);
+                return ResponseBuilder.build();
+            } catch (final ReferentialException e) {
+                LOGGER.error(e);
+                return Response.status(Status.BAD_REQUEST)
+                        .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            } catch (InvalidParseOperationException e) {
+                return Response.status(Status.BAD_REQUEST)
+                        .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            }
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        } finally {
+            StreamUtils.closeSilently(document);
+        }
+    }
+
+    /**
+     * Import a set of ingest contracts.
+     *
+     * @param select the select query to find document
+     * @return Response
+     */
+    @Path("/entrycontracts")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "entrycontracts:create:json", description = "Importer des contrats d'entrées dans le référentiel")
+    public Response importIngestContracts(JsonNode select)
+            throws DatabaseConflictException {
+
+        addRequestId();
+        ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            SanityChecker.checkJsonAll(select);
+            Status status = client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
+                    new TypeReference<List<IngestContractModel>>() {
+                    }));
+
+            // Send the http response with the entity and the status got from internalService;
+            ResponseBuilder ResponseBuilder = Response.status(status)
+                    .entity("Successfully imported");
+            return ResponseBuilder.build();
+        } catch (final ReferentialException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+        } catch (InvalidParseOperationException e) {
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * Import an access contract document
+     *
+     * @param document inputStream representing the data to import
+     * @return The jaxRs Response
+     */
+    @Path("/accesscontracts")
+    @POST
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "accesscontracts:create:binary", description = "Importer des contrats d'accès dans le référentiel")
+    public Response importAccessContracts(InputStream document) {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        try {
+            ParametersChecker.checkParameter("document is a mandatory parameter", document);
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+
+                JsonNode json = JsonHandler.getFromInputStream(document);
+                SanityChecker.checkJsonAll(json);
+                Status status = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(json.toString(),
+                        new TypeReference<List<AccessContractModel>>() {}));
+                // Send the http response with no entity and the status got from internalService;
+                ResponseBuilder ResponseBuilder = Response.status(status);
+                return ResponseBuilder.build();
+            } catch (final ReferentialException e) {
+                LOGGER.error(e);
+                return Response.status(Status.BAD_REQUEST)
+                        .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            } catch (InvalidParseOperationException e) {
+                return Response.status(Status.BAD_REQUEST)
+                        .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            }
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        } finally {
+            StreamUtils.closeSilently(document);
+        }
+    }
+
+    /**
+     * Import a set of access contracts.
+     *
+     * @param select the select query to find document
+     * @return Response
+     */
+    @Path("/accesscontracts")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "accesscontracts:create:json", description = "Importer des contrats d'accès dans le référentiel")
+    public Response importAccessContracts(JsonNode select)
+            throws DatabaseConflictException {
+
+        addRequestId();
+        ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            SanityChecker.checkJsonAll(select);
+            Status status = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
+                    new TypeReference<List<AccessContractModel>>() {
+                    }));
+
+            // Send the http response with the entity and the status got from internalService;
+            ResponseBuilder ResponseBuilder = Response.status(status)
+                    .entity("Successfully imported");
+            return ResponseBuilder.build();
+        } catch (final ReferentialException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+        } catch (InvalidParseOperationException e) {
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * Import contexts
+     *
+     * @param document inputStream representing the data to import
+     * @return The jaxRs Response
+     */
+    @Path("/contexts")
+    @POST
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "contexts:create:binary", description = "Importer des contextes dans le référentiel")
+    public Response importContexts(InputStream document) {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        try {
+            ParametersChecker.checkParameter("document is a mandatory parameter", document);
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+
+                    JsonNode json = JsonHandler.getFromInputStream(document);
+                    SanityChecker.checkJsonAll(json);
+                Status status = client.importContexts(JsonHandler.getFromStringAsTypeRefence(json.toString(),
+                            new TypeReference<List<ContextModel>>() {}));
+
+
+                // Send the http response with no entity and the status got from internalService;
+                ResponseBuilder ResponseBuilder = Response.status(status);
+                return ResponseBuilder.build();
+            } catch (final FileRulesImportInProgressException e) {
+                LOGGER.warn(e);
+                return Response.status(Status.FORBIDDEN)
+                        .entity(getErrorEntity(Status.FORBIDDEN, e.getMessage(), null)).build();
+            } catch (final ReferentialException e) {
+                LOGGER.error(e);
+                return Response.status(Status.BAD_REQUEST)
+                        .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            } catch (InvalidParseOperationException e) {
+                return Response.status(Status.BAD_REQUEST)
+                        .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            }
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        } finally {
+            StreamUtils.closeSilently(document);
+        }
+    }
+
+    /**
+     * Import a set of contexts
+     *
+     * @param select the select query to find document
+     * @return Response
+     */
+    @Path("/contexts")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "contexts:create:json", description = "Importer des contextes dans le référentiel")
+    public Response importContexts(JsonNode select)
+            throws DatabaseConflictException {
+
+        addRequestId();
+        ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            SanityChecker.checkJsonAll(select);
+            Status status = client.importContexts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
+                    new TypeReference<List<ContextModel>>() {
+                    }));
+
+            // Send the http response with the entity and the status got from internalService;
+            ResponseBuilder ResponseBuilder = Response.status(status)
+                    .entity("Successfully imported");
+            return ResponseBuilder.build();
+        } catch (final ReferentialException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+        } catch (InvalidParseOperationException e) {
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+        }
+    }
+
+
+    /**
+     * Import a profiles document
+     *
+     * @param document inputStream representing the data to import
+     * @return The jaxRs Response
+     */
+    @Path("/profiles")
+    @POST
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "profiles:create:binary", description = "Importer des profils dans le référentiel")
+    public Response createProfiles(InputStream document) {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        try {
+            ParametersChecker.checkParameter("document is a mandatory parameter", document);
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+
+                    JsonNode json = JsonHandler.getFromInputStream(document);
+                    SanityChecker.checkJsonAll(json);
+                    RequestResponse requestResponse =
+                        client.createProfiles(JsonHandler.getFromStringAsTypeRefence(json.toString(),
+                            new TypeReference<List<ProfileModel>>() {}));
+                    return Response.status(requestResponse.getStatus())
+                        .entity(requestResponse).build();
+
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
                 return Response.status(Status.BAD_REQUEST)
@@ -299,6 +618,41 @@ public class AdminManagementExternalResourceImpl {
     }
 
     /**
+     * Import a set of profiles
+     *
+     * @param select the select query to find document
+     * @return Response
+     */
+    @Path("/profiles")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "profiles:create:json", description = "Ecrire un profil dans le référentiel")
+    public Response createProfiles(JsonNode select)
+            throws DatabaseConflictException {
+
+        addRequestId();
+        ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            SanityChecker.checkJsonAll(select);
+            RequestResponse requestResponse =
+                    client.createProfiles(JsonHandler.getFromStringAsTypeRefence(select.toString(),
+                            new TypeReference<List<ProfileModel>>() {
+                            }));
+            return Response.status(requestResponse.getStatus())
+                    .entity(requestResponse).build();
+
+        } catch (final ReferentialException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+        } catch (InvalidParseOperationException e) {
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
      * Import a Profile file document (xsd or rng, ...)
      *
      * @param uriInfo used to construct the created resource and send it back as location in the response
@@ -306,19 +660,14 @@ public class AdminManagementExternalResourceImpl {
      * @param profileFile inputStream representing the data to import
      * @return The jaxRs Response
      */
-    @Path("/{collection}/{id:.+}")
+    @Path("/profiles/{id:.+}")
     @PUT
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importProfileFile(@Context UriInfo uriInfo, @PathParam("collection") String collection,
+    @Secured(permission = "profiles:id:update", description = "Importer un fichier xsd ou rng dans un profil")
+    public Response importProfileFile(@Context UriInfo uriInfo,
         @PathParam("id") String profileMetadataId,
         InputStream profileFile) {
-        if (!AdminCollections.PROFILE.compareTo(collection)) {
-            LOGGER.error("Endpoint accept only profiles");
-            final Status status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status, "Endpoint accept only profiles", null))
-                .build();
-        }
         addRequestId();
         try {
             ParametersChecker.checkParameter("profileFile stream is a mandatory parameter", profileFile);
@@ -347,47 +696,56 @@ public class AdminManagementExternalResourceImpl {
     }
 
     /**
-     * Download the file (profile file or traceability file)<br/>
+     * Download the profile file<br/>
      * <br/>
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
-     * @param collection
      * @param fileId
      * @param asyncResponse
      */
     @GET
-    @Path("/{collection}/{id:.+}")
+    @Path("/profiles/{id:.+}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void downloadProfileFileOrTraceabilityFile(@PathParam("collection") String collection,
-        @PathParam("id") String fileId,
-        @Suspended final AsyncResponse asyncResponse) {
+    @Secured(permission = "profiles:id:read:binary", description = "Télecharger le fichier xsd ou rng attaché à un profil")
+    public void downloadProfileFile(
+            @PathParam("id") String fileId,
+            @Suspended final AsyncResponse asyncResponse) {
 
-        if (AdminCollections.PROFILE.compareTo(collection)) {
-            ParametersChecker.checkParameter("Profile id should be filled", fileId);
-            addRequestId();
-            VitamThreadPoolExecutor.getDefaultExecutor()
+        ParametersChecker.checkParameter("Profile id should be filled", fileId);
+        addRequestId();
+        VitamThreadPoolExecutor.getDefaultExecutor()
                 .execute(() -> asyncDownloadProfileFile(fileId, asyncResponse));
+    }
 
-        } else if (AdminCollections.TRACEABILITY.compareTo(collection)) {
-            try {
-                ParametersChecker.checkParameter("Traceability operation should be filled", fileId);
+    /**
+     * Download the traceability file<br/>
+     * <br/>
+     * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
+     *
+     * @param fileId
+     * @param asyncResponse
+     */
+    @GET
+    @Path("/traceability/{id:.+}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Secured(permission = "traceability:id:read", description = "Télécharger le logbook sécurisé attaché à une opération de sécurisation")
+    public void downloadTraceabilityFile(
+            @PathParam("id") String fileId,
+            @Suspended final AsyncResponse asyncResponse) {
 
-                addRequestId();
+        try {
+            ParametersChecker.checkParameter("Traceability operation should be filled", fileId);
 
-                VitamThreadPoolExecutor.getDefaultExecutor()
+            addRequestId();
+
+            VitamThreadPoolExecutor.getDefaultExecutor()
                     .execute(() -> downloadTraceabilityOperationFile(fileId, asyncResponse));
-            } catch (IllegalArgumentException | VitamThreadAccessException e) {
-                LOGGER.error(e);
-                final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
+        } catch (IllegalArgumentException | VitamThreadAccessException e) {
+            LOGGER.error(e);
+            final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
                     .entity(getErrorStream(Status.PRECONDITION_FAILED, e.getMessage(), null))
                     .build();
-                AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
-            }
-        }
-        else {
-            LOGGER.error("Endpoint accept only profiles");
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.NOT_IMPLEMENTED)
-                .entity(getErrorStream(Status.NOT_IMPLEMENTED, "Endpoint accept only profiles", null)).build());
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         }
     }
 
@@ -456,65 +814,244 @@ public class AdminManagementExternalResourceImpl {
     }
 
     /**
-     * findDocuments using get method
+     * getFormats using get method
      *
-     * @param collection the working collection to find document
      * @param select the select query to find document
      * @return Response
      */
-    @Path("/{collection}")
+    @Path("/formats")
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findDocuments(@Context HttpHeaders headers,
-        @PathParam("collection") String collection, JsonNode select) {
-
+    @Secured(permission = "formats:read", description = "Lister le contenu du référentiel des formats")
+    public Response getFormats(JsonNode select) {
 
         addRequestId();
         try {
-            ParametersChecker.checkParameter(collection, "The collection is mandatory");
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                if (AdminCollections.FORMATS.compareTo(collection)) {
-                    final RequestResponse<FileFormatModel> result = client.getFormats(select);
-                    int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
-                    return Response.status(st).entity(result).build();
-                }
-                if (AdminCollections.RULES.compareTo(collection)) {
-                    final JsonNode result = client.getRules(select);
-                    return Response.status(Status.OK).entity(result).build();
-                }
-                if (AdminCollections.ENTRY_CONTRACTS.compareTo(collection)) {
-                    RequestResponse<IngestContractModel> result = client.findIngestContracts(select);
-                    int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
-                    return Response.status(st).entity(result).build();
-                }
-                if (AdminCollections.ACCESS_CONTRACTS.compareTo(collection)) {
-                    RequestResponse result = client.findAccessContracts(select);
-                    int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
-                    return Response.status(st).entity(result).build();
-                }
-                if (AdminCollections.PROFILE.compareTo(collection)) {
-                    RequestResponse result = client.findProfiles(select);
-                    int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
-                    return Response.status(st).entity(result).build();
-                }
-                if (AdminCollections.CONTEXTS.compareTo(collection)) {
-                    RequestResponse result = client.findContexts(select);
-                    int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
-                    return Response.status(st).entity(result).build();
-                }
-
-                if (AdminCollections.ACCESSION_REGISTERS.compareTo(collection)) {
-                    final RequestResponse result = client.getAccessionRegister(select);
-                    int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
-                    return Response.status(st).entity(result).build();
-                }
-                final Status status = Status.NOT_FOUND;
-                return Response.status(status).entity(getErrorEntity(status, "Collection not found", null)).build();
+                final RequestResponse<FileFormatModel> result = client.getFormats(select);
+                int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+                return Response.status(st).entity(result).build();
             } catch (ReferentialNotFoundException | FileRulesNotFoundException e) {
                 final Status status = Status.NOT_FOUND;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (ReferentialException | IOException e) {
+                LOGGER.error(e);
+                final Status status = Status.INTERNAL_SERVER_ERROR;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            }
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            final Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * getRules using get method
+     *
+     * @param select the select query to find document
+     * @return Response
+     */
+    @Path("/rules")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "rules:read", description = "Lister le contenu du référentiel des règles de gestion")
+    public Response getRules(JsonNode select) {
+
+        addRequestId();
+        try {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                final JsonNode result = client.getRules(select);
+                return Response.status(Status.OK).entity(result).build();
+            } catch (FileRulesNotFoundException e) {
+                final Status status = Status.NOT_FOUND;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (ReferentialException | IOException e) {
+                LOGGER.error(e);
+                final Status status = Status.INTERNAL_SERVER_ERROR;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            }
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            final Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * findIngestContracts using get method
+     *
+     * @param select the select query to find document
+     * @return Response
+     */
+    @Path("/entrycontracts")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "entrycontracts:read", description = "Lister le contenu du référentiel des contrats d'entrée")
+    public Response findIngestContracts(JsonNode select) {
+
+        addRequestId();
+        try {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                RequestResponse<IngestContractModel> result = client.findIngestContracts(select);
+                int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+                return Response.status(st).entity(result).build();
+            } catch (ReferentialException e) {
+                LOGGER.error(e);
+                final Status status = Status.INTERNAL_SERVER_ERROR;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            }
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            final Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * findAccessContracts using get method
+     *
+     * @param select the select query to find document
+     * @return Response
+     */
+    @Path("/accesscontracts")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "accesscontracts:read", description = "Lister le contenu du référentiel des contrats d'accès")
+    public Response findAccessContracts(JsonNode select) {
+
+        addRequestId();
+        try {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                RequestResponse result = client.findAccessContracts(select);
+                int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+                return Response.status(st).entity(result).build();
+            } catch (ReferentialException e) {
+                LOGGER.error(e);
+                final Status status = Status.INTERNAL_SERVER_ERROR;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            }
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            final Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * findProfiles using get method
+     *
+     * @param select the select query to find document
+     * @return Response
+     */
+    @Path("/profiles")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "profiles:read", description = "Lister le contenu du référentiel des profils")
+    public Response findProfiles(JsonNode select) {
+
+        addRequestId();
+        try {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                RequestResponse result = client.findProfiles(select);
+                int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+                return Response.status(st).entity(result).build();
+            } catch (ReferentialException e) {
+                LOGGER.error(e);
+                final Status status = Status.INTERNAL_SERVER_ERROR;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            }
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            final Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * findContexts using get method
+     *
+     * @param select the select query to find document
+     * @return Response
+     */
+    @Path("/contexts")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "contexts:read", description = "Lister le contenu du référentiel des contextes")
+    public Response findContexts(JsonNode select) {
+
+        addRequestId();
+        try {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                RequestResponse result = client.findContexts(select);
+                int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+                return Response.status(st).entity(result).build();
+            } catch (ReferentialException e) {
+                LOGGER.error(e);
+                final Status status = Status.INTERNAL_SERVER_ERROR;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            }
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            final Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * getAccessionRegister using get method
+     *
+     * @param select the select query to find document
+     * @return Response
+     */
+    @Path("/accession-registers")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "accession-registers:read", description = "Lister le contenu du référentiel des registres des fonds")
+    public Response getAccessionRegister(JsonNode select) {
+
+        addRequestId();
+        try {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+
+                final RequestResponse result = client.getAccessionRegister(select);
+                int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+                return Response.status(st).entity(result).build();
+            } catch (ReferentialNotFoundException | FileRulesNotFoundException e) {
+                final Status status = Status.NOT_FOUND;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (ReferentialException e) {
                 LOGGER.error(e);
                 final Status status = Status.INTERNAL_SERVER_ERROR;
                 return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
@@ -535,70 +1072,39 @@ public class AdminManagementExternalResourceImpl {
     }
 
     /**
-     * findDocuments using post method, or handle classical post for creation
+     * Create or update an accession register
      *
-     * @param collection the working collection to find document
-     * @param select the select query to find document
+     * @param select     the select query to find document
      * @return Response
      */
-    @Path("/{collection}")
+    @Path("/accession-registers")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createOrfindDocuments(@PathParam("collection") String collection, JsonNode select)
-        throws DatabaseConflictException {
+    @Secured(permission = "accession-registers:create", description = "Permet de créer ou de modifier le registre des fonds.")
+    // FIXME : EST-CE VRAIMENT UNE BONNE IDEE d'exposer une API external pour modifier le registre des fonds?!!!
+    public Response createOrUpdateAccessionRegister(JsonNode select)
+            throws DatabaseConflictException {
 
         addRequestId();
         ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
-        ParametersChecker.checkParameter(collection, "The collection is mandatory");
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            Object respEntity = null;
-            Status status = Status.CREATED;
-            if (AdminCollections.ENTRY_CONTRACTS.compareTo(collection)) {
-                SanityChecker.checkJsonAll(select);
-                status =
-                    client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                        new TypeReference<List<IngestContractModel>>() {}));
-            }
-            if (AdminCollections.ACCESS_CONTRACTS.compareTo(collection)) {
-                SanityChecker.checkJsonAll(select);
-                status = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                    new TypeReference<List<AccessContractModel>>() {}));
-            }
-            if (AdminCollections.PROFILE.compareTo(collection)) {
-                SanityChecker.checkJsonAll(select);
-                RequestResponse requestResponse =
-                    client.createProfiles(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                        new TypeReference<List<ProfileModel>>() {}));
-                return Response.status(requestResponse.getStatus())
-                    .entity(requestResponse).build();
-            }
-            if (AdminCollections.CONTEXTS.compareTo(collection)) {
-                SanityChecker.checkJsonAll(select);
-                status = client.importContexts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                    new TypeReference<List<ContextModel>>() {}));
-            }
-            if (AdminCollections.ACCESSION_REGISTERS.compareTo(collection)) {
-                SanityChecker.checkJsonAll(select);
-                RequestResponse requestResponse =
+
+            SanityChecker.checkJsonAll(select);
+            RequestResponse requestResponse =
                     client.createorUpdateAccessionRegister(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                        new TypeReference<AccessionRegisterDetailModel>() {}));
+                            new TypeReference<AccessionRegisterDetailModel>() {
+                            }));
 
-                return Response.status(requestResponse.getStatus())
+            return Response.status(requestResponse.getStatus())
                     .entity(requestResponse).build();
-            }
-
-            // Send the http response with the entity and the status got from internalService;
-            ResponseBuilder ResponseBuilder = Response.status(status)
-                .entity(respEntity != null ? respEntity : "Successfully imported");
-            return ResponseBuilder.build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
         } catch (InvalidParseOperationException e) {
             return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
         }
     }
 
@@ -612,61 +1118,34 @@ public class AdminManagementExternalResourceImpl {
     @Path("/{collection}/{id_document:.+}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
+    @Unsecured
     public Response findDocumentByID(@PathParam("collection") String collection,
         @PathParam("id_document") String documentId) {
+        // FIXME: Change @Unsecured with @Secured once implemented
         addRequestId();
         return Response.status(Status.BAD_REQUEST)
             .entity(getErrorEntity(Status.BAD_REQUEST, "Method not yet implemented", null)).build();
     }
 
     /**
-     * findDocumentByID
+     * findFormatByID
      *
-     * @param collection he working collection find check document
      * @param documentId the document id to find
      * @return Response
      */
-    @Path("/{collection}/{id_document:.+}")
+    @Path("/formats/{id_document:.+}")
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findDocumentByID(@PathParam("collection") String collection,
-        @PathParam("id_document") String documentId, JsonNode select) {
+    @Secured(permission = "formats:id:read", description = "Lire un format donné")
+    public Response findFormatByID(@PathParam("id_document") String documentId, JsonNode select) {
         addRequestId();
         try {
             ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
             SanityChecker.checkParameter(documentId);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                if (AdminCollections.FORMATS.compareTo(collection)) {
-                    final JsonNode result = client.getFormatByID(documentId);
-                    return Response.status(Status.OK).entity(result).build();
-                }
-                if (AdminCollections.RULES.compareTo(collection)) {
-                    final JsonNode result = client.getRuleByID(documentId);
-                    return Response.status(Status.OK).entity(result).build();
-                }
-                if (AdminCollections.ENTRY_CONTRACTS.compareTo(collection)) {
-                    RequestResponse<IngestContractModel> requestResponse = client.findIngestContractsByID(documentId);
-                    int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
-                    return Response.status(st).entity(requestResponse).build();
-                }
-                if (AdminCollections.ACCESS_CONTRACTS.compareTo(collection)) {
-                    RequestResponse<AccessContractModel> requestResponse = client.findAccessContractsByID(documentId);
-                    int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
-                    return Response.status(st).entity(requestResponse).build();
-                }
-                if (AdminCollections.PROFILE.compareTo(collection)) {
-                    RequestResponse<ProfileModel> requestResponse = client.findProfilesByID(documentId);
-                    int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
-                    return Response.status(st).entity(requestResponse).build();
-                }
-                if (AdminCollections.CONTEXTS.compareTo(collection)) {
-                    RequestResponse<ContextModel> requestResponse = client.findContextById(documentId);
-                    int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
-                    return Response.status(st).entity(requestResponse).build();
-                }
-                final Status status = Status.NOT_FOUND;
-                return Response.status(status).entity(getErrorEntity(status, "Collection not found", null)).build();
+                final JsonNode result = client.getFormatByID(documentId);
+                return Response.status(Status.OK).entity(result).build();
             } catch (ReferentialNotFoundException e) {
                 LOGGER.error(e);
                 final Status status = Status.NOT_FOUND;
@@ -683,56 +1162,298 @@ public class AdminManagementExternalResourceImpl {
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+                    .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
         }
     }
 
     /**
-     * Update document
+     * findRuleByID
      *
-     * @param collection
+     * @param documentId the document id to find
+     * @return Response
+     */
+    @Path("/rules/{id_document:.+}")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "rules:id:read", description = "Lire une règle de gestion donnée")
+    public Response findRuleByID(@PathParam("id_document") String documentId, JsonNode select) {
+        addRequestId();
+        try {
+            ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
+            SanityChecker.checkParameter(documentId);
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                final JsonNode result = client.getRuleByID(documentId);
+                return Response.status(Status.OK).entity(result).build();
+            } catch (final ReferentialException e) {
+                LOGGER.error(e);
+                final Status status = Status.INTERNAL_SERVER_ERROR;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            }
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.PRECONDITION_FAILED)
+                    .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * findIngestContractsByID
+     *
+     * @param documentId the document id to find
+     * @return Response
+     */
+    @Path("/entrycontracts/{id_document:.+}")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "entrycontracts:id:read", description = "Lire un contrat d'entrée donné")
+    public Response findIngestContractsByID(@PathParam("id_document") String documentId, JsonNode select) {
+        addRequestId();
+        try {
+            ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
+            SanityChecker.checkParameter(documentId);
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                RequestResponse<IngestContractModel> requestResponse = client.findIngestContractsByID(documentId);
+                int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
+                return Response.status(st).entity(requestResponse).build();
+            } catch (ReferentialNotFoundException e) {
+                LOGGER.error(e);
+                final Status status = Status.NOT_FOUND;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final ReferentialException e) {
+                LOGGER.error(e);
+                final Status status = Status.INTERNAL_SERVER_ERROR;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            }
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.PRECONDITION_FAILED)
+                    .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * findAccessContractsByID
+     *
+     * @param documentId the document id to find
+     * @return Response
+     */
+    @Path("/accesscontracts/{id_document:.+}")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "accesscontracts:id:read", description = "Lire un contrat d'accès donné")
+    public Response findAccessContractsByID(@PathParam("id_document") String documentId, JsonNode select) {
+        addRequestId();
+        try {
+            ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
+            SanityChecker.checkParameter(documentId);
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                RequestResponse<AccessContractModel> requestResponse = client.findAccessContractsByID(documentId);
+                int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
+                return Response.status(st).entity(requestResponse).build();
+            } catch (ReferentialNotFoundException e) {
+                LOGGER.error(e);
+                final Status status = Status.NOT_FOUND;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final ReferentialException e) {
+                LOGGER.error(e);
+                final Status status = Status.INTERNAL_SERVER_ERROR;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            }
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.PRECONDITION_FAILED)
+                    .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * findProfilesByID
+     *
+     * @param documentId the document id to find
+     * @return Response
+     */
+    @Path("/profiles/{id_document:.+}")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "profiles:id:read:json", description = "Lire un profil donné")
+    public Response findProfilesByID(@PathParam("id_document") String documentId, JsonNode select) {
+        addRequestId();
+        try {
+            ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
+            SanityChecker.checkParameter(documentId);
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                RequestResponse<ProfileModel> requestResponse = client.findProfilesByID(documentId);
+                int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
+                return Response.status(st).entity(requestResponse).build();
+            } catch (ReferentialNotFoundException e) {
+                LOGGER.error(e);
+                final Status status = Status.NOT_FOUND;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final ReferentialException e) {
+                LOGGER.error(e);
+                final Status status = Status.INTERNAL_SERVER_ERROR;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            }
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.PRECONDITION_FAILED)
+                    .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * findContextById
+     *
+     * @param documentId the document id to find
+     * @return Response
+     */
+    @Path("/contexts/{id_document:.+}")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "contexts:id:read", description = "Lire un contexte donné")
+    public Response findContextById(@PathParam("id_document") String documentId, JsonNode select) {
+        addRequestId();
+        try {
+            ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
+            SanityChecker.checkParameter(documentId);
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                RequestResponse<ContextModel> requestResponse = client.findContextById(documentId);
+                int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
+                return Response.status(st).entity(requestResponse).build();
+            } catch (ReferentialNotFoundException e) {
+                LOGGER.error(e);
+                final Status status = Status.NOT_FOUND;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final ReferentialException e) {
+                LOGGER.error(e);
+                final Status status = Status.INTERNAL_SERVER_ERROR;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            }
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.status(Status.PRECONDITION_FAILED)
+                    .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * Update context
+     *
      * @param id
      * @param queryDsl
      * @return Response
      * @throws AdminManagementClientServerException
      * @throws InvalidParseOperationException
      */
-    @Path("/{collection}/{id:.+}")
+    @Path("/context/{id:.+}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateDocument(@PathParam("collection") String collection,
-        @PathParam("id") String id, JsonNode queryDsl)
+    @Secured(permission = "contexts:id:update", description = "Effectuer une mise à jour sur un contexte")
+    public Response updateContext(@PathParam("id") String id, JsonNode queryDsl)
+            throws AdminManagementClientServerException, InvalidParseOperationException {
+        addRequestId();
+        try {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                RequestResponse response = client.updateContext(id, queryDsl);
+                return getResponse(response);
+            }
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.PRECONDITION_FAILED)
+                    .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * Update access contract
+     *
+     * @param id
+     * @param queryDsl
+     * @return Response
+     * @throws AdminManagementClientServerException
+     * @throws InvalidParseOperationException
+     */
+    @Path("/accesscontracts/{id:.+}")
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "accesscontracts:id:update", description = "Effectuer une mise à jour sur un contrat d'accès")
+    public Response updateAccessContract(@PathParam("id") String id, JsonNode queryDsl)
+            throws AdminManagementClientServerException, InvalidParseOperationException {
+        addRequestId();
+        try {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                RequestResponse response = client.updateAccessContract(id, queryDsl);
+                return getResponse(response);
+            }
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.PRECONDITION_FAILED)
+                    .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * Update ingest contract
+     *
+     * @param id
+     * @param queryDsl
+     * @return Response
+     * @throws AdminManagementClientServerException
+     * @throws InvalidParseOperationException
+     */
+    @Path("/entrycontracts/{id:.+}")
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "entrycontracts:id:update", description = "Effectuer une mise à jour sur un contrat d'entrée")
+    public Response updateIngestContract(@PathParam("id") String id, JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException {
         addRequestId();
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                RequestResponse response = null;
-                if (AdminCollections.CONTEXTS.compareTo(collection)) {
-                    response = client.updateContext(id, queryDsl);
-                }
-                if (AdminCollections.ACCESS_CONTRACTS.compareTo(collection)) {
-                    response = client.updateAccessContract(id, queryDsl);
-                }
-                if (AdminCollections.ENTRY_CONTRACTS.compareTo(collection)) {
-                    response = client.updateIngestContract(id, queryDsl);
-                }
-                if (response != null && response.isOk()) {
-                    return Response.status(Status.OK).entity(response).build();
-                } else {
-                    final VitamError error = (VitamError) response;
-                    if (error != null) {
-                        return Response.status(error.getHttpCode()).entity(response).build();
-                    } else {
-                        return Response.status(Status.INTERNAL_SERVER_ERROR)
-                            .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, null, null).toString()).build();
-                    }
-                }
+                RequestResponse response = client.updateIngestContract(id, queryDsl);
+                return getResponse(response);
             }
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED)
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+        }
+    }
+
+    private Response getResponse(RequestResponse response) {
+        if (response.isOk()) {
+            return Response.status(Status.OK).entity(response).build();
+        } else {
+            final VitamError error = (VitamError) response;
+            return Response.status(error.getHttpCode()).entity(response).build();
         }
     }
 
@@ -745,7 +1466,9 @@ public class AdminManagementExternalResourceImpl {
     @POST
     @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}")
     @Produces(MediaType.APPLICATION_JSON)
+    @Unsecured()
     public Response findAccessionRegisterById(@PathParam("id_document") String documentId) {
+        // FIXME : Change @Unsecured to @Secured once implemented
         addRequestId();
         final Status status = Status.NOT_IMPLEMENTED;
         return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase(), null)).build();
@@ -763,6 +1486,7 @@ public class AdminManagementExternalResourceImpl {
     @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}/accession-register-detail")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "accession-registers:id:accession-register-detail:read", description = "Lister les détails d'un registre de fonds")
     public Response findAccessionRegisterDetail(@PathParam("id_document") String documentId, JsonNode select) {
         addRequestId();
 
@@ -797,6 +1521,7 @@ public class AdminManagementExternalResourceImpl {
     @Path(AccessExtAPI.TRACEABILITY_API + "/check")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "traceability:check", description = "Tester l'intégrité d'un journal sécurisé")
     public Response checkOperationTraceability(JsonNode query) {
 
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
@@ -839,6 +1564,7 @@ public class AdminManagementExternalResourceImpl {
     @Path(AccessExtAPI.AUDITS_API)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "audits:check", description = "Lancer un audit de l'existance des objets")
     public Response launchAudit(JsonNode options) {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             addRequestId();

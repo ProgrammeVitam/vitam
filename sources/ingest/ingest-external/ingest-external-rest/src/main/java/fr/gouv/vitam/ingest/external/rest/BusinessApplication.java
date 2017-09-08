@@ -12,6 +12,8 @@ import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
+import fr.gouv.vitam.common.security.rest.SecureEndpointScanner;
 import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
 import fr.gouv.vitam.common.security.waf.SanityDynamicFeature;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
@@ -26,15 +28,20 @@ public class BusinessApplication extends Application {
     public BusinessApplication(@Context ServletConfig servletConfig) {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 
+        SecureEndpointRegistry secureEndpointRegistry = new SecureEndpointRegistry();
+        SecureEndpointScanner secureEndpointScanner = new SecureEndpointScanner(secureEndpointRegistry);
+
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
             final IngestExternalConfiguration configuration =
                 PropertiesUtils.readYaml(yamlIS, IngestExternalConfiguration.class);
             commonBusinessApplication = new CommonBusinessApplication();
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
-            singletons.add(new IngestExternalResource(configuration));
+            singletons.add(new IngestExternalResource(configuration, secureEndpointRegistry));
             singletons.add(new SanityCheckerCommonFilter());
             singletons.add(new SanityDynamicFeature());
+            singletons.add(secureEndpointScanner);
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
