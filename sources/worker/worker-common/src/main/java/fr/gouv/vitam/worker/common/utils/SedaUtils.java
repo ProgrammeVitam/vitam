@@ -87,6 +87,8 @@ public class SedaUtils {
 
     static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SedaUtils.class);
     public static final String NAMESPACE_URI = "fr:gouv:culture:archivesdefrance:seda:v2.0";
+    public static final String XSI_URI = "http://www.w3.org/2001/XMLSchema-instance";
+
     private static final String SEDA_VALIDATION_FILE = "seda-vitam-2.0-main.xsd";
 
     private static final String MSG_PARSING_BDO = "Parsing Binary Data Object";

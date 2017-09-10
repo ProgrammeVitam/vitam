@@ -27,12 +27,12 @@
 package fr.gouv.vitam.access.internal.rest;
 
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCIES;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Set;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
@@ -55,23 +55,16 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.api.AccessInternalResource;
-import fr.gouv.vitam.access.internal.api.DipService;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
-import fr.gouv.vitam.access.internal.core.ArchiveUnitMapper;
 import fr.gouv.vitam.access.internal.core.ObjectGroupDipServiceImpl;
 import fr.gouv.vitam.access.internal.core.ObjectGroupMapper;
-import fr.gouv.vitam.access.internal.core.UnitDipServiceImpl;
-import fr.gouv.vitam.access.internal.core.serializer.IdentifierTypeDeserializer;
-import fr.gouv.vitam.access.internal.core.serializer.LevelTypeDeserializer;
-import fr.gouv.vitam.access.internal.core.serializer.TextByLangDeserializer;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -82,12 +75,27 @@ import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.InternalServerException;
+import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.mapping.dip.ArchiveUnitMapper;
+import fr.gouv.vitam.common.mapping.dip.DipService;
+import fr.gouv.vitam.common.mapping.dip.UnitDipServiceImpl;
+import fr.gouv.vitam.common.mapping.serializer.IdentifierTypeDeserializer;
+import fr.gouv.vitam.common.mapping.serializer.LevelTypeDeserializer;
+import fr.gouv.vitam.common.mapping.serializer.TextByLangDeserializer;
+import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
@@ -97,8 +105,22 @@ import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 
@@ -111,6 +133,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalResourceImpl.class);
+    public static final String EXPORT_DIP = "EXPORT_DIP";
 
     // DIP
     private static DipService unitDipService;
@@ -130,6 +153,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private ObjectGroupMapper objectGroupMapper;
 
     private ObjectMapper objectMapper;
+    private WorkspaceClientFactory workspaceClientFactory;
+    private ProcessingManagementClientFactory processingManagementClientFactory;
 
     /**
      * @param configuration to associate with AccessResourceImpl
@@ -143,6 +168,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         this.objectMapper = buildObjectMapper();
         this.unitDipService = new UnitDipServiceImpl(archiveUnitMapper, objectMapper);
         this.objectDipService = new ObjectGroupDipServiceImpl(objectGroupMapper, objectMapper);
+        this.workspaceClientFactory = WorkspaceClientFactory.getInstance();
+        ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getUrlProcessing());
+        this.processingManagementClientFactory = ProcessingManagementClientFactory.getInstance();
     }
 
     /**
@@ -158,6 +186,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         this.objectMapper = buildObjectMapper();
         this.unitDipService = new UnitDipServiceImpl(archiveUnitMapper, objectMapper);
         this.objectDipService = new ObjectGroupDipServiceImpl(objectGroupMapper, objectMapper);
+        this.workspaceClientFactory = WorkspaceClientFactory.getInstance();
+        this.processingManagementClientFactory = ProcessingManagementClientFactory.getInstance();
     }
 
 
@@ -201,6 +231,72 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         }
     }
 
+
+    /**
+     * get Archive Unit list by query based on identifier
+     *
+     * @param queryDsl as JsonNode
+     * @return an archive unit result list
+     */
+    @Override
+    @GET
+    @Path("/export")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response export(JsonNode queryDsl) {
+
+        Status status;
+        LOGGER.debug("DEBUG: start selectUnits {}", queryDsl);
+
+        try {
+            checkEmptyQuery(queryDsl);
+            GUID logbookId = GUIDFactory.newOperationLogbookGUID(VitamThreadUtils.getVitamSession().getTenantId());
+            String operationId = VitamThreadUtils.getVitamSession().getRequestId();
+
+
+            try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient();
+                LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+                ProcessingManagementClient processingClient = processingManagementClientFactory.getClient()) {
+
+                final LogbookOperationParameters initParameters =
+                    LogbookParametersFactory.newLogbookOperationParameters(
+                        logbookId,
+                        "EXPORT_DIP",
+                        GUIDReader.getGUID(operationId),
+                        LogbookTypeProcess.EXPORT_DIP,
+                        StatusCode.STARTED,
+                        logbookId.toString(),
+                        logbookId);
+
+                logbookClient.create(initParameters);
+
+                workspaceClient.createContainer(operationId);
+                workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(queryDsl));
+
+                processingClient.initVitamProcess(Contexts.EXPORT_DIP.name(), operationId, EXPORT_DIP);
+                // When
+                RequestResponse<JsonNode> jsonNodeRequestResponse =
+                    processingClient.executeOperationProcess(operationId, EXPORT_DIP,
+                        Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+                return jsonNodeRequestResponse.toResponse();
+            } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
+                LogbookClientServerException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
+                InvalidGuidOperationException | VitamClientException | InternalServerException e) {
+                LOGGER.error("", e);
+                return Response.status(INTERNAL_SERVER_ERROR).entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
+            }
+
+        } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
+            // Unprocessable Entity not implemented by Jersey
+            status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+        }  catch (BadRequestException e) {
+            LOGGER.error("Empty query is impossible", e);
+            return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
+        }
+    }
+
     /**
      * get Archive Unit list by query based on identifier
      *
@@ -208,8 +304,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
      * @param idUnit identifier
      * @return an archive unit result list
      */
-
-
     @Override
     @GET
     @Path("/units/{id_unit}")
@@ -311,7 +405,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return buildErrorResponse(VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES, e.getMessage());
         } catch (final AccessInternalExecutionException e) {
             LOGGER.error(e.getMessage(), e);
-            status = Status.INTERNAL_SERVER_ERROR;
+            status = INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
@@ -348,7 +442,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return Response.status(status).entity(getErrorEntity(status, exc.getMessage())).build();
         } catch (final AccessInternalExecutionException exc) {
             LOGGER.error(exc);
-            status = Status.INTERNAL_SERVER_ERROR;
+            status = INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status, exc.getMessage())).build();
         }
     }
@@ -464,7 +558,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .build();
         } catch (final AccessInternalExecutionException exc) {
             LOGGER.error(exc.getMessage(), exc);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorStream(Status.INTERNAL_SERVER_ERROR,
+            return Response.status(INTERNAL_SERVER_ERROR).entity(getErrorStream(INTERNAL_SERVER_ERROR,
                 exc.getMessage())).build();
         } catch (MetaDataNotFoundException | StorageNotFoundException exc) {
             LOGGER.error(exc);

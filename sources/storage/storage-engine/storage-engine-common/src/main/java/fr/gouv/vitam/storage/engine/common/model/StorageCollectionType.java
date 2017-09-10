@@ -47,13 +47,10 @@ public enum StorageCollectionType {
      * Logbooks collection
      */
     LOGBOOKS("logbooks"),
-
-
     /**
      * Profiles collection
      */
     PROFILES("profiles"),
-
     /**
      * StorageLog
      */
@@ -62,8 +59,6 @@ public enum StorageCollectionType {
      * Rules files
      */
     RULES("rules"),
-
-
     /**
      * ObjectGroups collection
      */
@@ -75,7 +70,11 @@ public enum StorageCollectionType {
     /**
      * Manifests collection
      */
-    MANIFESTS("manifests");
+    MANIFESTS("manifests"),
+    /**
+     * Dip collection
+     */
+    DIP("dip");
 
     /**
      * Name

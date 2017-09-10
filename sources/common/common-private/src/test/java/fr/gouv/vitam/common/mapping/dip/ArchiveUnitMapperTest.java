@@ -24,36 +24,33 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.access.internal.core.serializer;
+package fr.gouv.vitam.common.mapping.dip;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
+import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
+import fr.gouv.vitam.common.mapping.dip.ArchiveUnitMapper;
+import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
+import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
+import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
+import org.junit.Test;
 
-/**
- * Deserialize a (json, xml, string) representation to IdentifierType
- * To be registered in jackson objectMapper
- */
-public class IdentifierTypeDeserializer extends JsonDeserializer<IdentifierType> {
-    /**
-     *
-     * @param jp representation (json, xml, string)
-     * @param ctxt
-     * @return
-     * @throws IOException
-     */
-    @Override
-    public IdentifierType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
-        JsonNode node = jp.getCodec().readTree(jp);
+public class ArchiveUnitMapperTest {
 
-        IdentifierType identifierType = new IdentifierType();
-        identifierType.setValue(node.asText());
+    @Test
+    public void should_map_unit_with_empty_fields() throws Exception {
+        //Given
+        ArchiveUnitMapper archiveUnitMapper = new ArchiveUnitMapper();
+        ArchiveUnitModel archiveUnitModel = new ArchiveUnitModel();
+        archiveUnitModel.setId("1234564");
+        archiveUnitModel.setDescriptiveMetadataModel(new DescriptiveMetadataModel());
+        archiveUnitModel.getManagement().setStorage(new RuleCategoryModel());
 
-        return identifierType;
+        // When
+        ArchiveUnitType archiveUnitType = archiveUnitMapper.map(archiveUnitModel);
+
+        // Then
+        assertThat(archiveUnitType.getId()).isEqualTo("1234564");
     }
 
 }

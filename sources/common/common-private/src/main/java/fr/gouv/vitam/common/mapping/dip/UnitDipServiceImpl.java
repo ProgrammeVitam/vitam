@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.access.internal.core;
+package fr.gouv.vitam.common.mapping.dip;
 
 import java.io.StringWriter;
 
@@ -40,7 +40,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
-import fr.gouv.vitam.access.internal.api.DipService;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.json.JsonHandler;

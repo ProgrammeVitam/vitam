@@ -24,11 +24,12 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.access.internal.core;
+package fr.gouv.vitam.common.mapping.dip;
 
 import com.google.common.base.Throwables;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.mapping.dip.TransformJsonTreeToListOfXmlElement;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

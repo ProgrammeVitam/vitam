@@ -32,7 +32,7 @@
             </jxb:bindings>
             <annox:annotate>
                 <annox:annotate annox:class="javax.xml.bind.annotation.XmlRootElement"
-                                name="ArchiveUnitType" />
+                                name="ArchiveUnit" />
             </annox:annotate>
 
         </jxb:bindings>
@@ -43,7 +43,7 @@
         <jxb:bindings node="xs:complexType[@name='DataObjectPackageType']">
             <annox:annotate>
                 <annox:annotate annox:class="javax.xml.bind.annotation.XmlRootElement"
-                                name="DataObjectPackageType" />
+                                name="DataObjectPackage" />
             </annox:annotate>
 
         </jxb:bindings>

@@ -65,11 +65,16 @@ public enum DataCategory {
     /**
      * StorageLog (any)
      */
-    STORAGELOG("storagelog",false,false),
+    STORAGELOG("storagelog", false, false),
     /**
      * Rules files
      */
-    RULES("rules",false,false);
+    RULES("rules", false, false),
+    /**
+     * dip collection
+     */
+    DIP("dip", false, true);
+
     /**
      * Folder
      */
@@ -88,8 +93,7 @@ public enum DataCategory {
     /**
      * Constructor.
      *
-     * @param folder
-     *            folder
+     * @param folder folder
      */
     private DataCategory(String folder, boolean udpatable, boolean deletable) {
         this.folder = folder;
@@ -127,8 +131,7 @@ public enum DataCategory {
     /**
      * Get DataCategory from folder
      *
-     * @param folder
-     *            the wanted folder
+     * @param folder the wanted folder
      * @return the DataCategory if exists, null otherwise
      */
     public static DataCategory getByFolder(String folder) {

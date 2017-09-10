@@ -24,33 +24,36 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.access.internal.core.serializer;
+package fr.gouv.vitam.common.mapping.serializer;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 
 import java.io.IOException;
 
-public class TextTypeDeSerializer extends JsonDeserializer<TextType> {
-
+/**
+ * Deserialize a (json, xml, string) representation to IdentifierType
+ * To be registered in jackson objectMapper
+ */
+public class IdentifierTypeDeserializer extends JsonDeserializer<IdentifierType> {
     /**
-     * Convert json, xml, string to TextType
      *
-     * @param jp   (json, xml, string) representation
+     * @param jp representation (json, xml, string)
      * @param ctxt
      * @return
-     * @throws java.io.IOException
+     * @throws IOException
      */
     @Override
-    public TextType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    public IdentifierType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
 
-        TextType textType = new TextType();
-        textType.setValue(node.asText());
+        IdentifierType identifierType = new IdentifierType();
+        identifierType.setValue(node.asText());
 
-        return textType;
+        return identifierType;
     }
+
 }

@@ -26,6 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.core;
 
+import static org.junit.Assert.assertEquals;
+
+import java.io.FileNotFoundException;
+import java.io.StringWriter;
+import java.math.BigInteger;
+import java.util.List;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,6 +55,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.mapping.dip.UnitMapper;
 import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
 import fr.gouv.vitam.common.model.objectgroup.FormatIdentificationModel;
 import fr.gouv.vitam.common.model.objectgroup.MeasurementModel;
@@ -50,20 +64,6 @@ import fr.gouv.vitam.common.model.objectgroup.PhysicalDimensionsModel;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
 import org.junit.Test;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.FileNotFoundException;
-import java.io.StringWriter;
-import java.math.BigInteger;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 
 
@@ -78,7 +78,7 @@ public class ObjectGroupMapperTest {
         try {
             jaxbContext = JAXBContext.newInstance("fr.gouv.culture.archivesdefrance.seda.v2");
         } catch (JAXBException e) {
-
+            e.printStackTrace();
         }
     }
 

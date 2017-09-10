@@ -30,8 +30,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectPackageType;
-import fr.gouv.vitam.access.internal.api.DipService;
-import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.mapping.dip.DipService;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InternalServerException;
@@ -73,7 +72,6 @@ public class ObjectGroupDipServiceImpl implements DipService {
     public ObjectGroupDipServiceImpl(ObjectGroupMapper objectGroupMapper, ObjectMapper objectMapper) {
         this.objectGroupMapper = objectGroupMapper;
         this.objectMapper = objectMapper;
-
     }
 
     @Override
@@ -99,7 +97,7 @@ public class ObjectGroupDipServiceImpl implements DipService {
                             .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR.getMessage()))).build();
             }
 
-        } catch (JsonProcessingException e) {
+        } catch (JsonProcessingException | JAXBException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
             status = Response.Status.BAD_REQUEST;
@@ -108,12 +106,6 @@ public class ObjectGroupDipServiceImpl implements DipService {
         } catch (InternalServerException e) {
             status = Status.BAD_REQUEST;
             // Unprocessable Entity not implemented by Jersey
-            return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
-                .build();
-        } catch (JAXBException e) {
-            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            // Unprocessable Entity not implemented by Jersey
-            status = Status.BAD_REQUEST;
             return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
                 .build();
         }

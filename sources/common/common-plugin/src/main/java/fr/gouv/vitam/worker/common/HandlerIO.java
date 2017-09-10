@@ -291,6 +291,14 @@ public interface HandlerIO extends VitamAutoCloseable {
         ContentAddressableStorageServerException;
 
     /**
+     * compress list of file or directory in a specific output file
+     * @param output path of the zip file
+     * @param inputFiles list of file or directory to zip
+     * @throws ContentAddressableStorageException
+     */
+    void zipWorkspace(String output, String inputFiles) throws ContentAddressableStorageException;
+
+    /**
      * If true then start async manager, if false then waitEndOfTransfer and stop asyncManager
      * 
      * @param asyncIo

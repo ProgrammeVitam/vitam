@@ -95,7 +95,7 @@ public class DescriptiveMetadataMapper {
         descriptiveMetadataModel.setRestrictionEndDate(metadataContentType.getRestrictionEndDate());
         descriptiveMetadataModel.setRestrictionRuleIdRef(metadataContentType.getRestrictionRuleIdRef());
         descriptiveMetadataModel.setRestrictionValue(metadataContentType.getRestrictionValue());
-        descriptiveMetadataModel.setRegisteredDate(metadataContentType.getReceivedDate());
+        descriptiveMetadataModel.setReceivedDate(metadataContentType.getReceivedDate());
         descriptiveMetadataModel.setSentDate(metadataContentType.getSentDate());
         descriptiveMetadataModel.setSignature(metadataContentType.getSignature());
         descriptiveMetadataModel.setSource(metadataContentType.getSource());

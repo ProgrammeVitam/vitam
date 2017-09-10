@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.core;
 
-import com.google.common.base.Throwables;
 import fr.gouv.culture.archivesdefrance.seda.v2.BinaryDataObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.BinaryObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectPackageType;
@@ -36,26 +35,17 @@ import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.MessageDigestBinaryObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.MinimalDataObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.PhysicalDataObjectType;
-import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InternalServerException;
+import fr.gouv.vitam.common.mapping.dip.TransformJsonTreeToListOfXmlElement;
 import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
 import fr.gouv.vitam.common.model.objectgroup.FormatIdentificationModel;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
 
 import static java.util.Collections.singletonList;
 

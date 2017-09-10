@@ -40,13 +40,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -75,6 +73,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import fr.gouv.vitam.workspace.common.CompressInformation;
 
 /**
  * Handler input and output parameter
@@ -108,7 +107,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
      * Constructor with local root path
      *
      * @param containerName the container name
-     * @param workerId the worker id
+     * @param workerId      the worker id
      */
     public HandlerIOImpl(String containerName, String workerId) {
         this(WorkspaceClientFactory.getInstance().getClient(), containerName, workerId);
@@ -116,10 +115,10 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
 
     /**
      * Constructor with workspaceClient, local root path he is used for test purpose
-     * @param workspaceClient 
      *
-     * @param containerName the container name
-     * @param workerId the worker id
+     * @param workspaceClient
+     * @param containerName   the container name
+     * @param workerId        the worker id
      */
     @VisibleForTesting
     public HandlerIOImpl(WorkspaceClient workspaceClient, String containerName, String workerId) {
@@ -371,7 +370,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
      * Resources file
      *
      * @param objectName object name
-     * @param optional if file is optional
+     * @param optional   if file is optional
      * @return file if found, if not found, null if optional
      * @throws FileNotFoundException if file is not found and not optional
      */
@@ -493,7 +492,8 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         try {
             return JsonHandler
                 .getFromStringAsTypeRefence(client.getListUriDigitalObjectFromFolder(containerName, folderName)
-                    .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {});
+                    .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
+                });
         } catch (ContentAddressableStorageServerException | InvalidParseOperationException e) {
             LOGGER.debug("Workspace Server Error", e);
             throw new ProcessingException(e);
@@ -552,6 +552,25 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
                 new ContentAddressableStorageException(e);
             }
         }
+    }
+
+    @Override
+    public void zipWorkspace(String outputFile, String inputFiles)
+        throws ContentAddressableStorageException {
+
+        LOGGER.debug("Try to push stream to workspace...");
+
+        // call workspace
+        if (client.isExistingContainer(containerName)) {
+            CompressInformation compressInformation = new CompressInformation();
+            compressInformation.getFiles().add(inputFiles);
+            compressInformation.setOutputFile(outputFile);
+            client.compress(containerName, compressInformation);
+        } else {
+            LOGGER.error(containerName + "already exist");
+            throw new ContentAddressableStorageAlreadyExistException(containerName + "already exist");
+        }
+
     }
 
     @Override

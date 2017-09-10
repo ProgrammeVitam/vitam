@@ -24,32 +24,37 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.access.internal.core;
+package fr.gouv.vitam.common.mapping.dip;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
-import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
-import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
+import com.google.common.collect.Lists;
+import fr.gouv.culture.archivesdefrance.seda.v2.AccessRuleType;
+import fr.gouv.culture.archivesdefrance.seda.v2.RuleIdType;
+import fr.gouv.vitam.common.mapping.dip.RuleMapper;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
+import fr.gouv.vitam.common.model.unit.RuleModel;
 import org.junit.Test;
 
-public class ArchiveUnitMapperTest {
+public class RuleMapperTest {
 
     @Test
-    public void should_map_unit_with_empty_fields() throws Exception {
-        //Given
-        ArchiveUnitMapper archiveUnitMapper = new ArchiveUnitMapper();
-        ArchiveUnitModel archiveUnitModel = new ArchiveUnitModel();
-        archiveUnitModel.setId("1234564");
-        archiveUnitModel.setDescriptiveMetadataModel(new DescriptiveMetadataModel());
-        archiveUnitModel.getManagement().setStorage(new RuleCategoryModel());
+    public void should_map_common_rule() throws Exception {
+        // Given
+        RuleMapper ruleMapper = new RuleMapper();
+        RuleCategoryModel ruleModel = new RuleCategoryModel();
+        ruleModel.getRules().add(new RuleModel("AC-00023", "2017-04-01"));
+        ruleModel.setPreventInheritance(true);
+        ruleModel.addPreventRulesId(Lists.newArrayList("AC-00021", "AC-00022"));
 
         // When
-        ArchiveUnitType archiveUnitType = archiveUnitMapper.map(archiveUnitModel);
+        AccessRuleType accessRuleType = ruleMapper.fillCommonRule(ruleModel, AccessRuleType::new);
 
         // Then
-        assertThat(archiveUnitType.getId()).isEqualTo("1234564");
+        assertThat(accessRuleType.getRefNonRuleId()).extracting("value").containsExactly("AC-00021", "AC-00022");
+        assertThat(accessRuleType.isPreventInheritance()).isTrue();
+        assertThat(((RuleIdType)accessRuleType.getRuleAndStartDate().get(0)).getValue()).isEqualTo("AC-00023");
+        assertThat(accessRuleType.getRuleAndStartDate().get(1).toString()).isEqualTo("2017-04-01");
     }
 
 }

@@ -24,37 +24,32 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.access.internal.core;
+package fr.gouv.vitam.common.mapping.serializer;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 
-import com.google.common.collect.Lists;
-import fr.gouv.culture.archivesdefrance.seda.v2.AccessRuleType;
-import fr.gouv.culture.archivesdefrance.seda.v2.RuleIdType;
-import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
-import fr.gouv.vitam.common.model.unit.RuleModel;
-import org.apache.commons.codec.language.bm.RuleType;
-import org.junit.Test;
+import java.io.IOException;
 
-public class RuleMapperTest {
-
-    @Test
-    public void should_map_common_rule() throws Exception {
-        // Given
-        RuleMapper ruleMapper = new RuleMapper();
-        RuleCategoryModel ruleModel = new RuleCategoryModel();
-        ruleModel.getRules().add(new RuleModel("AC-00023", "2017-04-01"));
-        ruleModel.setPreventInheritance(true);
-        ruleModel.addPreventRulesId(Lists.newArrayList("AC-00021", "AC-00022"));
-
-        // When
-        AccessRuleType accessRuleType = ruleMapper.fillCommonRule(ruleModel, AccessRuleType::new);
-
-        // Then
-        assertThat(accessRuleType.getRefNonRuleId()).extracting("value").containsExactly("AC-00021", "AC-00022");
-        assertThat(accessRuleType.isPreventInheritance()).isTrue();
-        assertThat(((RuleIdType)accessRuleType.getRuleAndStartDate().get(0)).getValue()).isEqualTo("AC-00023");
-        assertThat(accessRuleType.getRuleAndStartDate().get(1).toString()).isEqualTo("2017-04-01");
+/**
+ * Deserialize a (json, xml, string) representation to LevelType
+ * To be registered in jackson objectMapper
+ */
+public class LevelTypeDeserializer extends JsonDeserializer<LevelType> {
+    /**
+     *
+     * @param jp (json, xml, string) representation
+     * @param ctxt
+     * @return
+     * @throws IOException
+     */
+    @Override
+    public LevelType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+        JsonNode node = jp.getCodec().readTree(jp);
+        return LevelType.fromValue(node.asText());
     }
 
 }

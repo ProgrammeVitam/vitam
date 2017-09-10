@@ -169,7 +169,8 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
         }
     }
 
-    @Override public Response getObjectByUnitIdWithXMLFormat(JsonNode queryDsl, String unitId)
+    @Override
+    public Response getObjectByUnitIdWithXMLFormat(JsonNode queryDsl, String unitId)
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
         InvalidParseOperationException {
         try (InputStream resourceAsStream = getClass().getResourceAsStream("/objectGroup.xml")){
@@ -181,5 +182,9 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
         }
     }
 
+    @Override
+    public RequestResponse<JsonNode> export(JsonNode queryJson) {
+        return new RequestResponseOK<>();
+    }
 
 }

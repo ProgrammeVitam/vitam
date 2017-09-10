@@ -65,5 +65,13 @@
 	"UNITS_CREATE_SECURED_FILE": {
 		"className": "fr.gouv.vitam.worker.core.plugin.CreateUnitSecureFileActionPlugin",
 		"propertiesFile": "create_unit_secure_file_plugin.properties"
+	},
+	"CREATE_MANIFEST": {
+		"className": "fr.gouv.vitam.worker.core.plugin.dip.CreateManifest",
+		"propertiesFile": "create_unit_secure_file_plugin.properties"
+	},
+	"STORE_MANIFEST": {
+		"className": "fr.gouv.vitam.worker.core.plugin.dip.StoreManifest",
+		"propertiesFile": "create_unit_secure_file_plugin.properties"
 	}
 }

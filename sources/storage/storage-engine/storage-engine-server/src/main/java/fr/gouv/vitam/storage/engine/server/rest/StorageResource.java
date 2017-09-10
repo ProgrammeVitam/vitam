@@ -302,7 +302,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * @param type the object type to list
      * @return a response with listing elements
      */
-    @Path("/{type:UNIT|OBJECT|OBJECTGROUP|LOGBOOK|REPORT|MANIFEST|PROFILE|STORAGELOG|RULES}")
+    @Path("/{type:UNIT|OBJECT|OBJECTGROUP|LOGBOOK|REPORT|MANIFEST|PROFILE|STORAGELOG|RULES|DIP}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -368,7 +368,6 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      *
      * @param headers http header
      * @param objectId the id of the object
-     * @param asyncResponse async response
      * @return the stream
      * @throws IOException throws an IO Exception
      */
@@ -568,7 +567,6 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * @param headers http header
      * @param objectId the id of the object
-     * @param asyncResponse async response
      * @return the stream
      * @throws IOException exception
      */
@@ -1094,7 +1092,6 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      *
      * @param headers
      * @param objectId
-     * @param asyncResponse
      * @return the stream
      * @throws IOException
      */

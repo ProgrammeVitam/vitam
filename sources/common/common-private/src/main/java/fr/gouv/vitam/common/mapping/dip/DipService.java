@@ -1,4 +1,4 @@
-package fr.gouv.vitam.access.internal.api;
+package fr.gouv.vitam.common.mapping.dip;
 
 import javax.ws.rs.core.Response;
 

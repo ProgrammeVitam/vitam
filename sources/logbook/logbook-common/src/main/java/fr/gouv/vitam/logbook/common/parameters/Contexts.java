@@ -40,7 +40,8 @@ public enum Contexts {
     UPDATE_RULES_ARCHIVE_UNITS(LogbookTypeProcess.UPDATE, "UPDATE_RULES_ARCHIVE_UNITS"),
     CHECK(LogbookTypeProcess.CHECK, "CHECK_LOGBOOK_OP_SECURISATION"),
     AUDIT_WORKFLOW(LogbookTypeProcess.AUDIT, "PROCESS_AUDIT"),
-    SECURISATION_LC(LogbookTypeProcess.TRACEABILITY, "LOGBOOK_LC_SECURISATION");
+    SECURISATION_LC(LogbookTypeProcess.TRACEABILITY, "LOGBOOK_LC_SECURISATION"),
+    EXPORT_DIP(LogbookTypeProcess.EXPORT_DIP, "EXPORT_DIP");
 
     private LogbookTypeProcess logbookTypeProcess;
     private String eventType;
