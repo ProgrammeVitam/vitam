@@ -60,6 +60,9 @@ angular.module('ihm.demo')
                     if (!$scope.contract.OriginatingAgencies) {
                       $scope.contract.OriginatingAgencies = [];
                     }
+                    if (!$scope.contract.RootUnits) {
+                      $scope.contract.RootUnits = [];
+                    }
                     $scope.tmpVars = angular.copy($scope.contract);
                     $scope.isActive = $scope.contract.Status === 'ACTIVE';
                 }

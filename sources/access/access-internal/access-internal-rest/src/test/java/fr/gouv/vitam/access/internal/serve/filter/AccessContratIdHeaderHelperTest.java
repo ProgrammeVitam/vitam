@@ -26,30 +26,6 @@
  */
 package fr.gouv.vitam.access.internal.serve.filter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import fr.gouv.vitam.access.internal.serve.exception.MissingAccessContratIdException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.error.VitamError;
@@ -64,6 +40,28 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 
 /**
@@ -189,6 +187,12 @@ public class AccessContratIdHeaderHelperTest {
         originatingAgencies.add("FRAN_AGENCY_1");
         originatingAgencies.add("FRAN_AGENCY_2");
         mockedContract.setOriginatingAgencies(originatingAgencies);
+
+        Set<String> rootUnits = new HashSet<>();
+        rootUnits.add("guid");
+        mockedContract.setRootUnits(rootUnits);
+
+
         RequestResponseOK<AccessContractModel> mockedResponse = new RequestResponseOK<>();
         mockedResponse.setHttpCode(200);
         mockedResponse.addResult(mockedContract);
@@ -205,6 +209,7 @@ public class AccessContratIdHeaderHelperTest {
         // Expect responses
         assertTrue(VitamThreadUtils.getVitamSession().getContract().getEveryOriginatingAgency());
         assertEquals(originatingAgencies, VitamThreadUtils.getVitamSession().getContract().getOriginatingAgencies());
+        assertEquals(rootUnits, VitamThreadUtils.getVitamSession().getContract().getRootUnits());
     }
 
 }

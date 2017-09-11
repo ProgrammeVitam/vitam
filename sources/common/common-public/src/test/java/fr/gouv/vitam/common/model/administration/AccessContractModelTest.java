@@ -26,13 +26,14 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Sets;
+import org.junit.Test;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Data Transfer Object Model of access contract (DTO).
@@ -55,6 +56,7 @@ public class AccessContractModelTest {
         String deactivationdate = "09/12/2016";
         Set<String> originatingAgencies = new HashSet<>();
         originatingAgencies.add("FR_FAKE");
+        Set<String> rootUnits = Sets.newHashSet("guid");
         contract
             .setId(id)
             .setTenant(TENANT_ID)
@@ -66,7 +68,8 @@ public class AccessContractModelTest {
             .setDeactivationdate(deactivationdate);
         contract
             .setOriginatingAgencies(originatingAgencies)
-            .setEveryOriginatingAgency(true);
+            .setEveryOriginatingAgency(true)
+            .setRootUnits(rootUnits);
 
         assertEquals(id, contract.getId());
         assertEquals(name, contract.getName());
@@ -75,6 +78,7 @@ public class AccessContractModelTest {
         assertEquals(activationdate, contract.getActivationdate());
         assertEquals(deactivationdate, contract.getDeactivationdate());
         assertEquals(originatingAgencies, contract.getOriginatingAgencies());
+        assertEquals(rootUnits, contract.getRootUnits());
         assertTrue(contract.getEveryOriginatingAgency());
     }
 

@@ -42,6 +42,11 @@ public class AccessContractModel extends AbstractContractModel {
     public static final String ORIGINATING_AGENCIES = "OriginatingAgencies";
 
     /**
+     * Root units
+     */
+    public static final String ROOT_UNITS = "RootUnits";
+
+    /**
      * DataObjectVersion
      */
     public static final String DATA_OBJECT_VERSION = "DataObjectVersion";
@@ -71,6 +76,9 @@ public class AccessContractModel extends AbstractContractModel {
     @JsonProperty(EVERY_DATA_OBJECT_VERSION)
     private boolean everyDataObjectVersion;
 
+    @JsonProperty(ROOT_UNITS)
+    private Set<String> rootUnits;
+
     /**
      * Constructor without fields
      * use for jackson
@@ -96,7 +104,8 @@ public class AccessContractModel extends AbstractContractModel {
         this.originatingAgencies = originatingAgencies;
         return this;
     }
-    
+
+
     /**
      * @return dataObjectVersion
      */
@@ -170,4 +179,23 @@ public class AccessContractModel extends AbstractContractModel {
         return this;
     }
 
+    /**
+     *
+     * @return the root units
+     */
+    public Set<String> getRootUnits() {
+        return rootUnits;
+    }
+
+    /**
+     * Collection of GUID of archive units. If not empty, access is restricted only to the given rootUnits
+     * and there childs. Access not permitted to parent units of the rootUnits
+     * Access not permitted to parent units of the rootUnits
+     * @param rootUnits collection of guid of units (can be empty)
+     * @return this
+     */
+    public AccessContractModel setRootUnits(Set<String> rootUnits) {
+        this.rootUnits = rootUnits;
+        return this;
+    }
 }
