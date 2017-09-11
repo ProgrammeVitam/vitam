@@ -51,7 +51,7 @@ public class SSLConfigurationTest {
     @Before
     public void setUp() throws Exception {
 
-        key = new SSLKey("tls/client/client.p12", "vitam2016");
+        key = new SSLKey("tls/client/client.p12", "azerty4");
     }
 
     @Test
