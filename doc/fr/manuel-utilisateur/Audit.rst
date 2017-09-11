@@ -25,4 +25,6 @@ L'avancement de l'audit, comme pour toutes les opérations, peut se suivre dans 
 Journal des opérations d'entrée
 ===============================
 
-Le résultat de l'audit est disponible dans le journal des opérations d'entrées. Les différents statuts possibles sont décrits dans la documentation du workflow d'audit.
+Le résultat de l'audit est disponible dans le journal des opérations d'entrées. De plus, l'audit génère un rapport, disponible dans la colonne "Rapport", sélectionnable dans le menu "informations complémentaires". Ce rapport détaille l'état de la plateforme vis à vis de son audit : tout d'abord en listant l'ensemble des opérations ayant versées un groupe d'objet ayant été audité (en succès ou échec), puis l'ensemble des objets pour lesquels l'audit a rencontré un échec. La structure de ce rapport est explicité dans le document modèle de données, alors que les différents statuts possibles sont décrits dans la documentation du workflow d'audit. 
+
+NB : ce rapport est formaté de telle manière à faciliter son intégration dans des systèmes d'informations, il n'a pas pour objet principal d'être lu par un humain tel quel, même si cela reste possible.

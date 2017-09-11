@@ -59,3 +59,15 @@ Sécurisation en base des journaux du cycle de vie des groupes d'objets qui ont 
 
 .. figure:: images/workflow_audit_file_existing.png
 	:align: center
+
+Finalisation de l'audit (STP_FINALISE_AUDIT)
+====================================================
+
+Notification de la fin d'audit (REPORT_AUDIT)
+-------------------------------------------------------
+
+* Règle : génération du rapport d'audit
+* Type : bloquant
+* Statuts :
+	* OK : le rapport a été créé avec succès (REPORT_AUDIT.OK=Succès de la notification de la fin de l'audit Detail)
+	* FATAL : Une erreur technique est survenue lors de la création du rapport d'audit (REPORT_AUDIT.OK.FATAL=Erreur fatale lors de la notification de la fin de l'audit)

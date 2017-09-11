@@ -10,7 +10,7 @@
    logbook.rst
    metadata.rst
    masterdata.rst
+   rapportaudit.rst
    annexes.rst
 
 .. only:: latex
-
