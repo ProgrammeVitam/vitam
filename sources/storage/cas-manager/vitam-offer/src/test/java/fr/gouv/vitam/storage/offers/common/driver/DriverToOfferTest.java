@@ -166,11 +166,11 @@ public class DriverToOfferTest {
     @Test
     public void integrationTest() throws Exception {
         offer.setBaseUrl("https://localhost:" + serverPort);
-        Map<String, String> tmp = new HashMap<String, String>();
+        Map<String, String> tmp = new HashMap<>();
         tmp.put("keyStore-keyPath", "src/test/resources/client.p12");
-        tmp.put("keyStore-keyPassword", "vitam2016");
+        tmp.put("keyStore-keyPassword", "azerty4");
         tmp.put("trustStore-keyPath", "src/test/resources/truststore.jks");
-        tmp.put("trustStore-keyPassword", "tazerty");
+        tmp.put("trustStore-keyPassword", "azerty10");
         offer.setParameters(tmp);
         offer.setId("Default");
 
