@@ -143,8 +143,8 @@ le Handler correspondant.
 - UnitsRulesComputeActionPlugin :  pour la gestion de règles de gestion
 - IndexUnitActionPlugin : pour indexer des unités archivistes
 - IndexObjectGroupActionPlugin : pour indexer des groupes d'objets
-
-
+- ArchiveUnitRulesUpdateActionPlugin : mise à jour des unités archivisitiques
+- RunningIngestsUpdateActionPlugin : mise à jour des ingests en cours
 
 La classe WorkerImpl permet de lancer ces différents handlers.
 
@@ -1075,7 +1075,7 @@ Dans le schéma Json Vitam défini, voici les spécificités qui ont été ajout
 
 
 4.16 Détail du handler : CheckArchiveProfileActionHandler
-----------------------------------------------------------
+---------------------------------------------------------
 
 4.16.1 Description
 ==================
@@ -1099,7 +1099,7 @@ L'exécution de l'algorithme est présenté dans le preudo-code ci-dessous:
 
 
 4.17 Détail du handler : CheckArchiveProfileRelationActionHandler
-------------------------------------------------------------------
+-----------------------------------------------------------------
 
 4.16.1 Description
 ==================
@@ -1122,7 +1122,281 @@ contient l'identifiant du profil, retourne true
     	IngestContractModel contract = ((RequestResponseOK<IngestContractModel> ) referenceContracts).getResults().get(0);
         isValid = contract.getArchiveProfiles().contains(profileIdentifier);
     }
-	
+
+
+4.18 Détail du handler : ListArchiveUnitsActionHandler
+------------------------------------------------------
+
+4.18.1 Description
+==================
+
+Ce handler permet de lister les unités archivistiques qui devront être mises à jour.
+
+4.18.2 exécution
+================
+
+Il prend en entrée un fichier json représentant la liste règles de gestion ayant été modifiés dans le référentiel.
+Pour chaque règle mise à jour, une requête vers la collection units est effectuée. 
+Le but de cette recherche est de générer une liste d'units avec les règles de gestion associées ayant été modifiées.
+En sortie, pour chaque unité archivistique, on aura un fichier GUID_AU.json (dans un sous répertoire GUIDOpération/UnitsWithoutLevel/) contenant un tableau des règles de gestion modifiées.
+
+
+4.19 Détail du handler : ListRunningIngestsActionHandler
+--------------------------------------------------------
+
+4.19.1 Description
+==================
+
+Ce handler permet de lister les ingests toujours en cours d'exécution (processState RUNNING ou PAUSE).
+
+
+4.19.2 exécution
+================
+
+Une requête est effectuée sur ProcessManagement, pour récupérer la liste des ingests en cours.
+
+.. code-block:: java
+
+   ProcessQuery pq = new ProcessQuery();
+   List<String> listStates = new ArrayList<>();
+   listStates.add(ProcessState.RUNNING.name());
+   listStates.add(ProcessState.PAUSE.name());
+   pq.setStates(listStates);
+   List<String> listProcessTypes = new ArrayList<>();
+   listProcessTypes.add(LogbookTypeProcess.INGEST.toString());
+   listProcessTypes.add(LogbookTypeProcess.HOLDINGSCHEME.toString());
+   listProcessTypes.add(LogbookTypeProcess.FILINGSCHEME.toString());
+   pq.setListProcessTypes(listProcessTypes);
+   RequestResponseOK<ProcessDetail> response =
+                (RequestResponseOK<ProcessDetail>) processManagementClient.listOperationsDetails(pq);
+
+Suite à cette requête, la liste des opérations d'Ingest est enregistrée dans un fichier JSON : PROCESSING/runningIngests.json.
+
+4.20 Détail du plugin : ArchiveUnitRulesUpdateActionPlugin
+----------------------------------------------------------
+
+4.20.1 Description
+==================
+
+Ce plugin permet de mettre à jour les règles de gestion d'une unité archivistique. Il s'agit ici de mettre à jour le champ endDate pour les règles de gestion impactées.
+On se trouve ici en mode distribué, cela veut donc dire que l'on traite les mises à jour, unité par unité.
+
+
+4.20.2 exécution
+================
+
+Le fichier json pour l'unité archivistique, généré dans le Handler "ListArchiveUnitsActionHandler" est récupéré.
+A partir de ce dernier, on va faire une première requète pour récupérer l'unité archivistique telle qu'enregistrée en base.
+
+Ensuite, catégorie par catégorie, des requêtes de mises à jour vont être créées.
+Une requête finale sera aggrégée, comprenant les différentes catégories mises à jour.
+Enfin, l'update final de la base de données sera exécuté, tel que ci-dessous : 
+
+.. code-block:: java
+   query.addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getProcessId()));
+   JsonNode updateResultJson = metaDataClient.updateUnitbyId(query.getFinalUpdate(), archiveUnitId);
+   String diffMessage = archiveUnitUpdateUtils.getDiffMessageFor(updateResultJson, archiveUnitId);
+   itemStatus.setEvDetailData(diffMessage); 
+   
+Le différentiel (résumant les champs modifiés, principalement les endDate des règles de gestion) sera enregistré également dans les cycles de vie de l'unité archivistique.
+
+.. code-block:: java 
+   archiveUnitUpdateUtils.logLifecycle(params, archiveUnitId, StatusCode.STARTED, null, logbookLifeCycleClient);
+      //do some things
+   archiveUnitUpdateUtils.logLifecycle(params, archiveUnitId, StatusCode.OK, diffMessage, logbookLifeCycleClient);  
+
+4.21 Détail du plugin : RunningIngestsUpdateActionPlugin
+--------------------------------------------------------
+
+4.21.1 Description
+==================
+
+Ce plugin permet de mettre à jour les règles de gestion des unités archivistiques des ingests en cours.
+
+
+4.21.2 exécution
+================
+
+Le fichier json décrivant les ingests en cours, généré dans le Handler "ListRunningIngestsActionHandler" est récupéré.
+Il va permettre, de traiter au fur et à mesure les ingests n'ayant pas été encore impactés par la mise à jour du référentiel des règles de gestion.
+
+La manière de procéder est la suivante : 
+- Une boucle while(true) va permettre de boucler continuellement sur une liste d'ingest.
+- Une boucle interne sur un iterator obtenu à partir de la liste des ingests va permettre de traiter les différents processus.
+   - Si l'ingest est finalisé (entre le moment de l'exécution du Handler ListRunningIngestsActionHandler, et l'exécution du plugin) alors on va vérifier la liste des règles de gestion pour chaque unité archivistique, puis procéder à des mises à jour (code commun avec le plugin ArchiveUnitRulesUpdateActionPlugin). L'ingest est alors, au final, supprimé de l'iterator.
+   - Si l'ingest est toujours en cours, alors on passe au suivant.
+- Tant que l'iterator contient des éléments, la boucle continue. (une pause de 10 secondes est prévue avant de reboucler sur l'iterator)
+- Enfin quand l'iterator est vide, le plugin, renverra un statut OK notifiant la gestion de tous les ingests.
+
+A l'heure actuelle, pour éviter un nombre d'essais illimité, une limite d'essais à été positionné (NB_TRY = 600). 
+A l'avenir, il conviendra certainement de ne pas avoir cette limite.
+
+Il est aussi prévu d'améliorer les performances de l'exécution de ce plugin. 
+Il apparait pertinent de rendre parallélisable le traitement des ingests en cours.       
+
+
+4.22 Détail du handler : ListLifecycleTraceabilityActionHandler
+---------------------------------------------------------------
+
+4.22.1 Description
+==================
+
+Ce handler permet de préparer les listes de cycles de vie des groupes d'objets, et des unités archivistiques.
+Il permet aussi la récupération des informations de la dernière opération de sécurisation des cycles de vie.
+
+
+4.22.2 exécution
+================
+
+Une première requête permet de récupérer la dernière opération de sécurisation des cycles de vie.
+S'il en existe une, on en tire les informations importantes (date d'exécution, etc.), l'opération sera exportée dans un fichier json. 
+S'il n'en existe pas, une date minimale (LocalDateTime.MIN) sera utilisée pour la suite du process.
+
+
+A partir de cette date obtenue, on va interroger Mongo et récupérer 2 listes de cycles de vie (groupes d'objets et units) qui n'ont pas encore été sécurisés.
+
+.. code-block:: java
+   final Query parentQuery = QueryHelper.gte("evDateTime", startDate.toString());
+   final Query sonQuery = QueryHelper.gte(LogbookDocument.EVENTS + ".evDateTime", startDate.toString());
+   final Select select = new Select();
+   select.setQuery(QueryHelper.or().add(parentQuery, sonQuery));
+   select.addOrderByAscFilter("evDateTime");
+
+A partir de ces 2 listes, on va créer X (X étant le nombre de GoT ou d'units) fichiers dans les sous répertoires GUID/ObjectGroup et GUID/UnitsWithoutLevel.
+Ces fichiers json seront utilisés plus tard dans le workflow, dans le cadre de la distribution.
+
+En traitant les différents cycles de vie, on en conclut les informations suivantes : 
+- date maximum d'un cycle de vie traité
+- nombre de cycles de vie liés aux groupes d'objets traités
+- nombre de cycles de vie liés aux units traités
+
+Ces informations, combinées à la startDate obtenue précédemment, sont enregistrées dans un fichier json Operations/traceabilityInformation.json.
+
+En résumé, voici les output de ce handler : 
+- GUID/Operations/lastOperation.json -> informations sur la dernière opération de sécurisation des cycles de vie
+- GUID/Operations/traceabilityInformation.json -> informations sur la sécurisation en cours
+- GUID/ObjectGroup/GUID_OG_n.json -> n fichiers json représentant n cycles de vie des groupes d'objets
+- GUID/UnitsWithoutLevel/GUID_AU_n.json -> n fichiers json représentant n cycles de vie des units. 
+
+
+4.23 Détail du plugin : CreateObjectSecureFileActionPlugin
+----------------------------------------------------------
+
+4.23.1 Description
+==================
+
+Ce plugin permet de traiter, groupe d'objet par groupe d'objet, et de créer un fichier sécurisé. 
+Chaque fichier sécurisé créé, sera par la suite, dans l'étape de finalisation, traité et intégré dans un fichier global. 
+
+
+4.23.2 exécution
+================
+
+La première étape de ce plugin, consiste à récupérer le fichier json GUID/ObjectGroup/GUID_OG_n.json.
+A partir de ce json, représentant le cycle de vie devant être traité, on va créer un fichier sécurisé.
+Ce fichier sécurisé contient une ligne unique, organisée de la façon suivante : 
+
+[ID de l'opération provoquant la création du cycle de vie] | [Type du process (INGEST / UPDATE)] | [Date de l'évenement] | [ID du cycle de vie]
+ | [Statut final du cycle de vie] | [Hash global du cycle de vie] | [Hash du groupe d'objet associé] | [Liste des versions de l'objet]
+
+Ce fichier généré est ensuite sauvegardé sur le workspace dans : LFCObjects.
+
+Voici l'output de ce plugin :
+- GUID/LFCObjects/GUID_OG.json
+
+
+4.24 Détail du plugin : CreateUnitSecureFileActionPlugin
+--------------------------------------------------------
+
+4.24.1 Description
+==================
+
+Ce plugin permet de traiter, cycle de vie unit par cycle de vie unit, et de créer un fichier sécurisé. 
+Chaque fichier sécurisé créé, sera par la suite, dans l'étape de finalisation, traité et intégré dans un fichier global. 
+
+
+4.24.2 exécution
+================
+
+La première étape de ce plugin, consiste à récupérer le fichier json GUID/UnitsWithoutLevel/GUID_AU_n.json.
+A partir de ce json, représentant le cycle de vie devant être traité, on va créer un fichier sécurisé.
+Ce fichier sécurisé contient une ligne unique, organisée de la façon suivante : 
+
+[ID de l'opération provoquant la création du cycle de vie] | [Type du process (INGEST / UPDATE)] | [Date de l'évenement] | [ID du cycle de vie]
+ | [Statut final du cycle de vie] | [Hash global du cycle de vie] | [Hash de l'archive unit associé] |
+
+Ce fichier généré est ensuite sauvegardé sur le workspace dans : LFCObjects.
+
+Voici l'output de ce plugin :
+- GUID/LFCUnits/GUID_AU.json
+
+
+4.25 Détail du handler : FinalizeLifecycleTraceabilityActionHandler
+-------------------------------------------------------------------
+
+4.25.1 Description
+==================
+
+Ce handler permet de finaliser la sécurisation des cycles de vie, en générant un fichier zip, et en le sauvegardant sur les offres de stockage.
+
+4.25.2 exécution
+================
+
+Le Handler va tout d'abord récupérer les fichiers json qui ont été générés dans l'étape 1 : 
+- le fichier json de la dernière opération de sécurisation
+- le fichier json contenant les informations de la sécurisation en cours
+
+Ensuite, un objet TraceabilityFile va être généré. Cet objet représente un ZipArchiveOutputStream contenant 4 fichiers : 
+- global_lifecycles.txt : contenant l'aggrégation des informations des cycles de vie sécurisés.
+- additional_information.txt : contenant des informations génériques (nombre de cycles de vie traités, startDate + endDate)
+- computing_information.txt : contenant les informations de hachage (hash actuel, hash de la dernière opération de sécurisation, hash d'il y a un mois, et d'il y a un an)
+- token.tsp : tampon d'horodatage du fichier de sécurisation
+
+Les informations nécessaires sont récupérées pour générer et remplir les 4 différents fichiers : 
+
+**global_lifecycles.txt :**
+Ce fichier va être obtenu de la manière suivante : 
+- On récupère la liste des fichiers présents dans les 2 sous-répertoires (GUID/LFCUnits/ et GUID/LFCObjects/).
+- Pour chaque fichier récupéré, on récupère son contenu et on ajoute une ligne au fichier global_lifecycles.txt
+- Le premier élément traité sera utilisé pour en conclure un hash, qui sera identifié étant comme le hashRoot du fichier.
+
+**additional_information.txt :**
+Le fichier json Operations/traceabilityInformation.json va être utilisé pour construire le fichier de la manière suivante : 
+- numberOfElement : nombre de cycles de vie traités
+- startDate : startDate (soit égale à LocalDateTime.MIN, soit à la plus petite date des cycles de vie traités)
+- endDate : plus grande date des cycles de vie traités.
+
+**computing_information.txt :**
+Ce fichier va être rempli de la manière suivante :
+- currentHash : le hash du cycle de vie traité en premier
+- previousTimestampToken : le tampon d'horodatage de la dernière opération de sécurisation (sera obtenu en analysant le fichier json Operations/lastOperation.json) - peut être vide.
+- previousTimestampTokenMinusOneMonth : le tampon d'horodatage de la dernière opération de sécurisation datant d'un mois. Une recherche dans la base LogbookOperations est effectuée.
+- previousTimestampTokenMinusOneYear : le tampon d'horodatage de la dernière opération de sécurisation datant d'un an. Une recherche dans la base LogbookOperations est effectuée.
+
+**token.tsp :**
+Le fichier token.tsp, contiendra simplement le tampon d'horodatage de l'opération de sécurisation en cours.
+Le tampon d'horodatage est obtenu en utilisant le timestampGenerator de Vitam. Cela nécéssite d'avoir un certificat présent dans la configuration du worker (configuration via verify-timestamp.conf spécifiant le p12 + le password).
+Les différents hash nécessaires sont : 
+- rootHash : hash du premier cycle de vie traité dans l'opération en cours
+- hash1 : hash de la dernière opération de sécurisation
+- hash2 : hash de la dernière opération de sécurisation datant d'un mois
+- hash3 : hash de la dernière opération de sécurisation datant d'un an
+(hash1, hash2 et hash3 peuvent être null, si aucune opération n'a été effectué dans le passé)
+
+.. code-block:: java
+   final String hash = joiner.join(rootHash, hash1, hash2, hash3);
+   final DigestType digestType = VitamConfiguration.getDefaultTimestampDigestType();
+   final Digest digest = new Digest(digestType);
+   digest.update(hash);
+   final byte[] hashDigest = digest.digest();
+   final byte[] timeStampToken = timestampGenerator.generateToken(hashDigest, digestType, null);  
+
+
+Le fichier zip est finalement créé et sauvegardé sur le Workspace. Ensuite, il sera sauvegardé sur les offres de stockage.
+
+Bien évidemment l'opération est enregistré dans le logbook. Les informations de Traceability sont enregistrés dans le champ evDetData. 
+Elles seront utilisés par la suite, pour les sécurisations futures. 
+
 5. Worker-common
 ****************
 

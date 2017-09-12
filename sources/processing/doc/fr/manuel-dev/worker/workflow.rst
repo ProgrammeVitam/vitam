@@ -80,7 +80,7 @@ Exemple:
 .. dedent ne semble pas marcher.
 
 Etapes
--------
+------
 
 - **Step 1** - STP_INGEST_CONTROL_SIP : Check SIP  / distribution sur REF GUID/SIP/manifest.xml
 
@@ -163,3 +163,7 @@ Etapes
 Création d'un nouveau step
 --------------------------
 Un step est une étape de workflow. Il regroupe un ensemble d'actions (handler). Ces steps sont définis dans le workflowJSONvX.json (X=1,2).
+
+
+DefaultRulesUpdateWorkflow
+**************************
