@@ -24,7 +24,7 @@ Ces opérations sont :
 - Préservation (non implémentée dans la release en cours)
 - Vérification (implémentée dans la release en cours)
 - Sécurisation (implémentée dans la release en cours)
-  
+
 Les valeurs correspondant à ces opérations dans les journaux sont détaillées dans l'annexe 5.3.
 
 Exemple de JSON stocké dans la collection
@@ -33,7 +33,7 @@ Exemple de JSON stocké dans la collection
 Extrait d'un JSON correspondant à une opération d'entrée terminée avec succès.
 
 ::
-           
+
  {
     "_id": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
     "evId": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
@@ -108,7 +108,7 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
     *Ce champ existe uniquement pour la structure incluante.*
 
-"evId" (event Identifier): identifiant de l'événement 
+"evId" (event Identifier): identifiant de l'événement
     Il s'agit d'une chaîne de 36 caractères.
     Il identifie l'opération de manière unique dans la collection.
     Cet identifiant doit être l'identifiant d'un événement dans le cadre de l'opération (evIdProc) et doit donc être différent par paire (début/fin).
@@ -132,17 +132,17 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
     Donne plus de détail sur l'événement ou son résultat.
     Par exemple, pour l'étape ATR_NOTIFICATION, ce champ détaille le nom de l'ArchiveTransferReply, son empreinte et l'algorithme utilisé pour calculer l'empreinte.
     Sur la structure incluante du journal d'opérations d'entrée, il contient un JSON composé des champs suivants :
-    
+
     * evDetDataType : structure impactée. Chaîne de caractères. Doit correspondre à une valeur de l'énumération LogbookEvDetDataType
-    * EvDetailReq : précisions sur la demande de transfert. Chaîne de caractères. Reprend le champ "Comment" du message ArchiveTransfer. 
+    * EvDetailReq : précisions sur la demande de transfert. Chaîne de caractères. Reprend le champ "Comment" du message ArchiveTransfer.
     * EvDateTimeReq : date de la demande de transfert inscrit dans le champs evDetData. Date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes].
     * ArchivalAgreement : contrat d'entrée. chaîne de caractères. Reprend le nom du contrat utilisé pour réaliser l'entrée, indiqué dans le champ ArchivalAgreement du message ArchiveTransfer
     * AgIfTrans : Service versant. chaîne de caractères. Contient le nom de l'entité ayant réalisé le transfert du SIP. Reprend le contenu du champ TransferringAgency du message ArchiveTransfer
     * ServiceLevel : niveau de service. Chaîne de caractères. Reprend le champ ServiceLevel du message ArchiveTransfer
-    
+
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evIdProc" (event Identifier Process): identifiant du processus. 
+"evIdProc" (event Identifier Process): identifiant du processus.
     Il s'agit d'une chaîne de 36 caractères.
     Toutes les mêmes entrées du journal des opérations partagent la même valeur, qui est celle du champ "_id"
 
@@ -187,7 +187,7 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 "agIdApp" (agent Identifier Application): identifiant de l’application externe qui appelle la solution logicielle Vitam pour effectuer l'opération
     *Actuellement, la valeur est toujours 'null' mais sera renseignée une fois le mécanisme d'authentification mis en place. Ce champ existe uniquement pour la structure incluante.*
 
-"agIdAppSession" (agent Identifier Application Session): identifiant donnée par l’application utilisatrice externe qui appelle la solution logicielle Vitam lors de la session utilisée pour lancer l’opération. 
+"agIdAppSession" (agent Identifier Application Session): identifiant donnée par l’application utilisatrice externe qui appelle la solution logicielle Vitam lors de la session utilisée pour lancer l’opération.
     L’application externe est responsable de la gestion de cet identifiant. Il correspond à un identifiant pour une session donnée côté application externe.
 
     *Actuellement, la valeur est toujours 'null' mais sera renseignée une fois le mécanisme d'authentification mis en place. Ce champ existe pour les structures incluantes et incluses*
@@ -214,7 +214,7 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
 "obId" (object Identifier): identifiant Vitam du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
     Il s'agit d'une chaîne de 36 caractères.
-    Dans le cas d’une opération d'entrée, il s’agit du GUID de l’entrée (evIdProc). 
+    Dans le cas d’une opération d'entrée, il s’agit du GUID de l’entrée (evIdProc).
     Dans le cas d’une opération ‘Audit’, il s’agit par exemple du nom d’un lot d’archives prédéfini.
     Dans le cas d’une opération d'update, il s’agit du GUID de l'objet mis à jour.
 
@@ -241,6 +241,26 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
       Il s'agit d'un entier.
 
       *Ce champ existe uniquement pour la structure incluante.*
+
+
+Détail des champs du JSON stocké en base spécifiques à une opération de sécurisation
+------------------------------------------------------------------------------------
+
+Exemple de données stockées :
+
+::
+
+	"evDetData":
+	{
+	\"evDetTechData\":\"Cycle : [ID24, ID22, ID20, ID18, ID16, ID14, ID12, ID10, ID8, ID6, ID24]\"
+  }"
+
+Dans le cas d'un évènement d'une opération d'Ingest, le champ **"evDetData"** peut contenir les champs suivants :
+
+"evDetTechData": données techniques informatives qui seront remontées dans l'ATR.
+      Format String
+      ``Exemple : "Cycle : [ID24, ID22, ID20, ID18, ID16, ID14, ID12, ID10, ID8, ID6, ID24]"``
+
 
 Détail des champs du JSON stocké en base spécifiques à une opération de sécurisation
 ------------------------------------------------------------------------------------
@@ -280,11 +300,11 @@ Dans le cas de l'événement final d'une opération de sécurisation du LogbookO
       ``Exemple : "2016-08-17T08:26:04.227"``
 
 "MinusOneMonthLogbookTraceabilityDate": date de l'opération de sécurisation passée d'un mois.
-      Il s'agit  de la date de début de la précédente opération de sécurisation du même type réalisée un mois avant au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] 
+      Il s'agit  de la date de début de la précédente opération de sécurisation du même type réalisée un mois avant au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
       ``Exemple : "2016-08-17T08:26:04.227"``
 
 "MinusOneYeargbookTraceabilityDate": date de l'opération de sécurisation passée d'un an.
-     Il s'agit  de la date de début de la précédente opération de sécurisation du même type réalisée un an avant au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] 
+     Il s'agit  de la date de début de la précédente opération de sécurisation du même type réalisée un an avant au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
      ``Exemple : "2016-08-17T08:26:04.227"``
 
 "Hash": Empreinte racine.
@@ -374,7 +394,7 @@ Extrait d'un JSON correspondant à un journal de cycle de vie d'une unité archi
         },{
 
         [...]
-        
+
         }
     ],
     "_tenant": 1,
@@ -391,7 +411,7 @@ Détail des champs du JSON stocké en base
     *Ce champ existe uniquement pour la structure incluante.*
 
 "evId" (event Identifier): identifiant de l'événement.
-    Il est constitué d'une chaîne de 36 caractères correspondant à un GUID. 
+    Il est constitué d'une chaîne de 36 caractères correspondant à un GUID.
     Il identifie l'événement de manière unique dans la base.
 
     *Ce champ existe pour les structures incluantes et incluses*
@@ -409,7 +429,7 @@ Détail des champs du JSON stocké en base
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evIdProc" (event Identifier Process): identifiant du processus. 
+"evIdProc" (event Identifier Process): identifiant du processus.
     Il s'agit d'une chaîne de 36 caractères.
     Toutes les mêmes entrées du journal du cycle de vie partagent la même valeur, qui est celle du champ "_id"
 
@@ -563,9 +583,9 @@ Exemple de JSON stocké en base
             5aa0d3541f6128389ad60c8effbdc63b94df9a2e02bb\"} ",
         },
         {
-            
+
             [...]
-            
+
         }
     ],
     "_tenant": 0,
@@ -601,7 +621,7 @@ Détail des champs du JSON stocké en base
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evIdProc" (event Identifier Process): identifiant du processus. 
+"evIdProc" (event Identifier Process): identifiant du processus.
     Il s'agit d'une chaîne de 36 caractères.
     Toutes les mêmes entrées du journal du cycle de vie partagent la même valeur, qui est celle du champ "_id".
 

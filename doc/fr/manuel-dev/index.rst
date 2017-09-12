@@ -9,7 +9,7 @@
    parallisation_tests.rst
    plugin-icu-elasticsearch.rst
    gestion-database.rst
-
+   client-ressource-rest.rst
 
 .. only:: latex
 
