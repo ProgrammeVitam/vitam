@@ -62,9 +62,9 @@ public class X509KeystoreFileRealmTest {
         realm = new X509KeystoreFileRealm();
 
         realm.setGrantedKeyStoreName("src/test/resources/tls/server/granted_certs.jks");
-        realm.setGrantedKeyStorePassphrase("gazerty");
+        realm.setGrantedKeyStorePassphrase("azerty12");
         realm.setTrustedKeyStoreName("src/test/resources/tls/server/truststore.jks");
-        realm.setTrustedKeyStorePassphrase("tazerty");
+        realm.setTrustedKeyStorePassphrase("azerty10");
 
         cert = mock(X509Certificate.class);
         when(cert.getEncoded()).thenReturn(certBytes);
@@ -77,9 +77,9 @@ public class X509KeystoreFileRealmTest {
         realm.getAuthenticationTokenClass();
 
         assertEquals("src/test/resources/tls/server/granted_certs.jks", realm.getGrantedKeyStoreName());
-        assertEquals("gazerty", realm.getGrantedKeyStorePassphrase());
+        assertEquals("azerty12", realm.getGrantedKeyStorePassphrase());
         assertEquals("src/test/resources/tls/server/truststore.jks", realm.getTrustedKeyStoreName());
-        assertEquals("tazerty", realm.getTrustedKeyStorePassphrase());
+        assertEquals("azerty10", realm.getTrustedKeyStorePassphrase());
     }
 
     @Test
