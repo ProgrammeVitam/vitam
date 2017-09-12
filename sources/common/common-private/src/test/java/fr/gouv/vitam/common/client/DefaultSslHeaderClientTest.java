@@ -166,7 +166,7 @@ public class DefaultSslHeaderClientTest {
     public static void setUpBeforeClass() throws Exception {
 
         KeyStore p12 = KeyStore.getInstance("pkcs12");
-        p12.load(PropertiesUtils.getConfigAsStream("tls/client/client.p12"), "vitam2016".toCharArray());
+        p12.load(PropertiesUtils.getConfigAsStream("tls/client/client.p12"), "azerty4".toCharArray());
         Enumeration e = p12.aliases();
         while (e.hasMoreElements()) {
             String alias = (String) e.nextElement();

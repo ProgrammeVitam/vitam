@@ -168,7 +168,7 @@ public class DefaultSslClientTest {
 
     @Test
     public void testClientBuilder() throws Exception {
-        final SSLKey key = new SSLKey("tls/client/client.p12", "vitam2016");
+        final SSLKey key = new SSLKey("tls/client/client.p12", "azerty4");
         final ArrayList<SSLKey> truststore = new ArrayList<>();
         truststore.add(key);
         final SSLConfiguration sslConfig = new SSLConfiguration(truststore, truststore);
