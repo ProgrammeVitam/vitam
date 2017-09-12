@@ -33,12 +33,18 @@ import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.gouv.vitam.common.security.rest.EndpointInfo;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -200,13 +206,18 @@ public class IngestExternalResourceTest {
     }
 
     @Test
-    public void downloadObjects()
+    public void downloadIngestReportsAsStream()
         throws Exception {
         RestAssured.given()
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
-            .when().get(INGEST_URI + "/1/" + IngestCollection.REPORTS.getCollectionName())
-            .then().statusCode(Status.OK.getStatusCode());
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
+                .when().get(INGEST_URI + "/1/" + IngestCollection.REPORTS.getCollectionName())
+                .then().statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void downloadIngestManifestsAsStream()
+            throws Exception {
 
         RestAssured.given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -214,11 +225,6 @@ public class IngestExternalResourceTest {
             .when().get(INGEST_URI + "/1/" + IngestCollection.MANIFESTS.getCollectionName())
             .then().statusCode(Status.OK.getStatusCode());
 
-        RestAssured.given()
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
-            .when().get(INGEST_URI + "/1/unknown")
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
@@ -266,7 +272,7 @@ public class IngestExternalResourceTest {
             .when().get("operations/1")
             .then().statusCode(Status.OK.getStatusCode());
     }
-    
+
     @Test
     public void getWorkflowDefinitionsTest()
         throws Exception {
@@ -275,8 +281,8 @@ public class IngestExternalResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get("workflows/")
             .then().statusCode(Status.OK.getStatusCode());
-    }  
-    
+    }
+
     @Test
     public void updateWorkFlowStatusTest()
         throws Exception {
@@ -289,7 +295,7 @@ public class IngestExternalResourceTest {
             .when().put("operations/1")
             .then().statusCode(Status.OK.getStatusCode());
     }
-    
+
     @Test
     public void updateWorkFlowStatusWithoutHeadersTest()
         throws Exception {
@@ -300,6 +306,55 @@ public class IngestExternalResourceTest {
             .body(new ProcessQuery())
             .when().put("operations/1")
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void listResourceEndpoints()
+        throws Exception {
+        RestAssured.given()
+            .accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().options("/")
+            .then().statusCode(Status.OK.getStatusCode())
+            .body(new BaseMatcher<String>() {
+                @Override
+                public boolean matches(Object o) {
+
+                    try {
+
+                        // Deserialize json
+                        ObjectMapper mapper = new ObjectMapper();
+                        EndpointInfo[] endpoints = mapper.readValue((String) o, EndpointInfo[].class);
+
+                        // Find ingest post endpoint
+                        EndpointInfo postIngests = Arrays.stream(endpoints)
+                            .filter(ep -> ep.getPermission().equals("ingests:create"))
+                            .findFirst()
+                            .orElseThrow(RuntimeException::new);
+
+                        // Check...
+                        Assert.assertEquals("POST", postIngests.getVerb());
+                        Assert.assertEquals("/ingest-external/v1/ingests/", postIngests.getEndpoint());
+
+                        Assert.assertEquals(1, postIngests.getConsumedMediaTypes().length);
+                        Assert.assertEquals("application/octet-stream", postIngests.getConsumedMediaTypes()[0]);
+
+                        Assert.assertEquals(0, postIngests.getProducedMediaTypes().length);
+
+                        Assert.assertEquals("Envoyer un SIP à Vitam afin qu'il en réalise l'entrée",
+                            postIngests.getDescription());
+
+                        return true;
+
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+
+                @Override
+                public void describeTo(Description description) {
+                }
+            });
     }
 
 }

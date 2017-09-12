@@ -18,6 +18,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -257,7 +258,7 @@ public class AdminManagementExternalResourceImplTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_FILENAME, "vitam.conf")
             .when().post(WRONG_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
 
         given().contentType(ContentType.BINARY)
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
@@ -394,7 +395,7 @@ public class AdminManagementExternalResourceImplTest {
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(WRONG_URI + DOCUMENT_ID)
-            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
 
         given()
             .accept(ContentType.JSON)
@@ -817,4 +818,14 @@ public class AdminManagementExternalResourceImplTest {
         return res;
     }
 
+    @Test
+    public void listResourceEndpoints()
+        throws Exception {
+        RestAssured.given()
+            .accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().options("/")
+            .then().statusCode(Status.OK.getStatusCode())
+            .body(CoreMatchers.containsString("formats:check"));
+    }
 }

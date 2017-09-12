@@ -38,6 +38,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.security.rest.Unsecured;
 
 
 /**
@@ -52,7 +53,6 @@ public class ApplicationStatusResource implements VitamResource {
      */
     public static final String STATUS_URL = VitamConfiguration.STATUS_URL;
     public static final String TENANTS_URL = VitamConfiguration.TENANTS_URL;
-    protected static final String MISSING_XHTTPOVERRIDE = "X-HTTP-OVERRIDE=GET missing";
     protected static final String NOT_YET_SUPPORTED = "Not yet supported";
 
     private final VitamStatusService statusService;
@@ -87,6 +87,7 @@ public class ApplicationStatusResource implements VitamResource {
     @GET
     @Path(STATUS_URL)
     @Produces(MediaType.APPLICATION_JSON)
+    @Unsecured
     public Response status() {
 
         if (statusService.getResourcesStatus()) {
@@ -104,6 +105,7 @@ public class ApplicationStatusResource implements VitamResource {
     @GET
     @Path(TENANTS_URL)
     @Produces(MediaType.APPLICATION_JSON)
+    @Unsecured
     public Response getServerTenants() {
         return Response.status(Status.OK).entity(tenants).build();
     }
