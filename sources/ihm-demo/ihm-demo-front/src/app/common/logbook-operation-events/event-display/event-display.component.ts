@@ -27,8 +27,14 @@ export class EventDisplayComponent implements OnInit {
       this.logbookRowStyle = 'okRow';
     }
 
-    if (this.event.subEvents.length > 0) {
-      this.isParent = true;
+    if (this.event.subEvents) {
+      if (this.event.subEvents.length > 0) {
+        this.isParent = true;
+      }
+    } else {
+      if (!this.event.end) {
+        this.event.end = this.event.start;
+      }
     }
 
     if (this.event.end.outcome === 'KO') {
@@ -54,7 +60,7 @@ export class EventDisplayComponent implements OnInit {
   }
 
   private setStepStatusIcon (stepStatus: string) {
-    switch (stepStatus) {
+    switch (stepStatus.toUpperCase()) {
       case 'KO':
       case 'FATAL':
         this.stepStatusIcon = 'fa-times';
@@ -64,7 +70,7 @@ export class EventDisplayComponent implements OnInit {
         this.stepStatusIcon = 'fa-check';
         this.logbookRowStyle = 'okRow';
         break;
-      case 'Warning':
+      case 'WARNING':
         this.stepStatusIcon = 'fa-exclamation';
         this.logbookRowStyle = 'warningRow';
         break;

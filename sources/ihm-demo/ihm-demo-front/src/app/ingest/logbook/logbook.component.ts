@@ -28,7 +28,7 @@ export class LogbookComponent extends PageComponent {
   public searchForm: any = {};
 
   public logbookData = [
-    FieldDefinition.createIdField('identifier', 'Identifiant', 12, 4)
+    FieldDefinition.createIdField('evId', 'Identifiant', 12, 4)
   ];
 
   public initialSearch(service: any, responseEvent: EventEmitter<any>, form: any, offset) {

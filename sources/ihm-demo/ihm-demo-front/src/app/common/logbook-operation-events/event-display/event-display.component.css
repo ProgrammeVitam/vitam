@@ -53,7 +53,7 @@
     color: black;
 }
 .toggleEvDetData {
-    float: right;
+    padding-left: 5px;
     font-style: italic;
 }
 .toggleIcon:hover,

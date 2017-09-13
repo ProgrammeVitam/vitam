@@ -3,8 +3,19 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FieldsetModule } from 'primeng/primeng';
 
 import { LogbookOperationDetailsComponent } from './logbook-operation-details.component';
-import { LogbookOperationEventsComponent } from '../../../common/logbook-operation-events/logbook-operation-events.component';
-import { EventDisplayComponent } from '../../../common/logbook-operation-events/event-display/event-display.component';
+import { NO_ERRORS_SCHEMA } from "@angular/core";
+import { ActivatedRoute } from "@angular/router";
+import { Observable } from "rxjs";
+import { LogbookService } from "../../../ingest/logbook.service";
+import { LogbookHelperService } from "../../../common/logbook-operation-events/logbook-helper.service";
+import { BreadcrumbService } from "../../../common/breadcrumb.service";
+
+const LogbookServiceStub = {
+
+};
+const LogbookHelperServiceStub = {
+
+};
 
 describe('LogbookOperationDetailsComponent', () => {
   let component: LogbookOperationDetailsComponent;
@@ -12,8 +23,15 @@ describe('LogbookOperationDetailsComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ LogbookOperationDetailsComponent, LogbookOperationEventsComponent, EventDisplayComponent ],
-      imports: [ BrowserAnimationsModule, FieldsetModule ]
+      declarations: [ LogbookOperationDetailsComponent ],
+      providers : [
+        BreadcrumbService,
+        { provide: LogbookService, useValue: LogbookServiceStub },
+        { provide: LogbookHelperService, useValue: LogbookHelperServiceStub },
+        { provide: ActivatedRoute, useValue: {params: Observable.of({id: 1})} }
+      ],
+      imports: [ BrowserAnimationsModule, FieldsetModule ],
+      schemas: [ NO_ERRORS_SCHEMA ]
     })
     .compileComponents();
   }));

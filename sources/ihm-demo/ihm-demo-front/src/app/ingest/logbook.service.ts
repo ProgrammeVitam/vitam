@@ -39,4 +39,9 @@ export class LogbookService {
         );
   }
 
+  getDetails(id): Observable<VitamResponse> {
+    return this.resourceService.post(`${this.LOGBOOK_API}/${id}`, null, {})
+        .map((res: Response) => res.json());
+  }
+
 }
