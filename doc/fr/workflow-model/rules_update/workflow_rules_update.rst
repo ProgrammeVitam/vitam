@@ -77,7 +77,7 @@ Préparation des listes d'unités archivistiques à mettre à jour
 
 D'une façon synthétique, le workflow est décrit de cette façon :
 
-  .. figure:: images/workflow_rules_update.jpg
+  .. figure:: images/workflow_rules_update.png
     :align: center
 
     Diagramme d'activité du workflow de mise à jour des règles de gestion
