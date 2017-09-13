@@ -28,8 +28,6 @@ package fr.gouv.vitam.functional.administration.rules.core;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -40,6 +38,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
@@ -48,6 +47,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
  */
 
 public class RulesManagerParser {
+
+    static final String CREATION_DATE = "CreationDate";
+    static final String UPDATE_DATE = "UpdateDate";
 
     /**
      * RulesManagerParser Constructor
@@ -66,8 +68,6 @@ public class RulesManagerParser {
      */
     public static ArrayNode readObjectsFromCsvWriteAsArrayNode(File fileToParse) throws IOException,
         InvalidParseOperationException {
-        SimpleDateFormat formater = null;
-        final Date now = new Date();
         final CsvSchema bootstrap = CsvSchema.emptySchema().withHeader();
         final CsvMapper csvMapper = new CsvMapper();
         final MappingIterator<Map<?, ?>> mappingIterator =
@@ -82,10 +82,8 @@ public class RulesManagerParser {
             String trimmed = escaped.trim();
             final ObjectNode result = (ObjectNode) node;
             result.put("RuleId", trimmed);
-
-            formater = new SimpleDateFormat("yyyy-MM-dd");
-            result.put("CreationDate", formater.format(now).toString());
-            result.put("UpdateDate", formater.format(now).toString());
+            result.put(CREATION_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+            result.put(UPDATE_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
             arrayNode.add(result);
         }
         return arrayNode;

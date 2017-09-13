@@ -49,6 +49,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -123,6 +124,7 @@ public class PronomParser {
                                 final Attribute attribute = attributes.next();
                                 switch (attribute.getName().toString()) {
                                     case ATTR_CREATEDDATE:
+                                        // Depend on the date format in the file
                                         fileFormat0.setCreatedDate(attribute.getValue());
                                         break;
                                     case ATTR_VERSION:
@@ -228,7 +230,7 @@ public class PronomParser {
             }
             newFileFormat.putAll(attributes);
         } else {
-            newFileFormat.append(CREATED_DATE, fileFormat.getString(CREATED_DATE));
+            newFileFormat.append(CREATED_DATE, LocalDateUtil.getFormattedDateForMongo(fileFormat.getString(CREATED_DATE)));
             newFileFormat.append(VERSION_PRONOM, fileFormat.getString(VERSION_PRONOM));
             newFileFormat.putAll(attributes);
         }
@@ -251,7 +253,7 @@ public class PronomParser {
             }
         } else {
             fileFormatDest.clear();
-            fileFormatDest.append(CREATED_DATE, fileFormatSource.getString(CREATED_DATE));
+            fileFormatDest.append(CREATED_DATE, LocalDateUtil.getFormattedDateForMongo(fileFormatSource.getString(CREATED_DATE)));
             fileFormatDest.append(VERSION_PRONOM, fileFormatSource.getString(VERSION_PRONOM));
             fileFormatDest.cleanNullValues();
         }

@@ -158,4 +158,35 @@ public class LocalDateUtilTest {
         Assume.assumeTrue(ResourcesPublicUtilTest.CANNOT_FIND_RESOURCES_TEST_FILE, file != null);
         assertNotNull(LocalDateUtil.fromDate(Files.getLastModifiedTime(file.toPath())));
     }
+
+    @Test
+    public void checkFormattedDateForMongo() {
+        String date = "2016-09-27T15:37:53";
+        String dateFormatted = "2016-09-27T15:37:53.000";
+        String dateNoTime = "2016-09-27";
+        String dateNoTimeFormatted = "2016-09-27T00:00:00.000";
+        String dateWithHAndM = "2016-09-27T15:37";
+        String dateWithHAndMFormatted = "2016-09-27T15:37:00.000";
+        String dateWithMillis = "2016-09-27T15:37:53.54";
+        String dateWithMillisFormatted = "2016-09-27T15:37:53.540";
+        String dateWithMillisZone = "2016-09-27T15:37:53.548Z";
+        String dateWithMillisZoneFormatted = "2016-09-27T15:37:53.548";
+        String dateWithMillisZonePST = "2016-09-27T15:37:53.548PST";
+        String dateWithMillisZonePSTFormatted = "2016-09-27T15:37:53.548";
+        String dateWithMillisZonePSTNoMillis = "2016-09-27T15:37:53PST";
+        String dateWithMillisZonePSTNoMillisFormatted = "2016-09-27T15:37:53.000";
+
+        String slashedDate = "27/09/2016";
+        String slashedDateFormatted = "2016-09-27T00:00:00.000";
+
+        assertEquals(dateFormatted, LocalDateUtil.getFormattedDateForMongo(date));
+        assertEquals(dateNoTimeFormatted, LocalDateUtil.getFormattedDateForMongo(dateNoTime));
+        assertEquals(dateWithHAndMFormatted, LocalDateUtil.getFormattedDateForMongo(dateWithHAndM));
+        assertEquals(dateWithMillisFormatted, LocalDateUtil.getFormattedDateForMongo(dateWithMillis));
+        assertEquals(dateWithMillisZoneFormatted, LocalDateUtil.getFormattedDateForMongo(dateWithMillisZone));
+        assertEquals(dateWithMillisZonePSTFormatted, LocalDateUtil.getFormattedDateForMongo(dateWithMillisZonePST));
+        assertEquals(dateWithMillisZonePSTNoMillisFormatted, LocalDateUtil.getFormattedDateForMongo(dateWithMillisZonePSTNoMillis));
+
+        assertEquals(slashedDateFormatted, LocalDateUtil.getFormattedDateForMongo(slashedDate));
+    }
 }

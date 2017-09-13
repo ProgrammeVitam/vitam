@@ -101,6 +101,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         "{\"$query\":{\"$and\":[{\"$eq\":{\"OriginatingAgency\":\"OriginatingAgency\"}}]},\"$filter\":{},\"$projection\":{}}";
 
     private static final Integer TENANT_ID = 0;
+    private static final String DATE = "2017-01-01";
 
     // ************************************** //
     // Start of VitamJerseyTest configuration //
@@ -512,7 +513,8 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Status.CREATED).build());
-        client.createorUpdateAccessionRegister(new AccessionRegisterDetailModel());
+        client.createorUpdateAccessionRegister(new AccessionRegisterDetailModel().setStartDate(DATE).setEndDate(DATE)
+            .setLastUpdate(DATE));
     }
 
     @Test(expected = AccessionRegisterException.class)
@@ -521,7 +523,8 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.createorUpdateAccessionRegister(new AccessionRegisterDetailModel());
+        client.createorUpdateAccessionRegister(new AccessionRegisterDetailModel().setStartDate(DATE).setEndDate(DATE)
+            .setLastUpdate(DATE));
     }
 
     @Test(expected = AccessionRegisterException.class)
@@ -530,7 +533,8 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        client.createorUpdateAccessionRegister(new AccessionRegisterDetailModel());
+        client.createorUpdateAccessionRegister(new AccessionRegisterDetailModel().setStartDate(DATE).setEndDate(DATE)
+            .setLastUpdate(DATE));
     }
 
     /**
