@@ -5,7 +5,7 @@
   "description": "IHM recette for Vitam",
   "license": "MIT",
   "devDependencies": {
-    "bower": "^1.7.7",
+    "bower": "1.7.7",
     "chai": "^3.5.0",
     "gulp": "3.9.1",
     "gulp-angular-protractor": "0.0.6",
