@@ -171,19 +171,6 @@ public interface AdminExternalClient extends BasicClient {
         throws VitamClientException;
 
     /**
-     * findDocumentById
-     *
-     * @param documentType
-     * @param documentId
-     * @param tenantId
-     * @return the JsonNode results
-     * @throws AccessExternalClientException
-     * @throws InvalidParseOperationException
-     */
-    RequestResponse findDocumentById(AdminCollections documentType, String documentId, Integer tenantId)
-        throws AccessExternalClientException, InvalidParseOperationException;
-
-    /**
      * Get the accession register details matching the given query
      *
      * @param id the id of accession register
@@ -356,4 +343,93 @@ public interface AdminExternalClient extends BasicClient {
      */
     Status launchAudit(JsonNode auditOption, Integer tenantId, String contractName)
         throws AccessExternalClientServerException;
+    
+    
+    /**
+     * Find a format by its id.
+     * 
+     * @param formatId the formatId
+     * @param tenantId tenant id
+     * @param contractName contract name
+     * @return a format
+     * @throws VitamClientException
+     */
+    RequestResponse<FileFormatModel> findFormatById(String formatId, Integer tenantId, String contractName)
+        throws VitamClientException;
+
+    /**
+     * Find a rule by its id.
+     * 
+     * @param ruleId the rule id
+     * @param tenantId tenant id
+     * @param contractName contract name
+     * @return a rule
+     * @throws VitamClientException
+     */
+    RequestResponse<FileRulesModel> findRuleById(String ruleId, Integer tenantId, String contractName)
+        throws VitamClientException;
+
+    /**
+     * Find an entry contract by its id.
+     * 
+     * @param contractId the contract id
+     * @param tenantId tenant id
+     * @param contractName contract name
+     * @return an ingest contract
+     * @throws VitamClientException
+     */
+    RequestResponse<IngestContractModel> findIngestContractById(String contractId, Integer tenantId, String contractName)
+        throws VitamClientException;
+
+
+    /**
+     * Find an access contracts by its id.
+     * 
+     * @param contractId the contract id
+     * @param tenantId tenant id
+     * @param contractName contract name
+     * @return an access contract
+     * @throws VitamClientException
+     */
+    RequestResponse<AccessContractModel> findAccessContractById(String contractId, Integer tenantId, String contractName)
+        throws VitamClientException;
+
+
+    /**
+     * Find a context by its id
+     * 
+     * @param contextId the context id
+     * @param tenantId tenant id
+     * @param contractName contract name
+     * @return a context
+     * @throws VitamClientException
+     */
+    RequestResponse<ContextModel> findContextById(String contextId, Integer tenantId, String contractName)
+        throws VitamClientException;
+
+    /**
+     * Find a profile by its id.
+     * 
+     * @param profileId the profile tId
+     * @param tenantId tenant id
+     * @param contractName contract name
+     * @return a profile
+     * @throws VitamClientException
+     */
+    RequestResponse<ProfileModel> findProfileById(String profileId, Integer tenantId, String contractName)
+        throws VitamClientException;
+
+    /**
+     * Find an accession register by its id.
+     * 
+     * @param accessionRegisterId the accession register id
+     * @param tenantId tenant id
+     * @param contractName contract name
+     * @return an accession register
+     * @throws VitamClientException
+     */
+    RequestResponse<AccessionRegisterSummaryModel> findAccessionRegisterById(String accessionRegisterId, Integer tenantId,
+        String contractName)
+        throws VitamClientException;
+    
 }

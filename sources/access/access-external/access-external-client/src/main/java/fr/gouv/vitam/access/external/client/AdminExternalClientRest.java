@@ -79,7 +79,6 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         }
     }
 
-    // FIXME replace Response by RequestResponse
     @Override
     public Status createDocuments(AdminCollections documentType, InputStream stream, String filename, Integer tenantId)
         throws AccessExternalClientException {
@@ -180,51 +179,6 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         } catch (final VitamClientException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new VitamClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
-
-    @Override
-    public RequestResponse findDocumentById(AdminCollections documentType, String documentId, Integer tenantId)
-        throws AccessExternalClientException, InvalidParseOperationException {
-        Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        try {
-            // FIXME Why do a POST with HTTP_OVERRIDE when a GET without body is needed ?
-            response = performRequest(HttpMethod.POST, documentType.getName() + "/" + documentId, headers,
-                JsonHandler.createObjectNode(), MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
-
-            RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (requestResponse.isOk()) {
-                return requestResponse;
-            } else {
-                final VitamError vitamError =
-                    new VitamError(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getItem())
-                        .setMessage(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getMessage())
-                        .setState(StatusCode.KO.name())
-                        .setContext(ADMIN_EXTERNAL_MODULE)
-                        .setDescription(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getMessage());
-
-                if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-                    return vitamError.setHttpCode(Status.UNAUTHORIZED.getStatusCode())
-                        .setDescription(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getMessage() + " Cause : " +
-                            Status.UNAUTHORIZED.getReasonPhrase());
-                } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
-                    return vitamError.setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
-                        .setDescription(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_BY_ID_ERROR.getMessage() + " Cause : " +
-                            Status.PRECONDITION_FAILED.getReasonPhrase());
-                } else {
-                    return requestResponse;
-                }
-            }
-
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -582,6 +536,73 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             }
         }
         return Status.fromStatusCode(response.getStatus());
+    }
+
+    private RequestResponse internalFindDocumentById(AdminCollections documentType, String documentId, Integer tenantId,
+        String contractName, Class clazz)
+        throws VitamClientException {
+        Response response = null;
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        if (contractName != null) {
+            headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
+        }
+        try {
+            response = performRequest(HttpMethod.GET, documentType.getName() + "/" + documentId, headers,
+                null, null, MediaType.APPLICATION_JSON_TYPE, false);
+            return RequestResponse.parseFromResponse(response, clazz);
+
+        } catch (IllegalStateException e) {
+            LOGGER.error("Could not parse server response ", e);
+            throw createExceptionFromResponse(response);
+        } catch (final VitamClientException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new VitamClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<FileFormatModel> findFormatById(String formatId, Integer tenantId, String contractName)
+        throws VitamClientException {
+        return internalFindDocumentById(AdminCollections.FORMATS, formatId, tenantId, contractName, FileFormatModel.class);
+    }
+
+    @Override
+    public RequestResponse<FileRulesModel> findRuleById(String ruleId, Integer tenantId, String contractName)
+        throws VitamClientException {
+        return internalFindDocumentById(AdminCollections.RULES, ruleId, tenantId, contractName, FileRulesModel.class);
+    }
+
+    @Override
+    public RequestResponse<IngestContractModel> findIngestContractById(String contractId, Integer tenantId,
+        String contractName) throws VitamClientException {
+        return internalFindDocumentById(AdminCollections.ENTRY_CONTRACTS, contractId, tenantId, contractName, IngestContractModel.class);
+    }
+
+    @Override
+    public RequestResponse<AccessContractModel> findAccessContractById(String contractId, Integer tenantId,
+        String contractName) throws VitamClientException {
+        return internalFindDocumentById(AdminCollections.ACCESS_CONTRACTS, contractId, tenantId, contractName, AccessContractModel.class);
+    }
+
+    @Override
+    public RequestResponse<ContextModel> findContextById(String contextId, Integer tenantId, String contractName)
+        throws VitamClientException {
+        return internalFindDocumentById(AdminCollections.CONTEXTS, contextId, tenantId, contractName, ContextModel.class);
+    }
+
+    @Override
+    public RequestResponse<ProfileModel> findProfileById(String profileId, Integer tenantId, String contractName)
+        throws VitamClientException {
+        return internalFindDocumentById(AdminCollections.PROFILE, profileId, tenantId, contractName, ProfileModel.class);
+    }
+
+    @Override
+    public RequestResponse<AccessionRegisterSummaryModel> findAccessionRegisterById(String accessionRegisterId,
+        Integer tenantId, String contractName) throws VitamClientException {
+        return internalFindDocumentById(AdminCollections.ACCESSION_REGISTERS, accessionRegisterId, tenantId, contractName, AccessionRegisterSummaryModel.class);
     }
 
 }

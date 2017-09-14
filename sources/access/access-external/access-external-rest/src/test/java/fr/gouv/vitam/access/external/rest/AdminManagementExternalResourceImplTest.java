@@ -394,7 +394,7 @@ public class AdminManagementExternalResourceImplTest {
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(WRONG_URI + DOCUMENT_ID)
-            .then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
 
         given()
             .accept(ContentType.JSON)

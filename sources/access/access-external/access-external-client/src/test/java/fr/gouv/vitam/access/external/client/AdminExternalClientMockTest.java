@@ -69,11 +69,11 @@ public class AdminExternalClientMockTest {
             ClientMockResultHelper.getRuleList().toString());
 
         assertEquals(
-            client.findDocumentById(AdminCollections.FORMATS, DOCUMENT_ID, TENANT_ID).toString(),
+            client.findFormatById(DOCUMENT_ID, TENANT_ID, CONTRACT).toString(),
             ClientMockResultHelper.getFormat().toString());
 
         assertEquals(
-            client.findDocumentById(AdminCollections.RULES, DOCUMENT_ID, TENANT_ID).toString(),
+            client.findRuleById(DOCUMENT_ID, TENANT_ID, CONTRACT).toString(),
             ClientMockResultHelper.getRule().toString());
 
         assertEquals(

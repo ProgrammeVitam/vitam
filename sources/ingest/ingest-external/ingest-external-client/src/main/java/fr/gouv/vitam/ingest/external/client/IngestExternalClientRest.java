@@ -86,7 +86,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> upload(InputStream stream, Integer tenantId, String contextId, String action)
+    public RequestResponse<Void> upload(InputStream stream, Integer tenantId, String contextId, String action)
         throws IngestExternalException {
 
         ParametersChecker.checkParameter("Stream is a mandatory parameter", stream);
@@ -105,7 +105,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
             switch (status) {
                 case ACCEPTED:
                     LOGGER.debug(Status.ACCEPTED.getReasonPhrase());
-                    return new RequestResponseOK<JsonNode>().parseHeadersFromResponse(response)
+                    return new RequestResponseOK<Void>().parseHeadersFromResponse(response)
                         .setHttpCode(response.getStatus());
                 case BAD_REQUEST:
                 case PARTIAL_CONTENT:

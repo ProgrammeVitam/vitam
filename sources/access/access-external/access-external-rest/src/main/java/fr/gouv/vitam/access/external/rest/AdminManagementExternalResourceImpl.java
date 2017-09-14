@@ -1116,25 +1116,6 @@ public class AdminManagementExternalResourceImpl {
     }
 
     /**
-     * With Document By Id
-     *
-     * @param collection
-     * @param documentId
-     * @return Response
-     */
-    @Path("/{collection}/{id_document:.+}")
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @Unsecured
-    public Response findDocumentByID(@PathParam("collection") String collection,
-        @PathParam("id_document") String documentId) {
-        // FIXME: Change @Unsecured with @Secured once implemented
-        addRequestId();
-        return Response.status(Status.BAD_REQUEST)
-            .entity(getErrorEntity(Status.BAD_REQUEST, "Method not yet implemented", null)).build();
-    }
-
-    /**
      * findFormatByID
      *
      * @param documentId the document id to find
@@ -1142,10 +1123,9 @@ public class AdminManagementExternalResourceImpl {
      */
     @Path("/formats/{id_document:.+}")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "formats:id:read", description = "Lire un format donné")
-    public Response findFormatByID(@PathParam("id_document") String documentId, JsonNode select) {
+    public Response findFormatByID(@PathParam("id_document") String documentId) {
         addRequestId();
         try {
             ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
@@ -1181,10 +1161,9 @@ public class AdminManagementExternalResourceImpl {
      */
     @Path("/rules/{id_document:.+}")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "rules:id:read", description = "Lire une règle de gestion donnée")
-    public Response findRuleByID(@PathParam("id_document") String documentId, JsonNode select) {
+    public Response findRuleByID(@PathParam("id_document") String documentId) {
         addRequestId();
         try {
             ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
@@ -1216,10 +1195,9 @@ public class AdminManagementExternalResourceImpl {
      */
     @Path("/entrycontracts/{id_document:.+}")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "entrycontracts:id:read", description = "Lire un contrat d'entrée donné")
-    public Response findIngestContractsByID(@PathParam("id_document") String documentId, JsonNode select) {
+    public Response findIngestContractsByID(@PathParam("id_document") String documentId) {
         addRequestId();
         try {
             ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
@@ -1256,10 +1234,9 @@ public class AdminManagementExternalResourceImpl {
      */
     @Path("/accesscontracts/{id_document:.+}")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "accesscontracts:id:read", description = "Lire un contrat d'accès donné")
-    public Response findAccessContractsByID(@PathParam("id_document") String documentId, JsonNode select) {
+    public Response findAccessContractsByID(@PathParam("id_document") String documentId) {
         addRequestId();
         try {
             ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
@@ -1296,10 +1273,9 @@ public class AdminManagementExternalResourceImpl {
      */
     @Path("/profiles/{id_document:.+}")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "profiles:id:read:json", description = "Lire un profil donné")
-    public Response findProfilesByID(@PathParam("id_document") String documentId, JsonNode select) {
+    public Response findProfilesByID(@PathParam("id_document") String documentId) {
         addRequestId();
         try {
             ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
@@ -1336,10 +1312,9 @@ public class AdminManagementExternalResourceImpl {
      */
     @Path("/contexts/{id_document:.+}")
     @GET
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "contexts:id:read", description = "Lire un contexte donné")
-    public Response findContextById(@PathParam("id_document") String documentId, JsonNode select) {
+    public Response findContextById(@PathParam("id_document") String documentId) {
         addRequestId();
         try {
             ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);

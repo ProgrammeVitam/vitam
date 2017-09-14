@@ -70,18 +70,6 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public RequestResponse findDocumentById(AdminCollections documentType, String documentId, Integer tenantId)
-        throws AccessExternalClientException, InvalidParseOperationException {
-        if (AdminCollections.RULES.equals(documentType)) {
-            return ClientMockResultHelper.getRule();
-        }
-        if (AdminCollections.FORMATS.equals(documentType)) {
-            return ClientMockResultHelper.getFormat();
-        }
-        throw new AccessExternalClientNotFoundException(COLLECTION_NOT_VALID);
-    }
-
-    @Override
     public RequestResponse getAccessionRegisterDetail(String id, JsonNode query, Integer tenantId, String contractName)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
@@ -207,6 +195,48 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     public RequestResponse<AccessionRegisterSummaryModel> findAccessionRegister(JsonNode select, Integer tenantId,
         String contractName)
         throws VitamClientException {
+        return ClientMockResultHelper.getAccessionRegisterSummary();
+    }
+
+    @Override
+    public RequestResponse<FileFormatModel> findFormatById(String formatId, Integer tenantId, String contractName)
+        throws VitamClientException {
+        return ClientMockResultHelper.getFormat();
+    }
+
+    @Override
+    public RequestResponse<FileRulesModel> findRuleById(String ruleId, Integer tenantId, String contractName)
+        throws VitamClientException {
+        return ClientMockResultHelper.getRule();
+    }
+
+    @Override
+    public RequestResponse<IngestContractModel> findIngestContractById(String contractId, Integer tenantId,
+        String contractName) throws VitamClientException {
+        return ClientMockResultHelper.getIngestContracts();
+    }
+
+    @Override
+    public RequestResponse<AccessContractModel> findAccessContractById(String contractId, Integer tenantId,
+        String contractName) throws VitamClientException {
+        return ClientMockResultHelper.getAccessContracts();
+    }
+
+    @Override
+    public RequestResponse<ContextModel> findContextById(String contextId, Integer tenantId, String contractName)
+        throws VitamClientException {
+        return ClientMockResultHelper.getContexts(Status.OK.getStatusCode());
+    }
+
+    @Override
+    public RequestResponse<ProfileModel> findProfileById(String profileId, Integer tenantId, String contractName)
+        throws VitamClientException {
+        return ClientMockResultHelper.getProfiles(Status.OK.getStatusCode());
+    }
+
+    @Override
+    public RequestResponse<AccessionRegisterSummaryModel> findAccessionRegisterById(String accessionRegisterId,
+        Integer tenantId, String contractName) throws VitamClientException {
         return ClientMockResultHelper.getAccessionRegisterSummary();
     }
 
