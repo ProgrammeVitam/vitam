@@ -26,26 +26,6 @@
  */
 package fr.gouv.vitam.common.external.client;
 
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.EnumSet;
-
-import javax.servlet.DispatcherType;
-import javax.ws.rs.Path;
-
-import org.apache.shiro.web.env.EnvironmentLoaderListener;
-import org.apache.shiro.web.servlet.ShiroFilter;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -63,6 +43,24 @@ import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.benchmark.BenchmarkConfiguration;
+import org.apache.shiro.web.env.EnvironmentLoaderListener;
+import org.apache.shiro.web.servlet.ShiroFilter;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import javax.servlet.DispatcherType;
+import javax.ws.rs.Path;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.EnumSet;
+
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 public class DefaultSslClientTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultSslClientTest.class);
@@ -168,7 +166,7 @@ public class DefaultSslClientTest {
 
     @Test
     public void testClientBuilder() throws Exception {
-        final SSLKey key = new SSLKey("tls/client/client.p12", "vitam2016");
+        final SSLKey key = new SSLKey("tls/client/client.p12", "azerty4");
         final ArrayList<SSLKey> truststore = new ArrayList<>();
         truststore.add(key);
         final SSLConfiguration sslConfig = new SSLConfiguration(truststore, truststore);
