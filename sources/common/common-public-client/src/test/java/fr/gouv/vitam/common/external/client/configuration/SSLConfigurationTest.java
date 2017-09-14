@@ -26,20 +26,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.external.client.configuration;
 
+import fr.gouv.vitam.common.exception.VitamException;
+import org.junit.Before;
+import org.junit.Test;
+
+import javax.net.ssl.SSLContext;
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.net.ssl.SSLContext;
-
-import org.junit.Before;
-import org.junit.Test;
-
-import fr.gouv.vitam.common.exception.VitamException;
 
 public class SSLConfigurationTest {
 
@@ -51,7 +49,7 @@ public class SSLConfigurationTest {
     @Before
     public void setUp() throws Exception {
 
-        key = new SSLKey("tls/client/client.p12", "vitam2016");
+        key = new SSLKey("tls/client/client.p12", "azerty4");
     }
 
     @Test
