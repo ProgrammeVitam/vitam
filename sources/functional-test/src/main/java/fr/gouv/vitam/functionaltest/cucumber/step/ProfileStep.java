@@ -26,37 +26,32 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
-import cucumber.api.DataTable;
-import cucumber.api.java.en.Given;
-import cucumber.api.java.en.Then;
-import cucumber.api.java.en.When;
-import fr.gouv.vitam.access.external.api.AdminCollections;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
-import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.AccessContractModel;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-import javax.ws.rs.core.Response;
-
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
+
+import javax.ws.rs.core.Response;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
+import cucumber.api.DataTable;
+import cucumber.api.java.en.Given;
+import cucumber.api.java.en.Then;
+import cucumber.api.java.en.When;
+import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.ProfileModel;
 
 /**
  * Profile Step
@@ -72,7 +67,7 @@ public class ProfileStep {
      */
     private World world;
     /**
-     * ★★★ The file name  ★★★
+     * ★★★ The file name ★★★
      */
     private String fileName;
 
@@ -83,7 +78,7 @@ public class ProfileStep {
     private JsonNode model;
 
     /**
-     * ★★★  define a sip  ★★★
+     * ★★★ define a sip ★★★
      *
      * @param fileName name of a sip
      */
@@ -109,8 +104,8 @@ public class ProfileStep {
             RequestResponseOK<ProfileModel> res = (RequestResponseOK) response;
             Object o = (res.getResults().stream().findFirst()).get();
             this.model = (JsonNode) o;
-         } else {
-            fail("Fail to import profile :"+ response.toString());
+        } else {
+            fail("Fail to import profile :" + response.toString());
         }
     }
 
@@ -120,23 +115,24 @@ public class ProfileStep {
         throws InvalidParseOperationException, IOException, AccessExternalClientException {
         Path profil = Paths.get(world.getBaseDirectory(), fileName);
         final RequestResponse response =
-            world.getAdminClient().importProfileFile(this.model.get("Identifier").asText(), Files.newInputStream(profil, StandardOpenOption.READ), world.getTenantId());
+            world.getAdminClient().importProfileFile(this.model.get("Identifier").asText(),
+                Files.newInputStream(profil, StandardOpenOption.READ), world.getTenantId());
         assertThat(Response.Status.OK.getStatusCode() == response.getStatus());
     }
 
     @When("^je cherche un profil nommé (.*)")
-    public void search_contracts(String name)
-        throws AccessExternalClientException, InvalidParseOperationException, InvalidCreateOperationException {
+    public void search_profiles(String name)
+        throws AccessExternalClientException, InvalidParseOperationException, InvalidCreateOperationException,
+        VitamClientException {
         final fr.gouv.vitam.common.database.builder.request.single.Select select =
             new fr.gouv.vitam.common.database.builder.request.single.Select();
         select.setQuery(match("Name", name));
         final JsonNode query = select.getFinalSelect();
-        RequestResponse response =
-            world.getAdminClient().findDocuments(AdminCollections.PROFILE, query, world.getTenantId());
-        assertThat(response).isInstanceOf(RequestResponseOK.class);
-        RequestResponseOK<AccessContractModel> res = (RequestResponseOK) response;
-        Object o = (res.getResults().stream().findFirst()).get();
-        this.model  = (JsonNode) o;
+        RequestResponse<ProfileModel> requestResponse =
+            world.getAdminClient().findProfiles(query, world.getTenantId(), null);
+        if (requestResponse.isOk()) {
+            this.model = ((RequestResponseOK<ProfileModel>) requestResponse).getResultsAsJsonNodes().get(0);
+        }
     }
 
 

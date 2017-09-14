@@ -61,11 +61,11 @@ public class AdminExternalClientMockTest {
 
 
         assertEquals(
-            client.findDocuments(AdminCollections.FORMATS, JsonHandler.createObjectNode(), TENANT_ID).toString(),
+            client.findFormats(JsonHandler.createObjectNode(), TENANT_ID, null).toString(),
             ClientMockResultHelper.getFormatList().toString());
 
         assertEquals(
-            client.findDocuments(AdminCollections.RULES, JsonHandler.createObjectNode(), TENANT_ID).toString(),
+            client.findRules(JsonHandler.createObjectNode(), TENANT_ID, null).toString(),
             ClientMockResultHelper.getRuleList().toString());
 
         assertEquals(
@@ -83,7 +83,7 @@ public class AdminExternalClientMockTest {
         assertEquals(
             client.checkTraceabilityOperation(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT).getHttpCode(),
             Status.OK.getStatusCode());
-        
+
         assertEquals(
             client.launchAudit(JsonHandler.getFromString(AUDIT_OPTION), TENANT_ID, CONTRACT),
             Status.OK);

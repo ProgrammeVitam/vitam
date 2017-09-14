@@ -84,6 +84,7 @@ import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -131,7 +132,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG = "Access client unavailable";
     private static final String ACCESS_SERVER_EXCEPTION_MSG = "Access Server exception";
     private static final String REQUEST_METHOD_UNDEFINED = "Request method undefined for collection";
-    private static final String WRONG_QUERY = "Query should not be empty or lacks parameters";
 
 
     // TODO FIX_TENANT_ID (LFET FOR ONLY stat API)
@@ -551,8 +551,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
             try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-                RequestResponse response =
-                    adminClient.findDocuments(AdminCollections.ACCESS_CONTRACTS, query, getTenantId(headers));
+                RequestResponse<AccessContractModel> response =
+                    adminClient.findAccessContracts(query, getTenantId(headers), null);
                 if (response != null && response instanceof RequestResponseOK) {
                     return Response.status(Status.OK).entity(response).build();
                 }
@@ -769,8 +769,36 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                     ? contractId
                                     : null;
                                 if (StringUtils.isBlank(objectID)) {
-                                    result = adminExternalClient.findDocuments(requestedAdminCollection, criteria,
-                                        tenantId, contractId);
+                                    switch (requestedAdminCollection) {
+                                        case FORMATS:
+                                            result = adminExternalClient.findFormats(criteria, tenantId, contractId);
+                                            break;
+                                        case RULES:
+                                            result = adminExternalClient.findRules(criteria, tenantId, contractId);
+                                            break;
+                                        case ACCESS_CONTRACTS:
+                                            result =
+                                                adminExternalClient.findAccessContracts(criteria, tenantId, contractId);
+                                            break;
+                                        case ENTRY_CONTRACTS:
+                                            result =
+                                                adminExternalClient.findIngestContracts(criteria, tenantId, contractId);
+                                            break;
+                                        case CONTEXTS:
+                                            result = adminExternalClient.findContexts(criteria, tenantId, contractId);
+                                            break;
+                                        case PROFILE:
+                                            result = adminExternalClient.findProfiles(criteria, tenantId, contractId);
+                                            break;
+                                        case ACCESSION_REGISTERS:
+                                            result = adminExternalClient.findAccessionRegister(criteria, tenantId,
+                                                contractId);
+                                            break;
+                                        default:
+                                            throw new UnsupportedOperationException(
+                                                "No implementation found for collection " + requestedCollection);
+                                    }
+
                                 } else {
                                     if (AdminCollections.ACCESSION_REGISTERS.equals(requestedAdminCollection)) {
                                         result = adminExternalClient.getAccessionRegisterDetail(objectID, criteria,

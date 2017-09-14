@@ -28,6 +28,7 @@ package fr.gouv.vitam.common.external.client;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.ws.rs.core.MediaType;
@@ -36,13 +37,23 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.common.model.administration.FileFormatModel;
+import fr.gouv.vitam.common.model.administration.FileRulesModel;
+import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.PermissionModel;
+import fr.gouv.vitam.common.model.administration.ProfileFormat;
+import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.model.administration.ProfileStatus;
+import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 
@@ -86,98 +97,6 @@ public class ClientMockResultHelper {
             "\"obIdReq\": null," +
             "\"obIdIn\": null," +
             "\"events\": []}";
-
-    private static final String RULE = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
-        "\"_tenant\":\"0\", " +
-        "\"RuleId\":\"APP-00005\", " +
-        "\"RuleType\":\"AppraisalRule\", " +
-        "\"RuleValue\":\"Pièces comptables (comptable)\", " +
-        "\"RuleDescription\":\"Durée de conservation des pièces comptables pour le comptable l’échéance est calculée à partir de la date de solde comptable\", " +
-        "\"RuleDuration\":\"6\", " +
-        "\"RuleMeasurement\":\"year\", " +
-        "\"CreationDate\":\"2016-11-02\", " +
-        "\"UpdateDate\":\"2016-11-02\"}";
-
-    public static final String INGEST_CONTRACTS = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
-        "\"_tenant\":\"0\", " +
-        "\"Name\":\"Un contrat\", " +
-        "\"Description\":\"DESCRIPTION D'UN CONTRAT\", " +
-        "\"Status\":\"ACTIVE\", " +
-        "\"CreationDate\":\"2016-11-02\", " +
-        "\"LastUpdate\":\"2016-11-02\", " +
-        "\"ActivationDate\":\"2016-11-02\", " +
-        "\"DeactivationDate\":\"2016-11-02\"}";
-
-    public static final String ACCESS_CONTRACTS = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
-        "\"_tenant\":0, " +
-        "\"DataObjectVersion\":[\"PhysicalMaster\", \"BinaryMaster\"], " +
-        "\"WritingPermission\": \"true\", " +
-        "\"Name\":\"Un contrat\", " +
-        "\"Description\":\"DESCRIPTION D'UN CONTRAT\", " +
-        "\"Status\":\"ACTIVE\", " +
-        "\"OriginatingAgencies\": [\"FR_ORG_AGEC\", \"OriginatingAgency\"], " +
-        "\"EveryDataObjectVersion\": false, " +
-        "\"CreationDate\":\"2016-11-02\", " +
-        "\"LastUpdate\":\"2016-11-02\", " +
-        "\"ActivationDate\":\"2016-11-02\", " +
-        "\"DeactivationDate\":\"2016-11-02\"}";
-
-    public static final String PROFILES = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
-        "\"_tenant\":0, " +
-        "\"Identifier\":\"FAKE_IDENTIFIER\", " +
-        "\"Name\":\"Un Profile\", " +
-        "\"Description\":\"DESCRIPTION D'UN PROFILE\", " +
-        "\"Status\":\"ACTIVE\", " +
-        "\"Format\":\"XSD\", " +
-        "\"CreationDate\":\"2016-11-02\", " +
-        "\"LastUpdate\":\"2016-11-02\", " +
-        "\"ActivationDate\":\"2016-11-02\", " +
-        "\"DeactivationDate\":\"2016-11-02\"}";
-
-    public static final String CONTEXTS = "{\"Name\": \"My_Context_1\", " +
-        "\"Status\": true," +
-        "\"Permissions\": [{" +
-        "\"_tenant\": 0," +
-        "\"AccessContracts\": []," +
-        "\"IngestContracts\": []" +
-        "}]}";
-
-    private static final String FORMAT = "{\"_id\":\"aeaaaaaaaaaaaaabaa44qakyetenaeyaaawq\", " +
-        "\"CreatedDate\":\"2016-01-21T10:36:46\", " +
-        "\"VersionPronom\":\"84\", " +
-        "\"Version\":\"1.12\", " +
-        "\"HasPriorityOverFileFormatID\":[], " +
-        "\"MIMEType\":[], " +
-        "\"Name\":\"Microsoft Works Word Processor for DOS\", " +
-        "\"Alert\":\"false\", " +
-        "\"Extension\":[\"wps\"], " +
-        "\"PUID\":\"fmt/164\", " +
-        "\"_tenant\":\"0\"}";
-
-    private static final String ACCESSION_SUMMARY = "{\"_id\": \"aefaaaaaaaaam7mxaa2gyakygejizayaaaaq\"," +
-        "\"_tenant\": 0," +
-        "\"OriginatingAgency\": \"FRAN_NP_005568\"," +
-        "    \"TotalObjects\": {" +
-        "    \"Total\": 12," +
-        "    \"Deleted\": 0," +
-        "    \"Remained\": 12" +
-        "}," +
-        "\"TotalObjectGroups\": {" +
-        "    \"Total\": 3," +
-        "    \"Deleted\": 0," +
-        "    \"Remained\": 3" +
-        "}," +
-        "\"TotalUnits\": {" +
-        "    \"Total\": 3," +
-        "    \"Deleted\": 0," +
-        "    \"Remained\": 3" +
-        "}," +
-        "\"ObjectSize\": {" +
-        "    \"Total\": 1035126," +
-        "    \"Deleted\": 0," +
-        "    \"Remained\": 1035126" +
-        "}," +
-        "\"creationDate\": \"2016-11-04T20:40:49.030\"}";
 
     private static final String ACCESSION_DETAIL = "{" +
         "\"_id\": \"aedqaaaaacaam7mxabsakakygeje2uyaaaaq\"," +
@@ -293,6 +212,146 @@ public class ClientMockResultHelper {
         return logbookOperation;
     }
 
+
+    private static FileFormatModel getFormatItem() {
+        FileFormatModel fileFormatModel = new FileFormatModel();
+        fileFormatModel.setId("aeaaaaaaaahwaqr6aabrqak6k3jcp2yaaaka");
+        fileFormatModel.setCreatedDate("2016-09-27T15:37:53");
+        fileFormatModel.setVersionPronom("88");
+        fileFormatModel.setMimeType("application/postscript");
+        fileFormatModel.setPuid("x-fmt/20");
+        fileFormatModel.setVersionPronom("1.0 / 1.1");
+        fileFormatModel.setName("Adobe Illustrator");
+        fileFormatModel.setExtensions(new ArrayList<String>() {
+            {
+                add("ai");
+            }
+        });
+        fileFormatModel.setHasPriorityOverFileFormatIDs(new ArrayList<String>() {
+            {
+                add("fmt/122");
+                add("fmt/123");
+                add("fmt/124");
+            }
+        });
+        fileFormatModel.setVersion("0");
+        fileFormatModel.setAlert(false);
+        return fileFormatModel;
+    }
+
+    private static FileRulesModel getRuleItem() {
+        FileRulesModel rule = new FileRulesModel();
+        rule.setId("aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq");
+        rule.setTenant(0);
+        rule.setRuleId("APP-00005");
+        rule.setRuleType("AppraisalRule");
+        rule.setRuleValue("Pièces comptables (comptable)");
+        rule.setRuleDescription(
+            "Durée de conservation des pièces comptables pour le comptable l’échéance est calculée à partir de la date de solde comptable");
+        rule.setRuleDuration("6");
+        rule.setRuleMeasurement("year");
+        rule.setCreationDate("2016-11-02");
+        rule.setUpdateDate("2016-11-03");
+        return rule;
+    }
+
+    private static IngestContractModel getIngestContractItem() {
+        IngestContractModel contract = new IngestContractModel();
+        contract.setId("aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq");
+        contract.setTenant(0);
+        contract.setIdentifier("FAKE_IDENTIFIER");
+        contract.setName("Un contrat");
+        contract.setDescription("DESCRIPTION D'UN CONTRAT");
+        contract.setStatus("ACTIVE");
+        contract.setCreationdate("2016-11-02");
+        contract.setLastupdate("2016-11-05");
+        contract.setActivationdate("2016-11-04");
+        contract.setDeactivationdate("2016-11-03");
+        return contract;
+
+    }
+
+    private static AccessContractModel getAccessContractItem() {
+        AccessContractModel contract = new AccessContractModel();
+        contract.setId("aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq");
+        contract.setTenant(0);
+        contract.setIdentifier("FAKE_IDENTIFIER");
+        contract.setName("Un contrat");
+        contract.setDescription("DESCRIPTION D'UN CONTRAT");
+        contract.setStatus("ACTIVE");
+        contract.setCreationdate("2016-11-02");
+        contract.setLastupdate("2016-11-05");
+        contract.setActivationdate("2016-11-04");
+        contract.setDeactivationdate("2016-11-03");
+        contract.setDataObjectVersion(new HashSet<String>() {
+            {
+                add("PhysicalMaster");
+                add("BinaryMaster");
+            }
+        });
+        contract.setWritingPermission(true);
+        contract.setOriginatingAgencies(new HashSet<String>() {
+            {
+                add("FR_ORG_AGEC");
+                add("OriginatingAgency");
+            }
+        });
+        contract.setEveryDataObjectVersion(false);
+        return contract;
+    }
+
+    private static ContextModel getContextItem() {
+        PermissionModel permission = new PermissionModel();
+        permission.setTenant(0);
+        ContextModel context = new ContextModel();
+        context.setId("aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq");
+        context.setIdentifier("FAKE_IDENTIFIER");
+        context.setName("My_Context_1");
+        context.setDeactivationdate("DESCRIPTION D'UN CONEXTE");
+        context.setStatus(true);
+        context.setCreationdate("2016-11-02");
+        context.setLastupdate("2016-11-05");
+        context.setActivationdate("2016-11-04");
+        context.setDeactivationdate("2016-11-03");
+        context.setPermissions(new ArrayList<PermissionModel>() {
+            {
+                add(permission);
+            }
+        });
+        return context;
+    }
+
+    private static ProfileModel getProfileItem() {
+        ProfileModel profile = new ProfileModel();
+        profile.setId("aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq");
+        profile.setTenant(0);
+        profile.setIdentifier("FAKE_IDENTIFIER");
+        profile.setName("Un Profile");
+        profile.setDeactivationdate("DESCRIPTION D'UN PROFILE");
+        profile.setStatus(ProfileStatus.ACTIVE);
+        profile.setFormat(ProfileFormat.XSD);
+        profile.setCreationdate("2016-11-02");
+        profile.setLastupdate("2016-11-05");
+        profile.setActivationdate("2016-11-04");
+        profile.setDeactivationdate("2016-11-03");
+        return profile;
+    }
+
+    private static AccessionRegisterSummaryModel getAccessionRegisterSummaryItem() {
+        AccessionRegisterSummaryModel accessionRegister = new AccessionRegisterSummaryModel();
+        accessionRegister.setId("aedqaaaaacaam7mxabsakakygeje2uyaaaaq");
+        accessionRegister.setTenant(0);
+        accessionRegister.setOriginatingAgency("FRAN_NP_005568");
+        accessionRegister.setCreationDate("22016-11-04T20:40:49.030");
+        accessionRegister
+            .setTotalObjectsGroups(new RegisterValueDetailModel().setTotal(3).setDeleted(0).setRemained(3));
+        accessionRegister.setTotalUnits(new RegisterValueDetailModel().setTotal(3).setDeleted(0).setRemained(3));
+        accessionRegister.setTotalObjects(new RegisterValueDetailModel().setTotal(12).setDeleted(0).setRemained(12));
+        accessionRegister
+            .setObjectSize(new RegisterValueDetailModel().setTotal(1035126).setDeleted(0).setRemained(1035126));
+        return accessionRegister;
+    }
+
     /**
      * FIXME to remove in 2905
      * 
@@ -389,10 +448,10 @@ public class ClientMockResultHelper {
     /**
      *
      * @return a default Access Register Summary
-     * @throws InvalidParseOperationException
      */
-    public static RequestResponse getAccessionRegisterSummary() throws InvalidParseOperationException {
-        return createReponse(ACCESSION_SUMMARY);
+    public static RequestResponse<AccessionRegisterSummaryModel> getAccessionRegisterSummary() {
+        return new RequestResponseOK<AccessionRegisterSummaryModel>().addResult(getAccessionRegisterSummaryItem())
+            .setHttpCode(Status.OK.getStatusCode());
     }
 
     /**
@@ -407,49 +466,48 @@ public class ClientMockResultHelper {
     /**
      *
      * @return a default Format
-     * @throws InvalidParseOperationException
      */
-    public static RequestResponse getFormat() throws InvalidParseOperationException {
-        return createReponse(FORMAT);
+    public static RequestResponse<FileFormatModel> getFormat() {
+        return new RequestResponseOK<FileFormatModel>().addResult(getFormatItem())
+            .setHttpCode(Status.OK.getStatusCode());
     }
 
     /**
      *
      * @return a default Rule
-     * @throws InvalidParseOperationException
      */
-    public static RequestResponse getRule() throws InvalidParseOperationException {
-        return createReponse(RULE);
+    public static RequestResponse<FileRulesModel> getRule() {
+        return new RequestResponseOK<FileRulesModel>().addResult(getRuleItem())
+            .setHttpCode(Status.OK.getStatusCode());
     }
 
     /**
      * @return a RequestResponse containing contracts json
-     * @throws InvalidParseOperationException
      */
-    public static RequestResponse getIngestContracts() throws InvalidParseOperationException {
-        return createReponse(INGEST_CONTRACTS);
+    public static RequestResponse<IngestContractModel> getIngestContracts() {
+        return new RequestResponseOK<IngestContractModel>().addResult(getIngestContractItem())
+            .setHttpCode(Status.OK.getStatusCode());
     }
 
 
     /**
      * @return a RequestResponse containing access contracts json
-     * @throws InvalidParseOperationException
      */
-    public static RequestResponse getAccessContracts() throws InvalidParseOperationException {
-        return createReponse(ACCESS_CONTRACTS);
+    public static RequestResponse<AccessContractModel> getAccessContracts() {
+        return new RequestResponseOK<AccessContractModel>().addResult(getAccessContractItem())
+            .setHttpCode(Status.OK.getStatusCode());
     }
-
 
     /**
      * @return context json
-     * @throws InvalidParseOperationException
      */
-    public static RequestResponse getContexts(int statusCode) throws InvalidParseOperationException {
-        return createReponse(CONTEXTS, statusCode);
+    public static RequestResponse<ContextModel> getContexts(int statusCode) {
+        return new RequestResponseOK<ContextModel>().addResult(getContextItem())
+            .setHttpCode(statusCode);
     }
 
-    public static RequestResponse getProfiles(int statusCode) throws InvalidParseOperationException {
-        return createReponse(PROFILES, statusCode);
+    public static RequestResponse<ProfileModel> getProfiles(int statusCode) {
+        return new RequestResponseOK<ProfileModel>().addResult(getProfileItem()).setHttpCode(statusCode);
     }
 
     /**
@@ -457,48 +515,47 @@ public class ClientMockResultHelper {
      * @return a default list of Formats
      * @throws InvalidParseOperationException
      */
-    public static RequestResponse getFormatList() throws InvalidParseOperationException {
-        return createReponse(FORMAT);
+    public static RequestResponse<FileFormatModel> getFormatList() throws InvalidParseOperationException {
+        return new RequestResponseOK<FileFormatModel>().addResult(getFormatItem())
+            .setHttpCode(Status.OK.getStatusCode());
     }
 
     /**
      *
      * @return a default list of Rules
-     * @throws InvalidParseOperationException
      */
-    public static RequestResponse getRuleList(String ruleId) throws InvalidParseOperationException {
-        ObjectNode rule = (ObjectNode) JsonHandler.getFromString(RULE);
-        String oldRuleId = rule.get("RuleId").asText();
-        rule.put("RuleId", ruleId);
+    public static RequestResponse<FileRulesModel> getRuleList(String ruleId) {
+        FileRulesModel rule = getRuleItem();
+        String oldRuleId = rule.getRuleId();
+        rule.setRuleId(oldRuleId);
         switch (ruleId.substring(0, 3)) {
             case "STO":
-                rule.put("RuleType", "StorageRule");
+                rule.setRuleType("StorageRule");
                 break;
             case "CLA":
-                rule.put("RuleType", "ClassificationRule");
+                rule.setRuleType("ClassificationRule");
                 break;
             case "ACC":
-                rule.put("RuleType", "AccessRule");
+                rule.setRuleType("AccessRule");
                 break;
             case "APP":
-                rule.put("RuleType", "AppraisalRule");
+                rule.setRuleType("AppraisalRule");
                 break;
             case "DIS":
-                rule.put("RuleType", "DisseminationRule");
+                rule.setRuleType("DisseminationRule");
                 break;
             case "REU":
-                rule.put("RuleType", "ReuseRule");
+                rule.setRuleType("ReuseRule");
                 break;
             default:
-                rule.put("RuleId", oldRuleId);
+                rule.setRuleType(oldRuleId);
         }
 
-        return createReponse(rule);
+        return new RequestResponseOK<FileRulesModel>().addResult(rule).setHttpCode(Status.OK.getStatusCode());
     }
 
-    public static RequestResponse getRuleList() throws InvalidParseOperationException {
-        ObjectNode rule = (ObjectNode) JsonHandler.getFromString(RULE);
-        return createReponse(rule);
+    public static RequestResponse<FileRulesModel> getRuleList() {
+        return new RequestResponseOK<FileRulesModel>().addResult(getRuleItem()).setHttpCode(Status.OK.getStatusCode());
     }
 
     /**
@@ -507,7 +564,7 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse getEmptyResult() throws InvalidParseOperationException {
-        return createReponse(RESULT + "{}}");
+        return new RequestResponseOK<>().setHttpCode(Status.OK.getStatusCode());
     }
 
     /**

@@ -189,6 +189,18 @@ public enum VitamCode {
         Status.BAD_REQUEST,
         "Admin external client error in findDocumentById method."),
 
+    ADMIN_EXTERNAL_CHECK_DOCUMENT_BAD_REQUEST(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "16",
+        Status.BAD_REQUEST,
+        "Admin external bad request error in checkDocument method."),
+
+    ADMIN_EXTERNAL_CHECK_DOCUMENT_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "17",
+        Status.INTERNAL_SERVER_ERROR,
+        "Admin external internal server error in checkDocument method."),
+
+    ADMIN_EXTERNAL_CHECK_DOCUMENT_NOT_FOUND(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "18",
+        Status.NOT_FOUND,
+        "Admin external not found error in checkDocument method."),
+
     ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "01",
         Status.BAD_REQUEST,
         "Access internal error while check update on rules"),

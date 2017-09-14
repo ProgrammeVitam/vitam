@@ -25,7 +25,7 @@
  *  accept its terms.
  */
 
-package fr.gouv.vitam.functional.administration.common.embed;
+package fr.gouv.vitam.common.model.administration;
 
 /**
  * Created by djamel Hamas on 5/9/17.

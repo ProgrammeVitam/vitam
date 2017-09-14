@@ -22,9 +22,9 @@ import org.bson.Document;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.model.administration.ProfileFormat;
+import fr.gouv.vitam.common.model.administration.ProfileStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.functional.administration.common.embed.ProfileFormat;
-import fr.gouv.vitam.functional.administration.common.embed.ProfileStatus;
 
 /**
  * Defines a Profile collection. </BR>

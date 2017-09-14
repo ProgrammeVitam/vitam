@@ -75,11 +75,11 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.AccessContractModel;
-import fr.gouv.vitam.common.model.ContractStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.ContractStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
@@ -172,6 +172,10 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     // TODO: 5/16/17 newIngestContractGUID used for access contract, should create
                     // newAccessContractGUID?
                     acm.setId(GUIDFactory.newIngestContractGUID(ParameterHelper.getTenantParameter()).getId());
+                }
+                
+                if(acm.getTenant() == null) {
+                    acm.setTenant(ParameterHelper.getTenantParameter());
                 }
 
                 if (slaveMode) {

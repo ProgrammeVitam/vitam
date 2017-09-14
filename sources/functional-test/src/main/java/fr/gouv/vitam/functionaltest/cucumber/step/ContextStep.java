@@ -47,25 +47,27 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFou
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.functional.administration.client.model.ContextModel;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.ContextModel;
 
 /**
  * Context Step
  */
 public class ContextStep {
-    
+
     private World world;
     private String fileName;
     private String query;
-    
+
     private static final String OPERATION_ID = "Operation-Id";
 
     public ContextStep(World world) {
         this.world = world;
     }
-    
+
     /**
      * define a context
      *
@@ -77,7 +79,7 @@ public class ContextStep {
     }
 
     @Then("^j'importe ce contexte en succès")
-    public void success_upload_context() 
+    public void success_upload_context()
         throws IOException, AccessExternalClientServerException, InvalidParseOperationException {
         Path context = Paths.get(world.getBaseDirectory(), fileName);
         final RequestResponse response =
@@ -85,45 +87,51 @@ public class ContextStep {
                 .importContexts(Files.newInputStream(context, StandardOpenOption.READ), world.getTenantId());
         assertThat(Response.Status.OK.getStatusCode() == response.getStatus());
     }
-    
+
     @Then("^j'importe ce contexte en échec")
-    public void fail_upload_context() 
+    public void fail_upload_context()
         throws AccessExternalClientServerException, InvalidParseOperationException, IOException {
         Path context = Paths.get(world.getBaseDirectory(), fileName);
         final RequestResponse response =
             world.getAdminClient()
-                .importContexts(Files.newInputStream(context, StandardOpenOption.READ), world.getTenantId());           
+                .importContexts(Files.newInputStream(context, StandardOpenOption.READ), world.getTenantId());
         assertThat(Response.Status.BAD_REQUEST.getStatusCode() == response.getStatus());
     }
-    
+
     @When("^je modifie le contexte avec le fichier de requête suivant (.*)$")
-    public void update_context_by_query(String queryFilename) 
-        throws InvalidParseOperationException, AccessExternalClientException, IOException{
+    public void update_context_by_query(String queryFilename)
+        throws InvalidParseOperationException, VitamClientException, IOException, AccessExternalClientException {
         Path queryFile = Paths.get(world.getBaseDirectory(), queryFilename);
         this.query = FileUtil.readFile(queryFile.toFile());
         if (world.getOperationId() != null) {
             this.query = this.query.replace(OPERATION_ID, world.getOperationId());
         }
-        
+
         JsonNode queryDsl = JsonHandler.getFromString(query);
         RequestResponse<ContextModel> requestResponse =
             world.getAdminClient()
                 .updateContext(find_a_context_id(), queryDsl, world.getTenantId());
     }
-    
-    private String find_a_context_id() 
-        throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException{
+
+    private String find_a_context_id()
+        throws VitamClientException {
         JsonNode queryDsl = JsonHandler.createObjectNode();
-        RequestResponse<ContextModel> requestResponse = 
-            world.getAdminClient().findDocuments(AdminCollections.CONTEXTS, queryDsl, world.getTenantId());
-        return requestResponse.toJsonNode().findValue("_id").asText();
+        RequestResponse<ContextModel> requestResponse =
+            world.getAdminClient().findContexts(queryDsl, world.getTenantId(), null);
+        if (requestResponse.isOk()) {
+            return ((RequestResponseOK<ContextModel>) requestResponse).getFirstResult().getId();
+        }
+        throw new VitamClientException("No context was found");
     }
-    
+
     @Then("^le contexte contient un contrat (.-*)$")
-    private void has_contrat(String identifier) throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException{
-        RequestResponse<ContextModel> requestResponse = 
-            world.getAdminClient().findDocumentById(AdminCollections.CONTEXTS, find_a_context_id(), world.getTenantId());
+    private void has_contrat(String identifier)
+        throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException,
+        VitamClientException {
+        RequestResponse<ContextModel> requestResponse =
+            world.getAdminClient().findDocumentById(AdminCollections.CONTEXTS, find_a_context_id(),
+                world.getTenantId());
         assertThat(requestResponse.toString().contains(identifier));
     }
-    
+
 }

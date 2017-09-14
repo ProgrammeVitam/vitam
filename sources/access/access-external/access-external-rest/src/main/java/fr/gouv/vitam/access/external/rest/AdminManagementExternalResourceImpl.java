@@ -26,52 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.access.external.api.AccessExtAPI;
-import fr.gouv.vitam.access.internal.client.AccessInternalClient;
-import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.error.ServiceName;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamThreadAccessException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.AccessContractModel;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.security.rest.EndpointInfo;
-import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
-import fr.gouv.vitam.common.security.rest.Secured;
-import fr.gouv.vitam.common.security.rest.Unsecured;
-import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
-import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.client.model.AccessionRegisterDetailModel;
-import fr.gouv.vitam.functional.administration.client.model.ContextModel;
-import fr.gouv.vitam.functional.administration.client.model.FileFormatModel;
-import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
-import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
-import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
-import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
-import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
-import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
-import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -90,10 +48,56 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+
+import fr.gouv.vitam.access.external.api.AccessExtAPI;
+import fr.gouv.vitam.access.internal.client.AccessInternalClient;
+import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.error.ServiceName;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamThreadAccessException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
+import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.common.model.administration.FileFormatModel;
+import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.common.security.rest.EndpointInfo;
+import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
+import fr.gouv.vitam.common.security.rest.Secured;
+import fr.gouv.vitam.common.security.rest.Unsecured;
+import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoundException;
+import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 
 /**
  * Admin Management External Resource Implement
@@ -112,6 +116,7 @@ public class AdminManagementExternalResourceImpl {
 
     /**
      * Constructor
+     * 
      * @param secureEndpointRegistry endpoint list registry
      */
     public AdminManagementExternalResourceImpl(SecureEndpointRegistry secureEndpointRegistry) {
@@ -138,23 +143,24 @@ public class AdminManagementExternalResourceImpl {
     /**
      * checkFormat
      *
-     * @param document   the document to check
+     * @param document the document to check
+     * @param asyncResponse
      * @return Response
      */
     @Path("/formats")
     @PUT
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "formats:check", description = "Vérifier si le référentiel des formats que l'on souhaite importer est valide")
-    public void checkFormat(InputStream document,
-                                           @Suspended final AsyncResponse asyncResponse) {
+    @Secured(permission = "formats:check",
+        description = "Vérifier si le référentiel des formats que l'on souhaite importer est valide")
+    public void checkFormat(InputStream document, @Suspended final AsyncResponse asyncResponse) {
         Integer tenantId = ParameterHelper.getTenantParameter();
-        LOGGER.debug(String.format("tenant Id %d", tenantId));
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         addRequestId();
+
         ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", document);
         VitamThreadPoolExecutor.getDefaultExecutor()
-                .execute(() -> asyncCheckFormat(document, asyncResponse));
+            .execute(() -> asyncCheckFormat(document, asyncResponse));
     }
 
     /**
@@ -167,16 +173,17 @@ public class AdminManagementExternalResourceImpl {
     @PUT
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "rules:check", description = "Vérifier si le référentiel de règles de gestions que l'on souhaite importer est valide")
+    @Secured(permission = "rules:check",
+        description = "Vérifier si le référentiel de règles de gestions que l'on souhaite importer est valide")
     public void checkRules(InputStream document,
-                           @Suspended final AsyncResponse asyncResponse) {
+        @Suspended final AsyncResponse asyncResponse) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         LOGGER.debug(String.format("tenant Id %d", tenantId));
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         addRequestId();
 
         VitamThreadPoolExecutor.getDefaultExecutor()
-                .execute(() -> asyncDownloadErrorReport(document, asyncResponse));
+            .execute(() -> asyncDownloadErrorReport(document, asyncResponse));
     }
 
     /**
@@ -186,17 +193,13 @@ public class AdminManagementExternalResourceImpl {
      * @param asyncResponse asyncResponse
      */
     private void asyncCheckFormat(InputStream document, AsyncResponse asyncResponse) {
-            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                Response response = client.checkFormat(document);
-                AsyncInputStreamHelper.asyncResponseResume(asyncResponse, response);                
-            } catch (ReferentialException ex) {
-                AsyncInputStreamHelper
-                .asyncResponseResume(
-                    asyncResponse,
-                    Response.status(Status.BAD_REQUEST)
-                        .entity(getErrorStream(Status.BAD_REQUEST, ex.getMessage(), null).toString())
-                        .build());
-            }
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            Response response = client.checkFormat(document);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, response);
+        } catch (ReferentialException ex) {
+            asyncResponseResume(asyncResponse, VitamCode.ADMIN_EXTERNAL_CHECK_DOCUMENT_BAD_REQUEST,
+                ex.getLocalizedMessage(), document);
+        }
     }
 
 
@@ -216,7 +219,8 @@ public class AdminManagementExternalResourceImpl {
                     .header(CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
             helper.writeResponse(responseBuilder);
         } catch (Exception e) {
-            asyncResponseResume(asyncResponse, e, document);
+            asyncResponseResume(asyncResponse, VitamCode.ADMIN_EXTERNAL_CHECK_DOCUMENT_ERROR, e.getLocalizedMessage(),
+                document);
         }
     }
 
@@ -224,16 +228,19 @@ public class AdminManagementExternalResourceImpl {
      * Resume the asyncResponse in case of Exception
      * 
      * @param asyncResponse the given asyncResponse
-     * @param ex exception to handle
+     * @param vitamCode the vitam code
+     * @param message message
      * @param document the given document to import
      */
-    private void asyncResponseResume(AsyncResponse asyncResponse, Exception ex, InputStream document) {
-        LOGGER.error(ex);
+    private void asyncResponseResume(AsyncResponse asyncResponse, VitamCode vitamCode, String message,
+        InputStream document) {
+        LOGGER.error(message);
         AsyncInputStreamHelper
             .asyncResponseResume(
                 asyncResponse,
-                Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, ex.getMessage(), null).toString())
+                Response.status(vitamCode.getStatus())
+                    .entity(getErrorStream(VitamCodeHelper
+                        .toVitamError(vitamCode, message)).toString())
                     .build(),
                 document);
     }
@@ -241,8 +248,8 @@ public class AdminManagementExternalResourceImpl {
     /**
      * Import a format
      *
-     * @param headers  http headers
-     * @param uriInfo  used to construct the created resource and send it back as location in the response
+     * @param headers http headers
+     * @param uriInfo used to construct the created resource and send it back as location in the response
      * @param document inputStream representing the data to import
      * @return The jaxRs Response
      */
@@ -252,7 +259,7 @@ public class AdminManagementExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "formats:create", description = "Importer un référentiel des formats")
     public Response importFormat(@Context HttpHeaders headers, @Context UriInfo uriInfo,
-                                 InputStream document) {
+        InputStream document) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
@@ -270,11 +277,11 @@ public class AdminManagementExternalResourceImpl {
             } catch (final FileRulesImportInProgressException e) {
                 LOGGER.warn(e);
                 return Response.status(Status.FORBIDDEN)
-                        .entity(getErrorEntity(Status.FORBIDDEN, e.getMessage(), null)).build();
+                    .entity(getErrorEntity(Status.FORBIDDEN, e.getMessage(), null)).build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
                 return Response.status(Status.BAD_REQUEST)
-                        .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
             }
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
@@ -289,7 +296,7 @@ public class AdminManagementExternalResourceImpl {
     /**
      * Import a rules document
      *
-     * @param headers  http headers
+     * @param headers http headers
      * @param document inputStream representing the data to import
      * @return The jaxRs Response
      */
@@ -299,7 +306,7 @@ public class AdminManagementExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "rules:create", description = "Importer un référentiel des règles de gestion")
     public Response importRulesFile(@Context HttpHeaders headers,
-                                    InputStream document) {
+        InputStream document) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
@@ -318,11 +325,11 @@ public class AdminManagementExternalResourceImpl {
             } catch (final FileRulesImportInProgressException e) {
                 LOGGER.warn(e);
                 return Response.status(Status.FORBIDDEN)
-                        .entity(getErrorEntity(Status.FORBIDDEN, e.getMessage(), null)).build();
+                    .entity(getErrorEntity(Status.FORBIDDEN, e.getMessage(), null)).build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
                 return Response.status(Status.BAD_REQUEST)
-                        .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
             }
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
@@ -343,7 +350,8 @@ public class AdminManagementExternalResourceImpl {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "entrycontracts:create:binary", description = "Importer des contrats d'entrées dans le référentiel")
+    @Secured(permission = "entrycontracts:create:binary",
+        description = "Importer des contrats d'entrées dans le référentiel")
     public Response importIngestContracts(InputStream document) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
@@ -353,18 +361,19 @@ public class AdminManagementExternalResourceImpl {
                 JsonNode json = JsonHandler.getFromInputStream(document);
                 SanityChecker.checkJsonAll(json);
                 Status status =
-                        client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(json.toString(),
-                                new TypeReference<List<IngestContractModel>>() {}));
+                    client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(json.toString(),
+                        new TypeReference<List<IngestContractModel>>() {}));
                 // Send the http response with no entity and the status got from internalService;
                 ResponseBuilder ResponseBuilder = Response.status(status);
                 return ResponseBuilder.build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
                 return Response.status(Status.BAD_REQUEST)
-                        .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
             } catch (InvalidParseOperationException e) {
+                LOGGER.error(e);
                 return Response.status(Status.BAD_REQUEST)
-                        .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
             }
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
@@ -374,6 +383,39 @@ public class AdminManagementExternalResourceImpl {
             StreamUtils.closeSilently(document);
         }
     }
+
+    private void downloadTraceabilityOperationFile(String operationId, final AsyncResponse asyncResponse) {
+        AsyncInputStreamHelper helper;
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+            final Response response = client.downloadTraceabilityFile(operationId);
+            helper = new AsyncInputStreamHelper(asyncResponse, response);
+            final ResponseBuilder responseBuilder = Response.status(Status.OK)
+                .header("Content-Disposition", response.getHeaderString("Content-Disposition"))
+                .type(response.getMediaType());
+            helper.writeResponse(responseBuilder);
+        } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorStream(Status.PRECONDITION_FAILED, exc.getMessage(), null)).build();
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+        } catch (final AccessInternalClientServerException exc) {
+            LOGGER.error(exc.getMessage(), exc);
+            final Response errorResponse = Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, exc.getMessage(), null)).build();
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+        } catch (final AccessInternalClientNotFoundException exc) {
+            LOGGER.error(exc.getMessage(), exc);
+            final Response errorResponse = Response.status(Status.NOT_FOUND)
+                .entity(getErrorStream(Status.NOT_FOUND, exc.getMessage(), null)).build();
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error("Contract access does not allow ", e);
+            final Response errorResponse = Response.status(Status.UNAUTHORIZED)
+                .entity(getErrorStream(Status.UNAUTHORIZED, e.getMessage(), null)).build();
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
+        }
+    }
+
 
     /**
      * Import a set of ingest contracts.
@@ -385,29 +427,29 @@ public class AdminManagementExternalResourceImpl {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "entrycontracts:create:json", description = "Importer des contrats d'entrées dans le référentiel")
+    @Secured(permission = "entrycontracts:create:json",
+        description = "Importer des contrats d'entrées dans le référentiel")
     public Response importIngestContracts(JsonNode select)
-            throws DatabaseConflictException {
+        throws DatabaseConflictException {
 
         addRequestId();
         ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(select);
             Status status = client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                    new TypeReference<List<IngestContractModel>>() {
-                    }));
+                new TypeReference<List<IngestContractModel>>() {}));
 
             // Send the http response with the entity and the status got from internalService;
             ResponseBuilder ResponseBuilder = Response.status(status)
-                    .entity("Successfully imported");
+                .entity("Successfully imported");
             return ResponseBuilder.build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
         } catch (InvalidParseOperationException e) {
             return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
         }
     }
 
@@ -421,7 +463,8 @@ public class AdminManagementExternalResourceImpl {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "accesscontracts:create:binary", description = "Importer des contrats d'accès dans le référentiel")
+    @Secured(permission = "accesscontracts:create:binary",
+        description = "Importer des contrats d'accès dans le référentiel")
     public Response importAccessContracts(InputStream document) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
@@ -432,17 +475,17 @@ public class AdminManagementExternalResourceImpl {
                 JsonNode json = JsonHandler.getFromInputStream(document);
                 SanityChecker.checkJsonAll(json);
                 Status status = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(json.toString(),
-                        new TypeReference<List<AccessContractModel>>() {}));
+                    new TypeReference<List<AccessContractModel>>() {}));
                 // Send the http response with no entity and the status got from internalService;
                 ResponseBuilder ResponseBuilder = Response.status(status);
                 return ResponseBuilder.build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
                 return Response.status(Status.BAD_REQUEST)
-                        .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
             } catch (InvalidParseOperationException e) {
                 return Response.status(Status.BAD_REQUEST)
-                        .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
             }
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
@@ -463,29 +506,29 @@ public class AdminManagementExternalResourceImpl {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "accesscontracts:create:json", description = "Importer des contrats d'accès dans le référentiel")
+    @Secured(permission = "accesscontracts:create:json",
+        description = "Importer des contrats d'accès dans le référentiel")
     public Response importAccessContracts(JsonNode select)
-            throws DatabaseConflictException {
+        throws DatabaseConflictException {
 
         addRequestId();
         ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(select);
             Status status = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                    new TypeReference<List<AccessContractModel>>() {
-                    }));
+                new TypeReference<List<AccessContractModel>>() {}));
 
             // Send the http response with the entity and the status got from internalService;
             ResponseBuilder ResponseBuilder = Response.status(status)
-                    .entity("Successfully imported");
+                .entity("Successfully imported");
             return ResponseBuilder.build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
         } catch (InvalidParseOperationException e) {
             return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
         }
     }
 
@@ -507,10 +550,10 @@ public class AdminManagementExternalResourceImpl {
             ParametersChecker.checkParameter("document is a mandatory parameter", document);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
 
-                    JsonNode json = JsonHandler.getFromInputStream(document);
-                    SanityChecker.checkJsonAll(json);
+                JsonNode json = JsonHandler.getFromInputStream(document);
+                SanityChecker.checkJsonAll(json);
                 Status status = client.importContexts(JsonHandler.getFromStringAsTypeRefence(json.toString(),
-                            new TypeReference<List<ContextModel>>() {}));
+                    new TypeReference<List<ContextModel>>() {}));
 
 
                 // Send the http response with no entity and the status got from internalService;
@@ -519,14 +562,14 @@ public class AdminManagementExternalResourceImpl {
             } catch (final FileRulesImportInProgressException e) {
                 LOGGER.warn(e);
                 return Response.status(Status.FORBIDDEN)
-                        .entity(getErrorEntity(Status.FORBIDDEN, e.getMessage(), null)).build();
+                    .entity(getErrorEntity(Status.FORBIDDEN, e.getMessage(), null)).build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
                 return Response.status(Status.BAD_REQUEST)
-                        .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
             } catch (InvalidParseOperationException e) {
                 return Response.status(Status.BAD_REQUEST)
-                        .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
             }
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
@@ -549,27 +592,26 @@ public class AdminManagementExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "contexts:create:json", description = "Importer des contextes dans le référentiel")
     public Response importContexts(JsonNode select)
-            throws DatabaseConflictException {
+        throws DatabaseConflictException {
 
         addRequestId();
         ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(select);
             Status status = client.importContexts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                    new TypeReference<List<ContextModel>>() {
-                    }));
+                new TypeReference<List<ContextModel>>() {}));
 
             // Send the http response with the entity and the status got from internalService;
             ResponseBuilder ResponseBuilder = Response.status(status)
-                    .entity("Successfully imported");
+                .entity("Successfully imported");
             return ResponseBuilder.build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
         } catch (InvalidParseOperationException e) {
             return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
         }
     }
 
@@ -592,13 +634,13 @@ public class AdminManagementExternalResourceImpl {
             ParametersChecker.checkParameter("document is a mandatory parameter", document);
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
 
-                    JsonNode json = JsonHandler.getFromInputStream(document);
-                    SanityChecker.checkJsonAll(json);
-                    RequestResponse requestResponse =
-                        client.createProfiles(JsonHandler.getFromStringAsTypeRefence(json.toString(),
-                            new TypeReference<List<ProfileModel>>() {}));
-                    return Response.status(requestResponse.getStatus())
-                        .entity(requestResponse).build();
+                JsonNode json = JsonHandler.getFromInputStream(document);
+                SanityChecker.checkJsonAll(json);
+                RequestResponse requestResponse =
+                    client.createProfiles(JsonHandler.getFromStringAsTypeRefence(json.toString(),
+                        new TypeReference<List<ProfileModel>>() {}));
+                return Response.status(requestResponse.getStatus())
+                    .entity(requestResponse).build();
 
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
@@ -629,26 +671,25 @@ public class AdminManagementExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "profiles:create:json", description = "Ecrire un profil dans le référentiel")
     public Response createProfiles(JsonNode select)
-            throws DatabaseConflictException {
+        throws DatabaseConflictException {
 
         addRequestId();
         ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(select);
             RequestResponse requestResponse =
-                    client.createProfiles(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                            new TypeReference<List<ProfileModel>>() {
-                            }));
+                client.createProfiles(JsonHandler.getFromStringAsTypeRefence(select.toString(),
+                    new TypeReference<List<ProfileModel>>() {}));
             return Response.status(requestResponse.getStatus())
-                    .entity(requestResponse).build();
+                .entity(requestResponse).build();
 
         } catch (final ReferentialException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
         } catch (InvalidParseOperationException e) {
             return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
         }
     }
 
@@ -706,15 +747,16 @@ public class AdminManagementExternalResourceImpl {
     @GET
     @Path("/profiles/{id:.+}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "profiles:id:read:binary", description = "Télecharger le fichier xsd ou rng attaché à un profil")
+    @Secured(permission = "profiles:id:read:binary",
+        description = "Télecharger le fichier xsd ou rng attaché à un profil")
     public void downloadProfileFile(
-            @PathParam("id") String fileId,
-            @Suspended final AsyncResponse asyncResponse) {
+        @PathParam("id") String fileId,
+        @Suspended final AsyncResponse asyncResponse) {
 
         ParametersChecker.checkParameter("Profile id should be filled", fileId);
         addRequestId();
         VitamThreadPoolExecutor.getDefaultExecutor()
-                .execute(() -> asyncDownloadProfileFile(fileId, asyncResponse));
+            .execute(() -> asyncDownloadProfileFile(fileId, asyncResponse));
     }
 
     /**
@@ -728,10 +770,11 @@ public class AdminManagementExternalResourceImpl {
     @GET
     @Path("/traceability/{id:.+}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "traceability:id:read", description = "Télécharger le logbook sécurisé attaché à une opération de sécurisation")
+    @Secured(permission = "traceability:id:read",
+        description = "Télécharger le logbook sécurisé attaché à une opération de sécurisation")
     public void downloadTraceabilityFile(
-            @PathParam("id") String fileId,
-            @Suspended final AsyncResponse asyncResponse) {
+        @PathParam("id") String fileId,
+        @Suspended final AsyncResponse asyncResponse) {
 
         try {
             ParametersChecker.checkParameter("Traceability operation should be filled", fileId);
@@ -739,49 +782,12 @@ public class AdminManagementExternalResourceImpl {
             addRequestId();
 
             VitamThreadPoolExecutor.getDefaultExecutor()
-                    .execute(() -> downloadTraceabilityOperationFile(fileId, asyncResponse));
+                .execute(() -> downloadTraceabilityOperationFile(fileId, asyncResponse));
         } catch (IllegalArgumentException | VitamThreadAccessException e) {
             LOGGER.error(e);
             final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
-                    .entity(getErrorStream(Status.PRECONDITION_FAILED, e.getMessage(), null))
-                    .build();
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
-        }
-    }
-
-    private void downloadTraceabilityOperationFile(String operationId, final AsyncResponse asyncResponse) {
-        AsyncInputStreamHelper helper;
-
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-
-            final Response response = client.downloadTraceabilityFile(operationId);
-            helper = new AsyncInputStreamHelper(asyncResponse, response);
-            final ResponseBuilder responseBuilder =
-                Response.status(Status.OK)
-                    .header("Content-Disposition", response.getHeaderString("Content-Disposition"))
-                    .type(response.getMediaType());
-            helper.writeResponse(responseBuilder);
-        } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
-            LOGGER.error(exc);
-            final Response errorResponse = Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorStream(Status.PRECONDITION_FAILED, exc.getMessage(), null))
+                .entity(getErrorStream(Status.PRECONDITION_FAILED, e.getMessage(), null))
                 .build();
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
-        } catch (final AccessInternalClientServerException exc) {
-            LOGGER.error(exc.getMessage(), exc);
-            final Response errorResponse =
-                Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, 
-                    exc.getMessage(), null)).build();
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
-        } catch (final AccessInternalClientNotFoundException exc) {
-            LOGGER.error(exc.getMessage(), exc);
-            final Response errorResponse =
-                Response.status(Status.NOT_FOUND).entity(getErrorStream(Status.NOT_FOUND, exc.getMessage(), null)).build();
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
-        } catch (AccessUnauthorizedException e) {
-            LOGGER.error("Contract access does not allow ", e);
-            final Response errorResponse =
-                Response.status(Status.UNAUTHORIZED).entity(getErrorStream(Status.UNAUTHORIZED, e.getMessage(), null)).build();
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, errorResponse);
         }
     }
@@ -1038,7 +1044,8 @@ public class AdminManagementExternalResourceImpl {
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "accession-registers:read", description = "Lister le contenu du référentiel des registres des fonds")
+    @Secured(permission = "accession-registers:read",
+        description = "Lister le contenu du référentiel des registres des fonds")
     public Response getAccessionRegister(JsonNode select) {
 
         addRequestId();
@@ -1074,17 +1081,18 @@ public class AdminManagementExternalResourceImpl {
     /**
      * Create or update an accession register
      *
-     * @param select     the select query to find document
+     * @param select the select query to find document
      * @return Response
      */
     @Path("/accession-registers")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "accession-registers:create", description = "Permet de créer ou de modifier le registre des fonds.")
+    @Secured(permission = "accession-registers:create",
+        description = "Permet de créer ou de modifier le registre des fonds.")
     // FIXME : EST-CE VRAIMENT UNE BONNE IDEE d'exposer une API external pour modifier le registre des fonds?!!!
     public Response createOrUpdateAccessionRegister(JsonNode select)
-            throws DatabaseConflictException {
+        throws DatabaseConflictException {
 
         addRequestId();
         ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
@@ -1092,19 +1100,18 @@ public class AdminManagementExternalResourceImpl {
 
             SanityChecker.checkJsonAll(select);
             RequestResponse requestResponse =
-                    client.createorUpdateAccessionRegister(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                            new TypeReference<AccessionRegisterDetailModel>() {
-                            }));
+                client.createorUpdateAccessionRegister(JsonHandler.getFromStringAsTypeRefence(select.toString(),
+                    new TypeReference<AccessionRegisterDetailModel>() {}));
 
             return Response.status(requestResponse.getStatus())
-                    .entity(requestResponse).build();
+                .entity(requestResponse).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
         } catch (InvalidParseOperationException e) {
             return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
         }
     }
 
@@ -1162,7 +1169,7 @@ public class AdminManagementExternalResourceImpl {
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED)
-                    .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
         }
     }
 
@@ -1197,7 +1204,7 @@ public class AdminManagementExternalResourceImpl {
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED)
-                    .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
         }
     }
 
@@ -1237,7 +1244,7 @@ public class AdminManagementExternalResourceImpl {
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED)
-                    .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
         }
     }
 
@@ -1277,7 +1284,7 @@ public class AdminManagementExternalResourceImpl {
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED)
-                    .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
         }
     }
 
@@ -1317,7 +1324,7 @@ public class AdminManagementExternalResourceImpl {
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED)
-                    .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
         }
     }
 
@@ -1357,7 +1364,7 @@ public class AdminManagementExternalResourceImpl {
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED)
-                    .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
         }
     }
 
@@ -1376,7 +1383,7 @@ public class AdminManagementExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "contexts:id:update", description = "Effectuer une mise à jour sur un contexte")
     public Response updateContext(@PathParam("id") String id, JsonNode queryDsl)
-            throws AdminManagementClientServerException, InvalidParseOperationException {
+        throws AdminManagementClientServerException, InvalidParseOperationException {
         addRequestId();
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -1386,7 +1393,7 @@ public class AdminManagementExternalResourceImpl {
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED)
-                    .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
         }
     }
 
@@ -1405,7 +1412,7 @@ public class AdminManagementExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "accesscontracts:id:update", description = "Effectuer une mise à jour sur un contrat d'accès")
     public Response updateAccessContract(@PathParam("id") String id, JsonNode queryDsl)
-            throws AdminManagementClientServerException, InvalidParseOperationException {
+        throws AdminManagementClientServerException, InvalidParseOperationException {
         addRequestId();
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -1415,7 +1422,7 @@ public class AdminManagementExternalResourceImpl {
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED)
-                    .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
         }
     }
 
@@ -1486,7 +1493,8 @@ public class AdminManagementExternalResourceImpl {
     @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}/accession-register-detail")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "accession-registers:id:accession-register-detail:read", description = "Lister les détails d'un registre de fonds")
+    @Secured(permission = "accession-registers:id:accession-register-detail:read",
+        description = "Lister les détails d'un registre de fonds")
     public Response findAccessionRegisterDetail(@PathParam("id_document") String documentId, JsonNode select) {
         addRequestId();
 
@@ -1604,6 +1612,14 @@ public class AdminManagementExternalResourceImpl {
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 
+
+    private InputStream getErrorStream(VitamError vitamError) {
+        try {
+            return JsonHandler.writeToInpustream(vitamError);
+        } catch (InvalidParseOperationException e) {
+            return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
+        }
+    }
 
     private InputStream getErrorStream(Status status, String message, String code) {
         String aMessage =

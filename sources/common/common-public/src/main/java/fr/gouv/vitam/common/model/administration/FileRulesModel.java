@@ -1,4 +1,4 @@
-package fr.gouv.vitam.functional.administration.client.model;
+package fr.gouv.vitam.common.model.administration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

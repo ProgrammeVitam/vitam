@@ -26,9 +26,9 @@
  */
 package fr.gouv.vitam.functional.administration.contract.core;
 
-import fr.gouv.vitam.common.model.AbstractContractModel;
-
 import java.util.Optional;
+
+import fr.gouv.vitam.common.model.administration.AbstractContractModel;
 
 /**
  * Used to validate contracts (any class that extends AbstractContractModel) and to apply acceptance rules.

@@ -47,6 +47,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Pagination Helper
+ * <p>
+ * FIXME 2905 => use class type
  */
 public class PaginationHelper {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PaginationHelper.class);

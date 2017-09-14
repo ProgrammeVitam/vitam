@@ -40,7 +40,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.functional.administration.client.model.FileRulesModel;
+import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;

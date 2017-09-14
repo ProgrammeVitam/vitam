@@ -34,7 +34,6 @@ import java.util.stream.Collectors;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 
-import fr.gouv.vitam.functional.administration.profile.core.ProfileValidator;
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -63,12 +62,12 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.ProfileFormat;
+import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
-import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
 import fr.gouv.vitam.functional.administration.common.Profile;
-import fr.gouv.vitam.functional.administration.common.embed.ProfileFormat;
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
@@ -77,6 +76,7 @@ import fr.gouv.vitam.functional.administration.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.profile.api.ProfileService;
 import fr.gouv.vitam.functional.administration.profile.core.ProfileManager;
+import fr.gouv.vitam.functional.administration.profile.core.ProfileValidator;
 import fr.gouv.vitam.functional.administration.profile.core.ProfileValidator.RejectionCause;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -121,7 +121,7 @@ public class ProfileServiceImpl implements ProfileService {
     /**
      * Constructor
      *
-     * @param mongoAccess         MongoDB client
+     * @param mongoAccess MongoDB client
      * @param vitamCounterService
      */
     public ProfileServiceImpl(MongoDbAccessAdminImpl mongoAccess, WorkspaceClientFactory workspaceClientFactory,
@@ -196,6 +196,10 @@ public class ProfileServiceImpl implements ProfileService {
                 if (manager.validateProfile(pm, error)) {
                     pm.setId(GUIDFactory.newProfileGUID(ParameterHelper.getTenantParameter()).getId());
                 }
+                if (pm.getTenant() == null) {
+                    pm.setTenant(ParameterHelper.getTenantParameter());
+                }
+
                 if (slaveMode) {
                     final Optional<ProfileValidator.RejectionCause> result =
                         manager.checkDuplicateInIdentifierSlaveModeValidator().validate(pm);
@@ -219,7 +223,7 @@ public class ProfileServiceImpl implements ProfileService {
 
             profilesToPersist = JsonHandler.createArrayNode();
             for (final ProfileModel pm : profileModelList) {
-                if (!slaveMode ) {
+                if (!slaveMode) {
                     String code = vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(),
                         SequenceType.PROFILE_SEQUENCE.getName());
                     pm.setIdentifier(code);
@@ -235,8 +239,7 @@ public class ProfileServiceImpl implements ProfileService {
             // TODO: 3/28/17 create insertDocuments method that accepts VitamDocument instead of ArrayNode, so we can
             // use Profile at this point
             mongoAccess.insertDocuments(profilesToPersist, FunctionalAdminCollections.PROFILE).close();
-        } catch (
-            final Exception exp)
+        } catch (final Exception exp)
 
         {
             final String err = new StringBuilder("Import profiles error : ").append(exp.getMessage()).toString();

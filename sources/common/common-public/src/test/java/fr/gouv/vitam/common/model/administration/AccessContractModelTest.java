@@ -24,67 +24,58 @@
  *  The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  *  accept its terms.
  */
+package fr.gouv.vitam.common.model.administration;
 
-package fr.gouv.vitam.functional.administration.common.client.model;
-
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.model.AccessContractModel;
-import fr.gouv.vitam.common.model.ContractStatus;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.model.IngestContractModel;
-
-import org.junit.Rule;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
 /**
  * Data Transfer Object Model of access contract (DTO).
  */
 
-public class IngestContractModelTest {
+public class AccessContractModelTest {
 
-
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
     private static final Integer TENANT_ID = 0;
 
     @Test
-    @RunWithCustomExecutor
     public void testConstructor() throws Exception {
 
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        IngestContractModel contract = new IngestContractModel();
-        final String id = GUIDFactory.newIngestContractGUID(TENANT_ID).getId();
+        AccessContractModel contract = new AccessContractModel();
+        final String id = "aeaqaaaaaahfrfvaaahrgak25v5fttiaaaaq";
         String name = "aName";
         String description = "aDescription of the contract";
+        String creationdate = "08/12/2016";
         String lastupdate = "10/12/2016";
-        Set<String> archiveProfiles = new HashSet<>();
-        archiveProfiles.add("FR_FAKE");
+        String activationdate = "10/12/2016";
+        String deactivationdate = "09/12/2016";
+        Set<String> originatingAgencies = new HashSet<>();
+        originatingAgencies.add("FR_FAKE");
         contract
             .setId(id)
+            .setTenant(TENANT_ID)
             .setName(name)
             .setDescription(description).setStatus(ContractStatus.ACTIVE.name())
             .setLastupdate(lastupdate)
-            .setCreationdate(lastupdate)
-            .setActivationdate(lastupdate).
-            setDeactivationdate(lastupdate);
-        contract.setArchiveProfiles(archiveProfiles);
+            .setCreationdate(creationdate)
+            .setActivationdate(activationdate)
+            .setDeactivationdate(deactivationdate);
+        contract
+            .setOriginatingAgencies(originatingAgencies)
+            .setEveryOriginatingAgency(true);
 
         assertEquals(id, contract.getId());
         assertEquals(name, contract.getName());
         assertEquals(description, contract.getDescription());
-        assertEquals(lastupdate, contract.getCreationdate());
-        assertEquals(lastupdate, contract.getActivationdate());
-        assertEquals(lastupdate, contract.getDeactivationdate());
-        assertEquals(archiveProfiles, contract.getArchiveProfiles());
+        assertEquals(creationdate, contract.getCreationdate());
+        assertEquals(activationdate, contract.getActivationdate());
+        assertEquals(deactivationdate, contract.getDeactivationdate());
+        assertEquals(originatingAgencies, contract.getOriginatingAgencies());
+        assertTrue(contract.getEveryOriginatingAgency());
     }
 
 }

@@ -29,8 +29,8 @@ package fr.gouv.vitam.functional.administration.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.model.ContextModel;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;

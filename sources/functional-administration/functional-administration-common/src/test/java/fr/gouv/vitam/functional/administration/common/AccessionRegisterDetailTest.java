@@ -13,11 +13,12 @@ import org.junit.Test;
 
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterStatus;
+import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.model.RegisterValueDetailModel;
 
 public class AccessionRegisterDetailTest {
 

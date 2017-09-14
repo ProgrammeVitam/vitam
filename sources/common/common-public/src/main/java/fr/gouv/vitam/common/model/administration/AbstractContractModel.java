@@ -24,11 +24,9 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.model;
+package fr.gouv.vitam.common.model.administration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 
 /**
  * Data Transfer Object Model of access contract (DTO).
@@ -58,7 +56,7 @@ public class AbstractContractModel {
      * tenant id
      */
     @JsonProperty(TENANT)
-    private int tenant;
+    private Integer tenant;
 
     @JsonProperty(NAME)
     private String name;
@@ -82,16 +80,13 @@ public class AbstractContractModel {
     private String activationdate;
 
     @JsonProperty("DeactivationDate")
-	private String deactivationdate;
-
-
+    private String deactivationdate;
 
     /**
-     * Constructor without fields
-     * use for jackson
+     * Constructor without fields use for jackson
      */
     public AbstractContractModel() {
-        setTenant(ParameterHelper.getTenantParameter());
+        super();
     }
 
     /**
@@ -113,7 +108,7 @@ public class AbstractContractModel {
     /**
      * @return tenant
      */
-    public int getTenant() {
+    public Integer getTenant() {
         return tenant;
     }
 
@@ -121,13 +116,14 @@ public class AbstractContractModel {
      * @param tenant value to set working tenant
      * @return this
      */
-    public AbstractContractModel setTenant(int tenant) {
+    public AbstractContractModel setTenant(Integer tenant) {
         this.tenant = tenant;
         return this;
     }
 
     /**
      * Get the identifier of the contract
+     * 
      * @return String
      */
     public String getIdentifier() {
@@ -135,8 +131,8 @@ public class AbstractContractModel {
     }
 
     /**
-     * Set the identifier of the contract
-     * This value must be unique by tenant
+     * Set the identifier of the contract This value must be unique by tenant
+     * 
      * @param identifier as String
      * @return this
      */
@@ -147,24 +143,27 @@ public class AbstractContractModel {
 
     /**
      * Get name of the contract
+     * 
      * @return name as String
      */
     public String getName() {
-    	return this.name;
+        return this.name;
     }
 
     /**
      * Set or change the contract name
+     * 
      * @param name as String to set
      * @return this
      */
     public AbstractContractModel setName(String name) {
         this.name = name;
-    	return this;
+        return this;
     }
 
     /**
      * Get the contract description
+     * 
      * @return description of contract
      */
     public String getDescription() {
@@ -173,32 +172,35 @@ public class AbstractContractModel {
 
     /**
      * Set or change the contract description
+     * 
      * @param description to set
      * @return this
      */
     public AbstractContractModel setDescription(String description) {
         this.description = description;
-    	return this;
+        return this;
     }
 
-        
+
     /**
      * Get the contract status
+     * 
      * @return status of contract
      */
     public String getStatus() {
         return this.status;
     }
-    
+
 
     /**
      * Set or change the contract status
+     * 
      * @param status toi set
      * @return this
      */
     public AbstractContractModel setStatus(String status) {
         this.status = status;
-    	return this;
+        return this;
     }
 
     /**
@@ -214,14 +216,14 @@ public class AbstractContractModel {
      */
     public AbstractContractModel setCreationdate(String creationdate) {
         this.creationdate = creationdate;
-    	return this;
+        return this;
     }
 
     /**
      * @return last update of contract
      */
     public String getLastupdate() {
-    	return this.lastupdate;
+        return this.lastupdate;
     }
 
     /**
@@ -230,14 +232,14 @@ public class AbstractContractModel {
      */
     public AbstractContractModel setLastupdate(String lastupdate) {
         this.lastupdate = lastupdate;
-    	return this;
+        return this;
     }
 
     /**
      * @return the activation date of contracr
      */
     public String getActivationdate() {
-    	return this.activationdate;
+        return this.activationdate;
     }
 
     /**
@@ -245,15 +247,15 @@ public class AbstractContractModel {
      * @return this
      */
     public AbstractContractModel setActivationdate(String activationdate) {
-    	this.activationdate = activationdate;
-    	return this;
+        this.activationdate = activationdate;
+        return this;
     }
 
     /**
      * @return the desactivation date of contract
      */
     public String getDeactivationdate() {
-    	return this.deactivationdate;
+        return this.deactivationdate;
     }
 
     /**
@@ -261,8 +263,8 @@ public class AbstractContractModel {
      * @return this
      */
     public AbstractContractModel setDeactivationdate(String deactivationdate) {
-    	this.deactivationdate = deactivationdate;
-    	return this;
+        this.deactivationdate = deactivationdate;
+        return this;
     }
 
 }

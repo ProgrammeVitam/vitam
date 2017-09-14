@@ -31,7 +31,7 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.functional.administration.client.model.ProfileModel;
+import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
