@@ -121,6 +121,8 @@ public class AccessStep {
     private StatusCode statusCode;
 
     private Status auditStatus;
+    private static String savedUnit;
+    private RequestResponse requestResponse;
 
     public AccessStep(World world) {
         this.world = world;
@@ -324,6 +326,18 @@ public class AccessStep {
             new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()), queryJSON
         );
 
+        the_status_of_the_request(status);
+    }
+
+
+    /**
+     * check if the status of the select result is unauthorized
+     *
+     * @param status
+     * @throws Throwable
+     */
+    @Then("^le statut de la requete est (.*)$")
+    public void the_status_of_the_request(String status) throws Throwable {
         Status expectedStatus = Status.fromStatusCode(requestResponse.getHttpCode());
 
         assertThat(expectedStatus).as("Invalid status %d", requestResponse.getHttpCode()).isNotNull();
@@ -373,6 +387,19 @@ public class AccessStep {
      */
     @When("^j'utilise la requête suivante$")
     public void i_use_the_following_query(String query) throws Throwable {
+        this.query = query;
+        if (world.getOperationId() != null) {
+            this.query = this.query.replace(OPERATION_ID, world.getOperationId());
+        }
+    }
+    /**
+     * define a query to reuse it after
+     *
+     * @param query
+     * @throws Throwable
+     */
+    @When("^j'utilise la requête suivante avec l'identifient sauvégardé$")
+    public void i_use_the_following_query_with_saved(String query) throws Throwable {
         this.query = query;
         if (world.getOperationId() != null) {
             this.query = this.query.replace(OPERATION_ID, world.getOperationId());
@@ -451,6 +478,7 @@ public class AccessStep {
         JsonNode queryJSON = JsonHandler.getFromString(query);
         // get id of last result
         String unitId = getValueFromResult("#id", 0);
+        savedUnit = unitId;
         RequestResponse<JsonNode> requestResponse =
             world.getAccessClient().updateUnitbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()),
                 queryJSON, unitId);
@@ -462,6 +490,22 @@ public class AccessStep {
             Fail.fail("request selectUnit return an error: " + vitamError.getCode());
         }
     }
+
+
+    /**
+     * update an archive unit according to the query define before
+     *
+     * @throws Throwable
+     */
+    @When("^je modifie l'unité archivistique avec la requete$")
+    public void update_archive_unit_with_query(String query) throws Throwable {
+        JsonNode queryJSON = JsonHandler.getFromString(query);
+        // get id of last result
+    requestResponse =
+            world.getAccessClient().updateUnitbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()), queryJSON, savedUnit);
+
+    }
+
 
 
     /**

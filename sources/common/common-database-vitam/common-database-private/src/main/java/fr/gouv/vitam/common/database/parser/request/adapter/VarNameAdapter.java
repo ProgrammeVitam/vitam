@@ -50,7 +50,6 @@ public class VarNameAdapter {
     }
 
     /**
-     *
      * @return True if the adapter is a Internal VarnameAdapter
      */
     public boolean metadataAdapter() {
@@ -58,7 +57,6 @@ public class VarNameAdapter {
     }
 
     /**
-     *
      * @param name String
      * @return null
      * @throws InvalidParseOperationException invalid parse operation exception
@@ -73,6 +71,9 @@ public class VarNameAdapter {
             } else {
                 realname = name.substring(1);
             }
+            if (!this.metadataAdapter() && ParserTokens.PROJECTIONARGS.notAllowedOnSetExternal(name)) {
+                throw new InvalidParseOperationException("Illegal variable name found: " + name);
+            }
             if (!this.metadataAdapter() && !ParserTokens.PROJECTIONARGS.isValid(realname)) {
                 throw new InvalidParseOperationException("Illegal variable name found: " + name);
             }
@@ -84,7 +85,7 @@ public class VarNameAdapter {
      * Set Vars = Value (Json)
      *
      * @param currentObject ObjectNode
-     * @param request JsonNode
+     * @param request       JsonNode
      * @throws InvalidParseOperationException invalid parse operation exception
      */
     public void setVarsValue(ObjectNode currentObject, JsonNode request) throws InvalidParseOperationException {
@@ -103,9 +104,9 @@ public class VarNameAdapter {
     /**
      * Set simple Var (no value)
      *
-     * @param req QUERY
+     * @param req           QUERY
      * @param currentObject ObjectNode
-     * @param request JsonNode
+     * @param request       JsonNode
      * @throws InvalidParseOperationException invalid parse operation exception
      */
     public void setVar(QUERY req, ObjectNode currentObject, JsonNode request) throws InvalidParseOperationException {

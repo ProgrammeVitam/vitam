@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.parser.request.adapter;
 
+import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
@@ -54,6 +55,10 @@ public class VarNameUpdateAdapter extends VarNameAdapter {
     public String getVariableName(String name) throws InvalidParseOperationException {
         if (!adapter.metadataAdapter() && PROJECTIONARGS.notAllowedOnSet(name)) {
             throw new InvalidParseOperationException("Name not allowed in Update: " + name);
+        }
+
+        if (!this.metadataAdapter() && ParserTokens.PROJECTIONARGS.notAllowedOnSetExternal(name)) {
+            throw new InvalidParseOperationException("Illegal variable name found: " + name);
         }
         return adapter.getVariableName(name);
     }
