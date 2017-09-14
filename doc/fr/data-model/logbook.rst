@@ -24,7 +24,7 @@ Ces opérations sont :
 - Préservation (non implémentée dans la release en cours)
 - Vérification (implémentée dans la release en cours)
 - Sécurisation (implémentée dans la release en cours)
-
+  
 Les valeurs correspondant à ces opérations dans les journaux sont détaillées dans l'annexe 5.3.
 
 Exemple de JSON stocké dans la collection
@@ -33,59 +33,55 @@ Exemple de JSON stocké dans la collection
 Extrait d'un JSON correspondant à une opération d'entrée terminée avec succès.
 
 ::
-
+           
  {
-    "_id": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
-    "evId": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
+    "_id": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
+    "evId": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
     "evType": "PROCESS_SIP_UNITARY",
-    "evDateTime": "2017-06-29T09:23:21.142",
-    "evDetData": "{\"evDetDataType\":\"MASTER\",\"EvDetailReq\":\"Jeu de test avec arborescence complexe\",\"EvDateTimeReq\":\"2016-11-22T13:50:57\",\"ArchivalAgreement\":\"ArchivalAgreement0\",\"AgIdTrans\":\"Identifier5\"}",
-    "evIdProc": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
+    "evDateTime": "2017-09-12T12:08:33.166",
+    "evDetData": "{\n  \"EvDetailReq\" : \"Cartes postales (Grande Collecte)\",\n  \"EvDateTimeReq\" : \"2016-10-12T16:28:40\",\n  \"ArchivalAgreement\" : \"ArchivalAgreement0\",\n  \"ServiceLevel\" : null\n}",
+    "evIdProc": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
     "evTypeProc": "INGEST",
     "outcome": "STARTED",
     "outDetail": "PROCESS_SIP_UNITARY.STARTED",
-    "outMessg": "Début du processus d'entrée du SIP : aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
-    "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1048375580,\"SiteId\":1,\"GlobalPlatformId\":243069212}",
+    "outMessg": "Début du processus d'entrée du SIP : aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
+    "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1211004455,\"SiteId\":1,\"GlobalPlatformId\":137262631}",
     "agIdApp": null,
-    "agIdAppSession": null,
-    "evIdReq": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
-    "agIdSubm": null,
-    "agIdOrig": null,
-    "obId": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
+    "evIdAppSession": null,
+    "evIdReq": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
+    "agIdExt": "{\"originatingAgency\":\"Identifier0\",\"TransferringAgency\":\"ARCHIVES DEPARTEMENTALES DE LA VENDEE\",\"ArchivalAgency\":\"ARCHIVES DEPARTEMENTALES DE LA VENDEE\"}",
+    "rightsStatementIdentifier": "{\"ArchivalAgreement\":\"ArchivalAgreement0\"}",
+    "obId": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
     "obIdReq": null,
-    "obIdIn": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
+    "obIdIn": "Cartes postales (Grande Collecte)",
     "events": [
         {
-            "evId": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
-            "evType": "PROCESS_SIP_UNITARY",
-            "evDateTime": "2017-06-29T09:23:21.142",
+            "evId": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
+            "evType": "STP_SANITY_CHECK_SIP",
+            "evDateTime": "2017-09-12T12:08:33.166",
             "evDetData": null,
-            "evIdProc": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
+            "evIdProc": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
             "evTypeProc": "INGEST",
             "outcome": "STARTED",
-            "outDetail": "PROCESS_SIP_UNITARY.STARTED",
+            "outDetail": "STP_SANITY_CHECK_SIP.STARTED",
             "outMessg": "Début du processus des contrôles préalables à l'entrée",
-            "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1048375580,\"SiteId\":1,\"GlobalPlatformId\":243069212}",
-            "evIdReq": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
-            "obId": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
-            "obIdReq": null,
-            "obIdIn": null
+            "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1211004455,\"SiteId\":1,\"GlobalPlatformId\":137262631}",
+            "evIdReq": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
+            "obId": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq"
         },
         {
-            "evId": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
+            "evId": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
             "evType": "SANITY_CHECK_SIP",
-            "evDateTime": "2017-06-29T09:23:21.206",
+            "evDateTime": "2017-09-12T12:08:33.219",
             "evDetData": null,
-            "evIdProc": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
+            "evIdProc": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
             "evTypeProc": "INGEST",
             "outcome": "STARTED",
             "outDetail": "SANITY_CHECK_SIP.STARTED",
             "outMessg": "Début du contrôle sanitaire",
-            "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1048375580,\"SiteId\":1,\"GlobalPlatformId\":243069212}",
-            "evIdReq": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
-            "obId": "aedqaaaaachhz4i4abx24ak46muxxkaaaaaq",
-            "obIdReq": null,
-            "obIdIn": null
+            "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1211004455,\"SiteId\":1,\"GlobalPlatformId\":137262631}",
+            "evIdReq": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
+            "obId": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq"
         },
         {
             [...]
@@ -108,7 +104,7 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
     *Ce champ existe uniquement pour la structure incluante.*
 
-"evId" (event Identifier): identifiant de l'événement
+"evId" (event Identifier): identifiant de l'événement 
     Il s'agit d'une chaîne de 36 caractères.
     Il identifie l'opération de manière unique dans la collection.
     Cet identifiant doit être l'identifiant d'un événement dans le cadre de l'opération (evIdProc) et doit donc être différent par paire (début/fin).
@@ -132,17 +128,15 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
     Donne plus de détail sur l'événement ou son résultat.
     Par exemple, pour l'étape ATR_NOTIFICATION, ce champ détaille le nom de l'ArchiveTransferReply, son empreinte et l'algorithme utilisé pour calculer l'empreinte.
     Sur la structure incluante du journal d'opérations d'entrée, il contient un JSON composé des champs suivants :
-
+    
     * evDetDataType : structure impactée. Chaîne de caractères. Doit correspondre à une valeur de l'énumération LogbookEvDetDataType
-    * EvDetailReq : précisions sur la demande de transfert. Chaîne de caractères. Reprend le champ "Comment" du message ArchiveTransfer.
+    * EvDetailReq : précisions sur la demande de transfert. Chaîne de caractères. Reprend le champ "Comment" du message ArchiveTransfer. 
     * EvDateTimeReq : date de la demande de transfert inscrit dans le champs evDetData. Date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes].
-    * ArchivalAgreement : contrat d'entrée. chaîne de caractères. Reprend le nom du contrat utilisé pour réaliser l'entrée, indiqué dans le champ ArchivalAgreement du message ArchiveTransfer
-    * AgIfTrans : Service versant. chaîne de caractères. Contient le nom de l'entité ayant réalisé le transfert du SIP. Reprend le contenu du champ TransferringAgency du message ArchiveTransfer
     * ServiceLevel : niveau de service. Chaîne de caractères. Reprend le champ ServiceLevel du message ArchiveTransfer
-
+    
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evIdProc" (event Identifier Process): identifiant du processus.
+"evIdProc" (event Identifier Process): identifiant du processus. 
     Il s'agit d'une chaîne de 36 caractères.
     Toutes les mêmes entrées du journal des opérations partagent la même valeur, qui est celle du champ "_id"
 
@@ -187,10 +181,10 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 "agIdApp" (agent Identifier Application): identifiant de l’application externe qui appelle la solution logicielle Vitam pour effectuer l'opération
     *Actuellement, la valeur est toujours 'null' mais sera renseignée une fois le mécanisme d'authentification mis en place. Ce champ existe uniquement pour la structure incluante.*
 
-"agIdAppSession" (agent Identifier Application Session): identifiant donnée par l’application utilisatrice externe qui appelle la solution logicielle Vitam lors de la session utilisée pour lancer l’opération.
+"evIdAppSession" (agent Identifier Application Session): identifiant donnée par l’application utilisatrice externe qui appelle la solution logicielle Vitam lors de la session utilisée pour lancer l’opération. 
     L’application externe est responsable de la gestion de cet identifiant. Il correspond à un identifiant pour une session donnée côté application externe.
 
-    *Actuellement, la valeur est toujours 'null' mais sera renseignée une fois le mécanisme d'authentification mis en place. Ce champ existe pour les structures incluantes et incluses*
+    *Actuellement, la valeur est toujours 'null' mais sera renseignée une fois le mécanisme d'authentification mis en place. Ce champ existe uniquement pour la structure incluante.*
 
 "evIdReq" (event Identifier Request): identifiant de la requête déclenchant l’opération.
     Il s'agit d'une chaîne de 36 caractères.
@@ -199,22 +193,38 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
     *Ce champ existe pour les structures incluantes et incluses*. Il s'agit du X-Application-Id.
 
-"agIdSubm" (agent Identifier Submission): identifiant du service versant.
-    Il s'agit d'une chaîne de caractères.
-    Reprend le contenu du champ SubmissionAgencyIdentifier du message ArchiveTransfer.
-    Non rempli pour l'instant.
+"agIdExt" (agent Identifier External): identifiants des agents externes mentionnés dans le message ArchiveTransfer.
+	Il s'agit pour un ingest d'un json comprennant les champs suivants :
+
+	* "originatingAgency": identifiant du service producteur.
+	    Il s'agit d'une chaîne de caractères.
+	    Reprend le contenu du champ OriginatingAgencyIdentifier du message ArchiveTransfer.
+	* "transferringAgency": identifiant du service de transfert.
+	    Il s'agit d'une chaîne de caractères.
+	    Reprend le contenu du champ TransferringAgencyIdentifier du message ArchiveTransfer.
+	* "ArchivalAgency": identifiant du service d'archivage.
+	    Il s'agit d'une chaîne de caractères.
+	    Reprend le contenu du champ ArchivalAgencyIdentifier du message ArchiveTransfer.	    
+	* "submissionAgency": identifiant du service versant.
+	    Il s'agit d'une chaîne de caractères.
+	    Reprend le contenu du champ SubmissionAgencyIdentifier du message ArchiveTransfer.
+	    Non rempli pour l'instant.
 
     *Ce champ existe uniquement pour la structure incluante.*
 
-"agIdOrig" (agent Identifier Originating): identifiant du service producteur.
-    Il s'agit d'une chaîne de caractères.
-    Reprend le contenu du champ OriginatingAgencyIdentifier du message ArchiveTransfer.
+"rightsStatementIdentifier": identifiants des données référentielles en vertue desquelle l'opération peut s'éxécuter.
+	Il s'agit pour un ingest d'un json comprennant les champs suivants :
 
-    *Ce champ existe uniquement pour la structure incluante.*
+	* ArchivalAgreement: contrat d'entrée utilisé pour réaliser l'ingest.
+	    Il s'agit d'une chaîne de caractères.
+	    Reprend le contenu du champ ArchivalAgreement du message ArchiveTransfer.	    
+	* Profil: profil utilisé pour réaliser l'ingest.
+	    Il s'agit d'une chaîne de caractères.
+	    Reprend le contenu du champ ArchiveProfil du message ArchiveTransfer.	 
 
 "obId" (object Identifier): identifiant Vitam du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
     Il s'agit d'une chaîne de 36 caractères.
-    Dans le cas d’une opération d'entrée, il s’agit du GUID de l’entrée (evIdProc).
+    Dans le cas d’une opération d'entrée, il s’agit du GUID de l’entrée (evIdProc). 
     Dans le cas d’une opération ‘Audit’, il s’agit par exemple du nom d’un lot d’archives prédéfini.
     Dans le cas d’une opération d'update, il s’agit du GUID de l'objet mis à jour.
 
@@ -242,25 +252,25 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
       *Ce champ existe uniquement pour la structure incluante.*
 
+Champ présents dans les events
+------------------------------
 
-Détail des champs du JSON stocké en base spécifiques à une opération de sécurisation
-------------------------------------------------------------------------------------
+Les events sont au minimum composés des champs suivants:
 
-Exemple de données stockées :
+      * evId 
+      * evType
+      * evDateTime
+      * evDetData
+      * evIdProc
+      * evTypeProc
+      * outcome
+      * outDetail
+      * outMessg
+      * agId
+      * evIdReq
+      * obId
 
-::
-
-	"evDetData":
-	{
-	\"evDetTechData\":\"Cycle : [ID24, ID22, ID20, ID18, ID16, ID14, ID12, ID10, ID8, ID6, ID24]\"
-  }"
-
-Dans le cas d'un évènement d'une opération d'Ingest, le champ **"evDetData"** peut contenir les champs suivants :
-
-"evDetTechData": données techniques informatives qui seront remontées dans l'ATR.
-      Format String
-      ``Exemple : "Cycle : [ID24, ID22, ID20, ID18, ID16, ID14, ID12, ID10, ID8, ID6, ID24]"``
-
+D'autres champs peuvent apparaitent dans certains events lorsqu'ils mettent à jour le master.
 
 Détail des champs du JSON stocké en base spécifiques à une opération de sécurisation
 ------------------------------------------------------------------------------------
@@ -300,11 +310,11 @@ Dans le cas de l'événement final d'une opération de sécurisation du LogbookO
       ``Exemple : "2016-08-17T08:26:04.227"``
 
 "MinusOneMonthLogbookTraceabilityDate": date de l'opération de sécurisation passée d'un mois.
-      Il s'agit  de la date de début de la précédente opération de sécurisation du même type réalisée un mois avant au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
+      Il s'agit  de la date de début de la précédente opération de sécurisation du même type réalisée un mois avant au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] 
       ``Exemple : "2016-08-17T08:26:04.227"``
 
 "MinusOneYeargbookTraceabilityDate": date de l'opération de sécurisation passée d'un an.
-     Il s'agit  de la date de début de la précédente opération de sécurisation du même type réalisée un an avant au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
+     Il s'agit  de la date de début de la précédente opération de sécurisation du même type réalisée un an avant au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] 
      ``Exemple : "2016-08-17T08:26:04.227"``
 
 "Hash": Empreinte racine.
@@ -394,7 +404,7 @@ Extrait d'un JSON correspondant à un journal de cycle de vie d'une unité archi
         },{
 
         [...]
-
+        
         }
     ],
     "_tenant": 1,
@@ -411,7 +421,7 @@ Détail des champs du JSON stocké en base
     *Ce champ existe uniquement pour la structure incluante.*
 
 "evId" (event Identifier): identifiant de l'événement.
-    Il est constitué d'une chaîne de 36 caractères correspondant à un GUID.
+    Il est constitué d'une chaîne de 36 caractères correspondant à un GUID. 
     Il identifie l'événement de manière unique dans la base.
 
     *Ce champ existe pour les structures incluantes et incluses*
@@ -429,7 +439,7 @@ Détail des champs du JSON stocké en base
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evIdProc" (event Identifier Process): identifiant du processus.
+"evIdProc" (event Identifier Process): identifiant du processus. 
     Il s'agit d'une chaîne de 36 caractères.
     Toutes les mêmes entrées du journal du cycle de vie partagent la même valeur, qui est celle du champ "_id"
 
@@ -583,9 +593,9 @@ Exemple de JSON stocké en base
             5aa0d3541f6128389ad60c8effbdc63b94df9a2e02bb\"} ",
         },
         {
-
+            
             [...]
-
+            
         }
     ],
     "_tenant": 0,
@@ -621,7 +631,7 @@ Détail des champs du JSON stocké en base
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"evIdProc" (event Identifier Process): identifiant du processus.
+"evIdProc" (event Identifier Process): identifiant du processus. 
     Il s'agit d'une chaîne de 36 caractères.
     Toutes les mêmes entrées du journal du cycle de vie partagent la même valeur, qui est celle du champ "_id".
 
