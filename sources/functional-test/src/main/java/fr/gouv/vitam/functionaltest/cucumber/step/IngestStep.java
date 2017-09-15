@@ -111,7 +111,7 @@ public class IngestStep {
     @When("^je télécharge le SIP")
     public void upload_this_sip() throws IOException, VitamException, IOException {
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
-            RequestResponse<JsonNode> response = world.getIngestClient()
+            RequestResponse response = world.getIngestClient()
                 .upload(inputStream, world.getTenantId(), DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
             world.setOperationId(operationId);
@@ -135,7 +135,7 @@ public class IngestStep {
     public void upload_this_plan() throws IOException, VitamException {
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
 
-            RequestResponse<JsonNode> response = world.getIngestClient()
+            RequestResponse<Void> response = world.getIngestClient()
                 .upload(inputStream, world.getTenantId(), FILING_SCHEME.name(), ProcessAction.RESUME.name());
 
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
@@ -162,7 +162,7 @@ public class IngestStep {
     @When("^je télécharge l'arbre")
     public void upload_this_tree() throws IOException, VitamException {
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
-            RequestResponse<JsonNode> response = world.getIngestClient()
+            RequestResponse response = world.getIngestClient()
                 .upload(inputStream, world.getTenantId(), HOLDING_SCHEME.name(), ProcessAction.RESUME.name());
 
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);

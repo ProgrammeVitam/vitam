@@ -75,6 +75,7 @@ import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
+import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
@@ -573,7 +574,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
 
             try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
-                final RequestResponse<JsonNode> finalResponse =
+                final RequestResponse<Void> finalResponse =
                     client.upload(new FileInputStream(temporarSipFile), tenantId, contextId, action);
 
                 int responseStatus = finalResponse.getHttpCode();
@@ -867,19 +868,19 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("admin:formats:read")
     public Response getFormatById(@Context HttpHeaders headers, @PathParam("idFormat") String formatId,
         String options) {
-        RequestResponse result = null;
+        RequestResponse<FileFormatModel> result = null;
 
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             ParametersChecker.checkParameter("Format Id is mandatory", formatId);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(formatId));
-            result = adminClient.findDocumentById(AdminCollections.FORMATS, formatId, getTenantId(headers));
+            result = adminClient.findFormatById(formatId, getTenantId(headers), getAccessContractId(headers));
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();
-        } catch (final AccessExternalClientNotFoundException e) {
+        } catch (final VitamClientException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
         } catch (final Exception e) {
@@ -1239,19 +1240,19 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("admin:rules:read")
     public Response getRuleById(@Context HttpHeaders headers, @PathParam("id_rule") String ruleId, String options) {
-        RequestResponse result = null;
+        RequestResponse<FileRulesModel> result = null;
 
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             ParametersChecker.checkParameter("rule Id is mandatory", ruleId);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
-            result = adminClient.findDocumentById(AdminCollections.RULES, ruleId, getTenantId(headers));
+            result = adminClient.findRuleById(ruleId, getTenantId(headers), getAccessContractId(headers));
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();
-        } catch (final AccessExternalClientNotFoundException e) {
+        } catch (final VitamClientException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.NOT_FOUND).build();
         } catch (final Exception e) {
@@ -1843,6 +1844,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * Gets contracts by name
+     * @param headers HTTP Headers
      *
      * @param id if of the contract
      * @return Response
@@ -1855,8 +1857,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response findContractsById(@Context HttpHeaders headers, @PathParam("id") String id) {
 
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            RequestResponse response =
-                adminClient.findDocumentById(AdminCollections.ENTRY_CONTRACTS, id, getTenantId(headers));
+            RequestResponse<IngestContractModel> response =
+                adminClient.findIngestContractById(id, getTenantId(headers), getAccessContractId(headers));
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).entity(response).build();
             }
@@ -1963,7 +1965,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("accesscontracts:read")
-    public Response findAccessContract(@Context HttpHeaders headers, String select) {
+    public Response findAccessContracts(@Context HttpHeaders headers, String select) {
         try {
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(select);
 
@@ -2000,11 +2002,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("accesscontracts:read")
-    public Response findAccessContracts(@Context HttpHeaders headers, @PathParam("id") String id) {
+    public Response findAccessContract(@Context HttpHeaders headers, @PathParam("id") String id) {
 
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            RequestResponse response =
-                adminClient.findDocumentById(AdminCollections.ACCESS_CONTRACTS, id, getTenantId(headers));
+            RequestResponse<AccessContractModel> response =
+                adminClient.findAccessContractById(id, getTenantId(headers), getAccessContractId(headers));
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).entity(response).build();
             }
@@ -2192,8 +2194,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("contexts:read")
     public Response findContextByID(@Context HttpHeaders headers, @PathParam("id") String id) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            RequestResponse response =
-                adminClient.findDocumentById(AdminCollections.CONTEXTS, id, getTenantId(headers));
+            RequestResponse<ContextModel> response =
+                adminClient.findContextById(id, getTenantId(headers), getAccessContractId(headers));
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).entity(response).build();
             }
@@ -2365,8 +2367,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response findProfileByID(@Context HttpHeaders headers, @PathParam("id") String id) {
 
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            RequestResponse response =
-                adminClient.findDocumentById(AdminCollections.PROFILE, id, getTenantId(headers));
+            RequestResponse<ProfileModel> response =
+                adminClient.findProfileById(id, getTenantId(headers), getAccessContractId(headers));
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).entity(response).build();
             }

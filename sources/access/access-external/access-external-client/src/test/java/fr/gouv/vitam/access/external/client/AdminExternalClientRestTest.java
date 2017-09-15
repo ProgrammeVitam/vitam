@@ -158,14 +158,14 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
             return expectedResponse.get();
         }
 
-        @POST
+        @GET
         @Path("/{collections}/{id_document}")
         @Produces(MediaType.APPLICATION_JSON)
         public Response findDocumentByID(@PathParam("collections") String collection,
             @PathParam("id_document") String documentId) {
             return expectedResponse.get();
         }
-
+        
         @POST
         @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}/accession-register-detail")
         @Consumes(MediaType.APPLICATION_JSON)
@@ -292,7 +292,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getFormat()).build());
         assertEquals(
-            client.findDocumentById(AdminCollections.FORMATS, ID, TENANT_ID).toString(),
+            client.findFormatById(ID, TENANT_ID, CONTRACT).toString(),
             ClientMockResultHelper.getFormat().toString());
     }
 
@@ -300,15 +300,15 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     public void testFindDocumentByIdAccessExternalClientNotFoundException()
         throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        assertThat(client.findDocumentById(AdminCollections.FORMATS, ID, TENANT_ID).getHttpCode())
-            .isEqualTo(Status.UNAUTHORIZED.getStatusCode());
+        assertThat(client.findFormatById(ID, TENANT_ID, CONTRACT).getHttpCode())
+            .isEqualTo(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
     public void testFindDocumentByIdAccessExternalClientException()
         throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        assertThat(client.findDocumentById(AdminCollections.FORMATS, ID, TENANT_ID).getHttpCode())
+        assertThat(client.findFormatById(ID, TENANT_ID, CONTRACT).getHttpCode())
             .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
@@ -453,15 +453,15 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
      *
      * @throws FileNotFoundException
      * @throws InvalidParseOperationException
-     * @throws VitamClientInternalException
+     * @throws VitamClientException
      */
     @Test
     public void findAccessContractsByIdThenReturnEmpty()
-        throws FileNotFoundException, InvalidParseOperationException, VitamClientInternalException,
-        AccessExternalClientException {
+        throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException,
+        VitamClientException {
 
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
-        RequestResponse resp = client.findDocumentById(AdminCollections.ACCESS_CONTRACTS, "fakeId", TENANT_ID);
+        RequestResponse<AccessContractModel> resp = client.findAccessContractById("fakeId", TENANT_ID, CONTRACT);
         assertThat(resp).isInstanceOf(RequestResponseOK.class);
         assertThat(((RequestResponseOK) resp).getResults()).hasSize(0);
     }
@@ -488,15 +488,15 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
      *
      * @throws FileNotFoundException
      * @throws InvalidParseOperationException
-     * @throws VitamClientInternalException
+     * @throws VitamClientException
      */
     @Test
     public void findIngestContractsByIdThenReturnEmpty()
-        throws FileNotFoundException, InvalidParseOperationException, VitamClientInternalException,
-        AccessExternalClientException {
+        throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException,
+        VitamClientException {
 
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
-        RequestResponse resp = client.findDocumentById(AdminCollections.ENTRY_CONTRACTS, "fakeId", TENANT_ID);
+        RequestResponse<IngestContractModel> resp = client.findIngestContractById("fakeId", TENANT_ID, CONTRACT);
         assertThat(resp).isInstanceOf(RequestResponseOK.class);
         assertThat(((RequestResponseOK) resp).getResults()).hasSize(0);
     }
@@ -524,15 +524,15 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
      *
      * @throws FileNotFoundException
      * @throws InvalidParseOperationException
-     * @throws VitamClientInternalException
+     * @throws VitamClientException
      */
     @Test
     public void findContextsByIdThenReturnEmpty()
-        throws FileNotFoundException, InvalidParseOperationException, VitamClientInternalException,
-        AccessExternalClientException {
+        throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException,
+        VitamClientException {
 
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
-        RequestResponse resp = client.findDocumentById(AdminCollections.CONTEXTS, "fakeId", TENANT_ID);
+        RequestResponse<ContextModel> resp = client.findContextById("fakeId", TENANT_ID, CONTRACT);
         assertThat(resp).isInstanceOf(RequestResponseOK.class);
         assertThat(((RequestResponseOK) resp).getResults()).hasSize(0);
     }
@@ -639,15 +639,15 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     /**
      * @throws FileNotFoundException
      * @throws InvalidParseOperationException
-     * @throws VitamClientInternalException
+     * @throws VitamClientException
      */
     @Test
     public void findProfilesByIdThenReturnEmpty()
-        throws FileNotFoundException, InvalidParseOperationException, VitamClientInternalException,
-        AccessExternalClientException {
+        throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException,
+        VitamClientException {
 
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
-        RequestResponse resp = client.findDocumentById(AdminCollections.PROFILE, "fakeId", TENANT_ID);
+        RequestResponse<ProfileModel> resp = client.findProfileById("fakeId", TENANT_ID, CONTRACT);
         assertThat(resp).isInstanceOf(RequestResponseOK.class);
         assertThat(((RequestResponseOK) resp).getResults()).hasSize(0);
     }

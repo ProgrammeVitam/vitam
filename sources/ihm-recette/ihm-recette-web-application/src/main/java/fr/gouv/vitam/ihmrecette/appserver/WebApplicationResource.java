@@ -804,9 +804,31 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                         result = adminExternalClient.getAccessionRegisterDetail(objectID, criteria,
                                             tenantId, contractId);
                                     } else {
-                                        result =
-                                            adminExternalClient.findDocumentById(requestedAdminCollection, objectID,
-                                                tenantId);
+                                        switch (requestedAdminCollection) {
+                                            case FORMATS:
+                                                result = adminExternalClient.findFormatById(objectID, tenantId, contractId);
+                                                break;
+                                            case RULES:
+                                                result = adminExternalClient.findRuleById(objectID, tenantId, contractId);
+                                                break;
+                                            case ACCESS_CONTRACTS:
+                                                result =
+                                                    adminExternalClient.findAccessContractById(objectID, tenantId, contractId);
+                                                break;
+                                            case ENTRY_CONTRACTS:
+                                                result =
+                                                    adminExternalClient.findIngestContractById(objectID, tenantId, contractId);
+                                                break;
+                                            case CONTEXTS:
+                                                result = adminExternalClient.findContextById(objectID, tenantId, contractId);
+                                                break;
+                                            case PROFILE:
+                                                result = adminExternalClient.findProfileById(objectID, tenantId, contractId);
+                                                break;
+                                            default:
+                                                throw new UnsupportedOperationException(
+                                                    "No implementation found for collection " + requestedCollection);
+                                        }
                                     }
                                 }
                                 break;

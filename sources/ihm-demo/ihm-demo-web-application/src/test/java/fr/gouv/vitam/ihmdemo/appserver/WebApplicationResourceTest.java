@@ -549,7 +549,7 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testUploadSipOK() throws Exception {
-        final RequestResponse mockResponse = Mockito.mock(RequestResponse.class);
+        final RequestResponse<Void> mockResponse = Mockito.mock(RequestResponse.class);
         final IngestExternalClient ingestClient = PowerMockito.mock(IngestExternalClient.class);
         final IngestExternalClientFactory ingestFactory = PowerMockito.mock(IngestExternalClientFactory.class);
         PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
@@ -709,8 +709,8 @@ public class WebApplicationResourceTest {
 
         final IngestExternalClient ingestClient = PowerMockito.mock(IngestExternalClient.class);
         final IngestExternalClientFactory ingestFactory = PowerMockito.mock(IngestExternalClientFactory.class);
-        doThrow(new IngestExternalException("")).when(ingestClient).upload(anyObject(), anyObject(), anyObject(),
-            anyObject());
+        doThrow(new IngestExternalException("IngestExternalException")).when(ingestClient).upload(anyObject(),
+            anyObject(), anyObject(), anyObject());
         PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
 
@@ -793,7 +793,7 @@ public class WebApplicationResourceTest {
     public void testSearchFormatByIdOK() throws Exception {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
-        doReturn(ClientMockResultHelper.getFormat()).when(adminClient).findDocumentById(anyObject(), anyObject(),
+        doReturn(ClientMockResultHelper.getFormat()).when(adminClient).findFormatById(anyObject(), anyObject(),
             anyObject());
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
@@ -808,8 +808,8 @@ public class WebApplicationResourceTest {
     public void testSearchFormatByIdNotFound() throws Exception {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
-        PowerMockito.doThrow(new AccessExternalClientNotFoundException("")).when(adminClient)
-            .findDocumentById(anyObject(), anyObject(), anyObject());
+        PowerMockito.doThrow(new VitamClientException("VitamClientException"))
+            .when(adminClient).findFormatById(anyObject(), anyObject(), anyObject());
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
@@ -1201,8 +1201,8 @@ public class WebApplicationResourceTest {
     public void testSearchRuleByIdNotFound() throws Exception {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
-        PowerMockito.doThrow(new AccessExternalClientNotFoundException("")).when(adminClient)
-            .findDocumentById(anyObject(), anyObject(), anyObject());
+        PowerMockito.doThrow(new VitamClientException("VitamClientException"))
+            .when(adminClient).findRuleById(anyObject(), anyObject(), anyObject());
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
@@ -1402,7 +1402,7 @@ public class WebApplicationResourceTest {
         AbstractMockClient.FakeInboundResponse fakeResponse =
             new AbstractMockClient.FakeInboundResponse(Status.NOT_FOUND, JsonHandler.writeToInpustream(error),
                 MediaType.APPLICATION_OCTET_STREAM_TYPE, new MultivaluedHashMap<String, Object>());
-        
+
         Mockito.doReturn(fakeResponse).when(ingestClient).downloadObjectAsync(
             anyObject(),
             anyObject(), anyObject());

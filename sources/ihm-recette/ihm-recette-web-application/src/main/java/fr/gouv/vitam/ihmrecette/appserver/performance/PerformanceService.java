@@ -174,7 +174,7 @@ public class PerformanceService {
         try (InputStream sipInputStream = Files.newInputStream(sipDirectory.resolve(model.getFileName()),
             StandardOpenOption.READ)) {
 
-            RequestResponse<JsonNode> response =
+            RequestResponse<Void> response =
                 client.upload(sipInputStream, tenantId, DEFAULT_WORKFLOW.name(), RESUME.name());
 
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);

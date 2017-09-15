@@ -129,8 +129,7 @@ public class ContextStep {
         throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException,
         VitamClientException {
         RequestResponse<ContextModel> requestResponse =
-            world.getAdminClient().findDocumentById(AdminCollections.CONTEXTS, find_a_context_id(),
-                world.getTenantId());
+            world.getAdminClient().findContextById(find_a_context_id(), world.getTenantId(), null);
         assertThat(requestResponse.toString().contains(identifier));
     }
 

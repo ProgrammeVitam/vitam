@@ -30,8 +30,6 @@ import java.io.InputStream;
 
 import javax.ws.rs.core.Response;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.client.PoolingStatusClient;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -58,7 +56,7 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
      * @throws IngestExternalException
      */
     // TODO P0 : add file name
-    RequestResponse<JsonNode> upload(InputStream stream, Integer tenantId, String contextId, String action)
+    RequestResponse<Void> upload(InputStream stream, Integer tenantId, String contextId, String action)
         throws IngestExternalException;
 
     /**

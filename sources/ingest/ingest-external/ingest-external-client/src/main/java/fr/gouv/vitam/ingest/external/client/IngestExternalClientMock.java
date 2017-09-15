@@ -34,8 +34,6 @@ import java.util.concurrent.TimeUnit;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -62,20 +60,19 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalClientMock.class);
     private static final String FAKE_X_REQUEST_ID = "aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0";
     public static final String MOCK_INGEST_EXTERNAL_RESPONSE_STREAM = "VITAM-Ingest External Client Mock Response";
-    private static final String FAKE_EXECUTION_STATUS = "Fake";
     final int TENANT_ID = 0;
     public static final String ID = "identifier1";
     protected StatusCode globalStatus;
 
     @Override
-    public RequestResponse<JsonNode> upload(InputStream stream, Integer tenantId, String contextId, String action)
+    public RequestResponse<Void> upload(InputStream stream, Integer tenantId, String contextId, String action)
         throws IngestExternalException {
         if (stream == null) {
             throw new IngestExternalException("stream is null");
         }
         StreamUtils.closeSilently(stream);
 
-        RequestResponseOK<JsonNode> r = new RequestResponseOK<>();
+        RequestResponseOK r = new RequestResponseOK<>();
         r.setHttpCode(Status.ACCEPTED.getStatusCode());
         r.addHeader(FAKE_X_REQUEST_ID, X_REQUEST_ID);
 

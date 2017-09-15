@@ -74,7 +74,7 @@ public class IngestExternalClientMockTest {
         assertNotNull(client);
 
         final InputStream firstStream = IOUtils.toInputStream(MOCK_INPUT_STREAM, CharsetUtils.UTF8);
-        RequestResponse<JsonNode> requestResponse =
+        RequestResponse<Void> requestResponse =
             client.upload(firstStream, TENANT_ID, CONTEXT_ID, EXECUTION_MODE);
 
         assertEquals(requestResponse.getHttpCode(), 202);

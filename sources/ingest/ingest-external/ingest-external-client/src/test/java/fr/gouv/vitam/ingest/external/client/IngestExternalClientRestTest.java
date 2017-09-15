@@ -225,8 +225,7 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
             .thenReturn(Response.accepted().header(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID).build());
 
         final InputStream streamToUpload = IOUtils.toInputStream(MOCK_INPUTSTREAM_CONTENT, CharsetUtils.UTF_8);
-        RequestResponse<JsonNode> resp = client.upload(streamToUpload, TENANT_ID, CONTEXT_ID, EXECUTION_MODE);
-
+        RequestResponse<Void> resp = client.upload(streamToUpload, TENANT_ID, CONTEXT_ID, EXECUTION_MODE);
         assertEquals(resp.getHttpCode(), Status.ACCEPTED.getStatusCode());
     }
 
