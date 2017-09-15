@@ -103,6 +103,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.apache.commons.io.IOUtils;
+import org.assertj.core.util.Lists;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -380,12 +381,14 @@ public class WorkerIT {
 
             final DescriptionStep descriptionStepUnit = getDescriptionStep("integration-worker/step_units_SIP.json");
             descriptionStepUnit.getWorkParams().setObjectName(unitName());
+            descriptionStepUnit.getWorkParams().setObjectNameList(Lists.newArrayList(unitName()));
             final ItemStatus retStepStoreUnit = workerClient.submitStep(descriptionStepUnit);
             assertNotNull(retStepStoreUnit);
             assertEquals(StatusCode.OK, retStepStoreUnit.getGlobalStatus());
 
             final DescriptionStep descriptionStepOg = getDescriptionStep("integration-worker/step_objects_SIP.json");
             descriptionStepOg.getWorkParams().setObjectName(objectGroupName());
+            descriptionStepOg.getWorkParams().setObjectNameList(Lists.newArrayList(objectGroupName()));
             final ItemStatus retStepStoreOg = workerClient.submitStep(descriptionStepOg);
             assertNotNull(retStepStoreOg);
             assertEquals(StatusCode.OK, retStepStoreOg.getGlobalStatus());
@@ -436,12 +439,14 @@ public class WorkerIT {
 
             final DescriptionStep descriptionStepUnit = getDescriptionStep("integration-worker/step_units_SIP.json");
             descriptionStepUnit.getWorkParams().setObjectName(unitName());
+            descriptionStepUnit.getWorkParams().setObjectNameList(Lists.newArrayList(unitName()));
             final ItemStatus retStepStoreUnit = workerClient.submitStep(descriptionStepUnit);
             assertNotNull(retStepStoreUnit);
             assertEquals(StatusCode.OK, retStepStoreUnit.getGlobalStatus());
 
             final DescriptionStep descriptionStepOg = getDescriptionStep("integration-worker/step_objects_SIP.json");
             descriptionStepOg.getWorkParams().setObjectName(objectGroupName());
+            descriptionStepOg.getWorkParams().setObjectNameList(Lists.newArrayList(objectGroupName()));
             final ItemStatus retStepStoreOg = workerClient.submitStep(descriptionStepOg);
             assertNotNull(retStepStoreOg);
             assertEquals(StatusCode.OK, retStepStoreOg.getGlobalStatus());
@@ -575,6 +580,7 @@ public class WorkerIT {
         descriptionStep.getWorkParams().setUrlMetadata(METADATA_URL);
         descriptionStep.getWorkParams().setUrlWorkspace(WORKSPACE_URL);
         descriptionStep.getWorkParams().setObjectName("SIP/manifest.xml");
+        descriptionStep.getWorkParams().setObjectNameList(Lists.newArrayList("SIP/manifest.xml"));
         descriptionStep.getWorkParams().setLogbookTypeProcess(LogbookTypeProcess.INGEST);
         return descriptionStep;
     }

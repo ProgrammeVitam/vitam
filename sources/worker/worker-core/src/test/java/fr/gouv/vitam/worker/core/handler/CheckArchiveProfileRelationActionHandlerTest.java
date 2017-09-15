@@ -12,6 +12,7 @@ import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -61,7 +62,7 @@ public class CheckArchiveProfileRelationActionHandlerTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private HandlerIO handlerIO = mock(HandlerIO.class);
 
@@ -79,20 +80,21 @@ public class CheckArchiveProfileRelationActionHandlerTest {
     @Test
     @RunWithCustomExecutor
     public void testhandlerWorking()
-        throws XMLStreamException, IOException, ProcessingException, InvalidParseOperationException,
-        InvalidCreateOperationException, AdminManagementClientServerException,
-        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+            throws XMLStreamException, IOException, ProcessingException, InvalidParseOperationException,
+            InvalidCreateOperationException, AdminManagementClientServerException,
+            ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         when(handlerIO.getInput(0)).thenReturn(PROFILE_IDENTIFIER);
         when(handlerIO.getInput(1)).thenReturn(CONTRACT_NAME);
 
         when(adminClient.findIngestContracts(anyObject()))
-            .thenReturn(createIngestContract(ContractStatus.ACTIVE.toString()));
+                .thenReturn(createIngestContract(ContractStatus.ACTIVE.toString()));
 
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
-            .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
+                        .setObjectNameList(Lists.newArrayList("objectName.json"))
+                        .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         handler = new CheckArchiveProfileRelationActionHandler();
         assertEquals(CheckArchiveProfileRelationActionHandler.getId(), HANDLER_ID);
 

@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.automation.IEventsProcessEngine;
 import fr.gouv.vitam.processing.common.automation.IEventsState;
 import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
@@ -66,7 +67,6 @@ import static org.mockito.Mockito.when;
 /**
  * Do not forget init method on test method !
  */
-@Ignore
 public class ProcessEngineImplTest {
     private ProcessEngine processEngine;
     private IEventsState stateMachine;
@@ -86,6 +86,7 @@ public class ProcessEngineImplTest {
 
     @Before
     public void init() throws WorkflowNotFoundException, ProcessingException {
+        LogbookOperationsClientFactory.changeMode(null);
         workParams = WorkerParametersFactory.newWorkerParameters();
         workParams.setWorkerGUID(GUIDFactory.newGUID())
             .setUrlMetadata("http://localhost:8083")

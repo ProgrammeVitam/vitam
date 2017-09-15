@@ -31,6 +31,7 @@ import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -65,15 +66,15 @@ public class CheckStorageAvailabilityActionHandlerTest {
     private static final String HANDLER_ID = "STORAGE_AVAILABILITY_CHECK";
     private GUID guid;
     private HandlerIOImpl handlerIO;
-    
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Before
     public void setUp() {
         PowerMockito.mockStatic(SedaUtilsFactory.class);
-        PowerMockito.mockStatic(SedaUtils.class);        
+        PowerMockito.mockStatic(SedaUtils.class);
         guid = GUIDFactory.newGUID();
         handlerIO = new HandlerIOImpl(guid.getId(), "workerId");
     }
@@ -90,9 +91,10 @@ public class CheckStorageAvailabilityActionHandlerTest {
         when(sedaUtils.computeTotalSizeOfObjectsInManifest(anyObject())).thenThrow(new ProcessingException(""));
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                        .setUrlMetadata("http://localhost:8083")
+                        .setObjectNameList(Lists.newArrayList("objectName.json"))
+                        .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
@@ -105,9 +107,10 @@ public class CheckStorageAvailabilityActionHandlerTest {
         when(sedaUtils.getManifestSize(anyObject())).thenReturn(new Long(83886800));
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                        .setUrlMetadata("http://localhost:8083")
+                        .setObjectNameList(Lists.newArrayList("objectName.json"))
+                        .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
@@ -122,13 +125,14 @@ public class CheckStorageAvailabilityActionHandlerTest {
 
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                        .setUrlMetadata("http://localhost:8083")
+                        .setObjectNameList(Lists.newArrayList("objectName.json"))
+                        .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
-    
+
     // This test checks that if a null is returned by the getStorageInformation, then we get an OK status, and a WARN log is displayed
     @RunWithCustomExecutor
     @Test
@@ -138,16 +142,17 @@ public class CheckStorageAvailabilityActionHandlerTest {
         PowerMockito.when(SedaUtilsFactory.create(anyObject())).thenReturn(sedaUtils);
         when(sedaUtils.computeTotalSizeOfObjectsInManifest(anyObject())).thenReturn(new Long(1024));
         when(sedaUtils.getManifestSize(anyObject())).thenReturn(new Long(1024));
-       
+
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                        .setUrlMetadata("http://localhost:8083")
+                        .setObjectNameList(Lists.newArrayList("objectName.json"))
+                        .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
-    
+
     // This test checks that if empty informations is returned by the getStorageInformation (sthg like {\"capacities\": []}), then we get an OK status, and a WARN log is displayed
     @RunWithCustomExecutor
     @Test
@@ -156,17 +161,18 @@ public class CheckStorageAvailabilityActionHandlerTest {
         final SedaUtils sedaUtils = mock(SedaUtils.class);
         PowerMockito.when(SedaUtilsFactory.create(anyObject())).thenReturn(sedaUtils);
         when(sedaUtils.computeTotalSizeOfObjectsInManifest(anyObject())).thenReturn(new Long(1024));
-        
+
         when(sedaUtils.getManifestSize(anyObject())).thenReturn(new Long(1024));
-       
+
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                        .setUrlMetadata("http://localhost:8083")
+                        .setObjectNameList(Lists.newArrayList("objectName.json"))
+                        .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
-    
+
 
 }

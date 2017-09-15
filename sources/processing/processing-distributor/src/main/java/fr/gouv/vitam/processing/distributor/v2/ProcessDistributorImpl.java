@@ -102,6 +102,9 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     private Map<String, Step> currentSteps = new HashMap<>();
     private WorkspaceClientFactory workspaceClientFactory;
 
+    private static final int batchSize =
+        VitamConfiguration.getDistributeurBatchSize() * VitamConfiguration.getWorkerBulkSize();
+
     /**
      * Empty constructor
      *
@@ -379,8 +382,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         final Set<ItemStatus> cancelled = new HashSet<>();
         final Set<ItemStatus> paused = new HashSet<>();
         while (offset < sizeList) {
-            int nextOffset = sizeList > offset + VitamConfiguration.getDistributeurBatchSize()
-                ? offset + VitamConfiguration.getDistributeurBatchSize() : sizeList;
+            int nextOffset = sizeList > offset + batchSize
+                ? offset + batchSize : sizeList;
             List<String> subList = objectsList.subList(offset, nextOffset);
             List<CompletableFuture<ItemStatus>> completableFutureList = new ArrayList<>();
             List<WorkerTask> currentWorkerTaskList = new ArrayList<>();
@@ -392,23 +395,30 @@ public class ProcessDistributorImpl implements ProcessDistributor {
              * and we have to treat all elements of this batch
              */
             boolean emptyRemainingElements = remainingElementsFromRecover.isEmpty();
-            for (String uri : subList) {
-                /**
-                 * If no remaining elements then treat all the subList
-                 * Else treat only remaining elements
-                 */
-                if (emptyRemainingElements || remainingElementsFromRecover.remove(uri)) {
-                    workerParameters.setObjectName(uri);
-                    LOGGER.debug("Work params " + workerParameters.toString());
-                    LOGGER.debug("step " + step.toString());
-                    LOGGER.debug("operationId " + requestId);
-                    final WorkerTask task = new WorkerTask(
-                        new DescriptionStep(step, ((DefaultWorkerParameters) workerParameters).newInstance()),
-                        tenantId, requestId);
-                    currentWorkerTaskList.add(task);
-                    completableFutureList.add(prepare(task, operationId, tenantId));
-                }
+
+            if (!emptyRemainingElements) {
+                subList = new ArrayList<>(subList);
+                subList.retainAll(remainingElementsFromRecover);
             }
+
+            int subOffset = 0;
+            int subListSize = subList.size();
+            while (subOffset < subListSize) {
+
+                int nextSubOffset = subListSize > subOffset + VitamConfiguration.getWorkerBulkSize()
+                    ? subOffset + VitamConfiguration.getWorkerBulkSize() : subListSize;
+                List<String> newSubList = subList.subList(subOffset, nextSubOffset);
+
+                workerParameters.setObjectNameList(newSubList);
+                final WorkerTask task = new WorkerTask(
+                    new DescriptionStep(step, ((DefaultWorkerParameters) workerParameters).newInstance()),
+                    tenantId, requestId);
+                currentWorkerTaskList.add(task);
+                completableFutureList.add(prepare(task, operationId, tenantId));
+
+                subOffset = nextSubOffset;
+            }
+
             CompletableFuture<List<ItemStatus>> sequence = sequence(completableFutureList);
             CompletableFuture<ItemStatus> reduce = sequence
                 .thenApplyAsync((List<ItemStatus> is) -> is.stream().reduce(step.getStepResponses(),

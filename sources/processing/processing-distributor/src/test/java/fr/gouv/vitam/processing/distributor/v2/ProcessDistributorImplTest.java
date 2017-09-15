@@ -18,6 +18,7 @@
 package fr.gouv.vitam.processing.distributor.v2;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -142,7 +143,7 @@ public class ProcessDistributorImplTest {
 
     @BeforeClass
     public static void tearUpBeforeClass() throws Exception {
-
+        VitamConfiguration.setWorkerBulkSize(1);
         final WorkerBean workerBean =
             new WorkerBean("DefaultWorker", "DefaultWorker", 10, 0, "status",
                 new WorkerRemoteConfiguration("localhost", 8999));
@@ -154,7 +155,9 @@ public class ProcessDistributorImplTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {}
+    public static void tearDownAfterClass() throws Exception {
+        VitamConfiguration.setWorkerBulkSize(10);
+    }
 
     /**
      * Test the constructor
@@ -386,8 +389,9 @@ public class ProcessDistributorImplTest {
 
         when(workerClient.submitStep(anyObject())).thenAnswer(invocation -> {
             DescriptionStep descriptionStep = invocation.getArgumentAt(0, DescriptionStep.class);
-            if (descriptionStep.getWorkParams().getObjectName().equals("aaa1.json")) {
-                // throw new RuntimeException("Exception While Executing aaa1");
+            System.err.println("descriptionStep.getWorkParams().getObjectNameList()"+ descriptionStep.getWorkParams().getObjectNameList());
+            if (descriptionStep.getWorkParams().getObjectNameList().iterator().next().equals("aaa1.json")) {
+                //throw new RuntimeException("Exception While Executing aaa1");
                 return getMockedItemStatus(StatusCode.KO);
             }
             return getMockedItemStatus(StatusCode.OK);
@@ -427,8 +431,8 @@ public class ProcessDistributorImplTest {
 
         when(workerClient.submitStep(anyObject())).thenAnswer(invocation -> {
             DescriptionStep descriptionStep = invocation.getArgumentAt(0, DescriptionStep.class);
-            if (descriptionStep.getWorkParams().getObjectName().equals("aaa1.json")) {
-                // throw new RuntimeException("Exception While Executing aaa1");
+            if (descriptionStep.getWorkParams().getObjectNameList().iterator().next().equals("aaa1.json")) {
+                //throw new RuntimeException("Exception While Executing aaa1");
                 return getMockedItemStatus(StatusCode.WARNING);
             }
             return getMockedItemStatus(StatusCode.OK);
@@ -569,7 +573,7 @@ public class ProcessDistributorImplTest {
 
         when(workerClient.submitStep(anyObject())).thenAnswer(invocation -> {
             DescriptionStep descriptionStep = invocation.getArgumentAt(0, DescriptionStep.class);
-            if (descriptionStep.getWorkParams().getObjectName().equals("d.json")) {
+            if (descriptionStep.getWorkParams().getObjectNameList().iterator().next().equals("d.json")) {
                 countDownLatchException.countDown();
                 throw new RuntimeException("Exception While Executing d");
             }

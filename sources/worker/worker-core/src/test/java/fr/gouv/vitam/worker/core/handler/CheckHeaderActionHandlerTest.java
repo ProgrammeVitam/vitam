@@ -44,6 +44,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
+import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -128,7 +129,8 @@ public class CheckHeaderActionHandlerTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+                    .setObjectNameList(Lists.newArrayList("objectName.json"))
+                    .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         action.getInput().add("true");
         action.getInput().add("true");
         action.getInput().add("true");
@@ -181,7 +183,8 @@ public class CheckHeaderActionHandlerTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+                    .setObjectNameList(Lists.newArrayList("objectName.json"))
+                    .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         action.getInput().add("true");
         action.getInput().add("true");
         action.getInput().add("false");

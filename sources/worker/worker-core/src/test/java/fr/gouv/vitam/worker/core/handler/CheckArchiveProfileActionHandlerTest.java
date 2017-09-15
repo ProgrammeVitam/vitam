@@ -12,6 +12,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,7 +50,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 @PowerMockIgnore("javax.net.ssl.*")
 @PrepareForTest({AdminManagementClientFactory.class})
 public class CheckArchiveProfileActionHandlerTest {
-    
+
     private CheckArchiveProfileActionHandler handler = new CheckArchiveProfileActionHandler();
     private AdminManagementClient adminClient;
     private AdminManagementClientFactory adminManagementClientFactory;
@@ -61,11 +62,11 @@ public class CheckArchiveProfileActionHandlerTest {
     private static final String PROFIL = "checkProfil/Profil20.rng";
     private static final String MANIFEST_OK = "checkProfil/manifest_ok.xml";
     private static final String MANIFEST_KO = "checkProfil/manifest_ko.xml";
-    
+
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private HandlerIO handlerIO = mock(HandlerIO.class);
 
@@ -83,26 +84,26 @@ public class CheckArchiveProfileActionHandlerTest {
     @Test
     @RunWithCustomExecutor
     public void givenProdileOKThenReturnResponseOK()
-        throws Exception {
+            throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
+                        .setObjectNameList(Lists.newArrayList("objectName.json")).setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         assertEquals(CheckArchiveProfileActionHandler.getId(), HANDLER_ID);
 
         when(handlerIO.getInput(0)).thenReturn(CONTRACT_NAME);
         when(handlerIO.getInputStreamFromWorkspace(
-                        IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE))
-        .thenReturn(PropertiesUtils.getResourceAsStream(MANIFEST_OK));
-        
+                IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE))
+                .thenReturn(PropertiesUtils.getResourceAsStream(MANIFEST_OK));
+
         when(adminClient.findProfiles(anyObject()))
-        .thenReturn(createProfileRNG());
-        
+                .thenReturn(createProfileRNG());
+
         Response mockResponse = new AbstractMockClient
-            .FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream(PROFIL),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
-        
+                .FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream(PROFIL),
+                MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+
         when(adminClient.downloadProfileFile(anyObject())).thenReturn(mockResponse);
 
         ItemStatus response = handler.execute(params, handlerIO);
@@ -112,33 +113,34 @@ public class CheckArchiveProfileActionHandlerTest {
     @Test
     @RunWithCustomExecutor
     public void givenProdileKOThenReturnResponseKO()
-        throws Exception {
+            throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
+                        .setObjectNameList(Lists.newArrayList("objectName.json"))
+                        .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         assertEquals(CheckArchiveProfileActionHandler.getId(), HANDLER_ID);
 
         when(handlerIO.getInput(0)).thenReturn(CONTRACT_NAME);
         when(handlerIO.getInputStreamFromWorkspace(
-                        IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE))
-        .thenReturn(PropertiesUtils.getResourceAsStream(MANIFEST_KO));
-        
+                IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE))
+                .thenReturn(PropertiesUtils.getResourceAsStream(MANIFEST_KO));
+
         when(adminClient.findProfiles(anyObject()))
-        .thenReturn(createProfileRNG());
-        
+                .thenReturn(createProfileRNG());
+
         Response mockResponse = new AbstractMockClient
-            .FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream(PROFIL),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
-        
+                .FakeInboundResponse(Status.OK, PropertiesUtils.getResourceAsStream(PROFIL),
+                MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+
         when(adminClient.downloadProfileFile(anyObject())).thenReturn(mockResponse);
 
         ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
         assertNotNull(response.getEvDetailData());
     }
-    
+
     private static RequestResponse createProfileRNG() throws InvalidParseOperationException {
         ProfileModel profile = new ProfileModel();
         profile.setIdentifier("PROFIL_0001");

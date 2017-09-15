@@ -11,6 +11,7 @@ import java.io.IOException;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -89,7 +90,8 @@ public class CheckIngestContractActionHandlerTest {
 
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+                    .setObjectNameList(Lists.newArrayList("objectName.json"))
+                    .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         handler = new CheckIngestContractActionHandler();
         assertEquals(CheckIngestContractActionHandler.getId(), HANDLER_ID);
 

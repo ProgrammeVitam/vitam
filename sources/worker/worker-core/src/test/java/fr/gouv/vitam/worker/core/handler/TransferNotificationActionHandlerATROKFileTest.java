@@ -41,6 +41,7 @@ import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.events.XMLEvent;
 
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -107,7 +108,8 @@ public class TransferNotificationActionHandlerATROKFileTest {
         guid = GUIDFactory.newGUID();
         params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8080")
-                .setUrlMetadata("http://localhost:8080").setObjectName("objectName.json").setCurrentStep("currentStep")
+                .setUrlMetadata("http://localhost:8080").setObjectNameList(Lists.newArrayList("objectName.json"))
+                .setObjectName("objectName.json").setCurrentStep("currentStep")
                 .setContainerName(guid.getId()).setProcessId("aeaaaaaaaaaaaaababz4aakxtykbybyaaaaq2203");
 
         LogbookOperationsClientFactory.changeMode(null);

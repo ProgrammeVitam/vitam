@@ -40,6 +40,7 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -127,6 +128,7 @@ public class StoreObjectGroupActionPluginTest {
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList(OBJECT_GROUP_GUID + ".json"))
                 .setObjectName(OBJECT_GROUP_GUID + ".json").setCurrentStep("Store ObjectGroup");
 
         final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
@@ -155,6 +157,7 @@ public class StoreObjectGroupActionPluginTest {
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList(OBJECT_GROUP_GUID + ".json"))
                 .setObjectName(OBJECT_GROUP_GUID + ".json").setCurrentStep("Store ObjectGroup");
 
         final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
@@ -184,6 +187,7 @@ public class StoreObjectGroupActionPluginTest {
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList(OBJECT_GROUP_GUID_2 + ".json"))
                 .setObjectName(OBJECT_GROUP_GUID_2 + ".json").setCurrentStep("Store ObjectGroup");
 
         final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);

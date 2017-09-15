@@ -33,6 +33,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.assertj.core.util.Lists;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -87,40 +88,40 @@ public class WorkerImplTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void givenWorkerImplementWhenWorkParamsIsNullThenThrowsIllegalArgumentException()
-        throws IllegalArgumentException, ProcessingException,
-        ContentAddressableStorageServerException {
+            throws IllegalArgumentException, ProcessingException,
+            ContentAddressableStorageServerException {
         workerImpl = WorkerFactory.getInstance(pluginLoader).create();
         workerImpl.run(null, new Step());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenWorkerImplementWhenStepIsNullThenThrowsIllegalArgumentException()
-        throws IllegalArgumentException, HandlerNotFoundException, ProcessingException,
-        ContentAddressableStorageServerException {
+            throws IllegalArgumentException, HandlerNotFoundException, ProcessingException,
+            ContentAddressableStorageServerException {
         workerImpl = WorkerFactory.getInstance(pluginLoader).create();
         workerImpl.run(
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName"),
-            null);
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                        .setUrlMetadata("http://localhost:8083")
+                        .setObjectNameList(Lists.newArrayList("objectName.json")).setCurrentStep("currentStep").setContainerName("containerName"),
+                null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenWorkerImplementWhenEmptyActionsInStepThenThrowsIllegalArgumentException()
-        throws IllegalArgumentException, HandlerNotFoundException, ProcessingException,
-        ContentAddressableStorageServerException {
+            throws IllegalArgumentException, HandlerNotFoundException, ProcessingException,
+            ContentAddressableStorageServerException {
         workerImpl = WorkerFactory.getInstance(pluginLoader).create();
         workerImpl.run(
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName"),
-            new Step());
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                        .setUrlMetadata("http://localhost:8083")
+                        .setObjectNameList(Lists.newArrayList("objectName.json")).setCurrentStep("currentStep").setContainerName("containerName"),
+                new Step());
     }
 
     @Test(expected = ProcessingException.class)
     public void givenWorkerImplementWhenActionIsNullThenThrowsHandlerNotFoundException()
-        throws IllegalArgumentException, ProcessingException,
-        ContentAddressableStorageServerException {
+            throws IllegalArgumentException, ProcessingException,
+            ContentAddressableStorageServerException {
         workerImpl = WorkerFactory.getInstance(pluginLoader).create();
         final Step step = new Step();
         final List<Action> actions = new ArrayList<>();
@@ -129,10 +130,10 @@ public class WorkerImplTest {
         actions.add(action);
         step.setActions(actions);
         workerImpl.run(
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(workspaceURL)
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName"),
-            step);
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(workspaceURL)
+                        .setUrlMetadata("http://localhost:8083")
+                        .setObjectNameList(Lists.newArrayList("objectName.json")).setCurrentStep("currentStep").setContainerName("containerName"),
+                step);
     }
 
     @Test
@@ -157,14 +158,14 @@ public class WorkerImplTest {
         itemStatus.increment(status);
 
         when(actionHandler.execute(anyObject(), anyObject()))
-            .thenReturn(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));
+                .thenReturn(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));
         workerImpl = WorkerFactory.getInstance(pluginLoader).create()
-            .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
+                .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(workspaceURL)
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName"),
-            step);
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(workspaceURL)
+                        .setUrlMetadata("http://localhost:8083")
+                        .setObjectNameList(Lists.newArrayList("objectName.json")).setCurrentStep("currentStep").setContainerName("containerName"),
+                step);
     }
 
     @Test
@@ -188,14 +189,14 @@ public class WorkerImplTest {
         itemStatus.increment(status);
 
         when(actionHandler.execute(anyObject(), anyObject()))
-            .thenReturn(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));
+                .thenReturn(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));
         workerImpl = WorkerFactory.getInstance(pluginLoader).create()
-            .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
+                .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8011/")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName"),
-            step);
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8011/")
+                        .setUrlMetadata("http://localhost:8083")
+                        .setObjectNameList(Lists.newArrayList("objectName.json")).setCurrentStep("currentStep").setContainerName("containerName"),
+                step);
     }
 
     @Test
@@ -220,14 +221,14 @@ public class WorkerImplTest {
         itemStatus.increment(status);
 
         when(actionHandler.execute(anyObject(), anyObject()))
-            .thenReturn(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));
+                .thenReturn(new ItemStatus("HANDLER_ID").setItemsStatus("ITEM_ID_1", itemStatus));
         workerImpl = WorkerFactory.getInstance(pluginLoader).create()
-            .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
+                .addActionHandler(ExtractSedaActionHandler.getId(), actionHandler);
         workerImpl.run(
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(workspaceURL)
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectName(GUIDFactory.newGUID().getId() + ".json").setCurrentStep("currentStep").setContainerName(GUIDFactory.newGUID().getId()),
-            step);
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(workspaceURL)
+                        .setUrlMetadata("http://localhost:8083")
+                        .setObjectNameList(Lists.newArrayList(GUIDFactory.newGUID().getId() + ".json")).setCurrentStep("currentStep").setContainerName(GUIDFactory.newGUID().getId()),
+                step);
     }
 
 }

@@ -14,6 +14,7 @@ import java.util.Arrays;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -128,6 +129,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList(OG_GUID + ".json"))
                 .setObjectName(OG_GUID + ".json").setCurrentStep("Store objectGroup");
 
         plugin = new StoreMetaDataObjectGroupActionPlugin();
@@ -142,6 +144,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList(OG_GUID + ".json"))
                 .setObjectName(OG_GUID + ".json").setCurrentStep("Store objectGroup");
 
         final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
@@ -156,7 +159,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
 
         when(workspaceClient.getObject(CONTAINER_NAME,
             DataCategory.OBJECT_GROUP.name() + "/" + params.getObjectName()))
-                .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
+            .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
 
         when(storageClientFactory.getClient()).thenReturn(storageClient);
         when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
@@ -173,7 +176,8 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
-                .setUrlWorkspace("http://localhost:8083").setObjectName(OG_GUID_2 + ".json")
+                .setUrlWorkspace("http://localhost:8083").setObjectNameList(Lists.newArrayList(OG_GUID_2 + ".json"))
+                .setObjectName(OG_GUID_2 + ".json")
                 .setCurrentStep("Store objectGroup");
 
         final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
@@ -190,7 +194,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
 
         when(storageClientFactory.getClient()).thenReturn(storageClient);
         when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
-        
+
         when(storageClient.storeFileFromDatabase(anyObject(), anyObject(), anyObject()))
             .thenReturn(getStoredInfoResult());
 
@@ -207,13 +211,13 @@ public class StoreMetaDataObjectGroupActionPluginTest {
             .setObjectGroupId("id").setOfferIds(Arrays.asList("id1")).setStrategy("default");
         return result;
     }
-    
+
     @Test
     public void givenMetadataClientWhensearchOGThenThrowsException() throws Exception {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
-                .setUrlWorkspace("http://localhost:8083")
+                .setUrlWorkspace("http://localhost:8083").setObjectNameList(Lists.newArrayList(OG_GUID + ".json"))
                 .setObjectName(OG_GUID + ".json").setCurrentStep("Store ObjectGroup");
 
         final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
@@ -237,6 +241,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList(OG_GUID + ".json"))
                 .setObjectName(OG_GUID + ".json").setCurrentStep("Store unit");
 
         SelectMultiQuery query = new SelectMultiQuery();
@@ -247,7 +252,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
 
         when(workspaceClient.getObject(CONTAINER_NAME,
             DataCategory.OBJECT_GROUP.name() + "/" + params.getObjectName()))
-                .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
+            .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
 
         Mockito.doThrow(new StorageNotFoundClientException("Error Metadata")).when(storageClient)
             .storeFileFromDatabase(anyObject(), anyObject(), anyObject());
@@ -266,6 +271,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList(OG_GUID + ".json"))
                 .setObjectName(OG_GUID + ".json").setCurrentStep("Store unit");
 
         SelectMultiQuery query = new SelectMultiQuery();
@@ -276,7 +282,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
 
         when(workspaceClient.getObject(CONTAINER_NAME,
             DataCategory.OBJECT_GROUP.name() + "/" + params.getObjectName()))
-                .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
+            .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
 
         Mockito.doThrow(new StorageAlreadyExistsClientException("Error Metadata ")).when(storageClient)
             .storeFileFromDatabase(anyObject(), anyObject(), anyObject());

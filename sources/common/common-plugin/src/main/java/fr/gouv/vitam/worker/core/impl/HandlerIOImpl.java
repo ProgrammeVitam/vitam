@@ -116,6 +116,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
 
     /**
      * Constructor with workspaceClient, local root path he is used for test purpose
+     * @param workspaceClient 
      *
      * @param containerName the container name
      * @param workerId the worker id

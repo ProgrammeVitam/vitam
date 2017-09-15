@@ -29,6 +29,7 @@ package fr.gouv.vitam.processing.common.parameter;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import fr.gouv.vitam.common.ParametersChecker;
@@ -65,7 +66,7 @@ public class WorkerParametersFactory {
     static {
         genericMandatories.add(WorkerParameterName.urlMetadata);
         genericMandatories.add(WorkerParameterName.urlWorkspace);
-        genericMandatories.add(WorkerParameterName.objectName);
+        genericMandatories.add(WorkerParameterName.objectNameList);
         genericMandatories.add(WorkerParameterName.currentStep);
         genericMandatories.add(WorkerParameterName.containerName);
     }
@@ -101,24 +102,24 @@ public class WorkerParametersFactory {
      *        {CONTAINER_NAME}_{WORKFLOW_ID}_{STEP_RANK_IN_THE_WORKFLOW}_{STEP_NAME}
      * @param containerName name of the container to be uploaded
      * @param currentStep current name of the step to be processed
-     * @param objectName name/path of the object to be processed
+     * @param objectNameList List name/path of the object to be processed
      * @param urlMetadata url of metadata resources
      * @param urlWorkspace url of workspace resources
      * @return the new instance of WorkerParameters
      * @throws IllegalArgumentException if any parameter is null or empty
      */
     public static DefaultWorkerParameters newWorkerParameters(String processId, String stepUniqId, String containerName,
-        String currentStep, String objectName, String urlMetadata,
-        String urlWorkspace) {
+                                                              String currentStep, List<String> objectNameList, String urlMetadata,
+                                                              String urlWorkspace) {
         ParametersChecker.checkParameter("Parameters cannot be null or empty", processId, stepUniqId, containerName,
-            currentStep, objectName,
+            currentStep, objectNameList,
             urlMetadata, urlWorkspace);
         final DefaultWorkerParameters parameters = new DefaultWorkerParameters(initMandatoriesParameters(null));
         parameters.putParameterValue(WorkerParameterName.processId, processId);
         parameters.putParameterValue(WorkerParameterName.stepUniqId, stepUniqId);
         parameters.putParameterValue(WorkerParameterName.containerName, containerName);
         parameters.putParameterValue(WorkerParameterName.currentStep, currentStep);
-        parameters.putParameterValue(WorkerParameterName.objectName, objectName);
+        parameters.setObjectNameList(objectNameList);
         parameters.putParameterValue(WorkerParameterName.urlMetadata, urlMetadata);
         parameters.putParameterValue(WorkerParameterName.urlWorkspace, urlWorkspace);
         return parameters;

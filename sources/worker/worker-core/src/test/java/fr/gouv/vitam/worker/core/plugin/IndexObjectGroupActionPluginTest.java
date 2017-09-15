@@ -40,6 +40,7 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -128,6 +129,7 @@ public class IndexObjectGroupActionPluginTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList("objectName.json"))
                 .setObjectName("objectName.json").setCurrentStep("currentStep")
                 .setContainerName("IndexObjectGroupActionPluginTest");
         final ItemStatus response = plugin.execute(params, handlerIO);
@@ -149,6 +151,7 @@ public class IndexObjectGroupActionPluginTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList("objectName.json"))
                 .setObjectName("objectName.json").setCurrentStep("currentStep")
                 .setContainerName("IndexObjectGroupActionPluginTest");
         final ItemStatus response = plugin.execute(params, handlerIO);
@@ -169,6 +172,7 @@ public class IndexObjectGroupActionPluginTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList("objectName.json"))
                 .setObjectName("objectName.json").setCurrentStep("currentStep")
                 .setContainerName("IndexObjectGroupActionPluginTest");
         final ItemStatus response = plugin.execute(params, handlerIO);

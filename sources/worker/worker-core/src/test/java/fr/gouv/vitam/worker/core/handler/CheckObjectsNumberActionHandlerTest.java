@@ -39,6 +39,7 @@ import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -99,9 +100,10 @@ public class CheckObjectsNumberActionHandlerTest {
     public void setUp() throws Exception {
         workParams = WorkerParametersFactory.newWorkerParameters();
         workParams.setWorkerGUID(GUIDFactory.newGUID()).setUrlWorkspace("http://localhost:8083")
-            .setUrlMetadata("http://localhost:8083")
-            .setObjectName("objectName.json").setCurrentStep("currentStep")
-            .setContainerName("CheckObjectsNumberActionHandlerTest");
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList("objectName.json"))
+                .setObjectName("objectName.json").setCurrentStep("currentStep")
+                .setContainerName("CheckObjectsNumberActionHandlerTest");
 
         workspaceClient = mock(WorkspaceClient.class);
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
@@ -147,7 +149,7 @@ public class CheckObjectsNumberActionHandlerTest {
         messages.add("Duplicated digital objects " + "content/file1.pdf");
         extractDuplicatedUriResponseKO = new ExtractUriResponse();
         extractDuplicatedUriResponseKO.setUriListManifest(uriDuplicatedListManifestKO)
-            .setErrorDuplicateUri(Boolean.TRUE).setErrorNumber(messages.size());
+                .setErrorDuplicateUri(Boolean.TRUE).setErrorNumber(messages.size());
 
         extractOutNumberUriResponseKO = new ExtractUriResponse();
         extractOutNumberUriResponseKO.setUriListManifest(uriOutNumberListManifestKO);
@@ -160,11 +162,11 @@ public class CheckObjectsNumberActionHandlerTest {
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenRaiseXMLStreamExceptionAndReturnResponseFATAL()
-        throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
+            throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
         Mockito.doThrow(new ProcessingException("")).when(sedaUtils).getAllDigitalObjectUriFromManifest();
 
         checkObjectsNumberActionHandler =
-            new CheckObjectsNumberActionHandler();
+                new CheckObjectsNumberActionHandler();
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
         final ItemStatus response = checkObjectsNumberActionHandler.execute(workParams, handlerIO);
         assertThat(response).isNotNull();
@@ -173,30 +175,30 @@ public class CheckObjectsNumberActionHandlerTest {
 
     @Test
     public void givenWorkspaceNotExistWhenExecuteThenRaiseProcessingExceptionReturnResponseFATAL()
-        throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
+            throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
 
         Mockito.doThrow(new ProcessingException("")).when(sedaUtils).getAllDigitalObjectUriFromManifest();
 
         checkObjectsNumberActionHandler =
-            new CheckObjectsNumberActionHandler();
+                new CheckObjectsNumberActionHandler();
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
         final ItemStatus response = checkObjectsNumberActionHandler.execute(workParams, handlerIO);
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.FATAL.getStatusLevel()))
-            .isEqualTo(1);
+                .isEqualTo(1);
     }
 
     @Test
     public void givenWorkpaceExistWhenExecuteThenReturnResponseOK()
-        throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
+            throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
 
         checkObjectsNumberActionHandler =
-            new CheckObjectsNumberActionHandler();
+                new CheckObjectsNumberActionHandler();
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
-            .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
+                .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
@@ -205,19 +207,19 @@ public class CheckObjectsNumberActionHandlerTest {
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel()))
-            .isEqualTo(2);
+                .isEqualTo(2);
     }
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseKOAndDuplicatedURIManifest()
-        throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
+            throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
 
         checkObjectsNumberActionHandler =
-            new CheckObjectsNumberActionHandler();
+                new CheckObjectsNumberActionHandler();
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractDuplicatedUriResponseKO);
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
-            .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
+                .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
@@ -225,20 +227,20 @@ public class CheckObjectsNumberActionHandlerTest {
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel()))
-            .isEqualTo(1);
+                .isEqualTo(1);
     }
 
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseKOAndOutNumberManifest()
-        throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
+            throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
 
         checkObjectsNumberActionHandler =
-            new CheckObjectsNumberActionHandler();
+                new CheckObjectsNumberActionHandler();
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractOutNumberUriResponseKO);
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
-            .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
+                .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
@@ -247,21 +249,21 @@ public class CheckObjectsNumberActionHandlerTest {
         assertThat(response.getItemsStatus().get(HANDLER_ID).getData("errorNumber")).isEqualTo(1);
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel()))
-            .isEqualTo(1);
+                .isEqualTo(1);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel()))
-            .isEqualTo(2);
+                .isEqualTo(2);
     }
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseKOAndOutNumberWorkspace()
-        throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
+            throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
 
         checkObjectsNumberActionHandler =
-            new CheckObjectsNumberActionHandler();
+                new CheckObjectsNumberActionHandler();
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
-            .thenReturn(new RequestResponseOK().addResult(uriOutNumberListWorkspaceKO));
+                .thenReturn(new RequestResponseOK().addResult(uriOutNumberListWorkspaceKO));
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
@@ -269,21 +271,21 @@ public class CheckObjectsNumberActionHandlerTest {
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel()))
-            .isEqualTo(1);
+                .isEqualTo(1);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel()))
-            .isEqualTo(2);
+                .isEqualTo(2);
     }
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseKOAndNotFoundFile()
-        throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
+            throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
 
         checkObjectsNumberActionHandler =
-            new CheckObjectsNumberActionHandler();
+                new CheckObjectsNumberActionHandler();
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
-            .thenReturn(new RequestResponseOK().addResult(uriOutNumberListWorkspaceKO));
+                .thenReturn(new RequestResponseOK().addResult(uriOutNumberListWorkspaceKO));
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
@@ -291,8 +293,8 @@ public class CheckObjectsNumberActionHandlerTest {
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel()))
-            .isEqualTo(1);
+                .isEqualTo(1);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel()))
-            .isEqualTo(2);
+                .isEqualTo(2);
     }
 }

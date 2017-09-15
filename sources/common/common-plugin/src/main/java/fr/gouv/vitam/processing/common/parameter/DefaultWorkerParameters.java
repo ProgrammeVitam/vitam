@@ -27,11 +27,11 @@
 
 package fr.gouv.vitam.processing.common.parameter;
 
-import java.util.Map;
-import java.util.Set;
-
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Default parameters for worker

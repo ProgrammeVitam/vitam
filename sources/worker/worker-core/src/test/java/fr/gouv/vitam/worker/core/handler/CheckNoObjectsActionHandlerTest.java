@@ -35,6 +35,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 
+import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -56,9 +57,9 @@ public class CheckNoObjectsActionHandlerTest {
     private static final String OBJECT_NAME = "objectName.json";
     private static final String HTTP_LOCALHOST = "http://localhost:8080";
     private static final String PLAN_MANIFEST =
-        "CheckNoObjectsActionHandler/manifest.xml";
+            "CheckNoObjectsActionHandler/manifest.xml";
     private static final String KO_MANIFEST =
-        "CheckNoObjectsActionHandler/manifestKO.xml";
+            "CheckNoObjectsActionHandler/manifestKO.xml";
 
     private HandlerIO handlerIO = mock(HandlerIO.class);
     private GUID guid;
@@ -66,34 +67,35 @@ public class CheckNoObjectsActionHandlerTest {
 
     private InputStream sedaOK;
     private InputStream sedaKO;
-    
+
     @Before
     public void setUp() throws URISyntaxException, FileNotFoundException, ProcessingException {
         guid = GUIDFactory.newGUID();
         params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(HTTP_LOCALHOST)
-                .setUrlMetadata(HTTP_LOCALHOST).setObjectName(OBJECT_NAME).setCurrentStep(CURRENT_STEP)
-                .setContainerName(guid.getId()).setProcessId(GUID);
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(HTTP_LOCALHOST)
+                        .setUrlMetadata(HTTP_LOCALHOST).setObjectName(OBJECT_NAME).setCurrentStep(CURRENT_STEP)
+                        .setContainerName(guid.getId()).setProcessId(GUID);
         sedaOK = PropertiesUtils.getResourceAsStream(PLAN_MANIFEST);
         sedaKO = PropertiesUtils.getResourceAsStream(KO_MANIFEST);
     }
 
     @Test
     public void checkManifestHavingObjectOrNot()
-        throws Exception {
+            throws Exception {
         final CheckNoObjectsActionHandler handler = new CheckNoObjectsActionHandler();
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(sedaOK);
         WorkerParameters parameters =
-            params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.OK.name())
-                .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
+                params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.OK.name())
+                        .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name())
+                        .setObjectNameList(Lists.newArrayList("objectName.json"));
         final ItemStatus response = handler.execute(parameters, handlerIO);
         handler.close();
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
-        
+
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(sedaKO);
         final ItemStatus responseKO = handler.execute(parameters, handlerIO);
         handler.close();
         assertEquals(responseKO.getGlobalStatus(), StatusCode.KO);
-        
+
     }
 }

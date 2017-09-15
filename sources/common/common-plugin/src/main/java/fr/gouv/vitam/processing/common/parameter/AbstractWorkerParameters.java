@@ -27,18 +27,10 @@
 
 package fr.gouv.vitam.processing.common.parameter;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -47,6 +39,14 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * Abstract implementation for all worker parameters
@@ -184,6 +184,32 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
 
     @JsonIgnore
     @Override
+    public List<String> getObjectNameList() {
+        String objectList = mapParameters.get(WorkerParameterName.objectNameList);
+        try {
+            return JsonHandler.getFromString(objectList, List.class, String.class);
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    @JsonIgnore
+    @Override
+    public WorkerParameters setObjectNameList(List<String> objectNameList) {
+        ParametersChecker.checkParameter(String.format(ERROR_MESSAGE, "objectNameList"), objectNameList);
+        try {
+            mapParameters.put(WorkerParameterName.objectNameList, JsonHandler.writeAsString(objectNameList));
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            throw new IllegalArgumentException(e);
+        }
+        return this;
+    }
+
+
+    @JsonIgnore
+    @Override
     public String getMetadataRequest() {
         return mapParameters.get(WorkerParameterName.metadataRequest);
     }
@@ -252,7 +278,7 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
         mapParameters.put(WorkerParameterName.urlWorkspace, urlWorkspace);
         return this;
     }
-    
+
     @JsonIgnore
     @Override
     public LogbookTypeProcess getLogbookTypeProcess() {
@@ -266,7 +292,7 @@ abstract class AbstractWorkerParameters implements WorkerParameters {
         mapParameters.put(WorkerParameterName.logBookTypeProcess, logbookTypeProcess.toString());
         return this;
     }
-    
+
     @Override
     public WorkerParameters setFromParameters(WorkerParameters parameters) {
         for (final WorkerParameterName item : WorkerParameterName.values()) {

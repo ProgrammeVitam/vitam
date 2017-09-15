@@ -53,6 +53,7 @@ import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -103,15 +104,16 @@ public class CheckDataObjectPackageActionHandlerTest {
     private static final Integer TENANT_ID = 0;
     private final List<URI> uriListWorkspaceOK = new ArrayList<>();
     private final WorkerParameters params =
-        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-            .setUrlMetadata("http://localhost:8083")
-            .setObjectName("objectName.json").setCurrentStep("currentStep")
-            .setLogbookTypeProcess(LogbookTypeProcess.INGEST)
-            .setContainerName("ExtractSedaActionHandlerTest");
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                    .setUrlMetadata("http://localhost:8083")
+                    .setObjectNameList(Lists.newArrayList("objectName.json"))
+                    .setObjectName("objectName.json").setCurrentStep("currentStep")
+                    .setLogbookTypeProcess(LogbookTypeProcess.INGEST)
+                    .setContainerName("ExtractSedaActionHandlerTest");
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
@@ -152,22 +154,22 @@ public class CheckDataObjectPackageActionHandlerTest {
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "UnitsLevel/ingestLevelStack.json")));
         out.add(
-            new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json")));
+                new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP.json")));
         out.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_ID_TO_GUID_MAP.json")));
+                .setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_ID_TO_GUID_MAP.json")));
         out.add(
-            new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
+                new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "MapsMemory/OG_TO_ARCHIVE_ID_MAP.json")));
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json")));
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/ARCHIVE_ID_TO_GUID_MAP.json")));
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "ATR/globalSEDAParameters.json")));
         out.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.MEMORY, "MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
+                .setUri(new ProcessingUri(UriPrefix.MEMORY, "MapsMemory/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
         in = new ArrayList<>();
         in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.VALUE, "true")));
+                .setUri(new ProcessingUri(UriPrefix.VALUE, "true")));
         in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
+                .setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
 
         uriListWorkspaceOK.add(new URI("content/file1.pdf"));
         uriListWorkspaceOK.add(new URI("content/file2.pdf"));
@@ -187,17 +189,17 @@ public class CheckDataObjectPackageActionHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(CheckDataObjectPackageActionHandler.getId());
         final InputStream seda_arborescence =
-            PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);
+                PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);
         PowerMockito.when(SedaUtilsFactory.create(anyObject())).thenReturn(sedaUtils);
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
-            .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
+                .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
-            .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
+                .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
 
         when(adminManagementClient.findIngestContracts(anyObject()))
-            .thenReturn(new RequestResponseOK());
+                .thenReturn(new RequestResponseOK());
         action.addOutIOParameters(out);
         action.addInIOParameters(in);
         final ItemStatus response = handler.execute(params, action);
@@ -205,9 +207,9 @@ public class CheckDataObjectPackageActionHandlerTest {
 
         in = new ArrayList<>();
         in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.VALUE, "false")));
+                .setUri(new ProcessingUri(UriPrefix.VALUE, "false")));
         in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
+                .setUri(new ProcessingUri(UriPrefix.VALUE, "INGEST")));
         action.reset();
         action.addOutIOParameters(out);
         action.addInIOParameters(in);

@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -95,7 +96,8 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         "transferNotificationActionHandler/DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP_objKO.json";
     private static final String DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP =
         "transferNotificationActionHandler/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP_objKO.json";
-    private static final String ATR_GLOBAL_SEDA_PARAMETERS_WITHOUT_INFO_FIELDS = "globalSEDAParametersWithoutInfoFields.json";
+    private static final String ATR_GLOBAL_SEDA_PARAMETERS_WITHOUT_INFO_FIELDS =
+        "globalSEDAParametersWithoutInfoFields.json";
     private static final String OBJECT_GROUP_ID_TO_GUID_MAP =
         "transferNotificationActionHandler/OBJECT_GROUP_ID_TO_GUID_MAPKO.json";
 
@@ -121,7 +123,8 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         guid = GUIDFactory.newGUID();
         params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8080")
-                .setUrlMetadata("http://localhost:8080").setObjectName("objectName.json").setCurrentStep("currentStep")
+                .setUrlMetadata("http://localhost:8080").setObjectNameList(Lists.newArrayList("objectName.json"))
+                .setObjectName("objectName.json").setCurrentStep("currentStep")
                 .setContainerName(guid.getId()).setProcessId("aeaaaaaaaaaaaaababz4aakxtykbybyaaaaq");
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
@@ -155,7 +158,8 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         action.addOuputResult(1, PropertiesUtils.getResourceFile(DATA_OBJECT_ID_TO_GUID_MAP), false);
         action.addOuputResult(2, PropertiesUtils.getResourceFile(DATA_OBJECT_TO_OBJECT_GROUP_ID_MAP), false);
         action.addOuputResult(3, PropertiesUtils.getResourceFile(DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP), false);
-        action.addOuputResult(4, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS_WITHOUT_INFO_FIELDS), false);
+        action
+            .addOuputResult(4, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS_WITHOUT_INFO_FIELDS), false);
         action.addOuputResult(5, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
         action.reset();
         out = new ArrayList<>();
@@ -167,7 +171,7 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         action.partialClose();
     }
 
-   
+
     @Test
     public void givenXMLCreationWhenValidButWithoutInfoFieldsInManifestThenResponseOK()
         throws Exception {
@@ -181,25 +185,27 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
         Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
 
-        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(anyObject(), anyObject());
+        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient)
+            .selectOperationById(anyObject(), anyObject());
         Mockito.doReturn(iteratorLcGot).when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
             anyObject());
         Mockito.doReturn(iteratorLcUnit).when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),
             anyObject());
 
         assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
-        action.reset();        
+        action.reset();
         action.addInIOParameters(in);
         action.addOutIOParameters(out);
-        WorkerParameters parameters = params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
-            .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
+        WorkerParameters parameters =
+            params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
+                .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
         final ItemStatus response = handler
             .execute(parameters.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name()), action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
         File atr = action.getNewLocalFile(ATR_PATH);
         assertTrue(FileUtil.readFile(atr).contains(SedaConstants.TAG_ARCHIVE_PROFILE));
     }
-    
+
     @Test
     public void givenXMLCreationWhenProcessKOButWithoutInfoFieldsInManifestThenResponseATROK()
         throws Exception {
@@ -213,7 +219,8 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
         Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
 
-        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(anyObject(), anyObject());
+        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient)
+            .selectOperationById(anyObject(), anyObject());
         Mockito.doReturn(iteratorLcGot).when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
             anyObject());
         Mockito.doReturn(iteratorLcUnit).when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),
@@ -223,8 +230,9 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         action.reset();
         action.addInIOParameters(in);
         action.addOutIOParameters(out);
-        WorkerParameters parameters = params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
-            .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
+        WorkerParameters parameters =
+            params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
+                .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
         final ItemStatus response = handler
             .execute(parameters.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name()), action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());

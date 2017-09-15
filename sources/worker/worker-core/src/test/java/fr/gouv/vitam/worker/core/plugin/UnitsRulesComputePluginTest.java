@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -177,6 +178,7 @@ public class UnitsRulesComputePluginTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
                 .setUrlMetadata("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList("objectName"))
                 .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
 
         final ItemStatus response = plugin.execute(params, action);
@@ -200,6 +202,7 @@ public class UnitsRulesComputePluginTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
                 .setUrlMetadata("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList("objectName"))
                 .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
 
         final ItemStatus response = plugin.execute(params, action);
@@ -219,6 +222,7 @@ public class UnitsRulesComputePluginTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
                 .setUrlMetadata("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList("objectName"))
                 .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
 
         final ItemStatus response = plugin.execute(params, action);
@@ -246,6 +250,7 @@ public class UnitsRulesComputePluginTest {
         when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferential());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
+                .setObjectNameList(Lists.newArrayList("objectName"))
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
         when(workspaceClient.getObject(anyObject(), anyObject()))
             .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
@@ -271,6 +276,7 @@ public class UnitsRulesComputePluginTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
                 .setUrlMetadata("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList("objectName"))
                 .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
 
         final ItemStatus response = plugin.execute(params, action);
@@ -296,6 +302,7 @@ public class UnitsRulesComputePluginTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
                 .setUrlMetadata("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList("objectName"))
                 .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
 
         final ItemStatus response = plugin.execute(params, action);
@@ -323,6 +330,7 @@ public class UnitsRulesComputePluginTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
                 .setUrlMetadata("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList("objectName"))
                 .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
 
         final ItemStatus response = plugin.execute(params, action);
@@ -352,6 +360,7 @@ public class UnitsRulesComputePluginTest {
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
                 .setUrlMetadata("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList("objectName"))
                 .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
 
         final ItemStatus response = plugin.execute(params, action);

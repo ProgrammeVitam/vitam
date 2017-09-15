@@ -33,8 +33,8 @@ import org.mockito.Mockito;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
-import fr.gouv.vitam.processing.distributor.core.ProcessDistributorImpl;
-import fr.gouv.vitam.processing.distributor.core.WorkerManager;
+import fr.gouv.vitam.processing.distributor.v2.ProcessDistributorImpl;
+import fr.gouv.vitam.processing.distributor.v2.WorkerManager;
 
 // TODO: 5/27/17 ProcessEngine
 /**

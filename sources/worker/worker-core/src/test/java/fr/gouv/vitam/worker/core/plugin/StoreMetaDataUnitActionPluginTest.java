@@ -12,6 +12,7 @@ import java.io.InputStream;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -117,6 +118,7 @@ public class StoreMetaDataUnitActionPluginTest {
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList(UNIT_GUID + ".json"))
                 .setObjectName(UNIT_GUID + ".json").setCurrentStep("Store unit");
 
         plugin = new StoreMetaDataUnitActionPlugin();
@@ -133,6 +135,7 @@ public class StoreMetaDataUnitActionPluginTest {
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList(UNIT_GUID + ".json"))
                 .setObjectName(UNIT_GUID + ".json").setCurrentStep("Store unit");
 
         final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
@@ -147,7 +150,7 @@ public class StoreMetaDataUnitActionPluginTest {
 
         when(workspaceClient.getObject(CONTAINER_NAME,
             DataCategory.UNIT.name() + "/" + params.getObjectName()))
-                .thenReturn(Response.status(Status.OK).entity(unit).build());
+            .thenReturn(Response.status(Status.OK).entity(unit).build());
 
         when(storageClientFactory.getClient()).thenReturn(storageClient);
         when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
@@ -166,6 +169,7 @@ public class StoreMetaDataUnitActionPluginTest {
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList(UNIT_GUID + ".json"))
                 .setObjectName(UNIT_GUID + ".json").setCurrentStep("Store unit");
 
         final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
@@ -189,6 +193,7 @@ public class StoreMetaDataUnitActionPluginTest {
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList(UNIT_GUID + ".json"))
                 .setObjectName(UNIT_GUID + ".json").setCurrentStep("Store unit");
 
         SelectMultiQuery query = new SelectMultiQuery();
@@ -199,7 +204,7 @@ public class StoreMetaDataUnitActionPluginTest {
 
         when(workspaceClient.getObject(CONTAINER_NAME,
             DataCategory.UNIT.name() + "/" + params.getObjectName()))
-                .thenReturn(Response.status(Status.OK).entity(unit).build());
+            .thenReturn(Response.status(Status.OK).entity(unit).build());
 
         Mockito.doThrow(new StorageNotFoundClientException("Error Metadata")).when(storageClient)
             .storeFileFromDatabase(anyObject(), anyObject(), anyObject());
@@ -218,6 +223,7 @@ public class StoreMetaDataUnitActionPluginTest {
             WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
                 .newGUID()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
                 .setUrlWorkspace("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList(UNIT_GUID + ".json"))
                 .setObjectName(UNIT_GUID + ".json").setCurrentStep("Store unit");
 
         SelectMultiQuery query = new SelectMultiQuery();
@@ -228,7 +234,7 @@ public class StoreMetaDataUnitActionPluginTest {
 
         when(workspaceClient.getObject(CONTAINER_NAME,
             DataCategory.UNIT.name() + "/" + params.getObjectName()))
-                .thenReturn(Response.status(Status.OK).entity(unit).build());
+            .thenReturn(Response.status(Status.OK).entity(unit).build());
 
         Mockito.doThrow(new StorageAlreadyExistsClientException("Error Metadata ")).when(storageClient)
             .storeFileFromDatabase(anyObject(), anyObject(), anyObject());

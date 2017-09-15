@@ -132,6 +132,7 @@ public class ListLifecycleTraceabilityActionHandlerTest {
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
+        LogbookLifeCyclesClientFactory.changeMode(null);
         PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
         logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
         logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);

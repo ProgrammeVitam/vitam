@@ -49,6 +49,7 @@ import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 
+import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -99,7 +100,7 @@ public class SedaUtilsTest {
     private final SedaUtils utils = SedaUtilsFactory.create(handlerIO);
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
         .newGUID()).setContainerName(OBJ).setUrlWorkspace("http://localhost:8083")
-        .setUrlMetadata("http://localhost:8083").setObjectName(OBJ)
+        .setUrlMetadata("http://localhost:8083").setObjectNameList(Lists.newArrayList(OBJ)).setObjectName(OBJ)
         .setCurrentStep("TEST");
 
     public SedaUtilsTest() throws FileNotFoundException {

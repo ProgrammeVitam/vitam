@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
+import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -81,7 +82,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 @RunWith(PowerMockRunner.class)
-@PowerMockIgnore({"javax.net.ssl.*", "org.xml.sax.*","javax.management.*"})
+@PowerMockIgnore({"javax.net.ssl.*", "org.xml.sax.*", "javax.management.*"})
 @PrepareForTest({WorkspaceClientFactory.class, LogbookLifeCyclesClientFactory.class,
     LogbookOperationsClientFactory.class, ValidationXsdUtils.class})
 public class TransferNotificationActionHandlerIteratorTest {
@@ -122,7 +123,8 @@ public class TransferNotificationActionHandlerIteratorTest {
         PowerMockito.when(ValidationXsdUtils.checkWithXSD(anyObject(), anyObject())).thenReturn(true);
         params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8080")
-                .setUrlMetadata("http://localhost:8080").setObjectName("objectName.json").setCurrentStep("currentStep")
+                .setUrlMetadata("http://localhost:8080").setObjectNameList(Lists.newArrayList("objectName.json"))
+                .setObjectName("objectName.json").setCurrentStep("currentStep")
                 .setContainerName(guid.getId()).setProcessId("aeaaaaaaaaaaaaababz4aakxtykbybyaaaaq");
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
@@ -189,8 +191,9 @@ public class TransferNotificationActionHandlerIteratorTest {
         action.reset();
         action.addInIOParameters(in);
         action.addOutIOParameters(out);
-        WorkerParameters parameters = params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.OK.name())
-            .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
+        WorkerParameters parameters =
+            params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.OK.name())
+                .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
         final ItemStatus response = handler
             .execute(parameters, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -220,8 +223,9 @@ public class TransferNotificationActionHandlerIteratorTest {
         action.reset();
         action.addInIOParameters(in);
         action.addOutIOParameters(out);
-        WorkerParameters parameters = params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
-            .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
+        WorkerParameters parameters =
+            params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
+                .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
         final ItemStatus response = handler
             .execute(parameters.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name()), action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -250,8 +254,9 @@ public class TransferNotificationActionHandlerIteratorTest {
         action.reset();
         action.addInIOParameters(in);
         action.addOutIOParameters(out);
-        WorkerParameters parameters = params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
-            .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
+        WorkerParameters parameters =
+            params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
+                .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
         final ItemStatus response = handler
             .execute(parameters, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -270,8 +275,9 @@ public class TransferNotificationActionHandlerIteratorTest {
         action.reset();
         action.addInIOParameters(in);
         action.addOutIOParameters(out);
-        WorkerParameters parameters = params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
-            .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
+        WorkerParameters parameters =
+            params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
+                .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
         final ItemStatus response = handler
             .execute(parameters, action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
@@ -301,8 +307,9 @@ public class TransferNotificationActionHandlerIteratorTest {
         action.reset();
         action.addInIOParameters(in);
         action.addOutIOParameters(out);
-        WorkerParameters parameters = params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
-            .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
+        WorkerParameters parameters =
+            params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
+                .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
         final ItemStatus response = handler
             .execute(parameters, action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
@@ -332,8 +339,9 @@ public class TransferNotificationActionHandlerIteratorTest {
         action.reset();
         action.addInIOParameters(in);
         action.addOutIOParameters(out);
-        WorkerParameters parameters = params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
-            .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
+        WorkerParameters parameters =
+            params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
+                .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
         final ItemStatus response = handler
             .execute(parameters, action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
