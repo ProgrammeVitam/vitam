@@ -113,8 +113,7 @@ public final class DslQueryHelper {
     private static final String TRACEABILITY_START_DATE = "TraceabilityStartDate";
     private static final String TRACEABILITY_END_DATE = "TraceabilityEndDate";
     private static final String TRACEABILITY_EV_DET_DATA = "events.evDetData";
-    // FIXME when id will be implemented on traceability, change me
-    private static final String TRACEABILITY_FIELD_ID = "FileName";
+    private static final String TRACEABILITY_FIELD_ID = "evId";
     private static final String TRACEABILITY_FIELD_LOG_TYPE = "LogType";
     private static final String MANAGEMENT_KEY = "#management";
 
@@ -264,9 +263,9 @@ public final class DslQueryHelper {
                         }
                         break;
                     case TRACEABILITY_ID:
-                        // FIXME : No real ID for now, search on fileName
                         if (!searchValue.isEmpty()) {
-                            query.add(eq(TRACEABILITY_EV_DET_DATA + '.' + TRACEABILITY_FIELD_ID, searchValue));
+                            // Actually evID
+                            query.add(eq(TRACEABILITY_FIELD_ID, searchValue));
                         }
                         break;
                     case TRACEABILITY_LOG_TYPE:

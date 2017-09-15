@@ -232,7 +232,7 @@ public class LogbookResource extends ApplicationStatusResource {
         try {
             // With resteasy, queryDsl couldnt be null
             if (queryDsl == null ||
-                (queryDsl != null && queryDsl.get("$query") != null && queryDsl.get("$query").size() == 0)) {
+                (queryDsl.get("$query") != null && queryDsl.get("$query").size() == 0)) {
                 final LogbookOperation result = logbookOperation.getById(id);
                 return Response.status(Status.OK)
                     .entity(
