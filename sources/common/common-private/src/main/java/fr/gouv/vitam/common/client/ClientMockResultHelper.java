@@ -131,7 +131,8 @@ public class ClientMockResultHelper {
 
     public static final String INGEST_CONTRACTS = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
             "\"_tenant\":\"0\", " +
-            "\"Name\":\"Un contrat\", " +
+            "\"Name\":\"ArchivalAgreement0\", " +
+            "\"Identifier\":\"ArchivalAgreement0\", " +
             "\"Description\":\"DESCRIPTION D'UN CONTRAT\", " +
             "\"Status\":\"ACTIVE\", " +
             "\"CreationDate\":\"2016-11-02\", " +

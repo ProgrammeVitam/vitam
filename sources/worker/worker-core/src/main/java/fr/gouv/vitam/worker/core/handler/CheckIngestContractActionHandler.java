@@ -125,7 +125,8 @@ public class CheckIngestContractActionHandler extends ActionHandler {
                 if (!results.isEmpty()) {
                     for (IngestContractModel result : results) {
                         String status = result.getStatus();
-                        if (status.equals(ContractStatus.ACTIVE.toString())) {
+                        if (status.equals(ContractStatus.ACTIVE.toString()) 
+                            && result.getIdentifier().equals(contractIdentifier)) {
                             return true;
                         }
                     }

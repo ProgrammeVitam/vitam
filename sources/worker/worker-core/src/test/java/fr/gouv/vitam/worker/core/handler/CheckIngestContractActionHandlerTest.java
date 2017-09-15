@@ -106,9 +106,9 @@ public class CheckIngestContractActionHandlerTest {
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
     }
 
-    private static RequestResponse createIngestContract(String status) throws InvalidParseOperationException {
+    private static RequestResponse<IngestContractModel> createIngestContract(String status) throws InvalidParseOperationException {
         IngestContractModel contract = new IngestContractModel();
-        contract.setName("testOK");
+        contract.setIdentifier("ArchivalAgreement0");
         contract.setStatus(status);
         return ClientMockResultHelper.createReponse(contract);
     }

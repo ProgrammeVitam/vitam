@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import java.util.List;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -41,10 +43,13 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.ContractStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
+import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -112,6 +117,8 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
             itemStatus.increment(StatusCode.FATAL);
             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
+        
+        isValid = checkProfilStatus(profileIdentifier);
 
         if (isValid) {
             itemStatus.increment(StatusCode.OK);
@@ -126,6 +133,35 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
 
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
 
+    }
+    
+    private boolean checkProfilStatus(String profileIdentifier) {
+        try (final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+
+            Select select = new Select();
+            select.setQuery(QueryHelper.eq(Profile.IDENTIFIER, profileIdentifier));
+            JsonNode queryDsl = select.getFinalSelect();
+            
+            RequestResponse<ProfileModel> referenceProfils = client.findProfiles(queryDsl);
+            
+            if (referenceProfils.isOk()) {
+                List<ProfileModel> results = ((RequestResponseOK) referenceProfils).getResults();
+                if (!results.isEmpty()) {
+                    for (ProfileModel result : results) {
+                        String status = result.getStatus().toString();
+                        if (status.equals(ContractStatus.ACTIVE.toString()) && result.getIdentifier().equals(profileIdentifier)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error("profil not found :", e);
+        } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
+            LOGGER.error("profil found but inactive: ", e);
+        }
+        
+        return false;
     }
 
     @Override

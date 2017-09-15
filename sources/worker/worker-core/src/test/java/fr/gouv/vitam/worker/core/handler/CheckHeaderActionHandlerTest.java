@@ -30,8 +30,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.FileInputStream;
@@ -66,7 +66,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -83,7 +82,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 @PowerMockIgnore("javax.net.ssl.*")
 @PrepareForTest({SedaUtilsFactory.class, WorkspaceClientFactory.class})
 public class CheckHeaderActionHandlerTest {
-    private static final String CONTRACT_NAME = "Un contrat";
+    private static final String CONTRACT_NAME = "ArchivalAgreement0";
     CheckHeaderActionHandler handler = new CheckHeaderActionHandler();
     private SedaUtils sedaUtils;
     private GUID guid;
