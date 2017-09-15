@@ -480,9 +480,9 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
 
     @Override
-    public LogbookLifeCycleUnit getLogbookLifeCycleUnit(JsonNode queryDsl, LogbookCollections collection)
+    public LogbookLifeCycle getLogbookLifeCycleUnit(JsonNode queryDsl, LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException {
-        return (LogbookLifeCycleUnit) getLogbook(collection, queryDsl.findValue(
+        return (LogbookLifeCycle) getLogbook(collection, queryDsl.findValue(
             LogbookMongoDbName.objectIdentifier.getDbname()).asText());
     }
 

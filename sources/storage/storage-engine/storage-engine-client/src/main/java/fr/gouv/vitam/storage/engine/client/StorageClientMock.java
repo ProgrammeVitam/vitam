@@ -113,12 +113,6 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
     }
 
     @Override
-    public StoredInfoResult storeFileFromDatabase(String strategyId, StorageCollectionType type, String guid)
-            throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
-        return generateStoredInfoResult(guid);
-    }
-
-    @Override
     public boolean deleteContainer(String strategyId) throws StorageServerClientException {
         return true;
     }

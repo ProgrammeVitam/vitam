@@ -143,6 +143,12 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     @Override
+    public JsonNode selectUnitLifeCycleById(String id, JsonNode queryDsl, LifeCycleStatusCode lifeCycleStatus) throws InvalidParseOperationException {
+        LOGGER.debug("Select request with id:" + id);
+        return ClientMockResultHelper.getLogbookOperation();
+    }
+
+    @Override
     public JsonNode selectUnitLifeCycle(JsonNode queryDsl) throws InvalidParseOperationException {
         LOGGER.debug("Select request with id:" + queryDsl.findValue(LogbookMongoDbName.objectIdentifier.getDbname()));
         return ClientMockResultHelper.getLogbookLifecycle();
@@ -150,6 +156,12 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
 
     @Override
     public JsonNode selectObjectGroupLifeCycleById(String id, JsonNode queryDsl) throws InvalidParseOperationException {
+        LOGGER.debug("Select request with id:" + id);
+        return ClientMockResultHelper.getLogbookOperation();
+    }
+
+    @Override
+    public JsonNode selectObjectGroupLifeCycleById(String id, JsonNode queryDsl, LifeCycleStatusCode lifeCycleStatus) throws InvalidParseOperationException {
         LOGGER.debug("Select request with id:" + id);
         return ClientMockResultHelper.getLogbookOperation();
     }

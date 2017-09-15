@@ -262,12 +262,6 @@
       "actions": [
         {
           "action": {
-            "actionKey": "COMMIT_LIFE_CYCLE_OBJECT_GROUP",
-            "behavior": "BLOCKING"
-          }
-        },
-        {
-          "action": {
             "actionKey": "OG_METADATA_STORAGE",
             "behavior": "BLOCKING"
           }
@@ -289,12 +283,6 @@
         "element": "Units"
       },
       "actions": [
-        {
-          "action": {
-            "actionKey": "COMMIT_LIFE_CYCLE_UNIT",
-            "behavior": "BLOCKING"
-          }
-        },
         {
           "action": {
             "actionKey": "UNIT_METADATA_STORAGE",

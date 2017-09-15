@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -53,16 +53,16 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
 /**
- * 
+ *
  */
 public abstract class StoreObjectActionHandler extends ActionHandler {
 
 
     private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(StoreObjectActionHandler.class);
+            VitamLoggerFactory.getInstance(StoreObjectActionHandler.class);
 
     private static final String DEFAULT_STRATEGY = "default";
-    
+
     private static final String FILE_NAME = "FileName";
     private static final String OFFERS = "Offers";
     private static final String ALGORITHM = "Algorithm";
@@ -79,41 +79,13 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
      * @throws ProcessingException when error in execution
      */
     protected StoredInfoResult storeObject(ObjectDescription description,
-        ItemStatus itemStatus) throws ProcessingException {
+                                           ItemStatus itemStatus) throws ProcessingException {
 
         try (final StorageClient storageClient = storageClientFactory.getClient()) {
             // store binary data object
             return storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY, description.getType(),
-                description.getObjectName(),
-                description);
-
-        } catch (StorageAlreadyExistsClientException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.KO);
-        } catch (StorageNotFoundClientException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
-        } catch (StorageServerClientException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
-        }
-        return null;
-    }
-
-    /**
-     * The function is used for retrieving ObjectGroup in workspace and storing metaData in storage offer
-     *
-     * @param uuid the object id
-     * @param type the object type
-     * @param itemStatus item status
-     * @return StoredInfoResult
-     * @throws ProcessingException when error in execution
-     */
-    protected StoredInfoResult storeObject(StorageCollectionType type, String uuid, ItemStatus itemStatus) throws ProcessingException {
-
-        try (final StorageClient storageClient = storageClientFactory.getClient()) {
-            // store binary data object
-            return storageClient.storeFileFromDatabase(DEFAULT_STRATEGY, type, uuid);
+                    description.getObjectName(),
+                    description);
 
         } catch (StorageAlreadyExistsClientException e) {
             LOGGER.error(e);
@@ -130,12 +102,12 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
 
     /**
      * Helper to set _storage on node after storing it
-     * 
+     *
      * @param node
      * @param result
      * @param update True will return an UpdateMultiQuery, else null
-     * 
-     * @throws InvalidCreateOperationException 
+     *
+     * @throws InvalidCreateOperationException
      */
     protected UpdateMultiQuery storeStorageInfo(ObjectNode node, StoredInfoResult result, boolean update) throws InvalidCreateOperationException {
         LOGGER.debug("DEBUG result: {}", result);
@@ -155,33 +127,47 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
         node.set(SedaConstants.STORAGE, storage);
         LOGGER.debug("DEBUG node: {}", node);
         if (update) {
-            UpdateMultiQuery query = new UpdateMultiQuery();
-            query.addActions(UpdateActionHelper.set(VitamFieldsHelper.storage() + "." + SedaConstants.TAG_NB, nbc)
-                .add(VitamFieldsHelper.storage() + "." + SedaConstants.STRATEGY_ID, strategy)
-                .add(VitamFieldsHelper.storage() + "." + SedaConstants.OFFER_IDS, offers));
-            LOGGER.debug("DEBUG query: {}", query);
-            return query;
+            return generateUpdateQuery(result);
         }
         return null;
     }
 
     /**
+     * Helper to set generate update query
+     *
+     * @param result
+     *
+     * @throws InvalidCreateOperationException
+     */
+    protected UpdateMultiQuery generateUpdateQuery(StoredInfoResult result) throws InvalidCreateOperationException {
+        int nbc = result.getNbCopy();
+        String strategy = result.getStrategy();
+        List<String> offers = result.getOfferIds();
+        UpdateMultiQuery query = new UpdateMultiQuery();
+        query.addActions(UpdateActionHelper.set(VitamFieldsHelper.storage() + "." + SedaConstants.TAG_NB, nbc)
+                .add(VitamFieldsHelper.storage() + "." + SedaConstants.STRATEGY_ID, strategy)
+                .add(VitamFieldsHelper.storage() + "." + SedaConstants.OFFER_IDS, offers));
+        LOGGER.debug("DEBUG query: {}", query);
+        return query;
+    }
+
+    /**
      * detailsFromStorageInfo, get storage details as JSON String from storageInfo result
-     * 
+     *
      * @param result
      * @return JSON String
      */
     protected String detailsFromStorageInfo(StoredInfoResult result){
         final ObjectNode object = JsonHandler.createObjectNode();
-        
+
         if(result != null){
             object.put(FILE_NAME, result.getId() );
             object.put(ALGORITHM, result.getDigestType());
             object.put(DIGEST, result.getDigest());
             List<String> offers = result.getOfferIds();
-            object.put(OFFERS, offers != null ? String.join(",", offers) : "");   
+            object.put(OFFERS, offers != null ? String.join(",", offers) : "");
         }
-        
+
         return JsonHandler.unprettyPrint( object );
     }
 }

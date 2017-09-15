@@ -269,7 +269,7 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @throws ProcessingException
      */
     void transferJsonToWorkspace(String collectionName, String workspacePath, JsonNode jsonNode, boolean toDelete,
-        boolean asyncIO)
+                                 boolean asyncIO)
         throws ProcessingException;
 
     /**
@@ -285,7 +285,7 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @throws ContentAddressableStorageServerException
      */
     void unzipInputStreamOnWorkspace(String container, String folderName, String archiveMimeType,
-        InputStream uploadedInputStream, boolean asyncIO)
+                                     InputStream uploadedInputStream, boolean asyncIO)
         throws ContentAddressableStorageException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageAlreadyExistException, ContentAddressableStorageCompressedFileException,
         ContentAddressableStorageServerException;

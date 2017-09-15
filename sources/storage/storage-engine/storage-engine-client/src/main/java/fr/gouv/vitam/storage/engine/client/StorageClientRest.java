@@ -123,28 +123,6 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public StoredInfoResult storeFileFromDatabase(String strategyId, StorageCollectionType type, String guid)
-            throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
-        ParametersChecker.checkParameter(TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE, type);
-        ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, guid);
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.POST, "/" + type.getCollectionName() + "/" + guid,
-                    getDefaultHeaders(tenantId, strategyId, null, null), new ObjectDescription(), MediaType.APPLICATION_JSON_TYPE,
-                    MediaType.APPLICATION_JSON_TYPE);
-            return handlePostResponseStatus(response, StoredInfoResult.class);
-        } catch (final VitamClientInternalException e) {
-            final String errorMessage = VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
-            LOGGER.error(errorMessage, e);
-            throw new StorageServerClientException(errorMessage, e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
-
-    @Override
     public boolean existsContainer(String strategyId) throws StorageServerClientException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
