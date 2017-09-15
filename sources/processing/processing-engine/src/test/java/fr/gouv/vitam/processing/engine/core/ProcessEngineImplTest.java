@@ -41,6 +41,7 @@ import fr.gouv.vitam.processing.common.automation.IEventsState;
 import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.PauseRecover;
+import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -50,15 +51,15 @@ import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InOrder;
 
-import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -127,7 +128,7 @@ public class ProcessEngineImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void startTestKO() throws Exception {
+    public void startTestWhenStatusCodeKOThenOK() throws Exception {
 
         final ProcessWorkflow processWorkflow =
             processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_FILE), workParams.getContainerName(),
@@ -136,21 +137,35 @@ public class ProcessEngineImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         when(processDistributor.distribute(anyObject(), anyObject(), anyObject(), anyObject()))
-            .thenReturn(new ItemStatus().increment(StatusCode.OK));
+            .thenReturn(new ItemStatus().increment(StatusCode.KO));
 
         IEventsProcessEngine iEventsProcessEngine = mock(IEventsProcessEngine.class);
         processEngine.setCallback(iEventsProcessEngine);
-        processEngine.start(processWorkflow.getSteps().iterator().next(), workParams, null, PauseRecover.NO_RECOVER);
+        ProcessStep step = processWorkflow.getSteps().iterator().next();
+        doAnswer(o -> step.setStepStatusCode(StatusCode.KO)).when(iEventsProcessEngine)
+            .onComplete(anyObject(), anyObject());
+        doAnswer(o -> step.setStepStatusCode(StatusCode.STARTED)).when(iEventsProcessEngine).onUpdate(anyObject());
+        processEngine.start(step, workParams, null, PauseRecover.NO_RECOVER);
+
+        // Because of start is async
+        // Sleep to be sur that completableFeature is called in the Engine
+        for (int i = 0; i <= 100; i++) {
+            if (step.getStepStatusCode() != StatusCode.KO) {
+                Thread.sleep(5);
+            }
+        }
+
         InOrder inOrders = inOrder(processDistributor, iEventsProcessEngine);
         inOrders.verify(iEventsProcessEngine).onUpdate(anyObject());
         inOrders.verify(processDistributor).distribute(anyObject(), anyObject(), anyObject(), anyObject());
         inOrders.verify(iEventsProcessEngine).onComplete(anyObject(), anyObject());
+        Assertions.assertThat(step.getStepStatusCode()).isEqualTo(StatusCode.KO);
     }
 
     @Test
     @RunWithCustomExecutor
-    public void startTestOK() throws Exception {
-        Thread.sleep(200);
+    public void startTestWhenStatusCodeOKThenOK() throws Exception {
+
         final ProcessWorkflow processWorkflow =
             processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_FILE), workParams.getContainerName(),
                 LogbookTypeProcess.INGEST, TENANT_ID);
@@ -162,16 +177,28 @@ public class ProcessEngineImplTest {
 
         IEventsProcessEngine iEventsProcessEngine = mock(IEventsProcessEngine.class);
         processEngine.setCallback(iEventsProcessEngine);
-        processEngine.start(processWorkflow.getSteps().iterator().next(), workParams, null, PauseRecover.NO_RECOVER);
+
+        ProcessStep step = processWorkflow.getSteps().iterator().next();
+        doAnswer(o -> step.setStepStatusCode(StatusCode.OK)).when(iEventsProcessEngine)
+            .onComplete(anyObject(), anyObject());
+        doAnswer(o -> step.setStepStatusCode(StatusCode.STARTED)).when(iEventsProcessEngine).onUpdate(anyObject());
+
+        processEngine.start(step, workParams, null, PauseRecover.NO_RECOVER);
 
         // Because of start is async
         // Sleep to be sur that completableFeature is called in the Engine
-        Thread.sleep(200);
+        for (int i = 0; i <= 100; i++) {
+            if (step.getStepStatusCode() != StatusCode.OK) {
+                Thread.sleep(5);
+            }
+        }
 
         InOrder inOrders = inOrder(processDistributor, iEventsProcessEngine);
         inOrders.verify(iEventsProcessEngine).onUpdate(anyObject());
         inOrders.verify(processDistributor).distribute(anyObject(), anyObject(), anyObject(), anyObject());
         inOrders.verify(iEventsProcessEngine).onComplete(anyObject(), anyObject());
+        Assertions.assertThat(step.getStepStatusCode()).isEqualTo(StatusCode.OK);
+
     }
 
     @Test(expected = ProcessingEngineException.class)
@@ -181,5 +208,6 @@ public class ProcessEngineImplTest {
             processData.initProcessWorkflow(ProcessPopulator.populate(WORKFLOW_FILE), workParams.getContainerName(),
                 LogbookTypeProcess.INGEST, TENANT_ID);
         processEngine.start(processWorkflow.getSteps().iterator().next(), workParams, null, PauseRecover.NO_RECOVER);
+
     }
 }
