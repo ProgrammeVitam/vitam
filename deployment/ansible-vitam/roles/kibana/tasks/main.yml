@@ -20,7 +20,7 @@
   replace:
     dest: /opt/kibana/config/kibana.yml
     regexp: '^# elasticsearch\.url:.*$'
-    replace: "elasticsearch.url: \"http://elasticsearch-log.service.consul:{{elasticsearch_log_http_port}}\""
+    replace: "elasticsearch.url: \"http://elasticsearch-log.service.{{consul_domain}}:{{elasticsearch_log_http_port}}\""
   notify:
     - restart kibana
 
