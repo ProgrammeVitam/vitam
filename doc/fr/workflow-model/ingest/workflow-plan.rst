@@ -117,15 +117,15 @@ Diagramme d'activité du workflow du plan de classement
 
   * COMMIT_LIFE_CYCLE_UNIT (CommitLifeCycleUnitActionHandler.java)
 
-    + Sécurisation en base des journaux du cycle de vie des unités archivistiques
+    + Enregistrement en base des journaux du cycle de vie des unités archivistiques
 
   * UNIT_METADATA_STORAGE (StoreMetaDataUnitActionPlugin.java.java) :
 
-    + Sauvegarde sur les offres de stockage des métadonnées des unités archivistiques.
+    + Ecriture sur les offres de stockage des métadonnées des unités archivistiques.
 
   * COMMIT_LIFE_CYCLE_UNIT (CommitLifeCycleUnitActionHandler.java)
 
-    + Sécurisation en base des journaux du cycle de vie des unités archivistiques
+    + Enregistrement en base des journaux du cycle de vie des unités archivistiques
 
 - **Step 5** - STP_ACCESSION_REGISTRATION : Alimentation du registre des fonds
 
