@@ -103,15 +103,15 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
   * COMMIT_LIFE_CYCLE_UNIT (CommitLifeCycleUnitActionHandler.java)
 
-    + Sécurisation en base des journaux du cycle de vie des unités archivistiques
+    + Enregistrement en base des journaux du cycle de vie des unités archivistiques
 
   * UNIT_METADATA_STORAGE (StoreMetaDataUnitActionPlugin.java.java) :
 
-    + Sauvegarde sur les offres de stockage des métadonnées des unités archivistiques.
+    + Ecriture sur les offres de stockage des métadonnées des unités archivistiques.
 
   * COMMIT_LIFE_CYCLE_UNIT (CommitLifeCycleUnitActionHandler.java)
 
-    + Sécurisation en base des journaux du cycle de vie des unités archivistiques
+    + Enregistrement en base des journaux du cycle de vie des unités archivistiques
 
 - **Step 4 et finale** - STP_INGEST_FINALISATION : Finalisation de l'entrée. Cette étape est obligatoire et sera toujours exécutée, en dernière position.
 
