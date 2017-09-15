@@ -24,7 +24,7 @@ Deux listes déroulantes sont présentes sur l'écran :
 	- le mode d'exécution "pas à pas" permettant de réaliser progressivement l'entrée en passant d'une étape à une autre. (NB : Les actions liées au processus d'entrée en mode "pas à pas" se retrouvent dans la partie Administration du manuel utilisateur).
 	- le mode d'exécution "continu" permettant de lancer le processus d'entrée dans sa globalité en une seule fois. Dans la grande majorité des cas, ce mode d'exécution sera le choix adopté.
 
-- Destination, l'utilisateur peut indiquer la destination de l'entrée d'un SIP 
+- Destination, l'utilisateur peut indiquer la destination de l'entrée d'un SIP
 	- "en production", option d'entrée classique, l'entrée est réellement effectuée, les objets et métadonnées sont enregistrés dans la solution logicielle Vitam, l'évènement est journalisé.
 	- "à blanc", option permettant de tester une entrée afin de s'assurer de la cohérence du SIP, sans toutefois l'enregistrer et la journaliser. L'utilisateur pourra ainsi corriger les erreurs éventuelles avant de procéder à une nouvelle entrée.
 
@@ -195,6 +195,7 @@ Les informations supplémentaires disponibles sont :
 - Date
 - Niveau de service
 - Signature
+- Rapport
 
 .. image:: images/op_entree_info_complementaires.png
 
