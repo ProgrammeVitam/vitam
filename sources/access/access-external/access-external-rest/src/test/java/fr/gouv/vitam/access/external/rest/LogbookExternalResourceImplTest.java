@@ -1,23 +1,7 @@
 package fr.gouv.vitam.access.external.rest;
 
-import static com.jayway.restassured.RestAssured.given;
-import static org.mockito.Matchers.anyObject;
-
-import javax.ws.rs.core.Response.Status;
-
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
-
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
@@ -32,6 +16,22 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.ws.rs.core.Response.Status;
+
+import static com.jayway.restassured.RestAssured.given;
+import static org.mockito.Matchers.anyObject;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 
 @RunWith(PowerMockRunner.class)
@@ -99,7 +99,7 @@ public class LogbookExternalResourceImplTest {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         try {
-            application = new AccessExternalMain(ACCESS_CONF);
+            application = new AccessExternalMain(ACCESS_CONF, BusinessApplicationTest.class, null);
             application.start();
             RestAssured.port = port;
             RestAssured.basePath = ACCESS_RESOURCE_URI;
@@ -117,31 +117,31 @@ public class LogbookExternalResourceImplTest {
     public void setUpBefore() throws Exception {
 
         PowerMockito.mockStatic(AccessInternalClientFactory.class);
-        accessInternalClient = PowerMockito.mock(AccessInternalClient.class);
+        accessInternalClient = mock(AccessInternalClient.class);
         final AccessInternalClientFactory clientAccessInternalFactory =
-            PowerMockito.mock(AccessInternalClientFactory.class);
-        PowerMockito.when(AccessInternalClientFactory.getInstance()).thenReturn(clientAccessInternalFactory);
-        PowerMockito.when(AccessInternalClientFactory.getInstance().getClient())
+            mock(AccessInternalClientFactory.class);
+        when(AccessInternalClientFactory.getInstance()).thenReturn(clientAccessInternalFactory);
+        when(AccessInternalClientFactory.getInstance().getClient())
             .thenReturn(accessInternalClient);
 
-        PowerMockito.when(accessInternalClient.selectOperation(anyObject()))
+        when(accessInternalClient.selectOperation(anyObject()))
             .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookResults()));
 
-        PowerMockito.when(accessInternalClient.selectOperationById(anyObject(), anyObject()))
+        when(accessInternalClient.selectOperationById(anyObject(), anyObject()))
             .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation()));
 
-        PowerMockito.when(accessInternalClient.selectUnitLifeCycleById(anyObject(), anyObject()))
+        when(accessInternalClient.selectUnitLifeCycleById(anyObject(), anyObject()))
             .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation()));
 
-        PowerMockito.when(accessInternalClient.selectObjectGroupLifeCycleById(anyObject(), anyObject()))
+        when(accessInternalClient.selectObjectGroupLifeCycleById(anyObject(), anyObject()))
             .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation()));
 
         // Mock AccessInternal response for check TRACEABILITY operation request
-        PowerMockito.when(accessInternalClient.checkTraceabilityOperation(JsonHandler.getFromString(request)))
+        when(accessInternalClient.checkTraceabilityOperation(JsonHandler.getFromString(request)))
             .thenReturn(ClientMockResultHelper.checkOperationTraceability());
 
         // Mock AccessInternal response for download TRACEABILITY operation request
-        PowerMockito.when(accessInternalClient.downloadTraceabilityFile(TRACEABILITY_OPERATION_ID))
+        when(accessInternalClient.downloadTraceabilityFile(TRACEABILITY_OPERATION_ID))
             .thenReturn(ClientMockResultHelper.getObjectStream());
 
     }
@@ -229,9 +229,9 @@ public class LogbookExternalResourceImplTest {
 
     @Test
     public void testSelectLifecycleUnits_PreconditionFailed() throws Exception {
-        PowerMockito.when(accessInternalClient.selectUnitLifeCycleById(bad_id, JsonHandler.getFromString(BODY_TEST)))
+        when(accessInternalClient.selectUnitLifeCycleById(bad_id, JsonHandler.getFromString(BODY_TEST)))
             .thenThrow(new LogbookClientException(""));
-        PowerMockito.when(accessInternalClient.selectUnitLifeCycle(JsonHandler.getFromString(BODY_TEST)))
+        when(accessInternalClient.selectUnitLifeCycle(JsonHandler.getFromString(BODY_TEST)))
             .thenThrow(new LogbookClientException(""));
         given()
             .contentType(ContentType.JSON)
@@ -262,8 +262,7 @@ public class LogbookExternalResourceImplTest {
 
     @Test
     public void testSelectLifecycleOGById_PreconditionFailed() throws Exception {
-        PowerMockito
-            .when(accessInternalClient.selectObjectGroupLifeCycleById(bad_id, JsonHandler.getFromString(request)))
+        when(accessInternalClient.selectObjectGroupLifeCycleById(bad_id, JsonHandler.getFromString(request)))
             .thenThrow(new LogbookClientException(""));
         given()
             .contentType(ContentType.JSON)
@@ -294,7 +293,7 @@ public class LogbookExternalResourceImplTest {
 
     @Test
     public void testSelectOperations_InternalServerError() throws Exception {
-        PowerMockito.when(accessInternalClient.selectOperation(JsonHandler.getFromString(bad_request)))
+        when(accessInternalClient.selectOperation(JsonHandler.getFromString(bad_request)))
             .thenThrow(new LogbookClientException(""));
         given()
             .contentType(ContentType.JSON)
@@ -325,7 +324,7 @@ public class LogbookExternalResourceImplTest {
 
     @Test
     public void testSelectOperationById_InternalServerError() throws Exception {
-        PowerMockito.when(accessInternalClient.selectOperationById(bad_id, JsonHandler.getFromString(request)))
+        when(accessInternalClient.selectOperationById(bad_id, JsonHandler.getFromString(request)))
             .thenThrow(new LogbookClientException(""));
 
         given()

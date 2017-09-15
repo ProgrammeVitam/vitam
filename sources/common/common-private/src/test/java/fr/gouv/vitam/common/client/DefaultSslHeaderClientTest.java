@@ -26,39 +26,9 @@
  */
 package fr.gouv.vitam.common.client;
 
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.security.KeyStore;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.EnumSet;
-import java.util.Enumeration;
-import java.util.List;
-
-import javax.servlet.DispatcherType;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.MultivaluedHashMap;
-
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.auth.web.filter.X509AuthenticationFilter;
-import fr.gouv.vitam.common.client.configuration.SSLConfiguration;
-import fr.gouv.vitam.common.client.configuration.SSLKey;
-import org.apache.shiro.web.env.EnvironmentLoaderListener;
-import org.apache.shiro.web.servlet.ShiroFilter;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.configuration.SecureClientConfiguration;
 import fr.gouv.vitam.common.client.configuration.SecureClientConfigurationImpl;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -72,8 +42,32 @@ import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.benchmark.BenchmarkConfiguration;
+import org.apache.shiro.web.env.EnvironmentLoaderListener;
+import org.apache.shiro.web.servlet.ShiroFilter;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import sun.misc.BASE64Encoder;
 import sun.security.provider.X509Factory;
+
+import javax.servlet.DispatcherType;
+import javax.ws.rs.Path;
+import javax.ws.rs.core.MultivaluedHashMap;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.security.KeyStore;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.Enumeration;
+import java.util.List;
+
+import static org.junit.Assert.fail;
 
 public class DefaultSslHeaderClientTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultSslHeaderClientTest.class);
@@ -304,7 +298,7 @@ public class DefaultSslHeaderClientTest {
                 List<Object> objectList = new ArrayList<>();
                 objectList.add(pem);
 
-                headers.put(X509AuthenticationFilter.X_SSL_CLIENT_CERT, objectList);
+                headers.put(GlobalDataRest.X_SSL_CLIENT_CERT, objectList);
                 client.checkStatus(headers);
             } catch (final VitamException e) {
                 LOGGER.error("THIS SHOULD NOT RAIZED AN EXCEPTION", e);
@@ -341,7 +335,7 @@ public class DefaultSslHeaderClientTest {
                 List<Object> objectList = new ArrayList<>();
                 objectList.add(pemExpired);
 
-                headers.put(X509AuthenticationFilter.X_SSL_CLIENT_CERT, objectList);
+                headers.put(GlobalDataRest.X_SSL_CLIENT_CERT, objectList);
                 client.checkStatus(headers);
                 fail("SHould Raized an exception");
             } catch (final VitamException e) {
@@ -375,7 +369,7 @@ public class DefaultSslHeaderClientTest {
                 List<Object> objectList = new ArrayList<>();
                 objectList.add(pemNotGranted);
 
-                headers.put(X509AuthenticationFilter.X_SSL_CLIENT_CERT, objectList);
+                headers.put(GlobalDataRest.X_SSL_CLIENT_CERT, objectList);
                 client.checkStatus(headers);
                 fail("SHould Raized an exception");
             } catch (final VitamException e) {

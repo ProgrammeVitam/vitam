@@ -27,7 +27,6 @@
 package fr.gouv.vitam.security.internal.rest.repository;
 
 import com.mongodb.client.MongoCollection;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;

@@ -26,10 +26,6 @@
  */
 package fr.gouv.vitam.common.model;
 
-import javax.validation.constraints.NotNull;
-
-import org.slf4j.MDC;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.guid.GUID;
@@ -37,6 +33,9 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import org.slf4j.MDC;
+
+import javax.validation.constraints.NotNull;
 
 /**
  * <p>
@@ -59,6 +58,7 @@ public class VitamSession {
     private String internalRequestId = null;
     private Integer tenantId = null;
     private String contractId = null;
+    private String contextId = null;
     private AccessContractModel contract = null;
     private Object other = null;
 
@@ -83,6 +83,7 @@ public class VitamSession {
         newSession.contractId = origin.getContractId();
         newSession.contract = origin.getContract();
         newSession.other = origin.getOther();
+        newSession.contextId = origin.getContextId();
         return newSession;
     }
 
@@ -212,7 +213,23 @@ public class VitamSession {
 		this.contract = contract;
 	}
 
-	/**
+    /**
+     * Get votam context id
+     * @return
+     */
+    public String getContextId() {
+        return contextId;
+    }
+
+    /**
+     * Set vitam context id
+     * @param contextId
+     */
+    public void setContextId(String contextId) {
+        this.contextId = contextId;
+    }
+
+    /**
      * Get the content of a given VitamSession and copy its internal values to the current instance
      *
      * @param newSession Source session
@@ -228,6 +245,7 @@ public class VitamSession {
         setContractId(newSession.getContractId());
         setContract(newSession.getContract());
         setOther(newSession.getOther());
+        setContextId(newSession.getContextId());
     }
 
     /**
@@ -251,6 +269,4 @@ public class VitamSession {
     public String toString() {
         return Integer.toHexString(hashCode()) + "{requestId='" + requestId + "', tenantId:'" + tenantId + "', contractId:'" + contractId + "'}";
     }
-
-
 }

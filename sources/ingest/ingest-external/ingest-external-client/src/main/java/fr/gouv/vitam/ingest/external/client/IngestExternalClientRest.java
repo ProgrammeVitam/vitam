@@ -26,20 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
-import static org.apache.http.HttpHeaders.EXPECT;
-import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
-
-import java.io.InputStream;
-import java.util.concurrent.TimeUnit;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -64,6 +51,17 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+import java.util.concurrent.TimeUnit;
+
+import static org.apache.http.HttpHeaders.EXPECT;
+import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
 
 /**
  * Ingest External client
@@ -265,6 +263,8 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                 } catch (InterruptedException e) {
                     SysErrLogger.FAKE_LOGGER.ignoreLog(e);
                 }
+            } else {
+                throw new VitamException((VitamError) requestResponse);
             }
         }
         return false;

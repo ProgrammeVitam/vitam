@@ -28,21 +28,15 @@
  */
 package fr.gouv.vitam.common.auth.web.filter;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
 import org.apache.shiro.ShiroException;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.web.filter.authc.AuthenticatingFilter;
 
-import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletResponse;
+import java.security.cert.X509Certificate;
 
 /**
  * Based on work: Copyright Paul Merlin 2011 (Apache Licence v2.0)
@@ -60,16 +54,14 @@ import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
  * Be careful, passing a header certificate is not fully secure (Possible injection during the routing).
  *
  * We recommend the use of request attribute instead of header.
- *
  */
 public class X509AuthenticationFilter extends AuthenticatingFilter {
 
 
-    public static final String X_SSL_CLIENT_CERT = "X-SSL-CLIENT-CERT";
     private boolean useHeader = false;
 
-    public void setUseHeader(boolean useHeader){
-        this.useHeader=useHeader;
+    public void setUseHeader(boolean useHeader) {
+        this.useHeader = useHeader;
     }
 
     @Override
@@ -85,49 +77,12 @@ public class X509AuthenticationFilter extends AuthenticatingFilter {
     @Override
     protected AuthenticationToken createToken(ServletRequest request, ServletResponse response)
         throws Exception {
-        Object attribute = request.getAttribute("javax.servlet.request.X509Certificate");
-
-        X509Certificate[] clientCertChain = (null == attribute) ? null :  (X509Certificate[])attribute;
-        //If request attribute certificate not found, try to get certificate from header
-        if ((clientCertChain == null || clientCertChain.length < 1) && useHeader) {
-
-            final HttpServletRequest httpRequest = (HttpServletRequest) request;
-            String pem = httpRequest.getHeader(X_SSL_CLIENT_CERT);
-            if (null != pem) {
-
-                try {
-
-                    /*
-                     * TODO fixme : use instead the official PemReader that implement RFC 7468 when released
-                     * Implementation of RFC 7468 (PEM can have empty space, an other characters
-                     * PemReader is RFC 1421 and do not handle character other than \n
-                     * This implementation replace those characters with \n
-                     */
-                    pem = pem.replaceAll("-----BEGIN CERTIFICATE-----", "-----BEGIN_CERTIFICATE-----");
-                    pem = pem.replaceAll("-----END CERTIFICATE-----", "-----END_CERTIFICATE-----");
-                    pem = pem.replace((char)0x09, (char)0x0A); // Line Feed
-                    pem = pem.replace((char)0x0B, (char)0x0A); // Vertical Tab
-                    pem = pem.replace((char)0x0C, (char)0x0A); // Form Feed
-                    pem = pem.replace((char)0x20, (char)0x0A); // Space
-                    pem = pem.replace((char)0x0D, (char)0x0A); // Carriage Return
-                    pem = pem.replaceAll("-----BEGIN_CERTIFICATE-----", "-----BEGIN CERTIFICATE-----");
-                    pem = pem.replaceAll("-----END_CERTIFICATE-----", "-----END CERTIFICATE-----");
-
-                    final InputStream pemStream = new ByteArrayInputStream(pem.getBytes());
-                    final CertificateFactory cf = CertificateFactory.getInstance("X.509");
-                    final X509Certificate cert = (X509Certificate) cf.generateCertificate(pemStream);
-                    clientCertChain = new X509Certificate[] {cert};
-                } catch (Exception ce) {
-                    throw new ShiroException(ce);
-                }
-            }
-
-
-        }
+        X509Certificate[] clientCertChain = CertUtils.extractCert(request, useHeader);
 
         if (clientCertChain == null || clientCertChain.length < 1) {
             throw new ShiroException("Request do not contain any X509Certificate ");
         }
+
         return new X509AuthenticationToken(clientCertChain, getHost(request));
 
     }

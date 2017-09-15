@@ -60,8 +60,8 @@ public class InternalSecurityClientRest extends DefaultClient implements Interna
         throws VitamClientInternalException, InternalSecurityException {
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, "/identity", new MultivaluedHashMap<>(), certificate,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            response = performRequest(HttpMethod.GET, "/", new MultivaluedHashMap<>(), certificate,
+                MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {

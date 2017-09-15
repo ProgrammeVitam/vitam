@@ -27,15 +27,15 @@
 
 package fr.gouv.vitam.common.error;
 
+import org.junit.Test;
+
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
-import java.util.List;
-
-import org.junit.Test;
 
 public class VitamCodeHelperTest {
 
@@ -311,7 +311,7 @@ public class VitamCodeHelperTest {
     public void getFromServiceTest() {
         final List<VitamCode> codes = VitamCodeHelper.getFromService(ServiceName.VITAM);
         assertNotNull(codes);
-        assertEquals(3, codes.size());
+        assertEquals(4, codes.size());
         assertEquals(VitamCode.TEST, codes.get(0));
     }
 

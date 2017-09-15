@@ -1,5 +1,6 @@
 package fr.gouv.vitam.access.external.rest;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -10,6 +11,8 @@ import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
+
+import javax.ws.rs.core.Application;
 
 public class AccessExternalMain {
 
@@ -24,6 +27,30 @@ public class AccessExternalMain {
             CONF_FILE_NAME), configurationFile);
         vitamStarter = new VitamStarter(AccessExternalConfiguration.class, configurationFile,
             BusinessApplication.class, AdminApplication.class);
+    }
+
+    /**
+     * This constructor is used for test
+     * To customize BusinessApplication and AdminApplication
+     * @param configurationFile
+     * @param testBusinessApplication
+     * @param testAdminApplication
+     */
+    @VisibleForTesting
+    public AccessExternalMain(String configurationFile,
+        Class<? extends Application> testBusinessApplication,
+        Class<? extends Application> testAdminApplication) {
+        ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
+            CONF_FILE_NAME), configurationFile);
+        if (null == testBusinessApplication) {
+            testBusinessApplication =  BusinessApplication.class;
+        }
+
+        if (null == testAdminApplication) {
+            testAdminApplication =  AdminApplication.class;
+        }
+        vitamStarter = new VitamStarter(AccessExternalConfiguration.class, configurationFile,
+            testBusinessApplication, testAdminApplication);
     }
 
     public static void main(String[] args) {

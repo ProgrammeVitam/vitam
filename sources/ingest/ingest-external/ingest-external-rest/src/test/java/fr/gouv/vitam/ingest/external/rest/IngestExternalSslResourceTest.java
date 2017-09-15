@@ -26,26 +26,23 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.rest;
 
-import static com.jayway.restassured.RestAssured.given;
-
-import java.io.File;
-
-import javax.ws.rs.core.Response.Status;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.jayway.restassured.RestAssured;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+
+import static com.jayway.restassured.RestAssured.given;
 
 public class IngestExternalSslResourceTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalSslResourceTest.class);
@@ -83,7 +80,7 @@ public class IngestExternalSslResourceTest {
         // TODO P1 activate authentication
         // RestAssured.keystore("src/test/resources/tls/server/granted_certs.jks", "gazerty");
         try {
-            application = new IngestExternalMain(configurationFile);
+            application = new IngestExternalMain(configurationFile, BusinessApplicationTest.class, null);
             application.start();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);

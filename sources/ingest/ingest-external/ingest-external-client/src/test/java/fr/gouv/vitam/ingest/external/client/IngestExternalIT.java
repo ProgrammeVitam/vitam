@@ -26,16 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
-import static org.junit.Assert.fail;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.external.client.configuration.SecureClientConfiguration;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.ingest.external.rest.IngestExternalMain;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import static org.junit.Assert.fail;
 
 /**
  *
@@ -60,7 +59,7 @@ public class IngestExternalIT {
 
         // TODO verifier la compatibilité avec les tests parallèles sur jenkins
 
-        application = new IngestExternalMain(INGEST_EXTERNAL_CONF);
+        application = new IngestExternalMain(INGEST_EXTERNAL_CONF, BusinessApplicationTest.class, null);
         try {
             application.start();
         } catch (final VitamApplicationServerException e) {

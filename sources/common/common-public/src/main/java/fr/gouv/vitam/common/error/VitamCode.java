@@ -54,6 +54,9 @@ public enum VitamCode {
     GLOBAL_EMPTY_QUERY(ServiceName.VITAM, DomainName.ILLEGAL, "00", Status.FORBIDDEN,
         "No search query specified, this is mandatory"),
 
+    INTERNAL_SECURITY_UNAUTHORIZED(ServiceName.VITAM, DomainName.SECURITY, "00", Status.UNAUTHORIZED,
+        "Internal Security Filter Unauthorized"),
+
     STORAGE_MISSING_HEADER(ServiceName.STORAGE, DomainName.ILLEGAL, "00", Status.PRECONDITION_FAILED, "Header are " +
         "missing"),
     STORAGE_BAD_REQUEST(ServiceName.STORAGE, DomainName.ILLEGAL, "01", Status.PRECONDITION_FAILED,

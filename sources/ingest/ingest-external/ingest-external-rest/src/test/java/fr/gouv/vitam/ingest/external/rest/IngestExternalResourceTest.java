@@ -55,7 +55,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.IngestCollection;
@@ -105,7 +104,7 @@ public class IngestExternalResourceTest {
         RestAssured.port = serverPort;
         RestAssured.basePath = RESOURCE_URI;
         try {
-            application = new IngestExternalMain(INGEST_EXTERNAL_CONF);
+            application = new IngestExternalMain(INGEST_EXTERNAL_CONF, BusinessApplicationTest.class, null);
             application.start();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);

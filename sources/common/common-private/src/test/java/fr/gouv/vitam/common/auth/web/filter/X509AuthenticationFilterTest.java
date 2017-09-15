@@ -26,28 +26,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.auth.web.filter;
 
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.*;
-import java.math.BigInteger;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.util.Date;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.shiro.junit.AbstractShiroTest;
 import org.apache.shiro.subject.Subject;
 import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x509.*;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.Certificate;
+import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.KeyPurposeId;
+import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
@@ -60,10 +50,31 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import fr.gouv.vitam.common.shiro.junit.AbstractShiroTest;
 import sun.misc.BASE64Encoder;
 import sun.security.provider.X509Factory;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringWriter;
+import java.math.BigInteger;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.util.Date;
+
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class X509AuthenticationFilterTest extends AbstractShiroTest {
     private X509Certificate cert;
@@ -129,9 +140,9 @@ public class X509AuthenticationFilterTest extends AbstractShiroTest {
             new X500Name("CN=" + dn),
             SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded()));
 
-        builder.addExtension(X509Extension.basicConstraints, true, new BasicConstraints(false));
-        builder.addExtension(X509Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature));
-        builder.addExtension(X509Extension.extendedKeyUsage, true, new ExtendedKeyUsage(KeyPurposeId.id_kp_clientAuth));
+        builder.addExtension(Extension.basicConstraints, true, new BasicConstraints(false));
+        builder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature));
+        builder.addExtension(Extension.extendedKeyUsage, true, new ExtendedKeyUsage(KeyPurposeId.id_kp_clientAuth));
 
         AlgorithmIdentifier signatureAlgorithmId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA256withRSA");
         AlgorithmIdentifier digestAlgorithmId = new DefaultDigestAlgorithmIdentifierFinder().find(signatureAlgorithmId);
@@ -183,7 +194,7 @@ public class X509AuthenticationFilterTest extends AbstractShiroTest {
     @Test
     public void givenFilterByHeaderAccessDenied() throws Exception {
         // Needs mock subject for login call
-        when(request.getHeader(X509AuthenticationFilter.X_SSL_CLIENT_CERT)).thenReturn(pem);
+        when(request.getHeader(GlobalDataRest.X_SSL_CLIENT_CERT)).thenReturn(pem);
         Subject subjectUnderTest = mock(Subject.class);
         Mockito.doNothing().when(subjectUnderTest).login(anyObject());
         setSubject(subjectUnderTest);
@@ -195,7 +206,7 @@ public class X509AuthenticationFilterTest extends AbstractShiroTest {
 
     @Test
     public void givenFilterByHeaderCreateToken() throws Exception {
-        when(request.getHeader(X509AuthenticationFilter.X_SSL_CLIENT_CERT)).thenReturn(pem);
+        when(request.getHeader(GlobalDataRest.X_SSL_CLIENT_CERT)).thenReturn(pem);
         final X509AuthenticationFilter filter = new X509AuthenticationFilter();
         filter.setUseHeader(true);
         filter.createToken(request, response);

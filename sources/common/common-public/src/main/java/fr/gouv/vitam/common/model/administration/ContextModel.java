@@ -26,17 +26,17 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Data Transfer Object Model of Context
  */
 public class ContextModel {
     public static final String ID = "_id";
-    
+
     private static final String DEACTIVATION_DATE = "DeactivationDate";
 
     private static final String ACTIVATION_DATE = "ActivationDate";
@@ -49,9 +49,12 @@ public class ContextModel {
 
     public static final String STATUS = "Status";
 
+    public static final String ENABLE_CONTROL = "EnableControl";
+
     public static final String IDENTIFIER = "Identifier";
 
     public static final String PERMISSIONS = "Permissions";
+
 
     /**
      * unique identifier
@@ -61,16 +64,19 @@ public class ContextModel {
 
     @JsonProperty(NAME)
     private String name;
-    
+
     @JsonProperty(STATUS)
     private boolean status;
-    
+
+    @JsonProperty(ENABLE_CONTROL)
+    private boolean enablecontrol = false;
+
     @JsonProperty(IDENTIFIER)
     private String identifier;
 
     @JsonProperty(PERMISSIONS)
     private List<PermissionModel> permissions = new ArrayList<>();
-    
+
     @JsonProperty(CREATION_DATE)
     private String creationdate;
 
@@ -82,35 +88,38 @@ public class ContextModel {
 
     @JsonProperty(DEACTIVATION_DATE)
     private String deactivationdate;
-    
+
     /**
      * Constructor of ContextModel
-     * 
+     *
      * @param id
      * @param name
      * @param status
      * @param permissions
      */
-    public ContextModel(@JsonProperty("_id")String id,@JsonProperty(NAME) String name,
-        @JsonProperty(STATUS) boolean status,@JsonProperty(PERMISSIONS) List<PermissionModel> permissions,
+    public ContextModel(@JsonProperty("_id") String id, @JsonProperty(NAME) String name,
+        @JsonProperty(STATUS) boolean status, @JsonProperty(ENABLE_CONTROL) boolean enablecontrol,
+        @JsonProperty(PERMISSIONS) List<PermissionModel> permissions,
         @JsonProperty(CREATION_DATE) String creationdate, @JsonProperty(LAST_UPDATE) String lastupdate,
-        @JsonProperty(ACTIVATION_DATE) String activationdate, @JsonProperty(DEACTIVATION_DATE) String deactivationdate) {
+        @JsonProperty(ACTIVATION_DATE) String activationdate,
+        @JsonProperty(DEACTIVATION_DATE) String deactivationdate) {
         this.id = id;
         this.name = name;
         this.status = status;
+        this.enablecontrol = enablecontrol;
         this.permissions = permissions;
         this.creationdate = creationdate;
         this.lastupdate = lastupdate;
         this.deactivationdate = deactivationdate;
         this.activationdate = activationdate;
     }
-    
+
     /**
      * empty constructor
      */
     public ContextModel() {
     }
-    
+
     /**
      * @return id
      */
@@ -155,6 +164,21 @@ public class ContextModel {
         this.status = status;
     }
 
+
+    /**
+     * @return enableControle true we must check contract given contract exists in the current context, false else
+     */
+    public boolean isEnablecontrol() {
+        return enablecontrol;
+    }
+
+    /**
+     * @param enablecontrol
+     */
+    public void setEnablecontrol(boolean enablecontrol) {
+        this.enablecontrol = enablecontrol;
+    }
+
     /**
      * @return list of PermissionModel
      */
@@ -168,7 +192,7 @@ public class ContextModel {
     public void setPermissions(List<PermissionModel> permissions) {
         this.permissions = permissions;
     }
-    
+
     /**
      * @return identifier
      */
@@ -203,7 +227,7 @@ public class ContextModel {
     }
 
     /**
-     * @return last update of context 
+     * @return last update of context
      */
     public String getLastupdate() {
         return this.lastupdate;
@@ -219,7 +243,7 @@ public class ContextModel {
     }
 
     /**
-     * @return the activation date of context 
+     * @return the activation date of context
      */
     public String getActivationdate() {
         return this.activationdate;
@@ -235,7 +259,7 @@ public class ContextModel {
     }
 
     /**
-     * @return the desactivation date of context 
+     * @return the desactivation date of context
      */
     public String getDeactivationdate() {
         return this.deactivationdate;

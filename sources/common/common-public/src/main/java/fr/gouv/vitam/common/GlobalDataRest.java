@@ -130,6 +130,11 @@ public class GlobalDataRest {
     public static final String X_CONTENT_LENGTH = "X-Content-Length";
 
     /**
+     * Header to passe certificate pem
+     */
+    public static final String X_SSL_CLIENT_CERT = "X-SSL-CLIENT-CERT";
+
+    /**
      * X_CONTEXT_ID : used in case of POST and PUT methods to transmit workFlow execution context(stepByStep or not)
      */
     public static final String X_CONTEXT_ID = "X-Context-Id";

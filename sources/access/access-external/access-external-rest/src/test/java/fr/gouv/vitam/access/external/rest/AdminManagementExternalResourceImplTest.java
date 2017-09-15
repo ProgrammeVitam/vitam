@@ -32,7 +32,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
-
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -110,7 +109,7 @@ public class AdminManagementExternalResourceImplTest {
         RestAssured.basePath = RESOURCE_URI;
 
         try {
-            application = new AccessExternalMain("access-external-test.conf");
+            application = new AccessExternalMain("access-external-test.conf", BusinessApplicationTest.class, null);
             application.start();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
@@ -763,7 +762,7 @@ public class AdminManagementExternalResourceImplTest {
         given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(PROFILE_URI)
-            .then().statusCode(Status.CREATED.getStatusCode()).contentType("application/json");;
+            .then().statusCode(Status.CREATED.getStatusCode()).contentType("application/json");
     }
 
     @Test
