@@ -98,6 +98,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
 
     private static final String ARCHIVE_UNIT_FINAL = "checkArchiveUnitSchemaActionPlugin/archive-unit_OK_final.json";
     private static final String ARCHIVE_UNIT_INVALID_DESC_LEVEL = "checkArchiveUnitSchemaActionPlugin/archive-unit_KO_DescriptionLevel.json";
+    private static final String ARCHIVE_UNIT_STARTDATE_AFTER_ENDDATE = "checkArchiveUnitSchemaActionPlugin/archive-unit_KO_startDate.json";
 
     private final InputStream archiveUnit;
     private final InputStream archiveUnitNumber;
@@ -111,6 +112,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
     private final InputStream archiveUnitInvalidContent;
     private final InputStream archiveUnitInvalidXml;
     private final InputStream archiveUnitInvalidDescLevel;
+    private final InputStream archiveUnitStartDateAfterEndDate;
 
     private List<IOParameter> out;
 
@@ -136,6 +138,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
         archiveUnitInvalidDescLevel = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_INVALID_DESC_LEVEL);
         archiveUnitWithSignature = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_SIGNATURE_CONTENT);
         archiveUnitFinalAction = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_FINAL_ACTION);
+        archiveUnitStartDateAfterEndDate = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_STARTDATE_AFTER_ENDDATE);
 
     }
 
@@ -268,6 +271,16 @@ public class CheckArchiveUnitSchemaActionPluginTest {
         // invalid desc level
         when(workspaceClient.getObject(anyObject(), eq("Units/archiveUnit.json")))
                 .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidDescLevel).build());
+        final ItemStatus response = plugin.execute(params, action);
+        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId(), "NOT_AU_JSON_VALID");
+    }
+
+    @Test
+    public void givenStartDateAfterEndDateWhenExecuteThenReturnResponseKO() throws Exception {
+        // invalid desc level
+        when(workspaceClient.getObject(anyObject(), eq("Units/archiveUnit.json")))
+            .thenReturn(Response.status(Status.OK).entity(archiveUnitStartDateAfterEndDate).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
         assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId(), "NOT_AU_JSON_VALID");

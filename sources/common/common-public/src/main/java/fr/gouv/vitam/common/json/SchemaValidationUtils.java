@@ -130,8 +130,10 @@ public class SchemaValidationUtils {
                     archiveUnit.get(SedaConstants.TAG_RULE_END_DATE).asText());
                 if (endDate.before(startDate)) {
                     final String errorMessage = "EndDate is before StartDate, unit Title : " + archiveUnit.get("Title").asText();
+                    ObjectNode errorNode = JsonHandler.createObjectNode();
+                    errorNode.put( "validateUnitReport",  errorMessage);
                     LOGGER.error(errorMessage);
-                    return new SchemaValidationStatus(errorMessage,
+                    return new SchemaValidationStatus(errorNode.toString(),
                         SchemaValidationStatusEnum.NOT_AU_JSON_VALID);
                 }  
             }
