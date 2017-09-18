@@ -37,10 +37,9 @@ import java.io.InputStream;
 import javax.xml.stream.XMLStreamException;
 
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.client.VitamContext;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -62,7 +61,7 @@ public class IngestExternalClientMockTest {
         final IngestExternalClient client =
             IngestExternalClientFactory.getInstance().getClient();
         assertTrue(client instanceof IngestExternalClientMock);
-        client.upload(null, TENANT_ID, CONTEXT_ID, EXECUTION_MODE);
+        client.upload(new VitamContext(TENANT_ID), null, CONTEXT_ID, EXECUTION_MODE);
     }
 
 
@@ -76,7 +75,7 @@ public class IngestExternalClientMockTest {
 
         final InputStream firstStream = IOUtils.toInputStream(MOCK_INPUT_STREAM, CharsetUtils.UTF8);
         RequestResponse<Void> requestResponse =
-            client.upload(firstStream, TENANT_ID, CONTEXT_ID, EXECUTION_MODE);
+            client.upload(new VitamContext(TENANT_ID), firstStream, CONTEXT_ID, EXECUTION_MODE);
 
         assertEquals(requestResponse.getHttpCode(), 202);
     }
@@ -92,7 +91,7 @@ public class IngestExternalClientMockTest {
 
         final InputStream firstStream = StreamUtils.toInputStream("test");
         final InputStream responseStream =
-            client.downloadObjectAsync("1", IngestCollection.MANIFESTS, TENANT_ID).readEntity(InputStream.class);
+            client.downloadObjectAsync(new VitamContext(TENANT_ID), "1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
 
         assertNotNull(responseStream);
         try {

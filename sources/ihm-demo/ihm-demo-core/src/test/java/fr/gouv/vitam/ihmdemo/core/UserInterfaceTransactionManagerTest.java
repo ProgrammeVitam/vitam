@@ -29,6 +29,7 @@ package fr.gouv.vitam.ihmdemo.core;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
@@ -37,6 +38,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.client.VitamContext;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -134,7 +136,7 @@ public class UserInterfaceTransactionManagerTest {
     @RunWithCustomExecutor
     public void testSuccessSearchUnits()
         throws Exception {
-        when(accessClient.selectUnits(anyObject(), anyObject(), anyObject())).thenReturn(searchResult);
+        when(accessClient.selectUnits(anyObject(), anyObject())).thenReturn(searchResult);
         // Test method
         final RequestResponseOK result = (RequestResponseOK) UserInterfaceTransactionManager
             .searchUnits(JsonHandler.getFromString(SEARCH_UNIT_DSL_QUERY), TENANT_ID, CONTRACT_NAME);
@@ -145,8 +147,10 @@ public class UserInterfaceTransactionManagerTest {
     @RunWithCustomExecutor
     public void testSuccessGetArchiveUnitDetails()
         throws Exception {
-        when(accessClient.selectUnitbyId(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT, TENANT_ID,
-            CONTRACT_NAME))
+        when(accessClient.selectUnitbyId(
+            eq(new VitamContext(TENANT_ID).setAccessContract(CONTRACT_NAME)),
+            eq(JsonHandler.getFromString(SELECT_ID_DSL_QUERY)), eq(ID_UNIT)
+        ))
                 .thenReturn(unitDetails);
         // Test method
         final RequestResponseOK<JsonNode> archiveDetails =
@@ -160,7 +164,7 @@ public class UserInterfaceTransactionManagerTest {
     @RunWithCustomExecutor
     public void testSuccessUpdateUnits()
         throws Exception {
-        when(accessClient.updateUnitbyId(anyObject(), anyObject(), anyObject(), anyObject())).thenReturn(updateResult);
+        when(accessClient.updateUnitbyId(anyObject(), anyObject(), anyObject())).thenReturn(updateResult);
         // Test method
         final RequestResponseOK results = (RequestResponseOK) UserInterfaceTransactionManager.updateUnits(JsonHandler
             .getFromString(UPDATE_UNIT_DSL_QUERY), "1", TENANT_ID, CONTRACT_NAME);
@@ -176,8 +180,8 @@ public class UserInterfaceTransactionManagerTest {
                 "{$hits: {'total':'1'}, $results:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}],$context :" +
                     SEARCH_UNIT_DSL_QUERY + "}",
                 RequestResponseOK.class, JsonNode.class);
-        when(accessClient.selectObjectById(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, TENANT_ID,
-            CONTRACT_NAME))
+        when(accessClient.selectObjectById(eq(new VitamContext(TENANT_ID).setAccessContract(CONTRACT_NAME)), eq(JsonHandler.getFromString(OBJECT_GROUP_QUERY)), eq(ID_OBJECT_GROUP)
+        ))
                 .thenReturn(result);
         // Test method
         final RequestResponseOK<JsonNode> objectGroup =
@@ -192,8 +196,8 @@ public class UserInterfaceTransactionManagerTest {
     @RunWithCustomExecutor
     public void testSuccessGetObjectAsInputStream()
         throws Exception {
-        when(accessClient.getUnitObject(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, "usage", 1,
-            TENANT_ID, CONTRACT_NAME))
+        when(accessClient.getUnitObject(eq(new VitamContext(TENANT_ID).setAccessContract(CONTRACT_NAME)),
+            eq(JsonHandler.getFromString(OBJECT_GROUP_QUERY)), eq(ID_OBJECT_GROUP), eq("usage"), eq(1)))
                 .thenReturn(new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream("Vitam Test"),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         assertTrue(UserInterfaceTransactionManager.getObjectAsInputStream(asynResponse,

@@ -8,6 +8,7 @@ import java.io.ByteArrayInputStream;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client.VitamContext;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,52 +41,52 @@ public class AdminExternalClientMockTest {
         throws Exception {
 
         Response checkDocumentsResponse =
-            client.checkDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), TENANT_ID);
+            client.checkDocuments(new VitamContext(TENANT_ID), AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()));
         assertEquals(Status.OK.getStatusCode(), checkDocumentsResponse.getStatus());
         assertEquals(
-            client.createDocuments(AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), "test.xml",
-                TENANT_ID),
+            client.createDocuments(new VitamContext(TENANT_ID), AdminCollections.FORMATS, new ByteArrayInputStream("test".getBytes()), "test.xml"
+            ),
             Status.CREATED);
 
         assertEquals(
-            client.createProfiles(new ByteArrayInputStream("test".getBytes()), TENANT_ID).getHttpCode(),
+            client.createProfiles(new VitamContext(TENANT_ID), new ByteArrayInputStream("test".getBytes())).getHttpCode(),
             Status.CREATED.getStatusCode());
 
         assertEquals(
-            client.importProfileFile("fakeId", new ByteArrayInputStream("test".getBytes()), TENANT_ID).getHttpCode(),
+            client.importProfileFile(new VitamContext(TENANT_ID), "fakeId", new ByteArrayInputStream("test".getBytes())).getHttpCode(),
             Status.CREATED.getStatusCode());
 
         assertEquals(
-            client.downloadProfileFile("fakeId", TENANT_ID).getStatus(),
+            client.downloadProfileFile(new VitamContext(TENANT_ID), "fakeId").getStatus(),
             Status.OK.getStatusCode());
 
 
         assertEquals(
-            client.findFormats(JsonHandler.createObjectNode(), TENANT_ID, null).toString(),
+            client.findFormats(new VitamContext(TENANT_ID).setAccessContract(null), JsonHandler.createObjectNode()).toString(),
             ClientMockResultHelper.getFormatList().toString());
 
         assertEquals(
-            client.findRules(JsonHandler.createObjectNode(), TENANT_ID, null).toString(),
+            client.findRules(new VitamContext(TENANT_ID).setAccessContract(null), JsonHandler.createObjectNode()).toString(),
             ClientMockResultHelper.getRuleList().toString());
 
         assertEquals(
-            client.findFormatById(DOCUMENT_ID, TENANT_ID, CONTRACT).toString(),
+            client.findFormatById(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), DOCUMENT_ID).toString(),
             ClientMockResultHelper.getFormat().toString());
 
         assertEquals(
-            client.findRuleById(DOCUMENT_ID, TENANT_ID, CONTRACT).toString(),
+            client.findRuleById(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), DOCUMENT_ID).toString(),
             ClientMockResultHelper.getRule().toString());
 
         assertEquals(
-            client.importContexts(new ByteArrayInputStream("test".getBytes()), TENANT_ID).getHttpCode(),
+            client.importContexts(new VitamContext(TENANT_ID), new ByteArrayInputStream("test".getBytes())).getHttpCode(),
             Status.CREATED.getStatusCode());
 
         assertEquals(
-            client.checkTraceabilityOperation(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT).getHttpCode(),
+            client.checkTraceabilityOperation(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql)).getHttpCode(),
             Status.OK.getStatusCode());
 
         assertEquals(
-            client.launchAudit(JsonHandler.getFromString(AUDIT_OPTION), TENANT_ID, CONTRACT),
+            client.launchAudit(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(AUDIT_OPTION)),
             Status.OK);
 
     }

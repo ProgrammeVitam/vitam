@@ -32,6 +32,7 @@ import javax.ws.rs.core.Response;
 
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.client.PoolingStatusClient;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.IngestCollection;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -48,15 +49,18 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
     /**
      * ingest upload file in local
      *
+     *
+     * @param vitamContext the vitam context
      * @param stream
-     * @param tenantId
      * @param contextId
      * @param action
      * @return response
      * @throws IngestExternalException
      */
     // TODO P0 : add file name
-    RequestResponse<Void> upload(InputStream stream, Integer tenantId, String contextId, String action)
+    RequestResponse<Void> upload(VitamContext vitamContext, InputStream stream,
+        String contextId,
+        String action)
         throws IngestExternalException;
 
     /**
@@ -65,76 +69,87 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      * 
      *
+     *
+     * @param vitamContext the vitam context
      * @param objectId
      * @param type
-     * @param tenantId
      * @return object as stream
      * @throws VitamClientException
      */
-    Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId)
+    Response downloadObjectAsync(VitamContext vitamContext, String objectId,
+        IngestCollection type)
         throws VitamClientException;
 
     /**
      * Update the oprration according to the action
      * 
+     *
+     * @param vitamContext the vitam context
      * @param actionId
      * @param operationId
-     * @param tenantId
      * @return the status
      * @throws VitamClientException
      */
-    RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId, Integer tenantId)
+    RequestResponse<ItemStatus> updateOperationActionProcess(VitamContext vitamContext,
+        String actionId, String operationId)
         throws VitamClientException;
 
     /**
      * 
+     *
+     * @param vitamContext the vitam context
      * @param id
-     * @param tenantId
      * @return the status of the operation (HEAD only)
      * @throws VitamClientException
      */
-    RequestResponse<ItemStatus> getOperationProcessStatus(String id, Integer tenantId) throws VitamClientException;
+    RequestResponse<ItemStatus> getOperationProcessStatus(VitamContext vitamContext,
+        String id) throws VitamClientException;
 
     /**
      * 
+     *
+     * @param vitamContext the vitam context
      * @param id
-     * @param query
-     * @param tenantId
      * @return the details of the operation
      * @throws VitamClientException
      */
-    RequestResponse<ItemStatus> getOperationProcessExecutionDetails(String id, Integer tenantId)
+    RequestResponse<ItemStatus> getOperationProcessExecutionDetails(
+        VitamContext vitamContext, String id)
         throws VitamClientException;
 
     /**
      * Cancel the operation
      * 
+     *
+     * @param vitamContext the vitam context
      * @param id
-     * @param tenantId
      * @return the status
      * @throws VitamClientException
      * @throws IllegalArgumentException
      */
-    RequestResponse<ItemStatus> cancelOperationProcessExecution(String id, Integer tenantId)
+    RequestResponse<ItemStatus> cancelOperationProcessExecution(VitamContext vitamContext,
+        String id)
         throws VitamClientException, IllegalArgumentException;
 
     /**
      * Get the list of operations details
      * 
-     * @param tenantId tenant id
+     *
+     * @param vitamContext the vitam context
      * @param query filter query
      * @return list of operations details
      * @throws VitamClientException
      */
-    RequestResponse<ProcessDetail> listOperationsDetails(Integer tenantId, ProcessQuery query)
+    RequestResponse<ProcessDetail> listOperationsDetails(VitamContext vitamContext,
+        ProcessQuery query)
         throws VitamClientException;
 
     // FIXME P1 : is tenant really necessary ?
     /**
      * 
-     * @param tenantId
-     * @return the Workflow definitions
+     *
+     * @param vitamContext the vitam context@return the Workflow definitions
      * @throws VitamClientException
      */
-    RequestResponse<WorkFlow> getWorkflowDefinitions(Integer tenantId) throws VitamClientException;
+    RequestResponse<WorkFlow> getWorkflowDefinitions(VitamContext vitamContext) throws VitamClientException;
 }

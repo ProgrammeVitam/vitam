@@ -50,6 +50,7 @@ import java.util.stream.Collectors;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client.VitamContext;
 import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.assertj.core.api.Fail;
 
@@ -200,8 +201,8 @@ public class AccessStep {
             String unitGuid = replaceTitleByGUID(title);
             String newContract = CONTRACT_WITH_LINK.replace(UNIT_GUID, unitGuid);
             JsonNode node = JsonHandler.getFromString(newContract);
-            world.getAdminClient().importContracts(new ByteArrayInputStream(newContract.getBytes()),
-                world.getTenantId(), AdminCollections.ENTRY_CONTRACTS);
+            world.getAdminClient().importContracts(new VitamContext(world.getTenantId()), new ByteArrayInputStream(newContract.getBytes()),
+                AdminCollections.ENTRY_CONTRACTS);
         } catch (AccessExternalClientException | IllegalStateException | InvalidParseOperationException e) {
             // Do Nothing
             LOGGER.warn("Contrat d'entrée est déjà importé");
@@ -262,8 +263,9 @@ public class AccessStep {
             and().add(eq(TITLE, auTitle)).add(in(VitamFieldsHelper.operations(), world.getOperationId()))
                 .setDepthLimit(20));
         RequestResponse requestResponse =
-            world.getAccessClient().selectUnits(searchQuery.getFinalSelect(), world.getTenantId(),
-                world.getContractId());
+            world.getAccessClient().selectUnits(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()),
+                searchQuery.getFinalSelect()
+            );
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             if (requestResponseOK.getHits().getTotal() == 0) {
@@ -318,8 +320,9 @@ public class AccessStep {
     public void the_status_of_the_select_result(String status) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(query);
 
-        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(queryJSON,
-            world.getTenantId(), world.getContractId());
+        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(
+            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()), queryJSON
+        );
 
         Status expectedStatus = Status.fromStatusCode(requestResponse.getHttpCode());
 
@@ -339,8 +342,9 @@ public class AccessStep {
         String s = null;
         // get id of last result
         String unitId = getValueFromResult("#id", 0);
-        RequestResponse<JsonNode> requestResponse = world.getAccessClient().updateUnitbyId(queryJSON, unitId,
-            world.getTenantId(), world.getContractId());
+        RequestResponse<JsonNode> requestResponse = world.getAccessClient().updateUnitbyId(
+            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()), queryJSON, unitId
+        );
         assertThat(requestResponse.isOk()).isFalse();
         final VitamError vitamError = (VitamError) requestResponse;
         assertThat(Response.Status.valueOf(status.toUpperCase()).getStatusCode()).isEqualTo(vitamError.getHttpCode());
@@ -383,8 +387,9 @@ public class AccessStep {
     @When("^je recherche les unités archivistiques$")
     public void search_archive_unit() throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(query);
-        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(queryJSON,
-            world.getTenantId(), world.getContractId());
+        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(
+            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()), queryJSON
+        );
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             results = requestResponseOK.getResults();
@@ -402,8 +407,9 @@ public class AccessStep {
 
         JsonNode queryJSON = JsonHandler.getFromString(query);
 
-        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(queryJSON,
-            world.getTenantId(), world.getContractId());
+        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(
+            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()), queryJSON
+        );
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             results = requestResponseOK.getResults();
@@ -423,8 +429,9 @@ public class AccessStep {
     @When("^je recherche une unité archivistique et je recupère son id$")
     public void search_one_archive_unit() throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(query);
-        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(queryJSON,
-            world.getTenantId(), world.getContractId());
+        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(
+            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()), queryJSON
+        );
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             world.setUnitId(requestResponseOK.getResults().get(0).get("#id").asText());
@@ -445,7 +452,8 @@ public class AccessStep {
         // get id of last result
         String unitId = getValueFromResult("#id", 0);
         RequestResponse<JsonNode> requestResponse =
-            world.getAccessClient().updateUnitbyId(queryJSON, unitId, world.getTenantId(), world.getContractId());
+            world.getAccessClient().updateUnitbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()),
+                queryJSON, unitId);
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             results = requestResponseOK.getResults();
@@ -466,8 +474,8 @@ public class AccessStep {
     public void search_archive_unit_object_group(String title) throws Throwable {
         String unitId = replaceTitleByGUID(title);
         RequestResponse responseObjectGroup =
-            world.getAccessClient().selectObjectById(new SelectMultiQuery().getFinalSelect(),
-                unitId, world.getTenantId(), world.getContractId());
+            world.getAccessClient().selectObjectById(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()), new SelectMultiQuery().getFinalSelect(),
+                unitId);
         if (responseObjectGroup.isOk()) {
             results = ((RequestResponseOK<JsonNode>) responseObjectGroup).getResults();
         } else {
@@ -485,7 +493,8 @@ public class AccessStep {
     public void search_logbook_operation() throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(query);
         RequestResponse<LogbookOperation> requestResponse =
-            world.getAccessClient().selectOperation(queryJSON, world.getTenantId(), world.getContractId());
+            world.getAccessClient().selectOperation(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()),
+                queryJSON);
         if (requestResponse.isOk()) {
             RequestResponseOK<LogbookOperation> requestResponseOK =
                 (RequestResponseOK<LogbookOperation>) requestResponse;
@@ -506,8 +515,9 @@ public class AccessStep {
     public void search_accession_regiter_detail(String originatingAgency) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(query);
         RequestResponse<JsonNode> requestResponse =
-            world.getAdminClient().getAccessionRegisterDetail(originatingAgency, queryJSON,
-                world.getTenantId(), world.getContractId());
+            world.getAdminClient().getAccessionRegisterDetail(
+                new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()), originatingAgency, queryJSON
+            );
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             results = requestResponseOK.getResults();
@@ -535,10 +545,10 @@ public class AccessStep {
             results = new ArrayList<>();
             if ("vérifie".equals(action)) {
                 // status =
-                world.getAdminClient().checkDocuments(adminCollection, inputStream, world.getTenantId());
+                world.getAdminClient().checkDocuments(new VitamContext(world.getTenantId()), adminCollection, inputStream);
             } else if ("importe".equals(action)) {
                 status =
-                    world.getAdminClient().createDocuments(adminCollection, inputStream, filename, world.getTenantId());
+                    world.getAdminClient().createDocuments(new VitamContext(world.getTenantId()), adminCollection, inputStream, filename);
             }
             if (status != null) {
                 results.add(JsonHandler.createObjectNode().put("Code", String.valueOf(status.getStatusCode())));
@@ -561,25 +571,32 @@ public class AccessStep {
         RequestResponse requestResponse = null;
         switch (adminCollection) {
             case FORMATS:
-                requestResponse = world.getAdminClient().findFormats(queryJSON, world.getTenantId(), null);
+                requestResponse = world.getAdminClient().findFormats(new VitamContext(world.getTenantId()).setAccessContract(null),
+                    queryJSON);
                 break;
             case RULES:
-                requestResponse = world.getAdminClient().findRules(queryJSON, world.getTenantId(), null);
+                requestResponse = world.getAdminClient().findRules(new VitamContext(world.getTenantId()).setAccessContract(null),
+                    queryJSON);
                 break;
             case ACCESS_CONTRACTS:
-                requestResponse = world.getAdminClient().findAccessContracts(queryJSON, world.getTenantId(), null);
+                requestResponse = world.getAdminClient().findAccessContracts(
+                    new VitamContext(world.getTenantId()).setAccessContract(null), queryJSON);
                 break;
             case ENTRY_CONTRACTS:
-                requestResponse = world.getAdminClient().findIngestContracts(queryJSON, world.getTenantId(), null);
+                requestResponse = world.getAdminClient().findIngestContracts(
+                    new VitamContext(world.getTenantId()).setAccessContract(null), queryJSON);
                 break;
             case CONTEXTS:
-                requestResponse = world.getAdminClient().findContexts(queryJSON, world.getTenantId(), null);
+                requestResponse = world.getAdminClient().findContexts(new VitamContext(world.getTenantId()).setAccessContract(null),
+                    queryJSON);
                 break;
             case PROFILE:
-                requestResponse = world.getAdminClient().findProfiles(queryJSON, world.getTenantId(), null);
+                requestResponse = world.getAdminClient().findProfiles(new VitamContext(world.getTenantId()).setAccessContract(null),
+                    queryJSON);
                 break;
             case ACCESSION_REGISTERS:
-                requestResponse = world.getAdminClient().findAccessionRegister(queryJSON, world.getTenantId(), null);
+                requestResponse = world.getAdminClient().findAccessionRegister(
+                    new VitamContext(world.getTenantId()).setAccessContract(null), queryJSON);
                 break;
             default:
                 break;
@@ -605,7 +622,8 @@ public class AccessStep {
     public void search_LFC_Unit_with_title(String title) throws Throwable {
         String unitId = replaceTitleByGUID(title);
         RequestResponse<LogbookLifecycle> requestResponse =
-            world.getAccessClient().selectUnitLifeCycleById(unitId, world.getTenantId(), world.getContractId());
+            world.getAccessClient().selectUnitLifeCycleById(
+                new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()), unitId);
         if (requestResponse.isOk()) {
             RequestResponseOK<LogbookLifecycle> requestResponseOK =
                 (RequestResponseOK<LogbookLifecycle>) requestResponse;
@@ -626,8 +644,8 @@ public class AccessStep {
     public void search_LFC_OG_with_Unit_title(String title) throws Throwable {
         String unitId = replaceTitleByGUID(title);
         RequestResponse<JsonNode> requestResponse =
-            world.getAccessClient().selectUnitbyId(new SelectMultiQuery().getFinalSelect(),
-                unitId, world.getTenantId(), world.getContractId());
+            world.getAccessClient().selectUnitbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()), new SelectMultiQuery().getFinalSelect(),
+                unitId);
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             JsonNode unit = requestResponseOK.getResults().get(0);
@@ -637,7 +655,8 @@ public class AccessStep {
             }
             RequestResponse<LogbookLifecycle> requestResponseLFC =
                 world.getAccessClient().selectObjectGroupLifeCycleById(
-                    unit.get(PROJECTIONARGS.OBJECT.exactToken()).asText(), world.getTenantId(), world.getContractId());
+                    new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()),
+                    unit.get(PROJECTIONARGS.OBJECT.exactToken()).asText());
             if (requestResponseLFC.isOk()) {
                 RequestResponseOK<LogbookLifecycle> requestResponseLFCOK =
                     (RequestResponseOK<LogbookLifecycle>) requestResponseLFC;
@@ -692,8 +711,9 @@ public class AccessStep {
             new fr.gouv.vitam.common.database.builder.request.single.Select();
         JsonNode queryDsl = select.getFinalSelect();
         try {
-            Response response = world.getAccessClient().getObject(queryDsl, replaceTitleByGUID(title), usage, version,
-                world.getTenantId(), world.getContractId());
+            Response response = world.getAccessClient().getObject(
+                new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()), queryDsl, replaceTitleByGUID(title), usage, version
+            );
             statusCode = StatusCode.parseFromHttpStatus(response.getStatus());
         } catch (AccessExternalClientServerException | AccessExternalClientNotFoundException |
             AccessUnauthorizedException | InvalidParseOperationException e) {
@@ -722,8 +742,8 @@ public class AccessStep {
         }
 
         JsonNode queryDsl = JsonHandler.getFromString(query);
-        world.getAdminClient().updateAccessContract(get_contract_id_by_name(name),
-            queryDsl, world.getTenantId());
+        world.getAdminClient().updateAccessContract(new VitamContext(world.getTenantId()), get_contract_id_by_name(name),
+            queryDsl);
     }
 
     private String get_contract_id_by_name(String name)
@@ -735,7 +755,7 @@ public class AccessStep {
         JsonNode queryDsl = JsonHandler.getFromString(QUERY);
 
         RequestResponse<AccessContractModel> requestResponse =
-            world.getAdminClient().findAccessContracts(queryDsl, world.getTenantId(), null);
+            world.getAdminClient().findAccessContracts(new VitamContext(world.getTenantId()).setAccessContract(null), queryDsl);
         if (requestResponse.isOk()) {
             return ((RequestResponseOK<AccessContractModel>) requestResponse).getFirstResult().getId();
         }
@@ -748,9 +768,10 @@ public class AccessStep {
         JsonNode auditOption = JsonHandler.getFromString(QUERY);
 
         assertThat(world.getAdminClient().launchAudit(
-            auditOption, world.getTenantId(), world.getContractId()).getStatusCode()).isEqualTo(202);
+            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()), auditOption).getStatusCode()).isEqualTo(202);
 
-        auditStatus = world.getAdminClient().launchAudit(auditOption, world.getTenantId(), world.getContractId());
+        auditStatus = world.getAdminClient().launchAudit(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()),
+            auditOption);
     }
 
     @When("^je veux faire l'audit des objets de tenant (\\d+)$")
@@ -759,7 +780,7 @@ public class AccessStep {
         JsonNode auditOption = JsonHandler.getFromString(QUERY);
 
         assertThat(world.getAdminClient().launchAudit(
-            auditOption, world.getTenantId(), world.getContractId()).getStatusCode()).isEqualTo(202);
+            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()), auditOption).getStatusCode()).isEqualTo(202);
     }
 
     @Then("^le réultat de l'audit est succès$")

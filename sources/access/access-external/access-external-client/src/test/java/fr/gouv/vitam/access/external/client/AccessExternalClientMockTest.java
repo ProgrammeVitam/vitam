@@ -2,6 +2,7 @@ package fr.gouv.vitam.access.external.client;
 
 import static org.junit.Assert.assertNotNull;
 
+import fr.gouv.vitam.common.client.VitamContext;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -32,54 +33,54 @@ public class AccessExternalClientMockTest {
     @Test
     public void givenMockConfExistWhenAccessExternalSelectUnitsThenReturnResult()
         throws Exception {
-        assertNotNull(client.selectUnits(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT));
+        assertNotNull(client.selectUnits(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql)));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternalSelectUnitbyIDThenReturnResult()
         throws Exception {
-        assertNotNull(client.selectUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID, CONTRACT));
+        assertNotNull(client.selectUnitbyId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql), ID));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternalUpdateUnitbyIDThenReturnResult()
         throws Exception {
-        assertNotNull(client.updateUnitbyId(JsonHandler.getFromString(queryDsql), ID, TENANT_ID, CONTRACT));
+        assertNotNull(client.updateUnitbyId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql), ID));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternalSelectObjectOfUnitbyIDThenReturnResult()
         throws Exception {
-        assertNotNull(client.getObject(JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION, TENANT_ID, CONTRACT));
+        assertNotNull(client.getObject(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternalSelectObjectbyIDThenReturnResult()
         throws Exception {
-        assertNotNull(client.selectObjectById(JsonHandler.getFromString(queryDsql), ID, TENANT_ID, CONTRACT));
+        assertNotNull(client.selectObjectById(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql), ID));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternal_selectOperationLogbook_ThenRetururnResult()
         throws Exception {
-        assertNotNull(client.selectOperation(JsonHandler.getFromString(queryDsql), TENANT_ID, CONTRACT));
+        assertNotNull(client.selectOperation(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql)));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternal_selectOperationbyIdLogbook_ThenRetururnResult()
         throws Exception {
-        assertNotNull(client.selectOperationbyId(ID, TENANT_ID, CONTRACT));
+        assertNotNull(client.selectOperationbyId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternal_selectUnitLifeCycleByIdLogbook_ThenRetururnResult()
         throws Exception {
-        assertNotNull(client.selectUnitLifeCycleById(ID, TENANT_ID, CONTRACT));
+        assertNotNull(client.selectUnitLifeCycleById(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID));
     }
 
     @Test
     public void givenMockConfExistWhenAccessExternal_selectObjectGroupLifeCycleByIdLogbook_ThenRetururnResult()
         throws Exception {
-        assertNotNull(client.selectObjectGroupLifeCycleById(ID, TENANT_ID, CONTRACT));
+        assertNotNull(client.selectObjectGroupLifeCycleById(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID));
     }
 }

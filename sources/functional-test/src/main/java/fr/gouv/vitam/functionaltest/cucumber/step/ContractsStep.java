@@ -49,6 +49,7 @@ import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -143,7 +144,7 @@ public class ContractsStep {
             AdminCollections collection = AdminCollections.valueOf(type);
             this.setContractType(collection.getName());
             RequestResponse response =
-                world.getAdminClient().importContracts(inputStream, world.getTenantId(), collection);
+                world.getAdminClient().importContracts(new VitamContext(world.getTenantId()), inputStream, collection);
             assertThat(response instanceof RequestResponseOK);
         }
     }
@@ -162,7 +163,7 @@ public class ContractsStep {
             AdminCollections collection = AdminCollections.valueOf(type);
             this.setContractType(collection.getName());
             RequestResponse response =
-                world.getAdminClient().importContracts(inputStream, world.getTenantId(), collection);
+                world.getAdminClient().importContracts(new VitamContext(world.getTenantId()), inputStream, collection);
             // TODO : this has to be fixed, the returned response is not correct, Bad request must me obtained
             assertThat(Response.Status.BAD_REQUEST.getStatusCode() == response.getStatus());
         } catch (IllegalStateException e) {
@@ -186,7 +187,7 @@ public class ContractsStep {
         switch (collection) {
             case ACCESS_CONTRACTS:
                 RequestResponse<AccessContractModel> accessResponse =
-                    world.getAdminClient().findAccessContracts(query, world.getTenantId(), null);
+                    world.getAdminClient().findAccessContracts(new VitamContext(world.getTenantId()).setAccessContract(null), query);
                 if (accessResponse.isOk()) {
                     this.setModel(
                         ((RequestResponseOK<AccessContractModel>) accessResponse).getResultsAsJsonNodes().get(0));
@@ -194,7 +195,7 @@ public class ContractsStep {
                 break;
             case ENTRY_CONTRACTS:
                 RequestResponse<IngestContractModel> ingestResponse =
-                    world.getAdminClient().findIngestContracts(query, world.getTenantId(), null);
+                    world.getAdminClient().findIngestContracts(new VitamContext(world.getTenantId()).setAccessContract(null), query);
                 if (ingestResponse.isOk()) {
                     this.setModel(
                         ((RequestResponseOK<IngestContractModel>) ingestResponse).getResultsAsJsonNodes().get(0));

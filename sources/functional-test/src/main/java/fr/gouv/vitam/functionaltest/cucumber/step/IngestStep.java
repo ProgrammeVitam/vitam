@@ -46,11 +46,10 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.client.VitamContext;
 import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.assertj.core.api.Fail;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Iterables;
 
 import cucumber.api.java.After;
@@ -63,7 +62,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.external.client.IngestCollection;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessAction;
@@ -112,7 +110,7 @@ public class IngestStep {
     public void upload_this_sip() throws IOException, VitamException, IOException {
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
             RequestResponse response = world.getIngestClient()
-                .upload(inputStream, world.getTenantId(), DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
+                .upload(new VitamContext(world.getTenantId()), inputStream, DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
             world.setOperationId(operationId);
             boolean process_timeout = world.getIngestClient()
@@ -136,7 +134,7 @@ public class IngestStep {
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
 
             RequestResponse<Void> response = world.getIngestClient()
-                .upload(inputStream, world.getTenantId(), FILING_SCHEME.name(), ProcessAction.RESUME.name());
+                .upload(new VitamContext(world.getTenantId()), inputStream, FILING_SCHEME.name(), ProcessAction.RESUME.name());
 
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
@@ -163,7 +161,7 @@ public class IngestStep {
     public void upload_this_tree() throws IOException, VitamException {
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
             RequestResponse response = world.getIngestClient()
-                .upload(inputStream, world.getTenantId(), HOLDING_SCHEME.name(), ProcessAction.RESUME.name());
+                .upload(new VitamContext(world.getTenantId()), inputStream, HOLDING_SCHEME.name(), ProcessAction.RESUME.name());
 
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
@@ -191,8 +189,9 @@ public class IngestStep {
     public void the_logbook_operation_has_a_status(String status)
         throws VitamClientException, InvalidParseOperationException {
         RequestResponse<LogbookOperation> requestResponse =
-            world.getAccessClient().selectOperationbyId(world.getOperationId(), world.getTenantId(),
-                world.getContractId());
+            world.getAccessClient().selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()),
+                world.getOperationId()
+            );
         if (requestResponse instanceof RequestResponseOK) {
             RequestResponseOK<LogbookOperation> requestResponseOK =
                 (RequestResponseOK<LogbookOperation>) requestResponse;
@@ -221,8 +220,9 @@ public class IngestStep {
     public void the_status_are(List<String> eventNames, String eventStatus)
         throws VitamClientException, InvalidParseOperationException {
         RequestResponse<LogbookOperation> requestResponse =
-            world.getAccessClient().selectOperationbyId(world.getOperationId(), world.getTenantId(),
-                world.getContractId());
+            world.getAccessClient().selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()),
+                world.getOperationId()
+            );
 
         if (requestResponse.isOk()) {
             RequestResponseOK<LogbookOperation> requestResponseOK =
@@ -266,8 +266,9 @@ public class IngestStep {
     public void the_results_are(String eventName, String eventResults)
         throws VitamClientException, InvalidParseOperationException {
         RequestResponse<LogbookOperation> requestResponse =
-            world.getAccessClient().selectOperationbyId(world.getOperationId(), world.getTenantId(),
-                world.getContractId());
+            world.getAccessClient().selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()),
+                world.getOperationId()
+            );
 
         if (requestResponse.isOk()) {
             RequestResponseOK<LogbookOperation> requestResponseOK =
@@ -313,7 +314,7 @@ public class IngestStep {
     public void download_atr()
         throws VitamClientException {
         Response response = world.getIngestClient()
-            .downloadObjectAsync(world.getOperationId(), IngestCollection.REPORTS, world.getTenantId());
+            .downloadObjectAsync(new VitamContext(world.getTenantId()), world.getOperationId(), IngestCollection.REPORTS);
         InputStream inputStream = response.readEntity(InputStream.class);
         assertThat(inputStream).isNotNull();
         StreamUtils.closeSilently(inputStream);

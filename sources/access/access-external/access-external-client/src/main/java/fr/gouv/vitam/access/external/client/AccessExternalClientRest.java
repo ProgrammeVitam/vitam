@@ -12,6 +12,7 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFou
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
@@ -58,7 +59,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse selectUnits(JsonNode selectQuery, Integer tenantId, String contractName)
+    public RequestResponse selectUnits(VitamContext vitamContext, JsonNode selectQuery)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, AccessUnauthorizedException {
         Response response = null;
@@ -68,8 +69,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         }
 
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
+        headers.putAll(vitamContext.getHeaders());
         try {
             response = performRequest(HttpMethod.GET, "/units", headers,
                 selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
@@ -111,14 +111,14 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse selectUnitbyId(JsonNode selectQuery, String unitId, Integer tenantId, String contractName)
+    public RequestResponse selectUnitbyId(VitamContext vitamContext, JsonNode selectQuery,
+        String unitId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, AccessUnauthorizedException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
+        headers.putAll(vitamContext.getHeaders());
 
         if (selectQuery == null || selectQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
@@ -166,7 +166,8 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse updateUnitbyId(JsonNode updateQuery, String unitId, Integer tenantId, String contractName)
+    public RequestResponse updateUnitbyId(VitamContext vitamContext, JsonNode updateQuery,
+        String unitId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, NoWritingPermissionException, AccessUnauthorizedException {
         Response response = null;
@@ -176,8 +177,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         }
         ParametersChecker.checkParameter(BLANK_UNIT_ID, unitId);
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
+        headers.putAll(vitamContext.getHeaders());
 
         try {
             response = performRequest(HttpMethod.PUT, UNITS + unitId, headers,
@@ -231,8 +231,9 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse selectObjectById(JsonNode selectObjectQuery, String unitId, Integer tenantId,
-        String contractName)
+    public RequestResponse selectObjectById(VitamContext vitamContext,
+        JsonNode selectObjectQuery,
+        String unitId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, AccessUnauthorizedException {
 
@@ -243,8 +244,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
+        headers.putAll(vitamContext.getHeaders());
         try {
             response = performRequest(HttpMethod.GET, "/units/" + unitId + "/object", headers,
                 selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
@@ -293,8 +293,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
 
     @Override
-    public Response getUnitObject(JsonNode selectObjectQuery, String unitId, String usage, int version,
-        Integer tenantId, String contractName)
+    public Response getUnitObject(VitamContext vitamContext, JsonNode selectObjectQuery,
+        String unitId,
+        String usage,
+        int version)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
 
@@ -307,8 +309,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
+        headers.putAll(vitamContext.getHeaders());
         headers.add(GlobalDataRest.X_QUALIFIER, usage);
         headers.add(GlobalDataRest.X_VERSION, version);
 
@@ -340,8 +341,9 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public Response getObject(JsonNode selectObjectQuery, String objectId, String usage, int version, Integer tenantId,
-        String contractName)
+    public Response getObject(VitamContext vitamContext, JsonNode selectObjectQuery,
+        String objectId,
+        String usage, int version)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, AccessUnauthorizedException {
 
@@ -357,8 +359,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
         headers.add(GlobalDataRest.X_QUALIFIER, usage);
         headers.add(GlobalDataRest.X_VERSION, version);
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
+        headers.putAll(vitamContext.getHeaders());
 
 
         try {
@@ -392,13 +393,13 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     /* Logbook external */
 
     @Override
-    public RequestResponse<LogbookOperation> selectOperation(JsonNode select, Integer tenantId, String contractName)
+    public RequestResponse<LogbookOperation> selectOperation(VitamContext vitamContext,
+        JsonNode select)
         throws VitamClientException {
         Response response = null;
         try {
             MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-            headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
+            headers.putAll(vitamContext.getHeaders());
             response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL, headers, select,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, LogbookOperation.class);
@@ -415,14 +416,13 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse<LogbookOperation> selectOperationbyId(String processId, Integer tenantId,
-        String contractName)
+    public RequestResponse<LogbookOperation> selectOperationbyId(VitamContext vitamContext,
+        String processId)
         throws VitamClientException {
 
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
+        headers.putAll(vitamContext.getHeaders());
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL + "/" + processId, headers,
                 emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
@@ -441,13 +441,12 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse<LogbookLifecycle> selectUnitLifeCycleById(String idUnit, Integer tenantId,
-        String contractName)
+    public RequestResponse<LogbookLifecycle> selectUnitLifeCycleById(
+        VitamContext vitamContext, String idUnit)
         throws VitamClientException {
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
+        headers.putAll(vitamContext.getHeaders());
         try {
             response =
                 performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit, headers,
@@ -467,13 +466,12 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse<LogbookLifecycle> selectObjectGroupLifeCycleById(String idObject, Integer tenantId,
-        String contractName)
+    public RequestResponse<LogbookLifecycle> selectObjectGroupLifeCycleById(
+        VitamContext vitamContext, String idObject)
         throws VitamClientException {
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
+        headers.putAll(vitamContext.getHeaders());
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_OBJECT_LIFECYCLE_URL + "/" + idObject,
                 headers,
@@ -493,15 +491,15 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
 
     @Override
-    public Response getUnitByIdWithXMLFormat(JsonNode queryDsl, String idUnit, Integer tenantId, String contractName)
+    public Response getUnitByIdWithXMLFormat(VitamContext vitamContext, JsonNode queryDsl,
+        String idUnit)
         throws AccessExternalClientServerException {
 
         ParametersChecker.checkParameter(BLANK_DSL, queryDsl);
         ParametersChecker.checkParameter(BLANK_UNIT_ID, idUnit);
 
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
+        headers.putAll(vitamContext.getHeaders());
 
         Response response = null;
         try {
@@ -515,13 +513,12 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         }
     }
 
-    @Override public Response getObjectGroupByIdWithXMLFormat(JsonNode queryDsl, String idUnit, Integer tenantId,
-        String contractName) throws AccessExternalClientServerException {
+    @Override public Response getObjectGroupByIdWithXMLFormat(VitamContext vitamContext,
+        JsonNode queryDsl, String idUnit) throws AccessExternalClientServerException {
         ParametersChecker.checkParameter(BLANK_DSL, queryDsl);
         ParametersChecker.checkParameter(BLANK_UNIT_ID, idUnit);
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
+        headers.putAll(vitamContext.getHeaders());
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, "units/" + idUnit + "/object", headers, queryDsl,
