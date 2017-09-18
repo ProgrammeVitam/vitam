@@ -34,8 +34,10 @@ import static org.junit.Assume.assumeTrue;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
+import com.mongodb.client.MongoIterable;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -197,7 +199,11 @@ public class MongoDbAccessMetadataFactoryTest {
         final MongoDatabase metadatabase = mongoClient.getDatabase(databaseName);
 
         // access only to metadata base, so DatabaseNames() should raise an exception
-        final List<String> dbs = mongoClient.getDatabaseNames();
+        final MongoIterable<String> iterable = mongoClient.listDatabaseNames();
+        Iterator<String> iterator = iterable.iterator();
+        while (iterator.hasNext()) {
+            iterator.next();
+        }
     }
 
 

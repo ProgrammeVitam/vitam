@@ -422,7 +422,7 @@ public class ProfileServiceImpl implements ProfileService {
             msg.put("updateField", "Path");
             msg.put("oldPath", oldPath);
             msg.put("newPath", newPath);
-            object.put("profileUpdate", msg);
+            object.set("profileUpdate", msg);
 
             wellFormedJson = SanityChecker.sanitizeJson(object);
         } catch (InvalidParseOperationException e) {

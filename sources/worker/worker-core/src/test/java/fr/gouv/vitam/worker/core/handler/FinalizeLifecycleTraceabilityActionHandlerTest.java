@@ -50,6 +50,7 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -281,7 +282,7 @@ public class FinalizeLifecycleTraceabilityActionHandlerTest {
         throws IOException, InvalidParseOperationException {
         final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 1));
         final LogbookOperation lop =
-            new LogbookOperation(IOUtils.toString(PropertiesUtils.getResourceAsStream(LAST_OPERATION)));
+            new LogbookOperation(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LAST_OPERATION)));
         response.addResult(JsonHandler.getFromString(lop.toJson()));
         return JsonHandler.toJsonNode(response);
     }

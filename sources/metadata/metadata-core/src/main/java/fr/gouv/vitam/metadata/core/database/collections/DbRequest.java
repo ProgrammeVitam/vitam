@@ -1137,13 +1137,15 @@ public class DbRequest {
 
                 if (unit.getString(MetadataDocument.OG) != null && !unit.getString(MetadataDocument.OG).isEmpty()) {
                     // find the unit that we just save, to take sps field, and save it in the object group
+                    String ogId = unit.getString(MetadataDocument.OG);
+                    String unitId = unit.getString(MetadataDocument.ID);
                     final MetadataDocument newUnit =
-                        MongoDbMetadataHelper.findOne(MetadataCollections.C_UNIT, unit.getString(MetadataDocument.ID));
+                        MongoDbMetadataHelper.findOne(MetadataCollections.C_UNIT, unitId);
                     final List originatingAgencies = newUnit.get(MetadataDocument.ORIGINATING_AGENCIES, List.class);
 
                     final Bson updateSps =
                         Updates.addEachToSet(MetadataDocument.ORIGINATING_AGENCIES, originatingAgencies);
-                    final Bson updateUp = Updates.addToSet(MetadataDocument.UP, unit.getString(MetadataDocument.ID));
+                    final Bson updateUp = Updates.addToSet(MetadataDocument.UP, unitId);
                     final Bson updateOps =
                         Updates.addToSet(MetadataDocument.OPS, VitamThreadUtils.getVitamSession().getRequestId());
 
@@ -1152,12 +1154,18 @@ public class DbRequest {
                     ObjectGroup object = null;
                     try {
                         object = (ObjectGroup) MetadataCollections.C_OBJECTGROUP.getCollection()
-                            .findOneAndUpdate(eq(ID, unit.getString(MetadataDocument.OG)),
+                            .findOneAndUpdate(eq(ID, ogId),
                                 update,
                                 new FindOneAndUpdateOptions().upsert(false).returnDocument(ReturnDocument.AFTER));
                     } catch (MongoException e) {
                         LOGGER.error(e);
                         throw new MetaDataExecutionException(e);
+                    }
+                    if (object == null) {
+                        LOGGER.error("Object associated with Unit not found: " + ogId +
+                            " from " + unitId);
+                        throw new MetaDataExecutionException("Object associated with Unit not found: " + ogId +
+                            " from " + unitId);
                     }
                     String id = (String) object.remove(VitamDocument.ID);
                     if (LOGGER.isDebugEnabled()) {

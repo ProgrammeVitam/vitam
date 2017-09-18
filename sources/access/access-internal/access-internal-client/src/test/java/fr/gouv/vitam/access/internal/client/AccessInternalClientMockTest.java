@@ -34,6 +34,7 @@ import java.io.InputStream;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
@@ -124,7 +125,7 @@ public class AccessInternalClientMockTest {
         assertNotNull(client);
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         final InputStream stream = client.getObject(queryJson, ID, "usage", 1).readEntity(InputStream.class);
-        final InputStream stream2 = IOUtils.toInputStream(AccessInternalClientMock.MOCK_GET_FILE_CONTENT);
+        final InputStream stream2 = StreamUtils.toInputStream(AccessInternalClientMock.MOCK_GET_FILE_CONTENT);
         assertNotNull(stream);
         assertTrue(IOUtils.contentEquals(stream, stream2));
     }

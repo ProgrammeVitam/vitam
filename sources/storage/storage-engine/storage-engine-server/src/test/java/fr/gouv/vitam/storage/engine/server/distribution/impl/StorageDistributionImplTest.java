@@ -66,6 +66,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
@@ -136,7 +137,8 @@ public class StorageDistributionImplTest {
         StorageLogbookServiceImpl storageLogbookService =
             new StorageLogbookServiceImpl(list, Paths.get(folder.getRoot().getAbsolutePath()));
         simpleDistribution = new StorageDistributionImpl(configuration, storageLogbookService);
-        customDistribution = new StorageDistributionImpl(client, DigestType.SHA1, storageLogbookService);
+        customDistribution = new StorageDistributionImpl(client, DigestType.SHA1,storageLogbookService);
+        LogbookLifeCyclesClientFactory.changeMode(null);
     }
 
     @AfterClass

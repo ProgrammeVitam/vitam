@@ -57,6 +57,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
@@ -410,7 +411,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
         try {
             assertTrue(IOUtils.contentEquals(fakeUploadResponseInputStream,
-                IOUtils.toInputStream("test")));
+                StreamUtils.toInputStream("test")));
         } catch (final IOException e) {
             e.printStackTrace();
             fail();

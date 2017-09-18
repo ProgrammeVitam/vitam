@@ -1067,8 +1067,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 JsonHandler.writeAsFile(archiveUnit, unitCompleteTmpFile);
                 // Write to workspace
                 try {
-                    handlerIO.transferFileToWorkspace(path + "/" + unitGuid + JSON_EXTENSION, unitCompleteTmpFile, true,
-                        asyncIO);
+                    handlerIO
+                        .transferFileToWorkspace(path + File.separator + unitGuid + JSON_EXTENSION, 
+                            unitCompleteTmpFile, true, asyncIO);
                 } finally {
                     if (!unitTmpFileForRead.delete()) {
                         LOGGER.warn(FILE_COULD_NOT_BE_DELETED_MSG);
@@ -2136,8 +2137,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         // Write to workspace
         handlerIO.transferFileToWorkspace(
-            IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + filingParentId + JSON_EXTENSION, unitCompleteTmpFile,
-            true, asyncIO);
+            IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + filingParentId 
+            + JSON_EXTENSION, unitCompleteTmpFile, true, asyncIO);
     }
 
     private void createLifeCycleForError(String subTask, String message, String guid, boolean isArchive,

@@ -26,6 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.client;
 
+
+import java.io.InputStream;
+
+import fr.gouv.vitam.common.stream.StreamUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.internal.api.AccessInternalResource;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
@@ -527,10 +532,10 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
     @Test
     public void givenQueryCorrectWhenGetObjectAsInputStreamThenOK() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
-        when(mock.get()).thenReturn(Response.status(Status.OK).entity(IOUtils.toInputStream("Vitam test")).build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(StreamUtils.toInputStream("Vitam test")).build());
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         final InputStream stream = client.getObject(queryJson, ID, USAGE, VERSION).readEntity(InputStream.class);
-        final InputStream stream2 = IOUtils.toInputStream("Vitam test");
+        final InputStream stream2 = StreamUtils.toInputStream("Vitam test");
         assertNotNull(stream);
         assertTrue(IOUtils.contentEquals(stream, stream2));
     }

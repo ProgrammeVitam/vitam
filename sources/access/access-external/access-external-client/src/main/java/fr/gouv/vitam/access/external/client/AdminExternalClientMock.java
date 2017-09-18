@@ -46,7 +46,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         StreamUtils.closeSilently(stream);
 
         if (AdminCollections.RULES.equals(documentType) || AdminCollections.FORMATS.equals(documentType)) {
-            return new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream("Vitam Test"),
+            return new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream("Vitam Test"),
                 MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
         } else {
             try {
@@ -115,7 +115,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     @Override
     public Response downloadProfileFile(String profileMetadataId, Integer tenantId)
         throws AccessExternalClientException {
-        return new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream("Vitam Test"),
+        return new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream("Vitam Test"),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 

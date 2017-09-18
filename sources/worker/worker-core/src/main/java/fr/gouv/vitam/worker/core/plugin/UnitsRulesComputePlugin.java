@@ -146,13 +146,15 @@ public class UnitsRulesComputePlugin extends ActionHandler {
             if (handlerIO.getInput().size() > 0) {
                 archiveUnit = (JsonNode) handlerIO.getInput(UNIT_INPUT_RANK);
             } else {
-                InputStream inputStream =
-                    handlerIO.getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName);
-                archiveUnit = JsonHandler.getFromInputStream(inputStream);
+                try (InputStream inputStream =
+                    handlerIO.getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName)) {
+                    archiveUnit = JsonHandler.getFromInputStream(inputStream);
+                }
             }
             
             parseRulesAndUpdateEndDate(archiveUnit, objectName, containerId);
         } catch (IOException | ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException | InvalidParseOperationException e) {
+            LOGGER.error(WORKSPACE_SERVER_ERROR, e);
             throw new ProcessingException(e);
         }
     }
@@ -277,8 +279,8 @@ public class UnitsRulesComputePlugin extends ActionHandler {
 
         // Write to workspace
         try {
-            handlerIO.transferFileToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName,
-                fileWithEndDate, true, asyncIO);
+            handlerIO.transferFileToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + 
+                File.separator + objectName, fileWithEndDate, true, asyncIO);
         } catch (final ProcessingException e) {
             LOGGER.error("Can not write to workspace ", e);
             if (!fileWithEndDate.delete()) {

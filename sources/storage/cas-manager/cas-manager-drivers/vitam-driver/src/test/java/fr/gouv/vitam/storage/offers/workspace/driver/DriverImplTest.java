@@ -40,6 +40,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -56,6 +58,7 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 public class DriverImplTest extends VitamJerseyTest {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DriverImplTest.class);
 
     protected static final String HOSTNAME = "localhost";
     private static final String DRIVER_NAME = "WorkspaceDriver";
@@ -142,12 +145,18 @@ public class DriverImplTest extends VitamJerseyTest {
 
     @Test(expected = StorageDriverException.class)
     public void givenCorrectUrlThenConnectResponseKO() throws Exception {
-        offer.setBaseUrl("http://" + HOSTNAME + ":" + getServerPort());
-        offer.setId("default");
-        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        Driver driver = DriverImpl.getInstance();
-        driver.addOffer(offer, null);
-        driver.connect(offer.getId());
+        try {
+            offer.setBaseUrl("http://" + HOSTNAME + ":" + getServerPort());
+            offer.setId("default");
+            when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+            Driver driver = DriverImpl.getInstance();
+            driver.addOffer(offer, null);
+            Connection connection = driver.connect(offer.getId());
+            connection.getStorageCapacity(0);
+        } catch (Exception e) {
+            LOGGER.error(e);
+            throw e;
+        }
     }
 
     @Test

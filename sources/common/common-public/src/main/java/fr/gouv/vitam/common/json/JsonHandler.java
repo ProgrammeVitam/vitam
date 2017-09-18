@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.json;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,7 +53,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.gc.iotools.stream.is.InputStreamFromOutputStream;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 
@@ -258,7 +258,7 @@ public final class JsonHandler {
                 if (mainNode instanceof ObjectNode) {
                     // Overwrite field
                     JsonNode value = updateNode.get(fieldName);
-                    ((ObjectNode) mainNode).put(fieldName, value);
+                    ((ObjectNode) mainNode).set(fieldName, value);
                 }
             }
         }
@@ -557,15 +557,7 @@ public final class JsonHandler {
      * @throws InvalidParseOperationException
      */
     public static final InputStream writeToInpustream(final Object object) throws InvalidParseOperationException {
-        final InputStreamFromOutputStream<String> isos = new InputStreamFromOutputStream<String>() {
-
-            @Override
-            protected String produce(OutputStream sink) throws Exception {
-                JsonHandler.writeAsOutputStream(object, sink);
-                return "EOF";
-            }
-        };
-        return isos;
+        return new ByteArrayInputStream(writeAsString(object).getBytes());
     }
     
     /**

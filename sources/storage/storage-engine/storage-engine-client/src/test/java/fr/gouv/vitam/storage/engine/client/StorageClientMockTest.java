@@ -35,6 +35,7 @@ import java.io.InputStream;
 import java.time.LocalDateTime;
 
 import fr.gouv.vitam.common.SingletonUtils;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
@@ -120,7 +121,7 @@ public class StorageClientMockTest {
         assertNotNull(client);
         final InputStream stream = client.getContainerAsync("strategyId", "guid", StorageCollectionType.OBJECTS)
                 .readEntity(InputStream.class);
-        final InputStream stream2 = IOUtils.toInputStream(StorageClientMock.MOCK_GET_FILE_CONTENT);
+        final InputStream stream2 = StreamUtils.toInputStream(StorageClientMock.MOCK_GET_FILE_CONTENT);
         assertNotNull(stream);
         assertTrue(IOUtils.contentEquals(stream, stream2));
     }

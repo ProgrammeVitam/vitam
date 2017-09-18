@@ -41,6 +41,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
+import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
@@ -94,7 +95,7 @@ public class IngestInternalClientMockTest {
         operationList.add(externalOperationParameters2);
 
         final InputStream inputstreamMockATR =
-            IOUtils.toInputStream(IngestInternalClientMock.MOCK_INGEST_INTERNAL_RESPONSE_STREAM);
+            StreamUtils.toInputStream(IngestInternalClientMock.MOCK_INGEST_INTERNAL_RESPONSE_STREAM);
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
@@ -112,7 +113,7 @@ public class IngestInternalClientMockTest {
             IngestInternalClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final InputStream firstStream = IOUtils.toInputStream("test");
+        final InputStream firstStream = StreamUtils.toInputStream("test");
         final InputStream responseStream =
             client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
 

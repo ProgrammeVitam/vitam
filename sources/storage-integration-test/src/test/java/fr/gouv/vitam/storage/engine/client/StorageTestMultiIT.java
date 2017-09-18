@@ -27,7 +27,40 @@
 
 package fr.gouv.vitam.storage.engine.client;
 
+import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
+import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.io.FileUtils;
+import org.jhades.JHades;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
@@ -44,6 +77,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.rules.core.RulesSecurisator;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -60,35 +94,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import junit.framework.TestCase;
-import org.apache.commons.io.FileUtils;
-import org.jhades.JHades;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
-import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
-import static org.junit.Assert.assertTrue;
 
 public class StorageTestMultiIT {
     private static final int NB_MULTIPLE_THREADS = 100;
@@ -123,6 +128,7 @@ public class StorageTestMultiIT {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
+        LogbookOperationsClientFactory.changeMode(null);
         // workspace
         workspaceMain = new WorkspaceMain(WORKSPACE_CONF);
         workspaceMain.start();
@@ -246,6 +252,21 @@ public class StorageTestMultiIT {
         }
     }
 
+    private static void populateWorkspace(String filepath)
+        throws ContentAddressableStorageServerException, FileNotFoundException, IOException {
+        try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
+            try {
+                workspaceClient.createContainer(CONTAINER);
+            } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException e) {
+                // nothing
+            }
+
+            try (FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(filepath))) {
+                workspaceClient.putObject(CONTAINER, filepath, stream);
+            }
+        }
+    }
+
     @Test
     @RunWithCustomExecutor
     public void testRulesSecurisator() throws Exception {
@@ -271,7 +292,7 @@ public class StorageTestMultiIT {
         JsonNode node = result.next();
         TestCase.assertNotNull(node);
 
-        //    assertEquals(node.get("objectId").asText()., "0_RULES-1.json");
+        // assertEquals(node.get("objectId").asText()., "0_RULES-1.json");
         assertTrue(node.get("objectId").asText().startsWith("0_RULES-1"));
         assertTrue(node.get("objectId").asText().endsWith(".json"));
 
@@ -279,7 +300,7 @@ public class StorageTestMultiIT {
 
 
     @RunWithCustomExecutor
-    //@Test
+    // @Test
     @Ignore // To be executed only when trying to see memory footprint
     public void testBigFile() throws InterruptedException {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
@@ -355,7 +376,8 @@ public class StorageTestMultiIT {
             }
             try {
                 storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS, OBJECT_ID, description);
-            } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
+            } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
+                StorageServerClientException e) {
                 LOGGER.error("Size: " + size, e);
                 assert (false);
                 break;
@@ -387,6 +409,110 @@ public class StorageTestMultiIT {
                 break;
             }
             size *= 2;
+        }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    // Item #2898 : Multiple input stream test KO => make it work !
+    // @Ignore
+    public void testMultipleInputStream1() {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        size = 44266;
+        OBJECT_ID = GUIDFactory.newObjectGroupGUID(0).getId();
+        final ObjectDescription description = new ObjectDescription();
+        description.setWorkspaceContainerGUID(CONTAINER);
+        description.setWorkspaceObjectURI(
+            "04a5b5a5db9a4505d75f024af9379d0fc9b1d50f0eff8a6f1a7caa299a689639b57e4ace0f562643ab0822f7ea33e0539635fb8201a1bfacaab4210cd7236b82.jpg");
+        try {
+            populateWorkspace(description.getWorkspaceObjectURI());
+        } catch (Exception e1) {
+            LOGGER.error("During populate size: " + size, e1);
+            assert (false);
+            return;
+        }
+        try {
+            storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS, OBJECT_ID, description);
+        } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
+            StorageServerClientException e) {
+            LOGGER.error("Size: " + size, e);
+            assert (false);
+            return;
+        }
+        try {
+            afterTest();
+        } catch (Exception e) {
+            // ignore
+        }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    // Item #2898 : Multiple input stream test KO => make it work !
+    // @Ignore
+    public void testMultipleInputStream2() {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        size = 127244;
+        OBJECT_ID = GUIDFactory.newObjectGroupGUID(0).getId();
+        final ObjectDescription description = new ObjectDescription();
+        description.setWorkspaceContainerGUID(CONTAINER);
+        description.setWorkspaceObjectURI(
+            "df3c1f0fe7bf3ef61bdc5fb6148efa1e3638ee4e933a3fab26203d95634caf6c1b7393cdf908d797088da07554e523571803462b07c807744f25d78aa7038a16.jpg");
+        try {
+            populateWorkspace(description.getWorkspaceObjectURI());
+        } catch (Exception e1) {
+            LOGGER.error("During populate size: " + size, e1);
+            assert (false);
+            return;
+        }
+        try {
+            storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS, OBJECT_ID, description);
+        } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
+            StorageServerClientException e) {
+            LOGGER.error("Size: " + size, e);
+            assert (false);
+            return;
+        }
+        try {
+            afterTest();
+        } catch (Exception e) {
+            // ignore
+        }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    // @Ignore
+    public void testMultipleInputStream3() {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        size = 57850;
+        OBJECT_ID = GUIDFactory.newObjectGroupGUID(0).getId();
+        final ObjectDescription description = new ObjectDescription();
+        description.setWorkspaceContainerGUID(CONTAINER);
+        description.setWorkspaceObjectURI(
+            "0f1ddc38a1eb38d401e394c057db3f2ebc646fd1cd0c06e7dc680c19d89c05f74815cbf27399fafe111192bcb4c0e246186cc8cc430c6ff7fe52a7fdbd2110f7.png");
+        try {
+            populateWorkspace(description.getWorkspaceObjectURI());
+        } catch (Exception e1) {
+            LOGGER.error("During populate size: " + size, e1);
+            assert (false);
+            return;
+        }
+        try {
+            storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS, OBJECT_ID, description);
+        } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
+            StorageServerClientException e) {
+            LOGGER.error("Size: " + size, e);
+            assert (false);
+            return;
+        }
+        try {
+            afterTest();
+        } catch (Exception e) {
+            // ignore
         }
     }
 

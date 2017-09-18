@@ -115,7 +115,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, stream);
         LOGGER.debug("Check file rules  request:");
         StreamUtils.closeSilently(stream);
-        return new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream("Vitam Test"),
+        return new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream("Vitam Test"),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 
@@ -290,7 +290,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     @Override
     public Response downloadProfileFile(String profileMetadataId)
         throws AdminManagementClientServerException, ProfileNotFoundException {
-        return new AbstractMockClient.FakeInboundResponse(Status.OK, IOUtils.toInputStream("Vitam Test"),
+        return new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream("Vitam Test"),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 
