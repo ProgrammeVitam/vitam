@@ -768,10 +768,8 @@ public class AccessStep {
         JsonNode auditOption = JsonHandler.getFromString(QUERY);
 
         assertThat(world.getAdminClient().launchAudit(
-            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()), auditOption).getStatusCode()).isEqualTo(202);
+            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()), auditOption).isOk()).isTrue();
 
-        auditStatus = world.getAdminClient().launchAudit(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()),
-            auditOption);
     }
 
     @When("^je veux faire l'audit des objets de tenant (\\d+)$")
@@ -780,7 +778,7 @@ public class AccessStep {
         JsonNode auditOption = JsonHandler.getFromString(QUERY);
 
         assertThat(world.getAdminClient().launchAudit(
-            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()), auditOption).getStatusCode()).isEqualTo(202);
+            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()), auditOption).isOk()).isTrue();
     }
 
     @Then("^le réultat de l'audit est succès$")

@@ -2649,9 +2649,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("admin:audit")
     public Response launchAudit(@Context HttpHeaders headers, JsonNode auditOption) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            Status status = adminClient.launchAudit(
+            RequestResponse<JsonNode> result = adminClient.launchAudit(
                 new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers)), auditOption);
-            return Response.status(status).build();
+            return Response.status(Status.OK).entity(result).build();
         } catch (Exception e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();

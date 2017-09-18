@@ -56,6 +56,23 @@
           }
         }
       ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_FINALISE_AUDIT",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": ""
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "REPORT_AUDIT",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
     }
   ]
 }

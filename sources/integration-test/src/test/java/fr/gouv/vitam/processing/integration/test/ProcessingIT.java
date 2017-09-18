@@ -74,6 +74,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -158,6 +159,7 @@ import static org.junit.Assert.fail;
 public class ProcessingIT {
     private static final String PROCESSING_UNIT_PLAN = "integration-processing/unit_plan_metadata.json";
     private static final String INGEST_CONTRACTS_PLAN = "integration-processing/ingest_contracts_plan.json";
+    private static final String ACCESS_CONTRACT = "integration-processing/access_contract_every_originating_angency.json";
     private static final String UNIT_ATTACHEMENT_ID = "aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq";
     private static final String UNIT_PLAN_ATTACHEMENT_ID = "aeaqaaaaaagbcaacabht2ak4x66x2baaaaaq";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingIT.class);
@@ -402,6 +404,8 @@ public class ProcessingIT {
         MongoDatabase db = mongoClient.getDatabase("Vitam");
         db.getCollection("Unit").deleteMany(new Document());
         db.getCollection("ObjectGroup").deleteMany(new Document());
+        db.getCollection("AccessionRegisterSummary").deleteMany(new Document());
+        db.getCollection("LogbookOperation").deleteMany(new Document());
     }
 
     @Test
@@ -434,6 +438,7 @@ public class ProcessingIT {
     }
 
     private void tryImportFile() {
+        VitamThreadUtils.getVitamSession().setContractId("aName");
         flush();
 
         if (!imported) {
@@ -465,6 +470,12 @@ public class ProcessingIT {
                     });
 
                 Status importStatus = client.importIngestContracts(IngestContractModelList);
+                
+                //import access contract
+                File fileAccessContracts = PropertiesUtils.getResourceFile(ACCESS_CONTRACT);
+                List<AccessContractModel> accessContractModelList = JsonHandler
+                    .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {});
+                client.importAccessContracts(accessContractModelList);
             } catch (final Exception e) {
                 LOGGER.error(e);
             }
@@ -574,14 +585,14 @@ public class ProcessingIT {
                     "Process_SIP_unitary.OK",
                     UNIT_PLAN_ATTACHEMENT_ID,
                     GUIDReader.getGUID(UNIT_PLAN_ATTACHEMENT_ID)));
-
+            
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
-                });
-
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+            
             functionalClient.importIngestContracts(IngestContractModelList);
+
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
 
@@ -619,10 +630,10 @@ public class ProcessingIT {
 
             final GUID operationAuditGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationAuditGuid);
-            createLogbookOperation(operationAuditGuid, opId);
+            createLogbookOperation(operationAuditGuid, opId, "PROCESS_AUDIT", LogbookTypeProcess.AUDIT);
             final ProcessingEntry entry = new ProcessingEntry(auditId, Contexts.AUDIT_WORKFLOW.getEventType());
             entry.getExtraParams().put("objectId", "0");
-            entry.getExtraParams().put("auditType", "#tenant");
+            entry.getExtraParams().put("auditType", "tenant");
             processingClient.initVitamProcess(Contexts.AUDIT_WORKFLOW.name(), entry);
 
             RequestResponse<ItemStatus> auditResponse =
@@ -1985,10 +1996,10 @@ public class ProcessingIT {
     public void createLogbookOperation(GUID operationId, GUID objectId)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
         LogbookClientNotFoundException {
-        createLogbookOperation(operationId, objectId, null);
+        createLogbookOperation(operationId, objectId, null, LogbookTypeProcess.INGEST);
     }
 
-    public void createLogbookOperation(GUID operationId, GUID objectId, String type)
+    public void createLogbookOperation(GUID operationId, GUID objectId, String type, LogbookTypeProcess typeProc)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
         LogbookClientNotFoundException {
 
@@ -1998,7 +2009,7 @@ public class ProcessingIT {
         }
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
             operationId, type, objectId,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            typeProc, StatusCode.STARTED,
             operationId != null ? operationId.toString() : "outcomeDetailMessage",
             operationId);
         logbookClient.create(initParameters);

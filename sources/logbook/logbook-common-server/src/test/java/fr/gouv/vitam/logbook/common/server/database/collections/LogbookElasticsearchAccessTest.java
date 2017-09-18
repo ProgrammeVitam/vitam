@@ -39,6 +39,7 @@ import java.util.Map;
 import org.bson.Document;
 import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
+import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -144,8 +145,8 @@ public class LogbookElasticsearchAccessTest {
         final String esJson = ((DBObject) com.mongodb.util.JSON.parse(mongoJson))
             .toString();
         mapIdJson.put(id, esJson);
-        esClient.addEntryIndexes(LogbookCollections.OPERATION, tenantId, mapIdJson);
-
+        BulkResponse response = esClient.addEntryIndexes(LogbookCollections.OPERATION, tenantId, mapIdJson);
+        esClient.refreshIndex(LogbookCollections.OPERATION, tenantId);
         // check entry
         QueryBuilder query = QueryBuilders.matchAllQuery();
         SearchResponse elasticSearchResponse =

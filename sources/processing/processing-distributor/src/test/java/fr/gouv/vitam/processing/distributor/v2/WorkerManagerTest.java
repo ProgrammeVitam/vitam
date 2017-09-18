@@ -135,7 +135,7 @@ public class WorkerManagerTest {
         DescriptionStep descriptionStep =
             new DescriptionStep(step, params);
 
-        final WorkerTask task = new WorkerTask(descriptionStep, 0, "requestId");
+        final WorkerTask task = new WorkerTask(descriptionStep, 0, "requestId", "contractId");
 
         workerManager.registerWorker(familyId, workerId, BIG_WORKER_DESCRIPTION);
         WorkerFamilyManager workerFamilyManager = workerManager.findWorkerBy(familyId);
@@ -160,7 +160,7 @@ public class WorkerManagerTest {
         step.setBehavior(ProcessBehavior.NOBLOCKING).setActions(actions);
         DescriptionStep descriptionStep =
             new DescriptionStep(step, params);
-        final WorkerTask task = new WorkerTask(descriptionStep, 0, "requestId");
+        final WorkerTask task = new WorkerTask(descriptionStep, 0, "requestId", "contractId");
         workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
 
         WorkerFamilyManager workerFamilyManager = workerManager.findWorkerBy(familyId);

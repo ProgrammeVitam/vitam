@@ -269,16 +269,13 @@ public class LogbookOperationsImplWithDatabasesTest {
             logbookOperationsImpl.create(LogbookParametersFactory.newLogbookOperationParameters());
             fail("Should failed");
         } catch (final IllegalArgumentException e) {}
-    }
+        try {
 
-    @Test(expected = LogbookNotFoundException.class)
-    @RunWithCustomExecutor
-    public void givenSelectWhenOperationNotExistThenThrowNotFoundException() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
-        final Select select = new Select();
-        select.setQuery(exists("mavar1"));
-        logbookOperationsImpl.select(JsonHandler.getFromString(select.getFinalSelect().toString()));
+            final Select select = new Select();
+            select.setQuery(exists("notExistVariable"));
+            logbookOperationsImpl.select(JsonHandler.getFromString(select.getFinalSelect().toString()));
+            fail("Should failed");
+        } catch (final LogbookNotFoundException e) {}
     }
 
     @Test
@@ -296,13 +293,8 @@ public class LogbookOperationsImplWithDatabasesTest {
         res1 = logbookOperationsImpl.select(select.getFinalSelect());
         assertNotNull(res1);
         assertTrue(res1.get(0).containsValue(eip1.getId()));
-        List<LogbookOperation> res2 = new ArrayList<>();
+
         select.setQuery(new CompareQuery(QUERY.EQ, "evType", "eventType"));
-        res2 = logbookOperationsImpl.select(select.getFinalSelect());
-        assertNotNull(res2);
-        assertTrue(res2.get(0).containsValue(eip1.getId()));
-        assertTrue(res2.get(1).containsValue(eip2.getId()));
-        assertTrue(res2.get(2).containsValue(eip3.getId()));
         List<LogbookOperation> res3 = new ArrayList<>();
         select.addOrderByDescFilter("evDateTime");
         res3 = logbookOperationsImpl.select(select.getFinalSelect());

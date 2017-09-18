@@ -81,6 +81,38 @@
             }
           }
         },
+        "agIdExt": {
+          "type": "object",
+          "enabled": true,
+          "properties": {
+            "originatingAgency": {
+              "type": "string",
+              "index": "analyzed"
+            },
+            "TransferringAgency": {
+              "type": "string",
+              "index": "analyzed"
+            },
+            "ArchivalAgency": {
+              "type": "string",
+              "index": "analyzed"
+            },
+            "submissionAgency": {
+              "type": "string",
+              "index": "analyzed"
+            }
+          }
+        },
+        "rightsStatementIdentifier": {
+          "enabled": true,
+          "type": "object",
+          "properties": {
+            "ArchivalAgreement": {
+              "type": "string",
+              "index": "analyzed"
+            }
+          }
+        },
         "evTypeProc": {
           "type": "string",
           "index": "not_analyzed"

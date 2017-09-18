@@ -574,11 +574,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 parser.addProjection(slice, DEFAULT_ALLKEYS);
             }
             // FIXME filter on traceability to adapt
-            if (LogbookCollections.OPERATION.equals(collection) &&
-                parser.getRequest().getFinalSelect().toString()
-                    .contains(QueryHelper
-                        .eq(LogbookMongoDbName.eventTypeProcess.getDbname(), LogbookTypeProcess.TRACEABILITY.name())
-                        .toString())) {
+            if (LogbookCollections.OPERATION.equals(collection)) {
                 return findDocumentsElasticsearch(collection, parser);
             } else {
                 return selectExecute(collection, parser);
@@ -1365,7 +1361,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         String id = vitamDocument.getId();
         vitamDocument.remove(VitamDocument.ID);
         vitamDocument.remove(VitamDocument.SCORE);
-        tranformEvDetDataForElastic(vitamDocument);
+        tranformDataForElastic(vitamDocument);
         final String mongoJson = vitamDocument.toJson(new JsonWriterSettings(JsonMode.STRICT));
         vitamDocument.clear();
         final String esJson = ((DBObject) com.mongodb.util.JSON.parse(mongoJson)).toString();
@@ -1390,13 +1386,13 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         LOGGER.debug("updateIntoElasticsearch");
         String id = (String) existingDocument.remove(VitamDocument.ID);
         existingDocument.remove(VitamDocument.SCORE);
-        tranformEvDetDataForElastic(existingDocument);
+        tranformDataForElastic(existingDocument);
         final String mongoJson = existingDocument.toJson(new JsonWriterSettings(JsonMode.STRICT));
         existingDocument.clear();
         final String esJson = ((DBObject) com.mongodb.util.JSON.parse(mongoJson)).toString();
         Map<String, String> mapIdJson = new HashMap<>();
         final boolean response = collection.getEsClient().updateEntryIndex(collection, tenantId, id, esJson);
-        if (response == false) {
+        if (!response) {
             throw new LogbookExecutionException("Update Elasticsearch has errors");
         }
     }
@@ -1406,7 +1402,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * 
      * @param vitamDocument logbook vitam document
      */
-    private void tranformEvDetDataForElastic(VitamDocument<?> vitamDocument) {
+    private void tranformDataForElastic(VitamDocument<?> vitamDocument) {
         if (vitamDocument.get(LogbookMongoDbName.eventDetailData.getDbname()) != null) {
             String evDetDataString = (String) vitamDocument.get(LogbookMongoDbName.eventDetailData.getDbname());
             LOGGER.debug(evDetDataString);
@@ -1418,6 +1414,28 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 LOGGER.warn("EvDetData is not a json compatible field", e);
             }
         }
+        if (vitamDocument.get(LogbookMongoDbName.agIdExt.getDbname()) != null) {
+            String agidExt = (String) vitamDocument.get(LogbookMongoDbName.agIdExt.getDbname());
+            LOGGER.debug(agidExt);
+            try {
+                JsonNode agidExtNode = JsonHandler.getFromString(agidExt);
+                vitamDocument.remove(LogbookMongoDbName.agIdExt.getDbname());
+                vitamDocument.put(LogbookMongoDbName.agIdExt.getDbname(), agidExtNode);
+            } catch (InvalidParseOperationException e) {
+                LOGGER.warn("agidExtNode is not a json compatible field", e);
+            }
+        }
+        if (vitamDocument.get(LogbookMongoDbName.rightsStatementIdentifier.getDbname()) != null) {
+            String rightsStatementIdentifier = (String) vitamDocument.get(LogbookMongoDbName.rightsStatementIdentifier.getDbname());
+            LOGGER.debug(rightsStatementIdentifier);
+            try {
+                JsonNode rightsStatementIdentifierNode = JsonHandler.getFromString(rightsStatementIdentifier);
+                vitamDocument.remove(LogbookMongoDbName.rightsStatementIdentifier.getDbname());
+                vitamDocument.put(LogbookMongoDbName.rightsStatementIdentifier.getDbname(), rightsStatementIdentifierNode);
+            } catch (InvalidParseOperationException e) {
+                LOGGER.warn("rightsStatementIdentifier is not a json compatible field", e);
+            }
+        }
         List<Document> eventDocuments = (List<Document>) vitamDocument.get(LogbookDocument.EVENTS);
         if (eventDocuments != null) {
             for (Document eventDocument : eventDocuments) {
@@ -1427,6 +1445,20 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                     Document eventEvDetDataDocument = Document.parse(eventEvDetDataString);
                     eventDocument.remove(LogbookMongoDbName.eventDetailData.getDbname());
                     eventDocument.put(LogbookMongoDbName.eventDetailData.getDbname(), eventEvDetDataDocument);
+                }
+                if (eventDocument.getString(LogbookMongoDbName.rightsStatementIdentifier.getDbname()) != null) {
+                    String eventrightsStatementIdentifier =
+                        eventDocument.getString(LogbookMongoDbName.rightsStatementIdentifier.getDbname());
+                    Document eventEvDetDataDocument = Document.parse(eventrightsStatementIdentifier);
+                    eventDocument.remove(LogbookMongoDbName.rightsStatementIdentifier.getDbname());
+                    eventDocument.put(LogbookMongoDbName.rightsStatementIdentifier.getDbname(), eventEvDetDataDocument);
+                }
+                if (eventDocument.getString(LogbookMongoDbName.agIdExt.getDbname()) != null) {
+                    String eventagIdExt =
+                        eventDocument.getString(LogbookMongoDbName.agIdExt.getDbname());
+                    Document eventEvDetDataDocument = Document.parse(eventagIdExt);
+                    eventDocument.remove(LogbookMongoDbName.agIdExt.getDbname());
+                    eventDocument.put(LogbookMongoDbName.agIdExt.getDbname(), eventEvDetDataDocument);
                 }
             }
         }

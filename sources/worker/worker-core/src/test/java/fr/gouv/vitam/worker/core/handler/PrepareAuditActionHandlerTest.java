@@ -7,11 +7,17 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
@@ -49,7 +55,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({MetaDataClientFactory.class, WorkspaceClientFactory.class})
+@PrepareForTest({MetaDataClientFactory.class, WorkspaceClientFactory.class, AdminManagementClientFactory.class})
 public class PrepareAuditActionHandlerTest {
 
     PrepareAuditActionHandler handler = new PrepareAuditActionHandler();
@@ -57,6 +63,8 @@ public class PrepareAuditActionHandlerTest {
     private MetaDataClientFactory metadataClientFactory;
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
+    private AdminManagementClient adminClient;
+    private AdminManagementClientFactory adminClientFactory;
 
     private HandlerIOImpl action;
     private GUID guid = GUIDFactory.newGUID();
@@ -90,12 +98,27 @@ public class PrepareAuditActionHandlerTest {
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
 
+
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = mock(AdminManagementClient.class);
+        adminClientFactory = mock(AdminManagementClientFactory.class);
+
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(metadataClientFactory);
         PowerMockito.when(MetaDataClientFactory.getInstance().getClient())
             .thenReturn(metadataClient);
         PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         PowerMockito.when(WorkspaceClientFactory.getInstance().getClient())
             .thenReturn(workspaceClient);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient())
+            .thenReturn(adminClient);
+
+        RequestResponseOK<AccessionRegisterSummaryModel> registerSummary = new RequestResponseOK<>();
+        AccessionRegisterSummaryModel register = new AccessionRegisterSummaryModel();
+        register.setOriginatingAgency("originatingAgency");
+        register.setTotalObjects(new RegisterValueDetailModel(1, 0 ,1));
+        registerSummary.addResult(register);
+        when(adminClient.getAccessionRegister(anyObject())).thenReturn(registerSummary);
 
         action = new HandlerIOImpl(guid.getId(), "workerId");
         out = new ArrayList<>();
@@ -113,9 +136,27 @@ public class PrepareAuditActionHandlerTest {
         Mockito.doNothing().when(workspaceClient).createContainer(anyObject());
         Mockito.doNothing().when(workspaceClient).putObject(anyObject(), anyObject(), anyObject());
         when(metadataClient.selectObjectGroups(anyObject())).thenReturn(searchResults);
-
         final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
+
+    @Test
+    public void executeWARNING() throws Exception {
+        action.addOutIOParameters(out);RequestResponseOK<AccessionRegisterSummaryModel> registerSummary = new RequestResponseOK<>();
+        AccessionRegisterSummaryModel register = new AccessionRegisterSummaryModel();
+        register.setOriginatingAgency("originatingAgency");
+        register.setTotalObjects(new RegisterValueDetailModel(0, 0 ,1));
+        registerSummary.addResult(register);
+        when(adminClient.getAccessionRegister(anyObject())).thenReturn(registerSummary);
+        final JsonNode searchResults =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SEARCH_RESULTS));
+        reset(workspaceClient);
+        reset(metadataClient);
+        Mockito.doNothing().when(workspaceClient).createContainer(anyObject());
+        Mockito.doNothing().when(workspaceClient).putObject(anyObject(), anyObject(), anyObject());
+        when(metadataClient.selectObjectGroups(anyObject())).thenReturn(searchResults);
+        final ItemStatus response = handler.execute(params, action);
+        assertEquals(StatusCode.WARNING, response.getGlobalStatus());
     }
 
     @Test

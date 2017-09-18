@@ -160,7 +160,6 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
                     LOGGER.debug("register ID / Originating Agency: " + register.getId() + " / " +
                         register.getOriginatingAgency());
                 }
-
                 VitamThreadUtils.getVitamSession().setContractId(VitamConstants.EVERY_ORIGINATING_AGENCY);
                 Select select = new Select();
                 try {

@@ -213,9 +213,7 @@ public class LogbookMongoDbAccessFactoryTest {
         assertTrue(operation3String.contains(LogbookMongoDbName.eventDetailData.getDbname()));
         assertTrue(operation3String.contains(LogbookMongoDbName.agentIdentifierApplication.getDbname()));
         assertTrue(operation3String.contains(LogbookMongoDbName.agentIdentifierApplicationSession.getDbname()));
-        // TODO REPLACE TEST HERE
-       // assertTrue(operation3String.contains(LogbookMongoDbName.agentIdentifierOriginating.getDbname()));
-        //assertTrue(operation3String.contains(LogbookMongoDbName.agentIdentifierSubmission.getDbname()));
+
         assertTrue(operation3String.contains(LogbookMongoDbName.agIdExt.getDbname()));
 
         assertTrue(LogbookOperation.getIdName().equals(LogbookMongoDbName.eventIdentifierProcess));
@@ -304,8 +302,13 @@ public class LogbookMongoDbAccessFactoryTest {
                     GUIDFactory.newEventGUID(TENANT_ID).getId());
             }
         }
-        parameters.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
+        String agidExt =
+            "{    \"agIdExt\": {\"originatingAgency\":\"Service_producteur\",\"TransferringAgency\":\"Identifier5\",\"ArchivalAgency\":\"Identifier4\",\"submissionAgency\":\"Service_versant\"}}";
+        String rightsStatementIdentifier = "{\"ArchivalAgreement\":\"ArchivalAgreement0\"}";
+
+        parameters.putParameterValue(LogbookParameterName.agIdExt, agidExt);
+        parameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier, rightsStatementIdentifier);
+        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
         final LogbookOperationParameters parameters2 = LogbookParametersFactory.newLogbookOperationParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             if (LogbookParameterName.eventDetailData.equals(name)) {
@@ -320,6 +323,8 @@ public class LogbookMongoDbAccessFactoryTest {
             parameters.getMapParameters().get(LogbookParameterName.eventIdentifierProcess));
         parameters2.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
+        parameters2.putParameterValue(LogbookParameterName.agIdExt, agidExt);
+        parameters2.putParameterValue(LogbookParameterName.rightsStatementIdentifier, rightsStatementIdentifier);
 
         final LogbookOperationParameters parametersWrong = LogbookParametersFactory.newLogbookOperationParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
@@ -328,6 +333,7 @@ public class LogbookMongoDbAccessFactoryTest {
         }
         parametersWrong.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
+        parametersWrong.putParameterValue(LogbookParameterName.rightsStatementIdentifier, rightsStatementIdentifier);
 
         try {
             mongoDbAccess.updateLogbookOperation(parameters);
@@ -503,6 +509,7 @@ public class LogbookMongoDbAccessFactoryTest {
             assertNull(cursor.next());
         }
 
+      
     }
 
     @Test

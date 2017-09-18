@@ -86,8 +86,8 @@ public class AdminExternalClientMockTest {
             Status.OK.getStatusCode());
 
         assertEquals(
-            client.launchAudit(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(AUDIT_OPTION)),
-            Status.OK);
+            client.launchAudit(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(AUDIT_OPTION)).getHttpCode(),
+            Status.ACCEPTED.getStatusCode());
 
     }
 

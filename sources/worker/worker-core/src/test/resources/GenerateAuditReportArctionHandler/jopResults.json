@@ -1,0 +1,93 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 10000,
+    "size": 1
+  },
+  "$results": [
+    {
+      "_id": "aedaaaaaacdugmd5aa7raak6kmb6ibiaaaaq",
+      "evId": "aecaaaaaacdugmd5aa7raak6kmcakiiaaaaq",
+      "evType": "Process_SIP_unitary",
+      "evDateTime": "2017-09-05T17:08:46.019",
+      "evDetData": "{\n  \"EvDetailReq\" : \"bug2721_2racines_meme_rattachement\",\n  \"EvDateTimeReq\" : \"2016-10-18T14:52:27\",\n  \"ArchivalAgreement\" : \"ArchivalAgreementWithPlan\",\n  \"AgIfTrans\" : \"Identifier5\",\n  \"ServiceLevel\" : null,\n  \"_up\" : [ \"aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq\" ]\n}",
+      "evIdProc": "aedaaaaaacdugmd5aa7raak6kmb6ibiaaaaq",
+      "evTypeProc": "INGEST",
+      "outcome": "STARTED",
+      "outDetail": "Process_SIP_unitary.STARTED",
+      "outMessg": "aecaaaaaacdugmd5aa7raak6kmcakiiaaaaq",
+      "agId": "{\"Name\":\"linagora-Latitude-3340\",\"Role\":\"UnknownRole\",\"ServerId\":1464021117,\"SiteId\":0,\"GlobalPlatformId\":121843837}",
+      "agIdApp": null,
+      "agIdAppSession": null,
+      "evIdReq": "aecaaaaaacdugmd5aa7raak6kmcakiiaaaaq",
+      "agIdSubm": null,
+      "agIdOrig": "producteur1",
+      "obId": "aedaaaaaacdugmd5aa7raak6kmb6ibiaaaaq",
+      "obIdReq": null,
+      "obIdIn": "bug2721_2racines_meme_rattachement",
+      "events": [
+        {
+          "evId": "aedqaaaaacdugmd5aa7raak6kmcegziaaabq",
+          "evType": "STP_INGEST_FINALISATION",
+          "evDateTime": "2017-09-05T17:09:01.925",
+          "evDetData": null,
+          "evIdProc": "aedaaaaaacdugmd5aa7raak6kmb6ibiaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "OK",
+          "outDetail": "STP_INGEST_FINALISATION.OK",
+          "outMessg": "Succès du processus de finalisation de l'entrée",
+          "agId": "{\"Name\":\"linagora-Latitude-3340\",\"Role\":\"UnknownRole\",\"ServerId\":1464021117,\"SiteId\":0,\"GlobalPlatformId\":121843837}",
+          "agIdApp": null,
+          "agIdAppSession": null,
+          "evIdReq": "aedaaaaaacdugmd5aa7raak6kmb6ibiaaaaq",
+          "agIdSubm": null,
+          "agIdOrig": "producteur1",
+          "obId": "aedaaaaaacdugmd5aa7raak6kmb6ibiaaaaq",
+          "obIdReq": null,
+          "obIdIn": "bug2721_2racines_meme_rattachement"
+        },
+        {
+          "evId": "aedaaaaaacdugmd5aa7raak6kmb6ibiaaaaq",
+          "evType": "PROCESS_SIP_UNITARY",
+          "evDateTime": "2017-09-05T17:09:02.073",
+          "evDetData": null,
+          "evIdProc": "aedaaaaaacdugmd5aa7raak6kmb6ibiaaaaq",
+          "evTypeProc": "INGEST",
+          "outcome": "WARNING",
+          "outDetail": "PROCESS_SIP_UNITARY.WARNING",
+          "outMessg": "L'entrée du SIP à été effectuée avec succès mais des messages d'avertissements ont été émis.",
+          "agId": "{\"Name\":\"linagora-Latitude-3340\",\"Role\":\"UnknownRole\",\"ServerId\":1464021117,\"SiteId\":0,\"GlobalPlatformId\":121843837}",
+          "evIdReq": "aedaaaaaacdugmd5aa7raak6kmb6ibiaaaaq",
+          "obId": "aedaaaaaacdugmd5aa7raak6kmb6ibiaaaaq",
+          "obIdReq": null,
+          "obIdIn": null
+        }
+      ],
+      "_v": 0,
+      "_tenant": 0
+    }
+  ],
+  "$context": {
+    "$query": {
+      "$and": [
+        {
+          "$eq": {
+            "evTypeProc": "INGEST"
+          }
+        },
+        {
+          "$in": {
+            "events.agIdOrig": [
+              "FR_ORG_AGEN",
+              "producteur1"
+            ]
+          }
+        }
+      ]
+    },
+    "$filter": {},
+    "$projection": {}
+  }
+}

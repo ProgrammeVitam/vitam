@@ -362,7 +362,7 @@ public interface AdminExternalClient extends BasicClient {
      * @return Status
      * @throws AccessExternalClientServerException
      */
-    Status launchAudit(VitamContext vitamContext, JsonNode auditOption)
+    RequestResponse launchAudit(VitamContext vitamContext, JsonNode auditOption)
         throws AccessExternalClientServerException;
     
     

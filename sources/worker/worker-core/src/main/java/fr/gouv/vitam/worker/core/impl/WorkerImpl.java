@@ -79,6 +79,7 @@ import fr.gouv.vitam.worker.core.handler.CommitLifeCycleUnitActionHandler;
 import fr.gouv.vitam.worker.core.handler.DummyHandler;
 import fr.gouv.vitam.worker.core.handler.ExtractSedaActionHandler;
 import fr.gouv.vitam.worker.core.handler.FinalizeLifecycleTraceabilityActionHandler;
+import fr.gouv.vitam.worker.core.handler.GenerateAuditReportActionHandler;
 import fr.gouv.vitam.worker.core.handler.ListArchiveUnitsActionHandler;
 import fr.gouv.vitam.worker.core.handler.ListLifecycleTraceabilityActionHandler;
 import fr.gouv.vitam.worker.core.handler.ListRunningIngestsActionHandler;
@@ -200,6 +201,9 @@ public class WorkerImpl implements Worker {
             new ListLifecycleTraceabilityActionHandler());
         actions.put(FinalizeLifecycleTraceabilityActionHandler.getId(),
             new FinalizeLifecycleTraceabilityActionHandler());
+        
+        actions.put(GenerateAuditReportActionHandler.getId(),
+            new GenerateAuditReportActionHandler());
     }
 
     @Override
