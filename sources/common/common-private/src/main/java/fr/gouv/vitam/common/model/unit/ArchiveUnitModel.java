@@ -70,11 +70,6 @@ public class ArchiveUnitModel {
         this.archiveUnitProfile = archiveUnitProfile;
     }
 
-    @JsonGetter("Management")
-    public ManagementModel getManagement() {
-        return management;
-    }
-
     public DescriptiveMetadataModel getDescriptiveMetadataModel() {
         return descriptiveMetadataModel;
     }
@@ -99,7 +94,12 @@ public class ArchiveUnitModel {
         this.og = og;
     }
 
-    @JsonSetter("Management")
+    @JsonGetter("#management")
+    public ManagementModel getManagement() {
+        return management;
+    }
+
+    @JsonSetter("#management")
     public void setManagement(ManagementModel management) {
         this.management = management;
     }
@@ -118,6 +118,16 @@ public class ArchiveUnitModel {
     @JsonSetter("_mgt")
     public void setMgt(ManagementModel management) {
         this.management = management;
+    }
+
+    @JsonSetter("Management")
+    public void setMgtManagement(ManagementModel management) {
+        this.management = management;
+    }
+
+    @JsonGetter("Management")
+    public ManagementModel getMgtManagement() {
+        return management;
     }
 
     @JsonGetter("_mgt")

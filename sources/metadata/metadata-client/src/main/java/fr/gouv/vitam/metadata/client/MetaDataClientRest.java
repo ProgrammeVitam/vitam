@@ -150,8 +150,9 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         }
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, "/objectgroups", null, selectQuery, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
+            response =
+                performRequest(HttpMethod.GET, "/objectgroups", null, selectQuery, MediaType.APPLICATION_JSON_TYPE,
+                    MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
             } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
@@ -308,7 +309,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     public void updateObjectGroupById(JsonNode queryUpdate, String objectGroupId)
         throws InvalidParseOperationException, MetaDataClientServerException, MetaDataExecutionException {
         try {
-            ParametersChecker.checkParameter(ErrorMessage.UPDATE_UNITS_QUERY_NULL.getMessage(), queryUpdate, objectGroupId);
+            ParametersChecker
+                .checkParameter(ErrorMessage.UPDATE_UNITS_QUERY_NULL.getMessage(), queryUpdate, objectGroupId);
         } catch (final IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
@@ -364,7 +366,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             } else {
                 VitamError vitamError = (VitamError) requestResponse;
                 LOGGER
-                    .error("find accession register for unit failed, http code is {}, error is {}", vitamError.getCode(),
+                    .error("find accession register for unit failed, http code is {}, error is {}",
+                        vitamError.getCode(),
                         vitamError.getErrors());
                 throw new MetaDataClientServerException(vitamError.getDescription());
             }
@@ -402,7 +405,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             } else {
                 VitamError vitamError = (VitamError) requestResponse;
                 LOGGER
-                    .error("find accession register for object group failed, http code is {}, error is {}", vitamError.getCode(),
+                    .error("find accession register for object group failed, http code is {}, error is {}",
+                        vitamError.getCode(),
                         vitamError.getErrors());
                 throw new MetaDataClientServerException(vitamError.getDescription());
             }

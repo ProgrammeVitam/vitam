@@ -26,11 +26,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.core;
 
+import com.google.common.base.Throwables;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 
 /**
- *  Map the object DescriptiveMetadataModel generated from Unit data base model
+ * Map the object DescriptiveMetadataModel generated from Unit data base model
  * To a jaxb object DescriptiveMetadataContentType
  * This help convert DescriptiveMetadataModel to xml using jaxb
  */
@@ -38,15 +49,17 @@ public class DescriptiveMetadataMapper {
 
     /**
      * Map local DescriptiveMetadataModel to jaxb DescriptiveMetadataContentType
+     *
      * @param metadataModel
      * @return
      */
     public DescriptiveMetadataContentType map(DescriptiveMetadataModel metadataModel) {
         DescriptiveMetadataContentType dmc = new DescriptiveMetadataContentType();
-
         dmc.setAcquiredDate(metadataModel.getAcquiredDate());
         dmc.getAddressee().addAll(metadataModel.getAddressee());
-        dmc.getAny().addAll(metadataModel.getAny());
+        //        mapMapToElement(dmc, metadataModel.getAny());
+        dmc.getAny().addAll(TransformJsonTreeToListOfXmlElement.mapJsonToElement(metadataModel.getAny()));
+
         dmc.setArchivalAgencyArchiveUnitIdentifier(metadataModel.getArchivalAgencyArchiveUnitIdentifier());
         dmc.setAuthorizedAgent(metadataModel.getAuthorizedAgent());
         dmc.setCoverage(metadataModel.getCoverage());
@@ -100,4 +113,46 @@ public class DescriptiveMetadataMapper {
 
         return dmc;
     }
+
+    private void mapMapToElement(DescriptiveMetadataContentType dmc, List<Object> any) {
+
+        try {
+            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+            Document document = documentBuilder.newDocument();
+
+            for (Object o : any) {
+                if (o instanceof Map) {
+                    Map map = (Map) o;
+                    transformMapToElement(dmc.getAny()::add, document, map);
+                }
+            }
+        } catch (ParserConfigurationException e) {
+            throw Throwables.propagate(e);
+        }
+    }
+
+    private void transformMapToElement(Consumer<Element> consumer, Document document, Map map) {
+
+        for (Object key : map.keySet()) {
+
+            Object value = map.get(key);
+            if (value instanceof List) {
+                List<String> list = (List<String>) value;
+                list.forEach(s -> {
+                        Element childElement =
+                            document.createElementNS(SedaConstants.NAMESPACE_URI, key.toString());
+                        childElement.appendChild(document.createTextNode(s));
+                        consumer.accept(childElement);
+                    }
+                );
+            } else if (value instanceof Map) {
+                Element childElement =
+                    document.createElementNS(SedaConstants.NAMESPACE_URI, key.toString());
+                transformMapToElement(childElement::appendChild, document, (Map) value);
+                consumer.accept(childElement);
+            }
+        }
+    }
+
 }

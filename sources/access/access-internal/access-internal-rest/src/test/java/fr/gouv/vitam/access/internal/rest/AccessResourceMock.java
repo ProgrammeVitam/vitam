@@ -87,6 +87,24 @@ public class AccessResourceMock implements AccessInternalResource {
         return Response.status(200).entity("{\"unit\" = \"OK_MockUnits\"}").build();
     }
 
+    @Override
+    @GET
+    @Path("/objects/{id_object}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_XML)
+    public Response getObjectByIdWithXMLFormat(JsonNode dslQuery, String objectId) {
+        return Response.status(200).entity("{\"objectGroupById\":\"OK_MockObjectGroup\"}").build();
+    }
+
+    @Override
+    @GET
+    @Path("/units/{id_unit}/object")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_XML)
+    public Response getObjectByUnitIdWithXMLFormat(JsonNode dslQuery, String unitId) {
+        return Response.status(200).entity("{\"objectGroupByUnitId\":\"OK_MockObjectGroup\"}").build();
+    }
+
     /**
      * update archive units by Id with Json query
      *

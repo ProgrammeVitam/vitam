@@ -26,30 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.core;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
-
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.api.DataCategory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalException;
@@ -72,7 +52,6 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
-import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -88,8 +67,8 @@ import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.VitamConstants.AppraisalRuleFinalAction;
 import fr.gouv.vitam.common.model.VitamConstants.StorageRuleFinalAction;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
-import fr.gouv.vitam.common.model.objectgroup.QualifiersJson;
-import fr.gouv.vitam.common.model.objectgroup.VersionsJson;
+import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
+import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
@@ -127,13 +106,30 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
-import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -353,20 +349,20 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             JsonHandler.getFromJsonNode(jsonResponse.get(RESULTS), ObjectGroupResponse.class);        
 
 
-        VersionsJson finalversionsResponse = null;
+        VersionsModel finalversionsResponse = null;
         // FIXME P1: do not use direct access but POJO
         // #2604 : Filter the given result for not having false positif in the request result
         // && objectGroupResponse.getQualifiers().size() > 1
         if (objectGroupResponse.getQualifiers() != null) {
             final String dataObjectVersion = qualifier + "_" + version;
-            for (QualifiersJson qualifiersResponse : objectGroupResponse.getQualifiers()) {
+            for (QualifiersModel qualifiersResponse : objectGroupResponse.getQualifiers()) {
                 // FIXME very ugly fix, qualifier with underscore should be handled
                 if (qualifiersResponse.getQualifier() != null && qualifiersResponse.getQualifier().contains("_")) {
                     qualifiersResponse.setQualifier(qualifiersResponse
                         .getQualifier().split("_")[0]);
                 }
                 if (qualifier.equals(qualifiersResponse.getQualifier())) {
-                    for (VersionsJson versionResponse : qualifiersResponse.getVersions()) {
+                    for (VersionsModel versionResponse : qualifiersResponse.getVersions()) {
                         if (dataObjectVersion.equals(versionResponse.getDataObjectVersion())) {
                             finalversionsResponse = versionResponse;
                             break;
@@ -384,9 +380,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 mimetype = finalversionsResponse.getFormatIdentification().getMimeType();
 
             }
-            if (finalversionsResponse.getFileInfoResponse() != null &&
-                !finalversionsResponse.getFileInfoResponse().getFilename().isEmpty()) {
-                filename = finalversionsResponse.getFileInfoResponse().getFilename();
+            if (finalversionsResponse.getFileInfoModel() != null &&
+                !finalversionsResponse.getFileInfoModel().getFilename().isEmpty()) {
+                filename = finalversionsResponse.getFileInfoModel().getFilename();
             }
             objectId = finalversionsResponse.getId();
         }

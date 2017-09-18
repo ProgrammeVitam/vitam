@@ -24,23 +24,35 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.model.objectgroup;
+package fr.gouv.vitam.access.internal.core.serializer;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.culture.archivesdefrance.seda.v2.CodeKeywordType;
+import fr.gouv.culture.archivesdefrance.seda.v2.KeywordsType;
+
+import java.io.IOException;
 
 /**
- * Object mapping metadataResponse
+ * Deserialize a (json, xml, string) representation to LevelType
+ * To be registered in jackson objectMapper
  */
-public class MetadataJson {
-
-    @JsonProperty("Document")
-    private String document;
-
-    public String getDocument() {
-        return document;
+public class KeywordTypeDeserializer extends JsonDeserializer<KeywordsType.KeywordType> {
+    /**
+     *
+     * @param jp (json, xml, string) representation
+     * @param ctxt
+     * @return
+     * @throws IOException
+     */
+    @Override
+    public KeywordsType.KeywordType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+        JsonNode node = jp.getCodec().readTree(jp);
+        KeywordsType.KeywordType keywordType = new KeywordsType.KeywordType();
+        keywordType.setValue(CodeKeywordType.fromValue(node.asText()));
+        return keywordType;
     }
 
-    public void setDocument(String document) {
-        this.document = document;
-    }
 }

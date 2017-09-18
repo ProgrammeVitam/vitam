@@ -24,36 +24,48 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.access.internal.core.serializer;
+package fr.gouv.vitam.common.model.objectgroup;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
+import java.util.List;
 
-import java.io.IOException;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Deserialize a (json, xml, string) representation to IdentifierType
- * To be registered in jackson objectMapper
+ * Object mapping QualifiersResponse
  */
-public class IdentifierTypeDeserializer extends JsonDeserializer<IdentifierType> {
-    /**
-     *
-     * @param jp representation (json, xml, string)
-     * @param ctxt
-     * @return
-     * @throws IOException
-     */
-    @Override
-    public IdentifierType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
-        JsonNode node = jp.getCodec().readTree(jp);
+public class QualifiersModel {
 
-        IdentifierType identifierType = new IdentifierType();
-        identifierType.setValue(node.asText());
+    @JsonProperty("qualifier")
+    private String qualifier;
 
-        return identifierType;
+    @JsonProperty("_nbc")
+    private String nbc;
+
+    @JsonProperty("versions")
+    private List<VersionsModel> versions;
+
+    public String getQualifier() {
+        return qualifier;
+    }
+
+    public void setQualifier(String qualifier) {
+        this.qualifier = qualifier;
+    }
+
+    public String getNbc() {
+        return nbc;
+    }
+
+    public void setNbc(String nbc) {
+        this.nbc = nbc;
+    }
+
+    public List<VersionsModel> getVersions() {
+        return versions;
+    }
+
+    public void setVersions(List<VersionsModel> versions) {
+        this.versions = versions;
     }
 
 }

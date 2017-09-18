@@ -1,0 +1,105 @@
+{
+  "FileInfo": {
+    "Filename": "Filename0",
+    "CreatingApplicationName": "CreatingApplicationName0",
+    "CreatingApplicationVersion": "CreatingApplicationVersion0",
+    "DateCreatedByApplication": "2006-05-04T18:13:51.0",
+    "CreatingOs": "CreatingOs0",
+    "CreatingOsVersion": "CreatingOsVersion0",
+    "LastModified": "2006-05-04T18:13:51.0"
+  },
+  "#id": "aebaaaaaaaftwxzvaaqvqak6hb4qacyaaaaq",
+  "#nbobjects": 0,
+  "#qualifiers": [
+    {
+      "qualifier": "PhysicalMaster",
+      "_nbc": 1,
+      "versions": [
+        {
+          "_id": "aeaaaaaaaaftwxzvaaqvqak6hb4qauqaaaaq",
+          "DataObjectGroupId": "aebaaaaaaaftwxzvaaqvqak6hb4qacyaaaaq",
+          "DataObjectVersion": "PhysicalMaster_1",
+          "PhysicalId": 123456789,
+          "PhysicalDimensions": {
+            "Height": {
+              "unit": "centimetre",
+              "value": 21
+            },
+            "Length": {
+              "unit": "centimetre",
+              "value": 29.7
+            },
+            "Weight": {
+              "unit": "kilogram",
+              "value": 1
+            }
+          },
+          "_storage": {
+            "_nbc": 0,
+            "offerIds": [],
+            "strategyId": "default"
+          }
+        }
+      ]
+    },
+    {
+      "qualifier": "BinaryMaster",
+      "_nbc": 1,
+      "versions": [
+        {
+          "_id": "aeaaaaaaaaftwxzvaaqvqak6hb4qaciaaaaq",
+          "DataObjectGroupId": "aebaaaaaaaftwxzvaaqvqak6hb4qacyaaaaq",
+          "DataObjectVersion": "BinaryMaster_1",
+          "FormatIdentification": {
+            "FormatLitteral": "Acrobat PDF 1.4 - Portable Document Format",
+            "MimeType": "application/pdf",
+            "FormatId": "fmt/18",
+            "Encoding":"Utf-8"
+          },
+          "FileInfo": {
+            "Filename": "Filename0",
+            "CreatingApplicationName": "CreatingApplicationName0",
+            "CreatingApplicationVersion": "CreatingApplicationVersion0",
+            "DateCreatedByApplication": "2006-05-04T18:13:51.0",
+            "CreatingOs": "CreatingOs0",
+            "CreatingOsVersion": "CreatingOsVersion0",
+            "LastModified": "2006-05-04T18:13:51.0"
+          },
+          "Size": 29403,
+          "Uri": "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf",
+          "MessageDigest": "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+          "Algorithm": "SHA-512",
+          "_storage": {
+            "_nbc": 1,
+            "offerIds": [
+              "localhost"
+            ],
+            "strategyId": "default"
+          }
+        }
+      ]
+    }
+  ],
+  "#type": "",
+  "#tenant": 0,
+  "#unitups": [
+    "aeaqaaaaaaftwxzvaaqvqak6hb4qaxiaaaaq"
+  ],
+  "#operations": [
+    "aedqaaaaacefgt3paarmwak6hb4owjiaaaaq"
+  ],
+  "#originating_agency": "FRAN_NP_050056",
+  "#originating_agencies": [
+    "FRAN_NP_050056"
+  ],
+  "#storage": {
+    "_nbc": [
+      1
+    ],
+    "strategyId": "default",
+    "offerIds": [
+      "localhost"
+    ]
+  },
+  "#version": 1
+}

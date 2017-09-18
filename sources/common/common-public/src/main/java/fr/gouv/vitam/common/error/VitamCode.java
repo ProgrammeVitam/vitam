@@ -240,6 +240,9 @@ public enum VitamCode {
     ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_START_DATE(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "12",
         Status.BAD_REQUEST,
         "Access internal error while check update on rules: Can't update rule with a startDate > 9000"),
+    ACCESS_INTERNAL_DIP_ERROR(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "13",
+        Status.BAD_REQUEST,
+        "Access internal client error in DIP service"),
 
     INGEST_EXTERNAL_ILLEGAL_ARGUMENT(ServiceName.EXTERNAL_INGEST, DomainName.IO, "00", Status.PRECONDITION_FAILED,
         "Ingest external illegal argument"),

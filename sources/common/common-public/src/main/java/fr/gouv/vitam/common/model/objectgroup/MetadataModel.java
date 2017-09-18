@@ -24,36 +24,69 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.access.internal.core.serializer;
+package fr.gouv.vitam.common.model.objectgroup;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Deserialize a (json, xml, string) representation to IdentifierType
- * To be registered in jackson objectMapper
+ * Object mapping metadataResponse
  */
-public class IdentifierTypeDeserializer extends JsonDeserializer<IdentifierType> {
-    /**
-     *
-     * @param jp representation (json, xml, string)
-     * @param ctxt
-     * @return
-     * @throws IOException
-     */
-    @Override
-    public IdentifierType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
-        JsonNode node = jp.getCodec().readTree(jp);
+public class MetadataModel {
 
-        IdentifierType identifierType = new IdentifierType();
-        identifierType.setValue(node.asText());
+    @JsonProperty("Document")
+    private Map<String, Object> document;
+    @JsonProperty("Text")
+    private Map<String, Object> text;
+    @JsonProperty("Image")
+    private Map<String, Object> image;
+    @JsonProperty("Audio")
+    private Map<String, Object> audio;
+    @JsonProperty("Video")
+    private Map<String, Object> video;
 
-        return identifierType;
+    public Map<String, Object> getDocument() {
+        return document;
     }
+
+    public void setDocument(Map<String, Object> document) {
+        this.document = document;
+    }
+
+    public Map<String, Object> getText() {
+        return text;
+    }
+
+    public void setText(Map<String, Object> text) {
+        this.text = text;
+    }
+
+    public Map<String, Object> getAudio() {
+        return audio;
+    }
+
+    public void setAudio(Map<String, Object> audio) {
+        this.audio = audio;
+    }
+
+    public Map<String, Object> getVideo() {
+        return video;
+    }
+
+    public void setVideo(Map<String, Object> video) {
+        this.video = video;
+    }
+
+    public Map<String, Object> getImage() {
+        return image;
+    }
+
+    public void setImage(Map<String, Object> image) {
+        this.image = image;
+    }
+
 
 }

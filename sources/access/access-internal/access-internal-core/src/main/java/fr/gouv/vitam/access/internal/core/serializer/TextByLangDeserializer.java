@@ -26,15 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.core.serializer;
 
-import java.io.IOException;
-import java.util.ArrayList;
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.model.unit.TextByLang;
+
+import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * Deserialize a (json, xml, string) representation to TextByLang

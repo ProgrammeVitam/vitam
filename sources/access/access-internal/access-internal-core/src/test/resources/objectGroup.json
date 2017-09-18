@@ -1,0 +1,113 @@
+{
+  "FileInfo": {
+    "Filename": "1NUM_4.JPG"
+  },
+  "#id": "aebaaaaaaafh4xklaacvcak6julzajiaaaaq",
+  "#nbobjects": 0,
+  "#qualifiers": [
+    {
+      "qualifier": "PhysicalMaster",
+      "_nbc": 1,
+      "versions": [
+        {
+          "_id": "aeaaaaaaaafh4xklaacvcak6julzchyaaaba",
+          "DataObjectGroupId": "aebaaaaaaafh4xklaacvcak6julzajiaaaaq",
+          "DataObjectVersion": "PhysicalMaster_1",
+          "PhysicalId": "1 Num 416/70",
+          "PhysicalDimensions": {
+            "Height": {
+              "unit": "centimetre",
+              "value": 10.5
+            },
+            "Length": {
+              "unit": "centimetre",
+              "value": 14.8
+            },
+            "Thickness": {
+              "unit": "micrometre",
+              "value": 350
+            },
+            "Weight": {
+              "unit": "gram",
+              "value": 3
+            }
+          },
+          "Extent": "1 carte imprimée",
+          "Dimensions": "10,5cm x 14,8cm",
+          "Color": "Noir et blanc",
+          "Framing": "Paysage",
+          "Technique": "Phototypie",
+          "_storage": {
+            "_nbc": 0,
+            "offerIds": [],
+            "strategyId": "default"
+          }
+        }
+      ]
+    },
+    {
+      "qualifier": "BinaryMaster",
+      "_nbc": 1,
+      "versions": [
+        {
+          "_id": "aeaaaaaaaafh4xklaacvcak6julzajaaaaaq",
+          "DataObjectGroupId": "aebaaaaaaafh4xklaacvcak6julzajiaaaaq",
+          "DataObjectVersion": "BinaryMaster_1",
+          "FormatIdentification": {
+            "FormatLitteral": "JPEG File Interchange Format",
+            "MimeType": "image/jpeg",
+            "FormatId": "fmt/43"
+          },
+          "FileInfo": {
+            "Filename": "1NUM_4.JPG"
+          },
+          "Metadata": {
+            "Image": {
+              "Dimensions": {
+                "plop": "143x93"
+              },
+              "Width": "143px",
+              "Height": "93px",
+              "VerticalResolution": "96ppp",
+              "HorizontalResolution": "96ppp",
+              "ColorDepth": 24
+            }
+          },
+          "Size": 8067,
+          "Uri": "Content/1NUM_4.JPG",
+          "MessageDigest": "3adb5ccfef14423678c2fb6a437ec104a6ee053f34b1c6a7755abc22eb54fb95133bef03fb142c6182377dbdadc9fa8ae8dd31dc3bb0fb038d93f51cafd90239",
+          "Algorithm": "SHA-512",
+          "_storage": {
+            "_nbc": 1,
+            "offerIds": [
+              "localhost"
+            ],
+            "strategyId": "default"
+          }
+        }
+      ]
+    }
+  ],
+  "#type": "Image",
+  "#tenant": 0,
+  "#unitups": [
+    "aeaqaaaaaafh4xklaacvcak6julzdmyaaaaq"
+  ],
+  "#operations": [
+    "aedqaaaaacevku33aadjqak6julxs5yaaaaq"
+  ],
+  "#originating_agency": "Identifier0",
+  "#originating_agencies": [
+    "Identifier0"
+  ],
+  "#storage": {
+    "_nbc": [
+      1
+    ],
+    "strategyId": "default",
+    "offerIds": [
+      "localhost"
+    ]
+  },
+  "#version": 1
+}

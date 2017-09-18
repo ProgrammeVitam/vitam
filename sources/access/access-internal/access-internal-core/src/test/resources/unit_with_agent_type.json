@@ -1,0 +1,127 @@
+{
+  "DescriptionLevel": "Fonds",
+  "Title": "Title0",
+  "Titles": {
+    "fr-FR": "Title0"
+  },
+  "FilePlanPosition": "FilePlanPosition0",
+  "OriginatingSystemId": "OriginatingSystemId0",
+  "ArchivalAgencyArchiveUnitIdentifier": "ArchivalAgencyArchiveUnitIdentifier0",
+  "OriginatingAgencyArchiveUnitIdentifier": "OriginatingAgencyArchiveUnitIdentifier0",
+  "TransferringAgencyArchiveUnitIdentifier": "TransferringAgencyArchiveUnitIdentifier0",
+  "Description": "Description1",
+  "Descriptions": {
+    "fr-FR": "Description0",
+    "en-US": "Description1"
+  },
+  "DocumentType": "DocumentType0",
+  "Language": "fr-FR",
+  "Tag": [
+    "Tag0",
+    "Tag1"
+  ],
+  "OriginatingAgency": {
+    "Identifier": "Identifier0"
+  },
+  "SubmissionAgency": {
+    "Identifier": "Identifier1"
+  },
+  "Writer": [
+    {
+      "FirstName": "FirstName0",
+      "BirthName": "BirthName0"
+    },
+    {
+      "FirstName": "FirstName1",
+      "BirthName": "BirthName1"
+    }
+  ],
+  "Addressee": [
+    {
+      "FirstName": "FirstName2",
+      "BirthName": "BirthName2"
+    },
+    {
+      "FirstName": "FirstName3",
+      "BirthName": "BirthName3"
+    }
+  ],
+  "Recipient": [
+    {
+      "Corpname": "Corpname1"
+    },
+    {
+      "Corpname": "Corpname2"
+    }
+  ],
+  "CreatedDate": "2006-05-04",
+  "TransactedDate": "2006-05-04",
+  "AcquiredDate": "2006-05-04",
+  "SentDate": "2006-05-04",
+  "ReceivedDate": "2006-05-04",
+  "RegisteredDate": "2006-05-04",
+  "StartDate": "2006-05-04",
+  "EndDate": "2006-05-04",
+  "Any": [
+    {
+      "value24": [
+        "maValeur3"
+      ],
+      "value23": [
+        "maValeur",
+        "maValeur2"
+      ],
+      "description" : {
+        "title" : ["fr"]
+      }
+    }
+  ],
+  "_unitType": "HOLDING_UNIT",
+  "_uds": {},
+  "#id": "aeaqaaaaaagxsmz2abgscak6jvwjfhiaaaaq",
+  "#nbunits": 0,
+  "#tenant": 0,
+  "#unitups": [],
+  "#min": 1,
+  "#max": 1,
+  "#allunitups": [],
+  "#management": {
+    "DisseminationRule": {
+      "Rules": [
+        {
+          "Rule": "DIS-00002",
+          "StartDate": "2016-12-04"
+        }
+      ]
+    },
+    "OriginatingAgency": null
+  },
+  "#operations": [
+    "aedqaaaaacfswksuaaqssak6jvwjj3yaaaaq"
+  ],
+  "#storage": {
+    "_nbc": [
+      2
+    ],
+    "strategyId": "default",
+    "offerIds": [
+      "vitam-iaas-app-02.int",
+      "vitam-iaas-app-03.int"
+    ]
+  },
+  "#version": 1,
+  "inheritedRule": {
+    "DisseminationRule": {
+      "DIS-00002": {
+        "aeaqaaaaaagxsmz2abgscak6jvwjfhiaaaaq": {
+          "StartDate": "2016-12-04",
+          "path": [
+            [
+              "aeaqaaaaaagxsmz2abgscak6jvwjfhiaaaaq"
+            ]
+          ]
+        }
+      }
+    }
+  }
+}

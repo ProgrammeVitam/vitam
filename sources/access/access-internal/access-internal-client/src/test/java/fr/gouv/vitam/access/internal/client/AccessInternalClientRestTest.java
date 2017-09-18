@@ -26,36 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.client;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
-
-import java.io.InputStream;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.apache.commons.io.IOUtils;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Rule;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.access.internal.api.AccessInternalResource;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
@@ -74,6 +45,32 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import org.apache.commons.io.IOUtils;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.Rule;
+import org.junit.Test;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
 
 public class AccessInternalClientRestTest extends VitamJerseyTest {
     protected static final String HOSTNAME = "localhost";
@@ -147,10 +144,12 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         }
     }
 
+
     // Define your Configuration class if necessary
     public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
 
     }
+
 
     @Path("/access-internal/v1")
     @javax.ws.rs.ApplicationPath("webresources")
@@ -180,12 +179,28 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
             return expectedResponse.post();
         }
 
+        @GET
+        @Path("/objects/{id_unit}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_XML)
+        @Override public Response getObjectByIdWithXMLFormat(JsonNode dslQuery, @PathParam("id_unit") String objectId) {
+            return expectedResponse.get();
+        }
+
         @Override
         @GET
         @Path("/units/{id_unit}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_XML)
         public Response getUnitByIdWithXMLFormat(JsonNode dslQuery, @PathParam("id_unit") String unitId) {
+            return expectedResponse.get();
+        }
+
+        @GET
+        @Path("/units/{id_unit}/object")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_XML)
+        @Override public Response getObjectByUnitIdWithXMLFormat(JsonNode dslQuery, @PathParam("id_unit") String unitId) {
             return expectedResponse.get();
         }
 
@@ -255,7 +270,7 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
         assertThat(client.selectUnits(queryJson)).isNotNull();
     }
-    
+
     @RunWithCustomExecutor
     @Test(expected = BadRequestException.class)
     public void givenBadRequestException_whenSelect_ThenRaiseAnExeption() throws Exception {
@@ -534,8 +549,8 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
         when(mock.post()).thenReturn(Response.ok().entity(ClientMockResultHelper.checkOperationTraceability()).build());
 
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
-        @SuppressWarnings("rawtypes")
-        final RequestResponse requestResponse = client.checkTraceabilityOperation(queryJson);
+        @SuppressWarnings("rawtypes") final RequestResponse requestResponse =
+            client.checkTraceabilityOperation(queryJson);
         assertNotNull(requestResponse);
         assertTrue(requestResponse.toJsonNode().has("$results"));
     }
