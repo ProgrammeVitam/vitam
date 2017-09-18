@@ -12,7 +12,7 @@
 	</appender>
 
 	<!-- By default, the level of the root level is set to TRACE -->
-	<root level="WARN">
+	<root level="ERROR">
 		<appender-ref ref="STDOUT" />
 	</root>
 
