@@ -134,7 +134,7 @@
     <Set name="dumpAfterStart">false</Set>
     <Set name="dumpBeforeStop">false</Set>
 
-{% if tls_active %}
+{% if tls_active==true %}
    <New id="httpsConfig" class="org.eclipse.jetty.server.HttpConfiguration">
         <Call name="addCustomizer">
             <Arg>
