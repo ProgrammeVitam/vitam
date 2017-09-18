@@ -33,7 +33,7 @@
       "actions": [
         {
           "action": {
-            "actionKey": "AUDIT_FILE_EXISTING",
+            "actionKey": "AUDIT_CHECK_OBJECT",
             "behavior": "NOBLOCKING",
             "out": [
               {

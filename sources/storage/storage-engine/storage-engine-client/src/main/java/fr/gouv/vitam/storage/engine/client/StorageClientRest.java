@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -183,6 +184,31 @@ class StorageClientRest extends DefaultClient implements StorageClient {
                 headers, MediaType.APPLICATION_JSON_TYPE);
             return notContentResponseToBoolean(handleNoContentResponseStatus(response));
         } catch (final VitamClientInternalException e) {
+            final String errorMessage = VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            LOGGER.error(errorMessage, e);
+            throw new StorageServerClientException(errorMessage, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+    
+    @Override
+    public JsonNode getObjectInformation(String strategyId, String guid, List<String> offerIds) 
+        throws StorageServerClientException, StorageNotFoundClientException {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
+        ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, guid);
+        
+        Response response = null;
+        MultivaluedHashMap<String, Object> headers = getDefaultHeaders(tenantId, strategyId, null, null);
+        for ( String offerId : offerIds) {
+            headers.add(GlobalDataRest.X_OFFER_IDS, offerId);
+        }
+        
+        try {
+            response = performRequest(HttpMethod.GET, "/objects/" + guid, headers, MediaType.APPLICATION_JSON_TYPE);
+            return handleCommonResponseStatus(response, JsonNode.class);
+        } catch (VitamClientInternalException e) {
             final String errorMessage = VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
             LOGGER.error(errorMessage, e);
             throw new StorageServerClientException(errorMessage, e);

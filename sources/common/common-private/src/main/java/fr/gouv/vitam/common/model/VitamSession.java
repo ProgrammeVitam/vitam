@@ -198,9 +198,7 @@ public class VitamSession {
      * @param contractId
      */
     public void setContractId(String contractId) {
-        if (contractId != null) {
-            this.contractId = contractId;
-        }
+        this.contractId = contractId;
     }
     
 	/**

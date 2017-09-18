@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.client;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -55,6 +56,8 @@ import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Rule;
 import org.junit.Test;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -88,6 +91,9 @@ public class StorageClientRestTest extends VitamJerseyTest {
     protected static final String HOSTNAME = "localhost";
     protected StorageClientRest client;
     private static final Integer TENANT_ID = 0;
+    
+    private static final String OFFER_METADATA = "{\"offer1\":\"c117854cbca3e51ea94c4bd2bcf4a6756209e6c65ddbf696313e1801b2235ff33d44b2bb272e714c335a44a3b4f92d399056b94dff4dfe6b7038fa56f23b438e\"," +
+        "\"offer2\":\"c117854cbca3e51ea94c4bd2bcf4a6756209e6c65ddbf696313e1801b2235ff33d44b2bb272e714c335a44a3b4f92d399056b94dff4dfe6b7038fa56f23b438e\"}";
 
     // ************************************** //
     // Start of VitamJerseyTest configuration //
@@ -164,6 +170,12 @@ public class StorageClientRestTest extends VitamJerseyTest {
         @Path("/")
         @Produces(MediaType.APPLICATION_JSON)
         public Response getContainer() {
+            return expectedResponse.get();
+        }
+        
+        @GET
+        @Path("/objects/{id_object}")
+        public Response getObjectInformation(@PathParam("id_object") String idObject) {
             return expectedResponse.get();
         }
 
@@ -694,6 +706,16 @@ public class StorageClientRestTest extends VitamJerseyTest {
         result.setCreationTime(LocalDateUtil.getString(LocalDateTime.now()));
         result.setLastModifiedTime(LocalDateUtil.getString(LocalDateTime.now()));
         return result;
+    }
+    
+    @RunWithCustomExecutor
+    @Test
+    public void successGetObjectInformation() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.get()).thenReturn(Response.status(Status.OK).
+            entity(OFFER_METADATA).build());
+        JsonNode metadata = client.getObjectInformation("idStrategy", "guid", SingletonUtils.singletonList());
+        assertEquals(metadata.toString(), OFFER_METADATA);
     }
 
 }

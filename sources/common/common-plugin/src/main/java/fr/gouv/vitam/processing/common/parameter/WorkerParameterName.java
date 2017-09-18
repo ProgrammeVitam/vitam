@@ -120,7 +120,13 @@ public enum WorkerParameterName {
     /**
      * process logbook context
      */
-    context;
+    context,
+
+    /**
+     * the array of the different audit actions
+     * there are three types of action: "check existence" , "check integrity", "correction"
+     */
+    auditActions;
 
     public static HashSet<String> getEnums() {
 

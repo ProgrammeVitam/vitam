@@ -207,7 +207,7 @@ public class LogbookMongoDbAccessFactoryTest {
         assertFalse(operation1String.contains(LogbookMongoDbName.agentIdentifierApplication.getDbname()));
         assertFalse(operation1String.contains(LogbookMongoDbName.agentIdentifierApplicationSession.getDbname()));
 
-        assertFalse(operation1String.contains(LogbookMongoDbName.agIdExt.getDbname()));
+        assertTrue(operation1String.contains(LogbookMongoDbName.agIdExt.getDbname()));
 
         final String operation3String = MongoDbHelper.bsonToString(operation3, true);
         assertTrue(operation3String.contains(LogbookMongoDbName.eventDetailData.getDbname()));
@@ -378,7 +378,6 @@ public class LogbookMongoDbAccessFactoryTest {
         assertNotNull(operation1);
         assertNull(operation1.getParameterValue(LogbookParameterName.agentIdentifierApplication));
         assertNull(operation1.getParameterValue(LogbookParameterName.agentIdentifierApplicationSession));
-        assertNull(operation1.getParameterValue(LogbookParameterName.agIdExt));
         assertNotNull(operation1.getParameterValue(LogbookParameterName.eventDetailData));
         try {
             mongoDbAccess.updateLogbookOperation(parametersWrong);

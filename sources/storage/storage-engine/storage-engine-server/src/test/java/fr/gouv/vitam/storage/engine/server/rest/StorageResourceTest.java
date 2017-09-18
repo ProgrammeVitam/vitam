@@ -59,7 +59,9 @@ import com.jayway.restassured.http.ContentType;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -71,6 +73,7 @@ import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
+import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -213,29 +216,27 @@ public class StorageResourceTest {
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
             .body("").when().get(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-        // .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         given().contentType(ContentType.JSON)
-            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), 
+                TENANT_ID, VitamHttpHeader.OFFERS_IDS.getName(), "offerId")
             .body("").when().get(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-        // .statusCode(Status.OK.getStatusCode());
+            .statusCode(Status.OK.getStatusCode());
         given().contentType(ContentType.JSON).body("").accept(MediaType.APPLICATION_OCTET_STREAM).when()
             .get(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
-                TENANT_ID_E)
+                TENANT_ID_E, VitamHttpHeader.OFFERS_IDS.getName(), "offerId")
             .body("").when().get(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-        // .statusCode(Status.NOT_FOUND.getStatusCode());
+            .statusCode(Status.NOT_FOUND.getStatusCode());
 
         given().contentType(ContentType.JSON).body("").when().post(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID,
-                VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.GET)
-            .when().post(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then().statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-        // .statusCode(Status.OK.getStatusCode());
+                VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.GET, VitamHttpHeader.OFFERS_IDS.getName(), "offerId")
+            .when().post(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
+            .statusCode(Status.OK.getStatusCode());
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID,
                 VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.PUT)
@@ -1047,11 +1048,18 @@ public class StorageResourceTest {
         }
 
         @Override
-        public JsonNode getContainerObjectInformations(String strategyId, String objectId)
+        public JsonNode getContainerObjectInformations(String strategyId, String objectId, List<String> offerIds)
             throws StorageNotFoundException {
             Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Not Found");
+            }
+            StorageMetadatasResult res = new StorageMetadatasResult(objectId, "object", "abcdef", 6096,
+                "Vitam_0", "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
+            try {
+                return JsonHandler.toJsonNode(res);
+            } catch (InvalidParseOperationException e) {
+                LOGGER.debug(e);
             }
             return null;
         }

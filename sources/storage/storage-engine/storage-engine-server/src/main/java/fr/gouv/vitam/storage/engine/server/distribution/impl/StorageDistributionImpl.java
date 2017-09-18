@@ -70,6 +70,7 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedExc
 import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
+import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
@@ -1005,9 +1006,49 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public JsonNode getContainerObjectInformations(String strategyId, String objectId) throws StorageNotFoundException {
-        LOGGER.error(NOT_IMPLEMENTED_MSG);
-        throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
+    public JsonNode getContainerObjectInformations(String strategyId, String objectId,
+        List<String> offerIds) throws StorageException {
+
+        ObjectNode offerIdToMetadata = JsonHandler.createObjectNode();
+
+        // Check input params
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
+        ParametersChecker.checkParameter("Object id is mandatory", objectId);
+
+        // Retrieve strategy data
+        final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
+        final HotStrategy hotStrategy = storageStrategy.getHotStrategy();
+        if (hotStrategy != null) {
+            // TODO: check this on starting application
+            isStrategyValid(hotStrategy);
+            final List<OfferReference> offerReferences = choosePriorityOffers(hotStrategy);
+            if (offerReferences.isEmpty()) {
+                LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
+                throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
+            }
+
+            for (final String offerId : offerIds) {
+                final Driver driver = retrieveDriverInternal(offerId);
+                final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerId);
+                try (Connection connection = driver.connect(offer.getId())) {
+
+                    final StorageObjectRequest request = new StorageObjectRequest(tenantId,
+                        DataCategory.OBJECT.getFolder(), objectId);
+
+                    StorageMetadatasResult metaData = connection.getMetadatas(request);
+                    offerIdToMetadata.put(offerId, JsonHandler.toJsonNode(metaData));
+
+                } catch (StorageDriverException exc) {
+                    LOGGER.warn("Error with the storage, take the next offer in the strategy (by priority)", exc);
+                } catch (InvalidParseOperationException e) {
+                    LOGGER.warn(e);
+                }
+            }
+            return offerIdToMetadata;
+        }
+        LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
+        throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
     }
 
     @Override

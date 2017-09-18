@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -52,6 +53,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -173,6 +175,21 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
         throws StorageServerClientException, InvalidParseOperationException {
         return new RequestResponseOK<String>()
             .addResult(GUIDFactory.newGUID().toString());
+    }
+
+    @Override
+    public JsonNode getObjectInformation(String strategyId, String guid, List<String> offerIds)
+        throws StorageServerClientException, StorageNotFoundClientException {
+        try {
+            ObjectNode offerIdToMetadata = JsonHandler.createObjectNode();
+            StorageMetadatasResult metaData = new StorageMetadatasResult("aeaaaaaaaacu6xzeabinwak6t5ecmlaaaaaq", "object", 
+                "c117854cbca3e51ea94c4bd2bcf4a6756209e6c65ddbf696313e1801b2235ff33d44b2bb272e714c335a44a3b4f92d399056b94dff4dfe6b7038fa56f23b438e", 
+                6096, "Vitam_0", "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
+            offerIdToMetadata.set("localhost", JsonHandler.toJsonNode(metaData));
+            return offerIdToMetadata;
+        } catch (InvalidParseOperationException e) {
+            throw new StorageServerClientException(e);
+        }
     }
 
 }

@@ -41,6 +41,8 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.plugin.CheckExistenceObjectPlugin;
+import fr.gouv.vitam.worker.core.plugin.CheckIntegrityObjectPlugin;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -51,6 +53,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -127,6 +130,9 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
 
         Map<WorkerParameterName, String> mapParameters = param.getMapParameters();
         auditType = mapParameters.get(WorkerParameterName.auditType);
+        
+        String actions = mapParameters.get(WorkerParameterName.auditActions);
+        List<String> auditActions = Arrays.asList(actions.split("\\s*,\\s*"));
 
         if (auditType.toLowerCase().equals(TENANT)) {
             auditType = BuilderToken.PROJECTIONARGS.TENANT.exactToken();
@@ -157,7 +163,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
             report.put(AUDIT_OPERATION_ID, param.getContainerName());
             report.put(AUDIT_TYPE, auditTypeString);
             report.put(OBJECT_ID, objectId);
-            getStatusAndDateTime(report, jopClient, param.getContainerName());
+            getStatusAndDateTime(report, jopClient, param.getContainerName(), auditActions);
             report.set(SOURCE, createSource(jopClient, arrayOriginatingAgency));
             report.set(AUDIT_KO, createReportKOPart(lfcClient, param.getContainerName()));
             report.set(AUDIT_WARNING, serviceProducteurWarning);
@@ -184,7 +190,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
 
     }
 
-    private void getStatusAndDateTime(ObjectNode report, LogbookOperationsClient jopClient, String auditOperationId) 
+    private void getStatusAndDateTime(ObjectNode report, LogbookOperationsClient jopClient, String auditOperationId, List<String> auditActions) 
         throws InvalidCreateOperationException, LogbookClientException, InvalidParseOperationException, UnsupportedEncodingException{
         Select select = new Select();
         select.setQuery(QueryHelper.and().add(QueryHelper.eq(EV_ID_PROC, auditOperationId),
@@ -198,8 +204,12 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
         JsonNode event = events.get(0);
         report.put(STATUS, event.get(OUTCOME).textValue());
         report.put(OUT_MESSAGE, event.get("outMessg").textValue());
-        // TODO set LastEvent =  action in worker param
-        report.put("LastEvent", "AUDIT_FILE_EXISTING");
+        if (auditActions.contains(CheckIntegrityObjectPlugin.getId())) {
+            report.put("LastEvent", CheckIntegrityObjectPlugin.getId());
+        } else {
+            report.put("LastEvent", CheckExistenceObjectPlugin.getId());
+        }
+        
     }
 
     private ArrayNode createSource(LogbookOperationsClient jopClient, String[] originatingAgency) 
@@ -213,16 +223,22 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
                     QueryHelper.eq("events.outDetail", "PROCESS_SIP_UNITARY.WARNING")),
                 QueryHelper.in("events.agIdExt.originatingAgency", originatingAgency)));
 
-        JsonNode result = jopClient.selectOperation(selectQuery.getFinalSelect());
-        for (JsonNode res : result.get(RequestResponseOK.RESULTS)){
-            if (res.get("agIdExt") != null ) {
-                final String agIdExt = res.get("agIdExt").asText();
-                final JsonNode agIdExtNode =JsonHandler.getFromString(agIdExt);
-                source.add(JsonHandler.createObjectNode().put(_TENANT, res.get(_TENANT).asText())
-                    .put(ORIGINATING_AGENCY, agIdExtNode.get("originatingAgency").asText())
-                    .put(EV_ID_PROC, res.get(EV_ID_PROC).asText()));
+        try {
+            JsonNode result = jopClient.selectOperation(selectQuery.getFinalSelect());
+            for (JsonNode res : result.get(RequestResponseOK.RESULTS)){
+                if (res.get("agIdExt") != null ) {
+                    final String agIdExt = res.get("agIdExt").asText();
+                    final JsonNode agIdExtNode =JsonHandler.getFromString(agIdExt);
+                    source.add(JsonHandler.createObjectNode().put(_TENANT, res.get(_TENANT).asText())
+                        .put(ORIGINATING_AGENCY, agIdExtNode.get("originatingAgency").asText())
+                        .put(EV_ID_PROC, res.get(EV_ID_PROC).asText()));
+                }
             }
-        } 
+        } catch (LogbookClientNotFoundException e) {
+            LOGGER.error("Logbook error, can not create source ", e);
+            return source;
+        }
+         
         return source;
     }
 

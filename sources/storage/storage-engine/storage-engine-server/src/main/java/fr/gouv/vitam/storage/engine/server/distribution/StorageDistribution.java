@@ -175,11 +175,13 @@ public interface StorageDistribution extends VitamAutoCloseable {
      *            id of the strategy
      * @param objectId
      *            id of the object
+     * @param offerIds list id of offers
      * @return JsonNode containing informations about the requested object
-     * @throws StorageNotFoundException
-     *             Thrown if the Container or the object does not exist
+     * 
+     * @throws StorageException 
      */
-    JsonNode getContainerObjectInformations(String strategyId, String objectId) throws StorageNotFoundException;
+    JsonNode getContainerObjectInformations(String strategyId, String objectId,
+        List<String> offerIds) throws StorageException;
 
 
     /**

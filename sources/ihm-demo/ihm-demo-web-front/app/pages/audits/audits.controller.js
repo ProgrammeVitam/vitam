@@ -34,16 +34,23 @@ angular.module('audits')
 
     $scope.form = {
       auditType: '',
-      objectId: ''
+      objectId: '',
+      auditActions: ''
     };
 
     $scope.sps= [];
     $scope.enableLaunchAudit = false;
+    $scope.enableCheckIntegrity = false;
     $scope.tenant = $cookies.get('tenantId');
 
     $scope.launchAudit = function () {
       if ($scope.form.auditType == 'tenant') {
         $scope.form.objectId = $scope.tenant;
+      }
+      if ($scope.enableCheckIntegrity) {
+          $scope.form.auditActions = 'AUDIT_FILE_INTEGRITY';
+      } else {
+          $scope.form.auditActions = 'AUDIT_FILE_EXISTING';
       }
       $mdDialog.show($mdDialog.alert()
         .title("Le processus d'audit est lancé")
@@ -51,6 +58,14 @@ angular.module('audits')
       ihmDemoCLient.getClient('audits').all('').post($scope.form);
     };
 
+    $scope.chooseIntegrity = function() {
+        var status = $scope.enableCheckIntegrity;
+        if (status == true) {
+            $scope.enableLaunchAudit = $scope.enableCheckIntegrity = status;
+        } else {
+            $scope.enableCheckIntegrity = status;
+        }
+    };
 
     $scope.search = {
       form: {

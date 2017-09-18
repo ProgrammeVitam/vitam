@@ -135,7 +135,6 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
                 switch (name) {
                     case agentIdentifierApplication:
                     case agentIdentifierApplicationSession:
-                    case agIdExt:
 
                         break;
                     default:
