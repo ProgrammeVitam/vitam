@@ -72,6 +72,7 @@ import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.FileRules;
@@ -138,6 +139,7 @@ import java.util.Set;
 public class AccessInternalModuleImpl implements AccessInternalModule {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalModuleImpl.class);
+    public static final String ACCESS_CONTRACT = "AccessContract";
 
     private final LogbookLifeCyclesClient logbookLifeCycleClientMock;
     private final LogbookOperationsClient logbookOperationClientMock;
@@ -148,7 +150,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String ID_CHECK_FAILED = "the unit_id should be filled";
     private static final String STP_UPDATE_UNIT = "STP_UPDATE_UNIT";
     private static final String UNIT_METADATA_UPDATE = "UNIT_METADATA_UPDATE";
-    private static final String UNIT_CHECK_RULES = "UNIT_METADATA_UPDATE_CHECK_RULES"; 
+    private static final String UNIT_CHECK_RULES = "UNIT_METADATA_UPDATE_CHECK_RULES";
     private static final String UNIT_METADATA_STORAGE = "UNIT_METADATA_STORAGE";
     private static final String _DIFF = "$diff";
     private static final String _ID = "_id";
@@ -211,7 +213,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * AccessModuleImpl constructor <br>
      * with metaDataClientFactory, configuration and logbook operation client and lifecycle
      *
-     * @param storageClient a StorageClient instance
+     * @param storageClient           a StorageClient instance
      * @param pLogbookOperationClient logbook operation client
      * @param pLogbookLifeCycleClient logbook lifecycle client
      */
@@ -227,7 +229,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * select Unit
      *
      * @param jsonQuery as String { $query : query}
-     * @throws InvalidParseOperationException Throw if json format is not correct
+     * @throws InvalidParseOperationException   Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      */
     @Override
@@ -265,8 +267,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * select Unit by Id
      *
      * @param jsonQuery as String { $query : query}
-     * @param idUnit as String
-     * @throws IllegalArgumentException Throw if json format is not correct
+     * @param idUnit    as String
+     * @throws IllegalArgumentException         Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      */
 
@@ -346,7 +348,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         }
 
         ObjectGroupResponse objectGroupResponse =
-            JsonHandler.getFromJsonNode(jsonResponse.get(RESULTS), ObjectGroupResponse.class);        
+            JsonHandler.getFromJsonNode(jsonResponse.get(RESULTS), ObjectGroupResponse.class);
 
 
         VersionsModel finalversionsResponse = null;
@@ -420,16 +422,17 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * update Unit by id
      *
      * @param queryJson json update query
-     * @param idUnit as String
+     * @param idUnit    as String
      * @param requestId GUID operation as String
-     * @throws InvalidParseOperationException Throw if json format is not correct
-     * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
-     * @throws IllegalArgumentException Throw if error occurs when checking argument
+     * @throws InvalidParseOperationException       Throw if json format is not correct
+     * @throws AccessInternalExecutionException     Throw if error occurs when send Unit to database
+     * @throws IllegalArgumentException             Throw if error occurs when checking argument
      * @throws AccessInternalRuleExecutionException Throw When error occures on rules update check
      */
     @Override
     public JsonNode updateUnitbyId(JsonNode queryJson, String idUnit, String requestId)
-        throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException, AccessInternalRuleExecutionException {
+        throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException,
+        AccessInternalRuleExecutionException {
         LogbookOperationParameters logbookOpParamStart, logbookOpParamEnd, logbookOpStpParamStart, logbookOpStpParamEnd;
         LogbookLifeCycleUnitParameters logbookLCParamStart, logbookLCParamEnd;
         ParametersChecker.checkParameter(ID_CHECK_FAILED, idUnit);
@@ -467,11 +470,11 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             // Create logbook operation STP
             logbookOpStpParamStart = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                 StatusCode.STARTED, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.STARTED), idGUID,
-                STP_UPDATE_UNIT);
+                STP_UPDATE_UNIT, true);
             logbookOpStpParamStart.putParameterValue(LogbookParameterName.outcomeDetail, STP_UPDATE_UNIT + "." +
                 StatusCode.STARTED);
             boolean updateLogbook = true;
-            
+
             // Update LFC for Check Rules
             logbookLCParamStart = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.STARTED,
                 idGUID, UNIT_CHECK_RULES);
@@ -494,15 +497,15 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                         StatusCode.STARTED, VitamLogbookMessages.getCodeOp(UNIT_CHECK_RULES, StatusCode.STARTED),
                         idGUID,
-                        UNIT_CHECK_RULES);
+                        UNIT_CHECK_RULES, false);
                 logbookOperationClient.update(logbookOpParamStart);
             }
 
             // Call method
             stepCheckRules = false;
-            checkAndUpdateRuleQuery((UpdateParserMultiple)parser);
+            checkAndUpdateRuleQuery((UpdateParserMultiple) parser);
             // OK For both + Continue
-            
+
             JsonNode newQuery = queryJson;
             try {
                 newQuery = ((UpdateParserMultiple) parser).getRequest()
@@ -512,13 +515,13 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 LOGGER.error(e);
                 throw new AccessInternalExecutionException(ERROR_ADD_CONDITION, e);
             }
-            
+
             // Update Logbook Check Rules End
             if (updateLogbook) {
                 logbookOpParamEnd =
                     getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                         StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_CHECK_RULES, StatusCode.OK), idGUID,
-                        UNIT_CHECK_RULES);
+                        UNIT_CHECK_RULES, false);
                 logbookOperationClient.update(logbookOpParamEnd);
             }
             stepCheckRules = true;
@@ -529,7 +532,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     idGUID, UNIT_CHECK_RULES);
                 logbookLifeCycleClient.update(logbookLCParamEnd);
             }
-            
+
             /** Update: Indexation task **/
             // update logbook lifecycle TASK INDEXATION
             if (updateLogbook) {
@@ -537,14 +540,14 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     idGUID, UNIT_METADATA_UPDATE);
                 logbookLifeCycleClient.update(logbookLCParamStart);
             }
-            
+
             if (updateLogbook) {
                 // Update logbook operation TASK INDEXATION
                 logbookOpParamStart =
                     getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                         StatusCode.STARTED, VitamLogbookMessages.getCodeOp(UNIT_METADATA_UPDATE, StatusCode.STARTED),
                         idGUID,
-                        UNIT_METADATA_UPDATE);
+                        UNIT_METADATA_UPDATE, false);
                 logbookOperationClient.update(logbookOpParamStart);
             }
             stepMetadataUpdate = false;
@@ -557,7 +560,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 logbookOpParamEnd =
                     getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                         StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_METADATA_UPDATE, StatusCode.OK), idGUID,
-                        UNIT_METADATA_UPDATE);
+                        UNIT_METADATA_UPDATE, false);
                 logbookOperationClient.update(logbookOpParamEnd);
             }
             stepMetadataUpdate = true;
@@ -577,7 +580,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 logbookOpParamStart = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                     StatusCode.STARTED,
                     VitamLogbookMessages.getCodeOp(UNIT_METADATA_STORAGE, StatusCode.STARTED),
-                    idGUID, UNIT_METADATA_STORAGE);
+                    idGUID, UNIT_METADATA_STORAGE, false);
                 logbookOperationClient.update(logbookOpParamStart);
 
                 // update logbook lifecycle TASK STORAGE
@@ -594,7 +597,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 // update logbook operation TASK STORAGE
                 logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                     StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_METADATA_STORAGE, StatusCode.OK), idGUID,
-                    UNIT_METADATA_STORAGE);
+                    UNIT_METADATA_STORAGE, false);
                 logbookOperationClient.update(logbookOpParamEnd);
             }
             stepStorageUpdate = true;
@@ -603,18 +606,20 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 // update logbook lifecycle TASK STORAGE
                 logbookLCParamEnd = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.OK,
                     idGUID, UNIT_METADATA_STORAGE);
-                if(storedInfoResult != null){
+                if (storedInfoResult != null) {
                     // Diff always saved in LFC for Metadata Update event, we only save file infos in evDetData
-                    logbookLCParamEnd.putParameterValue(LogbookParameterName.eventDetailData, detailsFromStorageInfo(storedInfoResult));
+                    logbookLCParamEnd.putParameterValue(LogbookParameterName.eventDetailData,
+                        detailsFromStorageInfo(storedInfoResult));
                 } else {
-                    logbookLCParamEnd.putParameterValue(LogbookParameterName.eventDetailData, getDiffMessageFor(jsonNode, idUnit));    
+                    logbookLCParamEnd
+                        .putParameterValue(LogbookParameterName.eventDetailData, getDiffMessageFor(jsonNode, idUnit));
                 }
                 logbookLifeCycleClient.update(logbookLCParamEnd);
 
                 // update logbook operation STP
                 logbookOpStpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                     StatusCode.OK, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.OK), idGUID,
-                    STP_UPDATE_UNIT);
+                    STP_UPDATE_UNIT, false);
                 logbookOpStpParamEnd.putParameterValue(LogbookParameterName.outcomeDetail, STP_UPDATE_UNIT + "." +
                     StatusCode.OK);
                 logbookOperationClient.update(logbookOpStpParamEnd);
@@ -691,8 +696,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 stepMetadataUpdate, stepStorageUpdate, stepCheckRules, null);
             LOGGER.error(WORKSPACE_SERVER_EXCEPTION, e);
         } catch (AccessInternalRuleExecutionException e) {
-        	ObjectNode evDetData = JsonHandler.createObjectNode();
-        	evDetData.put("errorCode", e.getMessage());
+            ObjectNode evDetData = JsonHandler.createObjectNode();
+            evDetData.put("errorCode", e.getMessage());
             rollBackLogbook(logbookOperationClient, logbookLifeCycleClient, updateOpGuidStart, globalStep,
                 stepMetadataUpdate, stepStorageUpdate, stepCheckRules, JsonHandler.unprettyPrint(evDetData));
             LOGGER.error(ERROR_CHECK_RULES, e);
@@ -781,7 +786,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * @throws StorageServerClientException
      * @throws StorageNotFoundClientException
      * @throws StorageAlreadyExistsClientException
-     * @throws ProcessingException when error in execution
+     * @throws ProcessingException                 when error in execution
      */
     private StoredInfoResult storeMetaDataUnit(StorageCollectionType type, String uuid) throws StorageClientException {
         final StorageClient storageClient =
@@ -803,11 +808,11 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
         LogbookOperationParameters logbookOpParamEnd;
         if (!stepCheckRules) {
-        	// STEP UNIT_CHECK_RULES KO
+            // STEP UNIT_CHECK_RULES KO
             logbookOpParamEnd =
                 getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                     StatusCode.KO, VitamLogbookMessages.getCodeOp(UNIT_CHECK_RULES, StatusCode.KO),
-                    updateOpGuidStart, UNIT_CHECK_RULES);
+                    updateOpGuidStart, UNIT_CHECK_RULES, false);
             logbookOpParamEnd.putParameterValue(LogbookParameterName.eventDetailData, evDetData);
             logbookOperationClient.update(logbookOpParamEnd);
         } else if (!stepMetadataUpdate) {
@@ -816,7 +821,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                     StatusCode.KO, VitamLogbookMessages.getCodeOp(UNIT_METADATA_UPDATE, StatusCode.KO),
                     updateOpGuidStart,
-                    UNIT_METADATA_UPDATE);
+                    UNIT_METADATA_UPDATE, false);
             logbookOperationClient.update(logbookOpParamEnd);
         } else if (!stepStorageUpdate) {
             // STEP UNIT_METADATA_STORAGE KO
@@ -824,7 +829,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                     StatusCode.KO, VitamLogbookMessages.getCodeOp(UNIT_METADATA_STORAGE, StatusCode.KO),
                     updateOpGuidStart,
-                    UNIT_METADATA_STORAGE);
+                    UNIT_METADATA_STORAGE, false);
             logbookOperationClient.update(logbookOpParamEnd);
         }
 
@@ -833,7 +838,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             LogbookOperationParameters logbookOpStpParamEnd =
                 getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
                     StatusCode.KO, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.KO), updateOpGuidStart,
-                    STP_UPDATE_UNIT);
+                    STP_UPDATE_UNIT, false);
 
             logbookOpStpParamEnd.putParameterValue(LogbookParameterName.outcomeDetail, STP_UPDATE_UNIT + "." +
                 StatusCode.KO);
@@ -875,27 +880,34 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
     private LogbookOperationParameters getLogbookOperationUpdateUnitParameters(GUID eventIdentifier,
         GUID eventIdentifierProcess, StatusCode logbookOutcome,
-        String outcomeDetailMessage, GUID eventIdentifierRequest, String action) {
+        String outcomeDetailMessage, GUID eventIdentifierRequest, String action, boolean addContract) {
         final LogbookOperationParameters parameters =
             LogbookParametersFactory.newLogbookOperationParameters(eventIdentifier,
                 action, eventIdentifierProcess, LogbookTypeProcess.UPDATE, logbookOutcome,
                 outcomeDetailMessage,
                 eventIdentifierRequest);
+        if (addContract) {
+            ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode();
+            rightsStatementIdentifier
+                .put(ACCESS_CONTRACT, VitamThreadUtils.getVitamSession().getContract().getIdentifier());
+            parameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
+                rightsStatementIdentifier.toString());
+        }
         return parameters;
     }
 
-    protected String detailsFromStorageInfo(StoredInfoResult result){
+    protected String detailsFromStorageInfo(StoredInfoResult result) {
         final ObjectNode object = JsonHandler.createObjectNode();
 
-        if(result != null){
-            object.put(FILE_NAME, result.getId() );
+        if (result != null) {
+            object.put(FILE_NAME, result.getId());
             object.put(ALGORITHM, result.getDigestType());
             object.put(DIGEST, result.getDigest());
             List<String> offers = result.getOfferIds();
             object.put(OFFERS, offers != null ? String.join(",", offers) : "");
         }
 
-        return JsonHandler.unprettyPrint( object );
+        return JsonHandler.unprettyPrint(object);
     }
 
     private String getDiffMessageFor(JsonNode diff, String unitId) throws InvalidParseOperationException {
@@ -925,8 +937,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         }
     }
 
-    public void checkAndUpdateRuleQuery(UpdateParserMultiple updateParser) throws AccessInternalRuleExecutionException, AccessInternalExecutionException, InvalidParseOperationException {
-    	UpdateMultiQuery request = updateParser.getRequest();
+    public void checkAndUpdateRuleQuery(UpdateParserMultiple updateParser)
+        throws AccessInternalRuleExecutionException, AccessInternalExecutionException, InvalidParseOperationException {
+        UpdateMultiQuery request = updateParser.getRequest();
         List<String> deletedCategoryRules = new LinkedList<>();
         Map<String, JsonNode> updatedCategoryRules = new HashMap<>();
 
@@ -940,9 +953,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
         // Compare in DB unit _mgt with the request in order to check C(R)UD permissions
         Set<String> updatedCategories = updatedCategoryRules.keySet();
-        for (String category: VitamConstants.getSupportedRules()) {
+        for (String category : VitamConstants.getSupportedRules()) {
             ArrayNode rulesForCategory = null;
-            JsonNode categoryNode = management.get(category);            
+            JsonNode categoryNode = management.get(category);
             if (categoryNode != null) {
                 rulesForCategory = (ArrayNode) categoryNode.get(RULES_KEY);
             }
@@ -974,7 +987,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 }
             } else if (updatedCategories.contains(category)) {
                 // Check for new rules (rules only present in request)
-                ArrayNode createdRules = checkAddedRules(category, null, (ArrayNode) updatedCategoryRules.get(category));
+                ArrayNode createdRules =
+                    checkAddedRules(category, null, (ArrayNode) updatedCategoryRules.get(category));
 
                 Map<String, JsonNode> action = new HashMap<>();
                 action.put(MANAGEMENT_PREFIX + category + RULES_PREFIX, createdRules);
@@ -990,12 +1004,13 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     /**
      * Check if there is update actions on rules. If not no updates/checks on the query.
      * SetActions on rules are removed for the request because they will be computed for endDate and reinserted later
-     * 
-     * @param request The initial request
+     *
+     * @param request              The initial request
      * @param deletedCategoryRules The returned list of deleted Rules (Must be initialized)
      * @param updatedCategoryRules The returned list of updated Rules (Must be initialized)
      */
-    private static void checkActionsOnRules(UpdateMultiQuery request, List<String> deletedCategoryRules, Map<String, JsonNode> updatedCategoryRules) {
+    private static void checkActionsOnRules(UpdateMultiQuery request, List<String> deletedCategoryRules,
+        Map<String, JsonNode> updatedCategoryRules) {
         Iterator<Action> actionsIterator = request.getActions().iterator();
         while (actionsIterator.hasNext()) {
             Action action = actionsIterator.next();
@@ -1003,13 +1018,14 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             if (UPDATEACTION.SET.equals(currentAction) || UPDATEACTION.UNSET.equals(currentAction)) {
                 JsonNode object = action.getCurrentObject();
 
-                if(UPDATEACTION.UNSET.equals(currentAction)) {
+                if (UPDATEACTION.UNSET.equals(currentAction)) {
                     // Delete a field
                     ArrayNode values = (ArrayNode) object;
-                    for(int i=0, len=values.size(); i<len; i++) {
+                    for (int i = 0, len = values.size(); i < len; i++) {
                         String unsetField = values.get(i).asText();
                         if (unsetField.startsWith(MANAGEMENT_PREFIX)
-                                && VitamConstants.getSupportedRules().contains(unsetField.substring(MANAGEMENT_PREFIX.length()))) {
+                            && VitamConstants.getSupportedRules()
+                            .contains(unsetField.substring(MANAGEMENT_PREFIX.length()))) {
                             // Delete a ruleCategory
                             deletedCategoryRules.add(unsetField.substring(MANAGEMENT_PREFIX.length()));
                         }
@@ -1020,7 +1036,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     while (fields.hasNext()) {
                         String field = fields.next();
                         if (field.startsWith(MANAGEMENT_PREFIX)
-                                && VitamConstants.getSupportedRules().contains(field.substring(MANAGEMENT_PREFIX.length()))) {
+                            &&
+                            VitamConstants.getSupportedRules().contains(field.substring(MANAGEMENT_PREFIX.length()))) {
                             // Set a ruleCategory
                             updatedCategoryRules.put(field.substring(MANAGEMENT_PREFIX.length()), object.get(field));
                             actionsIterator.remove();
@@ -1034,37 +1051,39 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
     private JsonNode getUnitManagement(String unitId) throws AccessInternalExecutionException {
         JsonNode jsonUnit = null;
-            try {
-                // FIXME Do it cleaner
-                String emptyQuery = "{\"$queries\": [],\"$filter\": { },\"$projection\": {}}";
-                JsonNode response = selectUnitbyId(JsonHandler.getFromString(emptyQuery), unitId);
-                if (response == null || response.get("$results") == null) {
-                    throw new AccessInternalExecutionException("Can't get unit by ID: " + unitId);
-                }
-                JsonNode results = response.get("$results");
-                if (results.size() != 1) {
-                    throw new AccessInternalExecutionException("Can't get unique unit by ID: " + unitId);
-                }
-                jsonUnit = results.get(0);
-            } catch (AccessInternalExecutionException | IllegalArgumentException | InvalidParseOperationException e) {
-                throw new AccessInternalExecutionException(e);
+        try {
+            // FIXME Do it cleaner
+            String emptyQuery = "{\"$queries\": [],\"$filter\": { },\"$projection\": {}}";
+            JsonNode response = selectUnitbyId(JsonHandler.getFromString(emptyQuery), unitId);
+            if (response == null || response.get("$results") == null) {
+                throw new AccessInternalExecutionException("Can't get unit by ID: " + unitId);
             }
+            JsonNode results = response.get("$results");
+            if (results.size() != 1) {
+                throw new AccessInternalExecutionException("Can't get unique unit by ID: " + unitId);
+            }
+            jsonUnit = results.get(0);
+        } catch (AccessInternalExecutionException | IllegalArgumentException | InvalidParseOperationException e) {
+            throw new AccessInternalExecutionException(e);
+        }
 
         return jsonUnit.get(MANAGEMENT_KEY);
     }
 
-    private void checkDeletedCategories(JsonNode categoryNode, String category) throws AccessInternalRuleExecutionException {
-        if(checkInheritancePrevention(categoryNode)) {
-        	LOGGER.error(ERROR_DELETE_RULE + category + ERROR_PREVENT_INHERITANCE);
+    private void checkDeletedCategories(JsonNode categoryNode, String category)
+        throws AccessInternalRuleExecutionException {
+        if (checkInheritancePrevention(categoryNode)) {
+            LOGGER.error(ERROR_DELETE_RULE + category + ERROR_PREVENT_INHERITANCE);
             throw new AccessInternalRuleExecutionException(
-                    VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_DELETE_CATEGORY_INHERITANCE.name());
+                VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_DELETE_CATEGORY_INHERITANCE.name());
         }
     }
 
-    private ArrayNode checkUpdatedRules(String category, ArrayNode rulesForCategory, ArrayNode rulesForUpdatedCategory) throws AccessInternalRuleExecutionException, AccessInternalExecutionException {
+    private ArrayNode checkUpdatedRules(String category, ArrayNode rulesForCategory, ArrayNode rulesForUpdatedCategory)
+        throws AccessInternalRuleExecutionException, AccessInternalExecutionException {
         // Check for all rules in rulesForCategory and compare with rules in rulesForUpdatedCategory
         ArrayNode updatedRules = JsonHandler.createArrayNode();
-        for(JsonNode unitRule: rulesForCategory) {
+        for (JsonNode unitRule : rulesForCategory) {
             boolean findIt = false;
             Iterator<JsonNode> updateRulesIterator = rulesForUpdatedCategory.iterator();
             // Try to find a matching rule in order to check update
@@ -1086,18 +1105,18 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     }
                     JsonNode ruleInReferential = checkExistingRule(updateRuleName);
                     if (ruleInReferential == null) {
-                        LOGGER.error(ERROR_UPDATE_RULE + updateRule.get("Rule")  + " is not in referential");
+                        LOGGER.error(ERROR_UPDATE_RULE + updateRule.get("Rule") + " is not in referential");
                         throw new AccessInternalRuleExecutionException(
                             VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_EXIST.name());
                     }
                     if (!category.equals(ruleInReferential.get("RuleType").asText())) {
-                        LOGGER.error(ERROR_UPDATE_RULE + updateRule.get("Rule")  + " is not a " + category);
+                        LOGGER.error(ERROR_UPDATE_RULE + updateRule.get("Rule") + " is not a " + category);
                         throw new AccessInternalRuleExecutionException(
                             VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_CATEGORY.name());
                     }
 
                     try {
-                        updateRule = computeEndDate((ObjectNode)updateRule, ruleInReferential);
+                        updateRule = computeEndDate((ObjectNode) updateRule, ruleInReferential);
                     } catch (AccessInternalRuleExecutionException e) {
                         throw new AccessInternalRuleExecutionException(
                             VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_START_DATE.name());
@@ -1109,17 +1128,19 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         return updatedRules;
     }
 
-    private ArrayNode checkAddedRules(String category, ArrayNode rulesForCategory, ArrayNode rulesForUpdatedCategory) throws AccessInternalRuleExecutionException, AccessInternalExecutionException {
+    private ArrayNode checkAddedRules(String category, ArrayNode rulesForCategory, ArrayNode rulesForUpdatedCategory)
+        throws AccessInternalRuleExecutionException, AccessInternalExecutionException {
         ArrayNode createdRules = JsonHandler.createArrayNode();
-        for(JsonNode updateRule: rulesForUpdatedCategory) {
+        for (JsonNode updateRule : rulesForUpdatedCategory) {
             if (updateRule.get("Rule") == null || updateRule.get("StartDate") == null) {
-            	throw new AccessInternalRuleExecutionException(
+                throw new AccessInternalRuleExecutionException(
                     VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES.name());
             }
             boolean findIt = false;
             if (rulesForCategory != null) {
-                for(JsonNode unitRule: rulesForCategory) {
-                    if (unitRule.get("Rule") != null && unitRule.get("Rule").asText().equals(updateRule.get("Rule").asText())) {
+                for (JsonNode unitRule : rulesForCategory) {
+                    if (unitRule.get("Rule") != null &&
+                        unitRule.get("Rule").asText().equals(updateRule.get("Rule").asText())) {
                         // Stop loop over unitRule
                         findIt = true;
                     }
@@ -1133,24 +1154,24 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                         VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_END_DATE.name());
                 }
                 if (!checkRuleFinalAction(updateRule, category)) {
-                	LOGGER.error(ERROR_CREATE_RULE + updateRule + " contains wrong FinalAction");
+                    LOGGER.error(ERROR_CREATE_RULE + updateRule + " contains wrong FinalAction");
                     throw new AccessInternalRuleExecutionException(
                         VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_FINAL_ACTION.name());
                 }
                 JsonNode ruleInReferential = checkExistingRule(updateRule.get("Rule").asText());
                 if (ruleInReferential == null) {
-                	LOGGER.error(ERROR_CREATE_RULE + updateRule.get("Rule")  + " is not in referential");
+                    LOGGER.error(ERROR_CREATE_RULE + updateRule.get("Rule") + " is not in referential");
                     throw new AccessInternalRuleExecutionException(
                         VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_EXIST.name());
                 }
                 if (!category.equals(ruleInReferential.get("RuleType").asText())) {
-                	LOGGER.error(ERROR_CREATE_RULE + updateRule.get("Rule")  + " is not a " + category);
+                    LOGGER.error(ERROR_CREATE_RULE + updateRule.get("Rule") + " is not a " + category);
                     throw new AccessInternalRuleExecutionException(
-                    		VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_CATEGORY.name());
+                        VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_CATEGORY.name());
                 }
 
                 try {
-                    updateRule = computeEndDate((ObjectNode)updateRule, ruleInReferential);
+                    updateRule = computeEndDate((ObjectNode) updateRule, ruleInReferential);
                 } catch (AccessInternalRuleExecutionException e) {
                     throw new AccessInternalRuleExecutionException(
                         VitamCodeHelper.getCode(VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_START_DATE));
@@ -1163,7 +1184,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
     private boolean checkInheritancePrevention(JsonNode categoryNode) {
         JsonNode inheritance = categoryNode.get(INHERITANCE_KEY);
-        return inheritance != null && (inheritance.get("PreventRulesId") != null  || inheritance.get("PreventInheritance") != null);
+        return inheritance != null &&
+            (inheritance.get("PreventRulesId") != null || inheritance.get("PreventInheritance") != null);
     }
 
     private boolean checkEndDateInRule(JsonNode rule) {
@@ -1213,7 +1235,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         return response.get("$results").get(0);
     }
 
-    private JsonNode computeEndDate(ObjectNode updatingRule, JsonNode ruleInReferential) throws AccessInternalRuleExecutionException {
+    private JsonNode computeEndDate(ObjectNode updatingRule, JsonNode ruleInReferential)
+        throws AccessInternalRuleExecutionException {
         LocalDate endDate = null;
 
         // FIXME Start of duplicated method, need to add it in a common module

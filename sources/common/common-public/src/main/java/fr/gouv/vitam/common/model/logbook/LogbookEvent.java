@@ -65,6 +65,9 @@ public class LogbookEvent {
     @JsonProperty("evDetData")
     private String evDetData;
 
+    @JsonProperty("rightsStatementIdentifier")
+    private String rightsStatementIdentifier;
+
     /**
      * @return the evId
      */
@@ -241,5 +244,19 @@ public class LogbookEvent {
         this.evDetData = evDetData;
     }
 
+    /**
+     * Rights statement Identifier
+     * @return rightsStatementIdentifier
+     */
+    public String getRightsStatementIdentifier() {
+        return rightsStatementIdentifier;
+    }
 
+    /**
+     * Rights statement Identifier
+     * @param rightsStatementIdentifier
+     */
+    public void setRightsStatementIdentifier(String rightsStatementIdentifier) {
+        this.rightsStatementIdentifier = rightsStatementIdentifier;
+    }
 }
