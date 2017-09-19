@@ -41,11 +41,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
-import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.FileUtil;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -84,7 +84,7 @@ public class ContextStep {
         Path context = Paths.get(world.getBaseDirectory(), fileName);
         final RequestResponse response =
             world.getAdminClient()
-                .importContexts(Files.newInputStream(context, StandardOpenOption.READ), world.getTenantId());
+                .importContexts(new VitamContext(world.getTenantId()), Files.newInputStream(context, StandardOpenOption.READ));
         assertThat(Response.Status.OK.getStatusCode() == response.getStatus());
     }
 
@@ -94,7 +94,7 @@ public class ContextStep {
         Path context = Paths.get(world.getBaseDirectory(), fileName);
         final RequestResponse response =
             world.getAdminClient()
-                .importContexts(Files.newInputStream(context, StandardOpenOption.READ), world.getTenantId());
+                .importContexts(new VitamContext(world.getTenantId()), Files.newInputStream(context, StandardOpenOption.READ));
         assertThat(Response.Status.BAD_REQUEST.getStatusCode() == response.getStatus());
     }
 
@@ -110,14 +110,14 @@ public class ContextStep {
         JsonNode queryDsl = JsonHandler.getFromString(query);
         RequestResponse<ContextModel> requestResponse =
             world.getAdminClient()
-                .updateContext(find_a_context_id(), queryDsl, world.getTenantId());
+                .updateContext(new VitamContext(world.getTenantId()), find_a_context_id(), queryDsl);
     }
 
     private String find_a_context_id()
         throws VitamClientException {
         JsonNode queryDsl = JsonHandler.createObjectNode();
         RequestResponse<ContextModel> requestResponse =
-            world.getAdminClient().findContexts(queryDsl, world.getTenantId(), null);
+            world.getAdminClient().findContexts(new VitamContext(world.getTenantId()).setAccessContract(null), queryDsl);
         if (requestResponse.isOk()) {
             return ((RequestResponseOK<ContextModel>) requestResponse).getFirstResult().getId();
         }
@@ -129,7 +129,7 @@ public class ContextStep {
         throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException,
         VitamClientException {
         RequestResponse<ContextModel> requestResponse =
-            world.getAdminClient().findContextById(find_a_context_id(), world.getTenantId(), null);
+            world.getAdminClient().findContextById(new VitamContext(world.getTenantId()).setAccessContract(null), find_a_context_id());
         assertThat(requestResponse.toString().contains(identifier));
     }
 

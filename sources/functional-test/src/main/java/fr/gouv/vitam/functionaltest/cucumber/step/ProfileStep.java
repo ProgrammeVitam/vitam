@@ -46,6 +46,7 @@ import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -98,7 +99,7 @@ public class ProfileStep {
         Path profil = Paths.get(world.getBaseDirectory(), fileName);
         final RequestResponse response =
             world.getAdminClient()
-                .createProfiles(Files.newInputStream(profil, StandardOpenOption.READ), world.getTenantId());
+                .createProfiles(new VitamContext(world.getTenantId()), Files.newInputStream(profil, StandardOpenOption.READ));
         assertThat(Response.Status.OK.getStatusCode() == response.getStatus());
         if (response.isOk()) {
             RequestResponseOK<ProfileModel> res = (RequestResponseOK) response;
@@ -115,8 +116,9 @@ public class ProfileStep {
         throws InvalidParseOperationException, IOException, AccessExternalClientException {
         Path profil = Paths.get(world.getBaseDirectory(), fileName);
         final RequestResponse response =
-            world.getAdminClient().importProfileFile(this.model.get("Identifier").asText(),
-                Files.newInputStream(profil, StandardOpenOption.READ), world.getTenantId());
+            world.getAdminClient().importProfileFile(new VitamContext(world.getTenantId()),
+                this.model.get("Identifier").asText(),
+                Files.newInputStream(profil, StandardOpenOption.READ));
         assertThat(Response.Status.OK.getStatusCode() == response.getStatus());
     }
 
@@ -129,7 +131,7 @@ public class ProfileStep {
         select.setQuery(match("Name", name));
         final JsonNode query = select.getFinalSelect();
         RequestResponse<ProfileModel> requestResponse =
-            world.getAdminClient().findProfiles(query, world.getTenantId(), null);
+            world.getAdminClient().findProfiles(new VitamContext(world.getTenantId()).setAccessContract(null), query);
         if (requestResponse.isOk()) {
             this.model = ((RequestResponseOK<ProfileModel>) requestResponse).getResultsAsJsonNodes().get(0);
         }

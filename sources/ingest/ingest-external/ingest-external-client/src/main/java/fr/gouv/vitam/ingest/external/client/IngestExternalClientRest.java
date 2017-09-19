@@ -26,9 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
@@ -86,15 +86,17 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
-    public RequestResponse<Void> upload(InputStream stream, Integer tenantId, String contextId, String action)
+    public RequestResponse<Void> upload(VitamContext vitamContext, InputStream stream,
+        String contextId,
+        String action)
         throws IngestExternalException {
 
         ParametersChecker.checkParameter("Stream is a mandatory parameter", stream);
-        ParametersChecker.checkParameter("Tenant identifier is a mandatory parameter", tenantId);
+        ParametersChecker.checkParameter("Tenant identifier is a mandatory parameter", vitamContext.getTenantId());
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.putAll(vitamContext.getHeaders());
         headers.add(GlobalDataRest.X_ACTION, action);
         headers.add(EXPECT, EXPECT_CONTINUE);
 
@@ -140,7 +142,8 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         }
     }
 
-    public Response downloadObjectAsync(String objectId, IngestCollection type, Integer tenantId)
+    public Response downloadObjectAsync(VitamContext vitamContext, String objectId,
+        IngestCollection type)
         throws VitamClientException {
 
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
@@ -148,7 +151,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
 
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.putAll(vitamContext.getHeaders());
         try {
             response = performRequest(HttpMethod.GET, INGEST_URL + "/" + objectId + "/" + type.getCollectionName(),
                 headers, MediaType.APPLICATION_OCTET_STREAM_TYPE);
@@ -161,18 +164,19 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
-    public RequestResponse<ItemStatus> updateOperationActionProcess(String actionId, String operationId,
-        Integer tenantId)
+    public RequestResponse<ItemStatus> updateOperationActionProcess(
+        VitamContext vitamContext, String actionId,
+        String operationId)
         throws VitamClientException {
 
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
-        ParametersChecker.checkParameter(BLANK_TENANT_ID, tenantId);
+        ParametersChecker.checkParameter(BLANK_TENANT_ID, vitamContext.getTenantId());
         ParametersChecker.checkParameter(BLANK_ACTION_ID, actionId);
         Response response = null;
         try {
 
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+            headers.putAll(vitamContext.getHeaders());
             headers.add(GlobalDataRest.X_ACTION, actionId);
             response =
                 performRequest(HttpMethod.PUT, OPERATION_URI + "/" + operationId, headers,
@@ -191,11 +195,12 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
-    public RequestResponse<ItemStatus> getOperationProcessStatus(String id, Integer tenantId)
+    public RequestResponse<ItemStatus> getOperationProcessStatus(VitamContext vitamContext,
+        String id)
         throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.putAll(vitamContext.getHeaders());
         Response response = null;
         try {
             response =
@@ -237,7 +242,8 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     public boolean wait(int tenantId, String processId, ProcessState state, int nbTry, long timeWait, TimeUnit timeUnit)
         throws VitamException {
         for (int i = 0; i < nbTry; i++) {
-            final RequestResponse<ItemStatus> requestResponse = this.getOperationProcessStatus(processId, tenantId);
+            final RequestResponse<ItemStatus> requestResponse = this.getOperationProcessStatus(
+                new VitamContext(tenantId), processId);
             if (requestResponse.isOk()) {
                 ItemStatus itemStatus = ((RequestResponseOK<ItemStatus>) requestResponse).getResults().get(0);
                 final ProcessState processState = itemStatus.getGlobalState();
@@ -288,15 +294,16 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
-    public RequestResponse<ItemStatus> getOperationProcessExecutionDetails(String id, Integer tenantId)
+    public RequestResponse<ItemStatus> getOperationProcessExecutionDetails(
+        VitamContext vitamContext, String id)
         throws VitamClientException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
-        ParametersChecker.checkParameter(BLANK_TENANT_ID, tenantId);
+        ParametersChecker.checkParameter(BLANK_TENANT_ID, vitamContext.getTenantId());
 
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+            headers.putAll(vitamContext.getHeaders());
             headers.add(GlobalDataRest.X_ACTION, id);
             response =
                 performRequest(HttpMethod.GET, OPERATION_URI + "/" + id, headers, MediaType.APPLICATION_JSON_TYPE);
@@ -314,14 +321,15 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
-    public RequestResponse<ItemStatus> cancelOperationProcessExecution(String id, Integer tenantId)
+    public RequestResponse<ItemStatus> cancelOperationProcessExecution(
+        VitamContext vitamContext, String id)
         throws VitamClientException, IllegalArgumentException {
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, id);
-        ParametersChecker.checkParameter(BLANK_TENANT_ID, tenantId);
+        ParametersChecker.checkParameter(BLANK_TENANT_ID, vitamContext.getTenantId());
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+            headers.putAll(vitamContext.getHeaders());
             response =
                 performRequest(HttpMethod.DELETE, OPERATION_URI + "/" + id, headers, MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response, ItemStatus.class);
@@ -338,12 +346,13 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
-    public RequestResponse<ProcessDetail> listOperationsDetails(Integer tenantId, ProcessQuery query)
+    public RequestResponse<ProcessDetail> listOperationsDetails(VitamContext vitamContext,
+        ProcessQuery query)
         throws VitamClientException {
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+            headers.putAll(vitamContext.getHeaders());
 
             if (query == null) {
                 query = new ProcessQuery();
@@ -368,11 +377,11 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
-    public RequestResponse<WorkFlow> getWorkflowDefinitions(Integer tenantId) throws VitamClientException {
+    public RequestResponse<WorkFlow> getWorkflowDefinitions(VitamContext vitamContext) throws VitamClientException {
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+            headers.putAll(vitamContext.getHeaders());
 
             response = performRequest(HttpMethod.GET, WORKFLOWS_URI, headers, MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response, WorkFlow.class);

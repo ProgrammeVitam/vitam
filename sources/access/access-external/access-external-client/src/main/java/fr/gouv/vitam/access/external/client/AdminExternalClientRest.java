@@ -18,6 +18,7 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServer
 import fr.gouv.vitam.access.external.common.exception.AccessExternalNotFoundException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
@@ -64,11 +65,12 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public Response checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
+    public Response checkDocuments(VitamContext vitamContext, AdminCollections documentType,
+        InputStream stream)
         throws VitamClientException {
 
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.putAll(vitamContext.getHeaders());
         try {
             return performRequest(HttpMethod.PUT, documentType.getName(), headers,
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
@@ -80,11 +82,12 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public Status createDocuments(AdminCollections documentType, InputStream stream, String filename, Integer tenantId)
+    public Status createDocuments(VitamContext vitamContext, AdminCollections documentType,
+        InputStream stream, String filename)
         throws AccessExternalClientException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.putAll(vitamContext.getHeaders());
         headers.add(GlobalDataRest.X_FILENAME, filename);
         try {
             response = performRequest(HttpMethod.POST, documentType.getName(), headers,
@@ -107,65 +110,64 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse<FileFormatModel> findFormats(JsonNode select, Integer tenantId, String contractName)
+    public RequestResponse<FileFormatModel> findFormats(VitamContext vitamContext,
+        JsonNode select)
         throws VitamClientException {
-        return internalFindDocuments(AdminCollections.FORMATS, select, tenantId, contractName, FileFormatModel.class);
+        return internalFindDocuments(vitamContext, AdminCollections.FORMATS, select, FileFormatModel.class);
     }
 
     @Override
-    public RequestResponse<FileRulesModel> findRules(JsonNode select, Integer tenantId, String contractName)
+    public RequestResponse<FileRulesModel> findRules(VitamContext vitamContext,
+        JsonNode select)
         throws VitamClientException {
-        return internalFindDocuments(AdminCollections.RULES, select, tenantId, contractName, FileRulesModel.class);
+        return internalFindDocuments(vitamContext, AdminCollections.RULES, select, FileRulesModel.class);
     }
 
     @Override
-    public RequestResponse<IngestContractModel> findIngestContracts(JsonNode select, Integer tenantId,
-        String contractName)
+    public RequestResponse<IngestContractModel> findIngestContracts(
+        VitamContext vitamContext, JsonNode select)
         throws VitamClientException {
-        return internalFindDocuments(AdminCollections.ENTRY_CONTRACTS, select, tenantId, contractName,
-            IngestContractModel.class);
+        return internalFindDocuments(vitamContext, AdminCollections.ENTRY_CONTRACTS, select, IngestContractModel.class);
     }
 
     @Override
-    public RequestResponse<AccessContractModel> findAccessContracts(JsonNode select, Integer tenantId,
-        String contractName)
+    public RequestResponse<AccessContractModel> findAccessContracts(
+        VitamContext vitamContext, JsonNode select)
         throws VitamClientException {
-        return internalFindDocuments(AdminCollections.ACCESS_CONTRACTS, select, tenantId, contractName,
+        return internalFindDocuments(vitamContext, AdminCollections.ACCESS_CONTRACTS, select,
             AccessContractModel.class);
     }
 
     @Override
-    public RequestResponse<ContextModel> findContexts(JsonNode select, Integer tenantId, String contractName)
+    public RequestResponse<ContextModel> findContexts(VitamContext vitamContext,
+        JsonNode select)
         throws VitamClientException {
-        return internalFindDocuments(AdminCollections.CONTEXTS, select, tenantId, contractName,
-            ContextModel.class);
+        return internalFindDocuments(vitamContext, AdminCollections.CONTEXTS, select, ContextModel.class);
     }
 
     @Override
-    public RequestResponse<ProfileModel> findProfiles(JsonNode select, Integer tenantId, String contractName)
+    public RequestResponse<ProfileModel> findProfiles(VitamContext vitamContext,
+        JsonNode select)
         throws VitamClientException {
-        return internalFindDocuments(AdminCollections.PROFILE, select, tenantId, contractName,
-            ProfileModel.class);
+        return internalFindDocuments(vitamContext, AdminCollections.PROFILE, select, ProfileModel.class);
     }
 
     @Override
-    public RequestResponse<AccessionRegisterSummaryModel> findAccessionRegister(JsonNode select, Integer tenantId,
-        String contractName)
+    public RequestResponse<AccessionRegisterSummaryModel> findAccessionRegister(
+        VitamContext vitamContext, JsonNode select)
         throws VitamClientException {
-        return internalFindDocuments(AdminCollections.ACCESSION_REGISTERS, select, tenantId, contractName,
+        return internalFindDocuments(vitamContext, AdminCollections.ACCESSION_REGISTERS, select,
             AccessionRegisterSummaryModel.class);
     }
 
 
-    private RequestResponse internalFindDocuments(AdminCollections documentType, JsonNode select, Integer tenantId,
-        String contractName, Class clazz)
+    private RequestResponse internalFindDocuments(VitamContext vitamContext, AdminCollections documentType,
+        JsonNode select,
+        Class clazz)
         throws VitamClientException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        if (contractName != null) {
-            headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
-        }
+        headers.putAll(vitamContext.getHeaders());
 
         try {
             response = performRequest(HttpMethod.GET, documentType.getName(), headers,
@@ -185,14 +187,14 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse getAccessionRegisterDetail(String id, JsonNode query, Integer tenantId, String contractName)
+    public RequestResponse getAccessionRegisterDetail(VitamContext vitamContext, String id,
+        JsonNode query)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
+        headers.putAll(vitamContext.getHeaders());
 
         try {
             response = performRequest(HttpMethod.POST,
@@ -241,13 +243,14 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
 
 
     @Override
-    public RequestResponse importContracts(InputStream contracts, Integer tenantId, AdminCollections collection)
+    public RequestResponse importContracts(VitamContext vitamContext, InputStream contracts,
+        AdminCollections collection)
         throws AccessExternalClientException {
         // FIXME : should be replaced by createDocuments
         ParametersChecker.checkParameter("The input contracts json is mandatory", contracts, collection);
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.putAll(vitamContext.getHeaders());
         try {
             response = performRequest(HttpMethod.POST, collection.getName(), headers,
                 contracts, MediaType.APPLICATION_OCTET_STREAM_TYPE,
@@ -270,10 +273,11 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse updateAccessContract(String id, JsonNode queryDsl, Integer tenantId)
+    public RequestResponse updateAccessContract(VitamContext vitamContext, String id,
+        JsonNode queryDsl)
         throws AccessExternalClientException {
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.putAll(vitamContext.getHeaders());
         Response response = null;
         try {
             response = performRequest(HttpMethod.PUT, UPDATE_ACCESS_CONTRACT + id, headers,
@@ -289,10 +293,11 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse updateIngestContract(String id, JsonNode queryDsl, Integer tenantId)
+    public RequestResponse updateIngestContract(VitamContext vitamContext, String id,
+        JsonNode queryDsl)
         throws InvalidParseOperationException, AccessExternalClientException {
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.putAll(vitamContext.getHeaders());
         Response response = null;
         try {
             response = performRequest(HttpMethod.PUT, UPDATE_INGEST_CONTRACT + id, headers,
@@ -308,12 +313,12 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse createProfiles(InputStream profiles, Integer tenantId)
+    public RequestResponse createProfiles(VitamContext vitamContext, InputStream profiles)
         throws InvalidParseOperationException, AccessExternalClientException {
         ParametersChecker.checkParameter("The input profile json is mandatory", profiles, AdminCollections.PROFILE);
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.putAll(vitamContext.getHeaders());
         try {
             response = performRequest(HttpMethod.POST, AdminCollections.PROFILE.getName(), headers,
                 profiles, MediaType.APPLICATION_OCTET_STREAM_TYPE,
@@ -328,13 +333,14 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse importProfileFile(String profileMetadataId, InputStream profile, Integer tenantId)
+    public RequestResponse importProfileFile(VitamContext vitamContext,
+        String profileMetadataId, InputStream profile)
         throws InvalidParseOperationException, AccessExternalClientException {
         ParametersChecker.checkParameter("The input profile stream is mandatory", profile, AdminCollections.PROFILE);
         ParametersChecker.checkParameter(profileMetadataId, "The profile id is mandatory");
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.putAll(vitamContext.getHeaders());
         try {
             response =
                 performRequest(HttpMethod.PUT, AdminCollections.PROFILE.getName() + "/" + profileMetadataId, headers,
@@ -350,14 +356,14 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public Response downloadProfileFile(String profileMetadataId, Integer tenantId)
+    public Response downloadProfileFile(VitamContext vitamContext, String profileMetadataId)
         throws AccessExternalClientException,
         AccessExternalNotFoundException {
         ParametersChecker.checkParameter("Profile is is required", profileMetadataId);
 
 
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.putAll(vitamContext.getHeaders());
         Response response = null;
 
         Status status = Status.BAD_REQUEST;
@@ -390,11 +396,11 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse importContexts(InputStream contexts, Integer tenantId)
+    public RequestResponse importContexts(VitamContext vitamContext, InputStream contexts)
         throws InvalidParseOperationException, AccessExternalClientServerException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.putAll(vitamContext.getHeaders());
         try {
             response = performRequest(HttpMethod.POST, AdminCollections.CONTEXTS.getName(), headers,
                 contexts, MediaType.APPLICATION_OCTET_STREAM_TYPE,
@@ -416,11 +422,12 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse updateContext(String id, JsonNode queryDsl, Integer tenantId)
+    public RequestResponse updateContext(VitamContext vitamContext, String id,
+        JsonNode queryDsl)
         throws AccessExternalClientException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+        headers.putAll(vitamContext.getHeaders());
         try {
             response = performRequest(HttpMethod.PUT, UPDATE_CONTEXT + id, headers,
                 queryDsl, MediaType.APPLICATION_JSON_TYPE,
@@ -435,13 +442,13 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse checkTraceabilityOperation(JsonNode query, Integer tenantId, String contractName)
+    public RequestResponse checkTraceabilityOperation(VitamContext vitamContext,
+        JsonNode query)
         throws AccessExternalClientServerException, AccessUnauthorizedException {
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-            headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
+            headers.putAll(vitamContext.getHeaders());
 
             response = performRequest(HttpMethod.POST, LOGBOOK_CHECK, headers, query, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
@@ -484,13 +491,13 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public Response downloadTraceabilityOperationFile(String operationId, Integer tenantId, String contractName)
+    public Response downloadTraceabilityOperationFile(VitamContext vitamContext,
+        String operationId)
         throws AccessExternalClientServerException, AccessUnauthorizedException {
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-            headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
+            headers.putAll(vitamContext.getHeaders());
 
             response = performRequest(HttpMethod.GET, AccessExtAPI.TRACEABILITY_API + "/" + operationId, headers, null,
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
@@ -516,14 +523,13 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public Status launchAudit(JsonNode auditOption, Integer tenantId, String contractName)
+    public Status launchAudit(VitamContext vitamContext, JsonNode auditOption)
         throws AccessExternalClientServerException {
         Response response = null;
 
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-            headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
+            headers.putAll(vitamContext.getHeaders());
 
             response = performRequest(HttpMethod.POST, AccessExtAPI.AUDITS_API, headers, auditOption,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
@@ -538,15 +544,14 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         return Status.fromStatusCode(response.getStatus());
     }
 
-    private RequestResponse internalFindDocumentById(AdminCollections documentType, String documentId, Integer tenantId,
-        String contractName, Class clazz)
+    private RequestResponse internalFindDocumentById(VitamContext vitamContext, AdminCollections documentType,
+        String documentId,
+        Class clazz)
         throws VitamClientException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        if (contractName != null) {
-            headers.add(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName);
-        }
+        headers.putAll(vitamContext.getHeaders());
+
         try {
             response = performRequest(HttpMethod.GET, documentType.getName() + "/" + documentId, headers,
                 null, null, MediaType.APPLICATION_JSON_TYPE, false);
@@ -564,45 +569,51 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse<FileFormatModel> findFormatById(String formatId, Integer tenantId, String contractName)
+    public RequestResponse<FileFormatModel> findFormatById(VitamContext vitamContext,
+        String formatId)
         throws VitamClientException {
-        return internalFindDocumentById(AdminCollections.FORMATS, formatId, tenantId, contractName, FileFormatModel.class);
+        return internalFindDocumentById(vitamContext, AdminCollections.FORMATS, formatId, FileFormatModel.class);
     }
 
     @Override
-    public RequestResponse<FileRulesModel> findRuleById(String ruleId, Integer tenantId, String contractName)
+    public RequestResponse<FileRulesModel> findRuleById(VitamContext vitamContext,
+        String ruleId)
         throws VitamClientException {
-        return internalFindDocumentById(AdminCollections.RULES, ruleId, tenantId, contractName, FileRulesModel.class);
+        return internalFindDocumentById(vitamContext, AdminCollections.RULES, ruleId, FileRulesModel.class);
     }
 
     @Override
-    public RequestResponse<IngestContractModel> findIngestContractById(String contractId, Integer tenantId,
-        String contractName) throws VitamClientException {
-        return internalFindDocumentById(AdminCollections.ENTRY_CONTRACTS, contractId, tenantId, contractName, IngestContractModel.class);
+    public RequestResponse<IngestContractModel> findIngestContractById(
+        VitamContext vitamContext, String contractId) throws VitamClientException {
+        return internalFindDocumentById(vitamContext, AdminCollections.ENTRY_CONTRACTS, contractId,
+            IngestContractModel.class);
     }
 
     @Override
-    public RequestResponse<AccessContractModel> findAccessContractById(String contractId, Integer tenantId,
-        String contractName) throws VitamClientException {
-        return internalFindDocumentById(AdminCollections.ACCESS_CONTRACTS, contractId, tenantId, contractName, AccessContractModel.class);
+    public RequestResponse<AccessContractModel> findAccessContractById(
+        VitamContext vitamContext, String contractId) throws VitamClientException {
+        return internalFindDocumentById(vitamContext, AdminCollections.ACCESS_CONTRACTS, contractId, AccessContractModel.class);
     }
 
     @Override
-    public RequestResponse<ContextModel> findContextById(String contextId, Integer tenantId, String contractName)
+    public RequestResponse<ContextModel> findContextById(VitamContext vitamContext,
+        String contextId)
         throws VitamClientException {
-        return internalFindDocumentById(AdminCollections.CONTEXTS, contextId, tenantId, contractName, ContextModel.class);
+        return internalFindDocumentById(vitamContext, AdminCollections.CONTEXTS, contextId, ContextModel.class);
     }
 
     @Override
-    public RequestResponse<ProfileModel> findProfileById(String profileId, Integer tenantId, String contractName)
+    public RequestResponse<ProfileModel> findProfileById(VitamContext vitamContext,
+        String profileId)
         throws VitamClientException {
-        return internalFindDocumentById(AdminCollections.PROFILE, profileId, tenantId, contractName, ProfileModel.class);
+        return internalFindDocumentById(vitamContext, AdminCollections.PROFILE, profileId, ProfileModel.class);
     }
 
     @Override
-    public RequestResponse<AccessionRegisterSummaryModel> findAccessionRegisterById(String accessionRegisterId,
-        Integer tenantId, String contractName) throws VitamClientException {
-        return internalFindDocumentById(AdminCollections.ACCESSION_REGISTERS, accessionRegisterId, tenantId, contractName, AccessionRegisterSummaryModel.class);
+    public RequestResponse<AccessionRegisterSummaryModel> findAccessionRegisterById(
+        VitamContext vitamContext, String accessionRegisterId) throws VitamClientException {
+        return internalFindDocumentById(vitamContext, AdminCollections.ACCESSION_REGISTERS, accessionRegisterId,
+            AccessionRegisterSummaryModel.class);
     }
 
 }

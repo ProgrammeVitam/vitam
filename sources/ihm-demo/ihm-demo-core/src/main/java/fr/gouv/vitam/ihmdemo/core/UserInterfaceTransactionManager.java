@@ -37,6 +37,7 @@ import javax.ws.rs.ProcessingException;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.client.VitamContext;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -97,7 +98,7 @@ public class UserInterfaceTransactionManager {
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
         InvalidParseOperationException, AccessUnauthorizedException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectUnits(parameters, tenantId, contractId);
+            return client.selectUnits(new VitamContext(tenantId).setAccessContract(contractId), parameters);
         }
     }
 
@@ -120,7 +121,7 @@ public class UserInterfaceTransactionManager {
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
         InvalidParseOperationException, AccessUnauthorizedException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectUnitbyId(preparedDslQuery, unitId, tenantId, contractId);
+            return client.selectUnitbyId(new VitamContext(tenantId).setAccessContract(contractId), preparedDslQuery, unitId);
         }
     }
 
@@ -143,7 +144,7 @@ public class UserInterfaceTransactionManager {
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
         InvalidParseOperationException, NoWritingPermissionException, AccessUnauthorizedException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.updateUnitbyId(parameters, unitId, tenantId, contractId);
+            return client.updateUnitbyId(new VitamContext(tenantId).setAccessContract(contractId), parameters, unitId);
         }
     }
 
@@ -165,7 +166,7 @@ public class UserInterfaceTransactionManager {
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
         InvalidParseOperationException, AccessUnauthorizedException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectObjectById(preparedDslQuery, objectId, tenantId, contractId);
+            return client.selectObjectById(new VitamContext(tenantId).setAccessContract(contractId), preparedDslQuery, objectId);
         }
     }
 
@@ -194,7 +195,7 @@ public class UserInterfaceTransactionManager {
         InvalidParseOperationException, UnsupportedEncodingException, AccessUnauthorizedException {
         Response response = null;
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            response = client.getUnitObject(selectObjectQuery, unitId, usage, version, tenantId, contractId);
+            response = client.getUnitObject(new VitamContext(tenantId).setAccessContract(contractId), selectObjectQuery, unitId, usage, version);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             final Response.ResponseBuilder responseBuilder = Response.status(Response.Status.OK)
                 .header(GlobalDataRest.X_QUALIFIER, response.getHeaderString(GlobalDataRest.X_QUALIFIER))
@@ -298,7 +299,7 @@ public class UserInterfaceTransactionManager {
         String contractId)
         throws VitamClientException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectUnitLifeCycleById(unitLifeCycleId, tenantId, contractId);
+            return client.selectUnitLifeCycleById(new VitamContext(tenantId).setAccessContract(contractId), unitLifeCycleId);
 
         }
     }
@@ -312,7 +313,7 @@ public class UserInterfaceTransactionManager {
     public static RequestResponse<LogbookOperation> selectOperation(JsonNode query, Integer tenantId, String contractId)
         throws VitamClientException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectOperation(query, tenantId, contractId);
+            return client.selectOperation(new VitamContext(tenantId).setAccessContract(contractId), query);
         }
     }
 
@@ -327,7 +328,7 @@ public class UserInterfaceTransactionManager {
         String contractId)
         throws VitamClientException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectOperationbyId(operationId, tenantId, contractId);
+            return client.selectOperationbyId(new VitamContext(tenantId).setAccessContract(contractId), operationId);
         }
     }
 
@@ -343,7 +344,7 @@ public class UserInterfaceTransactionManager {
         Integer tenantId, String contractId)
         throws VitamClientException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, tenantId, contractId);
+            return client.selectObjectGroupLifeCycleById(new VitamContext(tenantId).setAccessContract(contractId), objectGroupLifeCycleId);
         }
     }
 
@@ -362,7 +363,7 @@ public class UserInterfaceTransactionManager {
         try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()) {
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
             final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            return adminExternalClient.findAccessionRegister(query, tenantId, contractId);
+            return adminExternalClient.findAccessionRegister(new VitamContext(tenantId).setAccessContract(contractId), query);
         }
     }
 
@@ -388,7 +389,7 @@ public class UserInterfaceTransactionManager {
         try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()) {
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
             final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            return adminExternalClient.getAccessionRegisterDetail(id, query, tenantId, contractId);
+            return adminExternalClient.getAccessionRegisterDetail(new VitamContext(tenantId).setAccessContract(contractId), id, query);
         }
     }
 
@@ -409,7 +410,7 @@ public class UserInterfaceTransactionManager {
         String contractId)
         throws AccessExternalClientServerException, InvalidParseOperationException, AccessUnauthorizedException {
         try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()) {
-            return adminExternalClient.checkTraceabilityOperation(query, tenantId, contractId);
+            return adminExternalClient.checkTraceabilityOperation(new VitamContext(tenantId).setAccessContract(contractId), query);
         }
     }
 

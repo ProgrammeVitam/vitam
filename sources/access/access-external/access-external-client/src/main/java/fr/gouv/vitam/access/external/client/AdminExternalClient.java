@@ -38,6 +38,7 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientExcept
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalNotFoundException;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -59,130 +60,138 @@ public interface AdminExternalClient extends BasicClient {
     /**
      * checkDocuments
      *
+     *
+     * @param vitamContext the vitam context
      * @param documentType
      * @param stream
-     * @param tenantId
      * @return response
      * @throws VitamClientException
      */
-    Response checkDocuments(AdminCollections documentType, InputStream stream, Integer tenantId)
+    Response checkDocuments(VitamContext vitamContext, AdminCollections documentType,
+        InputStream stream)
         throws VitamClientException;
 
 
     /**
      * importDocuments
      *
+     *
+     * @param vitamContext the vitam context
      * @param documentType
      * @param stream
      * @param filename
-     * @param tenantId
      * @return the status
      * @throws AccessExternalClientNotFoundException
      * @throws AccessExternalClientException
      */
-    Status createDocuments(AdminCollections documentType, InputStream stream, String filename, Integer tenantId)
-        throws AccessExternalClientNotFoundException, AccessExternalClientException;
+    Status createDocuments(VitamContext vitamContext, AdminCollections documentType,
+        InputStream stream, String filename)
+        throws AccessExternalClientException;
 
     /**
      * Find formats.
      * 
+     *
+     * @param vitamContext the vitam context
      * @param select select query
-     * @param tenantId tenant id
-     * @param contractName contract name
      * @return list of formats
      * @throws VitamClientException
      */
-    RequestResponse<FileFormatModel> findFormats(JsonNode select, Integer tenantId, String contractName)
+    RequestResponse<FileFormatModel> findFormats(VitamContext vitamContext, JsonNode select)
         throws VitamClientException;
 
     /**
      * Find rules.
      * 
+     *
+     * @param vitamContext the vitam context
      * @param select select query
-     * @param tenantId tenant id
-     * @param contractName contract name
      * @return list of rules
      * @throws VitamClientException
      */
-    RequestResponse<FileRulesModel> findRules(JsonNode select, Integer tenantId, String contractName)
+    RequestResponse<FileRulesModel> findRules(VitamContext vitamContext, JsonNode select)
         throws VitamClientException;
 
     /**
      * Find entry contracts.
      * 
+     *
+     * @param vitamContext the vitam context
      * @param select select query
-     * @param tenantId tenant id
-     * @param contractName contract name
      * @return list of ingest contrats
      * @throws VitamClientException
      */
-    RequestResponse<IngestContractModel> findIngestContracts(JsonNode select, Integer tenantId, String contractName)
+    RequestResponse<IngestContractModel> findIngestContracts(VitamContext vitamContext,
+        JsonNode select)
         throws VitamClientException;
 
 
     /**
      * Find access contracts.
      * 
+     *
+     * @param vitamContext the vitam context
      * @param select select query
-     * @param tenantId tenant id
-     * @param contractName contract name
      * @return list of access contrats
      * @throws VitamClientException
      */
-    RequestResponse<AccessContractModel> findAccessContracts(JsonNode select, Integer tenantId, String contractName)
+    RequestResponse<AccessContractModel> findAccessContracts(VitamContext vitamContext,
+        JsonNode select)
         throws VitamClientException;
 
 
     /**
      * Find contexts.
      * 
+     *
+     * @param vitamContext the vitam context
      * @param select select query
-     * @param tenantId tenant id
-     * @param contractName contract name
      * @return list of contexts
      * @throws VitamClientException
      */
-    RequestResponse<ContextModel> findContexts(JsonNode select, Integer tenantId, String contractName)
+    RequestResponse<ContextModel> findContexts(VitamContext vitamContext, JsonNode select)
         throws VitamClientException;
 
     /**
      * Find profiles.
      * 
+     *
+     * @param vitamContext the vitam context
      * @param select select query
-     * @param tenantId tenant id
-     * @param contractName contract name
      * @return list of profiles
      * @throws VitamClientException
      */
-    RequestResponse<ProfileModel> findProfiles(JsonNode select, Integer tenantId, String contractName)
+    RequestResponse<ProfileModel> findProfiles(VitamContext vitamContext, JsonNode select)
         throws VitamClientException;
 
     /**
      * Find accessing registers.
      * 
+     *
+     * @param vitamContext the vitam context
      * @param select select query
-     * @param tenantId tenant id
-     * @param contractName contract name
      * @return list of accessing registers
      * @throws VitamClientException
      */
-    RequestResponse<AccessionRegisterSummaryModel> findAccessionRegister(JsonNode select, Integer tenantId,
-        String contractName)
+    RequestResponse<AccessionRegisterSummaryModel> findAccessionRegister(
+        VitamContext vitamContext, JsonNode select)
         throws VitamClientException;
 
     /**
      * Get the accession register details matching the given query
      *
+     *
+     * @param vitamContext the vitam context
      * @param id the id of accession register
      * @param query The DSL Query as a JSON Node
-     * @param tenantId the working tenant
      * @return The AccessionregisterDetails list as a response jsonNode
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      * @throws AccessUnauthorizedException
      */
-    RequestResponse getAccessionRegisterDetail(String id, JsonNode query, Integer tenantId, String contractName)
+    RequestResponse getAccessionRegisterDetail(VitamContext vitamContext, String id,
+        JsonNode query)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException;
 
@@ -198,42 +207,46 @@ public interface AdminExternalClient extends BasicClient {
      * <li>One or many contracts elready exist in the database</li>
      * </ul>
      * 
+     *
+     * @param vitamContext the vitam context
      * @param contracts as InputStream
-     * @param tenantId
      * @param collection the collection name
      * @return Vitam response
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException
      */
-    RequestResponse importContracts(InputStream contracts, Integer tenantId, AdminCollections collection)
+    RequestResponse importContracts(VitamContext vitamContext, InputStream contracts,
+        AdminCollections collection)
         throws InvalidParseOperationException, AccessExternalClientException;
 
     /**
      * Update the given access contract by query dsl
      * 
+     *
+     * @param vitamContext the vitam context
      * @param id the given id of the access contract
      * @param queryDsl the given dsl query
-     * @param tenantId
-     * 
      * @return Response status ok or vitam error
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException
      */
-    RequestResponse updateAccessContract(String id, JsonNode queryDsl, Integer tenantId)
+    RequestResponse updateAccessContract(VitamContext vitamContext, String id,
+        JsonNode queryDsl)
         throws InvalidParseOperationException, AccessExternalClientException;
 
     /**
      * Update the given ingest contract by query dsl
      * 
+     *
+     * @param vitamContext the vitam context
      * @param id the given id of the ingest contract
      * @param queryDsl the given dsl query
-     * @param tenantId
-     * 
      * @return Response status ok or vitam error
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException
      */
-    RequestResponse updateIngestContract(String id, JsonNode queryDsl, Integer tenantId)
+    RequestResponse updateIngestContract(VitamContext vitamContext, String id,
+        JsonNode queryDsl)
         throws InvalidParseOperationException, AccessExternalClientException;
 
 
@@ -248,13 +261,14 @@ public interface AdminExternalClient extends BasicClient {
      * <li>Profile already exist in the database</li>
      * </ul>
      *
+     *
+     * @param vitamContext the vitam context
      * @param profiles as Json InputStream
-     * @param tenantId
      * @return Vitam response
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException
      */
-    RequestResponse createProfiles(InputStream profiles, Integer tenantId)
+    RequestResponse createProfiles(VitamContext vitamContext, InputStream profiles)
         throws InvalidParseOperationException, AccessExternalClientException;
 
 
@@ -264,172 +278,184 @@ public interface AdminExternalClient extends BasicClient {
      *
      * The profile file will be saved in storage with the name of id of profile metadata
      *
+     *
+     * @param vitamContext the vitam context
      * @param profileMetadataId
      * @param profile as InputStream
-     * @param tenantId
      * @return Vitam response
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException
      */
-    RequestResponse importProfileFile(String profileMetadataId, InputStream profile, Integer tenantId)
+    RequestResponse importProfileFile(VitamContext vitamContext, String profileMetadataId,
+        InputStream profile)
         throws InvalidParseOperationException, AccessExternalClientException;
 
 
     /**
      * Download the profile file according to profileMetadataId
      * 
-     * @param tenantId
+     *
+     * @param vitamContext the vitam context
      * @param profileMetadataId
      * @return Response
      */
-    Response downloadProfileFile(String profileMetadataId, Integer tenantId)
+    Response downloadProfileFile(VitamContext vitamContext, String profileMetadataId)
         throws AccessExternalClientException, AccessExternalNotFoundException;
 
     /**
      * import a set of context
      * 
+     *
+     * @param vitamContext the vitam context
      * @param contexts
-     * @param tenantId
      * @return Vitam response
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      */
-    RequestResponse importContexts(InputStream contexts, Integer tenantId)
+    RequestResponse importContexts(VitamContext vitamContext, InputStream contexts)
         throws InvalidParseOperationException, AccessExternalClientServerException;
 
     /**
      * Update the context by query dsl
      * 
+     *
+     * @param vitamContext the vitam context
      * @param id
      * @param queryDsl
      * @return Vitam response
      * @throws AccessExternalClientException
      * @throws InvalidParseOperationException
      */
-    RequestResponse updateContext(String id, JsonNode queryDsl, Integer tenantId)
+    RequestResponse updateContext(VitamContext vitamContext, String id, JsonNode queryDsl)
         throws AccessExternalClientException, InvalidParseOperationException;
 
     /**
+     *
+     * @param vitamContext the vitam context
      * @param query
-     * @param tenantId
-     * @param contractName
      * @throws AccessExternalClientServerException
      * @throws InvalidParseOperationException
      * @throws AccessUnauthorizedException
      */
-    RequestResponse checkTraceabilityOperation(JsonNode query, Integer tenantId, String contractName)
+    RequestResponse checkTraceabilityOperation(VitamContext vitamContext, JsonNode query)
         throws AccessExternalClientServerException, InvalidParseOperationException, AccessUnauthorizedException;
 
     /**
      * Download the traceability operation file according to operationId
      *
+     *
+     * @param vitamContext the vitam context
      * @param operationId
-     * @param tenantId
-     * @param contractName
      * @throws AccessExternalClientServerException
      * @throws AccessUnauthorizedException
      */
-    Response downloadTraceabilityOperationFile(String operationId, Integer tenantId, String contractName)
+    Response downloadTraceabilityOperationFile(VitamContext vitamContext,
+        String operationId)
         throws AccessExternalClientServerException, AccessUnauthorizedException;
 
     /**
      * Check the existence of objects in the context of an audit
      * 
+     *
+     * @param vitamContext the vitam context
      * @param auditOption
-     * @param tenantId
-     * @param contractName
      * @return Status
      * @throws AccessExternalClientServerException
      */
-    Status launchAudit(JsonNode auditOption, Integer tenantId, String contractName)
+    Status launchAudit(VitamContext vitamContext, JsonNode auditOption)
         throws AccessExternalClientServerException;
     
     
     /**
      * Find a format by its id.
      * 
+     *
+     * @param vitamContext the vitam context
      * @param formatId the formatId
-     * @param tenantId tenant id
-     * @param contractName contract name
      * @return a format
      * @throws VitamClientException
      */
-    RequestResponse<FileFormatModel> findFormatById(String formatId, Integer tenantId, String contractName)
+    RequestResponse<FileFormatModel> findFormatById(VitamContext vitamContext,
+        String formatId)
         throws VitamClientException;
 
     /**
      * Find a rule by its id.
      * 
+     *
+     * @param vitamContext the vitam context
      * @param ruleId the rule id
-     * @param tenantId tenant id
-     * @param contractName contract name
      * @return a rule
      * @throws VitamClientException
      */
-    RequestResponse<FileRulesModel> findRuleById(String ruleId, Integer tenantId, String contractName)
+    RequestResponse<FileRulesModel> findRuleById(VitamContext vitamContext, String ruleId)
         throws VitamClientException;
 
     /**
      * Find an entry contract by its id.
      * 
+     *
+     * @param vitamContext the vitam context
      * @param contractId the contract id
-     * @param tenantId tenant id
-     * @param contractName contract name
      * @return an ingest contract
      * @throws VitamClientException
      */
-    RequestResponse<IngestContractModel> findIngestContractById(String contractId, Integer tenantId, String contractName)
+    RequestResponse<IngestContractModel> findIngestContractById(VitamContext vitamContext,
+        String contractId)
         throws VitamClientException;
 
 
     /**
      * Find an access contracts by its id.
      * 
+     *
+     * @param vitamContext the vitam context
      * @param contractId the contract id
-     * @param tenantId tenant id
-     * @param contractName contract name
      * @return an access contract
      * @throws VitamClientException
      */
-    RequestResponse<AccessContractModel> findAccessContractById(String contractId, Integer tenantId, String contractName)
+    RequestResponse<AccessContractModel> findAccessContractById(VitamContext vitamContext,
+        String contractId)
         throws VitamClientException;
 
 
     /**
      * Find a context by its id
      * 
+     *
+     * @param vitamContext the vitam context
      * @param contextId the context id
-     * @param tenantId tenant id
-     * @param contractName contract name
      * @return a context
      * @throws VitamClientException
      */
-    RequestResponse<ContextModel> findContextById(String contextId, Integer tenantId, String contractName)
+    RequestResponse<ContextModel> findContextById(VitamContext vitamContext,
+        String contextId)
         throws VitamClientException;
 
     /**
      * Find a profile by its id.
      * 
+     *
+     * @param vitamContext the vitam context
      * @param profileId the profile tId
-     * @param tenantId tenant id
-     * @param contractName contract name
      * @return a profile
      * @throws VitamClientException
      */
-    RequestResponse<ProfileModel> findProfileById(String profileId, Integer tenantId, String contractName)
+    RequestResponse<ProfileModel> findProfileById(VitamContext vitamContext,
+        String profileId)
         throws VitamClientException;
 
     /**
      * Find an accession register by its id.
      * 
+     *
+     * @param vitamContext the vitam context
      * @param accessionRegisterId the accession register id
-     * @param tenantId tenant id
-     * @param contractName contract name
      * @return an accession register
      * @throws VitamClientException
      */
-    RequestResponse<AccessionRegisterSummaryModel> findAccessionRegisterById(String accessionRegisterId, Integer tenantId,
-        String contractName)
+    RequestResponse<AccessionRegisterSummaryModel> findAccessionRegisterById(
+        VitamContext vitamContext, String accessionRegisterId)
         throws VitamClientException;
     
 }

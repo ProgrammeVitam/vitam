@@ -48,9 +48,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -175,7 +174,7 @@ public class PerformanceService {
             StandardOpenOption.READ)) {
 
             RequestResponse<Void> response =
-                client.upload(sipInputStream, tenantId, DEFAULT_WORKFLOW.name(), RESUME.name());
+                client.upload(new VitamContext(tenantId), sipInputStream, DEFAULT_WORKFLOW.name(), RESUME.name());
 
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 

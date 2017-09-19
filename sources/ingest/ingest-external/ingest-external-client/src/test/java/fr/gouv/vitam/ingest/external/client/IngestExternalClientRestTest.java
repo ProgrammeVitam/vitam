@@ -52,11 +52,11 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client.VitamContext;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.CharsetUtils;
@@ -225,7 +225,7 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
             .thenReturn(Response.accepted().header(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID).build());
 
         final InputStream streamToUpload = IOUtils.toInputStream(MOCK_INPUTSTREAM_CONTENT, CharsetUtils.UTF_8);
-        RequestResponse<Void> resp = client.upload(streamToUpload, TENANT_ID, CONTEXT_ID, EXECUTION_MODE);
+        RequestResponse<Void> resp = client.upload(new VitamContext(TENANT_ID), streamToUpload, CONTEXT_ID, EXECUTION_MODE);
         assertEquals(resp.getHttpCode(), Status.ACCEPTED.getStatusCode());
     }
 
@@ -233,7 +233,7 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
     public void givenOKWhenGetOperationDetailThenReturnOK() throws VitamClientException, IllegalArgumentException {
         when(mock.get()).thenReturn(Response.status(Status.OK.getStatusCode())
             .entity(new RequestResponseOK<ItemStatus>().addResult(new ItemStatus())).build());
-        RequestResponse<ItemStatus> result = client.getOperationProcessExecutionDetails(ID, TENANT_ID);
+        RequestResponse<ItemStatus> result = client.getOperationProcessExecutionDetails(new VitamContext(TENANT_ID), ID);
         assertEquals(result.getHttpCode(), Status.OK.getStatusCode());
     }
 
@@ -241,7 +241,7 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
     public void givenOKWhenCancelOperationThenReturnOK() throws VitamClientException, IllegalArgumentException {
         when(mock.delete()).thenReturn(Response.status(Status.OK.getStatusCode())
             .entity(new RequestResponseOK<ItemStatus>().addResult(new ItemStatus())).build());
-        RequestResponse<ItemStatus> result = client.cancelOperationProcessExecution(ID, TENANT_ID);
+        RequestResponse<ItemStatus> result = client.cancelOperationProcessExecution(new VitamContext(TENANT_ID), ID);
         assertEquals(result.getHttpCode(), Status.OK.getStatusCode());
 
     }
@@ -255,7 +255,7 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
                 MediaType.APPLICATION_OCTET_STREAM_TYPE, new MultivaluedHashMap<String, Object>());
         when(mock.get()).thenReturn(fakeResponse);
         InputStream input =
-            client.downloadObjectAsync("1", IngestCollection.MANIFESTS, TENANT_ID).readEntity(InputStream.class);
+            client.downloadObjectAsync(new VitamContext(TENANT_ID), "1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
         VitamError response = JsonHandler.getFromInputStream(input, VitamError.class);
         assertEquals(Status.NOT_FOUND.getStatusCode(), response.getHttpCode());
     }
@@ -267,7 +267,7 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
 
         final InputStream fakeUploadResponseInputStream =
-            client.downloadObjectAsync("1", IngestCollection.MANIFESTS, TENANT_ID).readEntity(InputStream.class);
+            client.downloadObjectAsync(new VitamContext(TENANT_ID), "1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
         assertNotNull(fakeUploadResponseInputStream);
 
         try {
@@ -288,7 +288,7 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
                 .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
                 .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.OK)
                 .header(GlobalDataRest.X_CONTEXT_ID, "Fake").build());
-        RequestResponse<ItemStatus> resp = client.getOperationProcessStatus(ID, 0);
+        RequestResponse<ItemStatus> resp = client.getOperationProcessStatus(new VitamContext(0), ID);
         assertEquals(true, resp.isOk());
         ItemStatus itemStatus = ((RequestResponseOK<ItemStatus>) resp).getResults().get(0);
         assertEquals(StatusCode.OK, itemStatus.getGlobalStatus());
@@ -303,22 +303,22 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         when(mock.delete()).thenReturn(Response.status(Status.OK)
             .entity(new RequestResponseOK<>().addResult(new ItemStatus()).setHttpCode(Status.OK.getStatusCode()))
             .build());
-        RequestResponse<ItemStatus> resp = client.cancelOperationProcessExecution(ID, 0);
+        RequestResponse<ItemStatus> resp = client.cancelOperationProcessExecution(new VitamContext(0), ID);
         assertTrue(resp.isOk());
         assertEquals(resp.getStatus(), Status.OK.getStatusCode());
 
         when(mock.delete()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        resp = client.cancelOperationProcessExecution(ID, 0);
+        resp = client.cancelOperationProcessExecution(new VitamContext(0), ID);
         assertFalse(resp.isOk());
         assertEquals(resp.getStatus(), Status.PRECONDITION_FAILED.getStatusCode());
 
         when(mock.delete()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        resp = client.cancelOperationProcessExecution(ID, 0);
+        resp = client.cancelOperationProcessExecution(new VitamContext(0), ID);
         assertFalse(resp.isOk());
         assertEquals(resp.getStatus(), Status.UNAUTHORIZED.getStatusCode());
 
         when(mock.delete()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        resp = client.cancelOperationProcessExecution(ID, 0);
+        resp = client.cancelOperationProcessExecution(new VitamContext(0), ID);
         assertFalse(resp.isOk());
         assertEquals(resp.getStatus(), Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
@@ -329,11 +329,11 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.OK)
             .entity(new RequestResponseOK<>().addResult(new ProcessDetail()).setHttpCode(Status.OK.getStatusCode()))
             .build());
-        RequestResponse<ProcessDetail> resp = client.listOperationsDetails(0, new ProcessQuery());
+        RequestResponse<ProcessDetail> resp = client.listOperationsDetails(new VitamContext(0), new ProcessQuery());
         assertEquals(resp.getStatus(), Status.OK.getStatusCode());
 
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        RequestResponse<ProcessDetail> resp2 = client.listOperationsDetails(0, new ProcessQuery());
+        RequestResponse<ProcessDetail> resp2 = client.listOperationsDetails(new VitamContext(0), new ProcessQuery());
         assertEquals(resp2.getStatus(), Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
@@ -342,12 +342,12 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         when(mock.put()).thenReturn(Response.status(Status.OK)
             .entity(new RequestResponseOK<>().addResult(new ItemStatus()).setHttpCode(Status.OK.getStatusCode()))
             .build());
-        RequestResponse<ItemStatus> resp = client.updateOperationActionProcess("NEXT", ID, 0);
+        RequestResponse<ItemStatus> resp = client.updateOperationActionProcess(new VitamContext(0), "NEXT", ID);
         assertTrue(resp.isOk());
         assertEquals(Status.OK.getStatusCode(), resp.getStatus());
 
         when(mock.put()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        RequestResponse<ItemStatus> resp2 = client.updateOperationActionProcess("NEXT", ID, 0);
+        RequestResponse<ItemStatus> resp2 = client.updateOperationActionProcess(new VitamContext(0), "NEXT", ID);
         assertFalse(resp2.isOk());
         assertEquals(Status.INTERNAL_SERVER_ERROR.getStatusCode(), resp2.getStatus());
     }

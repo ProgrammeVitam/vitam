@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
@@ -50,50 +51,52 @@ public interface AccessExternalClient extends BasicClient {
     /**
      * selectUnits /units
      *
+     *
+     * @param vitamContext the vitam context
      * @param selectQuery the select query
-     * @param tenantId the working tenant
-     * @param contractName the contract name
      * @return Json representation
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      * @throws AccessUnauthorizedException
      */
-    RequestResponse selectUnits(JsonNode selectQuery, Integer tenantId, String contractName)
+    RequestResponse selectUnits(VitamContext vitamContext, JsonNode selectQuery)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, AccessUnauthorizedException;
 
     /**
      * selectUnitbyId GET(POST overrided) /units/{id}
      *
+     *
+     * @param vitamContext the vitam context
      * @param selectQuery the select query
      * @param unitId the unit id to select
-     * @param tenantId the working tenant
-     * @param contractName the contract name
      * @return Json representation
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      * @throws AccessUnauthorizedException
      */
-    RequestResponse selectUnitbyId(JsonNode selectQuery, String unitId, Integer tenantId, String contractName)
+    RequestResponse selectUnitbyId(VitamContext vitamContext, JsonNode selectQuery,
+        String unitId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, AccessUnauthorizedException;
 
     /**
      * updateUnitbyId UPDATE /units/{id}
      *
+     *
+     * @param vitamContext the vitam context
      * @param updateQuery the update query
      * @param unitId the unit id to update
-     * @param tenantId
-     * @param contractName the contract name
      * @return Json representation
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      * @throws AccessUnauthorizedException
      */
-    RequestResponse updateUnitbyId(JsonNode updateQuery, String unitId, Integer tenantId, String contractName)
+    RequestResponse updateUnitbyId(VitamContext vitamContext, JsonNode updateQuery,
+        String unitId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, NoWritingPermissionException, AccessUnauthorizedException;
 
@@ -102,12 +105,12 @@ public interface AccessExternalClient extends BasicClient {
      * <br>
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
+     *
+     * @param vitamContext the vitam context
      * @param selectQuery the select query
      * @param objectId the object id to get
      * @param usage kind of usage
      * @param version the version
-     * @param tenantId the working tenant
-     * @param contractName the contract name
      * @return Response including InputStream
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
@@ -116,25 +119,27 @@ public interface AccessExternalClient extends BasicClient {
      * @deprecated use getObjectByUnit
      */
     @Deprecated
-    Response getObject(JsonNode selectQuery, String objectId, String usage, int version, Integer tenantId,
-        String contractName)
+    Response getObject(VitamContext vitamContext, JsonNode selectQuery, String objectId,
+        String usage,
+        int version)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, AccessUnauthorizedException;
 
     /**
      * selectObjectById
      *
+     *
+     * @param vitamContext the vitam context
      * @param selectQuery the select query
      * @param unitId the unit id for getting object
-     * @param tenantId the working tenant
-     * @param contractName the contract name
      * @return Json representation
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      * @throws AccessUnauthorizedException
      */
-    RequestResponse selectObjectById(JsonNode selectQuery, String unitId, Integer tenantId, String contractName)
+    RequestResponse selectObjectById(VitamContext vitamContext, JsonNode selectQuery,
+        String unitId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, AccessUnauthorizedException;
 
@@ -143,100 +148,105 @@ public interface AccessExternalClient extends BasicClient {
      * <br>
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
+     *
+     * @param vitamContext the vitam context
      * @param selectQuery the select query
      * @param unitId the unit id for getting the object
      * @param usage kind of usage
      * @param version the version
-     * @param tenantId the working tenant
-     * @param contractName the contract name
      * @return Response including InputStream
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      * @throws AccessExternalClientNotFoundException
      * @throws AccessUnauthorizedException
      */
-    Response getUnitObject(JsonNode selectQuery, String unitId, String usage, int version, Integer tenantId,
-        String contractName)
+    Response getUnitObject(VitamContext vitamContext, JsonNode selectQuery, String unitId,
+        String usage,
+        int version)
         throws InvalidParseOperationException, AccessExternalClientServerException,
         AccessExternalClientNotFoundException, AccessUnauthorizedException;
 
     /**
      * selectOperation
      *
+     *
+     * @param vitamContext the vitam context
      * @param select the select query
-     * @param tenantId the working tenant
-     * @param contractName the contract name
      * @return logbookOperation representation
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      * @throws AccessUnauthorizedException
      */
-    RequestResponse<LogbookOperation> selectOperation(JsonNode select, Integer tenantId, String contractName)
+    RequestResponse<LogbookOperation> selectOperation(VitamContext vitamContext,
+        JsonNode select)
         throws VitamClientException;
 
     /**
      * selectOperationbyId
      *
+     *
+     * @param vitamContext the vitam context
      * @param processId the process id
-     * @param tenantId the working tenant
-     * @param contractName the contract name
      * @return logbookOperation representation
      * @throws VitamClientException
      */
-    RequestResponse<LogbookOperation> selectOperationbyId(String processId, Integer tenantId, String contractName)
+    RequestResponse<LogbookOperation> selectOperationbyId(VitamContext vitamContext,
+        String processId)
         throws VitamClientException;
 
     /**
      * selectUnitLifeCycleById
      *
+     *
+     * @param vitamContext the vitam context
      * @param idUnit the unit id
-     * @param tenantId the working tenant
-     * @param contractName the contract name
      * @return logbooklifecycle representation
      * @throws VitamClientException
      */
-    RequestResponse<LogbookLifecycle> selectUnitLifeCycleById(String idUnit, Integer tenantId, String contractName)
+    RequestResponse<LogbookLifecycle> selectUnitLifeCycleById(VitamContext vitamContext,
+        String idUnit)
         throws VitamClientException;
 
     /**
      * selectObjectGroupLifeCycleById
      *
+     *
+     * @param vitamContext the vitam context
      * @param idObject the object id
-     * @param tenantId the working tenant
-     * @param contractName the contract name
      * @return logbooklifecycle representation
      * @throws VitamClientException
      */
-    RequestResponse<LogbookLifecycle> selectObjectGroupLifeCycleById(String idObject, Integer tenantId,
-        String contractName)
+    RequestResponse<LogbookLifecycle> selectObjectGroupLifeCycleById(
+        VitamContext vitamContext, String idObject)
         throws VitamClientException;
 
 
     /**
      * DIP export of the unit (xml representation with SEDA schema)
      * 
+     *
+     * @param vitamContext the vitam context
      * @param queryDsl
      * @param idUnit
-     * @param tenantId
-     * @param contractName
      * @return unit with a xml representation
      * @throws AccessExternalClientServerException
      */
-    Response getUnitByIdWithXMLFormat(JsonNode queryDsl, String idUnit, Integer tenantId, String contractName)
+    Response getUnitByIdWithXMLFormat(VitamContext vitamContext, JsonNode queryDsl, String idUnit)
         throws AccessExternalClientServerException;
 
     /**
      * DIP export of the Object Group (xml representation with SEDA schema)
      * Be careful in the external you cannot access directly to the Object group
      *
+     *
+     * @param vitamContext the vitam context
      * @param queryDsl     the given query dsl
      * @param idUnit       the given unit
-     * @param tenantId     the given tenant if
-     * @param contractName the given contract Name
      * @return object group with a xml representation
      * @throws AccessExternalClientServerException
      */
-    Response getObjectGroupByIdWithXMLFormat(JsonNode queryDsl, String idUnit, Integer tenantId, String contractName)
+    Response getObjectGroupByIdWithXMLFormat(VitamContext vitamContext, JsonNode queryDsl,
+        String idUnit)
         throws AccessExternalClientServerException;
 }
 
