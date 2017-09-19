@@ -153,7 +153,11 @@ public class ParserTokens extends BuilderToken {
         /**
          * unit type bloc
          */
-        UNITTYPE("unittype"),
+        UNITTYPE("unitType"),
+        /**
+         * parents arrays
+         */
+        PARENTS("uds"),
         /**
          * Unit or GOT's list of participating operations
          */
@@ -274,6 +278,8 @@ public class ParserTokens extends BuilderToken {
                         return TENANT;
                     case "_unitType":
                         return UNITTYPE;
+                    case "_uds":
+                        return PARENTS;
                     case "_sp":
                         return ORIGINATING_AGENCY;
                     case "_sps":
@@ -363,7 +369,7 @@ public class ParserTokens extends BuilderToken {
 
         /**
          * Used in Set for Update
-         * 
+         *
          * @param name
          * @return True if attribute is an array
          */

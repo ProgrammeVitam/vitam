@@ -593,7 +593,11 @@ public abstract class BuilderToken {
         /**
          * unit type bloc
          */
-        UNITTYPE("unittype"),
+        UNITTYPE("unitType"),
+        /**
+         * parents arrays
+         */
+        PARENTS("uds"),
         /**
          * Unit or GOT's list of participating operations
          */

@@ -30,11 +30,20 @@ import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import org.bson.Document;
+import sun.security.pkcs11.wrapper.CK_VERSION;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Response filter changing _varname to corresponding #varname according to ParserTokens
  */
 public class MongoDbMetadataResponseFilter {
+
+    private static final String _ID = "_id";
+    private static final String _QUALIFIER = "_qualifiers";
+    private static final String VERSION = "versions";
 
     private MongoDbMetadataResponseFilter() {
         // Empty
@@ -55,6 +64,8 @@ public class MongoDbMetadataResponseFilter {
      */
     public static final void filterFinalResponse(MetadataDocument<?> document) {
         final boolean isUnit = document instanceof Unit;
+        //Fix me change versions
+        //filterVersions(document);
         for (final PROJECTIONARGS projection : ParserTokens.PROJECTIONARGS.values()) {
             switch (projection) {
                 case ID:
@@ -106,6 +117,12 @@ public class MongoDbMetadataResponseFilter {
                 case MANAGEMENT:
                     replace(document, Unit.MANAGEMENT, VitamFieldsHelper.management());
                     break;
+                case UNITTYPE :
+                   replace(document, Unit.UNIT_TYPE, VitamFieldsHelper.unitType());
+                    break;
+                case PARENTS:
+                    replace(document, Unit.PARENTS, VitamFieldsHelper.uds());
+                    break;
                 case ORIGINATING_AGENCY:
                     replace(document, MetadataDocument.ORIGINATING_AGENCY, VitamFieldsHelper.originatingAgency());
                     break;
@@ -127,5 +144,34 @@ public class MongoDbMetadataResponseFilter {
                     break;
             }
         }
+    }
+
+    static void filterVersions(MetadataDocument<?> document) {
+
+        if (document.get(_QUALIFIER) == null || !(document.get(_QUALIFIER) instanceof List)) {
+            return;
+        }
+        if (((List) document.get(_QUALIFIER)).size() > 0 &&
+            ((List) document.get(_QUALIFIER)).get(0) == null) {
+            return;
+
+        }
+        Document documentTmp = (Document) ((List) document.get(_QUALIFIER)).get(0);
+        
+        if (documentTmp.get(VERSION) == null) {
+            return;
+        }
+        if (((List) documentTmp.get(VERSION)).size() == 0) {
+            return;
+        }
+        List docs = ((List) documentTmp.get(VERSION));
+        for (Object doc : docs) {
+            String id = (String) ((Document) doc).remove(_ID);
+
+            if (id != null) {
+                ((Document) doc).put(PROJECTIONARGS.ID.exactToken(), id);
+            }
+        }
+
     }
 }
