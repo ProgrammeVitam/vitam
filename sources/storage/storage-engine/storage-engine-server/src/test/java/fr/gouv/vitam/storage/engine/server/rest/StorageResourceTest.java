@@ -1031,8 +1031,8 @@ public class StorageResourceTest {
         }
 
         @Override
-        public Response getContainerByCategory(String strategyId, String objectId, DataCategory category,
-            AsyncResponse asyncResponse) throws StorageNotFoundException, StorageTechnicalException {
+        public Response getContainerByCategory(String strategyId, String objectId, DataCategory category)
+            throws StorageException {
             Integer tenantId = ParameterHelper.getTenantParameter();
             if (TENANT_ID_E.equals(tenantId)) {
                 throw new StorageNotFoundException("Object not found");
@@ -1043,10 +1043,6 @@ public class StorageResourceTest {
 
             final Response response = new AbstractMockClient.FakeInboundResponse(Status.OK,
                 new ByteArrayInputStream("test".getBytes()), MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
-
-            final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
-            final ResponseBuilder responseBuilder = Response.status(Status.OK).type(MediaType.APPLICATION_OCTET_STREAM);
-            helper.writeResponse(responseBuilder);
             return response;
         }
 

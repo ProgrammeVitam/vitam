@@ -261,9 +261,8 @@ public class ProfileServiceImplTest {
         RequestResponse requestResponse = profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
         assertThat(requestResponse.isOk()).isTrue();
 
-        final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
-        profileService.downloadProfileFile(profileModel.getIdentifier(), responseAsync);
-
+        javax.ws.rs.core.Response responseDown = profileService.downloadProfileFile(profileModel.getIdentifier());
+        assertThat(responseDown.hasEntity()).isTrue();
     }
 
     @Test

@@ -50,6 +50,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.response.Response;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 
@@ -292,9 +293,8 @@ public class FunctionalAdminIT {
             new FileInputStream(PropertiesUtils.getResourceFile("functional-admin/profile_ok.xsd"));
         RequestResponse requestResponse = profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
         assertThat(requestResponse.isOk()).isTrue();
-        final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
-        profileService.downloadProfileFile(profileModel.getIdentifier(), responseAsync);
-        assertThat(responseAsync.isDone()).isTrue();
+        javax.ws.rs.core.Response responseDown = profileService.downloadProfileFile(profileModel.getIdentifier());
+        assertThat(responseDown.hasEntity()).isTrue();
     }
 
     @Test

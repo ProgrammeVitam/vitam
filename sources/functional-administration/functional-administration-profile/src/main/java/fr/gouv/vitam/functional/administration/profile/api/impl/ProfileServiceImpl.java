@@ -25,14 +25,18 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.IOUtils;
 
@@ -66,7 +70,7 @@ import fr.gouv.vitam.common.model.administration.ProfileFormat;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -122,6 +126,7 @@ public class ProfileServiceImpl implements ProfileService {
      * Constructor
      *
      * @param mongoAccess MongoDB client
+     * @param workspaceClientFactory 
      * @param vitamCounterService
      */
     public ProfileServiceImpl(MongoDbAccessAdminImpl mongoAccess, WorkspaceClientFactory workspaceClientFactory,
@@ -435,7 +440,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public void downloadProfileFile(String profileIdentifier, AsyncResponse asyncResponse)
+    public Response downloadProfileFile(String profileIdentifier)
         throws ProfileNotFoundException, InvalidParseOperationException, ReferentialException {
 
         final ProfileModel profileMetadata = findByIdentifier(profileIdentifier);
@@ -458,13 +463,11 @@ public class ProfileServiceImpl implements ProfileService {
 
             final Response response = storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY,
                 profileMetadata.getPath(), StorageCollectionType.PROFILES);
-
-            final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
-            helper.writeResponse(Response
-                .ok()
-                .header("Content-Disposition", "filename=" + profileMetadata.getPath())
-                .header("Content-Type", "application/octet-stream"));
-
+            Map<String, String> headers = new HashMap<>();
+            headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
+            headers.put(HttpHeaders.CONTENT_DISPOSITION, "filename=" + profileMetadata.getPath());
+            return new VitamAsyncInputStreamResponse(response,
+                Status.OK, headers);
         } catch (final StorageServerClientException e) {
             LOGGER.error(e.getMessage(), e);
             throw new ReferentialException(e);

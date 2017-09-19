@@ -26,10 +26,29 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.core;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
+
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.api.DataCategory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalException;
@@ -71,7 +90,7 @@ import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
@@ -114,23 +133,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 
 /**
@@ -153,9 +155,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String UNIT_CHECK_RULES = "UNIT_METADATA_UPDATE_CHECK_RULES";
     private static final String UNIT_METADATA_STORAGE = "UNIT_METADATA_STORAGE";
     private static final String _DIFF = "$diff";
-    private static final String _ID = "_id";
     private static final String RESULTS = "$results";
-    private static final String MIME_TYPE = "MimeType";
     private static final String METADATA_INTERNAL_SERVER_ERROR = "Metadata internal server error";
     private static final String LOGBOOK_OPERATION_ALREADY_EXISTS = "logbook operation already exists";
     private static final String LOGBOOK_CLIENT_BAD_REQUEST_ERROR = "logbook client bad request error";
@@ -324,7 +324,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     }
 
     @Override
-    public void getOneObjectFromObjectGroup(AsyncResponse asyncResponse, String idObjectGroup,
+    public Response getOneObjectFromObjectGroup(String idObjectGroup,
         JsonNode queryJson, String qualifier, int version)
         throws MetaDataNotFoundException, StorageNotFoundException, AccessInternalExecutionException,
         InvalidParseOperationException {
@@ -402,13 +402,12 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         try {
             final Response response = storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, objectId,
                 StorageCollectionType.OBJECTS);
-            final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
-            final ResponseBuilder responseBuilder =
-                Response.status(Status.OK).header(GlobalDataRest.X_QUALIFIER, qualifier)
-                    .header(GlobalDataRest.X_VERSION, version)
-                    .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
-                    .type(mimetype);
-            helper.writeResponse(responseBuilder);
+            Map<String, String> headers = new HashMap<>();
+            headers.put(HttpHeaders.CONTENT_TYPE, mimetype);
+            headers.put(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
+            headers.put(GlobalDataRest.X_QUALIFIER, qualifier);
+            headers.put(GlobalDataRest.X_VERSION, Integer.toString(version));
+            return new VitamAsyncInputStreamResponse(response, Status.OK, headers);
         } catch (final StorageServerClientException e) {
             throw new AccessInternalExecutionException(e);
         } finally {
@@ -611,8 +610,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     logbookLCParamEnd.putParameterValue(LogbookParameterName.eventDetailData,
                         detailsFromStorageInfo(storedInfoResult));
                 } else {
-                    logbookLCParamEnd
-                        .putParameterValue(LogbookParameterName.eventDetailData, getDiffMessageFor(jsonNode, idUnit));
+                    logbookLCParamEnd.putParameterValue(LogbookParameterName.eventDetailData,
+                        getDiffMessageFor(jsonNode, idUnit));
                 }
                 logbookLifeCycleClient.update(logbookLCParamEnd);
 
@@ -1002,10 +1001,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     }
 
     /**
-     * Check if there is update actions on rules. If not no updates/checks on the query.
-     * SetActions on rules are removed for the request because they will be computed for endDate and reinserted later
-     *
-     * @param request              The initial request
+     * Check if there is update actions on rules. If not no updates/checks on the query. SetActions on rules are removed
+     * for the request because they will be computed for endDate and reinserted later
+     * 
+     * @param request The initial request
      * @param deletedCategoryRules The returned list of deleted Rules (Must be initialized)
      * @param updatedCategoryRules The returned list of updated Rules (Must be initialized)
      */
@@ -1035,8 +1034,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     Iterator<String> fields = object.fieldNames();
                     while (fields.hasNext()) {
                         String field = fields.next();
-                        if (field.startsWith(MANAGEMENT_PREFIX)
-                            &&
+                        if (field.startsWith(MANAGEMENT_PREFIX) &&
                             VitamConstants.getSupportedRules().contains(field.substring(MANAGEMENT_PREFIX.length()))) {
                             // Set a ruleCategory
                             updatedCategoryRules.put(field.substring(MANAGEMENT_PREFIX.length()), object.get(field));

@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.util.List;
 
 import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -77,10 +78,10 @@ public interface ProfileService extends VitamAutoCloseable {
      * download file corresponding to profileIdentifier
      *
      * @param profileIdentifier
-     * @param asyncResponse
+     * @return Response
      * @throws VitamException
      */
-    void downloadProfileFile(String profileIdentifier, AsyncResponse asyncResponse)
+    Response downloadProfileFile(String profileIdentifier)
         throws ProfileNotFoundException, InvalidParseOperationException, ReferentialException;
 
     /**

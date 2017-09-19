@@ -476,19 +476,19 @@ public class StorageDistributionImplTest {
     public void testGetContainerByCategoryIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         try {
-            simpleDistribution.getContainerByCategory(null, null, null, new AsyncResponseJunitTest());
+            simpleDistribution.getContainerByCategory(null, null, null);
             fail("Exception excepted");
         } catch (final IllegalArgumentException exc) {
             // nothing, exception needed
         }
         try {
-            simpleDistribution.getContainerByCategory(null, null, null, new AsyncResponseJunitTest());
+            simpleDistribution.getContainerByCategory(null, null, null);
             fail("Exception excepted");
         } catch (final IllegalArgumentException exc) {
             // nothing, exception needed
         }
         try {
-            simpleDistribution.getContainerByCategory(STRATEGY_ID, null, null, new AsyncResponseJunitTest());
+            simpleDistribution.getContainerByCategory(STRATEGY_ID, null, null);
             fail("Exception excepted");
         } catch (final IllegalArgumentException exc) {
             // nothing, exception needed
@@ -499,7 +499,7 @@ public class StorageDistributionImplTest {
     @Test
     public void testGetContainerByCategoryNotFoundException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        simpleDistribution.getContainerByCategory(STRATEGY_ID, "0", DataCategory.OBJECT, new AsyncResponseJunitTest());
+        simpleDistribution.getContainerByCategory(STRATEGY_ID, "0", DataCategory.OBJECT);
     }
 
     @RunWithCustomExecutor

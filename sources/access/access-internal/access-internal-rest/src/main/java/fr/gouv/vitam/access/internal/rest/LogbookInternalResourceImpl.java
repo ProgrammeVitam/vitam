@@ -26,6 +26,27 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.rest;
 
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.bson.Document;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
@@ -53,8 +74,7 @@ import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -85,23 +105,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.bson.Document;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
 
@@ -432,16 +435,19 @@ public class LogbookInternalResourceImpl {
         }
     }
 
+    /**
+     * @param operationId
+     * @return traceability operation stream
+     */
     @GET
     @Path("/traceability/{idOperation}/content")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void downloadTraceabilityOperation(@PathParam("idOperation") String operationId,
-        @Suspended final AsyncResponse asyncResponse) {
+    public Response downloadTraceabilityOperation(@PathParam("idOperation") String operationId) {
 
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> downloadObjectAsync(asyncResponse, operationId));
+        return downloadObject(operationId);
     }
 
-    private void downloadObjectAsync(final AsyncResponse asyncResponse, String operationId) {
+    private Response downloadObject(String operationId) {
 
         // Get the TRACEABILITY operation
         LogbookOperation operationToCheck = null;
@@ -460,9 +466,8 @@ public class LogbookInternalResourceImpl {
             List<ObjectNode> foundOperation = requestResponseOK.getResults();
             if (foundOperation == null || foundOperation.isEmpty() || foundOperation.size() > 1) {
                 // More than operation found return BAD_REQUEST response
-                AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorStream(Status.BAD_REQUEST, "Operation not found")).build());
-                return;
+                return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorStream(Status.BAD_REQUEST, "Operation not found")).build();
             }
 
             operationToCheck = new LogbookOperation(foundOperation.get(0));
@@ -471,17 +476,14 @@ public class LogbookInternalResourceImpl {
             // Check if it a traceability operation
             if (!LogbookTypeProcess.TRACEABILITY.equals(LogbookTypeProcess.valueOf(operationType))) {
                 // It wasn't a traceability operation
-                AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorStream(Status.BAD_REQUEST, "Not a traceability operation")).build());
-                return;
+                return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorStream(Status.BAD_REQUEST, "Not a traceability operation")).build();
             }
         } catch (InvalidParseOperationException | InvalidCreateOperationException | LogbookClientException |
             IllegalArgumentException e) {
             LOGGER.error(e.getMessage(), e);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build());
-            return;
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
         }
 
         // A valid operation found : download the related file
@@ -511,29 +513,26 @@ public class LogbookInternalResourceImpl {
             // Get zip file
             final Response response =
                 storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, fileName, StorageCollectionType.LOGBOOKS);
-
-            final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             if (response.getStatus() == Status.OK.getStatusCode()) {
-                helper.writeResponse(Response
-                    .ok()
-                    .header("Content-Disposition", "filename=" + fileName)
-                    .header("Content-Type", "application/octet-stream"));
+                Map<String, String> headers = new HashMap<>();
+                headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
+                headers.put(HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileName);
+                return new VitamAsyncInputStreamResponse(response,
+                    Status.OK, headers);
             } else {
-                helper.writeResponse(Response.status(response.getStatus()));
+                Status status = (Status) response.getStatusInfo();
+                storageClient.consumeAnyEntityAndClose(response);
+                return Response.status(status).build();
             }
 
         } catch (StorageServerClientException | StorageNotFoundException e) {
             LOGGER.error(e.getMessage(), e);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build());
-            return;
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e.getMessage(), e);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build());
-            return;
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
         }
     }
 

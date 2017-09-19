@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -73,15 +72,13 @@ public interface DefaultOfferService {
      *            the container containing the object
      * @param objectId
      *            the object id
-     * @param asyncResponse
-     *            the async Response
      * @return the object included in a response
      * @throws ContentAddressableStorageNotFoundException
      *             thrown when object does not exists
      * @throws ContentAddressableStorageException
      *             thrown when a server error occurs
      */
-    Response getObject(String containerName, String objectId, AsyncResponse asyncResponse)
+    Response getObject(String containerName, String objectId)
             throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
@@ -291,6 +288,7 @@ public interface DefaultOfferService {
      * @return a list of next values
      * @throws ContentAddressableStorageNotFoundException
      *             thrown when the container cannot be located
+     * @throws ContentAddressableStorageServerException 
      */
     List<JsonNode> next(String containerName, String cursorId) throws ContentAddressableStorageNotFoundException,ContentAddressableStorageServerException;
 

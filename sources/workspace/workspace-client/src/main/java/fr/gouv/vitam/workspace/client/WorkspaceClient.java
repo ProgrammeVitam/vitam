@@ -316,39 +316,6 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
-    public void getObjectAsync(String containerName, String objectName, AsyncResponse asyncResponse)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-            containerName, objectName);
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.GET, CONTAINERS + containerName + OBJECTS + objectName, null,
-                MediaType.APPLICATION_OCTET_STREAM_TYPE);
-            if (response.getStatus() == Response.Status.OK.getStatusCode()) {
-                final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
-                final ResponseBuilder responseBuilder =
-                    Response.status(response.getStatus()).type(MediaType.APPLICATION_OCTET_STREAM);
-                helper.writeResponse(responseBuilder);
-                return;
-            }
-            if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
-                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
-                throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
-            } else {
-                LOGGER.error(response.getStatusInfo().getReasonPhrase());
-                throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
-            }
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(INTERNAL_SERVER_ERROR2, e);
-            throw new ContentAddressableStorageServerException(e);
-
-        } finally {
-            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
-                consumeAnyEntityAndClose(response);
-            }
-        }
-    }
-
     public void deleteObject(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
 

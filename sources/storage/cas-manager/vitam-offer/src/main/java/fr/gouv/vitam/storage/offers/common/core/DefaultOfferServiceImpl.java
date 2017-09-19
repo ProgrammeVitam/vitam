@@ -34,10 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.jclouds.blobstore.domain.PageSet;
 import org.jclouds.blobstore.domain.StorageMetadata;
@@ -53,10 +50,10 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
@@ -115,13 +112,10 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public Response getObject(String containerName, String objectId, AsyncResponse asyncResponse)
+    public Response getObject(String containerName, String objectId)
             throws ContentAddressableStorageException {
-        final Response response = defaultStorage.getObjectAsync(containerName, objectId, asyncResponse);
-        final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
-        final ResponseBuilder responseBuilder = Response.status(response.getStatus()).type(MediaType.APPLICATION_OCTET_STREAM);
-        helper.writeResponse(responseBuilder);
-        return response;
+        final Response response = defaultStorage.getObjectAsync(containerName, objectId);
+        return new VitamAsyncInputStreamResponse(response);
     }
 
     @Override

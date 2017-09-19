@@ -84,6 +84,7 @@ import fr.gouv.vitam.common.security.rest.Secured;
 import fr.gouv.vitam.common.security.rest.Unsecured;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
@@ -109,6 +110,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * Constructor IngestExternalResource
      *
      * @param ingestExternalConfiguration the configuration of server resource
+     * @param secureEndpointRegistry 
      */
     public IngestExternalResource(
             IngestExternalConfiguration ingestExternalConfiguration,
@@ -122,6 +124,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
 
     /**
      * List secured resource end points
+     * @return response
      */
     @Path("/")
     @OPTIONS
@@ -200,16 +203,14 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
      * @param objectId the id of object to download
-     * @param asyncResponse the asynchronized response
+     * @return response
      */
     @GET
     @Path("/ingests/{objectId}/reports")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Secured(permission = "ingests:id:reports:read", description = "Récupérer l'accusé de récéption pour une opération d'entrée donnée")
-    public void downloadIngestReportsAsStream(@PathParam("objectId") String objectId,
-                                       @Suspended final AsyncResponse asyncResponse) {
-        VitamThreadPoolExecutor.getDefaultExecutor()
-                .execute(() -> downloadObjectAsync(asyncResponse, objectId, IngestCollection.REPORTS));
+    public Response downloadIngestReportsAsStream(@PathParam("objectId") String objectId) {
+        return downloadObjectAsync(objectId, IngestCollection.REPORTS);
     }
 
     /**
@@ -222,56 +223,47 @@ public class IngestExternalResource extends ApplicationStatusResource {
      *
      * @param objectId the id of object to download
      * @param asyncResponse the asynchronized response
+     * @return response
      *
      */
     @GET
     @Path("/ingests/{objectId}/manifests")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Secured(permission = "ingests:id:manifests:read", description = "Récupérer le bordereau de versement pour une opération d'entrée donnée")
-    public void downloadIngestManifestsAsStream(@PathParam("objectId") String objectId,
-        @Suspended final AsyncResponse asyncResponse) {
-        VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> downloadObjectAsync(asyncResponse, objectId, IngestCollection.MANIFESTS));
+    public Response downloadIngestManifestsAsStream(@PathParam("objectId") String objectId) {
+        return downloadObjectAsync(objectId, IngestCollection.MANIFESTS);
     }
 
-    private void downloadObjectAsync(final AsyncResponse asyncResponse, String objectId,
-             IngestCollection collection) {
+    private Response downloadObjectAsync(String objectId, IngestCollection collection) {
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
             final Response response = ingestInternalClient.downloadObjectAsync(objectId, collection);
-            final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
-            helper.writeResponse(Response.status(response.getStatus()));
-
+            return new VitamAsyncInputStreamResponse(response);
         } catch (IllegalArgumentException e) {
             LOGGER.error("IllegalArgumentException was thrown : ", e);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.BAD_REQUEST)
+            return Response.status(Status.BAD_REQUEST)
                     .entity(getErrorStream(
                         VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_BAD_REQUEST, e.getLocalizedMessage())))
-                    .build());
+                    .build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Predicates Failed Exception", e);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.PRECONDITION_FAILED)
+            return Response.status(Status.PRECONDITION_FAILED)
                     .entity(getErrorStream(
                         VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_PRECONDITION_FAILED,
                             e.getLocalizedMessage())))
-                    .build());
+                    .build();
         } catch (final IngestInternalClientServerException e) {
             LOGGER.error("Internal Server Exception ", e);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.INTERNAL_SERVER_ERROR)
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
                     .entity(getErrorStream(
                         VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_SERVER_ERROR,
                             e.getLocalizedMessage())))
-                    .build());
+                    .build();
         } catch (final IngestInternalClientNotFoundException e) {
             LOGGER.error("Request resources does not exits", e);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.NOT_FOUND)
+            return Response.status(Status.NOT_FOUND)
                     .entity(getErrorStream(
                         VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_NOT_FOUND, e.getLocalizedMessage())))
-                    .build());
-
+                    .build();
         }
     }
 
@@ -493,48 +485,37 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "operations:id:update #1", description = "Changer le statut d'une opération donnée")
-    public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id,
-        @Suspended final AsyncResponse asyncResponse) {
-
+    public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id) {
         ParametersChecker.checkParameter("ACTION Request must not be null",
             headers.getRequestHeader(GlobalDataRest.X_ACTION));
 
         final String xAction = headers.getRequestHeader(GlobalDataRest.X_ACTION).get(0);
-        VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> updateOperationActionProcessAsync(asyncResponse, id, xAction));
-
-        return Response.status(Status.OK).build();
+        return updateOperationActionProcessAsync(id, xAction);
     }
 
-    private void updateOperationActionProcessAsync(final AsyncResponse asyncResponse, String operationId,
-        String action) {
+    private Response updateOperationActionProcessAsync(String operationId, String action) {
 
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
             VitamThreadUtils.getVitamSession().setRequestId(operationId);
             RequestResponse<ItemStatus> itemStatusRequestResponse =
                 ingestInternalClient.updateOperationActionProcess(action, operationId);
-            Response response = itemStatusRequestResponse.toResponse();
-
-            AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
-            helper.writeAsyncResponse(Response.fromResponse(response), Status.fromStatusCode(response.getStatus()));
+            return itemStatusRequestResponse.toResponse();
         } catch (final ProcessingException e) {
             LOGGER.error("Unauthorized action for update ", e);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, VitamCodeHelper
-                .toVitamError(VitamCode.INGEST_EXTERNAL_UNAUTHORIZED, e.getLocalizedMessage()).toResponse());
+            return VitamCodeHelper
+                .toVitamError(VitamCode.INGEST_EXTERNAL_UNAUTHORIZED, e.getLocalizedMessage()).toResponse();
         } catch (InternalServerException e) {
             LOGGER.error("Could not update operation process ", e);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, VitamCodeHelper
-                .toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_SERVER_ERROR, e.getLocalizedMessage()).toResponse());
+            return VitamCodeHelper
+                .toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_SERVER_ERROR, e.getLocalizedMessage()).toResponse();
         } catch (VitamClientException e) {
             LOGGER.error("Client exception while trying to update operation process ", e);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_CLIENT_ERROR, e.getLocalizedMessage())
-                    .toResponse());
+            return VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_CLIENT_ERROR, e.getLocalizedMessage())
+                    .toResponse();
         } catch (BadRequestException e) {
             LOGGER.error("Request invalid while trying to update operation process ", e);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_BAD_REQUEST, e.getLocalizedMessage())
-                    .toResponse());
+            return VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_BAD_REQUEST, e.getLocalizedMessage())
+                    .toResponse();
         }
     }
 

@@ -30,7 +30,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -42,12 +44,9 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -60,14 +59,13 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -510,21 +508,15 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * @param containerName name of container
      * @param objectName name of object
      * @param asyncResponse response async
+     * @return response
      * @throws IOException when there is an error of get object
      */
     @Path("/containers/{containerName}/objects/{objectName:.*}")
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public void getObject(@PathParam(CONTAINER_NAME) String containerName,
-        @PathParam(OBJECT_NAME) String objectName,
-        @Suspended final AsyncResponse asyncResponse) {
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
-
-            @Override
-            public void run() {
-                getObjectAsync(containerName, objectName, asyncResponse);
-            }
-        });
+    public Response getObject(@PathParam(CONTAINER_NAME) String containerName,
+        @PathParam(OBJECT_NAME) String objectName) {
+        return getObjectResponse(containerName, objectName);
     }
 
     /**
@@ -618,33 +610,27 @@ public class WorkspaceResource extends ApplicationStatusResource {
         }
     }
 
-    private void getObjectAsync(String containerName, String objectName, AsyncResponse asyncResponse) {
-
-        AsyncInputStreamHelper helper = null;
+    private Response getObjectResponse(String containerName, String objectName) {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, objectName);
 
             Response response = workspace.getObject(containerName, objectName);
-            helper = new AsyncInputStreamHelper(asyncResponse, (InputStream) response.getEntity());
-            final ResponseBuilder responseBuilder = Response.status(Status.OK).type(MediaType.APPLICATION_OCTET_STREAM)
-                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
-                    response.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
-            helper.writeResponse(responseBuilder);
-
-
+            Map<String, String> headers = new HashMap<>();
+            headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
+            headers.put(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
+                response.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
+            return new VitamAsyncInputStreamResponse(response,
+                Status.OK, headers);
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build());
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + containerName, e);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.NOT_FOUND).entity(containerName).build());
+            return Response.status(Status.NOT_FOUND).entity(containerName).build();
         } catch (final ContentAddressableStorageException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build());
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
 
     }

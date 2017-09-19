@@ -28,8 +28,6 @@ package fr.gouv.vitam.access.internal.api;
 
 
 import javax.ws.rs.PathParam;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -114,9 +112,9 @@ public interface AccessInternalResource extends VitamResource {
      * @param headers
      * @param idObjectGroup
      * @param query
-     * @param asyncResponse
+     * @return response
      */
-    void getObjectStreamAsync(@Context HttpHeaders headers, @PathParam("id_object_group") String idObjectGroup,
-        JsonNode query, @Suspended final AsyncResponse asyncResponse);
+    Response getObjectStreamAsync(@Context HttpHeaders headers, @PathParam("id_object_group") String idObjectGroup,
+        JsonNode query);
 
 }

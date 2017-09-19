@@ -62,7 +62,6 @@ public class AccessResourceMock implements AccessInternalResource {
     /**
      * get units list
      */
-    @Override
     @GET
     @Path("/units")
     public Response getUnits(JsonNode dslQuery) {
@@ -72,14 +71,12 @@ public class AccessResourceMock implements AccessInternalResource {
     /**
      * get unit list by unit id
      */
-    @Override
     @GET
     @Path("/units/{id_unit}")
     public Response getUnitById(JsonNode dslQuery, @PathParam("id_unit") String id_unit) {
         return Response.status(200).entity("{\"unit\" = \"OK_MockUnits\"}").build();
     }
 
-    @Override
     @GET
     @Path("/units/{id_unit}")
     public Response getUnitByIdWithXMLFormat(JsonNode dslQuery, String unitId) {
@@ -112,7 +109,6 @@ public class AccessResourceMock implements AccessInternalResource {
      * @param unit_id units identifier
      * @return a archive unit result list
      */
-    @Override
     @PUT
     @Path("/units/{id_unit}")
     public Response updateUnitById(JsonNode dslQuery, @PathParam("id_unit") String unit_id,
@@ -120,7 +116,6 @@ public class AccessResourceMock implements AccessInternalResource {
         return Response.status(200).entity("{\"unit\" = \"OK_MockUnits\"}").build();
     }
 
-    @Override
     @GET
     @Path("/objects/{id_object_group}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -129,10 +124,8 @@ public class AccessResourceMock implements AccessInternalResource {
         return Response.status(200).entity("{\"objectGroup\":\"OK_MockObjectGroup\"}").build();
     }
 
-    @Override
-    public void getObjectStreamAsync(HttpHeaders headers, String idObjectGroup, JsonNode query,
-        AsyncResponse asyncResponse) {
-        asyncResponse.resume(Response.status(200).entity("{\"objectGroup\":\"OK_MockObjectGroup\"}").build());
+    public Response getObjectStreamAsync(HttpHeaders headers, String idObjectGroup, JsonNode query) {
+        return Response.status(200).entity("{\"objectGroup\":\"OK_MockObjectGroup\"}").build();
     }
 
 }

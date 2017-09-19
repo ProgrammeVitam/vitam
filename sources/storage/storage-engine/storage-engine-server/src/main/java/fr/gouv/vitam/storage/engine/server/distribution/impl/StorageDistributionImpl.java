@@ -50,7 +50,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.stream.MultiplePipedInputStream;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -104,10 +103,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.FileInputStream;
@@ -953,8 +949,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @Override
-    public Response getContainerByCategory(String strategyId, String objectId, DataCategory category,
-        AsyncResponse asyncResponse)
+    public Response getContainerByCategory(String strategyId, String objectId, DataCategory category)
         throws StorageException {
         // Check input params
         Integer tenantId = ParameterHelper.getTenantParameter();
@@ -973,7 +968,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 throw new StorageTechnicalException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
             }
             final StorageGetResult result =
-                getGetObjectResult(tenantId, objectId, category, offerReferences, asyncResponse);
+                getGetObjectResult(tenantId, objectId, category, offerReferences);
             return result.getObject();
         }
         LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
@@ -981,7 +976,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     private StorageGetResult getGetObjectResult(Integer tenantId, String objectId, DataCategory type,
-        List<OfferReference> offerReferences, AsyncResponse asyncResponse) throws StorageException {
+        List<OfferReference> offerReferences) throws StorageException {
         StorageGetResult result;
         boolean offerOkNoBinary = false;
         for (final OfferReference offerReference : offerReferences) {
@@ -991,10 +986,6 @@ public class StorageDistributionImpl implements StorageDistribution {
                 final StorageObjectRequest request = new StorageObjectRequest(tenantId, type.getFolder(), objectId);
                 result = connection.getObject(request);
                 if (result.getObject() != null) {
-                    final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, result.getObject());
-                    final ResponseBuilder responseBuilder =
-                        Response.status(Status.OK).type(MediaType.APPLICATION_OCTET_STREAM);
-                    helper.writeResponse(responseBuilder);
                     return result;
                 }
             } catch (final fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException exc) {
