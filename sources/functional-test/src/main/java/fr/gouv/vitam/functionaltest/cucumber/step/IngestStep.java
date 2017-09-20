@@ -26,37 +26,13 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.FILING_SCHEME;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.HOLDING_SCHEME;
-import static java.lang.String.format;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.core.Response;
-
-import fr.gouv.vitam.common.client.VitamContext;
-import org.assertj.core.api.AutoCloseableSoftAssertions;
-import org.assertj.core.api.Fail;
-
 import com.google.common.collect.Iterables;
-
 import cucumber.api.java.After;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -72,7 +48,29 @@ import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
+import fr.gouv.vitam.ingest.external.client.VitamPoolingClient;
 import fr.gouv.vitam.tools.SipTool;
+import org.assertj.core.api.AutoCloseableSoftAssertions;
+import org.assertj.core.api.Fail;
+
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.FILING_SCHEME;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.HOLDING_SCHEME;
+import static java.lang.String.format;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 
 public class IngestStep {
 
@@ -113,7 +111,8 @@ public class IngestStep {
                 .upload(new VitamContext(world.getTenantId()), inputStream, DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
             world.setOperationId(operationId);
-            boolean process_timeout = world.getIngestClient()
+            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getIngestClient());
+            boolean process_timeout = vitamPoolingClient
                 .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
             if (!process_timeout) {
                 fail("Sip processing not finished. Timeout exeedeed.");
@@ -139,7 +138,8 @@ public class IngestStep {
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
             world.setOperationId(operationId);
-            boolean process_timeout = world.getIngestClient()
+            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getIngestClient());
+            boolean process_timeout = vitamPoolingClient
                 .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 200, 1_000L, TimeUnit.MILLISECONDS);
             if (!process_timeout) {
                 fail("Sip processing not finished. Timeout exeedeed.");
@@ -166,7 +166,8 @@ public class IngestStep {
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
             world.setOperationId(operationId);
-            boolean process_timeout = world.getIngestClient()
+            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getIngestClient());
+            boolean process_timeout = vitamPoolingClient
                 .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
             if (!process_timeout) {
                 fail("Sip processing not finished. Timeout exeedeed.");
@@ -258,7 +259,7 @@ public class IngestStep {
      * check if the outcome detail is valid for an event type according to logbook operation
      *
      * @param eventName the event
-     * @param eventResult otucome detail of the event
+     * @param eventResults otucome detail of the event
      * @throws VitamClientException
      * @throws InvalidParseOperationException
      */

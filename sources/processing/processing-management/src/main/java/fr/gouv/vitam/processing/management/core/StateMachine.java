@@ -230,10 +230,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
      * Change state of the process to pause Can be called only from running state If last step then change state to
      * completed
      *
-     * @param wait if true wait until process is completed or until pauseCancelAction is ACTION_PAUSE or ACTION_CANCEL
-     * @param nbTry
-     * @param timeWait
-     * @param timeUnit
+     * @param pauseRecover if RECOVER_FROM_SERVER_PAUSE then wait until pause is done
      * @throws StateNotAllowedException
      */
     protected void doPause(PauseRecover pauseRecover)

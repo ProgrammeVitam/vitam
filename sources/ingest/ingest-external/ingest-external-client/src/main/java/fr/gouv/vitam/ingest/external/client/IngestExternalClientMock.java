@@ -26,18 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
-import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
-
-import java.io.InputStream;
-import java.util.concurrent.TimeUnit;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.external.client.IngestCollection;
@@ -45,7 +36,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
-import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -53,6 +43,12 @@ import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+
+import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 
 /**
  * Mock client implementation for IngestExternal
@@ -135,27 +131,5 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     @Override
     public RequestResponse<WorkFlow> getWorkflowDefinitions(VitamContext vitamContext) throws VitamClientException {
         return new RequestResponseOK<WorkFlow>().addResult(new WorkFlow()).setHttpCode(Status.OK.getStatusCode());
-    }
-
-    @Override
-    public boolean wait(int tenantId, String processId, ProcessState state, int nbTry, long timeout, TimeUnit timeUnit)
-        throws VitamException {
-        return true;
-    }
-
-    @Override
-    public boolean wait(int tenantId, String processId, int nbTry, long timeout, TimeUnit timeUnit)
-        throws VitamException {
-        return true;
-    }
-
-    @Override
-    public boolean wait(int tenantId, String processId, ProcessState state) throws VitamException {
-        return true;
-    }
-
-    @Override
-    public boolean wait(int tenantId, String processId) throws VitamException {
-        return true;
     }
 }
