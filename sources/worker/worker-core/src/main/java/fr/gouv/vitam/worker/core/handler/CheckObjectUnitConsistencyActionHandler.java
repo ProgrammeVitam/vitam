@@ -61,7 +61,7 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
     private static final int OBJECTGROUP_TO_GUID_MAP_RANK = 1;
     private static final int OBJECTGROUP_TO_UNIT_MAP_RANK = 0;
     private static final String HANDLER_ID = "CHECK_CONSISTENCY";
-    private static final String SUBTASK_ORPHAN = "CHECK_CONSISTANCY_ORPHAN_OBJECT";
+    private static final String SUBTASK_ORPHAN = "CHECK_CONSISTENCY_ORPHAN_OBJECT";
 
     private HandlerIO handlerIO;
     private final List<Class<?>> handlerInitialIOList = new ArrayList<>();

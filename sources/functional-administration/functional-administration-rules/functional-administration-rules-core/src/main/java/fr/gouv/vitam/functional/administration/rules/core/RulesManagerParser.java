@@ -45,7 +45,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * RulesManagerParser Manage the parse of a CSV file
- *
  */
 
 public class RulesManagerParser {
@@ -61,26 +60,32 @@ public class RulesManagerParser {
      * readObjectsFromCsvWriteAsArrayNode : read objects from a csv file and write it as array node
      *
      * @param fileToParse rule file to read
-     * @return ArrayNode json of rules date 
-     * @throws IOException when read file exception occurred
+     * @return ArrayNode json of rules date
+     * @throws IOException                    when read file exception occurred
      * @throws InvalidParseOperationException when json parse exception occurred
      */
     public static ArrayNode readObjectsFromCsvWriteAsArrayNode(File fileToParse) throws IOException,
         InvalidParseOperationException {
         SimpleDateFormat formater = null;
-        final Date aujourdhui = new Date();
+        final Date now = new Date();
         final CsvSchema bootstrap = CsvSchema.emptySchema().withHeader();
         final CsvMapper csvMapper = new CsvMapper();
         final MappingIterator<Map<?, ?>> mappingIterator =
             csvMapper.readerFor(Map.class).with(bootstrap).readValues(fileToParse);
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
         final List<Map<?, ?>> data = mappingIterator.readAll();
-        for (final Map<?, ?> c : data) {
+        for (Map<?, ?> c : data) {
             final JsonNode node = JsonHandler.toJsonNode(c);
+            //Trim withe space
+            String ruleId = node.get("RuleId").asText();
+            String escaped = ruleId.replaceAll("\"", " ");
+            String trimmed = escaped.trim();
             final ObjectNode result = (ObjectNode) node;
+            result.put("RuleId", trimmed);
+
             formater = new SimpleDateFormat("yyyy-MM-dd");
-            result.put("CreationDate", formater.format(aujourdhui).toString());
-            result.put("UpdateDate", formater.format(aujourdhui).toString());
+            result.put("CreationDate", formater.format(now).toString());
+            result.put("UpdateDate", formater.format(now).toString());
             arrayNode.add(result);
         }
         return arrayNode;
