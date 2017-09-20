@@ -57,7 +57,6 @@ import fr.gouv.vitam.common.model.administration.AbstractContractModel;
  *
  * @param <T>
  */
-@FunctionalInterface
 public interface GenericContractValidator<T extends AbstractContractModel> {
 
 
@@ -79,6 +78,8 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
         public static String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating contracts (%s)";
         public static String ERR_DUPLICATE_CONTRACT = "The contract %s already exists in database";
         public static String ERR_ARCHIVEPROFILE_NOT_FOUND_CONTRACT = "One or multiple archive profiles or the contract %s not found in db";
+        public static String ERR_CONTRACT_EXCEPTION_OCCURRED = "Exception while validate contract (%s), %s : %s";
+        public static String ERR_CONTRACT_ROOT_UNITS_NOT_FOUND = "Error while validate contract (%s), RootUnits (%s) not found in database";
         public static String ERR_INVALID_FIELD = "The field %s has an invalid format";
         public static String ERR_MANDATORY_FIELD = "The field %s is mandatory";
         public static String ERR_WRONG_FILING_PARENT_ID = "the id of the AU %s is not in filing schema";
@@ -141,6 +142,27 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
         }
 
         /**
+         * Generate RejectionCause from any throwable
+         * @param contractName the contract name or identifier
+         * @param msg custom message
+         * @param e throwable
+         * @return GenericRejectionCause
+         */
+        public static GenericRejectionCause rejectExceptionOccurred(String contractName, String msg, Throwable e) {
+            return new GenericRejectionCause(String.format(ERR_CONTRACT_EXCEPTION_OCCURRED , contractName, msg, e.getMessage()));
+        }
+
+        /**
+         * Generate RejectionCause for not found unit for given GUID
+         * @param contractName the contract name or identifier
+         * @param guidArrayAsString root units as string (guid array as string)
+         * @return GenericRejectionCause
+         */
+        public static GenericRejectionCause rejectRootUnitsNotFound(String contractName, String guidArrayAsString) {
+            return new GenericRejectionCause(String.format(ERR_CONTRACT_ROOT_UNITS_NOT_FOUND , contractName, guidArrayAsString));
+        }
+
+        /**
          * Reject if one of multiple mandatory parameter are null
          * @param fieldName
          * @return GenericRejectionCause
@@ -156,5 +178,6 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
         private void setReason(String reason) {
             this.reason = reason;
         }
+
     }
 }

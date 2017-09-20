@@ -26,28 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.rest;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.datatype.DatatypeConfigurationException;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.util.Set;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -73,6 +51,7 @@ import fr.gouv.vitam.access.internal.core.serializer.IdentifierTypeDeserializer;
 import fr.gouv.vitam.access.internal.core.serializer.LevelTypeDeserializer;
 import fr.gouv.vitam.access.internal.core.serializer.TextByLangDeserializer;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -99,6 +78,26 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Set;
 
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCIES;
 
@@ -189,7 +188,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         try {
             SanityChecker.checkJsonAll(queryDsl);
             checkEmptyQuery(queryDsl);
-            JsonNode result = accessModule.selectUnit(addProdServicesToQueryForUnit(queryDsl));
+            JsonNode result = accessModule.selectUnit(applyAccessContractRestriction(queryDsl));
             LOGGER.debug("DEBUG {}", result);
             resetQuery(result, queryDsl);
 
@@ -233,7 +232,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
             SanityChecker.checkJsonAll(queryDsl);
             SanityChecker.checkParameter(idUnit);
-            JsonNode result = accessModule.selectUnitbyId(addProdServicesToQueryForUnit(queryDsl), idUnit);
+            JsonNode result = accessModule.selectUnitbyId(applyAccessContractRestriction(queryDsl), idUnit);
             resetQuery(result, queryDsl);
 
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
@@ -260,8 +259,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         try {
             SanityChecker.checkParameter(idUnit);
             SanityChecker.checkJsonAll(queryDsl);
-            //
-            JsonNode result = accessModule.selectUnitbyId(addProdServicesToQueryForUnit(queryDsl), idUnit);
+
+            JsonNode result = accessModule.selectUnitbyId(applyAccessContractRestriction(queryDsl), idUnit);
             ArrayNode results = (ArrayNode) result.get("$results");
             JsonNode unit = results.get(0);
             Response responseXmlFormat = unitDipService.jsonToXml(unit, idUnit);
@@ -281,8 +280,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .build();
         }
     }
-
-
 
     /**
      * update archive units by Id with Json query
@@ -404,7 +401,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkParameter(idUnit);
             SanityChecker.checkJsonAll(queryDsl);
             //
-            JsonNode result = accessModule.selectUnitbyId(addProdServicesToQueryForUnit(queryDsl), idUnit);
+            JsonNode result = accessModule.selectUnitbyId(applyAccessContractRestriction(queryDsl), idUnit);
             ArrayNode results = (ArrayNode) result.get("$results");
             JsonNode objectGroup = results.get(0);
             //            Response responseXmlFormat = unitDipService.jsonToXml(unit, idUnit);
@@ -435,8 +432,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         if (post) {
             if (!multipleMap.containsKey(GlobalDataRest.X_HTTP_METHOD_OVERRIDE)) {
                 return Response.status(Status.PRECONDITION_FAILED)
-                        .entity(getErrorStream(Status.PRECONDITION_FAILED, "method POST without Override = GET"))
-                        .build();
+                    .entity(getErrorStream(Status.PRECONDITION_FAILED, "method POST without Override = GET"))
+                    .build();
             }
         }
         if (!multipleMap.containsKey(GlobalDataRest.X_TENANT_ID) ||
@@ -445,12 +442,12 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error("At least one required header is missing. Required headers: (" + VitamHttpHeader.TENANT_ID
                 .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
             return Response.status(Status.PRECONDITION_FAILED)
-                    .entity(getErrorStream(Status.PRECONDITION_FAILED,
-                        "At least one required header is missing. Required headers: (" + VitamHttpHeader.TENANT_ID
-                            .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() +
-                            ")"))
-                    .build();
-        }        
+                .entity(getErrorStream(Status.PRECONDITION_FAILED,
+                    "At least one required header is missing. Required headers: (" + VitamHttpHeader.TENANT_ID
+                        .name() + ", " + VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() +
+                        ")"))
+                .build();
+        }
         final String xQualifier = multipleMap.get(GlobalDataRest.X_QUALIFIER).get(0);
         final String xVersion = multipleMap.get(GlobalDataRest.X_VERSION).get(0);
 
@@ -476,7 +473,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         } catch (final AccessInternalExecutionException exc) {
             LOGGER.error(exc.getMessage(), exc);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorStream(Status.INTERNAL_SERVER_ERROR,
-                    exc.getMessage())).build();
+                exc.getMessage())).build();
         } catch (MetaDataNotFoundException | StorageNotFoundException exc) {
             LOGGER.error(exc);
             return Response.status(Status.NOT_FOUND).entity(getErrorStream(Status.NOT_FOUND, exc.getMessage())).build();
@@ -498,7 +495,36 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         return false;
     }
 
-    private JsonNode addProdServicesToQueryForUnit(JsonNode queryDsl)
+    private JsonNode applyAccessContractRestriction(JsonNode queryDsl)
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+        final AccessContractModel contract = VitamThreadUtils.getVitamSession().getContract();
+        Set<String> rootUnits = contract.getRootUnits();
+        if (null != rootUnits && !rootUnits.isEmpty()) {
+            String[] rootUnitsArray = rootUnits.toArray(new String[rootUnits.size()]);
+            final SelectParserMultiple parser = new SelectParserMultiple();
+            parser.parse(queryDsl);
+
+            Query rootUnitsRestriction = QueryHelper
+                .or().add(QueryHelper.in(PROJECTIONARGS.ID.exactToken(), rootUnitsArray),
+                    QueryHelper.in(PROJECTIONARGS.ALLUNITUPS.exactToken(), rootUnitsArray));
+
+            List<Query> queryList = parser.getRequest().getQueries();
+            if (queryList.isEmpty()) {
+                queryList.add(rootUnitsRestriction.setDepthLimit(0));
+            } else {
+                Query firstQuery = queryList.get(0);
+                int depth = firstQuery.getParserRelativeDepth();
+                Query restrictedQuery = QueryHelper.and().add(rootUnitsRestriction, firstQuery);
+                restrictedQuery.setDepthLimit(depth);
+                parser.getRequest().getQueries().set(0, restrictedQuery);
+            }
+            queryDsl = parser.getRequest().getFinalSelect();
+        }
+
+        return addProdServicesToQuery(queryDsl);
+    }
+
+    private JsonNode addProdServicesToQuery(JsonNode queryDsl)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final AccessContractModel contract = VitamThreadUtils.getVitamSession().getContract();
         Set<String> prodServices = contract.getOriginatingAgencies();
@@ -547,7 +573,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @Path("/objects/{id_object_group}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response getObjectStreamAsync(@Context HttpHeaders headers, @PathParam("id_object_group") String idObjectGroup,
+    public Response getObjectStreamAsync(@Context HttpHeaders headers,
+        @PathParam("id_object_group") String idObjectGroup,
         JsonNode query) {
         MultivaluedMap<String, String> multipleMap = headers.getRequestHeaders();
         return asyncObjectStream(multipleMap, idObjectGroup, query, false);

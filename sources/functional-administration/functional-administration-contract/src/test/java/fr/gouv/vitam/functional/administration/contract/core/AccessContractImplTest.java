@@ -26,28 +26,12 @@
  */
 package fr.gouv.vitam.functional.administration.contract.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.bson.Document;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -82,6 +66,24 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminI
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import org.bson.Document;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 
 public class AccessContractImplTest {
@@ -107,6 +109,7 @@ public class AccessContractImplTest {
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     static MongoClient client;
+    static MetaDataClient metaDataClientMock;
     static VitamCounterService vitamCounterService;
     static Map<Integer, List<String>> externalIdentifiers;
 
@@ -143,9 +146,11 @@ public class AccessContractImplTest {
         LogbookOperationsClientFactory.changeMode(null);
 
 
+        metaDataClientMock = mock(MetaDataClient.class);
+
         accessContractService =
             new AccessContractImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
-                vitamCounterService);
+                vitamCounterService, metaDataClientMock);
 
     }
 
@@ -319,7 +324,7 @@ public class AccessContractImplTest {
         final SetAction setActionStatusInactive = UpdateActionHelper.set("Status", inactiveStatus);
         final SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);
         final SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
-        
+
         final Update update = new Update();
         update.setQuery(QueryHelper.eq(NAME, documentName));
         update.addActions(setActionStatusInactive, setActionDesactivationDateInactive, setActionLastUpdateInactive);
@@ -340,7 +345,7 @@ public class AccessContractImplTest {
             assertThat(accessContractModel.getDeactivationdate()).isNotEmpty();
             assertThat(accessContractModel.getLastupdate()).isNotEmpty();
         }
-        
+
         ObjectNode versionNode = JsonHandler.createObjectNode();
         versionNode.set(AccessContractModel.DATA_OBJECT_VERSION, JsonHandler.createArrayNode().add("fjsdf"));
         final SetAction setActionUsage = UpdateActionHelper.set(versionNode);
@@ -650,6 +655,66 @@ public class AccessContractImplTest {
         assertThat(acmFound.getId()).isEqualTo(id1);
         assertThat(acmFound.getName()).isEqualTo(name);
 
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenAccessContractsTestNotExistingRootUnits() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_not_exists_root_units.json");
+
+        when(metaDataClientMock.selectUnits(anyObject())).thenReturn(new RequestResponseOK<>().toJsonNode());
+        final List<AccessContractModel> accessContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
+        final RequestResponse response = accessContractService.createContracts(accessContractModelList);
+
+        assertThat(response.isOk()).isFalse();
+        assertThat(response.toString()).contains("RootUnits (GUID1,GUID2,GUID3) not found in database");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenAccessContractsTestNotAllExistingRootUnits() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_not_exists_root_units.json");
+
+        RequestResponseOK<JsonNode> res = new RequestResponseOK<>();
+        res.addResult(JsonHandler.createObjectNode().put("#id", "GUID1"));
+        res.addResult(JsonHandler.createObjectNode().put("#id", "GUID3"));
+
+        when(metaDataClientMock.selectUnits(anyObject())).thenReturn(res.toJsonNode());
+
+        final List<AccessContractModel> accessContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
+        final RequestResponse response = accessContractService.createContracts(accessContractModelList);
+
+        assertThat(response.isOk()).isFalse();
+        assertThat(response.toString()).contains("RootUnits (GUID2) not found in database");
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenAccessContractsTestExistingRootUnitsOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok_root_units.json");
+
+
+        RequestResponseOK<JsonNode> res = new RequestResponseOK<>();
+        res.addResult(JsonHandler.createObjectNode().put("#id", "GUID1"));
+        res.addResult(JsonHandler.createObjectNode().put("#id", "GUID2"));
+        res.addResult(JsonHandler.createObjectNode().put("#id", "GUID3"));
+
+        when(metaDataClientMock.selectUnits(anyObject())).thenReturn(res.toJsonNode());
+        final List<AccessContractModel> accessContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
+        final RequestResponse response = accessContractService.createContracts(accessContractModelList);
+
+        assertThat(response.isOk()).isTrue();
+        assertThat(((RequestResponseOK)response).getResults()).hasSize(2);
+        assertThat(((RequestResponseOK<AccessContractModel>)response).getResults().get(0).getName()).contains("aName");
+        assertThat(((RequestResponseOK<AccessContractModel>)response).getResults().get(1).getName()).contains("aName1");
     }
 
 }

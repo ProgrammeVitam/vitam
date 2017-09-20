@@ -26,33 +26,9 @@
  */
 package fr.gouv.vitam.functional.administration.contract.core;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.in;
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
-
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.core.Response;
-
-import fr.gouv.vitam.common.StringUtils;
-import fr.gouv.vitam.functional.administration.common.AccessContract;
-import org.bson.conversions.Bson;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -82,6 +58,7 @@ import fr.gouv.vitam.common.model.administration.ContractStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -102,6 +79,25 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import org.bson.conversions.Bson;
+
+import javax.ws.rs.core.Response;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
 
 public class IngestContractImpl implements ContractService<IngestContractModel> {
 
@@ -163,7 +159,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 // if a contract have and id
                 if (null != acm.getId()) {
                     error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
-                        GenericContractValidator.GenericRejectionCause.rejectIdNotAllowedInCreate(acm.getName())
+                        EntryContractValidator.GenericRejectionCause.rejectIdNotAllowedInCreate(acm.getName())
                             .getReason()));
                     continue;
                 }
@@ -172,7 +168,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 if (contractNames.contains(acm.getName())) {
                     error
                         .addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
-                            GenericContractValidator.GenericRejectionCause.rejectDuplicatedEntry(acm.getName())
+                            EntryContractValidator.GenericRejectionCause.rejectDuplicatedEntry(acm.getName())
                                 .getReason()));
                     continue;
                 }
@@ -182,7 +178,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     if (!checkIfAUInFilingSchema(metadataClient, filingParentId)) {
                         error
                             .addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
-                                GenericContractValidator.GenericRejectionCause
+                                EntryContractValidator.GenericRejectionCause
                                     .rejectWrongFilingParentId(filingParentId)
                                     .getReason()));
                         continue;
@@ -205,7 +201,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
 
                 if (slaveMode) {
-                    final Optional<GenericContractValidator.GenericRejectionCause> result =
+                    final Optional<EntryContractValidator.GenericRejectionCause> result =
                         manager.checkDuplicateInIdentifierSlaveModeValidator().validate(acm, acm.getIdentifier());
                     result.ifPresent(t -> error
                         .addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(result
@@ -299,7 +295,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         private static final String UPDATED_DIFFS = "updatedDiffs";
         private static final String INGEST_CONTRACT = "IngestContract";
 
-        private static List<GenericContractValidator<IngestContractModel>> validators = Arrays.asList(
+        private static List<EntryContractValidator> validators = Arrays.asList(
             createMandatoryParamsValidator(), createWrongFieldFormatValidator(),
             createCheckDuplicateInDatabaseValidator(), createCheckProfilesExistsInDatabaseValidator());
 
@@ -315,8 +311,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         private boolean validateContract(IngestContractModel contract, String jsonFormat,
             VitamError error) {
 
-            for (final GenericContractValidator validator : validators) {
-                final Optional<GenericContractValidator.GenericRejectionCause> result =
+            for (final EntryContractValidator validator : validators) {
+                final Optional<EntryContractValidator.GenericRejectionCause> result =
                     validator.validate(contract, jsonFormat);
                 if (result.isPresent()) {
                     // there is a validation error on this contract
@@ -470,14 +466,14 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         /**
          * Validate that contract have not a missing mandatory parameter
          *
-         * @return GenericContractValidator
+         * @return EntryContractValidator
          */
-        private static GenericContractValidator<IngestContractModel> createMandatoryParamsValidator() {
+        private static EntryContractValidator createMandatoryParamsValidator() {
             return (contract, jsonFormat) -> {
-                GenericContractValidator.GenericRejectionCause rejection = null;
+                EntryContractValidator.GenericRejectionCause rejection = null;
                 if (contract.getName() == null || contract.getName().trim().isEmpty()) {
                     rejection =
-                        GenericContractValidator.GenericRejectionCause.rejectMandatoryMissing(IngestContract.NAME);
+                        EntryContractValidator.GenericRejectionCause.rejectMandatoryMissing(IngestContract.NAME);
                 }
 
                 return rejection == null ? Optional.empty() : Optional.of(rejection);
@@ -487,11 +483,11 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         /**
          * Set a default value if null
          *
-         * @return GenericContractValidator
+         * @return EntryContractValidator
          */
-        private static GenericContractValidator createWrongFieldFormatValidator() {
+        private static EntryContractValidator createWrongFieldFormatValidator() {
             return (contract, inputList) -> {
-                GenericContractValidator.GenericRejectionCause rejection = null;
+                EntryContractValidator.GenericRejectionCause rejection = null;
                 final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
 
@@ -504,7 +500,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     !contract.getStatus().equals(ContractStatus.INACTIVE.name())) {
                     LOGGER.error("Error ingest contract status not valide (must be ACTIVE or INACTIVE");
                     rejection =
-                        GenericContractValidator.GenericRejectionCause
+                        EntryContractValidator.GenericRejectionCause
                             .rejectMandatoryMissing("Status " + contract.getStatus() +
                                 " not valide must be ACTIVE or INACTIVE");
                 }
@@ -519,7 +515,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
                 } catch (final Exception e) {
                     LOGGER.error("Error ingest contract parse dates", e);
-                    rejection = GenericContractValidator.GenericRejectionCause.rejectMandatoryMissing("Creationdate");
+                    rejection = EntryContractValidator.GenericRejectionCause.rejectMandatoryMissing("Creationdate");
                 }
                 try {
                     if (contract.getActivationdate() == null || contract.getActivationdate().trim().isEmpty()) {
@@ -531,7 +527,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     }
                 } catch (final Exception e) {
                     LOGGER.error("Error ingest contract parse dates", e);
-                    rejection = GenericContractValidator.GenericRejectionCause.rejectMandatoryMissing("ActivationDate");
+                    rejection = EntryContractValidator.GenericRejectionCause.rejectMandatoryMissing("ActivationDate");
                 }
                 try {
 
@@ -545,7 +541,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 } catch (final Exception e) {
                     LOGGER.error("Error ingest contract parse dates", e);
                     rejection =
-                        GenericContractValidator.GenericRejectionCause.rejectMandatoryMissing("deactivationdate");
+                        EntryContractValidator.GenericRejectionCause.rejectMandatoryMissing("deactivationdate");
                 }
 
                 contract.setLastupdate(now);
@@ -558,17 +554,17 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         /**
          * Check if the contract the same name already exists in database
          *
-         * @return GenericContractValidator
+         * @return EntryContractValidator
          */
-        private static GenericContractValidator createCheckDuplicateInDatabaseValidator() {
+        private static EntryContractValidator createCheckDuplicateInDatabaseValidator() {
             return (contract, contractName) -> {
-                GenericContractValidator.GenericRejectionCause rejection = null;
+                EntryContractValidator.GenericRejectionCause rejection = null;
                 final int tenant = ParameterHelper.getTenantParameter();
                 final Bson clause =
                     and(eq(VitamDocument.TENANT_ID, tenant), eq(IngestContract.NAME, contract.getName()));
                 final boolean exist = FunctionalAdminCollections.INGEST_CONTRACT.getCollection().count(clause) > 0;
                 if (exist) {
-                    rejection = GenericContractValidator.GenericRejectionCause.rejectDuplicatedInDatabase(contractName);
+                    rejection = EntryContractValidator.GenericRejectionCause.rejectDuplicatedInDatabase(contractName);
                 }
                 return rejection == null ? Optional.empty() : Optional.of(rejection);
             };
@@ -580,19 +576,19 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
          *
          * @return
          */
-        private static GenericContractValidator checkDuplicateInIdentifierSlaveModeValidator() {
+        private static EntryContractValidator checkDuplicateInIdentifierSlaveModeValidator() {
             return (contract, contractName) -> {
                 if (contractName == null || contractName.isEmpty()) {
                     return Optional
-                        .of(GenericContractValidator.GenericRejectionCause.rejectMandatoryMissing(contractName));
+                        .of(EntryContractValidator.GenericRejectionCause.rejectMandatoryMissing(contractName));
                 }
-                GenericContractValidator.GenericRejectionCause rejection = null;
+                EntryContractValidator.GenericRejectionCause rejection = null;
                 final int tenant = ParameterHelper.getTenantParameter();
                 final Bson clause =
                     and(eq(VitamDocument.TENANT_ID, tenant), eq(AccessContract.IDENTIFIER, contract.getIdentifier()));
                 final boolean exist = FunctionalAdminCollections.INGEST_CONTRACT.getCollection().count(clause) > 0;
                 if (exist) {
-                    rejection = GenericContractValidator.GenericRejectionCause.rejectDuplicatedInDatabase(contractName);
+                    rejection = EntryContractValidator.GenericRejectionCause.rejectDuplicatedInDatabase(contractName);
                 }
                 return rejection == null ? Optional.empty() : Optional.of(rejection);
             };
@@ -601,21 +597,21 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         /**
          * Check if the profiles exists bien dans la base de données
          *
-         * @return GenericContractValidator
+         * @return EntryContractValidator
          */
-        public static GenericContractValidator<IngestContractModel> createCheckProfilesExistsInDatabaseValidator() {
+        public static EntryContractValidator createCheckProfilesExistsInDatabaseValidator() {
             return (contract, contractName) -> {
                 if (null == contract.getArchiveProfiles()) {
                     return Optional.empty();
                 }
-                GenericContractValidator.GenericRejectionCause rejection = null;
+                EntryContractValidator.GenericRejectionCause rejection = null;
                 final int tenant = ParameterHelper.getTenantParameter();
                 final Bson clause =
                     and(eq(VitamDocument.TENANT_ID, tenant), in(Profile.IDENTIFIER, contract.getArchiveProfiles()));
                 final long count = FunctionalAdminCollections.PROFILE.getCollection().count(clause);
                 if (count != contract.getArchiveProfiles().size()) {
                     rejection =
-                        GenericContractValidator.GenericRejectionCause
+                        EntryContractValidator.GenericRejectionCause
                             .rejectArchiveProfileNotFoundInDatabase(contractName);
                 }
                 return rejection == null ? Optional.empty() : Optional.of(rejection);
@@ -681,7 +677,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     if (!checkIfAUInFilingSchema(metadataClient, filingParentId)) {
                         error
                             .addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
-                                GenericContractValidator.GenericRejectionCause
+                                EntryContractValidator.GenericRejectionCause
                                     .rejectWrongFilingParentId(filingParentId)
                                     .getReason()));
 
@@ -696,9 +692,9 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             if (archiveProfilesNode != null) {
                 final Set<String> archiveProfiles =
                     JsonHandler.getFromString(archiveProfilesNode.toString(), Set.class, String.class);
-                final GenericContractValidator<IngestContractModel> validator =
+                final EntryContractValidator validator =
                     IngestContractManager.createCheckProfilesExistsInDatabaseValidator();
-                final Optional<GenericContractValidator.GenericRejectionCause> result =
+                final Optional<EntryContractValidator.GenericRejectionCause> result =
                     validator.validate(new IngestContractModel().setArchiveProfiles(archiveProfiles),
                         "update contract ..");
                 if (result.isPresent()) {

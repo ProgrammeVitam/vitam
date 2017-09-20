@@ -96,8 +96,15 @@
                                   md-removable="editMode" placeholder="Ajouter un usage ..." >
                         </md-chips>
                     </div>
-                    <div class="clearfix"></div>
 
+                    <div class="form-group col-md-6">
+                        <label>Noeuds de consultation</label>
+                        <md-chips ng-model="tmpVars.RootUnits" name="RootUnits" readonly="!editMode"
+                                  md-removable="editMode" placeholder="Ajouter des noeuds ..." >
+                        </md-chips>
+                    </div>
+
+                    <div class="clearfix"></div>
                     <div class="form-group col-md-6">
 
                         <label>Tenant(s)</label>
