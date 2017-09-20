@@ -57,19 +57,22 @@ public class WorkerTask implements Supplier<ItemStatus> {
     private final DescriptionStep descriptionStep;
     private final int tenantId;
     private final String requestId;
+    private final String contractId;
     private volatile WorkerTaskState workerTaskState = WorkerTaskState.PENDING;
 
-    public WorkerTask(DescriptionStep descriptionStep, int tenantId, String requestId) {
+    public WorkerTask(DescriptionStep descriptionStep, int tenantId, String requestId, String contractId) {
         ParametersChecker.checkParameter("Params are required", descriptionStep, requestId);
         this.descriptionStep = descriptionStep;
         this.tenantId = tenantId;
         this.requestId = requestId;
+        this.contractId = contractId;
     }
 
     @Override
     public ItemStatus get() {
         VitamThreadUtils.getVitamSession().setRequestId(requestId);
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        VitamThreadUtils.getVitamSession().setContractId(contractId);
 
         final WorkerBean workerBean = WorkerInformation.getWorkerThreadLocal().get().getWorkerBean();
         if (LOGGER.isDebugEnabled()) {

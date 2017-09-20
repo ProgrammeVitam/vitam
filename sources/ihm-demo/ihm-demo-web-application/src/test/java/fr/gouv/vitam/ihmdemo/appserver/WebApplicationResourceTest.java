@@ -1506,7 +1506,7 @@ public class WebApplicationResourceTest {
         PowerMockito
             .when(adminExternalClient.launchAudit(anyObject(), Mockito.anyObject()
             ))
-            .thenReturn(Status.OK);
+            .thenReturn(ClientMockResultHelper.checkOperationTraceability());
 
         given().contentType(ContentType.JSON).body(auditOption).expect()
             .when().post("audits")

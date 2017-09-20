@@ -523,7 +523,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public Status launchAudit(VitamContext vitamContext, JsonNode auditOption)
+    public RequestResponse launchAudit(VitamContext vitamContext, JsonNode auditOption)
         throws AccessExternalClientServerException {
         Response response = null;
 
@@ -533,6 +533,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
 
             response = performRequest(HttpMethod.POST, AccessExtAPI.AUDITS_API, headers, auditOption,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -541,7 +542,6 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
                 consumeAnyEntityAndClose(response);
             }
         }
-        return Status.fromStatusCode(response.getStatus());
     }
 
     private RequestResponse internalFindDocumentById(VitamContext vitamContext, AdminCollections documentType,

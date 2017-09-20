@@ -28,18 +28,29 @@ package fr.gouv.vitam.worker.core.handler;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuditWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
@@ -53,6 +64,8 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -64,6 +77,7 @@ public class PrepareAuditActionHandler extends ActionHandler {
         VitamLoggerFactory.getInstance(PrepareAuditActionHandler.class);
 
     private static final String HANDLER_ID = "LIST_OBJECTGROUP_ID";
+    private static final String ORIGINATING_AGENCY = "OriginatingAgency";
     private static final String RESULTS = "$results";
     private static final String HITS = "$hits";
     private static final String ID = "#id";
@@ -82,6 +96,8 @@ public class PrepareAuditActionHandler extends ActionHandler {
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         ArrayNode ogIdList = JsonHandler.createArrayNode();
+        List<String> originatingAgency = new ArrayList<>();
+        ArrayNode originatingAgencyEmpty = JsonHandler.createArrayNode();
 
         try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
@@ -91,12 +107,18 @@ public class PrepareAuditActionHandler extends ActionHandler {
             String auditType = mapParameters.get(WorkerParameterName.auditType);
             if (auditType.toLowerCase().equals("tenant")) {
                 auditType = BuilderToken.PROJECTIONARGS.TENANT.exactToken();
+                originatingAgency = listOriginatingAgency(originatingAgencyEmpty);
+                String[] arrayOriginatingAgency = new String[originatingAgency.size()];
+                originatingAgency.toArray(arrayOriginatingAgency);
+                selectQuery.setQuery(QueryHelper.in(BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCY.exactToken(),
+                    arrayOriginatingAgency));
             } else if (auditType.toLowerCase().equals("originatingagency")) {
                 auditType = BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCY.exactToken();
+                selectQuery.setQuery(QueryHelper.eq(auditType,
+                    mapParameters.get(WorkerParameterName.objectId)));
             }
-            selectQuery.setQuery(QueryHelper.eq(auditType,
-                mapParameters.get(WorkerParameterName.objectId)));
-            selectQuery.setProjection(JsonHandler.createObjectNode().put(ID, 1));
+
+            selectQuery.setProjection(JsonHandler.getFromString("{\"$fields\": { \"#id\": 1}}"));
             JsonNode searchResults = metadataClient.selectObjectGroups(selectQuery.getFinalSelect());
             if (searchResults.get(HITS) != null) {
                 JsonNode total = searchResults.get(HITS).get("total");
@@ -119,12 +141,25 @@ public class PrepareAuditActionHandler extends ActionHandler {
             JsonHandler.writeAsFile(ogIdList, file);
             workspaceClient.createContainer(param.getContainerName());
             handler.transferFileToWorkspace(AuditWorkflowConstants.AUDIT_FILE, file, true, asyncIO);
-            itemStatus.increment(StatusCode.OK);
+            if (ogIdList.size() == 0 || originatingAgencyEmpty.size() > 0) {
+                itemStatus.increment(StatusCode.WARNING);
+                ObjectNode errorNode = JsonHandler.createObjectNode();
+                errorNode.set("Service producteur vide", originatingAgencyEmpty);
+                itemStatus.setEvDetailData(errorNode.toString());
+            } else {
+                itemStatus.increment(StatusCode.OK);
+            }
         } catch (InvalidParseOperationException | InvalidCreateOperationException| MetaDataException e) {
             LOGGER.error("Metadata errors : ", e);
             itemStatus.increment(StatusCode.FATAL);
         } catch (ContentAddressableStorageAlreadyExistException e) {
             LOGGER.error("Workspace errors : ",e);
+            itemStatus.increment(StatusCode.FATAL);
+        } catch (ReferentialNotFoundException e) {
+            LOGGER.error("No Accession Register found ");
+            itemStatus.increment(StatusCode.WARNING);
+        } catch (ReferentialException | AccessUnauthorizedException e) {
+            LOGGER.error("Functional admin errors : ",e);
             itemStatus.increment(StatusCode.FATAL);
         }
 
@@ -138,6 +173,34 @@ public class PrepareAuditActionHandler extends ActionHandler {
                 ogIdList.add(og.get(ID).asText());
             }
         }
+    }
+
+
+
+    private List<String> listOriginatingAgency(ArrayNode originatingAgencyEmpty)
+        throws AccessUnauthorizedException, InvalidParseOperationException, ReferentialException,
+        InvalidCreateOperationException {
+        List<String> originatingAgency = new ArrayList<String>();
+
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            Select selectQuery = new Select();
+            RequestResponse<AccessionRegisterSummaryModel> results =
+                client.getAccessionRegister(selectQuery.getFinalSelect());
+
+            JsonNode searchResults = results.toJsonNode().get(RequestResponseOK.RESULTS);
+            if (searchResults.isArray()) {
+                for (JsonNode og : searchResults) {
+                    String registerName = og.get(ORIGINATING_AGENCY).asText();
+                    final int total = og.get("TotalObjects").get("total").intValue();
+                    originatingAgency.add(og.get(ORIGINATING_AGENCY).asText());
+                    if (total == 0) {
+                        originatingAgencyEmpty.add(registerName);
+                    }
+                }
+            }
+        }
+
+        return originatingAgency;
     }
 
     @Override

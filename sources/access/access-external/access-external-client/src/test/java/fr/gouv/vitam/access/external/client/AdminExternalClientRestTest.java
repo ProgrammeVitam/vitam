@@ -731,7 +731,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         JsonNode auditOption = JsonHandler.getFromString(AUDIT_OPTION);
-        assertThat(client.launchAudit(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), auditOption)).isEqualTo(Status.OK);
+        assertThat(client.launchAudit(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), auditOption).getHttpCode()).isEqualTo(Status.OK.getStatusCode());
     }
 
 }

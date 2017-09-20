@@ -94,6 +94,10 @@
 							<span ng-if="column.id === 'report' && log.evType === 'STP_IMPORT_RULES'" ng-click="downloadReport(log.evIdProc)">
 								<i class="material-icons">file_download</i>
 							</span>
+							<span ng-if="column.id === 'report' && log.evType === 'PROCESS_AUDIT'" ng-click="downloadReport(log.evIdProc)">
+								<i class="material-icons">file_download</i>
+							</span>
+
 						</td>
 					</tr>
 					</tbody>

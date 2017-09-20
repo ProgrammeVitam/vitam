@@ -181,7 +181,7 @@ public class LogbookAdministration {
         LocalDateTime startDate;
 
         if (lastTraceabilityOperation == null) {
-            startDate = LocalDateTime.MIN;
+            startDate = LocalDateTime.of(1970, 1, 1, 0, 0);
         } else {
             Date date;
             try {

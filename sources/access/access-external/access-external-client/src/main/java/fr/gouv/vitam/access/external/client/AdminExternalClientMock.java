@@ -160,8 +160,8 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public Status launchAudit(VitamContext vitamContext, JsonNode auditOption) {
-        return Status.OK;
+    public RequestResponse launchAudit(VitamContext vitamContext, JsonNode auditOption) {
+        return new RequestResponseOK().setHttpCode(Status.ACCEPTED.getStatusCode());
     }
 
     @Override

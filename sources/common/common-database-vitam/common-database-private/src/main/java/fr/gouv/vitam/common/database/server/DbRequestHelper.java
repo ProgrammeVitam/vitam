@@ -104,7 +104,8 @@ public class DbRequestHelper {
             serverAddress = cursor.getServerAddress();
             while (cursor.hasNext()) {
                 final VitamDocument<?> item = cursor.next();
-                final int rank = list.indexOf(item.getId());
+                // do not use getId() because Logbook will not work  
+                final int rank = list.indexOf(item.getString(VitamDocument.ID));
                 if (!isIdIncluded) {
                     item.remove(VitamDocument.ID);
                 }
