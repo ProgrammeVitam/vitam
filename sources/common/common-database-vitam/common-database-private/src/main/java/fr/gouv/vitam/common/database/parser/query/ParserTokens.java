@@ -232,7 +232,21 @@ public class ParserTokens extends BuilderToken {
                 throw new IllegalArgumentException(NOT_FOUND, e);
             }
         }
-        
+
+        /**
+         *
+         * @param name
+         * @return
+         */
+        public static boolean notAllowedOnSetExternal(String name) {
+            if (name == null || name.isEmpty()) {
+                return true;
+            }
+            if (name.charAt(0) == ParserTokens.DEFAULT_UNDERSCORE_PREFIX_CHAR) {
+                return true;
+            }
+            return false;
+        }
 
         /**
         *

@@ -343,4 +343,25 @@ public class UpdateParserMultipleTest {
         final UpdateParserMultiple request2 = new UpdateParserMultiple(new VarNameAdapter());
         assertNotNull(request2);
     }
+    @Test(expected = InvalidParseOperationException.class )
+    public void testExternalUnautorized() throws InvalidParseOperationException {
+        String queryString = "{\"$query\": [],\"$filter\": {},\"$action\": [\n" +
+            "\t\t{\"$set\": {\n" +
+            "\t\t\t\t\"_og\" : \"\"\n" +
+            "\t\t\t}}]}";
+
+        JsonNode query = JsonHandler.getFromString(queryString);
+        final UpdateParserMultiple request = new UpdateParserMultiple();
+        request.parse(query);
+    }
+
+    @Test(expected = InvalidParseOperationException.class )
+    public void testExternalUnautorizedUnset() throws InvalidParseOperationException {
+        String queryString = "{\"$query\": [],\"$filter\": {},\"$action\": [\n" +
+            "\t\t{\"$unset\": ['_tenant']}]}";
+
+        JsonNode query = JsonHandler.getFromString(queryString);
+        final UpdateParserMultiple request = new UpdateParserMultiple();
+        request.parse(query);
+    }
 }

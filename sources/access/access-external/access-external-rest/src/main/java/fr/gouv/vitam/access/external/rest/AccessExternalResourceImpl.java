@@ -310,7 +310,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             return Response.status(Status.OK).entity(response).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
-            status = Status.PRECONDITION_FAILED;
+            status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error(e.getMessage(), e);

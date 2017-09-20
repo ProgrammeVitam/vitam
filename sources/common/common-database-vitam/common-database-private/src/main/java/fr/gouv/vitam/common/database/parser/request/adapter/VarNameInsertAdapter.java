@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -62,6 +63,9 @@ public class VarNameInsertAdapter extends VarNameAdapter {
     public String getVariableName(String name) throws InvalidParseOperationException {
         if (! adapter.metadataAdapter() && PROJECTIONARGS.notAllowedOnSet(name)) {
             throw new InvalidParseOperationException("Name not allowed in Insert: " + name);
+        }
+        if (!this.metadataAdapter() && ParserTokens.PROJECTIONARGS.notAllowedOnSetExternal(name)) {
+            throw new InvalidParseOperationException("Illegal variable name found: " + name);
         }
         return adapter.getVariableName(name);
     }
