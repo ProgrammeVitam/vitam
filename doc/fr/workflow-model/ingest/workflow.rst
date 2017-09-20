@@ -101,7 +101,7 @@ Vérification globale du SIP (CHECK_SEDA) : Vérification de la cohérence physi
     - Cas 5 : le SIP contient plus d'un seul fichier à la racine (CHECK_SEDA.CONTAINER_FORMAT.FILE.KO=Le SIP contient plus d'un fichier à sa racine)
   - FATAL : le SIP n'a pas pu être contrôlé suite à une erreur technique (CHECK_SEDA.FATAL=Erreur fatale lors de la vérification globale du SIP)
 
-Vérification de l'en-tête du manieste (CHECK_HEADER)
+Vérification de l'en-tête du manifeste (CHECK_HEADER)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 + **Règles** : vérification des informations du manifest.xml (nommées "header") et de l'existence du service producteur (OriginatingAgencyIdentifier)
@@ -265,7 +265,7 @@ Contrôle et traitements des unités archivistiques (STP_UNIT_CHECK_AND_TRANSFOR
 Vérification globale de l'unité archivistique (CHECK_UNIT_SCHEMA)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** :  contrôle additionnel sur la validité des champs de l'unité archivistique par rapport au schéma prédéfini dans la solution logicielle Vitam. Par exemple, les champs obligatoires, comme les titres des unités archivistiques, ne doivent pas être vides.
++ **Règle** :  contrôle additionnel sur la validité des champs de l'unité archivistique par rapport au schéma prédéfini dans la solution logicielle Vitam. Par exemple, les champs obligatoires, comme les titres des unités archivistiques, ne doivent pas être vides. En plus du contrôle par le schéma, cette tâche vérifie que la date de fin des dates extrêmes soit bien supérieure ou égale à la date de début du l'unité archivistique.
 
 + **Type** : bloquant.
 
@@ -273,7 +273,7 @@ Vérification globale de l'unité archivistique (CHECK_UNIT_SCHEMA)
 
   - OK : tous les champs de l'unité archivistique sont conformes à ce qui est attendu (CHECK_UNIT_SCHEMA.OK=Succès du contrôle additionnel sur la validité des champs de l'unité archivistique).
 
-  - KO : au moins un champ de l'unité archivistique n'est pas conforme à ce qui est attendu (titre vide, date incorrecte...) (CHECK_UNIT_SCHEMA.KO=Échec lors du contrôle additionnel sur la validité des champs de l'unité archivistique).
+  - KO : au moins un champ de l'unité archivistique n'est pas conforme à ce qui est attendu (titre vide, date incorrecte...) ou la date de fin des dates extrêmes est strictement inférieure à la date de début (CHECK_UNIT_SCHEMA.KO=Échec lors du contrôle additionnel sur la validité des champs de l'unité archivistique).
 
   - FATAL : la vérification de l'unité archivistique n'a pu être effectuée suite à une erreur technique (CHECK_UNIT_SCHEMA.FATAL=Erreur fatale du contrôle additionnel sur la validité des champs de l'unité archivistique).
 
