@@ -181,6 +181,10 @@ abstract class AbstractCommonClient implements BasicClient {
     private final ProcessingException checkSpecificExceptionForRetry(int retry, ProcessingException e)
         throws ProcessingException {
         Throwable source = e.getCause();
+        if (source == null) {
+            LOGGER.error(TIMEOUT_OCCURS_OR_DNS_PROBE_ERROR_RETRY + retry, e);
+            throw e;
+        }
         if (source instanceof ConnectTimeoutException || source instanceof UnknownHostException ||
             source instanceof HttpHostConnectException || source instanceof NoHttpResponseException ||
             source.getMessage().startsWith(UNABLE_TO_ESTABLISH_ROUTE)) {
