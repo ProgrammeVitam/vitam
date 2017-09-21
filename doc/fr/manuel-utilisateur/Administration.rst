@@ -604,8 +604,9 @@ Puis, un bloc par tenant. Chaque bloc contenant :
 
 .. image:: images/context_detail.png
 
-**Modifier un contexte**
-Il est possible de modifier un contexte en cliquant sur le bouton "Modifier" sur l'écran de détail d'un contexte. L'interface permet la modification d'une partie des champs du contexte, ainsi que de changer son statut (actif/inactif).
+Modifier un contexte
+--------------------------------------------
+Il est possible de modifier un contexte depuis son l'écran de son détail en cliquant sur le bouton "Modifier" sur l'écran de détail d'un contexte. L'interface permet la modification d'une partie des champs du contexte, ainsi que de changer son statut (actif/inactif).
 Il est possible d'ajouter ou supprimer des tenants concernés par le contexte en sélectionnant un nom de tenant en haut à droite et en cliquant sur "Ajouter". Il est impossible d'ajouter un tenant qui se trouve déjà dans la liste des tenants de ce contexte.
 Pour supprimer un tenant, il suffit de cliquer sur le bouton supprimer correspondant au tenant à retirer, et de valider cette suppression en utilisant le bouton "enregistrer".
 Au sein de chacun de ces tenant, il est possible d'ajouter ou supprimer des contrats d'accès ou d'entrée au travers un système de tag : pour ajouter un nouveau contrat, il suffit de saisir son identifiant et de valider avec la touche entrée, un tag sera alors créé pour ce contrat. Pour supprimer un contrat, il est possible de sélectionner le tag en cliquant dessus, puis d'appuyer sur la touche supprimer du clavier. Il est également possible de cliquer directement sur la croix de suppression contenue dans le tag.
