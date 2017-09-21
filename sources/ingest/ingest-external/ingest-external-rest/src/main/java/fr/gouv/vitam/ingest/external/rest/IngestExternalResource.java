@@ -214,7 +214,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     }
 
     /**
-     * Download manifest stored by Ingest operation (currently reports and manifests)
+     * Download manifest stored by Ingest operation (currently manifests)
      * <p>
      * Return the manifest as stream asynchronously<br/>
      * <br/>
@@ -222,8 +222,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
      *
      *
      * @param objectId the id of object to download
-     * @param asyncResponse the asynchronized response
-     * @return response
+     * @return The given response with the manifest
      *
      */
     @GET
@@ -232,6 +231,24 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @Secured(permission = "ingests:id:manifests:read", description = "Récupérer le bordereau de versement pour une opération d'entrée donnée")
     public Response downloadIngestManifestsAsStream(@PathParam("objectId") String objectId) {
         return downloadObjectAsync(objectId, IngestCollection.MANIFESTS);
+    }
+
+    /**
+     * Download report stored by Administration operation (currently administration reports )
+     * <p>
+     * Return the report as stream asynchronously<br/>
+     * <br/>
+     * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
+     *
+     * @param objectId the id of object to download (logbook operation Id)
+     * @return the given response with the report
+     */
+    @GET
+    @Path("/ingests/{objectId}/rules")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Secured(permission = "ingests:id:report:read", description = "Récupérer le rapport pour une opération d'administration donnée")
+    public Response downloadIngestReportAsStream(@PathParam("objectId") String objectId) {
+        return downloadObjectAsync(objectId, IngestCollection.RULES);
     }
 
     private Response downloadObjectAsync(String objectId, IngestCollection collection) {
