@@ -1,26 +1,26 @@
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *
+ * <p>
  * contact.vitam@culture.gouv.fr
- *
+ * <p>
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- *
+ * <p>
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *
+ * <p>
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- *
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * <p>
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *
+ * <p>
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
@@ -31,9 +31,6 @@ import java.io.InputStream;
 
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
-
-import org.jclouds.blobstore.domain.PageSet;
-import org.jclouds.blobstore.domain.StorageMetadata;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -55,6 +52,7 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
     // IllegalArgumentException explicitly
 
     // Container
+
     /**
      * Creates a container
      *
@@ -114,8 +112,8 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      *             Thrown when object creating exists
      */
     public void putObject(String containerName, String objectName, InputStream stream)
-            throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException,
-            ContentAddressableStorageException;
+        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageException;
 
     /**
      * Retrieves an object representing the data at location
@@ -146,6 +144,7 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
     // TODO P1 : getObjectAsync should replace getObject in the future. and
     // getObject uses should be reviewed
     // TODO P1 : asyncResponse not used !
+
     /**
      * Retrieves an object representing the data at location
      * containerName/objectName
@@ -233,7 +232,7 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @throws ContentAddressableStorageServerException
      */
     ContainerInformation getContainerInformation(String containerName)
-            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
     /**
      * Retrieves information about an object at location
@@ -255,7 +254,7 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
 
     /**
      * Check object
-     * 
+     *
      * @param containerName
      *            the container name
      * @param objectId
@@ -268,11 +267,11 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @throws ContentAddressableStorageException
      */
     boolean checkObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
-            throws ContentAddressableStorageException;
+        throws ContentAddressableStorageException;
 
     /**
      * get metadata of the object
-     * 
+     *
      * @param containerName
      *            the container name
      * @param objectId
@@ -283,7 +282,7 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @throws IllegalArgumentException thrown when containerName or objectId is null
      */
     MetadatasObject getObjectMetadatas(String containerName, String objectId)
-            throws ContentAddressableStorageException, IOException;
+        throws ContentAddressableStorageException, IOException;
 
     /**
      * List container (create cursor)
@@ -294,8 +293,8 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @throws ContentAddressableStorageNotFoundException
      * @throws ContentAddressableStorageServerException
      */
-    PageSet<? extends StorageMetadata> listContainer(String containerName)
-        throws ContentAddressableStorageNotFoundException,ContentAddressableStorageServerException;
+    VitamPageSet<? extends VitamStorageMetadata> listContainer(String containerName)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
     /**
      * List container (next on cursor)
@@ -308,7 +307,7 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @throws ContentAddressableStorageNotFoundException
      * @throws ContentAddressableStorageServerException
      */
-    PageSet<? extends StorageMetadata> listContainerNext(String containerName, String nextMarker)
-        throws ContentAddressableStorageNotFoundException,ContentAddressableStorageServerException;
+    VitamPageSet<? extends VitamStorageMetadata> listContainerNext(String containerName, String nextMarker)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
 }

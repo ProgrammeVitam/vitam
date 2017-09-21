@@ -27,21 +27,8 @@
 
 package fr.gouv.vitam.storage.offers.common.core;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.core.Response;
-
-import org.jclouds.blobstore.domain.PageSet;
-import org.jclouds.blobstore.domain.StorageMetadata;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.cas.container.builder.StoreContextBuilder;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -50,8 +37,11 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
+import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
+import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
@@ -61,7 +51,14 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExi
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.common.storage.ContainerInformation;
+
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Default offer service implementation
@@ -87,7 +84,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         StorageConfiguration configuration;
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF_FILE_NAME),
-                    StorageConfiguration.class);
+                StorageConfiguration.class);
         } catch (final IOException exc) {
             LOGGER.error(exc);
             throw new ExceptionInInitializerError(exc);
@@ -107,20 +104,20 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public String getObjectDigest(String containerName, String objectId, DigestType digestAlgorithm)
-            throws ContentAddressableStorageException {
+        throws ContentAddressableStorageException {
         return defaultStorage.computeObjectDigest(containerName, objectId, digestAlgorithm);
     }
 
     @Override
     public Response getObject(String containerName, String objectId)
-            throws ContentAddressableStorageException {
+        throws ContentAddressableStorageException {
         final Response response = defaultStorage.getObjectAsync(containerName, objectId);
         return new VitamAsyncInputStreamResponse(response);
     }
 
     @Override
     public ObjectInit initCreateObject(String containerName, ObjectInit objectInit, String objectGUID)
-            throws ContentAddressableStorageServerException {
+        throws ContentAddressableStorageServerException {
         try {
             defaultStorage.createContainer(containerName);
         } catch (ContentAddressableStorageAlreadyExistException ex) {
@@ -174,13 +171,14 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public boolean isObjectExist(String containerName, String objectId) throws ContentAddressableStorageServerException {
+    public boolean isObjectExist(String containerName, String objectId)
+        throws ContentAddressableStorageServerException {
         return defaultStorage.isExistingObject(containerName, objectId);
     }
 
     @Override
     public JsonNode getCapacity(String containerName)
-            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         final ObjectNode result = JsonHandler.createObjectNode();
         ContainerInformation containerInformation;
         try {
@@ -200,7 +198,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public JsonNode countObjects(String containerName)
-            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         final ObjectNode result = JsonHandler.createObjectNode();
         final long objectNumber = defaultStorage.countObjects(containerName);
         result.put("objectNumber", objectNumber);
@@ -213,7 +211,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public boolean checkObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
-            throws ContentAddressableStorageException {
+        throws ContentAddressableStorageException {
         String offerDigest = getObjectDigest(containerName, objectId, digestAlgorithm);
         return offerDigest.equals(digest);
     }
@@ -248,7 +246,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public StorageMetadatasResult getMetadatas(String containerName, String objectId)
-            throws ContentAddressableStorageException, IOException {
+        throws ContentAddressableStorageException, IOException {
         return new StorageMetadatasResult(defaultStorage.getObjectMetadatas(containerName, objectId));
     }
 
@@ -270,10 +268,10 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public List<JsonNode> next(String containerName, String cursorId)
-        throws ContentAddressableStorageNotFoundException,ContentAddressableStorageServerException {
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         String keyMap = getKeyMap(containerName, cursorId);
         if (mapXCusor.containsKey(keyMap)) {
-            PageSet<? extends StorageMetadata> pageSet;
+            VitamPageSet<? extends VitamStorageMetadata> pageSet;
             if (mapXCusor.get(keyMap) == null) {
                 pageSet = defaultStorage.listContainer(containerName);
             } else {
@@ -298,9 +296,9 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         }
     }
 
-    private List<JsonNode> getListFromPageSet(PageSet<? extends StorageMetadata> pageSet) {
+    private List<JsonNode> getListFromPageSet(VitamPageSet<? extends VitamStorageMetadata> pageSet) {
         List<JsonNode> list = new ArrayList<>();
-        for (StorageMetadata storageMetadata : pageSet) {
+        for (VitamStorageMetadata storageMetadata : pageSet) {
             list.add(JsonHandler.createObjectNode().put("objectId", storageMetadata.getName()));
         }
         return list;

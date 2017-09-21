@@ -28,10 +28,11 @@ package fr.gouv.vitam.common.storage.filesystem.v2.metadata.object;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import org.jclouds.blobstore.domain.StorageMetadata;
-import org.jclouds.blobstore.domain.StorageType;
-import org.jclouds.domain.Location;
-import org.jclouds.domain.ResourceMetadata;
+import fr.gouv.vitam.common.storage.cas.container.api.Location;
+import fr.gouv.vitam.common.storage.cas.container.api.StorageType;
+import fr.gouv.vitam.common.storage.cas.container.api.VitamResourceMetadata;
+import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
+
 
 import java.io.File;
 import java.io.IOException;
@@ -46,10 +47,10 @@ import java.util.Map;
  *
  * @author vitam
  */
-public class HashStorageMetadata implements StorageMetadata {
+public class HashJcloudsStorageMetadata implements VitamStorageMetadata {
 
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(HashStorageMetadata.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(HashJcloudsStorageMetadata.class);
 
     private Date creationDate;
     private String etag;
@@ -65,7 +66,7 @@ public class HashStorageMetadata implements StorageMetadata {
      *
      * @param path
      */
-    public HashStorageMetadata(Path path) {
+    public HashJcloudsStorageMetadata(Path path) {
         filePath = path;
         name = filePath.getFileName().toString();
     }
@@ -94,7 +95,7 @@ public class HashStorageMetadata implements StorageMetadata {
     }
 
     @Override
-    public int compareTo(ResourceMetadata<StorageType> arg0) {
+    public int compareTo(VitamResourceMetadata<StorageType> arg0) {
         return 0;
     }
 

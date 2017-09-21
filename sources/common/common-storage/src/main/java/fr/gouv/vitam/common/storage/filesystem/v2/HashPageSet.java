@@ -26,15 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.storage.filesystem.v2;
 
-import fr.gouv.vitam.common.storage.filesystem.v2.metadata.object.HashStorageMetadata;
-import org.jclouds.blobstore.domain.PageSet;
+import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
+import fr.gouv.vitam.common.storage.filesystem.v2.metadata.object.HashJcloudsStorageMetadata;
 
 import java.util.LinkedHashSet;
 
 /**
  * Implementation of Jclouds PageSet for Vitam. It is based on PageSetImpl Jclouds internal class
  */
-public class HashPageSet extends LinkedHashSet<HashStorageMetadata> implements PageSet<HashStorageMetadata> {
+public class HashPageSet extends LinkedHashSet<HashJcloudsStorageMetadata>
+    implements VitamPageSet<HashJcloudsStorageMetadata> {
 
     private static final long serialVersionUID = 2215114445605678995L;
     protected String marker;

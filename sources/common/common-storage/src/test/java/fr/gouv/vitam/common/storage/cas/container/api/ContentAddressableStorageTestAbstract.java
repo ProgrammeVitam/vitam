@@ -36,10 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.apache.commons.compress.archivers.ArchiveStreamFactory;
-import org.jclouds.blobstore.domain.PageSet;
 import org.jclouds.blobstore.domain.StorageMetadata;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -50,12 +47,10 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.storage.ContainerInformation;
-import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -63,7 +58,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 
 /**
  * Abstract Junit Test for classes that implements ContentAddressableStorage API
- *
  */
 public abstract class ContentAddressableStorageTestAbstract {
 
@@ -74,17 +68,18 @@ public abstract class ContentAddressableStorageTestAbstract {
     protected File tempDir;
     protected static final String CONTAINER_NAME = "myContainer";
     protected static final String WRONG_CONTAINER_NAME = "myWrongContainer";
-    protected static final String OBJECT_NAME = GUIDFactory.newGUID().getId()+".json";
+    protected static final String OBJECT_NAME = GUIDFactory.newGUID().getId() + ".json";
     protected static final DigestType ALGO = DigestType.SHA512;
 
     protected static final String TENANT_ID = "0";
     protected static final String TYPE = "object";
-    protected static final String OBJECT_ID =  "aeaaaaaaaaaam7mxaa2pkak2bnhxy5aaaaaq";
+    protected static final String OBJECT_ID = "aeaaaaaaaaaam7mxaa2pkak2bnhxy5aaaaaq";
     protected static final String OBJECT_ID2 = "aeaaaaaaaaaam7mxaa2pkak2bnhxy4aaaaaq";
 
     // Container
     @Test
-    public void givenContainerNotFoundWhenCheckContainerExistenceThenRetunFalse() throws ContentAddressableStorageServerException {
+    public void givenContainerNotFoundWhenCheckContainerExistenceThenRetunFalse()
+        throws ContentAddressableStorageServerException {
         assertFalse(storage.isExistingContainer(CONTAINER_NAME));
     }
 
@@ -112,7 +107,8 @@ public abstract class ContentAddressableStorageTestAbstract {
 
     // Object
     @Test
-    public void givenObjectNotFoundWhenCheckObjectExistenceThenRetunFalse() throws ContentAddressableStorageServerException {
+    public void givenObjectNotFoundWhenCheckObjectExistenceThenRetunFalse()
+        throws ContentAddressableStorageServerException {
         assertFalse(storage.isExistingObject(CONTAINER_NAME, OBJECT_NAME));
     }
 
@@ -311,19 +307,19 @@ public abstract class ContentAddressableStorageTestAbstract {
 
     @Test(expected = ContentAddressableStorageNotFoundException.class)
     public void givenObjectNotExistingWhenCheckObjectThenOK()
-        throws ContentAddressableStorageException, IOException {        
+        throws ContentAddressableStorageException, IOException {
         storage.checkObject(CONTAINER_NAME, OBJECT_NAME, "fakeDigest", DigestType.MD5);
     }
-    
+
     @Test(expected = IllegalArgumentException.class)
     public void givenNullParamWhenCheckObjectThenRaiseAnException()
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
         storage.checkObject(CONTAINER_NAME, OBJECT_NAME, "fakeDigest", null);
     }
-    
+
     @Test
     public void givenObjectAlreadyExistsWhenGetObjectMetadataThenNotRaiseAnException() throws Exception {
-        String containerName = TENANT_ID + "_"+ TYPE;
+        String containerName = TENANT_ID + "_" + TYPE;
         storage.createContainer(containerName);
         storage.putObject(containerName, OBJECT_ID, getInputStream("file1.pdf"));
         storage.putObject(containerName, OBJECT_ID2, getInputStream("file2.pdf"));
@@ -331,7 +327,8 @@ public abstract class ContentAddressableStorageTestAbstract {
         MetadatasObject result = storage.getObjectMetadatas(containerName, OBJECT_ID);
         assertEquals(OBJECT_ID, result.getObjectName());
         assertEquals(TYPE, result.getType());
-        assertEquals("9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418", 
+        assertEquals(
+            "9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418",
             result.getDigest());
         assertEquals("Vitam_" + TENANT_ID, result.getFileOwner());
         assertEquals(6906, result.getFileSize());
@@ -358,19 +355,19 @@ public abstract class ContentAddressableStorageTestAbstract {
         for (int i = 0; i < 100; i++) {
             storage.putObject(containerName, GUIDFactory.newGUID().getId(), new FakeInputStream(100));
         }
-        PageSet<? extends StorageMetadata> pageSet = storage.listContainer(containerName);
+        VitamPageSet<? extends VitamStorageMetadata> pageSet = storage.listContainer(containerName);
         assertNotNull(pageSet);
         assertFalse(pageSet.isEmpty());
         assertEquals(100, pageSet.size());
 
-        for (int i = 100; i < (nbIter * 100 +50); i++) {
+        for (int i = 100; i < (nbIter * 100 + 50); i++) {
             storage.putObject(containerName, GUIDFactory.newGUID().getId(), new FakeInputStream(100));
         }
         // First list without marker
         pageSet = storage.listContainer(containerName);
         // Loop with marker with complete PageSet (100 elements)
-        for(int i=1;i < nbIter;i++){
-            pageSet = storage.listContainerNext(containerName,pageSet.getNextMarker());
+        for (int i = 1; i < nbIter; i++) {
+            pageSet = storage.listContainerNext(containerName, pageSet.getNextMarker());
             assertNotNull(pageSet);
             assertFalse(pageSet.isEmpty());
             assertEquals(100, pageSet.size());
@@ -382,7 +379,7 @@ public abstract class ContentAddressableStorageTestAbstract {
         assertFalse(pageSet.isEmpty());
         assertEquals(50, pageSet.size());
         assertNull(pageSet.getNextMarker());
-        
+
     }
-    
+
 }

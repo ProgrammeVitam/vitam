@@ -26,8 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.storage.filesystem.v2;
 
-import fr.gouv.vitam.common.storage.filesystem.v2.metadata.object.HashStorageMetadata;
-import org.jclouds.blobstore.domain.PageSet;
+import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
+import fr.gouv.vitam.common.storage.filesystem.v2.metadata.object.HashJcloudsStorageMetadata;
+
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Path;
@@ -51,7 +52,7 @@ public final class HashFileListVisitor extends SimpleFileVisitor<Path> {
     int level = 0;
     ArrayList<Integer> fatherCompare = new ArrayList<>(MAX_DEPTH);
     boolean isSameDirectoryMarker = false;
-    
+
     /**
      * Default constructor
      */
@@ -86,7 +87,7 @@ public final class HashFileListVisitor extends SimpleFileVisitor<Path> {
             }
             // Calculate if we are exactly in the directory structure of the marker 
             isSameDirectoryMarker = true;
-            for (Integer compValue: fatherCompare){
+            for (Integer compValue : fatherCompare) {
                 isSameDirectoryMarker = isSameDirectoryMarker && (compValue == 0);
             }
             // Global Idea :
@@ -97,7 +98,7 @@ public final class HashFileListVisitor extends SimpleFileVisitor<Path> {
                     level++;
                     return FileVisitResult.CONTINUE;
                 }
-            } 
+            }
             if (level < beginMarkerSplitted.size() && fatherCompare.get(level) < 0) {
                 return FileVisitResult.SKIP_SUBTREE;
             }
@@ -118,7 +119,7 @@ public final class HashFileListVisitor extends SimpleFileVisitor<Path> {
     @Override
     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
         // If we have a marker and we 
-        if (beginMarker != null && isSameDirectoryMarker && file.getFileName().toString().compareTo(beginMarker) < 0){
+        if (beginMarker != null && isSameDirectoryMarker && file.getFileName().toString().compareTo(beginMarker) < 0) {
             return FileVisitResult.CONTINUE;
         }
         // The PageSet is full
@@ -126,7 +127,7 @@ public final class HashFileListVisitor extends SimpleFileVisitor<Path> {
             hashPageSet.setNextMarker(file.getFileName().toString());
             return FileVisitResult.TERMINATE;
         }
-        hashPageSet.add(new HashStorageMetadata(file));
+        hashPageSet.add(new HashJcloudsStorageMetadata(file));
         currentFiles++;
         return super.visitFile(file, attrs);
     }
@@ -136,7 +137,7 @@ public final class HashFileListVisitor extends SimpleFileVisitor<Path> {
      *
      * @return PageSet
      */
-    public PageSet<HashStorageMetadata> getPageSet() {
+    public VitamPageSet<HashJcloudsStorageMetadata> getPageSet() {
         return hashPageSet;
     }
 
