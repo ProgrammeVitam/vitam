@@ -707,6 +707,43 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         createLogbook(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS, lifecycleItem);
     }
 
+    private String createUnitaryUpdateForMaster(LogbookCollections collection, String mainLogbookDocumentId,
+        String masterData) throws LogbookNotFoundException {
+        try {
+            Document oldValue =
+                (Document) collection.getCollection().find(eq(LogbookDocument.ID, mainLogbookDocumentId)).first();
+            // the test shouldn't be necessary, but...
+            if (oldValue != null) {
+                Object evdevObj = oldValue.get(LogbookMongoDbName.eventDetailData.getDbname());
+                ObjectNode oldEvDetData = (ObjectNode) JsonHandler.getFromString("{}");
+                String old;
+                if (evdevObj != null) {
+                    if (evdevObj instanceof String) {
+                        old = (String) evdevObj;
+                    } else {
+                        old = JsonHandler.unprettyPrint(evdevObj);
+                    }
+                    JsonNode node = JsonHandler.getFromString(old);
+                    if (node instanceof ObjectNode) {
+                        oldEvDetData = (ObjectNode) node;
+                    } else {
+                        LOGGER.warn("Bad evDevData : {}", old);
+                    }
+                }
+                if (ParametersChecker.isNotEmpty(masterData)) {
+                    ObjectNode master = (ObjectNode) JsonHandler.getFromString(masterData);
+                    oldEvDetData.setAll(master);
+                    return JsonHandler.unprettyPrint(oldEvDetData);
+                }
+            } else {
+                throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + mainLogbookDocumentId);
+            }
+        } catch (InvalidParseOperationException e) {
+            LOGGER.warn("masterData is not parsable as a json. Analyse cancelled: " + masterData, e);
+        }
+        return null;
+    }
+
     final void updateLogbook(LogbookCollections collection, LogbookParameters item)
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, item);
@@ -716,11 +753,26 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             // Save the _id content before removing it
             final String mainLogbookDocumentId = document.getId();
 
+            List<Bson> listUpdates = new ArrayList<>();
+            Bson mainUpdate = Updates.push(LogbookDocument.EVENTS, document);
+            listUpdates.add(mainUpdate);
+
+            if (item.getParameterValue(LogbookParameterName.masterData) != null &&
+                !item.getParameterValue(LogbookParameterName.masterData).isEmpty()) {
+                String evDetDataFinalValue = createUnitaryUpdateForMaster(collection, mainLogbookDocumentId,
+                    item.getParameterValue(LogbookParameterName.masterData));
+                if (evDetDataFinalValue != null && !evDetDataFinalValue.isEmpty()) {
+                    Bson masterUpdate =
+                        Updates.set(LogbookMongoDbName.eventDetailData.getDbname(), evDetDataFinalValue);
+                    listUpdates.add(masterUpdate);
+                }
+            }
+
             // Remove _id and events fields
             removeDuplicatedInformation(document);
             final VitamDocument<?> result = (VitamDocument<?>) collection.getCollection().findOneAndUpdate(
                 eq(LogbookDocument.ID, mainLogbookDocumentId),
-                Updates.push(LogbookDocument.EVENTS, document),
+                Updates.combine(listUpdates),
                 new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
             if (result == null) {
                 throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + mainLogbookDocumentId);
@@ -1473,13 +1525,13 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         Document oldValue =
             (Document) collection.getCollection().find(eq(LogbookDocument.ID, mainLogbookDocumentId)).first();
         String masterData = item.getParameterValue(LogbookParameterName.masterData);
-
         List<Bson> updates = new ArrayList<Bson>();
         if (ParametersChecker.isNotEmpty(masterData)) {
             try {
                 JsonNode master = JsonHandler.getFromString(masterData);
                 ObjectNode oldEvDetData = (ObjectNode) JsonHandler.getFromString("{}");
-                Object evdevObj = oldValue.get(LogbookMongoDbName.eventDetailData.getDbname());
+                Object evdevObj =
+                    oldValue == null ? null : oldValue.get(LogbookMongoDbName.eventDetailData.getDbname());
                 if (evdevObj != null) {
                     String old;
                     if (evdevObj instanceof String) {
@@ -1516,7 +1568,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                         updates.add(Updates.set(mongoDbName, fieldValue));
                     }
                 }
-
                 if (updateEvDevData) {
                     String fieldValue = JsonHandler.writeAsString(oldEvDetData);
                     updates.add(Updates.set(LogbookMongoDbName.eventDetailData.getDbname(), fieldValue));
@@ -1576,4 +1627,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
 
     }
+
+
 }

@@ -297,6 +297,9 @@ public class LogbookMongoDbAccessFactoryTest {
             if (LogbookParameterName.eventDetailData.equals(name)) {
                 parameters.putParameterValue(name, "{\"value\":\"" +
                     GUIDFactory.newEventGUID(TENANT_ID).getId() + "\"}");
+            } else if (LogbookParameterName.masterData.equals(name)) {
+                parameters.putParameterValue(name, " { \"eventDetailData\": {\"value\":\"" +
+                    GUIDFactory.newEventGUID(TENANT_ID).getId() + "\"}}");
             } else {
                 parameters.putParameterValue(name,
                     GUIDFactory.newEventGUID(TENANT_ID).getId());
@@ -314,6 +317,9 @@ public class LogbookMongoDbAccessFactoryTest {
             if (LogbookParameterName.eventDetailData.equals(name)) {
                 parameters2.putParameterValue(name, "{\"value\":\"" +
                     GUIDFactory.newEventGUID(TENANT_ID).getId() + "\"}");
+            } else if (LogbookParameterName.masterData.equals(name)) {
+                parameters2.putParameterValue(name, " { \"eventDetailData\": {\"value\":\"" +
+                    GUIDFactory.newEventGUID(TENANT_ID).getId() + "\"}}");
             } else {
                 parameters2.putParameterValue(name,
                     GUIDFactory.newEventGUID(TENANT_ID).getId());
@@ -350,6 +356,8 @@ public class LogbookMongoDbAccessFactoryTest {
             mongoDbAccess.createLogbookOperation(parameters2);
             fail("Should throw an exception");
         } catch (final VitamException e) {}
+        parameters2.putParameterValue(LogbookParameterName.masterData,
+            JsonHandler.getFromString("{\"eventDetailData\" : {\"fileName\":\"newFile.json\"}}").toString());
         mongoDbAccess.updateLogbookOperation(parameters2);
         assertEquals(nbl, mongoDbAccess.getLogbookLifeCyleUnitSize());
         assertEquals(nbo + 1, mongoDbAccess.getLogbookOperationSize());
@@ -381,6 +389,7 @@ public class LogbookMongoDbAccessFactoryTest {
             GUIDFactory.newEventGUID(TENANT_ID).getId());
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
+
         parameters2.putParameterValue(LogbookParameterName.eventIdentifier,
             GUIDFactory.newEventGUID(TENANT_ID).getId());
         parameters2.putParameterValue(LogbookParameterName.eventDateTime,
