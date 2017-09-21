@@ -185,10 +185,10 @@ public class FileRulesModel {
 
     @Override
     public String toString() {
-        return "FileRulesModel [id=" + id + ", tenant=" + tenant + ", ruleId=" + ruleId + ", ruleType=" + ruleType +
+        return "id=" + id + ", tenant=" + tenant + ", ruleId=" + ruleId + ", ruleType=" + ruleType +
             ", ruleValue=" + ruleValue + ", ruleDescription=" + ruleDescription + ", ruleDuration=" + ruleDuration +
             ", ruleMeasurement=" + ruleMeasurement + ", creationDate=" + creationDate + ", updateDate=" + updateDate +
-            ", version=" + version + "]";
+            ", version=" + version ;
     }
 
 

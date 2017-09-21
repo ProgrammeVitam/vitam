@@ -406,7 +406,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                 launchWorkflow(usedUpdateRulesForReport);
             }
             // TODO #2201 : Create Workflow for update AU linked to unit
-            updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.OK, filename);
+            updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.WARNING, filename);
         } catch (LogbookClientServerException | LogbookClientBadRequestException |
             LogbookClientAlreadyExistsException | StorageException e) {
             updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.KO, filename);
