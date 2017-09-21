@@ -46,6 +46,7 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -87,10 +88,10 @@ public class CheckIngestContractActionHandler extends ActionHandler {
 
         try {
             checkMandatoryIOParameter(ioParam);
-            final String contractName = (String) handlerIO.getInput(SEDA_PARAMETERS_RANK);
+            final String contractIdentifier = (String) handlerIO.getInput(SEDA_PARAMETERS_RANK);
 
-            if (contractName != null) {
-                contractValidity = checkIngestContract(contractName);
+            if (contractIdentifier != null) {
+                contractValidity = checkIngestContract(contractIdentifier);
             } else {
                 contractValidity = true;
                 LOGGER.info("There is no contract in the SIP");
@@ -98,7 +99,7 @@ public class CheckIngestContractActionHandler extends ActionHandler {
 
             if (!contractValidity) {
                 itemStatus.increment(StatusCode.KO);
-                itemStatus.setData("error ingest contract validation", contractName);
+                itemStatus.setData("error ingest contract validation", contractIdentifier);
             } else {
                 itemStatus.increment(StatusCode.OK);
             }
@@ -115,13 +116,10 @@ public class CheckIngestContractActionHandler extends ActionHandler {
      * @param contractName name contract
      * @return true if contract ok
      */
-    private boolean checkIngestContract(String contractName) {
+    private boolean checkIngestContract(String contractIdentifier) {
         try (final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
 
-            Select select = new Select();
-            select.setQuery(QueryHelper.eq(IngestContract.NAME, contractName));
-            JsonNode queryDsl = select.getFinalSelect();
-            RequestResponse<IngestContractModel> referenceContracts = client.findIngestContracts(queryDsl);
+            RequestResponse<IngestContractModel> referenceContracts = client.findIngestContractsByID(contractIdentifier);
             if (referenceContracts.isOk()) {
                 List<IngestContractModel> results = ((RequestResponseOK) referenceContracts).getResults();
                 if (!results.isEmpty()) {
@@ -135,7 +133,7 @@ public class CheckIngestContractActionHandler extends ActionHandler {
             }
         } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
             LOGGER.error("Contract found but inactive: ", e);
-        } catch (InvalidCreateOperationException e) {
+        } catch (ReferentialNotFoundException e) {
             LOGGER.error("Contract not found :", e);
         }
         return false;

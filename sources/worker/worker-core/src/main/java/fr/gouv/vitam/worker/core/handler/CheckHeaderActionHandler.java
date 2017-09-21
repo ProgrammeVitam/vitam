@@ -127,9 +127,9 @@ public class CheckHeaderActionHandler extends ActionHandler {
 
         if (shouldCheckContract) {
             if (madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) != null) {
-                final String contractName = (String) madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
+                final String contractIdentifier = (String) madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
                 handlerIO.getInput().clear();
-                handlerIO.getInput().add(contractName);
+                handlerIO.getInput().add(contractIdentifier);
                 CheckIngestContractActionHandler checkIngestContractActionHandler = new CheckIngestContractActionHandler();
                 final ItemStatus checkContratItemStatus = checkIngestContractActionHandler.execute(params, handlerIO);
                 itemStatus.setItemsStatus(CheckIngestContractActionHandler.getId(), checkContratItemStatus);
