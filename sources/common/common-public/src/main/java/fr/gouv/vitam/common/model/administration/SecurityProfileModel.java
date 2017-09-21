@@ -35,7 +35,10 @@ import java.util.Set;
  */
 public class SecurityProfileModel {
 
-    private static final String TAG_ID = "_id";
+    public static final String TAG_ID = "id";
+    public static final String HASH = "#";
+    public static final String UNDERSCORE = "_";
+
     private static final String TAG_IDENTIFIER = "Identifier";
     private static final String TAG_NAME = "Name";
     private static final String TAG_FULL_ACCESS = "FullAccess";
@@ -44,7 +47,6 @@ public class SecurityProfileModel {
     /**
      * unique identifier
      */
-    @JsonProperty(TAG_ID)
     private String id;
 
     @JsonProperty(TAG_IDENTIFIER)
@@ -94,6 +96,7 @@ public class SecurityProfileModel {
     /**
      * @return id
      */
+    @JsonProperty(HASH + TAG_ID)
     public String getId() {
         return id;
     }
@@ -102,7 +105,14 @@ public class SecurityProfileModel {
      * @param id value to set
      * @return this
      */
+    @JsonProperty(UNDERSCORE + TAG_ID)
     public void setId(String id) {
+        this.id = id;
+    }
+
+
+    @JsonProperty(HASH + TAG_ID)
+    public void setIdExt(String id) {
         this.id = id;
     }
 

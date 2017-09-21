@@ -25,16 +25,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ProfileModel {
 
+    public static final String TAG_ID = "id";
+    public static final String TAG_TENANT = "tenant";
+    public static final String HASH = "#";
+    public static final String UNDERSCORE = "_";
+
     /**
      * unique identifier
      */
-    @JsonProperty("_id")
     private String id;
 
     /**
      * tenant id
      */
-    @JsonProperty("_tenant")
     private Integer tenant;
 
     @JsonProperty("Identifier")
@@ -81,6 +84,7 @@ public class ProfileModel {
     /**
      * @return id
      */
+    @JsonProperty(HASH + TAG_ID)
     public String getId() {
         return id;
     }
@@ -89,7 +93,18 @@ public class ProfileModel {
      * @param id value to set field
      * @return this
      */
+    @JsonProperty(UNDERSCORE + TAG_ID)
     public ProfileModel setId(String id) {
+        this.id = id;
+        return this;
+    }
+
+    /**
+     * @param id value to set field
+     * @return this
+     */
+    @JsonProperty(HASH + TAG_ID)
+    public ProfileModel setIdExt(String id) {
         this.id = id;
         return this;
     }
@@ -97,6 +112,7 @@ public class ProfileModel {
     /**
      * @return tenant
      */
+    @JsonProperty(HASH + TAG_TENANT)
     public Integer getTenant() {
         return tenant;
     }
@@ -105,7 +121,18 @@ public class ProfileModel {
      * @param tenant value to set working tenant
      * @return this
      */
+    @JsonProperty(UNDERSCORE + TAG_TENANT)
     public ProfileModel setTenant(Integer tenant) {
+        this.tenant = tenant;
+        return this;
+    }
+
+    /**
+     * @param tenant value to set working tenant
+     * @return this
+     */
+    @JsonProperty(HASH + TAG_TENANT)
+    public ProfileModel setTenantExt(Integer tenant) {
         this.tenant = tenant;
         return this;
     }
@@ -113,6 +140,7 @@ public class ProfileModel {
 
     /**
      * Get the identifier of the profile
+     *
      * @return identifier as String
      */
     public String getIdentifier() {
@@ -121,7 +149,7 @@ public class ProfileModel {
 
     /**
      * Set the identifier of the profile This value must be unique by tenant
-     * 
+     *
      * @param identifier as String
      * @return this
      */
@@ -132,7 +160,7 @@ public class ProfileModel {
 
     /**
      * Get name of the profile
-     * 
+     *
      * @return name as String
      */
     public String getName() {
@@ -141,7 +169,7 @@ public class ProfileModel {
 
     /**
      * Set or change the profile name
-     * 
+     *
      * @param name as String to set
      * @return this
      */
@@ -152,7 +180,7 @@ public class ProfileModel {
 
     /**
      * Get the profile description
-     * 
+     *
      * @return description of profile
      */
     public String getDescription() {
@@ -161,7 +189,7 @@ public class ProfileModel {
 
     /**
      * Set or change the profile description
-     * 
+     *
      * @param description to set
      * @return this
      */
@@ -173,7 +201,7 @@ public class ProfileModel {
 
     /**
      * Get the profile status
-     * 
+     *
      * @return status of profile
      */
     public ProfileStatus getStatus() {
@@ -183,7 +211,7 @@ public class ProfileModel {
 
     /**
      * Set or change the profile status
-     * 
+     *
      * @param status toi set
      * @return this
      */
@@ -194,7 +222,7 @@ public class ProfileModel {
 
     /**
      * Get the format of the profile file (xsd, rng, ...)
-     * 
+     *
      * @return the file format as string
      */
     public ProfileFormat getFormat() {
@@ -204,7 +232,7 @@ public class ProfileModel {
 
     /**
      * Set the profile file format (xsd, rng, ...)
-     * 
+     *
      * @param format
      * @return this
      */
@@ -214,7 +242,6 @@ public class ProfileModel {
     }
 
     /**
-     *
      * @return path as String
      */
     public String getPath() {
@@ -223,7 +250,7 @@ public class ProfileModel {
 
     /**
      * Profile path in storage
-     * 
+     *
      * @param path
      * @return this
      */

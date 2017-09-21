@@ -1,6 +1,5 @@
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *
  * contact.vitam@culture.gouv.fr
  *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
@@ -32,10 +31,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Data Transfer Object Model of Agency
  */
 public class AgenciesModel {
-    public static final String TAG_ID = "_id";
+
+    public static final String TAG_ID = "id";
+    public static final String TAG_TENANT = "tenant";
+    public static final String HASH = "#";
+    public static final String UNDERSCORE = "_";
 
 
-    public static final String TAG_TENANT = "_tenant";
+
     public static final String TAG_NAME = "Name";
 
     public static final String TAG_IDENTIFIER = "Identifier";
@@ -44,7 +47,6 @@ public class AgenciesModel {
     /**
      * unique identifier
      */
-    @JsonProperty(TAG_ID)
     private String id;
 
     @JsonProperty(TAG_NAME)
@@ -60,7 +62,7 @@ public class AgenciesModel {
     /**
      * Constructor of AgencyModel
      *
-     * @param id
+     * @param identifier
      * @param name
      * @param description
      */
@@ -72,10 +74,10 @@ public class AgenciesModel {
         this.description = description;
 
     }
+
     /**
      * tenant id
      */
-    @JsonProperty(TAG_TENANT)
     private Integer tenant;
 
     /**
@@ -87,6 +89,7 @@ public class AgenciesModel {
     /**
      * @return tenant
      */
+    @JsonProperty(HASH + TAG_TENANT)
     public Integer getTenant() {
         return tenant;
     }
@@ -95,13 +98,28 @@ public class AgenciesModel {
      * @param tenant value to set working tenant
      * @return this
      */
+    @JsonProperty(UNDERSCORE + TAG_TENANT)
     public AgenciesModel setTenant(Integer tenant) {
         this.tenant = tenant;
         return this;
     }
+
+
+    /**
+     * @param tenant value to set working tenant
+     * @return this
+     */
+    @JsonProperty(HASH + TAG_TENANT)
+    public AgenciesModel setTenantExt(Integer tenant) {
+        this.tenant = tenant;
+        return this;
+    }
+
     /**
      * @return id
      */
+
+    @JsonProperty(HASH + TAG_ID)
     public String getId() {
         return id;
     }
@@ -110,7 +128,18 @@ public class AgenciesModel {
      * @param id
      * @return AgencyModel
      */
+    @JsonProperty(UNDERSCORE + TAG_ID)
     public AgenciesModel setId(String id) {
+        this.id = id;
+        return this;
+    }
+
+    /**
+     * @param id
+     * @return AgencyModel
+     */
+    @JsonProperty(HASH + TAG_ID)
+    public AgenciesModel setIdExt(String id) {
         this.id = id;
         return this;
     }

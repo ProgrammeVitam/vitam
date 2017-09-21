@@ -40,22 +40,24 @@ public class AbstractContractModel {
 
     public static final String TAG_IDENTIFIER = "Identifier";
 
-    private static final String TAG_TENANT = "_tenant";
+    private static final String TAG_TENANT = "tenant";
 
-    public static final String TAG_ID = "_id";
+    public static final String TAG_ID = "id";
 
     public static final String TAG_STATUS = "Status";
+
+    public static final String HASH = "#";
+    public static final String UNDERSCORE = "_";
 
     /**
      * unique identifier
      */
-    @JsonProperty(TAG_ID)
     private String id;
 
     /**
      * tenant id
      */
-    @JsonProperty(TAG_TENANT)
+
     private Integer tenant;
 
     @JsonProperty(TAG_NAME)
@@ -92,6 +94,7 @@ public class AbstractContractModel {
     /**
      * @return id
      */
+    @JsonProperty(HASH + TAG_ID)
     public String getId() {
         return id;
     }
@@ -100,14 +103,25 @@ public class AbstractContractModel {
      * @param id value to set field
      * @return this
      */
+    @JsonProperty(UNDERSCORE + TAG_ID)
     public AbstractContractModel setId(String id) {
         this.id = id;
         return this;
     }
 
     /**
+     * @param id value to set
+     * @return this
+     */
+    @JsonProperty(HASH + TAG_ID)
+    public AbstractContractModel setIdExt(String id) {
+        this.id = id;
+        return this;
+    }
+    /**
      * @return tenant
      */
+    @JsonProperty(HASH + TAG_TENANT)
     public Integer getTenant() {
         return tenant;
     }
@@ -116,14 +130,25 @@ public class AbstractContractModel {
      * @param tenant value to set working tenant
      * @return this
      */
+    @JsonProperty(UNDERSCORE + TAG_TENANT)
     public AbstractContractModel setTenant(Integer tenant) {
         this.tenant = tenant;
         return this;
     }
 
     /**
+     * @param tenant value to set working tenant
+     * @return this
+     */
+    @JsonProperty(HASH + TAG_TENANT)
+    public AbstractContractModel setTenantEXT(Integer tenant) {
+        this.tenant = tenant;
+        return this;
+    }
+
+    /**
      * Get the identifier of the contract
-     * 
+     *
      * @return String
      */
     public String getIdentifier() {
@@ -132,7 +157,7 @@ public class AbstractContractModel {
 
     /**
      * Set the identifier of the contract This value must be unique by tenant
-     * 
+     *
      * @param identifier as String
      * @return this
      */
@@ -143,7 +168,7 @@ public class AbstractContractModel {
 
     /**
      * Get name of the contract
-     * 
+     *
      * @return name as String
      */
     public String getName() {
@@ -152,7 +177,7 @@ public class AbstractContractModel {
 
     /**
      * Set or change the contract name
-     * 
+     *
      * @param name as String to set
      * @return this
      */
@@ -163,7 +188,7 @@ public class AbstractContractModel {
 
     /**
      * Get the contract description
-     * 
+     *
      * @return description of contract
      */
     public String getDescription() {
@@ -172,7 +197,7 @@ public class AbstractContractModel {
 
     /**
      * Set or change the contract description
-     * 
+     *
      * @param description to set
      * @return this
      */
@@ -184,7 +209,7 @@ public class AbstractContractModel {
 
     /**
      * Get the contract status
-     * 
+     *
      * @return status of contract
      */
     public String getStatus() {
@@ -194,7 +219,7 @@ public class AbstractContractModel {
 
     /**
      * Set or change the contract status
-     * 
+     *
      * @param status toi set
      * @return this
      */

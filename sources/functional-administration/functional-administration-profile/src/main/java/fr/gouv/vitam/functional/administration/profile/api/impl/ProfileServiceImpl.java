@@ -38,6 +38,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -119,7 +120,8 @@ public class ProfileServiceImpl implements ProfileService {
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
     private final VitamCounterService vitamCounterService;
     private final ProfileManager manager;
-
+    private static final String _TENANT = "_tenant";
+    private static final String _ID = "_id";
     /**
      * Constructor
      *
@@ -226,14 +228,19 @@ public class ProfileServiceImpl implements ProfileService {
 
             profilesToPersist = JsonHandler.createArrayNode();
             for (final ProfileModel pm : profileModelList) {
-                if (!slaveMode) {
-                    String code = vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(),
-                        SequenceType.PROFILE_SEQUENCE.getName());
-                    pm.setIdentifier(code);
-                }
+                setIdentifier(slaveMode, pm);
 
-                final JsonNode profileNode = JsonHandler.toJsonNode(pm);
+                final ObjectNode profileNode = (ObjectNode) JsonHandler.toJsonNode(pm);
+                JsonNode jsonNode = profileNode.remove(VitamFieldsHelper.id());
                 /* contract is valid, add it to the list to persist */
+
+                if (jsonNode != null) {
+                    profileNode.set(_ID, jsonNode);
+                }
+                JsonNode hashTenant = profileNode.remove(VitamFieldsHelper.tenant());
+                if (hashTenant != null) {
+                    profileNode.set(_TENANT, hashTenant);
+                }
                 profilesToPersist.add(profileNode);
             }
             // at this point no exception occurred and no validation error detected
@@ -256,6 +263,15 @@ public class ProfileServiceImpl implements ProfileService {
 
         return new RequestResponseOK<ProfileModel>().addAllResults(profileModelList)
             .setHttpCode(Response.Status.CREATED.getStatusCode());
+    }
+
+    private void setIdentifier(boolean slaveMode, ProfileModel pm)
+        throws InvalidCreateOperationException, InvalidParseOperationException, ReferentialException {
+        if (!slaveMode) {
+            String code = vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(),
+                SequenceType.PROFILE_SEQUENCE.getName());
+            pm.setIdentifier(code);
+        }
     }
 
 

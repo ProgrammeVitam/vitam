@@ -173,7 +173,7 @@ public class ReferentialFormatFileImplTest {
         final String id = fileList.getResults().get(0).getString("PUID");
         final FileFormat file = formatFile.findDocumentById(id);
         assertEquals("[wps]", file.get("Extension").toString());
-        assertEquals(file, fileList.getResults().get(0));
+        assertEquals(file.get("#id"), fileList.getResults().get(0).getId());
         assertFalse(fileList.getResults().get(0).getBoolean("Alert"));
         assertEquals(fileList.getResults().get(0).getString("Group"), "");
         assertEquals(fileList.getResults().get(0).getString("Comment"), "");

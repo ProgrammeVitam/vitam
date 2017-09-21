@@ -38,8 +38,11 @@ import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.parser.query.ParserTokens;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -85,6 +88,37 @@ public class LogbookOperationsImpl implements LogbookOperations {
         return select(select, true);
     }
 
+    public final void filterFinalResponse(VitamDocument<?> document) {
+        for (final ParserTokens.PROJECTIONARGS projection : ParserTokens.PROJECTIONARGS.values()) {
+            switch (projection) {
+                case ID:
+                    replace(document, VitamDocument.ID, VitamFieldsHelper.id());
+                    break;
+                case TENANT:
+                    replace(document, VitamDocument.TENANT_ID, VitamFieldsHelper.tenant());
+
+                    break;
+                //FIXE ME check if _v is necessary
+                //                case VERSION:
+                //                    replace(document, VitamDocument.VERSION, VitamFieldsHelper.version());
+                //                    break;
+                default:
+                    break;
+
+            }
+        }
+    }
+
+    /*
+
+     */
+    private final void replace(VitamDocument<?> document, String originalFieldName, String targetFieldName) {
+        final Object value = document.remove(originalFieldName);
+        if (value != null) {
+            document.append(targetFieldName, value);
+        }
+    }
+
     @Override
     public List<LogbookOperation> select(JsonNode select, boolean sliced)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
@@ -97,7 +131,9 @@ public class LogbookOperationsImpl implements LogbookOperations {
                 throw new LogbookNotFoundException("Logbook entry not found");
             }
             while (logbook.hasNext()) {
-                result.add(logbook.next());
+                LogbookOperation doc = logbook.next();
+                filterFinalResponse(doc);
+                result.add(doc);
             }
             return result;
         }

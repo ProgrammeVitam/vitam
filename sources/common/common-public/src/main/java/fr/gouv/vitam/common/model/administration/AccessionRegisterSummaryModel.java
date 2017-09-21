@@ -32,17 +32,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * POJO java use for mapping @{@link fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary}
  */
 public class AccessionRegisterSummaryModel {
+    public static final String TAG_ID = "id";
+    public static final String TAG_TENANT = "tenant";
+    public static final String HASH = "#";
+    public static final String UNDERSCORE = "_";
 
     /**
      * unique identifier
      */
-    @JsonProperty("_id")
     private String id;
 
     /**
      * tenant id
      */
-    @JsonProperty("_tenant")
     private int tenant;
 
     /**
@@ -83,43 +85,64 @@ public class AccessionRegisterSummaryModel {
     private String creationDate;
 
     /**
-     *
      * @return id
      */
+    @JsonProperty(HASH + TAG_ID)
     public String getId() {
         return id;
     }
 
     /**
-     *
      * @param id value to set
      * @return this
      */
+    @JsonProperty(UNDERSCORE + TAG_ID)
     public AccessionRegisterSummaryModel setId(String id) {
         this.id = id;
         return this;
     }
 
     /**
-     *
+     * @param id value to set
+     * @return this
+     */
+    @JsonProperty(HASH + TAG_ID)
+    public AccessionRegisterSummaryModel setIdExt(String id) {
+        this.id = id;
+        return this;
+    }
+
+
+
+    /**
      * @return tenant
      */
+    @JsonProperty(HASH + TAG_TENANT)
     public int getTenant() {
         return tenant;
     }
 
     /**
-     *
      * @param tenant the working tenant to set
      * @return this
      */
+    @JsonProperty(UNDERSCORE + TAG_TENANT)
     public AccessionRegisterSummaryModel setTenant(int tenant) {
         this.tenant = tenant;
         return this;
     }
 
+
     /**
-     *
+     * @param tenant the working tenant to set
+     * @return this
+     */
+    @JsonProperty(HASH + TAG_TENANT)
+    public AccessionRegisterSummaryModel setTenantExt(int tenant) {
+        this.tenant = tenant;
+        return this;
+    }
+    /**
      * @return originatingAgency
      */
     public String getOriginatingAgency() {
@@ -127,7 +150,6 @@ public class AccessionRegisterSummaryModel {
     }
 
     /**
-     *
      * @param originatingAgency value to set
      * @return this
      */
@@ -137,7 +159,6 @@ public class AccessionRegisterSummaryModel {
     }
 
     /**
-     *
      * @return totalObjects
      */
     public RegisterValueDetailModel getTotalObjects() {
@@ -145,7 +166,6 @@ public class AccessionRegisterSummaryModel {
     }
 
     /**
-     *
      * @param totalObjects value to set
      * @return this
      */
@@ -155,7 +175,6 @@ public class AccessionRegisterSummaryModel {
     }
 
     /**
-     *
      * @return totalObjectsGroups
      */
     public RegisterValueDetailModel getTotalObjectsGroups() {
@@ -163,7 +182,6 @@ public class AccessionRegisterSummaryModel {
     }
 
     /**
-     *
      * @param totalObjectsGroups value to set
      * @return this
      */
@@ -173,7 +191,6 @@ public class AccessionRegisterSummaryModel {
     }
 
     /**
-     *
      * @return totalUnits
      */
     public RegisterValueDetailModel getTotalUnits() {
@@ -181,7 +198,6 @@ public class AccessionRegisterSummaryModel {
     }
 
     /**
-     *
      * @param totalUnits value to set
      * @return AccessionRegisterSummaryModel
      */
@@ -191,7 +207,6 @@ public class AccessionRegisterSummaryModel {
     }
 
     /**
-     *
      * @return ObjectSize
      */
     public RegisterValueDetailModel getObjectSize() {
@@ -199,7 +214,6 @@ public class AccessionRegisterSummaryModel {
     }
 
     /**
-     *
      * @param objectSize value to set
      * @return this
      */
@@ -209,7 +223,6 @@ public class AccessionRegisterSummaryModel {
     }
 
     /**
-     *
      * @return creationDate
      */
     public String getCreationDate() {

@@ -149,6 +149,9 @@ public class AgenciesService implements VitamAutoCloseable {
 
     private static final String ADDITIONAL_INFORMATION = "Information additionnelle";
     private static final String MESSAGE_ERROR = "Import agency error > ";
+    private static final String _ID = "_id";
+    private static final String _TENANT = "_tenant";
+
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logBookclient;
     private final VitamCounterService vitamCounterService;
@@ -605,10 +608,18 @@ public class AgenciesService implements VitamAutoCloseable {
         ArrayNode agenciesNodeToPersist = JsonHandler.createArrayNode();
 
         for (final AgenciesModel agency : agenciesToInsert) {
-
             agency.setId(GUIDFactory.newGUID().getId());
             agency.setTenant(ParameterHelper.getTenantParameter());
-            agenciesNodeToPersist.add(JsonHandler.toJsonNode(agency));
+            ObjectNode agencyNode = (ObjectNode) JsonHandler.toJsonNode(agency);
+            JsonNode jsonNode = agencyNode.remove(VitamFieldsHelper.id());
+            if (jsonNode != null) {
+                agencyNode.set(_ID, jsonNode);
+            }
+            JsonNode hashTenant = agencyNode.remove(VitamFieldsHelper.tenant());
+            if (hashTenant != null) {
+                agencyNode.set(_TENANT, hashTenant);
+            }
+            agenciesNodeToPersist.add(agencyNode);
         }
 
         if (!agenciesToInsert.isEmpty()) {

@@ -35,10 +35,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class LogbookOperation extends LogbookEventOperation {
 
-    @JsonProperty("_id")
-    private String id;
+    public static final String TAG_ID = "id";
+    public static final String TAG_TENANT = "tenant";
 
-    @JsonProperty("_tenant")
+    public static final String HASH = "#";
+    public static final String UNDERSCORE = "_";
+
+    @JsonProperty(HASH + TAG_ID)
+    private String id;
+    @JsonProperty(HASH + TAG_TENANT)
     private Integer tenant;
 
     @JsonProperty("events")
@@ -51,6 +56,8 @@ public class LogbookOperation extends LogbookEventOperation {
         return id;
     }
 
+
+
     /**
      * @param id the id to set
      *
@@ -59,6 +66,7 @@ public class LogbookOperation extends LogbookEventOperation {
     public void setId(String id) {
         this.id = id;
     }
+
 
     /**
      * @return the tenant

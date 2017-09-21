@@ -683,8 +683,6 @@ public class AdminManagementResource extends ApplicationStatusResource {
             fileFundRegisters = accessionRegisterManagement.findDocuments(parser.getRequest().getFinalSelect())
                 .setQuery(select);
             return fileFundRegisters;
-        } catch (Exception e) {
-            throw e;
         }
     }
 

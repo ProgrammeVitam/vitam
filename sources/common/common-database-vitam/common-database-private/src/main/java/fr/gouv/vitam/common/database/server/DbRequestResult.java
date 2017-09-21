@@ -34,6 +34,8 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
 
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -182,7 +184,9 @@ public class DbRequestResult implements VitamAutoCloseable {
             documents = new ArrayList<>();
             if (cursor != null) {
                 while (cursor.hasNext()) {
-                    documents.add(cursor.next());
+                    VitamDocument<?> document = cursor.next();
+                    filterFinalResponse(document);
+                    documents.add(document);
                 }
                 cursor.close();
                 cursor = null;
@@ -211,7 +215,10 @@ public class DbRequestResult implements VitamAutoCloseable {
                 while (cursor.hasNext()) {
                     final T doc = (T) cursor.next();
                     documents.add(doc);
+                    filterFinalResponse(doc);
+
                     newList.add(JsonHandler.getFromString(doc.toJson(), clsFromJson));
+
                 }
                 cursor.close();
                 cursor = null;
@@ -223,6 +230,7 @@ public class DbRequestResult implements VitamAutoCloseable {
         for (final VitamDocument<?> doc : documents) {
             newList.add(JsonHandler.getFromString(doc.toJson(), clsFromJson));
         }
+
         return newList;
     }
 
@@ -242,6 +250,40 @@ public class DbRequestResult implements VitamAutoCloseable {
         response.addAllResults(getDocuments(cls)).setHits(currentCursor);
         close();
         return response;
+    }
+    /**
+     * This method will modify the document argument in order to filter as output all _varname to corresponding #varname
+     * according to ParserTokens
+     *
+     * @param document of type Document to be modified
+     */
+    public  final void filterFinalResponse(VitamDocument<?> document) {
+        for (final ParserTokens.PROJECTIONARGS projection : ParserTokens.PROJECTIONARGS.values()) {
+            switch (projection) {
+                case ID:
+                    replace(document, VitamDocument.ID, VitamFieldsHelper.id());
+                    break;
+                case TENANT:
+                    replace(document, VitamDocument.TENANT_ID, VitamFieldsHelper.tenant());
+                    break;
+                //FIXE ME check if _v is necessary
+                //                case VERSION:
+                //                    replace(document, VitamDocument.VERSION, VitamFieldsHelper.version());
+                //                    break;
+                default:
+                    break;
+
+            }
+        }
+    }
+    /*
+
+     */
+    private  final void replace(VitamDocument<?> document, String originalFieldName, String targetFieldName) {
+        final Object value = document.remove(originalFieldName);
+        if (value != null) {
+            document.append(targetFieldName, value);
+        }
     }
 
     /**

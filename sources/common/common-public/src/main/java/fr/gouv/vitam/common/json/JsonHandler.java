@@ -103,6 +103,7 @@ public final class JsonHandler {
         final ObjectMapper objectMapper = new ObjectMapper(JSONFACTORY);
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE);
+
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);

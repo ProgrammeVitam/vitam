@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.administration.ContextModel;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -112,7 +114,7 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
     /**
      * Constructor
      *
-     * @param document in format Document to create AccessionRegisterSummary 
+     * @param document in format Document to create AccessionRegisterSummary
      */
     public AccessionRegisterSummary(Document document) {
         super(document);

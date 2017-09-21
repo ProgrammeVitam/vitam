@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import org.apache.commons.lang.StringUtils;
 import org.bson.conversions.Bson;
 
@@ -153,6 +154,8 @@ public class ContextServiceImpl implements ContextService {
         final VitamError error = new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
             .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
+        contextsToPersist = JsonHandler.createArrayNode();
+
         try {
             for (final ContextModel cm : contextModelList) {
 
@@ -163,7 +166,7 @@ public class ContextServiceImpl implements ContextService {
                     cm.setIdentifier(code);
                 }
                 // if a contract have an id
-                if (null != cm.getId()) {
+                if (cm.getId() != null) {
                     error.addToErrors(new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem()).setMessage(
                         ContextRejectionCause.rejectIdNotAllowedInCreate(cm.getName()).getReason()));
                     continue;
@@ -186,12 +189,11 @@ public class ContextServiceImpl implements ContextService {
                     cm.setCreationdate(LocalDateUtil.getString(LocalDateUtil.now()));
                     cm.setLastupdate(LocalDateUtil.getString(LocalDateUtil.now()));
 
-                    final JsonNode contextNode = JsonHandler.toJsonNode(cm);
+                    final ObjectNode contextNode = (ObjectNode) JsonHandler.toJsonNode(cm);
+                    JsonNode jsonNode = contextNode.remove(VitamFieldsHelper.id());
 
-
-                    /* context is valid, add it to the list to persist */
-                    if (contextsToPersist == null) {
-                        contextsToPersist = JsonHandler.createArrayNode();
+                    if (jsonNode != null) {
+                        contextNode.set("_id", jsonNode);
                     }
 
                     contextsToPersist.add(contextNode);
@@ -214,6 +216,7 @@ public class ContextServiceImpl implements ContextService {
                 manager.logValidationError(errorsDetails, CONTEXTS_IMPORT_EVENT);
                 return error;
             }
+
 
             mongoAccess.insertDocuments(contextsToPersist, FunctionalAdminCollections.CONTEXT).close();
         } catch (final Exception exp) {
