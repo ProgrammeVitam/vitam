@@ -66,10 +66,12 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.UnitType;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
@@ -436,5 +438,17 @@ public class MetaDataImpl implements MetaData {
         unitNode.computeRule();
         JsonNode rule = JsonHandler.toJsonNode(unitNode.getHeritedRules().getInheritedRule());
         ((ObjectNode) arrayNodeResponse.get(0)).set(UnitInheritedRule.INHERITED_RULE, rule);
+    }
+
+    @Override
+    public void flushUnit() throws IllegalArgumentException, VitamThreadAccessException {
+        final Integer tenantId = ParameterHelper.getTenantParameter();
+        mongoDbAccess.getEsClient().refreshIndex(MetadataCollections.C_UNIT, tenantId);
+    }
+
+    @Override
+    public void flushObjectGroup() throws IllegalArgumentException, VitamThreadAccessException {
+        final Integer tenantId = ParameterHelper.getTenantParameter();
+        mongoDbAccess.getEsClient().refreshIndex(MetadataCollections.C_OBJECTGROUP, tenantId);
     }
 }

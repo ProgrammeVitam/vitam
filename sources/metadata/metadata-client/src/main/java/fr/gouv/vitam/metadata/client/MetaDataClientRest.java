@@ -419,4 +419,32 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         }
     }
 
+    @Override
+    public boolean flushUnits() throws MetaDataClientServerException {
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.PUT, "/units", null, MediaType.APPLICATION_JSON_TYPE);
+            return response.getStatus() == Response.Status.OK.getStatusCode();
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR, e);
+            throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public boolean flushObjectGroups() throws MetaDataClientServerException {
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.PUT, "/objectgroups", null, MediaType.APPLICATION_JSON_TYPE);
+            return response.getStatus() == Response.Status.OK.getStatusCode();
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR, e);
+            throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
 }

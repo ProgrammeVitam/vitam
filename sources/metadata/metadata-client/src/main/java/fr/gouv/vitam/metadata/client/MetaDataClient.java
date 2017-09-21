@@ -186,4 +186,18 @@ public interface MetaDataClient extends BasicClient {
     JsonNode selectObjectGroups(JsonNode selectQuery)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
         MetaDataClientServerException;
+    
+    /**
+     * 
+     * @return True if the Units index is flushed
+     * @throws MetaDataClientServerException 
+     */
+    boolean flushUnits() throws MetaDataClientServerException;
+    
+    /**
+     * 
+     * @return True if the ObjectGroups index is flushed
+     * @throws MetaDataClientServerException 
+     */
+    boolean flushObjectGroups() throws MetaDataClientServerException;
 }

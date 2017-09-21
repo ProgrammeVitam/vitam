@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
@@ -95,6 +96,7 @@ public class ProcessManagementResourceTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        LogbookOperationsClientFactory.changeMode(null);
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
 

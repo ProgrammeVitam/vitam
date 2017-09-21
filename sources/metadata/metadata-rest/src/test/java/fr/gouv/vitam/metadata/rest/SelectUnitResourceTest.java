@@ -228,6 +228,11 @@ public class SelectUnitResourceTest {
         return JsonHandler
             .getFromString("{ \"$roots\" : [], \"$query\" : [ " + query + " ], \"$data\" : " + data + " }");
     }
+
+    private static final JsonNode buildDSLWithRoots(String roots, String data) throws InvalidParseOperationException {
+        return JsonHandler
+            .getFromString("{ \"$roots\" : [ " + roots + " ], \"$query\" : [ ], \"$data\" : " + data + " }");
+    }
     
 
     private static String createJsonStringWithDepth(int depth) {
@@ -354,7 +359,7 @@ public class SelectUnitResourceTest {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptions(eq(VitamFieldsHelper.id(), GUID_0).getCurrentQuery().toString(), DATA_1)).when()
+            .body(buildDSLWithRoots("\"" + GUID_0 + "\"", DATA_1)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 

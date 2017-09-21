@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -232,6 +233,34 @@ public class MetaDataResource extends ApplicationStatusResource {
     }
 
     /**
+     * Flush Unit index
+     *
+     * @return Response
+     */
+    @Path("units")
+    @PUT
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response flushUnit() {
+        try {
+            metaDataImpl.flushUnit();
+            RequestResponseOK response = new RequestResponseOK();
+            response.setHits(1, 0, 1);
+            response.setHttpCode(Status.OK.getStatusCode());
+            return Response.status(Status.OK).entity(response).build();
+        } catch (IllegalArgumentException | VitamThreadAccessException e) {
+            Status status = Status.PRECONDITION_FAILED;
+            LOGGER.error(e);
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(ACCESS)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+        }
+    }
+
+    /**
      * Select objectgroups with json request
      *
      * @param request the request in JsonNode format
@@ -296,8 +325,36 @@ public class MetaDataResource extends ApplicationStatusResource {
     }
 
     /**
+     * Flush ObjectGroup index
+     *
+     * @return Response
+     */
+    @Path("objectgroups")
+    @PUT
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response flushObjectGroup() {
+        try {
+            metaDataImpl.flushObjectGroup();
+            RequestResponseOK response = new RequestResponseOK();
+            response.setHits(1, 0, 1);
+            response.setHttpCode(Status.OK.getStatusCode());
+            return Response.status(Status.OK).entity(response).build();
+        } catch (IllegalArgumentException | VitamThreadAccessException e) {
+            Status status = Status.PRECONDITION_FAILED;
+            LOGGER.error(e);
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(ACCESS)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
+                .build();
+        }
+    }
+
+    /**
      * @param selectRequest the select request in JsonNode format
-     * @param unitId        the unit id to get
+     * @param unitId the unit id to get
      * @return {@link Response} will be contains an json filled by unit result
      * @see entity(java.lang.Object, java.lang.annotation.Annotation[])
      * @see #type(javax.ws.rs.core.MediaType)
@@ -314,7 +371,7 @@ public class MetaDataResource extends ApplicationStatusResource {
      * Update unit by query and path parameter unit_id
      *
      * @param updateRequest the update request
-     * @param unitId        the id of unit to be update
+     * @param unitId the id of unit to be update
      * @return {@link Response} will be contains an json filled by unit result
      * @see entity(java.lang.Object, java.lang.annotation.Annotation[])
      * @see type(javax.ws.rs.core.MediaType)
@@ -577,7 +634,8 @@ public class MetaDataResource extends ApplicationStatusResource {
         }
         return Response.status(Status.CREATED)
             .entity(new RequestResponseOK<String>(updateRequest).addResult(objectGroupId)
-            .setHttpCode(Status.CREATED.getStatusCode())).build();
+                .setHttpCode(Status.CREATED.getStatusCode()))
+            .build();
 
     }
 

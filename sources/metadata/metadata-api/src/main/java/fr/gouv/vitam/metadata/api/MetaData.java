@@ -29,11 +29,13 @@ package fr.gouv.vitam.metadata.api;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+
 import org.bson.Document;
 
 import java.util.List;
@@ -196,4 +198,21 @@ public interface MetaData {
      */
     void updateObjectGroupId(JsonNode updateRequest, String objectId)
         throws InvalidParseOperationException, MetaDataExecutionException;
+    
+    /**
+     * Flush Unit Index
+     * 
+     * @throws IllegalArgumentException  if tenant is wrong
+     * @throws VitamThreadAccessException  if tenant is wrong
+     */
+    public void flushUnit() throws IllegalArgumentException, VitamThreadAccessException;
+    
+    /**
+     * Flush ObjectGroup Index
+     *
+     * @throws IllegalArgumentException  if tenant is wrong
+     * @throws VitamThreadAccessException  if tenant is wrong
+     */
+    public void flushObjectGroup() throws IllegalArgumentException, VitamThreadAccessException;
+
 }

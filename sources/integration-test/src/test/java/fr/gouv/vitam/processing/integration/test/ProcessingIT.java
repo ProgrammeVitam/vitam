@@ -595,7 +595,7 @@ public class ProcessingIT {
                     "Process_SIP_unitary.OK",
                     UNIT_PLAN_ATTACHEMENT_ID,
                     GUIDReader.getGUID(UNIT_PLAN_ATTACHEMENT_ID)));
-            
+            metaDataClient.flushUnits();
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =
