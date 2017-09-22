@@ -29,6 +29,7 @@ package fr.gouv.vitam.functional.administration.client;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -36,6 +37,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.validation.constraints.AssertTrue;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -44,6 +46,7 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -304,8 +307,8 @@ public class AdminManagementClientMockTest {
 
     @Test
     public void givenMockExistsWhenLaunchAUditThenReturnOK() throws Exception {
-        Status resp = client.launchAuditWorkflow(JsonHandler.createObjectNode());
-        assertEquals(resp, Status.OK);
+        RequestResponse<JsonNode> resp = client.launchAuditWorkflow(JsonHandler.createObjectNode());
+        assertTrue(resp.isOk());
     }
 
     @Test

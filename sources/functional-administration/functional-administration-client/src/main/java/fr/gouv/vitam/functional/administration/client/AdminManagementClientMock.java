@@ -362,7 +362,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public Status launchAuditWorkflow(JsonNode options) throws AdminManagementClientServerException {
-        return Status.OK;
+    public RequestResponse<JsonNode> launchAuditWorkflow(JsonNode options) throws AdminManagementClientServerException {
+        return new RequestResponseOK();
     }
 }

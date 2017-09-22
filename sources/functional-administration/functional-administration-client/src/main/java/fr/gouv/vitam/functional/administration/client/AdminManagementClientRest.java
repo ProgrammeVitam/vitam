@@ -75,6 +75,8 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoun
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
+import fr.gouv.vitam.logbook.common.client.ErrorMessage;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 
 /**
  * AdminManagement client
@@ -972,15 +974,16 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public Status launchAuditWorkflow(JsonNode options) throws AdminManagementClientServerException {
+    public RequestResponse<JsonNode> launchAuditWorkflow(JsonNode options) throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("The options are mandatory", options);
         Response response = null;
+        RequestResponse result = null;
         try {
             response = performRequest(HttpMethod.POST, AUDIT_URI, null, options,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);           
 
-            return Status.fromStatusCode(response.getStatus());
-
+            return RequestResponse.parseFromResponse(response);
+            
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);

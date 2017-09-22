@@ -1514,7 +1514,9 @@ public class AdminManagementExternalResourceImpl {
     public Response launchAudit(JsonNode options) {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             addRequestId();
-            client.launchAuditWorkflow(options);
+            RequestResponse<JsonNode> result = client.launchAuditWorkflow(options);
+            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result).build();
         } catch (AdminManagementClientServerException e) {
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;
@@ -1524,7 +1526,6 @@ public class AdminManagementExternalResourceImpl {
                 .setMessage(status.getReasonPhrase())
                 .setDescription(e.getMessage())).build();
         }
-        return Response.status(Status.ACCEPTED).build();
     }
 
     private void addRequestId() {

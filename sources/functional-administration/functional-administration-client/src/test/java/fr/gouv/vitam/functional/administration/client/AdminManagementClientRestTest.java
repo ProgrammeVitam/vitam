@@ -856,8 +856,8 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
 
         when(mock.post()).thenReturn(Response.status(Status.ACCEPTED)
             .build());
-        Status resp = client.launchAuditWorkflow(JsonHandler.createObjectNode());
-        assertEquals(resp, Status.ACCEPTED);
+        RequestResponse<JsonNode> resp = client.launchAuditWorkflow(JsonHandler.createObjectNode());
+        assertEquals(resp.getStatus(), Status.ACCEPTED.getStatusCode());
     }
 
     private List<ContextModel> getContexts() throws FileNotFoundException, InvalidParseOperationException {
