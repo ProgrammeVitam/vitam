@@ -27,10 +27,13 @@
 package fr.gouv.vitam.functional.administration.rules.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import fr.gouv.vitam.common.json.JsonHandler;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -41,9 +44,10 @@ import fr.gouv.vitam.functional.administration.common.exception.FileFormatExcept
 import fr.gouv.vitam.functional.administration.rules.core.RulesManagerParser;
 
 public class RulesManagerParserTest {
-    String FILE_TO_TEST_OK = "jeu_donnees_OK_regles_CSV.csv";
-    String FILE_TO_TEST_KO = "jeu_donnees_KO_regles_CSV_DuplicatedReference.csv";
+    private static String FILE_TO_TEST_OK = "jeu_donnees_OK_regles_CSV.csv";
+    private static String FILE_TO_TEST_KO = "jeu_donnees_KO_regles_CSV_DuplicatedReference.csv";
     ArrayNode jsonFileRules = null;
+    private static String REFERENTIAL_KO_WHITESPACE = "referential_ko_white_space.csv";
 
     @Test
     public void testFileRules() throws FileFormatException, InvalidParseOperationException, IOException {
@@ -55,8 +59,15 @@ public class RulesManagerParserTest {
             jsonFileRules.get(jsonFileRules.size() - 1).get("RuleDuration").toString().contains("10"));
     }
 
-    public void testRulesFileKO() throws FileFormatException, InvalidParseOperationException, IOException {
-        jsonFileRules =
-            RulesManagerParser.readObjectsFromCsvWriteAsArrayNode(PropertiesUtils.findFile(FILE_TO_TEST_KO));
+    @Test
+    public void testReferentialFileRulesWithWhiteSpace() throws IOException, InvalidParseOperationException {
+        final ArrayNode arrayNode =
+            RulesManagerParser.readObjectsFromCsvWriteAsArrayNode(PropertiesUtils.findFile(REFERENTIAL_KO_WHITESPACE));
+        String ruleId = JsonHandler.prettyPrint(arrayNode.get(0).get("RuleId"));
+        assertFalse(ruleId.contains(" "));
+        ruleId = JsonHandler.unprettyPrint(arrayNode.get(1).get("RuleId"));
+        assertFalse(ruleId.contains(" "));
+        ruleId = JsonHandler.unprettyPrint(arrayNode.get(2).get("RuleId"));
+        assertFalse(ruleId.contains(" "));
     }
 }

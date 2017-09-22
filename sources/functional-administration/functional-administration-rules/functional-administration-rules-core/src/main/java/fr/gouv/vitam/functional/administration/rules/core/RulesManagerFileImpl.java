@@ -449,7 +449,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         InvalidCreateOperationException, FileRulesException {
         try {
             generateReport(errors, eip, usedDeletedRulesForReport, usedUpdateRulesForReport);
-            Set<String> fileRulesIdLinkedToUnitForDelete = new HashSet<String>();
+            Set<String> fileRulesIdLinkedToUnitForDelete = new HashSet<>();
             for (FileRulesModel fileRuleModel : usedDeletedRulesForReport) {
                 fileRulesIdLinkedToUnitForDelete.add(fileRuleModel.getRuleId());
             }
@@ -457,8 +457,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                 fileRulesIdLinkedToUnitForDelete,
                 eip);
             LOGGER.error(String.format(DELETE_RULES_LINKED_TO_UNIT));
-            throw new FileRulesException(
-                String.format(DELETE_RULES_LINKED_TO_UNIT));
+            throw new FileRulesException(String.format(DELETE_RULES_LINKED_TO_UNIT));
         } catch (LogbookClientServerException | LogbookClientBadRequestException |
             LogbookClientAlreadyExistsException | StorageException e) {
             updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.KO, filename);
@@ -912,7 +911,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         File csvFileReader = convertInputStreamToFile(rulesFileStream, TXT);
         try (FileReader reader = new FileReader(csvFileReader)) {
             @SuppressWarnings("resource") final CSVParser parser =
-                new CSVParser(reader, CSVFormat.DEFAULT.withHeader());
+                new CSVParser(reader, CSVFormat.DEFAULT.withHeader().withTrim());
             final HashSet<String> ruleIdSet = new HashSet<>();
             int lineNumber = 1;
             try {

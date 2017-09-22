@@ -28,6 +28,7 @@ package fr.gouv.vitam.functional.administration.rules.core;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 import static org.mockito.Mockito.mock;
@@ -44,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import org.bson.Document;
 import org.junit.AfterClass;
@@ -587,7 +589,7 @@ public class RulesManagerFileImplTest {
         if (response != null) {
             return response.getResults();
         } else {
-            return new ArrayList<FileRules>();
+            return new ArrayList<>();
         }
     }
 
@@ -596,7 +598,7 @@ public class RulesManagerFileImplTest {
     public void shouldRetrieveErrors() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final Select select = new Select();
-        List<FileRules> fileRules = new ArrayList<FileRules>();
+        List<FileRules> fileRules = new ArrayList<>();
 
         // mock Storage
         StorageClient storageClient = mock(StorageClient.class);

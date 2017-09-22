@@ -159,7 +159,7 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         assertEquals(CheckObjectUnitConsistencyActionHandler.getId(), HANDLER_ID);
         final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
-        assertEquals("CHECK_CONSISTANCY_ORPHAN_OBJECT", response.getGlobalOutcomeDetailSubcode());
+        assertEquals("CHECK_CONSISTENCY_ORPHAN_OBJECT", response.getGlobalOutcomeDetailSubcode());
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel()))
             .isEqualTo(1);
         action.close();
