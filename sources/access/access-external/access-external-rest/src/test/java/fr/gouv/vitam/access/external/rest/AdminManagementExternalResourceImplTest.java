@@ -9,6 +9,7 @@ import static org.powermock.api.mockito.PowerMockito.doThrow;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -65,10 +66,15 @@ public class AdminManagementExternalResourceImplTest {
     private static final String FORMAT_URI = "/" + AdminCollections.FORMATS.getName();
 
     private static final String RULES_URI = "/" + AdminCollections.RULES.getName();
+    private static final String AGENCIES_URI = "/" + AdminCollections.AGENCIES.getName();
+
 
     private static final String DOCUMENT_ID = "/1";
 
     private static final String RULE_ID = "/APP-00001";
+
+    private static final String AGENCY_ID = "/AG-000001";
+
 
     private static final String WRONG_URI = "/wrong-uri";
 
@@ -76,7 +82,7 @@ public class AdminManagementExternalResourceImplTest {
 
     private static final String UNEXISTING_TENANT_ID = "25";
     private static final String PROFILE_URI = "/profiles";
-
+    private static final String AGENCY_URI = "/agencies";
     private static final String CONTRACT_ID = "NAME";
 
     private static final String TRACEABILITY_OPERATION_ID = "op_id";
@@ -239,7 +245,12 @@ public class AdminManagementExternalResourceImplTest {
             .header(GlobalDataRest.X_FILENAME, "vitam.conf")
             .when().post(RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
-
+        stream = PropertiesUtils.getResourceAsStream("vitam.conf");
+        given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, "vitam.conf")
+            .when().post(AGENCIES_URI)
+            .then().statusCode(Status.CREATED.getStatusCode());
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
@@ -311,6 +322,17 @@ public class AdminManagementExternalResourceImplTest {
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(RULES_URI + RULE_ID)
             .then().statusCode(Status.OK.getStatusCode());
+
+        
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(AGENCIES_URI + AGENCY_ID)
+            .then().statusCode(Status.OK.getStatusCode());
+
 
         given()
             .accept(ContentType.JSON)
@@ -780,6 +802,22 @@ public class AdminManagementExternalResourceImplTest {
             .then().statusCode(Status.OK.getStatusCode());
     }
 
+
+    @Test
+    public void testFindAgencies() throws Exception {
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        doReturn(new RequestResponseOK<>().addAllResults(getAgencies())).when(adminCLient)
+            .findProfiles(anyObject());
+        given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(AGENCY_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+    }
+
     @Test
     public void testCheckTraceabilityOperation() throws InvalidParseOperationException {
         given()
@@ -816,6 +854,12 @@ public class AdminManagementExternalResourceImplTest {
         array.forEach(e -> res.add(e));
         return res;
     }
+
+    private List<Object> getAgencies() throws FileNotFoundException, InvalidParseOperationException {
+        List<Object> res = new ArrayList<>();
+        return res;
+    }
+
 
     @Test
     public void listResourceEndpoints()

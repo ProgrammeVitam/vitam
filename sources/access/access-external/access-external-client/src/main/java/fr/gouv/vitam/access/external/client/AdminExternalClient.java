@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.external.client.BasicClient;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
@@ -218,7 +219,6 @@ public interface AdminExternalClient extends BasicClient {
     RequestResponse importContracts(VitamContext vitamContext, InputStream contracts,
         AdminCollections collection)
         throws InvalidParseOperationException, AccessExternalClientException;
-
     /**
      * Update the given access contract by query dsl
      * 
@@ -457,5 +457,26 @@ public interface AdminExternalClient extends BasicClient {
     RequestResponse<AccessionRegisterSummaryModel> findAccessionRegisterById(
         VitamContext vitamContext, String accessionRegisterId)
         throws VitamClientException;
-    
+
+    /**
+     * Find an entry contract by its id.
+     *
+     * @param vitamContext the vitam context
+     * @param query        select query
+     * @return an ingest contract
+     * @throws VitamClientException
+     */
+    RequestResponse<AgenciesModel> findAgencies(VitamContext vitamContext, JsonNode query) throws VitamClientException;
+
+    /**
+     * Find an accession register by its id.
+     *
+     * @param vitamContext the vitam context
+     * @param agencyById   the agency id
+     * @return an accession register
+     * @throws VitamClientException
+     */
+    RequestResponse<AgenciesModel> findAgencyByID(
+        VitamContext vitamContext, String agencyById)
+        throws VitamClientException;
 }

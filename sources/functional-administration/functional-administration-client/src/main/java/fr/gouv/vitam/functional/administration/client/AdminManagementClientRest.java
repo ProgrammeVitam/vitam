@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.client;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -56,6 +57,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
@@ -90,7 +92,12 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     private static final String RULESMANAGER_CHECK_URL = "/rules/check";
     private static final String RULESMANAGER_IMPORT_URL = "/rules/import";
+    private static final String AGENCIESMANAGER_IMPORT_URL = "/agencies/import";
+    private static final String AGENCIESMANAGER_GET_DOCUMENT_URL = "/agencies";
+    private static final String AGENCIES_URL = "/agencies";
+
     private static final String RULESMANAGER_GET_DOCUMENT_URL = "/rules/document";
+
     private static final String RULESMANAGER_URL = "/rules";
 
     private static final String ACCESSION_REGISTER_CREATE_URI = "/accession-register";
@@ -292,6 +299,112 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         } finally {
             consumeAnyEntityAndClose(response);
         }
+    }
+
+    @Override
+    public Status importAgenciesFile(InputStream stream, String filename)
+        throws ReferentialException {
+        ParametersChecker.checkParameter("filename is a mandatory parameter", filename);
+        ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
+        Response response = null;
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.add(GlobalDataRest.X_FILENAME, filename);
+        try {
+            response = performRequest(HttpMethod.POST, AGENCIESMANAGER_IMPORT_URL, headers,
+                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            final Status status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                    break;
+                case CREATED:
+                    LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
+                    break;
+                case BAD_REQUEST:
+                    String reason = (response.hasEntity()) ? response.readEntity(String.class)
+                        : Response.Status.BAD_REQUEST.getReasonPhrase();
+                    LOGGER.error(reason);
+                    throw new ReferentialException(reason);
+
+                default:
+                    break;
+            }
+            return status;
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public JsonNode getAgencies(JsonNode query)
+        throws ReferentialException, InvalidParseOperationException, AdminManagementClientServerException {
+        ParametersChecker.checkParameter("query is a mandatory parameter", query);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, AGENCIES_URL, null,
+                query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                    break;
+                case NOT_FOUND:
+                    LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
+                    throw new FileRulesNotFoundException("Agency Not found ");
+                default:
+                    break;
+            }
+            return JsonHandler.getFromString(response.readEntity(String.class));
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public JsonNode getAgencyById(String id)
+        throws InvalidParseOperationException, ReferentialNotFoundException, AdminManagementClientServerException {
+        ParametersChecker.checkParameter("id is a mandatory parameter", id);
+        Response response = null;
+
+        try {
+
+            final SelectParserSingle parser = new SelectParserSingle();
+            Select select = new Select();
+            parser.parse(select.getFinalSelect());
+            parser.addCondition(QueryHelper.eq(AgenciesModel.IDENTIFIER, id));
+            JsonNode queryDsl = parser.getRequest().getFinalSelect();
+            response = performRequest(HttpMethod.GET, AGENCIES_URL, null, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+
+            final Status status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                    break;
+                case NOT_FOUND:
+                    LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
+                    throw new ReferentialNotFoundException("File Agency not found");
+                default:
+                    break;
+            }
+            return JsonHandler.getFromString(response.readEntity(String.class));
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error("unable to create query", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+
     }
 
     @Override

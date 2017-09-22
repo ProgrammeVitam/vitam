@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,78 +23,32 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.access.external.api;
+ */
+package fr.gouv.vitam.functional.administration.agencies.api;
+
+import com.sun.org.apache.bcel.internal.generic.NEW;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
+import org.junit.Test;
+
+import java.io.FileInputStream;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * All collections in functional admin module
+ *
  */
-public enum AdminCollections {
-    /**
-     * Formats Collection
-     */
-    FORMATS(AccessExtAPI.FORMATS),
+public class AgenciesParserTest {
+    String FILE_TO_TEST_OK = "agencies.csv";
 
-    /**
-     * Rules Collection
-     */
-    RULES(AccessExtAPI.RULES),
-    
-    /**
-     * Ingest contracts collection
-     */
-    ENTRY_CONTRACTS(AccessExtAPI.ENTRY_CONTRACT),
-
-    /**
-     * Access contracts collection
-     */
-    ACCESS_CONTRACTS(AccessExtAPI.ACCESS_CONTRACT),
-
-    /**
-     * Agencies collection
-     */
-    AGENCIES(AccessExtAPI.AGENCIES),
-
-
-    /**
-     * Profile collection
-     */
-    PROFILE(AccessExtAPI.PROFILES),
-    
-    /**
-     * Context collection
-     */
-    CONTEXTS(AccessExtAPI.CONTEXTS),
-
-    /**
-     * Accession register collection
-     */
-    ACCESSION_REGISTERS(AccessExtAPI.ACCESSION_REGISTERS),
-    
-    /**
-     * Traceability collection
-     */
-    TRACEABILITY(AccessExtAPI.TRACEABILITY);
-
-    private String name;
-
-    private AdminCollections(final String collection) {
-        name = collection;
+    @Test
+    public void readFromCsv() throws Exception {
+        List<AgenciesModel> test =
+            AgenciesParser.readFromCsv(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
+        assertThat(test).hasSize(2);
+        assertThat(test.get(0).getIdentifier()).isEqualTo("AG-000001");
+        assertThat(test.get(1).getIdentifier()).isEqualTo("AG-000002");
     }
 
-    /**
-     *
-     * @return the name of the collection
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * @param value as String to compare
-     * @return True if the name of the collection equals
-     */
-    public boolean compareTo(String value) {
-        return name.equals(value);
-    }
 }

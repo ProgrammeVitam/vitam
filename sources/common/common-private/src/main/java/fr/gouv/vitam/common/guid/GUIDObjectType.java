@@ -169,6 +169,12 @@ public final class GUIDObjectType {
      * Accession register detail
      */
     public static final int ACCESSION_REGISTER_DETAIL_TYPE = 14;
+    /**
+     * Agency
+     */
+    public static final int AGENCY_TYPE = 15;
+
+
 
     private GUIDObjectType() {
         // empty

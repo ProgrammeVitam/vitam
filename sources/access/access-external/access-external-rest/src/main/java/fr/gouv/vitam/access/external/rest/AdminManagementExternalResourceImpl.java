@@ -997,6 +997,124 @@ public class AdminManagementExternalResourceImpl {
     }
 
     /**
+     * Import a agencies document
+     *
+     * @param headers  http headers
+     * @param document inputStream representing the data to import
+     * @return The jaxRs Response
+     */
+    @Path("/agencies")
+    @POST
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "agencies:create", description = "Importer un référentiel des services producteurs")
+    public Response importAgenciesFile(@Context HttpHeaders headers,
+        InputStream document) {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        try {
+            ParametersChecker.checkParameter("document is a mandatory parameter", document);
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                Status status = client.importAgenciesFile(document, filename);
+
+                // Send the http response with no entity and the status got from internalService;
+                ResponseBuilder ResponseBuilder = Response.status(status);
+                return ResponseBuilder.build();
+            } catch (final ReferentialException e) {
+                LOGGER.error(e);
+                return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            }
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        } finally {
+            StreamUtils.closeSilently(document);
+        }
+    }
+
+    /**
+     * findRuleByID
+     *
+     * @param documentId the document id to find
+     * @return Response
+     */
+    @Path("/agencies/{id_document:.+}")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "agencies:id:read", description = "Trouver un service producteur avec son identifier")
+    public Response findAgencyByID(@PathParam("id_document") String documentId) {
+
+        addRequestId();
+
+        try {
+
+            ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
+            SanityChecker.checkParameter(documentId);
+
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                final JsonNode result = client.getAgencyById(documentId);
+                return Response.status(Status.OK).entity(result).build();
+            } catch (final ReferentialException e) {
+
+                LOGGER.error(e);
+                final Status status = Status.INTERNAL_SERVER_ERROR;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+
+            } catch (final InvalidParseOperationException e) {
+
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+
+            }
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
+
+            LOGGER.error(e);
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+        }
+
+    }
+
+
+    /**
+     * findContexts using get method
+     *
+     * @param select the select query to find document
+     * @return Response
+     */
+    @Path("/agencies")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "agencies:read", description = "Lister le contenu du référentiel des services producteurs")
+    public Response findAgencies(JsonNode select) throws IOException {
+
+        addRequestId();
+        try {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                JsonNode result = client.getAgencies(select);
+                return Response.status(Status.OK).entity(result).build();
+            } catch (ReferentialException e) {
+                LOGGER.error(e);
+                final Status status = Status.INTERNAL_SERVER_ERROR;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            }
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            final Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
      * getAccessionRegister using get method
      *
      * @param select the select query to find document

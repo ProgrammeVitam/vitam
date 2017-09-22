@@ -52,6 +52,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import fr.gouv.vitam.functional.administration.common.Agencies;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Rule;
 import org.junit.Test;
@@ -227,6 +228,38 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
             return expectedResponse.post();
         }
 
+        @POST
+        @Path("/agencies/import")
+        @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response importAgenciesFile(InputStream xmlPronom) {
+            return expectedResponse.post();
+        }
+
+        @GET
+        @Path("/agencies/{id_agency}")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response findAgencyByID() {
+            return expectedResponse.get();
+        }
+
+        @POST
+        @Path("/agencies")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getAgenciesFile() {
+            return expectedResponse.post();
+        }
+
+        @GET
+        @Path("/agencies")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getAgencies() {
+            return expectedResponse.get();
+        }
+
+
         @DELETE
         @Path("/rules/delete")
         @Produces(MediaType.APPLICATION_JSON)
@@ -248,6 +281,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         public Response getRulesFile() {
             return expectedResponse.post();
         }
+
 
         @POST
         @Path("/accession-register/document")
@@ -441,7 +475,25 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         client.importRulesFile(stream, "jeu_donnees_KO_regles_CSV_StringToNumber.csv");
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void createCreateAgenciesReturnCreated() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.OK).build());
+        final InputStream stream =
+            PropertiesUtils.getResourceAsStream("vitam.conf");
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        client.importAgenciesFile(stream, "vitam.conf");
+    }
 
+    @Test(expected = ReferentialException.class)
+    @RunWithCustomExecutor
+    public void createAnInvalidAgencyFileThenKO() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        final InputStream stream =
+            PropertiesUtils.getResourceAsStream("vitam.conf");
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        client.importAgenciesFile(stream, "vitam.conf");
+    }
     @Test(expected = FileRulesException.class)
     @RunWithCustomExecutor
     public void givenAnInvalidFileThenKO() throws Exception {
@@ -808,6 +860,24 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
 
 
     /**
+     * Test that profiles is reachable and return two elements as expected
+     *
+     * @throws FileNotFoundException
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     */
+    @Test
+    @RunWithCustomExecutor
+    public void findAllAgenciesThenReturnTwo()
+        throws FileNotFoundException, InvalidParseOperationException, ReferentialException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.get()).thenReturn(Response.status(Status.OK)
+            .entity(new RequestResponseOK<ProfileModel>().addAllResults(getProfiles())).build());
+        JsonNode resp = client.getAgencies(JsonHandler.createObjectNode());
+
+    }
+
+    /**
      * Test that profiles by id is reachable
      * 
      * @throws FileNotFoundException
@@ -824,6 +894,27 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<ProfileModel>()).build());
         RequestResponse resp = client.findProfilesByID("fakeId");
     }
+
+
+    /**
+     * Test that agency by id is reachable
+     *
+     * @throws FileNotFoundException
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     */
+    @Test(expected = ReferentialNotFoundException.class)
+    @RunWithCustomExecutor
+    public void findAgencyByIdThenReturnEmpty()
+        throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException,
+        ReferentialNotFoundException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.get())
+            .thenReturn(Response.status(Status.NOT_FOUND).entity(new RequestResponseOK<Agencies>()).build());
+        JsonNode resp = client.getAgencyById("fakeId");
+    }
+
 
 
     @Test

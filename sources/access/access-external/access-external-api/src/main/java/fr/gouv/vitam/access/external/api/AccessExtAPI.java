@@ -37,6 +37,8 @@ public class AccessExtAPI {
     public static final String ACCESSION_REGISTERS_DETAIL = "accession-register-detail";
     
     public static final String ENTRY_CONTRACT = "entrycontracts";
+    public static final String AGENCIES = "agencies";
+
     public static final String ENTRY_CONTRACT_API = "/" + ENTRY_CONTRACT;
     public static final String ENTRY_CONTRACT_API_UPDATE = "/entrycontracts";
     

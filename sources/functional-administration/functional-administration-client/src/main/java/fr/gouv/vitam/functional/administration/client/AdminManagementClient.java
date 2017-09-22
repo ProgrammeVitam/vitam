@@ -121,6 +121,41 @@ public interface AdminManagementClient extends MockOrRestClient {
         throws ReferentialException, DatabaseConflictException;
 
     /**
+     * Import  agencies for a given tenant
+     *
+     * @param stream   agency file inputstream to import
+     * @param filename name of the imported file
+     * @return the response to the request
+     * @throws ReferentialException                 when file rules exception occurs
+     * @throws DatabaseConflictException            when Database conflict exception occurs
+     * @throws AdminManagementClientServerException
+     */
+    Status importAgenciesFile(InputStream stream, String filename)
+        throws ReferentialException;
+
+    /**
+     * @param id The agency identifier
+     * @return agency in JsonNode agency
+     * @throws ReferentialException                   when file referential exception occurs
+     * @throws InvalidParseOperationException       when a parse problem occurs
+     * @throws AdminManagementClientServerException
+     */
+    JsonNode getAgencyById(String id)
+        throws ReferentialException, InvalidParseOperationException, AdminManagementClientServerException;
+    /**
+     * List the agencies that match the query
+     *
+     * @param query to get agencies
+     * @return Agencies in JsonNode
+     * @throws ReferentialException                   when file referential exception occurs
+     * @throws InvalidParseOperationException       when a parse problem occurs
+     * @throws IOException                          when IO Exception occurs
+     * @throws AdminManagementClientServerException when admin management resources not found
+     */
+    JsonNode getAgencies(JsonNode query)
+        throws ReferentialException, InvalidParseOperationException, AdminManagementClientServerException;
+
+    /**
      *
      * @param id The rule identifier
      * @return Rule in JsonNode format

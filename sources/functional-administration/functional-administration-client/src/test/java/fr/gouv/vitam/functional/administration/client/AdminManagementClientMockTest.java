@@ -145,6 +145,18 @@ public class AdminManagementClientMockTest {
             ((ArrayNode) objectNode.get("$results")).get(0).get("RuleMeasurement").asText());
     }
 
+
+    @Test
+    @RunWithCustomExecutor
+    public void getAgencyByIdTest() throws InvalidParseOperationException, ReferentialException {
+        AdminManagementClientFactory.changeMode(null);
+        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final ObjectNode objectNode = (ObjectNode) client.getAgencyById("AG-000001");
+        assertEquals(1, ((ArrayNode) objectNode.get("$results")).size());
+
+    }
+
     @Test
     @RunWithCustomExecutor
     public void getRuleTest()
@@ -155,6 +167,31 @@ public class AdminManagementClientMockTest {
         final Select select = new Select();
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(client.getRules(select.getFinalSelect()));
+    }
+
+    /**
+     * Agencies
+     */
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenClientMockWhenWhenImportAgenciesThenReturnOK()
+        throws ReferentialException, DatabaseConflictException, FileNotFoundException {
+        stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV.csv");
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        client.importAgenciesFile(stream, "agencies.csv");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void getAgenciesTest()
+        throws InvalidParseOperationException, ReferentialException, JsonGenerationException, JsonMappingException,
+        IOException {
+        AdminManagementClientFactory.changeMode(null);
+        final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+        final Select select = new Select();
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(client.getAgencies(select.getFinalSelect()));
     }
 
     @Test

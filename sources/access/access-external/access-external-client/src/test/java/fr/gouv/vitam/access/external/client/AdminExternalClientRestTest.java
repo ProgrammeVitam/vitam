@@ -246,6 +246,36 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
             Status.OK);
     }
 
+    @Test
+    public void testImportAgencies()
+        throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.OK).build());
+        assertEquals(
+            client.createDocuments(new VitamContext(TENANT_ID), AdminCollections.AGENCIES,
+                new ByteArrayInputStream("test".getBytes()), "test.csv"
+            ),
+            Status.OK);
+    }
+
+    @Test
+    public void testFindAgencies()
+        throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getAgencies()).build());
+        assertEquals(
+            client.findAgencies(new VitamContext(TENANT_ID).setAccessContract(null), JsonHandler.createObjectNode())
+                .toString(),
+            ClientMockResultHelper.getAgencies().toString());
+    }
+
+
+    @Test
+    public void testAgencyById()
+        throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getAgencies()).build());
+        assertEquals(
+            client.findAgencyByID(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID).toString(),
+            ClientMockResultHelper.getAgencies().toString());
+    }
     @Test(expected = AccessExternalClientNotFoundException.class)
     public void testImportDocumentAccessExternalClientNotFoundException()
         throws Exception {
@@ -552,6 +582,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
         Assert.assertTrue((((RequestResponseOK) resp).isOk()));
     }
+
 
     @Test()
     public void createProfilesWithIncorrectJsonReturnBadRequest()

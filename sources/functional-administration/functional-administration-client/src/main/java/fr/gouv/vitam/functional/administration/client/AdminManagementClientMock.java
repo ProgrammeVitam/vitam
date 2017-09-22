@@ -34,8 +34,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.apache.commons.io.IOUtils;
-
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -129,12 +127,34 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
+    public Status importAgenciesFile(InputStream stream, String filename)
+        throws ReferentialException {
+        ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, stream);
+        LOGGER.debug("import file Agencies request:");
+        StreamUtils.closeSilently(stream);
+        return Status.CREATED;
+    }
+
+    @Override
+    public JsonNode getAgencies(JsonNode query)
+        throws InvalidParseOperationException {
+        ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, query);
+        LOGGER.debug("get document rules request:");
+        return ClientMockResultHelper.getAgency().toJsonNode();
+    }
+    @Override
     public JsonNode getRuleByID(String id) throws FileRulesException, InvalidParseOperationException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, id);
         LOGGER.debug("get rule by id request:");
         return ClientMockResultHelper.getRuleList(id).toJsonNode();
     }
 
+    @Override
+    public JsonNode getAgencyById(String id) throws ReferentialException, InvalidParseOperationException {
+        ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, id);
+        LOGGER.debug("get agency by id request:");
+        return ClientMockResultHelper.getAgenciesList().toJsonNode();
+    }
     @Override
     public JsonNode getRules(JsonNode query)
         throws FileRulesException, InvalidParseOperationException,

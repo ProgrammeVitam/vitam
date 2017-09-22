@@ -129,6 +129,11 @@ public class ClientMockResultHelper {
             "\"CreationDate\":\"2016-11-02\", " +
             "\"UpdateDate\":\"2016-11-02\"}";
 
+    private static final String AGENCY = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
+        "\"_tenant\":\"0\", " +
+        "\"Identifier\":\"AG-0000001\", " +
+        "\"Name\":\"agency\", " +
+        "\"Description\":\"Une description\"}";
     public static final String INGEST_CONTRACTS = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
             "\"_tenant\":\"0\", " +
             "\"Name\":\"ArchivalAgreement0\", " +
@@ -433,6 +438,14 @@ public class ClientMockResultHelper {
     }
 
     /**
+     * @return a default agency
+     * @throws InvalidParseOperationException
+     */
+    public static RequestResponse getAgency() throws InvalidParseOperationException {
+        return createReponse(AGENCY);
+    }
+
+    /**
      * @return a RequestResponse containing contracts json
      * @throws InvalidParseOperationException
      */
@@ -469,6 +482,14 @@ public class ClientMockResultHelper {
      */
     public static RequestResponse getFormatList() throws InvalidParseOperationException {
         return createReponse(FORMAT);
+    }
+
+    /**
+     * @return a default list of Formats
+     * @throws InvalidParseOperationException
+     */
+    public static RequestResponse getAgenciesList() throws InvalidParseOperationException {
+        return createReponse(AGENCY);
     }
 
     /**

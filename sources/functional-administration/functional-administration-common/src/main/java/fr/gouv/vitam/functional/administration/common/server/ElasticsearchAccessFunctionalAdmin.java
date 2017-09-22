@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import fr.gouv.vitam.functional.administration.common.Agencies;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
@@ -58,9 +59,10 @@ import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 // FIXME refactor with metadata
+
+
 /**
  * ElasticSearch model with MongoDB as main database
- *
  */
 public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
 
@@ -69,6 +71,7 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
     public static final String MAPPING_RULE_FILE = "/rule-es-mapping.json";
     public static final String MAPPING_INGESTCONTRACT_FILE = "/ingestcontract-es-mapping.json";
     public static final String MAPPING_ACCESSCONTRACT_FILE = "/accesscontract-es-mapping.json";
+    public static final String MAPPING_AGENCIES_FILE = "/agencies-es-mapping.json";
 
     public static final String MAPPING_PROFILE_FILE = "/profile-es-mapping.json";
     public static final String MAPPING_CONTEXT_FILE = "/context-es-mapping.json";
@@ -192,10 +195,9 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
 
 
     /**
-     *
      * @param collection
-     * @param query as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
-     *        values" : [list of id] } }"
+     * @param query      as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
+     *                   values" : [list of id] } }"
      * @param filter
      * @return a structure as ResultInterface
      * @throws ReferentialException
@@ -234,6 +236,8 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
             return ElasticsearchUtil.transferJsonToMapping(FileRules.class.getResourceAsStream(MAPPING_PROFILE_FILE));
         } else if (collection.equals(FunctionalAdminCollections.CONTEXT)) {
             return ElasticsearchUtil.transferJsonToMapping(FileRules.class.getResourceAsStream(MAPPING_CONTEXT_FILE));
+        } else if (collection.equals(FunctionalAdminCollections.AGENCIES)) {
+            return ElasticsearchUtil.transferJsonToMapping(Agencies.class.getResourceAsStream(MAPPING_AGENCIES_FILE));
         }
         return "";
     }
