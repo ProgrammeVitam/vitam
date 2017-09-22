@@ -26,11 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.server;
 
+import java.util.List;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
 
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleModel;
+import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -624,4 +628,6 @@ public interface LogbookDbAccess {
      * @return information on the database
      */
     String getInfo();
+
+    void bulk(LogbookCollections lifecycleUnit, List<? extends LogbookLifeCycleModel> logbookLifeCycleModels);
 }

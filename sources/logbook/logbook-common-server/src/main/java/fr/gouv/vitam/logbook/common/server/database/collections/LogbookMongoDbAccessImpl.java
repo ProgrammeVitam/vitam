@@ -38,19 +38,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
-import org.bson.Document;
-import org.bson.codecs.configuration.CodecRegistries;
-import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.conversions.Bson;
-import org.bson.json.JsonMode;
-import org.bson.json.JsonWriterSettings;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.rest.RestStatus;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
-import org.elasticsearch.search.sort.SortBuilder;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -60,6 +48,7 @@ import com.mongodb.ErrorCategory;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoException;
+import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.ListIndexesIterable;
 import com.mongodb.client.MongoCollection;
@@ -67,11 +56,11 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
+import com.mongodb.client.model.InsertOneModel;
 import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -94,7 +83,10 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleModel;
+import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -107,10 +99,21 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookExecutionException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
+import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.conversions.Bson;
+import org.bson.json.JsonMode;
+import org.bson.json.JsonWriterSettings;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.rest.RestStatus;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.sort.SortBuilder;
 
 /**
  * MongoDb Access implementation base class
- *
  */
 public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements LogbookDbAccess {
     private static final String ITEM_CANNOT_BE_NULL = "Item cannot be null";
@@ -160,12 +163,12 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     /**
      * Constructor
-     * 
+     *
      * @param mongoClient MongoClient
-     * @param dbname MongoDB database name
-     * @param recreate True to recreate the index
-     * @param esClient elastic search client
-     * @param tenants the tenants list
+     * @param dbname      MongoDB database name
+     * @param recreate    True to recreate the index
+     * @param esClient    elastic search client
+     * @param tenants     the tenants list
      * @throws IllegalArgumentException if mongoClient or dbname is null
      */
     public LogbookMongoDbAccessImpl(MongoClient mongoClient, final String dbname, final boolean recreate,
@@ -188,7 +191,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
 
     /**
-     *
      * @return The MongoCLientOptions to apply to MongoClient
      */
     static final MongoClientOptions getMongoClientOptions() {
@@ -442,8 +444,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         return exists(LogbookCollections.LIFECYCLE_OBJECTGROUP, objectGroupId);
     }
 
-    @SuppressWarnings("rawtypes")
-    final VitamDocument getLogbook(final LogbookCollections collection, final String id)
+    @SuppressWarnings("rawtypes") final VitamDocument getLogbook(final LogbookCollections collection, final String id)
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter("Logbook item", id);
         VitamDocument item = null;
@@ -557,7 +558,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      *
      * @param collection
      * @param select
-     * @param slice may be null
+     * @param slice      may be null
      * @return the closeable MongoCursor
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
@@ -630,8 +631,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         return selectExecute(collection, parser);
     }
 
-    @SuppressWarnings("rawtypes")
-    final VitamDocument getDocument(LogbookParameters item) {
+    @SuppressWarnings("rawtypes") final VitamDocument getDocument(LogbookParameters item) {
         if (item instanceof LogbookOperationParameters) {
             return new LogbookOperation((LogbookOperationParameters) item);
         } else if (item instanceof LogbookLifeCycleUnitParameters) {
@@ -641,8 +641,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         }
     }
 
-    @SuppressWarnings("rawtypes")
-    final VitamDocument getDocumentForUpdate(LogbookParameters item) {
+    @SuppressWarnings("rawtypes") final VitamDocument getDocumentForUpdate(LogbookParameters item) {
         if (item instanceof LogbookOperationParameters) {
             return new LogbookOperation((LogbookOperationParameters) item, true);
         } else if (item instanceof LogbookLifeCycleUnitParameters) {
@@ -652,8 +651,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         }
     }
 
-    @SuppressWarnings("unchecked")
-    final void createLogbook(LogbookCollections collection, LogbookParameters item)
+    @SuppressWarnings("unchecked") final void createLogbook(LogbookCollections collection, LogbookParameters item)
         throws LogbookDatabaseException, LogbookAlreadyExistsException {
         ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, item);
         try {
@@ -747,8 +745,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     final void updateLogbook(LogbookCollections collection, LogbookParameters item)
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, item);
-        @SuppressWarnings("rawtypes")
-        final VitamDocument document = getDocumentForUpdate(item);
+        @SuppressWarnings("rawtypes") final VitamDocument document = getDocumentForUpdate(item);
         try {
             // Save the _id content before removing it
             final String mainLogbookDocumentId = document.getId();
@@ -1178,9 +1175,9 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
 
     /**
-     * @param inProccessCollection collection of logbook in process
+     * @param inProccessCollection   collection of logbook in process
      * @param logbookLifeCycleInProd to create logbook lfc Unit/GroupObject
-     * @throws LogbookDatabaseException if mongo execution error
+     * @throws LogbookDatabaseException      if mongo execution error
      * @throws LogbookAlreadyExistsException if duplicated key in mongo
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -1352,13 +1349,13 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     /**
      * Search in elastic search then get object detail in MongoDb.
-     * 
+     *
      * @param collection the collection
-     * @param parser the parser containing the query
+     * @param parser     the parser containing the query
      * @return the cursor on the result datas
-     * @throws InvalidParseOperationException if the MongoDb query can't be translated to ES a valid query
+     * @throws InvalidParseOperationException  if the MongoDb query can't be translated to ES a valid query
      * @throws InvalidCreateOperationException if a MongoDb query can't be created from ES results
-     * @throws LogbookException if an exception occured while executing the ES query
+     * @throws LogbookException                if an exception occured while executing the ES query
      */
     private MongoCursor<?> findDocumentsElasticsearch(LogbookCollections collection,
         SelectParserSingle parser)
@@ -1400,8 +1397,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     /**
      * Insert a new document in ES.
-     * 
-     * @param collection the collection
+     *
+     * @param collection    the collection
      * @param vitamDocument the document to save in ES
      * @throws LogbookExecutionException if the ES insert was in error
      */
@@ -1426,11 +1423,11 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     /**
      * Update a document in ES
-     * 
-     * @param collection the collection
+     *
+     * @param collection       the collection
      * @param existingDocument the document to update
      * @throws LogbookExecutionException if the ES update was in error
-     * @throws LogbookNotFoundException if the document was not found in mongodb
+     * @throws LogbookNotFoundException  if the document was not found in mongodb
      */
     private void updateIntoElasticsearch(LogbookCollections collection, VitamDocument<?> existingDocument)
         throws LogbookExecutionException, LogbookNotFoundException {
@@ -1451,7 +1448,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     /**
      * Replace the "evDetData" value in the document and the sub-events from a string by a json object
-     * 
+     *
      * @param vitamDocument logbook vitam document
      */
     private void tranformDataForElastic(VitamDocument<?> vitamDocument) {
@@ -1583,50 +1580,70 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         document.remove(LogbookDocument.EVENTS);
         document.remove(LogbookDocument.ID);
         document.remove(LogbookDocument.TENANT_ID);
-        if(document.get(LogbookMongoDbName.rightsStatementIdentifier.getDbname()) == null ||
-            ((String)document.get(LogbookMongoDbName.rightsStatementIdentifier.getDbname())).isEmpty() ){
+        if (document.get(LogbookMongoDbName.rightsStatementIdentifier.getDbname()) == null ||
+            ((String) document.get(LogbookMongoDbName.rightsStatementIdentifier.getDbname())).isEmpty()) {
             document.remove(LogbookMongoDbName.rightsStatementIdentifier.getDbname());
         }
 
-        if(document.get(LogbookMongoDbName.agentIdentifierApplication.getDbname()) == null ||
-            ((String)document.get(LogbookMongoDbName.agentIdentifierApplication.getDbname())).isEmpty() ){
+        if (document.get(LogbookMongoDbName.agentIdentifierApplication.getDbname()) == null ||
+            ((String) document.get(LogbookMongoDbName.agentIdentifierApplication.getDbname())).isEmpty()) {
             document.remove(LogbookMongoDbName.agentIdentifierApplication.getDbname());
         }
-        if(document.get(LogbookMongoDbName.agentIdentifierApplicationSession.getDbname()) == null ||
-            ((String)document.get(LogbookMongoDbName.agentIdentifierApplicationSession.getDbname())).isEmpty() ){
+        if (document.get(LogbookMongoDbName.agentIdentifierApplicationSession.getDbname()) == null ||
+            ((String) document.get(LogbookMongoDbName.agentIdentifierApplicationSession.getDbname())).isEmpty()) {
             document.remove(LogbookMongoDbName.agentIdentifierApplicationSession.getDbname());
         }
-        if(document.get(LogbookMongoDbName.agIdExt.getDbname()) == null ||
-            ((String)document.get(LogbookMongoDbName.agIdExt.getDbname())).isEmpty() ){
+        if (document.get(LogbookMongoDbName.agIdExt.getDbname()) == null ||
+            ((String) document.get(LogbookMongoDbName.agIdExt.getDbname())).isEmpty()) {
             document.remove(LogbookMongoDbName.agIdExt.getDbname());
         }
-        if(document.get(LogbookMongoDbName.objectIdentifier.getDbname()) == null ||
-            ((String)document.get(LogbookMongoDbName.objectIdentifier.getDbname())).isEmpty() ){
+        if (document.get(LogbookMongoDbName.objectIdentifier.getDbname()) == null ||
+            ((String) document.get(LogbookMongoDbName.objectIdentifier.getDbname())).isEmpty()) {
             document.remove(LogbookMongoDbName.objectIdentifier.getDbname());
         }
 
-
-        if(document.get(LogbookMongoDbName.eventIdentifierRequest.getDbname()) == null ||
-            ((String)document.get(LogbookMongoDbName.eventIdentifierRequest.getDbname())).isEmpty() ){
+        if (document.get(LogbookMongoDbName.eventIdentifierRequest.getDbname()) == null ||
+            ((String) document.get(LogbookMongoDbName.eventIdentifierRequest.getDbname())).isEmpty()) {
             document.remove(LogbookMongoDbName.eventIdentifierRequest.getDbname());
         }
 
-
-        if(document.get(LogbookMongoDbName.objectIdentifierRequest.getDbname()) == null ||
-            ((String)document.get(LogbookMongoDbName.objectIdentifierRequest.getDbname())).isEmpty() ){
+        if (document.get(LogbookMongoDbName.objectIdentifierRequest.getDbname()) == null ||
+            ((String) document.get(LogbookMongoDbName.objectIdentifierRequest.getDbname())).isEmpty()) {
             document.remove(LogbookMongoDbName.objectIdentifierRequest.getDbname());
         }
 
-        if(document.get(LogbookMongoDbName.objectIdentifierIncome.getDbname()) == null ||
-            ((String)document.get(LogbookMongoDbName.objectIdentifierIncome.getDbname())).isEmpty() ){
+        if (document.get(LogbookMongoDbName.objectIdentifierIncome.getDbname()) == null ||
+            ((String) document.get(LogbookMongoDbName.objectIdentifierIncome.getDbname())).isEmpty()) {
             document.remove(LogbookMongoDbName.objectIdentifierIncome.getDbname());
         }
-
-
-
-
-
     }
 
+    @Override
+    public void bulk(LogbookCollections lifecycleUnit, List<? extends LogbookLifeCycleModel> logbookLifeCycleModels) {
+        List<InsertOneModel<VitamDocument>> vitamDocuments = logbookLifeCycleModels
+            .stream()
+            .map(item -> {
+                List<? extends LogbookLifeCycleParameters> items =
+                    new ArrayList<>(item.getLogbookLifeCycleParameters());
+                int i = 0;
+                final VitamDocument document = getDocument(items.get(i));
+                final List<VitamDocument> events = new ArrayList<>(items.size() - 1);
+                for (i = 1; i < items.size(); i++) {
+                    final VitamDocument currentEvent = getDocumentForUpdate(items.get(i));
+                    removeDuplicatedInformation(currentEvent);
+                    events.add(currentEvent);
+                }
+                document.append(LogbookDocument.EVENTS, events);
+                return new InsertOneModel<>(document);
+            }).collect(Collectors.toList());
+
+        try {
+            if (!vitamDocuments.isEmpty()) {
+                BulkWriteResult bulkWriteResult = lifecycleUnit.getCollection().bulkWrite(vitamDocuments);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 }

@@ -493,7 +493,7 @@ public class ProcessingIT {
                     });
 
                 Status importStatus = client.importIngestContracts(IngestContractModelList);
-                
+
                 //import access contract
                 File fileAccessContracts = PropertiesUtils.getResourceFile(ACCESS_CONTRACT);
                 List<AccessContractModel> accessContractModelList = JsonHandler
@@ -575,45 +575,24 @@ public class ProcessingIT {
             RestAssured.port = PORT_SERVICE_PROCESSING;
             RestAssured.basePath = PROCESSING_PATH;
 
-
             metaDataClient.insertUnit(
                 new InsertMultiQuery()
                     .addData((ObjectNode) JsonHandler
                         .getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json")))
                     .getFinalInsert());
 
-            logbookLFCClient.create(
-                LogbookParametersFactory.newLogbookLifeCycleUnitParameters(
-                    GUIDFactory.newOperationLogbookGUID(tenantId),
-                    "INGEST",
-                    GUIDFactory.newOperationLogbookGUID(tenantId),
-                    LogbookTypeProcess.INGEST,
-                    StatusCode.OK,
-                    "Process_SIP_unitary.OK",
-                    UNIT_ATTACHEMENT_ID,
-                    GUIDReader.getGUID(UNIT_ATTACHEMENT_ID)));
-
             metaDataClient.insertUnit(
                 new InsertMultiQuery()
                     .addData(
                         (ObjectNode) JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
                     .getFinalInsert());
-            logbookLFCClient.create(
-                LogbookParametersFactory.newLogbookLifeCycleUnitParameters(
-                    GUIDFactory.newOperationLogbookGUID(tenantId),
-                    "INGEST",
-                    GUIDFactory.newOperationLogbookGUID(tenantId),
-                    LogbookTypeProcess.INGEST,
-                    StatusCode.OK,
-                    "Process_SIP_unitary.OK",
-                    UNIT_PLAN_ATTACHEMENT_ID,
-                    GUIDReader.getGUID(UNIT_PLAN_ATTACHEMENT_ID)));
+
             metaDataClient.flushUnits();
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =
                 JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
-            
+
             functionalClient.importIngestContracts(IngestContractModelList);
 
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
@@ -625,8 +604,7 @@ public class ProcessingIT {
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
             wait(containerName);
-            ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
             assertNotNull(processWorkflow);
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
             assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
@@ -730,8 +708,7 @@ public class ProcessingIT {
 
             wait(auditId);
 
-            ProcessWorkflow processAuditWorkflow =
-                processMonitoring.findOneProcessWorkflow(auditId, tenantId);
+            ProcessWorkflow processAuditWorkflow = processMonitoring.findOneProcessWorkflow(auditId, tenantId);
             assertNotNull(processAuditWorkflow);
             assertEquals(ProcessState.COMPLETED, processAuditWorkflow.getState());
             assertEquals(StatusCode.OK, processAuditWorkflow.getStatus());            

@@ -290,7 +290,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
             // create lifecycle
             if (!existingUnitGuids.contains(elementGUID)) {
-                createUnitLifeCycle(elementGUID, containerId, logbookLifeCycleClient, logbookTypeProcess);
+                createUnitLifeCycle(elementGUID, containerId, logbookTypeProcess);
             } else {
                 updateUnitLifeCycle(elementGUID, containerId, logbookTypeProcess);
             }
@@ -419,9 +419,9 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             }
 
             existingGOTs.add(groupId);
-
             unitIdToGroupId.put(archiveUnitId, groupId);
             objectGroupIdToGuid.put(groupId, groupId);
+
             if (objectGroupIdToUnitId.get(groupId) == null) {
                 final List<String> archiveUnitList = new ArrayList<>();
                 archiveUnitList.add(archiveUnitId);
@@ -503,7 +503,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     }
 
     private void createUnitLifeCycle(String unitGuid, String containerId,
-        LogbookLifeCyclesClient logbookLifeCycleClient, LogbookTypeProcess logbookTypeProcess) {
+        LogbookTypeProcess logbookTypeProcess) {
         final LogbookLifeCycleUnitParameters logbookLifecycleUnitParameters =
             (LogbookLifeCycleUnitParameters) initLogbookLifeCycleParameters(
                 unitGuid, true, false);
@@ -516,12 +516,12 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
             logbookTypeProcess.name());
 
-        try {
+        /*try {
             logbookLifeCycleClient.create(logbookLifecycleUnitParameters);
         } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
             LogbookClientServerException e) {
             LOGGER.error("unable to create logbook lifecycle", e);
-        }
+        }*/
 
         // Update guidToLifeCycleParameters
         guidToLifeCycleParameters.put(unitGuid, logbookLifecycleUnitParameters);

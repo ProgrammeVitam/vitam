@@ -32,6 +32,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
+import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleModel;
+import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
@@ -252,7 +254,7 @@ public interface LogbookLifeCycles {
      * @return the X-Cursor-Id
      * @throws LogbookDatabaseException if the cursor is not found
      */
-    public String createCursorUnit(String operationId, JsonNode select, LogbookCollections logbookCollection)
+    String createCursorUnit(String operationId, JsonNode select, LogbookCollections logbookCollection)
         throws LogbookDatabaseException;
 
     /**
@@ -263,7 +265,7 @@ public interface LogbookLifeCycles {
      * @throws LogbookNotFoundException if there is no more entry
      * @throws LogbookDatabaseException if the cursor is not found
      */
-    public LogbookLifeCycle getCursorUnitNext(String cursorId)
+    LogbookLifeCycle getCursorUnitNext(String cursorId)
         throws LogbookNotFoundException, LogbookDatabaseException;
 
     /**
@@ -276,7 +278,7 @@ public interface LogbookLifeCycles {
      * @return the X-Cursor-Id
      * @throws LogbookDatabaseException if the cursor is not found
      */
-    public String createCursorObjectGroup(String operationId, JsonNode select, LogbookCollections collection)
+    String createCursorObjectGroup(String operationId, JsonNode select, LogbookCollections collection)
         throws LogbookDatabaseException;
 
     /**
@@ -391,4 +393,5 @@ public interface LogbookLifeCycles {
     LifeCycleStatusCode getObjectGroupLifeCycleStatus(String objectGroupId)
         throws LogbookDatabaseException, LogbookNotFoundException;
 
+    void bulk(LogbookCollections collections, String idOp, List<? extends LogbookLifeCycleModel> logbookLifeCycleModels);
 }
