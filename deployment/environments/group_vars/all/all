@@ -114,9 +114,6 @@ mongos_port: 27017
 mongoc_port: 27018
 mongod_port: 27019
 mongo_authentication: "true"
-mongoclientDbName: "mongoclient"
-mongoclientPort: 27016
-mongoclientbaseUrl: "/mongoclient"
 
 vitam_mongodb_host: "mongos.service.{{consul_domain}}"
 vitam_mongodb_port: "{{mongos_port}}"

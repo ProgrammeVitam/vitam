@@ -58,8 +58,6 @@ Ensuite, dans la section ``hosts:vars``, renseigner les valeurs comme décrit :
    "days_to_delete_metrics","Période de grâce avant destruction des index fermés des métriques JVM","30"
    "installation_clamav","Choix d'installation de ClamAV (true/false)","true"
    "http_proxy_environnement","Cas particulier de la récupération des jeux de tests ; URL de squid",""
-   "mongoclientPort","Port par lequel mongoclient est acessible","27016"
-   "mongoclientDbName","Nom de la Base de donnée stockant la configuration mongoclient","mongoclient"
    "vitam_tenant_ids","Liste des tenants de plateforme","[0,1,2] ; [0] par défaut"
    "vitam_tests_gitrepo_protocol","Protocole d'attaque du git lfs des TNR",""
    "vitam_tests_gitrepo_baseurl","domaine du git lfs des TNR",""
@@ -107,41 +105,6 @@ Un tuning fin des paramètres JVM de chaque composant VITAM est possible ; pour 
 
 .. caution:: Limitation technique à ce jour ; il n'est pas possible de définir des variables JVM différentes pour des composants colocalisés sur une même partition.
 
-
-Paramétrage de mongoclient (administration mongoclient)
-========================================================
-
-Le package vitam-mongoclient nécessite une bases de données mongoDB (mongoclient) pour stocker sa configuration.
-Cette base de données est créée dans :term:`VITAM` durant la première installation.
-La configuration est également générée en fonction des paramètres de l'inventaire.
-
-Mongoclient permet de se connecter aux différentes bases de données mongoDB utilisées par VITAM.
-
-
-Première utilisation de mongoclient
-===================================
-
-Par défault, mongoclient est accessible par l'url: http://hostname:27016/mongoclient suivant les hôtes configurés dans le groupes hosts-mongoclients de l'inventaire Vitam.
-
-.. warning:: les versions de mongoclient inférieures à la version 1.5.0 présentent un message d'erreur "route not found" à l'apparition de l'interface. les fonctionnalités de l'application sont indisponibles dans cet état. Ce problème est aisemment contournable en cliquant sur le bouton "Go to Dashboard" pour revenir à un état normal de l'application.
-
-Lors de la première utilisation de mongoclient, il convient de configurer les connexions aux bases de données à superviser. (Cette procédure devrait disparaître à l'issue de la phase Beta)
-
-Procédure pour configurer la connexion aux bases vitam::
- #) Cliquer sur le bouton "Connect" situé en haut de la page (l'emplacement dépend de la taille de la fenêtre)
- #) Dans la fenêtre "Connections", cliquer sur le bouton "Create New". => la fenêtre Add connection apparait contenant 4 sections : Connection, Authentication, URL, SSH
- #) Dans la section "Connection", saisir un nom à donner à la connexion dans "name", le nom ou l'ip du server mongos à cibler dans "hostname", changer éventuellement le "port", définir la base de donnée sur laquelle le client doit se connecter
- #) Dans la section "Authentication", saisir les paramètres d'autentification du compte à utiliser pour se connecter à la base configurée en section "connection"
- #) Dans la section URL, en fonction du la configuration des services, choisir cette méthode de connexion en lieu et place des autres méthodes.
- #) Dans la section "SSH", si le service mongoDB n'est accessible qu'au travers d'une connexion SSH, renseigner les paramètres de cette connexion pour accéder au serveur.
- #) Sauvegarder les paramètres avec le boutton "save changes"
- #) La nouvelle connexion doit apparaître avec un résumé de ses paramètres dans la fenêtre "Connections"
- #) CLiquer sur la ligne de la connexion puis cliquer sur le boutton "Connect Now" pour utiliser se connecter.
-
-
-Si les identifiants utilisés disposent de droit suffisants, Mongoclient vas afficher les métriques du service mongoDB.
-
-Mongoclient ne permet de gérer qu'une seule base à la fois, il est toutefois possible de changer de base de donnée rapidement en ouvrant le menu "More" => "Switch Database" qui affichera la liste des bases de données accessibles (suivant les identifiants renseignés).
 
 
 Paramétrage de l'antivirus (ingest-externe)

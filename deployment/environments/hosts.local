@@ -142,7 +142,6 @@ hosts-consul-server
 hosts-kibana-data
 log-servers
 hosts-elasticsearch-log
-hosts-mongoclient
 
 [hosts-consul-server]
 localhost
@@ -159,9 +158,6 @@ hosts-logstash
 [hosts-kibana-log]
 
 [hosts-elasticsearch-log]
-
-[hosts-mongoclient]
-localhost
 
 ########### Global vars ###########
 

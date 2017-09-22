@@ -107,13 +107,6 @@ RUN apt-get install -y --force-yes -t jessie-backports libssl1.0.0 libssl-dev &&
     apt-get install -y nodejs && \
     ln -s /usr/bin/nodejs /usr/bin/node
 
-COPY install-meteor.sh /usr/bin
-RUN chmod a+x /usr/bin/install-meteor.sh && \
-    sleep 1 && \
-    /usr/bin/install-meteor.sh && \
-    mv /root/.meteor /devhome && \
-    chmod -R o+wX /devhome/.meteor
-
 RUN apt-get clean && apt-get update && apt-get install -t jessie-backports -y ansible
 
 RUN apt-get clean && apt-get update && apt-get install -y git vim

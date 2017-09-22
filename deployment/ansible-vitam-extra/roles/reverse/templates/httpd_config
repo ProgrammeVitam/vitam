@@ -145,12 +145,6 @@
     ProxyPassReverse  /nodes/{{host}}/browse http://{{ hostvars[host]['ip_admin'] }}/browse
     {% endfor %}
 
-    # Mongoclient
-    {% if groups['hosts-mongoclient'] | length > 0 %}
-    ProxyPass /mongoclient http://{{ hostvars[ groups['hosts-mongoclient'][0] ]['ip_service'] }}:{{mongoclientPort}}/mongoclient {{reverse_connection_short_params}}
-    ProxyPassReverse  /mongoclient http://{{ hostvars[ groups['hosts-mongoclient'][0] ]['ip_service'] }}:{{mongoclientPort}}/mongoclient
-    {% endif %}
-
     {% if groups['hosts-dev-tools']|length > 0 %}
     # Mongo express
     ProxyPass /mongo-express http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:8081/mongo-express {{reverse_connection_short_params}}
