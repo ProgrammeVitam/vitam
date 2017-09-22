@@ -398,6 +398,7 @@ La page "Détail d'un contrat d'accès" contient les informations suivantes :
 * Date de désactivation
 * Droit d'écriture
 * Usage
+* Noeuds de consultation
 
 .. image:: images/CONTRACTS_acces_contract_detail.png
 
@@ -439,6 +440,10 @@ Un contrat peut autoriser l'accès à tous ou certains usages d'objets inclus da
  - accès à une sélection de services producteurs en cliquant sur le bouton "Liste blanche uniquement"
 
  .. image:: images/CONTRACTS_acces_contract_update.png
+
+Restriction par noeud de consultation
+
+Un contrat peut restreindre l'accès aux unités archivistiques listées en tant que noeuds de consultation ainsi qu'à leurs enfants. Chaque unités archivistiques renseignée est identifiée par son identifiant. Si aucune unité archivistique n'y est renseignée, alors l'accès du détenteur du contrat n'est pas restreint à des noeuds de consultation. 
 
 Contrats d'entrée
 -----------------
