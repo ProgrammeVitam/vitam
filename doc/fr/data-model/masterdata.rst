@@ -396,7 +396,11 @@ Exemple de JSON stocké en base
     "WritingPermission": true,
     "EveryOriginatingAgency": false,
     "EveryDataObjectVersion": true,
-    "_v": 0
+    "_v": 0,
+    "RootUnits": [
+        "aeaqaaaaaahxunbaabg3yak6urend2yaaaaq",
+        "aeaqaaaaaahxunbaabg3yak6urendoqaaaaq"
+    ]
     }
 
 Exemple d'un fichier d'import de contrat d'accès
@@ -484,6 +488,9 @@ Détail des champs
 
 "_v": version de l'objet décrit
   Il s'agit d'un entier.
+
+"RootUnits": Liste des noeuds de consultation auxquels le détenteur du contrat a accès. Si aucun noeud n'est spécifié, alors l'utilisateur a accès à tous les noeuds.
+  Il s'agit d'un tableau de chaînes de caractères.
 
 Collection Profile
 ===================
