@@ -64,7 +64,6 @@
   run_once: true
   with_items:
     - admin
-    - mongoclient
     - logbook
     - masterdata
     - metadata

@@ -46,7 +46,5 @@ echo "vitam-elasticsearch-cerebro"
 ${WORKING_FOLDER}/build-elasticsearch-cerebro.sh
 echo "vitam-siegfried"
 ${WORKING_FOLDER}/build-siegfried.sh
-echo "vitam-mongoclient"
-${WORKING_FOLDER}/build-mongoclient.sh
 echo "Elasticsearch analysis-ixu"
 ${WORKING_FOLDER}/build-elasticsearch-icu.sh

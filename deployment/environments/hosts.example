@@ -187,7 +187,6 @@ hosts-consul-server
 hosts-kibana-data
 log-servers
 hosts-elasticsearch-log
-hosts-mongoclient
 
 [hosts-consul-server]
 # TODO: Put here servers where this service will be deployed : consul
@@ -207,10 +206,6 @@ hosts-logstash
 
 [hosts-elasticsearch-log]
 # TODO: Put here servers where this service will be deployed : elasticsearch-log cluster
-
-[hosts-mongoclient]
-# TODO: Put here servers where this service will be deployed : mongos cluster ; add after name shard_id=0
-# Example : vitam-iaas-mongos-01.int shard_id=0
 
 ########### Global vars ###########
 
