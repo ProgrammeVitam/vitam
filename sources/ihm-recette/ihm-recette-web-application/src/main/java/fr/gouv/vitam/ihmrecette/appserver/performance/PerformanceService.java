@@ -60,6 +60,8 @@ import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
+import io.reactivex.Flowable;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  *
@@ -114,6 +116,45 @@ public class PerformanceService {
      * @throws IOException
      */
     public void launchPerformanceTest(PerformanceModel model, String fileName, int tenantId) throws IOException {
+
+        if (model.getParallelIngest() != null) {
+            launchTestInParallel(model, fileName, tenantId);
+            return;
+        }
+        if (model.getDelay() != null) {
+            launchTestInSequence(model, fileName, tenantId);
+        }
+    }
+
+    private void launchTestInSequence(PerformanceModel model, String fileName, int tenantId) throws IOException {
+        ReportGenerator reportGenerator = new ReportGenerator(performanceReportDirectory.resolve(fileName));
+        int numberOfRetry = model.getNumberOfRetry() == null ? NUMBER_OF_RETRY : model.getNumberOfRetry();
+
+        performanceTestInProgress.set(true);
+
+        Flowable.interval(0, model.getDelay(), TimeUnit.MILLISECONDS)
+            .take(model.getNumberOfIngest())
+            .map(i -> upload(model, tenantId))
+            .flatMap(
+                operationId -> Flowable.just(operationId)
+                    .observeOn(Schedulers.io())
+                    .map(id -> waitEndOfIngest(tenantId, numberOfRetry, id)))
+            .subscribe(operationId -> generateReport(reportGenerator, operationId, tenantId),
+                throwable -> {
+                    LOGGER.error("end performance test with error", throwable);
+                    performanceTestInProgress.set(false);
+                }, () -> {
+                    try {
+                        reportGenerator.close();
+                        performanceTestInProgress.set(false);
+                        LOGGER.info("end performance test");
+                    } catch (IOException e) {
+                        LOGGER.error("unable to close report", e);
+                    }
+                });
+    }
+
+    private void launchTestInParallel(PerformanceModel model, String fileName, int tenantId) throws IOException {
         ExecutorService launcherPerformanceExecutor = Executors.newFixedThreadPool(model.getParallelIngest());
         ExecutorService reportExecutor = Executors.newSingleThreadExecutor();
 
@@ -188,6 +229,36 @@ public class PerformanceService {
             return null;
         } finally {
             client.close();
+        }
+    }
+
+    private String waitEndOfIngest(int tenantId, int numberOfRetry, String operationId) {
+        LOGGER.debug("wait end of ingest");
+        try (IngestExternalClient client = ingestClientFactory.getClient()) {
+            client.wait(tenantId, operationId, ProcessState.COMPLETED, numberOfRetry, 1000L,
+                TimeUnit.MILLISECONDS);
+            LOGGER.debug("finish unitary test");
+            return operationId;
+        } catch (final Exception e) {
+            LOGGER.error("unable to upload sip", e);
+            return null;
+        }
+    }
+
+    private String upload(PerformanceModel model, int tenantId) {
+        LOGGER.debug("launch unitary ingest");
+
+        try (InputStream sipInputStream = Files.newInputStream(sipDirectory.resolve(model.getFileName()),
+            StandardOpenOption.READ); IngestExternalClient client = ingestClientFactory.getClient()) {
+
+            RequestResponse<Void> response =
+                client
+                    .upload(new VitamContext(tenantId), sipInputStream, DEFAULT_WORKFLOW.name(), RESUME.name());
+
+            return response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+        } catch (final Exception e) {
+            LOGGER.error("unable to upload sip", e);
+            return null;
         }
     }
 
