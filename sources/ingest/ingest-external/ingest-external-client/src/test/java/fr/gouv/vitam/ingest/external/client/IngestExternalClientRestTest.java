@@ -335,6 +335,10 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         RequestResponse<ProcessDetail> resp2 = client.listOperationsDetails(new VitamContext(0), new ProcessQuery());
         assertEquals(resp2.getStatus(), Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        
+        when(mock.get()).thenReturn(Response.status(Status.UNSUPPORTED_MEDIA_TYPE).build());
+        RequestResponse<ProcessDetail> resp3 = client.listOperationsDetails(new VitamContext(0), null);
+        assertEquals(resp3.getStatus(), Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
     @Test

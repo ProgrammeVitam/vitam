@@ -80,21 +80,21 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
 
     @Override
     public RequestResponse<LogbookOperation> selectOperationbyId(VitamContext vitamContext,
-        String processId)
+        String processId, JsonNode select)
         throws VitamClientException {
         return ClientMockResultHelper.getLogbookOperationRequestResponse();
     }
 
     @Override
     public RequestResponse<LogbookLifecycle> selectUnitLifeCycleById(
-        VitamContext vitamContext, String idUnit)
+        VitamContext vitamContext, String idUnit, JsonNode select)
         throws VitamClientException {
         return ClientMockResultHelper.getLogbookLifecycleRequestResponse();
     }
 
     @Override
     public RequestResponse<LogbookLifecycle> selectObjectGroupLifeCycleById(
-        VitamContext vitamContext, String idObject)
+        VitamContext vitamContext, String idObject, JsonNode select)
         throws VitamClientException {
         return ClientMockResultHelper.getLogbookLifecycleRequestResponse();
     }

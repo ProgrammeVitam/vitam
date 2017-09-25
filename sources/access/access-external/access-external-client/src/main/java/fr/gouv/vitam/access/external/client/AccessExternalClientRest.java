@@ -13,7 +13,6 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServer
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
@@ -52,7 +51,6 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     private static final String LOGBOOK_OPERATIONS_URL = "/operations";
     private static final String LOGBOOK_UNIT_LIFECYCLE_URL = "/unitlifecycles";
     private static final String LOGBOOK_OBJECT_LIFECYCLE_URL = "/objectgrouplifecycles";
-    private static final Select emptySelectQuery = new Select();
 
     AccessExternalClientRest(AccessExternalClientFactory factory) {
         super(factory);
@@ -417,7 +415,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
     @Override
     public RequestResponse<LogbookOperation> selectOperationbyId(VitamContext vitamContext,
-        String processId)
+        String processId, JsonNode select)
         throws VitamClientException {
 
         Response response = null;
@@ -425,7 +423,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         headers.putAll(vitamContext.getHeaders());
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_OPERATIONS_URL + "/" + processId, headers,
-                emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
+                select, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, LogbookOperation.class);
 
@@ -441,8 +439,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse<LogbookLifecycle> selectUnitLifeCycleById(
-        VitamContext vitamContext, String idUnit)
+    public RequestResponse<LogbookLifecycle> selectUnitLifeCycleById(VitamContext vitamContext, String idUnit, JsonNode select)
         throws VitamClientException {
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
@@ -450,7 +447,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         try {
             response =
                 performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL + "/" + idUnit, headers,
-                    emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
+                    select, MediaType.APPLICATION_JSON_TYPE,
                     MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, LogbookLifecycle.class);
 
@@ -467,7 +464,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
     @Override
     public RequestResponse<LogbookLifecycle> selectObjectGroupLifeCycleById(
-        VitamContext vitamContext, String idObject)
+        VitamContext vitamContext, String idObject, JsonNode select)
         throws VitamClientException {
         Response response = null;
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
@@ -475,7 +472,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         try {
             response = performRequest(HttpMethod.GET, LOGBOOK_OBJECT_LIFECYCLE_URL + "/" + idObject,
                 headers,
-                emptySelectQuery, MediaType.APPLICATION_JSON_TYPE,
+                select, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE, false);
 
             return RequestResponse.parseFromResponse(response, LogbookLifecycle.class);

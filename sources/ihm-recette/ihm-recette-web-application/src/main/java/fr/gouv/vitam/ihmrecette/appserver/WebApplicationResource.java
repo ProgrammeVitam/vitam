@@ -654,14 +654,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                 switch (requestMethod) {
                                     case HTTP_GET:
                                         if (StringUtils.isBlank(objectID)) {
-                                            result = client.selectOperation(new VitamContext(tenantId).setAccessContract(contractId)
-                                                    .setApplicationSessionId(getAppSessionId()),
-                                                criteria
-                                            );
+                                            result = client.selectOperation(new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()),
+                                                criteria);
                                         } else {
-                                            result = client.selectOperationbyId(new VitamContext(tenantId).setAccessContract(contractId)
-                                                    .setApplicationSessionId(getAppSessionId()),
-                                                objectID
+                                            result = client.selectOperationbyId(new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()),
+                                                objectID, criteria
                                             );
                                         }
                                         break;
@@ -676,10 +673,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                             throw new InvalidParseOperationException(
                                                 "Object ID should not be empty for collection " + requestedCollection);
                                         } else {
-                                            result = client.selectObjectById(new VitamContext(tenantId).setAccessContract(contractId)
-                                                    .setApplicationSessionId(getAppSessionId()),
-                                                criteria, objectID
-                                            );
+                                            result = client.selectObjectById(new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()),
+                                                criteria, objectID);
                                             if (result != null) {
                                                 return Response.status(Status.OK)
                                                     .entity(JsonTransformer.transformResultObjects(result.toJsonNode()))
@@ -694,9 +689,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                             } else if (requestedCollection.equalsIgnoreCase(UNIT_LIFECYCLES)) {
                                 switch (requestMethod) {
                                     case HTTP_GET:
-                                        result = client.selectUnitLifeCycleById(new VitamContext(tenantId).setAccessContract(contractId)
-                                                .setApplicationSessionId(getAppSessionId()),
-                                            objectID);
+                                        result = client.selectUnitLifeCycleById(new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()),
+                                            objectID, criteria);
                                         break;
                                     default:
                                         throw new UnsupportedOperationException(
@@ -706,8 +700,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                 switch (requestMethod) {
                                     case HTTP_GET:
                                         result = client.selectObjectGroupLifeCycleById(
-                                            new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId())
-                                            , objectID);
+                                            new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()), objectID, criteria);
                                         break;
                                     default:
                                         throw new UnsupportedOperationException(

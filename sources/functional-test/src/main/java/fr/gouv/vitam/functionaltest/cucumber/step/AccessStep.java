@@ -50,7 +50,6 @@ import java.util.stream.Collectors;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.client.VitamContext;
 import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.assertj.core.api.Fail;
 
@@ -67,9 +66,11 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientExcept
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.FileUtil;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -696,8 +697,7 @@ public class AccessStep {
         RequestResponse<LogbookLifecycle> requestResponse =
             world.getAccessClient().selectUnitLifeCycleById(
                 new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                    .setApplicationSessionId(world.getApplicationSessionId()),
-                unitId);
+                .setApplicationSessionId(world.getApplicationSessionId()), unitId, new Select().getFinalSelect());
         if (requestResponse.isOk()) {
             RequestResponseOK<LogbookLifecycle> requestResponseOK =
                 (RequestResponseOK<LogbookLifecycle>) requestResponse;
@@ -731,9 +731,8 @@ public class AccessStep {
             }
             RequestResponse<LogbookLifecycle> requestResponseLFC =
                 world.getAccessClient().selectObjectGroupLifeCycleById(
-                    new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                        .setApplicationSessionId(world.getApplicationSessionId()),
-                    unit.get(PROJECTIONARGS.OBJECT.exactToken()).asText());
+                    new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()).setApplicationSessionId(world.getApplicationSessionId()),
+                    unit.get(PROJECTIONARGS.OBJECT.exactToken()).asText(), new Select().getFinalSelect());
             if (requestResponseLFC.isOk()) {
                 RequestResponseOK<LogbookLifecycle> requestResponseLFCOK =
                     (RequestResponseOK<LogbookLifecycle>) requestResponseLFC;
