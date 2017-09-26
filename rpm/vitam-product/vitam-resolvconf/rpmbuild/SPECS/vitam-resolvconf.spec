@@ -1,5 +1,5 @@
 Name:          vitam-resolvconf
-Version:       1.0.0
+Version:       1.0.1
 Release:       1%{?dist}
 Summary:       Service files to ensure consul dns is set in /etc/resolv.conf
 Group:         System Environment/Daemons
