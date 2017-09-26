@@ -102,16 +102,16 @@ public class ProcessDataAccessImpl implements ProcessDataAccess {
     }
 
     @Override
-    public void updateStep(String operationId, String uniqueStepId, long elementToProcess, boolean elementProcessed,
+    public void updateStep(String operationId, String uniqueStepId, long elementToProcessOrProcessed, boolean elementProcessed,
         Integer tenantId) {
 
         ProcessWorkflow processWorkflow = this.findOneProcessWorkflow(operationId, tenantId);
         for (ProcessStep step : processWorkflow.getSteps()) {
             if (StringUtils.equals(uniqueStepId, step.getId())) {
                 if (elementProcessed) {
-                    step.setElementProcessed(step.getElementProcessed() + 1);
+                    step.setElementProcessed(step.getElementProcessed() + elementToProcessOrProcessed); 
                 } else {
-                    step.setElementToProcess(step.getElementToProcess() + elementToProcess);
+                    step.setElementToProcess(step.getElementToProcess() + elementToProcessOrProcessed);
                 }
                 break;
             }

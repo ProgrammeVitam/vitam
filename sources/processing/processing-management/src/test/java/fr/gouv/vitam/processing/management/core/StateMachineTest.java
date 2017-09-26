@@ -418,13 +418,13 @@ public class StateMachineTest {
 
         stateMachine.resume(workParams);
         int nbtry = 50;
-        while (!ProcessState.COMPLETED.equals(processWorkflow.getState())) {
+        while (!ProcessState.PAUSE.equals(processWorkflow.getState())) {
             Thread.sleep(20);
             nbtry--;
             if (nbtry < 0)
                 break;
         }
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(ProcessState.PAUSE, processWorkflow.getState());
         assertEquals(StatusCode.FATAL, processWorkflow.getStatus());
 
         processDataAccess.clearWorkflow();
@@ -432,7 +432,7 @@ public class StateMachineTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testWhenExceptionOccurThenExecuteFinallyStep()
+    public void testWhenExceptionOccurThenDoNotExecuteFinallyStep()
         throws ProcessingException, StateNotAllowedException, ProcessingEngineException, InterruptedException {
         VitamThreadUtils.getVitamSession().setTenantId(1);
 
@@ -463,17 +463,17 @@ public class StateMachineTest {
         stateMachine.resume(workParams);
 
         int nbtry = 50;
-        while (!ProcessState.COMPLETED.equals(processWorkflow.getState())) {
+        while (!ProcessState.PAUSE.equals(processWorkflow.getState())) {
             Thread.sleep(20);
             nbtry--;
             if (nbtry < 0)
                 break;
         }
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(ProcessState.PAUSE, processWorkflow.getState());
         assertEquals(StatusCode.FATAL, processWorkflow.getStatus());
 
         assertEquals(StatusCode.STARTED, firstStep.getStepStatusCode());
-        assertEquals(StatusCode.OK, lastStep.getStepStatusCode());
+        assertEquals(StatusCode.UNKNOWN, lastStep.getStepStatusCode());
 
         processDataAccess.clearWorkflow();
     }
@@ -527,7 +527,7 @@ public class StateMachineTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testWhenStepFATALBlockingThenExecuteFinallyStep()
+    public void testWhenStepFATALBlockingThenDoNotExecuteFinallyStep()
         throws ProcessingException, StateNotAllowedException, ProcessingEngineException, InterruptedException {
         VitamThreadUtils.getVitamSession().setTenantId(1);
 
@@ -557,17 +557,17 @@ public class StateMachineTest {
 
         stateMachine.resume(workParams);
         int nbtry = 50;
-        while (!ProcessState.COMPLETED.equals(processWorkflow.getState())) {
+        while (!ProcessState.PAUSE.equals(processWorkflow.getState())) {
             Thread.sleep(20);
             nbtry--;
             if (nbtry < 0)
                 break;
         }
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(ProcessState.PAUSE, processWorkflow.getState());
         assertEquals(StatusCode.FATAL, processWorkflow.getStatus());
 
         assertEquals(StatusCode.FATAL, firstStep.getStepStatusCode());
-        assertEquals(StatusCode.OK, lastStep.getStepStatusCode());
+        assertEquals(StatusCode.UNKNOWN, lastStep.getStepStatusCode());
 
         processDataAccess.clearWorkflow();
     }

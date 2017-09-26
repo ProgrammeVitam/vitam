@@ -301,6 +301,10 @@ public class WorkerImpl implements Worker {
                         break;
                     }
                 }
+                
+                if (responses.getGlobalStatus().isGreaterOrEqualToFatal()) {
+                    break;
+                }
 
             } catch (Exception e) {
                 throw new ProcessingException(e);

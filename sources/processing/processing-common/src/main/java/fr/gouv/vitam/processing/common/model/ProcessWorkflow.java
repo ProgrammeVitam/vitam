@@ -122,10 +122,8 @@ public class ProcessWorkflow {
      */
     public ProcessWorkflow setStatus(StatusCode status) {
         ParametersChecker.checkParameter(MANDATORY_PARAMETER, status);
-        // TODO FATAL or KO ---> OK or warning (after replay worklow 's action)
-        // update globalStatus
-        this.status = this.status.compareTo(status) > 0
-            ? this.status : status;
+        this.status = (this.status.compareTo(status) < 0 || this.status.equals(StatusCode.FATAL))
+            ? status : this.status;
 
         return this;
     }

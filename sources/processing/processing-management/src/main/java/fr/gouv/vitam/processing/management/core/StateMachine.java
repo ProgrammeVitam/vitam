@@ -81,6 +81,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
     private int stepIndex = -1;
     private int stepTotal = 0;
+    
+    private boolean replayAfterFatal = false;
 
     private List<ProcessStep> steps = new ArrayList<>();
     private ProcessStep currentStep = null;
@@ -360,8 +362,12 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         this.state = ProcessState.RUNNING;
         this.targetState = targetState;
         stepByStep = ProcessState.PAUSE.equals(targetState);
+        
+        // if pause after fatal, force replay last step (if resume or next)
+        replayAfterFatal = (PauseRecover.RECOVER_FROM_API_PAUSE.equals(processWorkflow.getPauseRecover()) 
+                && StatusCode.FATAL.equals(processWorkflow.getStatus()));
 
-        executeSteps(workerParameters, processWorkflow.getPauseRecover(), false);
+        executeSteps(workerParameters, processWorkflow.getPauseRecover(), replayAfterFatal);
     }
 
     /**
@@ -384,6 +390,10 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         this.targetState = targetState;
         stepByStep = ProcessState.PAUSE.equals(targetState);
 
+        // check if pause after FATAL
+        replayAfterFatal = (PauseRecover.RECOVER_FROM_API_PAUSE.equals(processWorkflow.getPauseRecover())
+                && StatusCode.FATAL.equals(processWorkflow.getStatus()));
+
         // here, we need to add something in order to tell that we want the current step to be re executed
         executeSteps(workerParameters, processWorkflow.getPauseRecover(), true);
     }
@@ -397,7 +407,6 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         throws ProcessingException {
         if (backwards) {
             stepIndex--;
-            currentStep.setPauseOrCancelAction(PauseOrCancelAction.ACTION_REPLAY);
         }
         /**
          * This is required when pause action origin is API, we have to We have to check if we passe to the next step or
@@ -446,6 +455,10 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
         if (stepIndex <= stepTotal - 1) {
             currentStep = steps.get(stepIndex);
+            
+            if(backwards){
+                currentStep.setPauseOrCancelAction(PauseOrCancelAction.ACTION_REPLAY);
+            }
         } else {
             throw new StepsNotFoundException("No step found in the process workflow");
         }
@@ -516,11 +529,41 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     synchronized public void onUpdate(StatusCode statusCode) {
         StatusCode stepStatusCode = currentStep.getStepStatusCode();
         if (stepStatusCode != null) {
-            stepStatusCode = stepStatusCode.compareTo(statusCode) > 0
-                ? stepStatusCode : statusCode;
+            // if replay after FATAL and Process in PauseFromAPI, accept newest statusCode otherwise increment status
+            stepStatusCode = (stepStatusCode.compareTo(statusCode) < 0 || replayAfterFatal) 
+                    ? statusCode : stepStatusCode;
         }
         currentStep.setStepStatusCode(stepStatusCode);
-        this.status = this.status.compareTo(statusCode) > 0 ? this.status : statusCode;
+        
+        // if replay after FATAL and Process in PauseFromAPI, compute newest statusCode otherwise increment status
+        if (replayAfterFatal) {
+            this.status = recomputeProcessWorkflowStatus(statusCode);
+        } else if (this.status.compareTo(statusCode) < 0) {
+            this.status = statusCode;
+        }
+        
+        // only force status update for replayed step
+        if(replayAfterFatal){
+            replayAfterFatal = false;
+        }
+    }
+
+    /**
+     * recompute processWorkflow statusCode
+     * 
+     * @param statusCode initial statusCode
+     * @return the computed statusCode
+     */
+    private StatusCode recomputeProcessWorkflowStatus(StatusCode statusCode){
+        StatusCode computedStatus = statusCode;
+        for (int i = 0; i < stepIndex; i++){
+            StatusCode previousStatusCode = this.steps.get(i).getStepStatusCode();
+            if(previousStatusCode.compareTo(computedStatus) > 0){
+                computedStatus = previousStatusCode;
+            }
+        }
+        
+        return computedStatus;
     }
 
     @Override
@@ -535,17 +578,14 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     synchronized public void onError(Throwable throwable, WorkerParameters workerParameters) {
         LOGGER.error("Error in Engine", throwable);
         status = StatusCode.FATAL;
-
-        if (!isLastStep()) {
-            this.executeFinallyStep(workerParameters);
-        } else {
-            try {
-                this.finalizeLogbook(workerParameters);
-            } finally {
-                this.persistProcessWorkflow();
-            }
-        }
-
+        
+        state = ProcessState.PAUSE;
+        targetState = ProcessState.PAUSE;
+        
+        // To enable recover when replay after FATAL
+        processWorkflow.setPauseRecover(PauseRecover.RECOVER_FROM_API_PAUSE);
+        
+        this.persistProcessWorkflow();
     }
 
     @Override
@@ -583,7 +623,17 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             // if the step has been defined as Blocking and stepStatus is KO or FATAL
             // then stop the process
             if (itemStatus.shallStop(currentStep.getBehavior().equals(ProcessBehavior.BLOCKING))) {
-                this.executeFinallyStep(workerParameters);
+                if(statusCode.isGreaterOrEqualToFatal()){
+                    state = ProcessState.PAUSE;
+                    targetState = ProcessState.PAUSE;
+
+                    // To enable recover when replay after FATAL
+                    processWorkflow.setPauseRecover(PauseRecover.RECOVER_FROM_API_PAUSE);
+                    
+                    this.persistProcessWorkflow();
+                } else {
+                    this.executeFinallyStep(workerParameters);
+                }
             } else if (!isCompleted()) {
                 if (ProcessState.COMPLETED.equals(targetState)) {
                     status = StatusCode.FATAL;

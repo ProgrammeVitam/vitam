@@ -57,12 +57,12 @@ public interface ProcessDataAccess {
      *
      * @param processId the id of the process to be updated
      * @param uniqueId the unique Id of the step
-     * @param elementToProcess the number of element to be processed
+     * @param elementToProcessOrProcessed the number of element to be processed
      * @param elementProcessed if a new element has been processed
      * @param tenantId the working tenant
      * @throws ProcessingException if the step does not exist
      */
-    void updateStep(String processId, String uniqueId, long elementToProcess, boolean elementProcessed,
+    void updateStep(String processId, String uniqueId, long elementToProcessOrProcessed, boolean elementProcessed,
         Integer tenantId);
 
     /**
