@@ -127,12 +127,12 @@ public class PerformanceServiceTest {
             anyString())).willReturn(requestResponseOK);
 
         // When
-        PerformanceModel model = createPerformanceTestInSequence(fileName, 3, 200, 500);
+        PerformanceModel model = createPerformanceTestInSequence(fileName, 1, 1, 1);
         performanceService.launchPerformanceTest(model, reportName, 0);
 
         // Then
         assertThat(performanceService.inProgress()).isTrue();
-        Thread.sleep(1000);
+        Thread.sleep(1500);
         assertThat(performanceService.inProgress()).isFalse();
     }
 
