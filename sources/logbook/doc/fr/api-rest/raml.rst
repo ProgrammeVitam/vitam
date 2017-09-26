@@ -7,7 +7,7 @@ Il y a deux méthodes de "Select", l'une est la sélection des operations par DS
 GET, POST /logbooks
 Request:
 	Headers:
-		X-Application-ID: (string)
+		X-Application-Id: (string)
 		
 		Content-Type: application/json
 		Accept: application/json
@@ -26,7 +26,7 @@ Request:
 	URI Parameters
     	idop: required (string)
 	Headers
-		X-Application-ID: (string)
+		X-Application-Id: (string)
 		
 		Content-Type: application/json
 		Accept: application/json
@@ -38,4 +38,3 @@ Response:
 	HTTP status code 412: Échec de précondition, certains prédicats sont incorrects, donc l'opération est impossible
 
 
-    

@@ -32,7 +32,7 @@ public class BusinessApplicationTest extends Application {
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
 
-            commonBusinessApplication = new CommonBusinessApplication();
+            commonBusinessApplication = new CommonBusinessApplication(true);
 
             final AccessExternalResourceImpl accessExternalResource =
                 new AccessExternalResourceImpl(secureEndpointRegistry);

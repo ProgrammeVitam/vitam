@@ -85,9 +85,13 @@ import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 
-
+@RunWithCustomExecutor
 public class LogbookResourceTest {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResourceTest.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResourceTest.class);@Rule
+
+    @ClassRule
+    public static RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static final String LOGBOOK_CONF = "logbook-test.conf";
     private static final String DATABASE_HOST = "localhost";
@@ -128,10 +132,6 @@ public class LogbookResourceTest {
 
     private static final int TENANT_ID = 0;
     private static final List<Integer> tenantList = Arrays.asList(0);
-
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -266,7 +266,6 @@ public class LogbookResourceTest {
     }
 
     @Test
-    @RunWithCustomExecutor
     public final void testOperation() {
         // Creation OK
         logbookParametersStart.putParameterValue(LogbookParameterName.eventDateTime,
@@ -331,7 +330,6 @@ public class LogbookResourceTest {
     }
 
     @Test
-    @RunWithCustomExecutor
     public void testBulk() {
         final GUID eip = GUIDFactory.newEventGUID(0);
         // Create
@@ -387,7 +385,6 @@ public class LogbookResourceTest {
     }
 
     @Test
-    @RunWithCustomExecutor
     public void testError() {
         // Create KO since Bad Request
         final LogbookOperationParameters empty = LogbookParametersFactory.newLogbookOperationParameters();
@@ -435,7 +432,6 @@ public class LogbookResourceTest {
     }
 
     @Test
-    @RunWithCustomExecutor
     public void testOperationSelect() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         logbookParametersSelect.putParameterValue(LogbookParameterName.eventDateTime,
@@ -466,7 +462,6 @@ public class LogbookResourceTest {
     }
 
     @Test
-    @RunWithCustomExecutor
     public void testSelectOperationId() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         logbookParametersSelectId.putParameterValue(LogbookParameterName.eventDateTime,

@@ -8,7 +8,7 @@ Le DSL (Domain Specific Language) Vitam est composé de deux parties :
 Une requête est composée de plusieurs parties, et en particulier le Body qui contient un Json exprimant la requête.
 
 Elle peut être complétée par quelques valeurs dans le *Header* :
-- **X-Application-Id** : (**UNSUPPORTED**) pour conserver la session (valeur non signifiante) dans les journaux et logs du SAE associés à l'opération demandée
+- **X-Application-Id** : pour conserver la session (valeur non signifiante) dans les journaux et logs du SAE associés à l'opération demandée
 - **X-Valid: true** : (**UNSUPPORTED**) pour une requête HEAD sur un **Object** pour vérifier la validité (check d'empreinte)
 - **X-Tenant-Id** : pour chaque requête, le tenant sur lequel doit être exécutée la requête
 - **X-Qualifier** et **X-Version** : pour une requête GET sur un **Object** pour récupérer un usage et une version particulière
@@ -302,7 +302,7 @@ La réponse dispose également de champs dans le *Header* :
 - **FullApiVersion** : (**UNSUPPORTED**) retourne le numéro précis de la version de l'API en cours d'exécution
 - **X-Request-Id** : pour chaque requête, un unique identifiant est fourni en réponse
 - **X-Tenant-Id** : pour chaque requête, le tenant sur lequel a été exécutée l'opération demandée
-- **X-Application-Id** : (**UNSUPPORTED**) pour conserver la session (valeur non signifiante) dans les journaux et logs associés à l'opération demandée
+- **X-Application-Id** : pour conserver la session (valeur non signifiante) dans les journaux et logs associés à l'opération demandée
 - **X-Qualifier** et **X-Version** : pour une requête GET sur un **Object** pour indiquer un usage et une version particulière
 - **X-Callback** (**UNSUPPORTED**): pour les opérations de longue durée et donc asynchrones pour indiquer l'URL de Callback
 - (**UNSUPPORTED**) Si **X-Cursor: true** a été spécifié et si la réponse nécessite l'usage d'un curseur (nombre de réponses > *$per_page*), le SAE retourne **X-Cursor-Id** et **X-Cursor-Timeout** (date de fin de validité du curseur) : pour la gestion d'une requête en mode "curseur" par le client

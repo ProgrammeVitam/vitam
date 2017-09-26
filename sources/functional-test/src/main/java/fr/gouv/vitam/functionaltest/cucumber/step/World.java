@@ -68,6 +68,7 @@ public class World {
 
     private String contractId;
     private String unitId;
+    private String applicationSessionId;
 
 
     /**
@@ -147,6 +148,17 @@ public class World {
     @Given("^les tests effectués sur le contrat id (.*)$")
     public void the_test_are_done_on_contract(String contractId) throws Throwable {
         this.contractId = contractId;
+    }
+
+    /**
+     * defines application session id
+     *
+     * @param applicationSessionId id of the application session
+     * @throws Throwable
+     */
+    @Given("^les tests effectués avec l'identifiant de transaction (.*)$")
+    public void the_tests_are_done_with_application_session_id(String applicationSessionId) {
+        this.applicationSessionId = applicationSessionId;
     }
 
     /**
@@ -243,6 +255,10 @@ public class World {
     public World setContractId(String contractId) {
         this.contractId = contractId;
         return this;
+    }
+
+    public String getApplicationSessionId() {
+        return applicationSessionId;
     }
 
     @After

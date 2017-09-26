@@ -32,7 +32,7 @@ public class BusinessApplication extends Application {
         SecureEndpointScanner secureEndpointScanner = new SecureEndpointScanner(secureEndpointRegistry);
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            commonBusinessApplication = new CommonBusinessApplication();
+            commonBusinessApplication = new CommonBusinessApplication(true);
 
             final AccessExternalResourceImpl accessExternalResource = new AccessExternalResourceImpl(secureEndpointRegistry);
             final LogbookExternalResourceImpl logbookExternalResource = new LogbookExternalResourceImpl();

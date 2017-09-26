@@ -59,6 +59,7 @@ public class VitamSession {
     private Integer tenantId = null;
     private String contractId = null;
     private String contextId = null;
+    private String applicationSessionId = null;
     private AccessContractModel contract = null;
     private Object other = null;
 
@@ -84,6 +85,7 @@ public class VitamSession {
         newSession.contract = origin.getContract();
         newSession.other = origin.getOther();
         newSession.contextId = origin.getContextId();
+        newSession.applicationSessionId = origin.getApplicationSessionId();
         return newSession;
     }
 
@@ -140,7 +142,7 @@ public class VitamSession {
         requestId = newRequestId;
         MDC.put(GlobalDataRest.X_REQUEST_ID, newRequestId);
     }
-    
+
     /**
      * Set the server request id
      *
@@ -149,9 +151,9 @@ public class VitamSession {
     public void setInternalRequestId(String newRequestId) {
         internalRequestId = newRequestId;
     }
-    
+
     /**
-     * Get the server request id 
+     * Get the server request id
      *
      */
     public String getInternalRequestId() {
@@ -167,8 +169,8 @@ public class VitamSession {
 
 
     /**
-     * Sets the tenantId 
-     * 
+     * Sets the tenantId
+     *
      * @param newTenantId
      */
     public void setTenantId(Integer newTenantId) {
@@ -184,7 +186,7 @@ public class VitamSession {
     public void setRequestId(GUID guid) {
         setRequestId(guid.getId());
     }
-    
+
     /**
      * @return contract Id
      */
@@ -216,7 +218,7 @@ public class VitamSession {
 	}
 
     /**
-     * Get votam context id
+     * Get vitam security context id
      * @return
      */
     public String getContextId() {
@@ -224,11 +226,29 @@ public class VitamSession {
     }
 
     /**
-     * Set vitam context id
+     * Set vitam security context id
      * @param contextId
      */
     public void setContextId(String contextId) {
+        checkCallingThread();
         this.contextId = contextId;
+    }
+
+    /**
+     * Get vitam application session id
+     * @return
+     */
+    public String getApplicationSessionId() {
+        return applicationSessionId;
+    }
+
+    /**
+     * Set vitam application session id
+     * @param applicationSessionId
+     */
+    public void setApplicationSessionId(String applicationSessionId) {
+        checkCallingThread();
+        this.applicationSessionId = applicationSessionId;
     }
 
     /**
@@ -248,6 +268,7 @@ public class VitamSession {
         setContract(newSession.getContract());
         setOther(newSession.getOther());
         setContextId(newSession.getContextId());
+        setApplicationSessionId(newSession.getApplicationSessionId());
     }
 
     /**
@@ -269,6 +290,6 @@ public class VitamSession {
 
     @Override
     public String toString() {
-        return Integer.toHexString(hashCode()) + "{requestId='" + requestId + "', tenantId:'" + tenantId + "', contractId:'" + contractId + "'}";
+        return Integer.toHexString(hashCode()) + "{requestId='" + requestId + "', tenantId:'" + tenantId + "', contractId:'" + contractId + "', contextId:'" + contextId + "', applicationSessionId:'" + applicationSessionId + "'}";
     }
 }

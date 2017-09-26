@@ -67,89 +67,215 @@ public class HeaderIdHelper {
      * @param requestHeaders Complete list of HTTP message headers ; will not be changed.
      * @param ctx Context, or rather http message type (request or response)
      */
-    public static void putVitamIdFromHeaderInSession(MultivaluedMap<String, String> requestHeaders, Context ctx) {
+    public static void putVitamIdFromExternalHeaderInSession(MultivaluedMap<String, String> requestHeaders, Context ctx) {
+
         try {
 
-            // TODO: find a better check ; we should detect and act accordingly with multiple incoming headers
-            String requestId = requestHeaders.getFirst(GlobalDataRest.X_REQUEST_ID);
-            String headerTenantId = requestHeaders.getFirst(GlobalDataRest.X_TENANT_ID);
-            Integer tenantId = null;
-            String contractId = requestHeaders.getFirst(GlobalDataRest.X_ACCESS_CONTRAT_ID);
+            extractContractIdFromHeaders(requestHeaders, ctx);
+            extractTenantIdFromHeaders(requestHeaders, ctx);
+            extractApplicationSessionIdFromHeaders(requestHeaders, ctx);
 
-            /*
-             * Note : jetty seems NOT to correctly unserialize multiple headers declaration in only one header, with
-             * values separated by commas Example : X-REQUEST-ID: header-1,header-2-should-not-be-take Note : Cf. the
-             * last paragraph in https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2 TODO: Jetty bug ?
-             */
-            // KWA TODO: beurk.
-            if (requestId != null) {
-                requestId = requestId.split(",")[0];
-            }
-
-            if (headerTenantId != null) {
-                headerTenantId = headerTenantId.split(",")[0];
-                tenantId = Integer.parseInt(headerTenantId);
-            }
-
-            if (contractId != null) {
-                contractId = contractId.split(",")[0];
-            }
-            // KWA TODO: end beurk.
-            final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
-
-            if (vitamSession.getRequestId() != null && !vitamSession.getRequestId().equals(requestId)) {
-                LOGGER.info(
-                    "Note : the requestId stored in session was not empty and different from the received " +
-                        "requestId before {} handling ! Some cleanup must have failed... " +
-                        "Old requestId will be discarded in session.",
-                    ctx);
-            }
-
-            if (vitamSession.getTenantId() != null && !vitamSession.getTenantId().equals(tenantId)) {
-                LOGGER.info(
-                    "Note : the tenantId stored in session was not empty and different from the received " +
-                        "tenantId before {} handling ! Some cleanup must have failed... " +
-                        "Old tenantId will be discarded in session.",
-                    ctx);
-            }
-
-            if (vitamSession.getContractId() != null && !vitamSession.getContractId().equals(contractId)) {
-                LOGGER.info(
-                    "Note : the contratId stored in session was not empty and different from the received " +
-                        "contratId before {} handling ! Some cleanup must have failed... " +
-                        "Old contratId will be discarded in session.",
-                    ctx);
-            }
-
-            vitamSession.setRequestId(requestId);
-            vitamSession.setTenantId(tenantId);
-            vitamSession.setContractId(contractId);
-
-            if (requestId != null) {
-                LOGGER.debug("Got requestId {} from {} headers ; setting it in the current VitamSession", requestId,
-                    ctx);
-            } else {
-                LOGGER.debug("No requestId found in {} ; setting it as empty in the current VitamSession", ctx);
-            }
-
-            if (tenantId != null) {
-                LOGGER.debug("Got tenantId {} from {} headers ; setting it in the current VitamSession", tenantId,
-                    ctx);
-            } else {
-                LOGGER.debug("No tenantId found in {} ; setting it as empty in the current VitamSession", ctx);
-            }
-
-            if (contractId != null) {
-                LOGGER.debug("Got contractId {} from {} headers ; setting it in the current VitamSession", contractId,
-                    ctx);
-            } else {
-                LOGGER.debug("No contractId found in {} ; setting it as empty in the current VitamSession", ctx);
-            }
         } catch (final VitamThreadAccessException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             LOGGER.warn(
                 "Got an exception while trying to set the headers in the current session {}; exception was : {}",
                 requestHeaders, e.getMessage());
+            // the processing should not be interrupted by this exception
+        }
+    }
+
+    /**
+     * Extracts the vitam id from the headers to save it through the VitamSession
+     *
+     * @param requestHeaders Complete list of HTTP message headers ; will not be changed.
+     * @param ctx Context, or rather http message type (request or response)
+     */
+    public static void putVitamIdFromHeaderInSession(MultivaluedMap<String, String> requestHeaders, Context ctx) {
+        try {
+
+            extractContractIdFromHeaders(requestHeaders, ctx);
+            extractContextIdFromHeaders(requestHeaders, ctx);
+            extractRequestIdFromHeaders(requestHeaders, ctx);
+            extractTenantIdFromHeaders(requestHeaders, ctx);
+            extractApplicationSessionIdFromHeaders(requestHeaders, ctx);
+
+        } catch (final VitamThreadAccessException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            LOGGER.warn(
+                "Got an exception while trying to set the headers in the current session {}; exception was : {}",
+                requestHeaders, e.getMessage());
+            // the processing should not be interrupted by this exception
+        }
+    }
+
+    private static void extractRequestIdFromHeaders(MultivaluedMap<String, String> requestHeaders, Context ctx) {
+
+        String requestId = getHeaderString(requestHeaders, GlobalDataRest.X_REQUEST_ID);
+
+        final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
+        if (vitamSession.getRequestId() != null && !vitamSession.getRequestId().equals(requestId)) {
+            LOGGER.info(
+                "Note : the requestId stored in session was not empty and different from the received " +
+                    "requestId before {} handling ! Some cleanup must have failed... " +
+                    "Old requestId will be discarded in session.",
+                ctx);
+        }
+
+        vitamSession.setRequestId(requestId);
+
+        if (requestId != null) {
+            LOGGER.debug("Got requestId {} from {} headers ; setting it in the current VitamSession", requestId,
+                ctx);
+        } else {
+            LOGGER.debug("No requestId found in {} ; setting it as empty in the current VitamSession", ctx);
+        }
+    }
+
+    private static void extractContractIdFromHeaders(MultivaluedMap<String, String> requestHeaders, Context ctx) {
+        String contractId = getHeaderString(requestHeaders, GlobalDataRest.X_ACCESS_CONTRAT_ID);
+
+        final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
+        if (vitamSession.getContractId() != null && !vitamSession.getContractId().equals(contractId)) {
+            LOGGER.info(
+                "Note : the contratId stored in session was not empty and different from the received " +
+                    "contratId before {} handling ! Some cleanup must have failed... " +
+                    "Old contratId will be discarded in session.",
+                ctx);
+        }
+
+        vitamSession.setContractId(contractId);
+
+        if (contractId != null) {
+            LOGGER.debug("Got contractId {} from {} headers ; setting it in the current VitamSession", contractId,
+                ctx);
+        } else {
+            LOGGER.debug("No contractId found in {} ; setting it as empty in the current VitamSession", ctx);
+        }
+    }
+
+    private static void extractContextIdFromHeaders(MultivaluedMap<String, String> requestHeaders, Context ctx) {
+        String contextId = getHeaderString(requestHeaders, GlobalDataRest.X_SECURITY_CONTEXT_ID);
+
+        final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
+        if (vitamSession.getContextId() != null && !vitamSession.getContextId().equals(contextId)) {
+            LOGGER.info(
+                "Note : the contextId stored in session was not empty and different from the received " +
+                    "contextId before {} handling ! Some cleanup must have failed... " +
+                    "Old contextId will be discarded in session.",
+                ctx);
+        }
+
+        vitamSession.setContextId(contextId);
+
+        if (contextId != null) {
+            LOGGER.debug("Got contextId {} from {} headers ; setting it in the current VitamSession", contextId,
+                ctx);
+        } else {
+            LOGGER.debug("No contextId found in {} ; setting it as empty in the current VitamSession", ctx);
+        }
+    }
+
+    private static void extractTenantIdFromHeaders(MultivaluedMap<String, String> requestHeaders, Context ctx) {
+        // TODO: find a better check ; we should detect and act accordingly with multiple incoming headers
+        String headerTenantId = getHeaderString(requestHeaders, GlobalDataRest.X_TENANT_ID);
+        Integer tenantId = null;
+        if (headerTenantId != null) {
+            tenantId = Integer.parseInt(headerTenantId);
+        }
+
+        final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
+        if (vitamSession.getTenantId() != null && !vitamSession.getTenantId().equals(tenantId)) {
+            LOGGER.info(
+                "Note : the tenantId stored in session was not empty and different from the received " +
+                    "tenantId before {} handling ! Some cleanup must have failed... " +
+                    "Old tenantId will be discarded in session.",
+                ctx);
+        }
+
+        vitamSession.setTenantId(tenantId);
+
+        if (tenantId != null) {
+            LOGGER.debug("Got tenantId {} from {} headers ; setting it in the current VitamSession", tenantId,
+                ctx);
+        } else {
+            LOGGER.debug("No tenantId found in {} ; setting it as empty in the current VitamSession", ctx);
+        }
+    }
+
+    private static void extractApplicationSessionIdFromHeaders(MultivaluedMap<String, String> requestHeaders,
+        Context ctx) {
+        String applicationSessionId = getHeaderString(requestHeaders, GlobalDataRest.X_APPLICATION_ID);
+
+        final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
+        if (vitamSession.getApplicationSessionId() != null && !vitamSession.getApplicationSessionId().equals(applicationSessionId)) {
+            LOGGER.info(
+                "Note : the applicationSessionId stored in session was not empty and different from the received " +
+                    "applicationSessionId before {} handling ! Some cleanup must have failed... " +
+                    "Old applicationSessionId will be discarded in session.",
+                ctx);
+        }
+
+        vitamSession.setApplicationSessionId(applicationSessionId);
+
+        if (applicationSessionId != null) {
+            LOGGER.debug("Got applicationSessionId {} from {} headers ; setting it in the current VitamSession", applicationSessionId,
+                ctx);
+        } else {
+            LOGGER.debug("No applicationSessionId found in {} ; setting it as empty in the current VitamSession", ctx);
+        }
+    }
+
+    private static String getHeaderString(MultivaluedMap<String, String> requestHeaders, String headerName) {
+        /*
+         * Note : jetty seems NOT to correctly unserialize multiple headers declaration in only one header, with
+         * values separated by commas Example : X-REQUEST-ID: header-1,header-2-should-not-be-take Note : Cf. the
+         * last paragraph in https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2 TODO: Jetty bug ?
+         */
+        // KWA TODO: beurk.
+
+        String headerValue = requestHeaders.getFirst(headerName);
+        if (headerValue != null) {
+            headerValue = headerValue.split(",")[0];
+        }
+        return headerValue;
+    }
+
+    /**
+     * Retrieves the vitam id from the VitamSession and add a X-TENANT-ID header
+     *
+     * @param headers List of target HTTP headers ; required header will be added to this list.
+     * @param ctx Context, or rather http message type (request or response)
+     */
+    public static void putVitamIdFromSessionInExternalHeader(MultivaluedMap<String, Object> headers, Context ctx,
+        int statusCode) {
+        try {
+            final String requestId = VitamThreadUtils.getVitamSession().getRequestId();
+
+            if (requestId != null) {
+                if (headers.containsKey(GlobalDataRest.X_REQUEST_ID)) {
+                    LOGGER.info("{} header was already present in the headers of the {} ; this header will be kept.",
+                        GlobalDataRest.X_REQUEST_ID, ctx);
+                    // TODO: is it really the best way to react to this situation ?
+                } else {
+                    headers.add(GlobalDataRest.X_REQUEST_ID, requestId);
+                    LOGGER.debug("RequestId {} found in session and set in the {} header.", requestId, ctx);
+                }
+            } else {
+                LOGGER.warn("No RequestId found in session (somebody should have set it) ! ");
+                if (ctx.equals(Context.RESPONSE) && statusCode >= Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                    String newRequestId = GUIDFactory.newGUID().toString();
+
+                    if (headers.containsKey(GlobalDataRest.X_REQUEST_ID)) {
+                        LOGGER.info("X_REQUEST_ID  header was already present in the headers");
+                    } else {
+                        headers.add(GlobalDataRest.X_REQUEST_ID, newRequestId);
+                    }
+                }
+            }
+        } catch (final VitamThreadAccessException e) {
+            LOGGER.warn(
+                "Got an exception while trying to get the headers from the current session ; exception was : {}",
+                e.getMessage());
             // the processing should not be interrupted by this exception
         }
     }
@@ -166,6 +292,8 @@ public class HeaderIdHelper {
             final String requestId = VitamThreadUtils.getVitamSession().getRequestId();
             final Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
             final String contractId = VitamThreadUtils.getVitamSession().getContractId();
+            final String contextId = VitamThreadUtils.getVitamSession().getContextId();
+            final String applicationSessionId = VitamThreadUtils.getVitamSession().getApplicationSessionId();
 
             if (requestId != null) {
                 if (headers.containsKey(GlobalDataRest.X_REQUEST_ID)) {
@@ -221,6 +349,40 @@ public class HeaderIdHelper {
                         "{} header will not be set in the http {}.",
                     GlobalDataRest.X_ACCESS_CONTRAT_ID, ctx);
             }
+
+            if (contextId != null) {
+                if (headers.containsKey(GlobalDataRest.X_SECURITY_CONTEXT_ID)) {
+                    LOGGER.info("{} header was already present in the headers of the {} ; this header will be kept.",
+                        GlobalDataRest.X_SECURITY_CONTEXT_ID, ctx);
+                    // TODO: is it really the best way to react to this situation ?
+                } else {
+                    headers.add(GlobalDataRest.X_SECURITY_CONTEXT_ID, contextId);
+                    LOGGER.debug("contextId {} found in session and set in the {} header.", contextId, ctx);
+                }
+            } else {
+                // Not everywhere useful
+                LOGGER.debug(
+                    "No contextId found in session (somebody should have set it) ! " +
+                        "{} header will not be set in the http {}.",
+                    GlobalDataRest.X_SECURITY_CONTEXT_ID, ctx);
+            }
+
+            if (applicationSessionId != null) {
+                if (headers.containsKey(GlobalDataRest.X_APPLICATION_ID)) {
+                    LOGGER.info("{} header was already present in the headers of the {} ; this header will be kept.",
+                        GlobalDataRest.X_APPLICATION_ID, ctx);
+                    // TODO: is it really the best way to react to this situation ?
+                } else {
+                    headers.add(GlobalDataRest.X_APPLICATION_ID, applicationSessionId);
+                    LOGGER.debug("applicationSessionId {} found in session and set in the {} header.", applicationSessionId, ctx);
+                }
+            } else {
+                // Not everywhere useful
+                LOGGER.debug(
+                    "No applicationSessionId found in session (somebody should have set it) ! " +
+                        "{} header will not be set in the http {}.",
+                    GlobalDataRest.X_APPLICATION_ID, ctx);
+            }
         } catch (final VitamThreadAccessException e) {
             LOGGER.warn(
                 "Got an exception while trying to get the headers from the current session ; exception was : {}",
@@ -228,10 +390,10 @@ public class HeaderIdHelper {
             // the processing should not be interrupted by this exception
         }
     }
-    
+
     /**
      * Note: contains bug fix for Bad Junit
-     * 
+     *
      * @return the tenant Id
      */
     public static int getTenantId() {

@@ -99,7 +99,9 @@ public class ProfileStep {
         Path profil = Paths.get(world.getBaseDirectory(), fileName);
         final RequestResponse response =
             world.getAdminClient()
-                .createProfiles(new VitamContext(world.getTenantId()), Files.newInputStream(profil, StandardOpenOption.READ));
+                .createProfiles(
+                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                    Files.newInputStream(profil, StandardOpenOption.READ));
         assertThat(Response.Status.OK.getStatusCode() == response.getStatus());
         if (response.isOk()) {
             RequestResponseOK<ProfileModel> res = (RequestResponseOK) response;
@@ -116,7 +118,8 @@ public class ProfileStep {
         throws InvalidParseOperationException, IOException, AccessExternalClientException {
         Path profil = Paths.get(world.getBaseDirectory(), fileName);
         final RequestResponse response =
-            world.getAdminClient().importProfileFile(new VitamContext(world.getTenantId()),
+            world.getAdminClient().importProfileFile(
+                new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                 this.model.get("Identifier").asText(),
                 Files.newInputStream(profil, StandardOpenOption.READ));
         assertThat(Response.Status.OK.getStatusCode() == response.getStatus());
@@ -131,7 +134,10 @@ public class ProfileStep {
         select.setQuery(match("Name", name));
         final JsonNode query = select.getFinalSelect();
         RequestResponse<ProfileModel> requestResponse =
-            world.getAdminClient().findProfiles(new VitamContext(world.getTenantId()).setAccessContract(null), query);
+            world.getAdminClient().findProfiles(
+                new VitamContext(world.getTenantId()).setAccessContract(null)
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                query);
         if (requestResponse.isOk()) {
             this.model = ((RequestResponseOK<ProfileModel>) requestResponse).getResultsAsJsonNodes().get(0);
         }

@@ -87,10 +87,11 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 
+@RunWithCustomExecutor
 public class LogbookOperationsImplWithDatabasesTest {
 
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
+    @ClassRule
+    public static RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static final String DATABASE_HOST = "localhost";
@@ -138,7 +139,6 @@ public class LogbookOperationsImplWithDatabasesTest {
     final static GUID eip4 = GUIDFactory.newEventGUID(tenantId);
     final static GUID eip5 = GUIDFactory.newEventGUID(tenantId);
     final static GUID eip6 = GUIDFactory.newEventGUID(1);
-
 
 
     @BeforeClass
@@ -251,7 +251,6 @@ public class LogbookOperationsImplWithDatabasesTest {
     }
     
     @Test
-    @RunWithCustomExecutor
     public void givenCreateAndUpdate() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
@@ -279,7 +278,6 @@ public class LogbookOperationsImplWithDatabasesTest {
     }
 
     @Test
-    @RunWithCustomExecutor
     public void givenCreateAndSelect() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
@@ -324,7 +322,6 @@ public class LogbookOperationsImplWithDatabasesTest {
     }
 
     @Test
-    @RunWithCustomExecutor
     public void givenCreateAndSelectByTenant() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);

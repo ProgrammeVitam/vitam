@@ -100,6 +100,7 @@ public class UserInterfaceTransactionManagerTest {
 
     final int TENANT_ID = 0;
     final String CONTRACT_NAME = "contract";
+    final String APP_SESSION_ID = "app-session-id";
     private static String ID_OBJECT_GROUP = "idOG1";
     private static RequestResponse unitDetails;
     private static RequestResponse searchResult;
@@ -139,7 +140,7 @@ public class UserInterfaceTransactionManagerTest {
         when(accessClient.selectUnits(anyObject(), anyObject())).thenReturn(searchResult);
         // Test method
         final RequestResponseOK result = (RequestResponseOK) UserInterfaceTransactionManager
-            .searchUnits(JsonHandler.getFromString(SEARCH_UNIT_DSL_QUERY), TENANT_ID, CONTRACT_NAME);
+            .searchUnits(JsonHandler.getFromString(SEARCH_UNIT_DSL_QUERY), TENANT_ID, CONTRACT_NAME, APP_SESSION_ID);
         assertTrue(result.getHits().getTotal() == 1);
     }
 
@@ -148,7 +149,7 @@ public class UserInterfaceTransactionManagerTest {
     public void testSuccessGetArchiveUnitDetails()
         throws Exception {
         when(accessClient.selectUnitbyId(
-            eq(new VitamContext(TENANT_ID).setAccessContract(CONTRACT_NAME)),
+            eq(new VitamContext(TENANT_ID).setAccessContract(CONTRACT_NAME).setApplicationSessionId(APP_SESSION_ID)),
             eq(JsonHandler.getFromString(SELECT_ID_DSL_QUERY)), eq(ID_UNIT)
         ))
                 .thenReturn(unitDetails);
@@ -156,7 +157,7 @@ public class UserInterfaceTransactionManagerTest {
         final RequestResponseOK<JsonNode> archiveDetails =
             (RequestResponseOK) UserInterfaceTransactionManager
                 .getArchiveUnitDetails(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT, TENANT_ID,
-                    CONTRACT_NAME);
+                    CONTRACT_NAME, APP_SESSION_ID);
         assertTrue(archiveDetails.getResults().get(0).get("Title").textValue().equals("Archive 1"));
     }
 
@@ -167,7 +168,7 @@ public class UserInterfaceTransactionManagerTest {
         when(accessClient.updateUnitbyId(anyObject(), anyObject(), anyObject())).thenReturn(updateResult);
         // Test method
         final RequestResponseOK results = (RequestResponseOK) UserInterfaceTransactionManager.updateUnits(JsonHandler
-            .getFromString(UPDATE_UNIT_DSL_QUERY), "1", TENANT_ID, CONTRACT_NAME);
+            .getFromString(UPDATE_UNIT_DSL_QUERY), "1", TENANT_ID, CONTRACT_NAME, APP_SESSION_ID);
         assertTrue(results.getHits().getTotal() == 1);
     }
 
@@ -180,14 +181,15 @@ public class UserInterfaceTransactionManagerTest {
                 "{$hits: {'total':'1'}, $results:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}],$context :" +
                     SEARCH_UNIT_DSL_QUERY + "}",
                 RequestResponseOK.class, JsonNode.class);
-        when(accessClient.selectObjectById(eq(new VitamContext(TENANT_ID).setAccessContract(CONTRACT_NAME)), eq(JsonHandler.getFromString(OBJECT_GROUP_QUERY)), eq(ID_OBJECT_GROUP)
+        when(accessClient.selectObjectById(eq(new VitamContext(TENANT_ID).setAccessContract(CONTRACT_NAME).setApplicationSessionId(APP_SESSION_ID)),
+            eq(JsonHandler.getFromString(OBJECT_GROUP_QUERY)), eq(ID_OBJECT_GROUP)
         ))
                 .thenReturn(result);
         // Test method
         final RequestResponseOK<JsonNode> objectGroup =
             (RequestResponseOK) UserInterfaceTransactionManager
                 .selectObjectbyId(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, TENANT_ID,
-                    CONTRACT_NAME);
+                    CONTRACT_NAME, APP_SESSION_ID);
         assertTrue(
             objectGroup.getResults().get(0).get("#id").textValue().equals("1"));
     }
@@ -196,13 +198,14 @@ public class UserInterfaceTransactionManagerTest {
     @RunWithCustomExecutor
     public void testSuccessGetObjectAsInputStream()
         throws Exception {
-        when(accessClient.getUnitObject(eq(new VitamContext(TENANT_ID).setAccessContract(CONTRACT_NAME)),
+        when(accessClient.getUnitObject(
+            eq(new VitamContext(TENANT_ID).setAccessContract(CONTRACT_NAME).setApplicationSessionId(APP_SESSION_ID)),
             eq(JsonHandler.getFromString(OBJECT_GROUP_QUERY)), eq(ID_OBJECT_GROUP), eq("usage"), eq(1)))
                 .thenReturn(new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream("Vitam Test"),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         assertTrue(UserInterfaceTransactionManager.getObjectAsInputStream(asynResponse,
             JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, "usage", 1, "vitam_test", TENANT_ID,
-            CONTRACT_NAME));
+            CONTRACT_NAME, APP_SESSION_ID));
     }
 
     @Test
@@ -249,5 +252,4 @@ public class UserInterfaceTransactionManagerTest {
         }
 
     }
-
 }
