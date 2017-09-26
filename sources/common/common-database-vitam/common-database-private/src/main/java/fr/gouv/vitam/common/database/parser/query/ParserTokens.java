@@ -524,18 +524,30 @@ public class ParserTokens extends BuilderToken {
             case "TotalObjectGroups.total":
             case "TotalObjectGroups.deleted":
             case "TotalObjectGroups.remained":
+            case "TotalObjectGroups.detached":
+            case "TotalObjectGroups.attached":
+            case "TotalObjectGroups.totalSymbolic":
             case "TotalUnits":
             case "TotalUnits.total":
             case "TotalUnits.deleted":
             case "TotalUnits.remained":
+            case "TotalUnits.detached":
+            case "TotalUnits.attached":
+            case "TotalUnits.totalSymbolic":
             case "TotalObjects":
             case "TotalObjects.total":
             case "TotalObjects.deleted":
             case "TotalObjects.remained":
+            case "TotalObjects.detached":
+            case "TotalObjects.attached":
+            case "TotalObjects.totalSymbolic":
             case "ObjectSize":
             case "ObjectSize.total":
             case "ObjectSize.deleted":
             case "ObjectSize.remained":
+            case "ObjectSize.detached":
+            case "ObjectSize.attached":
+            case "ObjectSize.totalSymbolic":
             case "OriginatingAgency":
             // Sequence
             case "Counter":

@@ -73,6 +73,7 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminF
 
 public class ReferentialAccessionRegisterImplTest {
     static String FILE_TO_TEST_OK = "accession-register.json";
+    static String FILE_TO_TEST_SYMBOLIC_OK = "accession-register_detached.json";    
     File pronomFile = null;
     private static final Integer TENANT_ID = 0;
 
@@ -163,17 +164,19 @@ public class ReferentialAccessionRegisterImplTest {
             AccessionRegisterDetail.class);
         ReferentialAccessionRegisterImpl.resetIndexAfterImport();
 
+        register.setOriginatingAgency("testFindAccessionRegisterDetailAgency");
+        
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         assertEquals(1, collection.count());
 
         final Select select = new Select();
-        select.setQuery(eq("OriginatingAgency", "OriginatingAgency"));
+        select.setQuery(eq("OriginatingAgency", "testFindAccessionRegisterDetailAgency"));
         final RequestResponseOK<AccessionRegisterDetail> detail =
             accessionRegisterImpl.findDetail(select.getFinalSelect());
-        assertEquals(2, detail.getResults().size());
+        assertEquals(1, detail.getResults().size());
         final AccessionRegisterDetail item = detail.getResults().get(0);
-        assertEquals("OriginatingAgency", item.getOriginatingAgency());
+        assertEquals("testFindAccessionRegisterDetailAgency", item.getOriginatingAgency());
     }
 
     @Test
@@ -183,7 +186,7 @@ public class ReferentialAccessionRegisterImplTest {
         FileNotFoundException {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_OK),
+        register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_SYMBOLIC_OK),
             AccessionRegisterDetail.class);
         ReferentialAccessionRegisterImpl.resetIndexAfterImport();
 
@@ -200,5 +203,8 @@ public class ReferentialAccessionRegisterImplTest {
         assertEquals(1, item.getTotalObjects().getRemained());
         assertEquals(1, item.getTotalObjects().getTotal());
         assertEquals(0, item.getTotalObjects().getDeleted());
+        assertEquals(1, item.getTotalObjects().getAttached());
+        assertEquals(0, item.getTotalObjects().getDetached());
+        assertEquals(1, item.getTotalObjects().getTotalSymbolic());
     }
 }

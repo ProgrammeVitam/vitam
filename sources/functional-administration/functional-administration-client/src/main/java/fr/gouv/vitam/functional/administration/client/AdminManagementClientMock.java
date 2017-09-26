@@ -34,8 +34,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
-
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -59,6 +57,7 @@ import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
@@ -190,7 +189,6 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         RegisterValueDetailModel totalUnits = new RegisterValueDetailModel();
         RegisterValueDetailModel totalObjects = new RegisterValueDetailModel();
         RegisterValueDetailModel objectSize = new RegisterValueDetailModel();
-        String modelJson = "";
         ParametersChecker.checkParameter("stream is a mandatory parameter", query);
         LOGGER.debug("get document Register Fund request:");
 
@@ -200,26 +198,37 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
 
         totalObjects.setTotal(12)
             .setDeleted(0)
-            .setRemained(12);
+            .setRemained(12)
+            .setTotalSymbolic(12)
+            .setAttached(12)
+            .setDetached(0);
         model.setTotalObjects(totalObjects);
 
         totalObjectsGroups.setTotal(3)
             .setDeleted(0)
-            .setRemained(3);
+            .setRemained(3)
+            .setTotalSymbolic(3)
+            .setAttached(3)
+            .setDetached(0);
         model.setTotalObjectsGroups(totalObjectsGroups);
 
         totalUnits.setTotal(3)
             .setDeleted(0)
-            .setRemained(3);
+            .setRemained(3)
+            .setTotalSymbolic(3)
+            .setAttached(3)
+            .setDetached(0);
         model.setTotalUnits(totalUnits);
 
         objectSize.setTotal(1035126)
             .setDeleted(0)
-            .setRemained(1035126);
+            .setRemained(1035126)
+            .setTotalSymbolic(1035126)
+            .setAttached(1035126)
+            .setDetached(0);
         model.setObjectSize(objectSize)
             .setCreationDate("2016-11-04T20:40:49.030");
-        modelJson = JsonHandler.writeAsString(model);
-        return ClientMockResultHelper.createReponse(modelJson);
+        return ClientMockResultHelper.createReponse(model);
     }
 
     @Override

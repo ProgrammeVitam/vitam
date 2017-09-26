@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -37,7 +38,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.validation.constraints.AssertTrue;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -208,7 +209,41 @@ public class AdminManagementClientMockTest {
         AdminManagementClientFactory.changeMode(null);
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         final Select select = new Select();
-        assertNotNull(client.getAccessionRegister(select.getFinalSelect()));
+        final RequestResponse summaryResponse = client.getAccessionRegister(select.getFinalSelect());
+        if (summaryResponse.isOk()) {
+            RequestResponseOK<AccessionRegisterSummaryModel> responseOK =
+                (RequestResponseOK<AccessionRegisterSummaryModel>) summaryResponse;
+
+            assertNotNull(responseOK);
+
+            List<AccessionRegisterSummaryModel> results = responseOK.getResults();
+
+            assertNotNull(results);
+            assertEquals(1, results.size());
+            final AccessionRegisterSummaryModel item = results.get(0);
+            assertEquals(1035126, item.getObjectSize().getTotal());
+            assertEquals(1035126, item.getObjectSize().getTotalSymbolic());
+            assertEquals(1035126, item.getObjectSize().getAttached());
+            assertEquals(0, item.getObjectSize().getDetached());
+            assertEquals(0, item.getObjectSize().getDeleted());
+            assertEquals(3, item.getTotalObjectsGroups().getTotal());
+            assertEquals(3, item.getTotalObjectsGroups().getTotalSymbolic());
+            assertEquals(3, item.getTotalObjectsGroups().getAttached());
+            assertEquals(0, item.getTotalObjectsGroups().getDetached());
+            assertEquals(0, item.getTotalObjectsGroups().getDeleted());
+            assertEquals(12, item.getTotalObjects().getTotal());
+            assertEquals(12, item.getTotalObjects().getTotalSymbolic());
+            assertEquals(12, item.getTotalObjects().getAttached());
+            assertEquals(0, item.getTotalObjects().getDetached());
+            assertEquals(0, item.getTotalObjects().getDeleted());
+            assertEquals(3, item.getTotalUnits().getTotal());
+            assertEquals(3, item.getTotalUnits().getTotalSymbolic());
+            assertEquals(3, item.getTotalUnits().getAttached());
+            assertEquals(0, item.getTotalUnits().getDetached());
+            assertEquals(0, item.getTotalUnits().getDeleted());
+        } else {
+            fail("should be ok");
+        }
     }
 
     @Test
@@ -233,7 +268,6 @@ public class AdminManagementClientMockTest {
             assertEquals(1, results.size());
             final AccessionRegisterDetailModel item = results.get(0);
             assertEquals("FRAN_NP_005061", item.getSubmissionAgency());
-
         }
     }
 
