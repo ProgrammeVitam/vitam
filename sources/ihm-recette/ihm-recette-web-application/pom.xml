@@ -100,6 +100,12 @@
 			<artifactId>javax.servlet-api</artifactId>
 		</dependency>
 
+		<!-- rx java -->
+		<dependency>
+			<groupId>io.reactivex.rxjava2</groupId>
+			<artifactId>rxjava</artifactId>
+		</dependency>
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

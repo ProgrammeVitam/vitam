@@ -102,10 +102,10 @@ public class PerformanceResource implements VitamResource {
                 .entity("number of ingest must be greater than 0").build();
         }
 
-        if (model.getParallelIngest() == 0) {
-            LOGGER.error("number of parallel ingest must be greater than 0");
+        if (model.getParallelIngest() != null && model.getDelay() != null) {
+            LOGGER.error("unable to set parallel ingest and delay in same test");
             return Response.status(Response.Status.PRECONDITION_FAILED)
-                .entity("number of parallel ingest must be greater than 0").build();
+                .entity("unable to set parallel ingest and delay in same test").build();
         }
 
         String fileName = format("report_%s.csv", LocalDateTime.now().format(DATE_TIME_FORMATTER));

@@ -1,23 +1,32 @@
 package fr.gouv.vitam.ihmrecette.appserver.performance;
 
 
+import static fr.gouv.vitam.ihmrecette.appserver.performance.PerformanceModel.createPerformanceTestInSequence;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
+import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
@@ -61,7 +70,8 @@ public class PerformanceServiceTest {
         // Given
         Path sipDirectory = generateThreeZipFileSipWithSubDirectory();
         Path reportDirectory = temporaryFolder.newFolder().toPath();
-        PerformanceService performanceService = new PerformanceService(ingestClientFactory, sipDirectory, reportDirectory);
+        PerformanceService performanceService =
+            new PerformanceService(ingestClientFactory, sipDirectory, reportDirectory);
 
         // When
         List<Path> files = performanceService.listSipDirectory();
@@ -96,6 +106,34 @@ public class PerformanceServiceTest {
 
         // Then
         assertThat(inputStream).hasSameContentAs(new ByteArrayInputStream("test".getBytes()));
+    }
+
+    @Test
+    public void should_launch_performance_test() throws Exception {
+        // Given
+        Path reportDirectory = temporaryFolder.newFolder().toPath();
+        Path sipDirectory = temporaryFolder.newFolder().toPath();
+        String reportName = "1.txt";
+        String fileName = "result.csv";
+        Path file = sipDirectory.resolve(fileName);
+        Files.write(file, "test".getBytes());
+        PerformanceService performanceService =
+            new PerformanceService(ingestClientFactory, sipDirectory, reportDirectory);
+        IngestExternalClient mock = mock(IngestExternalClient.class);
+        given(ingestClientFactory.getClient()).willReturn(mock);
+        RequestResponseOK<Void> requestResponseOK = new RequestResponseOK<>();
+        requestResponseOK.getVitamHeaders().put(GlobalDataRest.X_REQUEST_ID, "operationId");
+        given(mock.upload(any(VitamContext.class), any(FileInputStream.class), anyString(),
+            anyString())).willReturn(requestResponseOK);
+
+        // When
+        PerformanceModel model = createPerformanceTestInSequence(fileName, 3, 200, 500);
+        performanceService.launchPerformanceTest(model, reportName, 0);
+
+        // Then
+        assertThat(performanceService.inProgress()).isTrue();
+        Thread.sleep(1000);
+        assertThat(performanceService.inProgress()).isFalse();
     }
 
     private Path generateFileReport() throws IOException {

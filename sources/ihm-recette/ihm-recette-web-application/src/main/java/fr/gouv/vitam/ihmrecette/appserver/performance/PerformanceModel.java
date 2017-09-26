@@ -31,30 +31,62 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class PerformanceModel {
 
+    /**
+     * number of ingest in parallel
+     */
+    private final Integer parallelIngest;
+    /**
+     * name of the SIP to upload.
+     */
     private String fileName;
 
-    private int parallelIngest;
-
+    /**
+     * number of ingest.
+     */
     private int numberOfIngest;
 
+    /**
+     * maximum of retry to wait end of pulling of each ingest.
+     */
     private Integer numberOfRetry;
+
+    /**
+     * delay between two ingest in millisecond.
+     */
+    private Integer delay;
 
     @JsonCreator
     public PerformanceModel(@JsonProperty("fileName") String fileName,
-        @JsonProperty("parallelIngest") int parallelIngest,
+        @JsonProperty("parallelIngest") Integer parallelIngest,
+        @JsonProperty("delay") Integer delay,
         @JsonProperty("numberOfIngest") int numberOfIngest,
         @JsonProperty("numberOfRetry") Integer numberOfRetry) {
         this.fileName = fileName;
         this.parallelIngest = parallelIngest;
         this.numberOfIngest = numberOfIngest;
         this.numberOfRetry = numberOfRetry;
+        this.delay = delay;
+    }
+
+    public static PerformanceModel createPerformanceTestInParallel(String fileName,
+        int parallelIngest,
+        int numberOfIngest,
+        Integer numberOfRetry) {
+        return new PerformanceModel(fileName, parallelIngest, null, numberOfIngest, numberOfRetry);
+    }
+
+    public static PerformanceModel createPerformanceTestInSequence(String fileName,
+        int delay,
+        int numberOfIngest,
+        Integer numberOfRetry) {
+        return new PerformanceModel(fileName, null, delay, numberOfIngest, numberOfRetry);
     }
 
     public String getFileName() {
         return fileName;
     }
 
-    public int getParallelIngest() {
+    public Integer getParallelIngest() {
         return parallelIngest;
     }
 
@@ -66,4 +98,7 @@ public class PerformanceModel {
         return numberOfRetry;
     }
 
+    public Integer getDelay() {
+        return delay;
+    }
 }
