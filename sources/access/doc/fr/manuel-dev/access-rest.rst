@@ -152,3 +152,20 @@ Mise à jour du contrat d'entrès
 | POST https://vitam/admin-external/v1/profiles/profile_id
     Si X-Http-Method-Override égale à GET alors rechercher un profile avec son id (profile_id)
 
+
+- Profiles de sécurité
+
+| POST https://vitam/admin-external/v1/securityprofiles
+    Créer des profiles de sécurité.
+
+| GET https://vitam/admin-external/v1/securityprofiles
+    Rechercher de profiles de sécurité.
+
+| POST https://vitam/admin-external/v1/securityprofiles (avec X-HTTP-METHOD-OVERRIDE GET)
+    Rechercher de profiles de sécurité.
+
+| GET https://vitam/admin-external/v1/securityprofiles/identifier
+    Rechercher un profile de sécurité avec son id (identifier)
+
+| PUT https://vitam/admin-external/v1/securityprofiles/identifier
+    Mise à jour d'un profile de sécurité par son id (identifier)

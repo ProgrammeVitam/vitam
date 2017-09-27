@@ -1,0 +1,18 @@
+[
+  {
+    "Identifier" : "ID1",
+    "Name": "SEC_PROFILE_1",
+    "Permissions": [
+      "permission_one:read",
+      "permission_one:id:read",
+      "permission_one:id:update"
+    ]
+  },
+  {
+    "Identifier" : "ID1",
+    "Name": "SEC_PROFILE_2",
+    "Permissions": [
+      "permission_two:read"
+    ]
+  }
+]

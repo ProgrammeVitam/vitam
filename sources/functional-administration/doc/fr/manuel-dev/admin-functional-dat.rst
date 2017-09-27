@@ -190,7 +190,7 @@ fr.gouv.vitam.functional.administration.profile.core
 - ProfileManager.java : Gère toutes les opérations du logbook et toutes les opérations de validation concernant les profiles. Lors de la validation, il vérifie (si déjà existence dans la base de données, champs obligatoires, fichiers au format xsd ou rng valides, ..).
 - ProfileValidator.java : Interface fonctionnelle de validations des contrats
 
-2.8. functional-administration-profile
+2.9. functional-administration-context
 
 fr.gouv.vitam.functional.administration.context.api
 
@@ -201,3 +201,10 @@ fr.gouv.vitam.functional.administration.context.core
 -ContextServiceImpl.java : Implémentation du Service ContextService
 -ContextValidator.java : Interface fonctionnelle de validations des contextes
 
+2.10. functional-administration-security-profile
+
+fr.gouv.vitam.functional.administration.profile.api.impl
+
+- SecurityProfileService.java : Service gérant les différentes opérations sur les profiles de sécurité.
+
+fr.gouv.vitam.functional.administration.security.profile.core

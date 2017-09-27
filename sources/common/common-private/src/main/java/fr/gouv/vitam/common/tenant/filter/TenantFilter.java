@@ -115,7 +115,7 @@ public class TenantFilter implements Filter {
                     return Status.PRECONDITION_FAILED;
                 }
             } catch (NumberFormatException e) {
-                LOGGER.error("Tenant not Integer, e");
+                LOGGER.error("Tenant not Integer", e);
             }
         }
         return Status.PRECONDITION_FAILED;

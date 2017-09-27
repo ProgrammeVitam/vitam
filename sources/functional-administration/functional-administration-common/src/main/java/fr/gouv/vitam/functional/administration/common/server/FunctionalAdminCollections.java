@@ -42,6 +42,7 @@ import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.Profile;
+import fr.gouv.vitam.functional.administration.common.SecurityProfile;
 import fr.gouv.vitam.functional.administration.common.VitamSequence;
 
 /**
@@ -98,10 +99,16 @@ public enum FunctionalAdminCollections {
      * Context collection
      */
     CONTEXT(Context.class, false, false),
+
     /**
      * Agency collection
      */
-    AGENCIES(Agencies.class, false, false);
+    AGENCIES(Agencies.class, false, false),
+
+    /**
+     * Security profile collection
+     */
+    SECURITY_PROFILE(SecurityProfile.class, true, false);
 
     final private VitamCollection vitamCollection;
     final private boolean multitenant;

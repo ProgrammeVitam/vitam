@@ -19,6 +19,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.action.AddAction;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
+import fr.gouv.vitam.common.database.builder.request.single.Update;
+import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import org.hamcrest.CoreMatchers;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -97,6 +104,7 @@ public class AdminManagementExternalResourceImplTest {
     private static final String X_HTTP_METHOD_OVERRIDE = "X-HTTP-Method-Override";
 
     private static final String GOOD_ID = "goodId";
+    public static final String SECURITY_PROFILES_URI = "/securityprofiles";
 
 
     private InputStream stream;
@@ -870,5 +878,154 @@ public class AdminManagementExternalResourceImplTest {
             .when().options("/")
             .then().statusCode(Status.OK.getStatusCode())
             .body(CoreMatchers.containsString("formats:check"));
+    }
+
+    @Test
+    public void insertSecurityProfile() throws FileNotFoundException, InvalidParseOperationException {
+
+        AdminManagementClientFactory.changeMode(null);
+
+        File securityProfileFile = PropertiesUtils.getResourceFile("security_profile_ok.json");
+        JsonNode json = JsonHandler.getFromFile(securityProfileFile);
+
+        // Test OK
+        given()
+            .accept(MediaType.APPLICATION_JSON)
+            .contentType(MediaType.APPLICATION_JSON).body(json)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(SECURITY_PROFILES_URI)
+            .then().statusCode(Status.CREATED.getStatusCode());
+
+        // Test unknown tenant Id
+        given()
+            .accept(MediaType.APPLICATION_JSON)
+            .contentType(MediaType.APPLICATION_JSON).body(json)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when().post(SECURITY_PROFILES_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        // Missing tenant Id
+        given()
+            .accept(MediaType.APPLICATION_JSON)
+            .contentType(MediaType.APPLICATION_JSON).body(json)
+            .when().post(SECURITY_PROFILES_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void testFindSecurityProfiles() throws InvalidCreateOperationException, FileNotFoundException {
+        final Select select = new Select();
+        String securityProfileIdentifier = "SEC_PROFILE-00001";
+        select.setQuery(eq("Identifier", securityProfileIdentifier));
+        AdminManagementClientFactory.changeMode(null);
+
+        // Test OK with GET
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(SECURITY_PROFILES_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        // Test OK with POST and X-HTTP-Method-Override
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(SECURITY_PROFILES_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        // Test unknown tenant Id
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when().get(SECURITY_PROFILES_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        // Missing tenant Id
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .when().get(SECURITY_PROFILES_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void testFindSecurityProfilesByIdentifier() throws InvalidCreateOperationException, FileNotFoundException {
+
+        String securityProfileIdentifier = "SEC_PROFILE-00001";
+
+        // Test OK
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(SECURITY_PROFILES_URI + "/" + securityProfileIdentifier)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        // Test unknown tenant Id
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when().get(SECURITY_PROFILES_URI + "/" + securityProfileIdentifier)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        // Missing tenant Id
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .when().get(SECURITY_PROFILES_URI + "/" + securityProfileIdentifier)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void testUpdateSecurityProfiles()
+        throws InvalidCreateOperationException, FileNotFoundException, InvalidParseOperationException {
+
+        // Add permission
+        String NewPermission = "new_permission:read";
+
+        final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
+        final Update update = new Update();
+        update.setQuery(QueryHelper.eq("Name", "SEC_PROFILE_1"));
+        final AddAction setActionAddPermission = UpdateActionHelper.add("Permissions", NewPermission);
+        update.addActions(setActionAddPermission);
+        updateParser.parse(update.getFinalUpdate());
+
+        String securityProfileIdentifier = "SEC_PROFILE-00001";
+        AdminManagementClientFactory.changeMode(null);
+
+        // Test OK
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(update.getFinalUpdate())
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().put(SECURITY_PROFILES_URI + "/" + securityProfileIdentifier)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        // Test unknown tenant Id
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(update.getFinalUpdate())
+            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when().put(SECURITY_PROFILES_URI + "/" + securityProfileIdentifier)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        // Missing tenant Id
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(update.getFinalUpdate())
+            .when().put(SECURITY_PROFILES_URI + "/" + securityProfileIdentifier)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 }
