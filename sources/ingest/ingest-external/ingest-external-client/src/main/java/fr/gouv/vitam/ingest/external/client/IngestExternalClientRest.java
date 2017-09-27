@@ -35,11 +35,9 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.external.client.DefaultClient;
 import fr.gouv.vitam.common.external.client.IngestCollection;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -58,7 +56,6 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
-import java.util.concurrent.TimeUnit;
 
 import static org.apache.http.HttpHeaders.EXPECT;
 import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
@@ -238,60 +235,6 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         }
     }
 
-    @Override
-    public boolean wait(int tenantId, String processId, ProcessState state, int nbTry, long timeWait, TimeUnit timeUnit)
-        throws VitamException {
-        for (int i = 0; i < nbTry; i++) {
-            final RequestResponse<ItemStatus> requestResponse = this.getOperationProcessStatus(
-                new VitamContext(tenantId), processId);
-            if (requestResponse.isOk()) {
-                ItemStatus itemStatus = ((RequestResponseOK<ItemStatus>) requestResponse).getResults().get(0);
-                final ProcessState processState = itemStatus.getGlobalState();
-                final StatusCode statusCode = itemStatus.getGlobalStatus();
-
-                switch (processState) {
-                    case COMPLETED:
-                        return true;
-                    case PAUSE:
-                        if (StatusCode.STARTED.compareTo(statusCode) <= 0) {
-                            return true;
-                        }
-                        break;
-                    case RUNNING:
-                        break;
-                }
-
-                if (null != timeUnit) {
-                    timeWait = timeUnit.toMillis(timeWait);
-                }
-                try {
-                    Thread.sleep(timeWait);
-                } catch (InterruptedException e) {
-                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-                }
-            } else {
-                throw new VitamException((VitamError) requestResponse);
-            }
-        }
-        return false;
-
-    }
-
-    @Override
-    public boolean wait(int tenantId, String processId, int nbTry, long timeout, TimeUnit timeUnit)
-        throws VitamException {
-        return wait(tenantId, processId, ProcessState.COMPLETED, nbTry, timeout, timeUnit);
-    }
-
-    @Override
-    public boolean wait(int tenantId, String processId, ProcessState state) throws VitamException {
-        return wait(tenantId, processId, state, Integer.MAX_VALUE, 1000l, TimeUnit.MILLISECONDS);
-    }
-
-    @Override
-    public boolean wait(int tenantId, String processId) throws VitamException {
-        return wait(tenantId, processId, ProcessState.COMPLETED);
-    }
 
     @Override
     public RequestResponse<ItemStatus> getOperationProcessExecutionDetails(

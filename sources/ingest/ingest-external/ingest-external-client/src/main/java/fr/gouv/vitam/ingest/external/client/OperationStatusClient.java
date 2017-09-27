@@ -24,42 +24,29 @@
  *  The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  *  accept its terms.
  */
-package fr.gouv.vitam.common.client;
+package fr.gouv.vitam.ingest.external.client;
 
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import java.util.concurrent.TimeUnit;
-
 /**
- * Basic client api for vitam client either in Mock or Rest mode
+ * Used to expose method getting status of an operation
  */
-public interface PoolingStatusClient extends VitamAutoCloseable {
+public interface OperationStatusClient extends VitamAutoCloseable {
+
 
     /**
-     * This is a helper method for checking the status of an operation
-     * Loop until :
-     * - nbTry is reached
-     * - state is completed
-     * - state is pause and status ordinal is higher than started
+     * Get vitam operation status
      *
-     * @param tenantId
-     * @param processId operationId du processWorkflow
-     * @param state The state wanted
-     * @param nbTry Number of retry
-     * @param timeWait time to sleep
-     * @param timeUnit timeUnit to apply to timeWait
-     * @return true if completed false else
+     * @param vitamContext the vitam context
+     * @param id
+     * @return the status of the operation (HEAD only)
+     * @throws VitamClientException
      */
-    public boolean wait(int tenantId, String processId, ProcessState state, int nbTry, long timeWait, TimeUnit timeUnit) throws VitamException;
+    RequestResponse<ItemStatus> getOperationProcessStatus(VitamContext vitamContext,
+        String id) throws VitamClientException;
 
-    public boolean wait(int tenantId, String processId, int nbTry, long timeWait, TimeUnit timeUnit) throws VitamException;
-
-    public boolean wait(int tenantId, String processId, ProcessState state) throws VitamException;
-
-    public boolean wait(int tenantId, String processId) throws VitamException;
 }

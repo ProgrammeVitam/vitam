@@ -26,8 +26,21 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.performance;
 
-import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
+import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
+import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
+import fr.gouv.vitam.ingest.external.client.VitamPoolingClient;
+import io.reactivex.Flowable;
+import io.reactivex.schedulers.Schedulers;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,20 +61,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ProcessState;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.logbook.LogbookOperation;
-import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
-import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
-import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
-import io.reactivex.Flowable;
-import io.reactivex.schedulers.Schedulers;
+import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 
 /**
  *
@@ -86,7 +87,7 @@ public class PerformanceService {
     private final Path performanceReportDirectory;
 
     /**
-     * @param sipDirectory base sip directory
+     * @param sipDirectory               base sip directory
      * @param performanceReportDirectory base report directory
      */
     public PerformanceService(Path sipDirectory, Path performanceReportDirectory) {
@@ -220,7 +221,9 @@ public class PerformanceService {
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
             int numberOfRetry = model.getNumberOfRetry() == null ? NUMBER_OF_RETRY : model.getNumberOfRetry();
-            client.wait(tenantId, operationId, ProcessState.COMPLETED, numberOfRetry, 1000L, TimeUnit.MILLISECONDS);
+            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(client);
+            vitamPoolingClient
+                .wait(tenantId, operationId, ProcessState.COMPLETED, numberOfRetry, 1000L, TimeUnit.MILLISECONDS);
 
             LOGGER.debug("finish unitary test");
             return operationId;
@@ -235,7 +238,8 @@ public class PerformanceService {
     private String waitEndOfIngest(int tenantId, int numberOfRetry, String operationId) {
         LOGGER.debug("wait end of ingest");
         try (IngestExternalClient client = ingestClientFactory.getClient()) {
-            client.wait(tenantId, operationId, ProcessState.COMPLETED, numberOfRetry, 1000L,
+            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(client);
+            vitamPoolingClient.wait(tenantId, operationId, ProcessState.COMPLETED, numberOfRetry, 1000L,
                 TimeUnit.MILLISECONDS);
             LOGGER.debug("finish unitary test");
             return operationId;

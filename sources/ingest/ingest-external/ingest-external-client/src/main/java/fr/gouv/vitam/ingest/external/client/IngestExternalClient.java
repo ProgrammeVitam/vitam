@@ -26,12 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
-import java.io.InputStream;
-
-import javax.ws.rs.core.Response;
-
 import fr.gouv.vitam.common.client.MockOrRestClient;
-import fr.gouv.vitam.common.client.PoolingStatusClient;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.IngestCollection;
@@ -42,10 +37,13 @@ import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 
+import javax.ws.rs.core.Response;
+import java.io.InputStream;
+
 /**
  * Ingest external interface
  */
-public interface IngestExternalClient extends MockOrRestClient, PoolingStatusClient {
+public interface IngestExternalClient extends MockOrRestClient, OperationStatusClient {
     /**
      * ingest upload file in local
      *
@@ -93,18 +91,6 @@ public interface IngestExternalClient extends MockOrRestClient, PoolingStatusCli
     RequestResponse<ItemStatus> updateOperationActionProcess(VitamContext vitamContext,
         String actionId, String operationId)
         throws VitamClientException;
-
-    /**
-     * 
-     *
-     * @param vitamContext the vitam context
-     * @param id
-     * @return the status of the operation (HEAD only)
-     * @throws VitamClientException
-     */
-    RequestResponse<ItemStatus> getOperationProcessStatus(VitamContext vitamContext,
-        String id) throws VitamClientException;
-
     /**
      * 
      *
