@@ -236,6 +236,16 @@ documentation:
           X-Http-Method-Override:
             required: true
 
+/:
+  displayName: Endpoints
+  description: |
+   API qui liste les endpoints de la ressource /access-external/{version}.
+  options:
+    description: |
+      Request that will return list of endpoints
+    is: [ StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader404, StandardTraits.StandardHeader503 ]
+
 /status:
   get:
     is: [ StandardTraits.StandardHeader204,

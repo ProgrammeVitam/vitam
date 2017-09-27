@@ -90,6 +90,7 @@ public class WebApplicationResourceDelete {
     private static final String STP_DELETE_MASTERDATA = "STP_DELETE_MASTERDATA";
     private static final String STP_DELETE_MASTERDATA_INGEST_CONTRACT = "STP_DELETE_MASTERDATA_INGEST_CONTRACT";
     private static final String STP_DELETE_MASTERDATA_ACCESS_CONTRACT = "STP_DELETE_MASTERDATA_ACCESS_CONTRACT";
+    private static final String STP_DELETE_MASTERDATA_SECURITY_PROFILE = "STP_DELETE_MASTERDATA_SECURITY_PROFILE";
 
     private static final String STP_DELETE_ALL = "STP_DELETE_ALL";
     private static final String CANNOT_UPDATE_DELEGATE_LOGBOOK_OPERATION = "Cannot update delegate logbook operation";
@@ -833,6 +834,23 @@ public class WebApplicationResourceDelete {
             }
             LOGGER.error(e);
             collectionKO.add(FunctionalAdminCollections.ACCESS_CONTRACT.name());
+        }
+        parameters.putParameterValue(LogbookParameterName.eventType,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_SECURITY_PROFILE, StatusCode.STARTED))
+            .setStatus(StatusCode.OK).putParameterValue(LogbookParameterName.outcomeDetailMessage,
+            VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_SECURITY_PROFILE, StatusCode.OK));
+        try (DbRequestResult result = mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.SECURITY_PROFILE)) {
+            helper.updateDelegate(parameters);
+        } catch (final Exception e) {
+            parameters.setStatus(StatusCode.KO).putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_SECURITY_PROFILE, StatusCode.OK));
+            try {
+                helper.updateDelegate(parameters);
+            } catch (final LogbookClientNotFoundException exc) {
+                LOGGER.error("Cannot update delegate logbook operation", exc);
+            }
+            LOGGER.error(e);
+            collectionKO.add(FunctionalAdminCollections.SECURITY_PROFILE.name());
         }
         parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_ALL).setStatus(StatusCode.OK)
             .putParameterValue(LogbookParameterName.outcomeDetailMessage,

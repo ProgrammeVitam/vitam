@@ -102,7 +102,7 @@ documentation:
           required: true
 
 /accesscontracts:
-  displayName: Accès contracts
+  displayName: Access contracts
   description: |
      API qui définit les requêtes pour accéder au contracts d'accès
      La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste de contrats d'accès selon le DSL Vitam en cas de succès.
@@ -229,6 +229,52 @@ documentation:
           Upload a profile in XSD or RNG format
        is: [RegisterTraits.RegisterProfileUpload]
 
+/securityprofiles:
+  displayName: Security Profiles
+  description: |
+     API qui définit les requêtes pour accéder aux Profiles de Sécurité.
+     La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste de profiles de sécurité selon le DSL Vitam en cas de succès.
+  get:
+    description: |
+      Request that will return results composed of Security Profiles
+    is: [RegisterTraits.RegisterListingResponse]
+  post:
+    description: |
+      Request that will return results composed of Security Profiles if the request is using POST with X-Http-Method-Override: GET.
+      If there is no X-Http-Method-Override, this allow to import new Security Profiles.
+    is: [RegisterTraits.RegisterListingResponse, StandardTraits.OverrideGet, RegisterTraits.RegisterUpload]
+    headers:
+      X-Http-Method-Override:
+        required: false
+
+  /{identifier}:
+    displayName: Security Profiles
+    description: |
+     API qui définit les requêtes pour accéder aux Profiles de Sécurité.
+    get:
+      description: Request that will return a Security Profile
+      is: [RegisterTraits.RegisterItemResponse]
+    put:
+       description: |
+         Update the given Security Profile
+       is: [RegisterTraits.RegisterUpload]
+    post:
+      description: |
+        Request that will return a Security Profile. The request is using POST with X-Http-Method-Override: GET
+      is: [RegisterTraits.RegisterItemResponse, StandardTraits.OverrideGet]
+      headers:
+        X-Http-Method-Override:
+          required: true
+
+/:
+  displayName: Endpoints
+  description: |
+   API qui liste les endpoints de la ressource /admin-external/{version}.
+  options:
+    description: |
+      Request that will return list of endpoints
+    is: [ StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader404, StandardTraits.StandardHeader503 ]
 
 /status:
   get:

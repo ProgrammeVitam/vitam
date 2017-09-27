@@ -216,6 +216,33 @@ documentation:
        X-Http-Method-Override:
          required: false
 
+ 
+/securityprofiles:
+  displayName: Security Profiles
+  description: |
+     API qui définit les requêtes pour accéder aux Profiles de Sécurité.
+     La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste de profiles de sécurité selon le DSL Vitam en cas de succès.
+  get:
+    description: |
+      Request that will return results composed of Security Profiles
+    is: [RegisterTraits.RegisterListingResponse]
+  post:
+    description: |
+      Request to import new Security Profiles.
+    is: [RegisterTraits.RegisterListingResponse, RegisterTraits.RegisterUpload]
+
+  /{identifier}:
+    displayName: Security Profiles
+    description: |
+     API qui définit les requêtes pour accéder aux Profiles de Sécurité.
+    get:
+      description: Request that will return a Security Profile
+      is: [RegisterTraits.RegisterItemResponse]
+    put:
+       description: |
+         Update the given Security Profile
+       is: [RegisterTraits.RegisterUpload]
+
 /status:
   get:
     is: [ StandardTraits.StandardHeader204,

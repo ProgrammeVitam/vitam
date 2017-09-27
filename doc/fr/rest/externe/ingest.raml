@@ -136,6 +136,16 @@ documentation:
      Request that will return a listing of ingests operations
     is: [IngestTraits.IngestWorkflowsResponse ]
 
+/:
+  displayName: Endpoints
+  description: |
+   API qui liste les endpoints de la ressource /ingest-external/{version}.
+  options:
+    description: |
+      Request that will return list of endpoints
+    is: [ StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader404, StandardTraits.StandardHeader503 ]
+
 /status:
   get:
     is: [ StandardTraits.StandardHeader204,

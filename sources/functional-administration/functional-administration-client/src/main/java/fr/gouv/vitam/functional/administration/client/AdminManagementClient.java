@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -449,4 +450,67 @@ public interface AdminManagementClient extends MockOrRestClient {
      */
     RequestResponse<JsonNode> launchAuditWorkflow(JsonNode options)
         throws AdminManagementClientServerException;
+
+    /**
+     * Import a set of security profiles after passing the validation steps.
+     * If all the security profiles are valid, they are stored in the database.
+     * The input is invalid in the following situations : </BR>
+     * <ul>
+     * <li>The json is invalid</li>
+     * <li>The json contains 2 ore many contracts having the same name or identifier</li>
+     * <li>One or more mandatory field is missing</li>
+     * <li>A field has an invalid format</li>
+     * <li>One or many security profiles already exist in the database</li>
+     * </ul>
+     *
+     * @param securityProfileModelList the security profiles to import
+     * @return The server response as vitam RequestResponse
+     * @throws VitamClientInternalException
+     * @throws InvalidParseOperationException
+     */
+    Status importSecurityProfiles(List<SecurityProfileModel> securityProfileModelList)
+        throws InvalidParseOperationException, AdminManagementClientServerException;
+
+
+    /**
+     * Updates a security context
+     *
+     * @param identifier the identifier of the security profile to update
+     * @param queryDsl query to execute
+     *
+     * @return The server response as vitam RequestResponse
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     */
+    RequestResponse<SecurityProfileModel> updateSecurityProfile(String identifier, JsonNode queryDsl)
+        throws InvalidParseOperationException, AdminManagementClientServerException;
+
+    /**
+     * Find security profiles by DSL query
+     * <ul>
+     * <li>By internal id</li>
+     * <li>By identifier</li>
+     * <li>By name</li>
+     * <li>By comlexe criteria</li>
+     * </ul>
+     *
+     * @param queryDsl the DSL query
+     * @return The server response as vitam RequestResponse
+     * @throws VitamClientInternalException
+     * @throws InvalidParseOperationException
+     */
+    RequestResponse<SecurityProfileModel> findSecurityProfiles(JsonNode queryDsl)
+        throws InvalidParseOperationException, AdminManagementClientServerException;
+
+    /**
+     * Find a security profile by identifier
+     *
+     * @param identifier the identifier of the security profile
+     * @return The server response as vitam RequestResponse
+     * @throws InvalidParseOperationException
+     * @throws AdminManagementClientServerException
+     * @throws ReferentialNotFoundException
+     */
+    RequestResponse<SecurityProfileModel> findSecurityProfileByIdentifier(String identifier)
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
 }

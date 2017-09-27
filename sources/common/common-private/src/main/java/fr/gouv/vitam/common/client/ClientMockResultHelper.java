@@ -279,6 +279,16 @@ public class ClientMockResultHelper {
             "\"EndDate\":\"2017-04-06T23:01:03.121\",\"Hash\":\"HASH_TEST\",\"TimeStampToken\":\"TimeStamp_TEST\"," +
             "\"NumberOfElement\":4,\"FileName\":\"0_LogbookOperation_20170406_230103.zip\",\"Size\":4141}}]}";
 
+    public static final String SECURITY_PROFILES =
+        "{" +
+            "\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetcaaaabbbcc\","+
+            "\"Identifier\": \"SEC_PROFILE_000001\"," +
+            "\"Name\": \"TEST_PROFILE_1\"," +
+            "\"Permissions\": [" +
+            "\"permission_one:read\"," +
+            "\"permission_one:id:write\"" +
+            "]" +
+            "}";
 
     private ClientMockResultHelper() {}
 
@@ -593,5 +603,9 @@ public class ClientMockResultHelper {
      */
     public static RequestResponse getTraceabilityOperationMock() throws InvalidParseOperationException {
         return createReponse(TRACEABILITY_LOGBOOK_OPERATION);
+    }
+
+    public static RequestResponse getSecurityProfiles() throws InvalidParseOperationException {
+        return createReponse(SECURITY_PROFILES);
     }
 }

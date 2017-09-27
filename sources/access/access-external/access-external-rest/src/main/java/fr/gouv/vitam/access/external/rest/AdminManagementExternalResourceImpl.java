@@ -37,8 +37,6 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServer
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.ServiceName;
-import fr.gouv.vitam.common.error.VitamCode;
-import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -55,6 +53,7 @@ import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.EndpointInfo;
@@ -93,7 +92,6 @@ import javax.ws.rs.core.UriInfo;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -1646,6 +1644,140 @@ public class AdminManagementExternalResourceImpl {
         }
     }
 
+    /**
+     * Import security profile documents
+     *
+     * @param document the security profile to import
+     * @return The jaxRs Response
+     */
+    @Path("/securityprofiles")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "securityprofiles:create",
+        description = "Importer des profiles de sécurité dans le référentiel")
+    public Response importSecurityProfiles(JsonNode document)
+        throws DatabaseConflictException {
+
+        addRequestId();
+        ParametersChecker.checkParameter("Json document is a mandatory parameter", document);
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            Status status = client.importSecurityProfiles(JsonHandler.getFromStringAsTypeRefence(document.toString(),
+                new TypeReference<List<SecurityProfileModel>>() {}));
+
+            // Send the http response with no entity and the status got from internalService;
+            ResponseBuilder ResponseBuilder = Response.status(status);
+            return ResponseBuilder.build();
+        } catch (final ReferentialException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+        } catch (InvalidParseOperationException e) {
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * Find security profiles using get method
+     *
+     * @param select the select query to find document
+     * @return Response
+     */
+    @Path("/securityprofiles")
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "securityprofiles:read", description = "Lister le contenu du référentiel des profiles de sécurité")
+    public Response findSecurityProfiles(JsonNode select) {
+
+        addRequestId();
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            RequestResponse<SecurityProfileModel> result = client.findSecurityProfiles(select);
+            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result).build();
+        } catch (ReferentialException e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            final Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * Find security profile by identifier
+     *
+     * @param identifier the identifier of the security profile to find
+     * @return Response
+     */
+    @Path("/securityprofiles/{identifier}")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "securityprofiles:id:read", description = "Lire un profile de sécurité donné")
+    public Response findSecurityProfileByIdentifier(@PathParam("identifier") String identifier) {
+        addRequestId();
+        try {
+            ParametersChecker.checkParameter("identifier is a mandatory parameter", identifier);
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                RequestResponse<SecurityProfileModel> requestResponse = client.findSecurityProfileByIdentifier(identifier);
+                int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
+                return Response.status(st).entity(requestResponse).build();
+            } catch (ReferentialNotFoundException e) {
+                LOGGER.error(e);
+                final Status status = Status.NOT_FOUND;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final ReferentialException e) {
+                LOGGER.error(e);
+                final Status status = Status.INTERNAL_SERVER_ERROR;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            } catch (final InvalidParseOperationException e) {
+                LOGGER.error(e);
+                final Status status = Status.BAD_REQUEST;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+            }
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+        }
+    }
+
+    /**
+     * Update a security profile
+     *
+     * @param identifier the identifier of the security profile to update
+     * @param queryDsl query to execute
+     * @return Response
+     * @throws AdminManagementClientServerException
+     * @throws InvalidParseOperationException
+     */
+    @Path("/securityprofiles/{identifier}")
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "securityprofiles:id:update", description = "Effectuer une mise à jour sur un profil de sécurité")
+    public Response updateSecurityProfile(@PathParam("identifier") String identifier, JsonNode queryDsl)
+        throws AdminManagementClientServerException, InvalidParseOperationException {
+        addRequestId();
+        try {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                RequestResponse response = client.updateSecurityProfile(identifier, queryDsl);
+                return getResponse(response);
+            }
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+        }
+    }
+
     private void addRequestId() {
         Integer tenantId = ParameterHelper.getTenantParameter();
         LOGGER.debug(String.format("tenant Id %d", tenantId));
@@ -1667,15 +1799,6 @@ public class AdminManagementExternalResourceImpl {
         String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
         return new VitamError(aCode).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
-    }
-
-
-    private InputStream getErrorStream(VitamError vitamError) {
-        try {
-            return JsonHandler.writeToInpustream(vitamError);
-        } catch (InvalidParseOperationException e) {
-            return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
-        }
     }
 
     private InputStream getErrorStream(Status status, String message, String code) {

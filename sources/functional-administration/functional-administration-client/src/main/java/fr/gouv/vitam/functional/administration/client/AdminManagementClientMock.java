@@ -34,6 +34,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
+
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -384,5 +386,38 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     @Override
     public RequestResponse<JsonNode> launchAuditWorkflow(JsonNode options) throws AdminManagementClientServerException {
         return new RequestResponseOK();
+    }
+
+    @Override
+    public Status importSecurityProfiles(List<SecurityProfileModel> securityProfileModelList)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
+        LOGGER.debug("import security profiles request ");
+        return Status.CREATED;
+    }
+
+    @Override
+    public RequestResponse findSecurityProfiles(JsonNode queryDsl)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
+        LOGGER.debug("find security profiles request ");
+        if (VitamThreadUtils.getVitamSession().getTenantId() == null) {
+            VitamThreadUtils.getVitamSession().setTenantId(0);
+        }
+        SecurityProfileModel model =
+            JsonHandler.getFromString(ClientMockResultHelper.SECURITY_PROFILES, SecurityProfileModel.class);
+        return ClientMockResultHelper.createReponse(model);
+    }
+
+    @Override
+    public RequestResponse findSecurityProfileByIdentifier(String identifier)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
+        LOGGER.debug("find security profiles by identifier request ");
+        return ClientMockResultHelper.getSecurityProfiles();
+    }
+
+    @Override public RequestResponse<SecurityProfileModel> updateSecurityProfile(String identifier, JsonNode queryDsl)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
+        SecurityProfileModel model =
+            JsonHandler.getFromString(ClientMockResultHelper.SECURITY_PROFILES, SecurityProfileModel.class);
+        return ClientMockResultHelper.createReponse(model);
     }
 }

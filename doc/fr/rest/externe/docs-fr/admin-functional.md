@@ -38,6 +38,12 @@ Actuellement ce référentiel n'est pas utilisé lors du processus d'entrée ou 
 
 Il doit faire le lien entre l'authentification (TLS) et les droits et contrats de l'application externe partenaire.
 
+# Référentiel des Profiles de Sécurité
+
+Il est possible de mettre à jour ce référentiel via les API.
+
+Actuellement ce référentiel pour le contrôle d'accès aux API.
+
 # Registre des Fonds
 
 **NOTE IMPORTANTE** : Ce service sera déplacé dans la partie administration fonctionnelle. Il est pour le moment dans l'Accès.

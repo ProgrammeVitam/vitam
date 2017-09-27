@@ -63,11 +63,13 @@ import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.Profile;
+import fr.gouv.vitam.functional.administration.common.SecurityProfile;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -111,6 +113,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String CONTEXT_URI = "/contexts";
     private static final String AUDIT_URI = "/audit";
     private static final String UPDATE_CONTEXT_URI = "/context/";
+    private static final String SECURITY_PROFILES_URI = "/securityprofiles";
 
     AdminManagementClientRest(AdminManagementClientFactory factory) {
         super(factory);
@@ -1105,4 +1108,104 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         }
     }
 
+
+    @Override
+    public Status importSecurityProfiles(List<SecurityProfileModel> securityProfileModelList)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The input security profiles json is mandatory", securityProfileModelList);
+        Response response = null;
+
+        try {
+            response = performRequest(HttpMethod.POST, SECURITY_PROFILES_URI, null,
+                securityProfileModelList, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
+                false);
+            final Status status = Status.fromStatusCode(response.getStatus());
+
+            return status;
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<SecurityProfileModel> findSecurityProfiles(JsonNode queryDsl)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, SECURITY_PROFILES_URI, null, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            if (status == Status.OK) {
+                LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                    SecurityProfileModel.class);
+            }
+
+            return RequestResponse.parseFromResponse(response, SecurityProfileModel.class);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<SecurityProfileModel> findSecurityProfileByIdentifier(String identifier)
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+        ParametersChecker.checkParameter("The input identifier is mandatory", identifier);
+        Response response = null;
+        try {
+
+            response = performRequest(HttpMethod.GET, SECURITY_PROFILES_URI + "/" + identifier, null, null,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            if (status == Status.OK) {
+                LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                RequestResponseOK<SecurityProfileModel> resp =
+                    JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                        SecurityProfileModel.class);
+
+                if (resp.getResults() == null || resp.getResults().size() == 0)
+                    throw new ReferentialNotFoundException("Security profile not found with id: " + identifier);
+
+                return resp;
+            }
+
+            return RequestResponse.parseFromResponse(response, SecurityProfileModel.class);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<SecurityProfileModel> updateSecurityProfile(String identifier, JsonNode queryDsl)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.PUT, SECURITY_PROFILES_URI + "/" + identifier, null, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            if (status == Status.OK) {
+                LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                return new RequestResponseOK<SecurityProfileModel>().setHttpCode(Status.OK.getStatusCode());
+            }
+            return RequestResponse.parseFromResponse(response, SecurityProfileModel.class);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
 }
