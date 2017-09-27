@@ -1,0 +1,163 @@
+/**
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ *
+ * contact.vitam@culture.gouv.fr
+ *
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
+ *
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ *
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
+ *
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
+ */
+package fr.gouv.vitam.common.model.administration;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * Data Transfer Object Model of Agency
+ */
+public class AgenciesModel {
+    public static final String ID = "_id";
+
+
+    private static final String TENANT = "_tenant";
+    public static final String NAME = "Name";
+
+    public static final String IDENTIFIER = "Identifier";
+    private static final String DESCRIPTION = "Description";
+
+    /**
+     * unique identifier
+     */
+    @JsonProperty(ID)
+    private String id;
+
+    @JsonProperty(NAME)
+    private String name;
+
+    @JsonProperty(IDENTIFIER)
+    private String identifier;
+
+    @JsonProperty(DESCRIPTION)
+    private String description;
+
+
+    /**
+     * Constructor of AgencyModel
+     *
+     * @param id
+     * @param name
+     */
+    public AgenciesModel(@JsonProperty("_id") String id, @JsonProperty(NAME) String name,@JsonProperty(DESCRIPTION) String description){
+
+
+        this.id = id;
+        this.name = name;
+        this.description = description;
+
+    }
+    /**
+     * tenant id
+     */
+    @JsonProperty(TENANT)
+    private Integer tenant;
+
+    /**
+     * empty constructor
+     */
+    public AgenciesModel() {
+    }
+
+    /**
+     * @return tenant
+     */
+    public Integer getTenant() {
+        return tenant;
+    }
+
+    /**
+     * @param tenant value to set working tenant
+     * @return this
+     */
+    public AgenciesModel setTenant(Integer tenant) {
+        this.tenant = tenant;
+        return this;
+    }
+    /**
+     * @return id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * @param id
+     * @return AgencyModel
+     */
+    public AgenciesModel setId(String id) {
+        this.id = id;
+        return this;
+    }
+
+    /**
+     * @return name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @param name
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+     * @return identifier
+     */
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    /**
+     * @param identifier
+     * @return AgencyModel
+     */
+    public AgenciesModel setIdentifier(String identifier) {
+        this.identifier = identifier;
+        return this;
+    }
+
+    /**
+     * @return last update of Agency
+     */
+    public String getDescription() {
+        return this.description;
+    }
+
+    /**
+     * @param description to set
+     * @return this
+     */
+    public AgenciesModel setDescription(String description) {
+        this.description = description;
+        return this;
+    }
+
+}

@@ -128,6 +128,10 @@ public enum VitamCode {
         Status.BAD_REQUEST,
         "Request context validation error"),
 
+    AGENCIES_VALIDATION_ERROR(ServiceName.FUNCTIONAL_ADMINISTRATION, DomainName.VALIDATION, "13",
+        Status.BAD_REQUEST,
+        "Request agency validation error"),
+
     ACCESS_EXTERNAL_SELECT_UNITS_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "00",
         Status.BAD_REQUEST,
         "Access external client error in selectUnits method."),

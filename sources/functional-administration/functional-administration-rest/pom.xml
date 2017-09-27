@@ -114,12 +114,17 @@
             <artifactId>functional-administration-profile</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>fr.gouv.vitam</groupId>
-            <artifactId>functional-administration-counter</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-    </dependencies>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>functional-administration-counter</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>functional-administration-agencies</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<pluginManagement>

@@ -8,6 +8,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -257,6 +258,16 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     public RequestResponse<AccessionRegisterSummaryModel> findAccessionRegisterById(
         VitamContext vitamContext, String accessionRegisterId) throws VitamClientException {
         return ClientMockResultHelper.getAccessionRegisterSummary();
+    }
+
+    @Override
+    public RequestResponse<AgenciesModel> findAgencies(VitamContext vitamContext, JsonNode query) {
+        return ClientMockResultHelper.getAgencies();
+    }
+
+    @Override public RequestResponse<AgenciesModel> findAgencyByID(VitamContext vitamContext, String agencyById)
+        throws VitamClientException {
+        return ClientMockResultHelper.getAgencies();
     }
 
 }

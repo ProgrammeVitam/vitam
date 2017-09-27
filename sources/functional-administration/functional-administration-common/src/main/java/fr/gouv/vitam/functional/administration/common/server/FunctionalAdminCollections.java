@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
+import fr.gouv.vitam.functional.administration.common.Agencies;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
@@ -96,7 +97,11 @@ public enum FunctionalAdminCollections {
     /**
      * Context collection
      */
-    CONTEXT(Context.class, false, false);
+    CONTEXT(Context.class, false, false),
+    /**
+     * Agency collection
+     */
+    AGENCIES(Agencies.class, false, false);
 
     final private VitamCollection vitamCollection;
     final private boolean multitenant;

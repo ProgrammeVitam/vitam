@@ -22,5 +22,6 @@
 		<module>functional-administration-contract</module>
         <module>functional-administration-profile</module>
         <module>functional-administration-context</module>
+		<module>functional-administration-agencies</module>
     </modules>
 </project>

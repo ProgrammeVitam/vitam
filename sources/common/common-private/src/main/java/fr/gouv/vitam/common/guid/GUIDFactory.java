@@ -277,6 +277,17 @@ public final class GUIDFactory {
         return new GUIDImplPrivate(type, 0, serverIdentity.getGlobalPlatformId(),
             GUIDObjectType.getDefaultWorm(type));
     }
+    /**
+     * Create a Agencies GUID
+     *
+     * @return a new GUID
+     * @throws IllegalArgumentException if any of the argument are out of range
+     */
+    public static final GUID newAgencyGUID() {
+        final int type = GUIDObjectType.AGENCY_TYPE;
+        return new GUIDImplPrivate(type, 0, serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type));
+    }
 
     /**
      * Create an accession register detail GUID

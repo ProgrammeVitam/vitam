@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
@@ -609,11 +610,31 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         return internalFindDocumentById(vitamContext, AdminCollections.PROFILE, profileId, ProfileModel.class);
     }
 
+
     @Override
     public RequestResponse<AccessionRegisterSummaryModel> findAccessionRegisterById(
         VitamContext vitamContext, String accessionRegisterId) throws VitamClientException {
         return internalFindDocumentById(vitamContext, AdminCollections.ACCESSION_REGISTERS, accessionRegisterId,
             AccessionRegisterSummaryModel.class);
+    }
+
+    /**
+     * @param vitamContext the vitam context
+     * @param query        select query
+     * @return
+     */
+    @Override
+    public RequestResponse<AgenciesModel> findAgencies(VitamContext vitamContext, JsonNode query)
+        throws VitamClientException {
+        return internalFindDocuments(vitamContext, AdminCollections.AGENCIES, query,
+            AgenciesModel.class);
+    }
+
+    @Override
+    public RequestResponse<AgenciesModel> findAgencyByID(
+        VitamContext vitamContext, String agencyId) throws VitamClientException {
+        return internalFindDocumentById(vitamContext, AdminCollections.AGENCIES, agencyId,
+            AgenciesModel.class);
     }
 
 }

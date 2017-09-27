@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,78 +23,39 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.access.external.api;
+ */
+package fr.gouv.vitam.functional.administration.agencies.api;
+
+import com.fasterxml.jackson.databind.MappingIterator;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * All collections in functional admin module
+ * Agencies Parser
  */
-public enum AdminCollections {
-    /**
-     * Formats Collection
-     */
-    FORMATS(AccessExtAPI.FORMATS),
-
-    /**
-     * Rules Collection
-     */
-    RULES(AccessExtAPI.RULES),
-    
-    /**
-     * Ingest contracts collection
-     */
-    ENTRY_CONTRACTS(AccessExtAPI.ENTRY_CONTRACT),
-
-    /**
-     * Access contracts collection
-     */
-    ACCESS_CONTRACTS(AccessExtAPI.ACCESS_CONTRACT),
-
-    /**
-     * Agencies collection
-     */
-    AGENCIES(AccessExtAPI.AGENCIES),
-
-
-    /**
-     * Profile collection
-     */
-    PROFILE(AccessExtAPI.PROFILES),
-    
-    /**
-     * Context collection
-     */
-    CONTEXTS(AccessExtAPI.CONTEXTS),
-
-    /**
-     * Accession register collection
-     */
-    ACCESSION_REGISTERS(AccessExtAPI.ACCESSION_REGISTERS),
-    
-    /**
-     * Traceability collection
-     */
-    TRACEABILITY(AccessExtAPI.TRACEABILITY);
-
-    private String name;
-
-    private AdminCollections(final String collection) {
-        name = collection;
-    }
-
-    /**
+public class AgenciesParser {
+    /*
      *
-     * @return the name of the collection
      */
-    public String getName() {
-        return name;
-    }
+    public static List<AgenciesModel> readFromCsv(InputStream input) throws IOException {
 
-    /**
-     * @param value as String to compare
-     * @return True if the name of the collection equals
-     */
-    public boolean compareTo(String value) {
-        return name.equals(value);
+        ArrayList<AgenciesModel> list = new ArrayList<>();
+
+        final CsvSchema bootstrap = CsvSchema.emptySchema().withHeader();
+        final CsvMapper csvMapper = new CsvMapper();
+        final MappingIterator<AgenciesModel> mappingIterator =
+            csvMapper.readerFor(AgenciesModel.class).with(bootstrap).readValues(input);
+        while (mappingIterator.hasNext()){
+            AgenciesModel  model = mappingIterator.next();
+            list.add(model);
+        }
+        return list;
     }
 }

@@ -45,6 +45,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
@@ -269,6 +270,16 @@ public class ClientMockResultHelper {
         contract.setDeactivationdate("2016-11-03");
         return contract;
 
+    }
+
+    private static AgenciesModel getAgeciesModel() {
+        AgenciesModel model = new AgenciesModel();
+        model.setId("aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq");
+        model.setTenant(0);
+        model.setIdentifier("FAKE_IDENTIFIER");
+        model.setName("Une agency");
+        model.setDescription("DESCRIPTION D'UNE AGENCE");
+        return model;
     }
 
     private static AccessContractModel getAccessContractItem() {
@@ -498,6 +509,13 @@ public class ClientMockResultHelper {
             .setHttpCode(Status.OK.getStatusCode());
     }
 
+    /**
+     * @return a RequestResponse containing agencies json
+     */
+    public static RequestResponse<AgenciesModel> getAgencies() {
+        return new RequestResponseOK<AgenciesModel>().addResult(getAgeciesModel())
+            .setHttpCode(Status.OK.getStatusCode());
+    }
     /**
      * @return context json
      */
