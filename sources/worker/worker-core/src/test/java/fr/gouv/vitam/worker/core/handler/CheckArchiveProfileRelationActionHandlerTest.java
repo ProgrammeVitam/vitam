@@ -32,6 +32,8 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.ContractStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.model.administration.ProfileStatus;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -89,7 +91,9 @@ public class CheckArchiveProfileRelationActionHandlerTest {
         when(handlerIO.getInput(1)).thenReturn(CONTRACT_NAME);
 
         when(adminClient.findIngestContracts(anyObject()))
-                .thenReturn(createIngestContract(ContractStatus.ACTIVE.toString()));
+            .thenReturn(createIngestContract(ContractStatus.ACTIVE.toString()));
+        when(adminClient.findProfiles(anyObject()))
+            .thenReturn(createProfile(ProfileStatus.ACTIVE));
 
         final WorkerParameters params =
                 WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
@@ -109,12 +113,19 @@ public class CheckArchiveProfileRelationActionHandlerTest {
 
     private static RequestResponse createIngestContract(String status) throws InvalidParseOperationException {
         IngestContractModel contract = new IngestContractModel();
-        contract.setName("testOK");
+        contract.setName("ArchivalAgreement0");
         contract.setStatus(status);
         Set<String> profiles = new HashSet<>();
         profiles.add(PROFILE_IDENTIFIER);
         contract.setArchiveProfiles(profiles);
         return ClientMockResultHelper.createReponse(contract);
+    }
+    
+    private static RequestResponse createProfile(ProfileStatus status) throws InvalidParseOperationException {
+        ProfileModel profil = new ProfileModel();
+        profil.setIdentifier("PROFIL-00001");
+        profil.setStatus(status);        
+        return ClientMockResultHelper.createReponse(profil);
     }
 
 }

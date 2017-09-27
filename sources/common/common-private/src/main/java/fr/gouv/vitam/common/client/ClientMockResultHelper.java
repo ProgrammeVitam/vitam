@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.IngestContractModel;
 
 /**
  * Results for client mock
@@ -130,7 +131,8 @@ public class ClientMockResultHelper {
 
     public static final String INGEST_CONTRACTS = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
             "\"_tenant\":\"0\", " +
-            "\"Name\":\"Un contrat\", " +
+            "\"Name\":\"ArchivalAgreement0\", " +
+            "\"Identifier\":\"ArchivalAgreement0\", " +
             "\"Description\":\"DESCRIPTION D'UN CONTRAT\", " +
             "\"Status\":\"ACTIVE\", " +
             "\"CreationDate\":\"2016-11-02\", " +
@@ -370,6 +372,18 @@ public class ClientMockResultHelper {
     }
 
     /**
+     * @param <T>
+     * @param s the original object to be included in response
+     * @return a default response
+     * @throws InvalidParseOperationException
+     */
+    public static <T> RequestResponse<T> createReponse(String s, Class<T> clasz) throws InvalidParseOperationException {
+        RequestResponseOK responseOK =  new RequestResponseOK();
+        if (null != s)
+            responseOK.addResult(JsonHandler.getFromString(s, clasz));
+        return responseOK.setHttpCode(Status.OK.getStatusCode());
+    }
+    /**
      * @param s the original object to be included in response
      * @param statuscode status to be returned
      * @return a default response
@@ -423,7 +437,7 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse getIngestContracts() throws InvalidParseOperationException {
-        return createReponse(INGEST_CONTRACTS);
+        return createReponse(INGEST_CONTRACTS, IngestContractModel.class);
     }
 
 

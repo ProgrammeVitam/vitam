@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -80,12 +81,12 @@ public class CheckIngestContractActionHandlerTest {
     public void givenSipWithValidContractReferenceFoundThenReturnResponseOK()
         throws XMLStreamException, IOException, ProcessingException, InvalidParseOperationException,
         InvalidCreateOperationException, AdminManagementClientServerException,
-        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ReferentialNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         when(handlerIO.getInput(0)).thenReturn(CONTRACT_NAME);
 
-        when(adminClient.findIngestContracts(anyObject()))
+        when(adminClient.findIngestContractsByID(anyObject()))
             .thenReturn(createIngestContract(ContractStatus.ACTIVE.toString()));
 
         final WorkerParameters params =
@@ -99,15 +100,15 @@ public class CheckIngestContractActionHandlerTest {
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
 
         reset(adminClient);
-        when(adminClient.findIngestContracts(anyObject()))
+        when(adminClient.findIngestContractsByID(anyObject()))
             .thenReturn(createIngestContract(ContractStatus.INACTIVE.toString()));
         response = handler.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
     }
 
-    private static RequestResponse createIngestContract(String status) throws InvalidParseOperationException {
+    private static RequestResponse<IngestContractModel> createIngestContract(String status) throws InvalidParseOperationException {
         IngestContractModel contract = new IngestContractModel();
-        contract.setName("testOK");
+        contract.setIdentifier("ArchivalAgreement0");
         contract.setStatus(status);
         return ClientMockResultHelper.createReponse(contract);
     }
