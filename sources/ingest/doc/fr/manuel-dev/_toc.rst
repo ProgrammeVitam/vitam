@@ -11,3 +11,4 @@ Ingest
    ingest-external-client.rst
    ingest-external-antivirus.rst
    ingest.rst
+   vitam-pooling-client.rst
