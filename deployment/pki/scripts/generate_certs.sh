@@ -134,7 +134,7 @@ function generateHostCertAndStorePassphrase {
                                 caintermediatekeypassword \
                                 ${SERVER} \
                                 "server" \
-                                "${COMPONENT}.service.consul"
+                                "${COMPONENT}.service.${CONSUL_DOMAIN}"
         # Store the key to the vault
         setComponentCertPassphrase  "server_${COMPONENT}_key" \
                                     "${CERT_KEY}"
@@ -198,6 +198,8 @@ fi
 ENVIRONNEMENT="${1}"
 
 ENVIRONNEMENT_FILE="${1}"
+
+CONSUL_DOMAIN=`(grep '^consul_domain' ${ENVIRONNEMENT_FILE} || grep '^consul_domain' environments/group_vars/all/all || echo consul) | sed 's@consul_domain[=: ]*@@g'`
 
 if [ ! -f "${ENVIRONNEMENT_FILE}" ]; then
     pki_logger "ERROR" "Cannot find environment file: ${ENVIRONNEMENT_FILE}"
