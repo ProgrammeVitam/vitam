@@ -26,28 +26,9 @@
  */
 package fr.gouv.vitam.functional.administration.contract.core;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.in;
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.core.Response;
-
-import org.bson.conversions.Bson;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -98,6 +79,22 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import org.bson.conversions.Bson;
+
+import javax.ws.rs.core.Response;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
 
 public class IngestContractImpl implements ContractService<IngestContractModel> {
 
@@ -114,6 +111,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     private static final String FILING_UNIT = "FILING_UNIT";
     private final VitamCounterService vitamCounterService;
 
+    private final EntryContractManager manager;
+
     /**
      * Constructor
      *
@@ -124,6 +123,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         mongoAccess = dbConfiguration;
         this.vitamCounterService = vitamCounterService;
         logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
+        manager = new EntryContractManager(logBookclient);
     }
 
 
@@ -139,8 +139,6 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         boolean slaveMode = vitamCounterService
             .isSlaveFunctionnalCollectionOnTenant(SequenceType.INGEST_CONTRACT_SEQUENCE.getCollection(),
                 ParameterHelper.getTenantParameter());
-        final IngestContractImpl.IngestContractManager manager =
-            new IngestContractImpl.IngestContractManager(logBookclient);
 
         manager.logStarted();
 
@@ -290,22 +288,26 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     /**
      * Contract validator and logBook manager
      */
-    protected final static class IngestContractManager {
+    protected final static class EntryContractManager {
 
         private static final String UPDATED_DIFFS = "updatedDiffs";
         private static final String INGEST_CONTRACT = "IngestContract";
 
-        private static List<EntryContractValidator> validators = Arrays.asList(
-            createMandatoryParamsValidator(), createWrongFieldFormatValidator(),
-            createCheckDuplicateInDatabaseValidator(), createCheckProfilesExistsInDatabaseValidator());
+        private List<EntryContractValidator> validators;
 
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         private GUID eip = null;
 
         private final LogbookOperationsClient logBookclient;
 
-        public IngestContractManager(LogbookOperationsClient logBookclient) {
+        public EntryContractManager(LogbookOperationsClient logBookclient) {
             this.logBookclient = logBookclient;
+            //Init validator
+            validators = Arrays.asList(
+                createMandatoryParamsValidator(),
+                createWrongFieldFormatValidator(),
+                createCheckDuplicateInDatabaseValidator(),
+                createCheckProfilesExistsInDatabaseValidator());
         }
 
         private boolean validateContract(IngestContractModel contract, String jsonFormat,
@@ -468,7 +470,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
          *
          * @return EntryContractValidator
          */
-        private static EntryContractValidator createMandatoryParamsValidator() {
+        private EntryContractValidator createMandatoryParamsValidator() {
             return (contract, jsonFormat) -> {
                 EntryContractValidator.GenericRejectionCause rejection = null;
                 if (contract.getName() == null || contract.getName().trim().isEmpty()) {
@@ -485,7 +487,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
          *
          * @return EntryContractValidator
          */
-        private static EntryContractValidator createWrongFieldFormatValidator() {
+        private EntryContractValidator createWrongFieldFormatValidator() {
             return (contract, inputList) -> {
                 GenericContractValidator.GenericRejectionCause rejection = null;
                 final String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
@@ -548,7 +550,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
          *
          * @return EntryContractValidator
          */
-        private static EntryContractValidator createCheckDuplicateInDatabaseValidator() {
+        private EntryContractValidator createCheckDuplicateInDatabaseValidator() {
             return (contract, contractName) -> {
                 EntryContractValidator.GenericRejectionCause rejection = null;
                 final int tenant = ParameterHelper.getTenantParameter();
@@ -568,7 +570,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
          *
          * @return
          */
-        private static EntryContractValidator checkDuplicateInIdentifierSlaveModeValidator() {
+        private EntryContractValidator checkDuplicateInIdentifierSlaveModeValidator() {
             return (contract, contractName) -> {
                 if (contractName == null || contractName.isEmpty()) {
                     return Optional
@@ -591,7 +593,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
          *
          * @return EntryContractValidator
          */
-        public static EntryContractValidator createCheckProfilesExistsInDatabaseValidator() {
+        public EntryContractValidator createCheckProfilesExistsInDatabaseValidator() {
             return (contract, contractName) -> {
                 if (null == contract.getArchiveProfiles()) {
                     return Optional.empty();
@@ -636,7 +638,6 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             return error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
                 INGEST_CONTRACT_NOT_FIND + id));
         }
-        final IngestContractManager manager = new IngestContractManager(logBookclient);
         manager.logUpdateStarted(ingestContractModel.getId());
 
         final JsonNode actionNode = queryDsl.get(GLOBAL.ACTION.exactToken());
@@ -683,7 +684,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 final Set<String> archiveProfiles =
                     JsonHandler.getFromString(archiveProfilesNode.toString(), Set.class, String.class);
                 final EntryContractValidator validator =
-                    IngestContractManager.createCheckProfilesExistsInDatabaseValidator();
+                    manager.createCheckProfilesExistsInDatabaseValidator();
                 final Optional<EntryContractValidator.GenericRejectionCause> result =
                     validator.validate(new IngestContractModel().setArchiveProfiles(archiveProfiles),
                         "update contract ..");

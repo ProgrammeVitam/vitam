@@ -433,6 +433,8 @@ public class IngestInternalIT {
                     PropertiesUtils.getResourceAsStream("integration-ingest-internal/MGT_RULES_REF.csv"),
                     "MGT_RULES_REF.csv");
 
+                client.importAgenciesFile(PropertiesUtils.getResourceAsStream("agencies.csv"), "agencies.csv");
+
                 // import contract
                 File fileContracts =
                     PropertiesUtils.getResourceFile("integration-ingest-internal/referential_contracts_ok.json");

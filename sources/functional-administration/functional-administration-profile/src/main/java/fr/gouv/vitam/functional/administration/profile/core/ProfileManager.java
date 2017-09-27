@@ -27,26 +27,7 @@
 
 package fr.gouv.vitam.functional.administration.profile.core;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.or;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.bson.conversions.Bson;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -75,6 +56,22 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import org.bson.conversions.Bson;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.or;
 
 /**
  * This class manage validation and log operation of profile service
@@ -88,11 +85,7 @@ public class ProfileManager {
     public static final String XSD_SCHEMA = "xsd:schema";
 
 
-    private static List<ProfileValidator> validators = Arrays.asList(
-        createMandatoryParamsValidator(),
-        createWrongFieldFormatValidator(),
-        createCheckDuplicateInDatabaseValidator()
-    );
+    private List<ProfileValidator> validators;
 
     final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
     private GUID eip = null;
@@ -101,6 +94,11 @@ public class ProfileManager {
 
     public ProfileManager(LogbookOperationsClient logBookclient) {
         this.logBookclient = logBookclient;
+        validators = Arrays.asList(
+            createMandatoryParamsValidator(),
+            createWrongFieldFormatValidator(),
+            createCheckDuplicateInDatabaseValidator()
+        );
     }
 
     public boolean validateProfile(ProfileModel profile,
@@ -124,6 +122,7 @@ public class ProfileManager {
      * Validate if the profile file is valide
      * XSD => is file xsd is xml valide
      * RNG => if file rng is xml valide, rng valide, check default values if already exists in vitam
+     *
      * @param profileModel
      * @param inputStream
      * @param error
@@ -150,6 +149,7 @@ public class ProfileManager {
 
     /**
      * Juste check if inputStream is xml valide
+     *
      * @param inputStream
      * @param error
      * @return boolean true/false
@@ -168,18 +168,20 @@ public class ProfileManager {
             }
 
             return true;
-        } catch (SAXException  | IOException e) {
-            error.addToErrors(getVitamError("Profile file xsd is not xml valide >> "+e.getMessage()));
+        } catch (SAXException | IOException e) {
+            error.addToErrors(getVitamError("Profile file xsd is not xml valide >> " + e.getMessage()));
             return false;
         } catch (ParserConfigurationException e) {
-            error.addToErrors(getVitamError("Profile file xsd ParserConfigurationException >> "+e.getMessage()));
+            error.addToErrors(getVitamError("Profile file xsd ParserConfigurationException >> " + e.getMessage()));
             return false;
         }
     }
 
     private VitamError getVitamError(String error) {
-        return new VitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem()).setMessage(PROFILE_SERVICE_ERROR).setState("ko").setContext(FUNCTIONAL_MODULE_PROFILE).setDescription(error);
+        return new VitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem()).setMessage(PROFILE_SERVICE_ERROR)
+            .setState("ko").setContext(FUNCTIONAL_MODULE_PROFILE).setDescription(error);
     }
+
     /**
      * TODO
      * 1. Validate if rng is xml valide,
@@ -204,16 +206,16 @@ public class ProfileManager {
             }
             // TODO: 5/12/17 parse rng and validate RG and OriginatingAgencies
             return true;
-        } catch (SAXException  | IOException e) {
-            error.addToErrors(getVitamError("Profile file rng is not xml valide >> "+e.getMessage()));
+        } catch (SAXException | IOException e) {
+            error.addToErrors(getVitamError("Profile file rng is not xml valide >> " + e.getMessage()));
             return false;
         } catch (ParserConfigurationException e) {
-            error.addToErrors(getVitamError("Profile file rng ParserConfigurationException >> "+e.getMessage()));
+            error.addToErrors(getVitamError("Profile file rng ParserConfigurationException >> " + e.getMessage()));
             return false;
         }
     }
+
     /**
-     *
      * Log validation error (business error)
      *
      * @param errorsDetails
@@ -231,7 +233,8 @@ public class ProfileManager {
 
     }
 
-    private void logbookMessageError(String objectId, String errorsDetails, LogbookOperationParameters logbookParameters) {
+    private void logbookMessageError(String objectId, String errorsDetails,
+        LogbookOperationParameters logbookParameters) {
         if (null != errorsDetails && !errorsDetails.isEmpty()) {
             try {
                 final ObjectNode object = JsonHandler.createObjectNode();
@@ -243,7 +246,7 @@ public class ProfileManager {
                 //Do nothing
             }
         }
-        if (null != objectId && ! objectId.isEmpty()) {
+        if (null != objectId && !objectId.isEmpty()) {
             logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, objectId);
         }
     }
@@ -311,11 +314,11 @@ public class ProfileManager {
                 StatusCode.OK,
                 VitamLogbookMessages.getCodeOp(eventType, StatusCode.OK), eip);
 
-        if (null != objectId && ! objectId.isEmpty()) {
+        if (null != objectId && !objectId.isEmpty()) {
             logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, objectId);
         }
 
-        if (null != message && ! message.isEmpty()) {
+        if (null != message && !message.isEmpty()) {
             logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, message);
         }
 
@@ -328,11 +331,12 @@ public class ProfileManager {
      *
      * @return
      */
-    private static ProfileValidator createMandatoryParamsValidator() {
+    private ProfileValidator createMandatoryParamsValidator() {
         return (profile) -> {
             RejectionCause rejection = null;
 
-            if (profile.getFormat() == null || (!profile.getFormat().equals(ProfileFormat.RNG) && !profile.getFormat().equals(ProfileFormat.XSD))) {
+            if (profile.getFormat() == null ||
+                (!profile.getFormat().equals(ProfileFormat.RNG) && !profile.getFormat().equals(ProfileFormat.XSD))) {
                 rejection = RejectionCause.rejectMandatoryMissing(Profile.FORMAT);
             }
 
@@ -345,7 +349,7 @@ public class ProfileManager {
      *
      * @return
      */
-    private static ProfileValidator createWrongFieldFormatValidator() {
+    private ProfileValidator createWrongFieldFormatValidator() {
         return (profile) -> {
             RejectionCause rejection = null;
 
@@ -411,10 +415,10 @@ public class ProfileManager {
      *
      * @return
      */
-    public static ProfileValidator checkDuplicateInIdentifierSlaveModeValidator() {
+    public ProfileValidator checkDuplicateInIdentifierSlaveModeValidator() {
         return (profileModel) -> {
-            if(profileModel.getIdentifier() == null || profileModel.getIdentifier().isEmpty()){
-                return    Optional.of( ProfileValidator.RejectionCause.rejectMandatoryMissing(
+            if (profileModel.getIdentifier() == null || profileModel.getIdentifier().isEmpty()) {
+                return Optional.of(ProfileValidator.RejectionCause.rejectMandatoryMissing(
                     AccessContract.IDENTIFIER));
             }
             RejectionCause rejection = null;
@@ -435,11 +439,12 @@ public class ProfileManager {
      *
      * @return
      */
-    private static ProfileValidator createCheckDuplicateInDatabaseValidator() {
+    private ProfileValidator createCheckDuplicateInDatabaseValidator() {
         return (profile) -> {
             RejectionCause rejection = null;
             int tenant = ParameterHelper.getTenantParameter();
-            Bson clause = or(and(eq(VitamDocument.TENANT_ID, tenant), eq(Profile.IDENTIFIER, profile.getIdentifier())), and(eq(VitamDocument.TENANT_ID, tenant), eq(Profile.NAME, profile.getName())));
+            Bson clause = or(and(eq(VitamDocument.TENANT_ID, tenant), eq(Profile.IDENTIFIER, profile.getIdentifier())),
+                and(eq(VitamDocument.TENANT_ID, tenant), eq(Profile.NAME, profile.getName())));
             boolean exist = FunctionalAdminCollections.PROFILE.getCollection().count(clause) > 0;
             if (exist) {
                 rejection = RejectionCause.rejectDuplicatedInDatabase(profile.getName());

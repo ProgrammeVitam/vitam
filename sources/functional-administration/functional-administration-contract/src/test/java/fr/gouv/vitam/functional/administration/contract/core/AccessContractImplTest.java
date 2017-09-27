@@ -50,17 +50,21 @@ import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.agencies.api.AgenciesService;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
@@ -75,6 +79,8 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -104,6 +110,7 @@ public class AccessContractImplTest {
 
     static JunitHelper junitHelper;
     static final String COLLECTION_NAME = "AccessContract";
+    static final String AGENCIES_COLLECTION_NAME = "Agencies";
     static final String DATABASE_HOST = "localhost";
     static final String DATABASE_NAME = "vitam-test";
     static MongodExecutable mongodExecutable;
@@ -111,7 +118,8 @@ public class AccessContractImplTest {
     static MongoClient client;
     static MetaDataClient metaDataClientMock;
     static VitamCounterService vitamCounterService;
-    static Map<Integer, List<String>> externalIdentifiers;
+    static AgenciesService agenciesService;
+
 
     static ContractService<AccessContractModel> accessContractService;
     static int mongoPort;
@@ -145,12 +153,31 @@ public class AccessContractImplTest {
         vitamCounterService = new VitamCounterService(dbImpl, tenants, listEnableExternalIdentifiers);
         LogbookOperationsClientFactory.changeMode(null);
 
+        agenciesService = new AgenciesService(dbImpl);
 
         metaDataClientMock = mock(MetaDataClient.class);
 
         accessContractService =
             new AccessContractImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
                 vitamCounterService, metaDataClientMock);
+        final File fileAgencies = PropertiesUtils.getResourceFile("agencies.csv");
+
+        final Thread thread = VitamThreadFactory.getInstance().newThread(() -> {
+            RequestResponse<AgenciesModel> response = null;
+            try {
+                VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+                response = agenciesService.importAgencies(new FileInputStream(fileAgencies));
+                assertThat(response.isOk()).isTrue();
+                VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
+                response = agenciesService.importAgencies(new FileInputStream(fileAgencies));
+                assertThat(response.isOk()).isTrue();
+            } catch (VitamException | IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        thread.start();
+        thread.join();
 
     }
 
@@ -161,7 +188,9 @@ public class AccessContractImplTest {
         junitHelper.releasePort(mongoPort);
         client.close();
         accessContractService.close();
+        client.getDatabase(DATABASE_NAME).getCollection(AGENCIES_COLLECTION_NAME);
     }
+
 
     @After
     public void afterTest() {
@@ -382,6 +411,7 @@ public class AccessContractImplTest {
         final String documentName = "aName";
         final String inactiveStatus = "INACTIVE";
         final String activeStatus = "ACTIVE";
+
         // Create document
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
 
@@ -721,6 +751,83 @@ public class AccessContractImplTest {
         assertThat(((RequestResponseOK<AccessContractModel>) response).getResults().get(0).getName()).contains("aName");
         assertThat(((RequestResponseOK<AccessContractModel>) response).getResults().get(1).getName())
             .contains("aName1");
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenAccessContractsTestOriginatingAgenciesNotExistsThenKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_not_exists_agencies.json");
+        final List<AccessContractModel> accessContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
+            });
+        final RequestResponse response = accessContractService.createContracts(accessContractModelList);
+        assertThat(response.isOk()).isFalse();
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenAccessContractTestUpdateAccessContractOriginatingAgencyNotExistsThenKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final String documentName = "aName";
+        final String inactiveStatus = "INACTIVE";
+        final String activeStatus = "ACTIVE";
+
+        // Create document
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_no_agencies.json");
+
+        final List<AccessContractModel> accessContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
+            });
+        final RequestResponse response = accessContractService.createContracts(accessContractModelList);
+
+        RequestResponseOK<AccessContractModel> responseCast = (RequestResponseOK<AccessContractModel>) response;
+        assertThat(responseCast.getResults()).hasSize(1);
+
+
+        final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
+        final Select select = new Select();
+        parser.parse(select.getFinalSelect());
+        parser.addCondition(QueryHelper.eq(NAME, documentName));
+        final JsonNode queryDsl = parser.getRequest().getFinalSelect();
+        responseCast = accessContractService.findContracts(queryDsl);
+        assertThat(responseCast.getResults()).isNotEmpty();
+        for (final AccessContractModel accessContractModel : responseCast.getResults()) {
+            assertThat(activeStatus.equals(accessContractModel.getStatus()));
+        }
+
+        // Test update existing originatingAgencies
+        final String now = LocalDateUtil.now().toString();
+        UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
+        List agencies = new ArrayList();
+        agencies.add("FR_ORG_AGEN");
+        final SetAction setActionStatusInactive =
+            UpdateActionHelper.set(AccessContractModel.ORIGINATING_AGENCIES, agencies);
+        final SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
+        Update update = new Update();
+        update.setQuery(QueryHelper.eq(NAME, documentName));
+        update.addActions(setActionStatusInactive, setActionLastUpdateInactive);
+        updateParser.parse(update.getFinalUpdate());
+        JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
+        RequestResponse<AccessContractModel> updateContractStatus =
+            accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(), queryDslForUpdate);
+        assertThat(updateContractStatus.isOk()).isTrue();
+
+        updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
+        agencies = new ArrayList();
+        agencies.add("NotExistingOriginatingAgencies");
+        update = new Update();
+        update.setQuery(QueryHelper.eq(NAME, documentName));
+        update.addActions(UpdateActionHelper.set(AccessContractModel.ORIGINATING_AGENCIES, agencies),
+            UpdateActionHelper.set("LastUpdate", now));
+        updateParser.parse(update.getFinalUpdate());
+        updateContractStatus =
+            accessContractService.updateContract(accessContractModelList.get(0).getIdentifier(),
+                updateParser.getRequest().getFinalUpdate());
+        assertThat(updateContractStatus.isOk()).isFalse();
+
     }
 
 }

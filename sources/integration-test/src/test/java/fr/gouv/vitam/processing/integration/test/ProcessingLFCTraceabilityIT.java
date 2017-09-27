@@ -351,11 +351,13 @@ public class ProcessingLFCTraceabilityIT {
                     PropertiesUtils.getResourceAsStream("integration-processing/jeu_donnees_OK_regles_CSV_regles.csv"),
                     "jeu_donnees_OK_regles_CSV_regles.csv");
 
+                client.importAgenciesFile(PropertiesUtils.getResourceAsStream("agencies.csv"), "agencies.csv");
+
                 File fileProfiles = PropertiesUtils.getResourceFile("integration-processing/OK_profil.json");
                 List<ProfileModel> profileModelList =
                     JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {
                     });
-                RequestResponse improrResponse = client.createProfiles(profileModelList);
+                client.createProfiles(profileModelList);
 
                 RequestResponseOK<ProfileModel> response =
                     (RequestResponseOK<ProfileModel>) client.findProfiles(new Select().getFinalSelect());
