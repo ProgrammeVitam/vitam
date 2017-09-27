@@ -519,7 +519,6 @@ public class WorkerIT {
             final ItemStatus retStepControl =
                 workerClient.submitStep(getDescriptionStep("integration-worker/step_control_SIP.json"));
             assertNotNull(retStepControl);
-            assertEquals(3, retStepControl.getItemsStatus().size());
             assertEquals(StatusCode.OK, retStepControl.getGlobalStatus());
 
             workspaceClient.deleteContainer(CONTAINER_NAME, true);

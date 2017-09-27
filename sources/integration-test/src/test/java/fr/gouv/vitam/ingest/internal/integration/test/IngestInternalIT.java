@@ -433,6 +433,7 @@ public class IngestInternalIT {
                     PropertiesUtils.getResourceAsStream("integration-ingest-internal/MGT_RULES_REF.csv"),
                     "MGT_RULES_REF.csv");
 
+                // import service agent
                 client.importAgenciesFile(PropertiesUtils.getResourceAsStream("agencies.csv"), "agencies.csv");
 
                 // import contract
@@ -450,6 +451,7 @@ public class IngestInternalIT {
                     .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
                     });
                 client.importAccessContracts(accessContractModelList);
+                
             } catch (final Exception e) {
                 LOGGER.error(e);
             }
