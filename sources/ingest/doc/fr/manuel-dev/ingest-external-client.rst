@@ -87,16 +87,9 @@ Le client les méthodes suivantes:
     RequestResponse<JsonNode> listOperationsDetails(Integer tenantId) throws VitamClientException;
 
 
-Le client implémente aussi l'interface PoolingStatusClient :
-Avec cette interface, on peut utiliser les méthodes wait pour mieux gérer le pooling côté serveur et remédier à l'asynchrone des certains opérations.
+Le client implémente aussi l'interface OperationStatusClient ayant la méthode suivante:
 
 .. code-block:: java
+    RequestResponse<ItemStatus> getOperationProcessStatus(VitamContext vitamContext, String id) throws VitamClientException;
 
-    // Possibilité de faire plusieurs (nbTry) appel espacé d'un temps (timeWait) avant de répondre au client final
-    public boolean wait(int tenantId, String processId, ProcessState state, int nbTry, long timeWait, TimeUnit timeUnit) throws VitamException;
-
-    public boolean wait(int tenantId, String processId, int nbTry, long timeWait, TimeUnit timeUnit) throws VitamException;
-
-    public boolean wait(int tenantId, String processId, ProcessState state) throws VitamException;
-
-    public boolean wait(int tenantId, String processId) throws VitamException;
+Cette interface est passée comme paramètre au client VitamPoolingClient.
