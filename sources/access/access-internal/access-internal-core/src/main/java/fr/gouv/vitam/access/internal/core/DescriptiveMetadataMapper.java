@@ -36,6 +36,7 @@ import org.w3c.dom.Element;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -58,7 +59,8 @@ public class DescriptiveMetadataMapper {
         dmc.setAcquiredDate(metadataModel.getAcquiredDate());
         dmc.getAddressee().addAll(metadataModel.getAddressee());
         //        mapMapToElement(dmc, metadataModel.getAny());
-        dmc.getAny().addAll(TransformJsonTreeToListOfXmlElement.mapJsonToElement(metadataModel.getAny()));
+        dmc.getAny().addAll(
+            TransformJsonTreeToListOfXmlElement.mapJsonToElement(Collections.singletonList(metadataModel.getAny())));
 
         dmc.setArchivalAgencyArchiveUnitIdentifier(metadataModel.getArchivalAgencyArchiveUnitIdentifier());
         dmc.setAuthorizedAgent(metadataModel.getAuthorizedAgent());
@@ -112,47 +114,6 @@ public class DescriptiveMetadataMapper {
         dmc.getWriter().addAll(metadataModel.getWriter());
 
         return dmc;
-    }
-
-    private void mapMapToElement(DescriptiveMetadataContentType dmc, List<Object> any) {
-
-        try {
-            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-            Document document = documentBuilder.newDocument();
-
-            for (Object o : any) {
-                if (o instanceof Map) {
-                    Map map = (Map) o;
-                    transformMapToElement(dmc.getAny()::add, document, map);
-                }
-            }
-        } catch (ParserConfigurationException e) {
-            throw Throwables.propagate(e);
-        }
-    }
-
-    private void transformMapToElement(Consumer<Element> consumer, Document document, Map map) {
-
-        for (Object key : map.keySet()) {
-
-            Object value = map.get(key);
-            if (value instanceof List) {
-                List<String> list = (List<String>) value;
-                list.forEach(s -> {
-                        Element childElement =
-                            document.createElementNS(SedaConstants.NAMESPACE_URI, key.toString());
-                        childElement.appendChild(document.createTextNode(s));
-                        consumer.accept(childElement);
-                    }
-                );
-            } else if (value instanceof Map) {
-                Element childElement =
-                    document.createElementNS(SedaConstants.NAMESPACE_URI, key.toString());
-                transformMapToElement(childElement::appendChild, document, (Map) value);
-                consumer.accept(childElement);
-            }
-        }
     }
 
 }

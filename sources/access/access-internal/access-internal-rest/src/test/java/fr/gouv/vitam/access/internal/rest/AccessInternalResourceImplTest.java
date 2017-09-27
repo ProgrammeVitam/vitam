@@ -604,7 +604,6 @@ public class AccessInternalResourceImplTest {
         given(mock.selectUnitbyId(anyObject(), anyString()))
             .willReturn(JsonHandler.toJsonNode(requestResponse));
 
-
         ArchiveUnitModel archiveUnitModel = buildObjectMapper().treeToValue(jsonNode, ArchiveUnitModel.class);
 
         Assert.notNull(archiveUnitModel);

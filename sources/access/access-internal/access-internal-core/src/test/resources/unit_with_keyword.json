@@ -42,33 +42,5 @@
       "vitam-iaas-app-03.int"
     ]
   },
-  "#version": 1,
-  "inheritedRule": {
-    "DisseminationRule": {
-      "DIS-00001": {
-        "aeaqaaaabagxylz4aavjeak6htn4a7qaaaba": {
-          "StartDate": "2000-01-01",
-          "EndDate": "2025-01-01",
-          "path": [
-            [
-              "aeaqaaaabagxylz4aavjeak6htn4a7qaaaba"
-            ]
-          ]
-        }
-      }
-    },
-    "AccessRule": {
-      "ACC-00002": {
-        "aeaqaaaabagxylz4aavjeak6htn4a7qaaaba": {
-          "StartDate": "2000-01-01",
-          "EndDate": "2025-01-01",
-          "path": [
-            [
-              "aeaqaaaabagxylz4aavjeak6htn4a7qaaaba"
-            ]
-          ]
-        }
-      }
-    }
-  }
+  "#version": 1
 }

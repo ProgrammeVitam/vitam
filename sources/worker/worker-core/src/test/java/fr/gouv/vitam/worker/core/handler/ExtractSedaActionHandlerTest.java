@@ -511,6 +511,22 @@ public class ExtractSedaActionHandlerTest {
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.OK);
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void given_manifest_with_simple_metadata() throws ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageServerException, FileNotFoundException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile("SIP_with_metadata_simple.xml"));
+
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+                .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        handlerIO.addOutIOParameters(out);
+        final ItemStatus response = handler.execute(params, handlerIO);
+
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.OK);
+    }
+
     private ObjectNode createObjectNodeWithUpValue(String... ids) {
         ObjectNode objectNode = JsonHandler.createObjectNode();
         ArrayNode arrayNode = JsonHandler.createArrayNode();
