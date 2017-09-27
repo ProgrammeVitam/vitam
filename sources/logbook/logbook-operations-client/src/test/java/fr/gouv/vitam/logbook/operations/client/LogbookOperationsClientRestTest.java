@@ -49,6 +49,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -71,6 +72,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 
+@RunWithCustomExecutor
 public class LogbookOperationsClientRestTest extends VitamJerseyTest {
     protected static final String HOSTNAME = "localhost";
     protected static final String PATH = "/logbook/v1";
@@ -79,8 +81,8 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
     // ************************************** //
     // Start of VitamJerseyTest configuration //
     // ************************************** //
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
+    @ClassRule
+    public static RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
     
     public LogbookOperationsClientRestTest() {
@@ -253,7 +255,6 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         client.create(log);
     }
     
-    @RunWithCustomExecutor
     @Test
     public void traceability() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
@@ -276,7 +277,6 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         client.traceability();
     }
     
-    @RunWithCustomExecutor
     @Test
     public void traceabilityLFC() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);

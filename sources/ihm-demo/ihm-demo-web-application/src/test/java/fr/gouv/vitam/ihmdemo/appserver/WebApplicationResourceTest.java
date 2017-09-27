@@ -228,7 +228,8 @@ public class WebApplicationResourceTest {
 
     @Test
     public void givenNoArchiveUnitWhenSearchOperationsThenReturnOK() throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject()))
+        PowerMockito.when(UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject(),
+            anyString()))
             .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN));
 
         PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
@@ -319,7 +320,8 @@ public class WebApplicationResourceTest {
         final JsonNode preparedDslQuery = JsonHandler.createObjectNode();
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(searchCriteriaMap)).thenReturn(preparedDslQuery);
 
-        PowerMockito.when(UserInterfaceTransactionManager.selectOperation(preparedDslQuery, TENANT_ID, CONTRACT_NAME))
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperation(preparedDslQuery, TENANT_ID, CONTRACT_NAME,
+            getAppSessionId()))
             .thenThrow(Exception.class);
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when().post("/logbook/operations");
@@ -330,7 +332,8 @@ public class WebApplicationResourceTest {
     public void testGetLogbookResultByIdVitamClientException()
         throws Exception {
         String contractName = "test_contract";
-        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId("1", TENANT_ID, contractName))
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId("1", TENANT_ID, contractName,
+            getAppSessionId()))
             .thenThrow(VitamClientException.class);
 
         given().param("idOperation", "1").header(new Header(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName)).expect()
@@ -343,7 +346,8 @@ public class WebApplicationResourceTest {
     public void testGetLogbookResultByIdLogbookRemainingException()
         throws Exception {
         String contractName = "test_contract";
-        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId("1", TENANT_ID, contractName))
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId("1", TENANT_ID, contractName,
+            getAppSessionId()))
             .thenThrow(Exception.class);
 
         given().param("idOperation", "1").header(new Header(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName)).expect()
@@ -386,7 +390,8 @@ public class WebApplicationResourceTest {
 
         // UserInterfaceTransactionManager Exception 1 :
         // AccessExternalClientServerException
-        PowerMockito.when(UserInterfaceTransactionManager.searchUnits(preparedDslQuery, TENANT_ID, CONTRACT_NAME))
+        PowerMockito.when(UserInterfaceTransactionManager.searchUnits(preparedDslQuery, TENANT_ID, CONTRACT_NAME,
+            getAppSessionId()))
             .thenThrow(AccessExternalClientServerException.class);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
@@ -402,7 +407,8 @@ public class WebApplicationResourceTest {
 
         PowerMockito.when(DslQueryHelper.createSelectElasticsearchDSLQuery(searchCriteriaMap))
             .thenReturn(preparedDslQuery);
-        PowerMockito.when(UserInterfaceTransactionManager.searchUnits(preparedDslQuery, TENANT_ID, CONTRACT_NAME))
+        PowerMockito.when(UserInterfaceTransactionManager.searchUnits(preparedDslQuery, TENANT_ID, CONTRACT_NAME,
+            getAppSessionId()))
             .thenThrow(AccessExternalClientNotFoundException.class);
 
         given().contentType(ContentType.JSON).body(OPTIONS).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -423,7 +429,8 @@ public class WebApplicationResourceTest {
 
         // UserInterfaceTransactionManager Exception 1 :
         // AccessExternalClientServerException
-        PowerMockito.when(UserInterfaceTransactionManager.searchUnits(preparedDslQuery, TENANT_ID, CONTRACT_NAME))
+        PowerMockito.when(UserInterfaceTransactionManager.searchUnits(preparedDslQuery, TENANT_ID, CONTRACT_NAME,
+            getAppSessionId()))
             .thenThrow(Exception.class);
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
@@ -468,7 +475,8 @@ public class WebApplicationResourceTest {
         // AccessExternalClientServerException
         PowerMockito
             .when(
-                UserInterfaceTransactionManager.getArchiveUnitDetails(preparedDslQuery, "1", TENANT_ID, CONTRACT_NAME))
+                UserInterfaceTransactionManager.getArchiveUnitDetails(preparedDslQuery, "1", TENANT_ID, CONTRACT_NAME,
+                    getAppSessionId()))
             .thenThrow(AccessExternalClientServerException.class);
 
         given().param("id", "1").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -493,7 +501,8 @@ public class WebApplicationResourceTest {
         // AccessExternalClientNotFoundException
         PowerMockito
             .when(
-                UserInterfaceTransactionManager.getArchiveUnitDetails(preparedDslQuery, "1", TENANT_ID, CONTRACT_NAME))
+                UserInterfaceTransactionManager.getArchiveUnitDetails(preparedDslQuery, "1", TENANT_ID, CONTRACT_NAME,
+                    getAppSessionId()))
             .thenThrow(AccessExternalClientNotFoundException.class);
 
         given().param("id", "1").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -515,7 +524,8 @@ public class WebApplicationResourceTest {
         // All exceptions
         PowerMockito
             .when(
-                UserInterfaceTransactionManager.getArchiveUnitDetails(preparedDslQuery, "1", TENANT_ID, CONTRACT_NAME))
+                UserInterfaceTransactionManager.getArchiveUnitDetails(preparedDslQuery, "1", TENANT_ID, CONTRACT_NAME,
+                    getAppSessionId()))
             .thenThrow(Exception.class);
 
         given().param("id", "1").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -858,7 +868,8 @@ public class WebApplicationResourceTest {
     public void testNotFoundGetArchiveObjectGroup() throws Exception {
 
         PowerMockito
-            .when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), anyObject(), anyObject()))
+            .when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), anyObject(), anyObject(),
+                anyString()))
             .thenThrow(new AccessExternalClientNotFoundException(""));
 
         given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
@@ -872,7 +883,8 @@ public class WebApplicationResourceTest {
             RequestResponseOK
                 .getFromJsonNode(JsonHandler.getFromFile(PropertiesUtils.findFile("sample_objectGroup_document.json")));
         PowerMockito
-            .when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), anyObject(), anyObject()))
+            .when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), anyObject(), anyObject(),
+                anyString()))
             .thenReturn(sampleObjectGroup);
 
         given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
@@ -893,7 +905,8 @@ public class WebApplicationResourceTest {
     @Test
     public void testInternalServerErrorGetArchiveObjectGroup() throws Exception {
         PowerMockito
-            .when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), anyObject(), anyObject()))
+            .when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), anyObject(), anyObject(),
+                anyString()))
             .thenThrow(new AccessExternalClientServerException(""));
 
         given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
@@ -904,7 +917,8 @@ public class WebApplicationResourceTest {
     @Test
     public void testUnknownErrorGetArchiveObjectGroup() throws Exception {
         PowerMockito
-            .when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), anyObject(), anyObject()))
+            .when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), anyObject(), anyObject(),
+                anyString()))
             .thenThrow(new NullPointerException(""));
 
         given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
@@ -917,7 +931,7 @@ public class WebApplicationResourceTest {
 
         PowerMockito.when(
             UserInterfaceTransactionManager.getObjectAsInputStream(anyObject(), anyObject(), anyString(), anyString(),
-                anyInt(), anyString(), anyObject(), anyString()))
+                anyInt(), anyString(), anyObject(), anyString(), anyString()))
             .thenThrow(new AccessExternalClientNotFoundException(""));
 
         given()
@@ -938,7 +952,7 @@ public class WebApplicationResourceTest {
 
         PowerMockito.when(
             UserInterfaceTransactionManager.getObjectAsInputStream(anyObject(), anyObject(), anyString(), anyString(),
-                anyInt(), anyString(), anyObject(), anyString()))
+                anyInt(), anyString(), anyObject(), anyString(), anyString()))
             .thenReturn(true);
 
         given()
@@ -954,7 +968,7 @@ public class WebApplicationResourceTest {
     public void testBadRequestGetObjectAsInputStream() throws Exception {
         PowerMockito.when(
             UserInterfaceTransactionManager.getObjectAsInputStream(anyObject(), anyObject(), anyString(), anyString(),
-                anyInt(), anyString(), anyObject(), anyString()))
+                anyInt(), anyString(), anyObject(), anyString(), anyString()))
             .thenThrow(new InvalidParseOperationException(""));
         given().accept(MediaType.APPLICATION_OCTET_STREAM).expect().statusCode(Status.BAD_REQUEST.getStatusCode())
             .when()
@@ -966,7 +980,7 @@ public class WebApplicationResourceTest {
     public void testAccessServerExceptionGetObjectAsInputStream() throws Exception {
         PowerMockito.when(
             UserInterfaceTransactionManager.getObjectAsInputStream(anyObject(), anyObject(), anyString(), anyString(),
-                anyInt(), anyString(), anyObject(), anyString()))
+                anyInt(), anyString(), anyObject(), anyString(), anyString()))
             .thenThrow(new AccessExternalClientServerException(""));
         given()
             .accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -982,7 +996,7 @@ public class WebApplicationResourceTest {
     public void testAccessUnknownExceptionGetObjectAsInputStream() throws Exception {
         PowerMockito.when(
             UserInterfaceTransactionManager.getObjectAsInputStream(anyObject(), anyObject(), anyString(), anyString(),
-                anyInt(), anyString(), anyObject(), anyString()))
+                anyInt(), anyString(), anyObject(), anyString(), anyString()))
             .thenThrow(new NullPointerException());
         given()
             .accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -1001,7 +1015,7 @@ public class WebApplicationResourceTest {
                 JsonHandler
                     .getFromString(FAKE_STRING_RETURN));
         PowerMockito.when(
-            UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject()))
+            UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject(), anyString()))
             .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN));
         PowerMockito.when(
             UserInterfaceTransactionManager.buildUnitTree(anyString(), anyObject())).thenReturn(FAKE_JSONNODE_RETURN);
@@ -1046,7 +1060,7 @@ public class WebApplicationResourceTest {
                 JsonHandler
                     .getFromString(FAKE_STRING_RETURN));
         PowerMockito.when(
-            UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject()))
+            UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject(), anyString()))
             .thenThrow(AccessExternalClientServerException.class);
 
         given().contentType(ContentType.JSON).body(ALL_PARENTS)
@@ -1064,7 +1078,7 @@ public class WebApplicationResourceTest {
                     .getFromString(FAKE_STRING_RETURN));
 
         PowerMockito.when(
-            UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject()))
+            UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject(), anyString()))
             .thenThrow(AccessExternalClientNotFoundException.class);
 
         given().contentType(ContentType.JSON).body(ALL_PARENTS)
@@ -1080,7 +1094,7 @@ public class WebApplicationResourceTest {
             DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(
                 JsonHandler.getFromString(FAKE_STRING_RETURN));
         PowerMockito.when(
-            UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject()))
+            UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject(), anyString()))
             .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN));
         PowerMockito.when(
             UserInterfaceTransactionManager.buildUnitTree(anyString(), anyObject())).thenThrow(VitamException.class);
@@ -1254,7 +1268,8 @@ public class WebApplicationResourceTest {
         final RequestResponseOK result = RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN);
 
         PowerMockito
-            .when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID, TENANT_ID, CONTRACT_NAME))
+            .when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID, TENANT_ID, CONTRACT_NAME,
+                getAppSessionId()))
             .thenReturn(result);
 
         given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
@@ -1267,7 +1282,7 @@ public class WebApplicationResourceTest {
 
         PowerMockito
             .when(UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID, TENANT_ID,
-                CONTRACT_NAME))
+                CONTRACT_NAME, getAppSessionId()))
             .thenReturn(result);
 
         given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
@@ -1279,7 +1294,8 @@ public class WebApplicationResourceTest {
     public void testGetUnitLifeCycleByIdWithBadRequestWhenVitamClientException()
         throws Exception {
         PowerMockito
-            .when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID, TENANT_ID, CONTRACT_NAME))
+            .when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID, TENANT_ID, CONTRACT_NAME,
+                getAppSessionId()))
             .thenThrow(VitamClientException.class);
 
         given().param("id_lc", FAKE_UNIT_LF_ID).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -1293,7 +1309,8 @@ public class WebApplicationResourceTest {
     public void testGetUnitLifeCycleByIdWithInternalServerErrorWhenUnknownException()
         throws Exception {
         PowerMockito
-            .when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID, TENANT_ID, CONTRACT_NAME))
+            .when(UserInterfaceTransactionManager.selectUnitLifeCycleById(FAKE_UNIT_LF_ID, TENANT_ID, CONTRACT_NAME,
+                getAppSessionId()))
             .thenThrow(NullPointerException.class);
 
         given().param("id_lc", FAKE_UNIT_LF_ID).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -1309,7 +1326,7 @@ public class WebApplicationResourceTest {
         throws Exception {
         PowerMockito
             .when(UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID, TENANT_ID,
-                CONTRACT_NAME))
+                CONTRACT_NAME, getAppSessionId()))
             .thenThrow(VitamClientException.class);
 
         given().param("id_lc", FAKE_OBG_LF_ID).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -1324,7 +1341,7 @@ public class WebApplicationResourceTest {
         throws Exception {
         PowerMockito
             .when(UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(FAKE_OBG_LF_ID, TENANT_ID,
-                CONTRACT_NAME))
+                CONTRACT_NAME, getAppSessionId()))
             .thenThrow(NullPointerException.class);
 
         given().param("id_lc", FAKE_OBG_LF_ID).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -1336,7 +1353,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testSearchFundsRegisterOK() throws Exception {
         PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterSummary(anyObject(), anyObject(),
-            anyObject()))
+            anyObject(), anyString()))
             .thenReturn(ClientMockResultHelper.getAccessionRegisterSummary());
 
         PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
@@ -1361,7 +1378,7 @@ public class WebApplicationResourceTest {
                     Status.NOT_FOUND.getReasonPhrase());
         
         PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterSummary(anyObject(), anyObject(),
-            anyObject())).thenReturn(vitamError);
+            anyObject(), anyString())).thenReturn(vitamError);
         
         PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
         PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
@@ -1375,7 +1392,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testSearchFundsRegisterBadRequest() throws Exception {
         PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterSummary(anyObject(), anyObject(),
-            anyObject()))
+            anyObject(), anyString()))
             .thenThrow(new InvalidParseOperationException(""));
 
         PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
@@ -1390,7 +1407,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetAccessionRegisterDetailOK() throws Exception {
         PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterSummary(anyObject(), anyObject(),
-            anyObject()))
+            anyObject(), anyString()))
             .thenReturn(ClientMockResultHelper.getAccessionRegisterDetail());
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
@@ -1402,7 +1419,7 @@ public class WebApplicationResourceTest {
     public void testGetAccessionRegisterDetailBadRequest() throws Exception {
         PowerMockito
             .when(UserInterfaceTransactionManager.findAccessionRegisterDetail(anyObject(), anyObject(), anyObject(),
-                anyObject()))
+                anyObject(), anyString()))
             .thenThrow(new InvalidParseOperationException(""));
 
         given().contentType(ContentType.JSON).body(OPTIONS).expect()
@@ -1464,7 +1481,7 @@ public class WebApplicationResourceTest {
         PowerMockito
             .when(
                 UserInterfaceTransactionManager.checkTraceabilityOperation(Mockito.anyObject(),
-                    (Integer) anyInt(), anyString()))
+                    (Integer) anyInt(), anyString(), anyString()))
             .thenReturn(ClientMockResultHelper.getLogbooksRequestResponse());
 
         given().contentType(ContentType.JSON).body(TRACEABILITY_CHECK_MAP).expect()
@@ -1486,7 +1503,7 @@ public class WebApplicationResourceTest {
         String contractName = "test_contract";
 
         when(adminExternalClient.downloadTraceabilityOperationFile(
-            eq(new VitamContext(0).setAccessContract(contractName)), eq("1")))
+            eq(new VitamContext(0).setAccessContract(contractName).setApplicationSessionId(getAppSessionId())), eq("1")))
             .thenReturn(ClientMockResultHelper.getObjectStream());
 
         RestAssured.given()
@@ -1539,4 +1556,7 @@ public class WebApplicationResourceTest {
             .then().statusCode(Status.OK.getStatusCode());
     }
 
+    private static String getAppSessionId() {
+        return "MyApplicationId-ChangeIt";
+    }
 }

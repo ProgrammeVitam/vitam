@@ -42,7 +42,11 @@ import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import org.apache.commons.io.IOUtils;
+import org.junit.Rule;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.CommonMediaType;
@@ -59,6 +63,11 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 public class IngestInternalClientMockTest {
     private static final String CONTEXTID = "contextId";
 
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
+    @RunWithCustomExecutor
     @Test
     public void givenMockExistsWhenPostSipThenReturnOK()
         throws VitamException, XMLStreamException, FileNotFoundException {

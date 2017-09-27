@@ -89,7 +89,7 @@ public enum LogbookParameterName {
      */
     agentIdentifierApplication,
     /**
-     * Session (X-AID) from the remote application <br>
+     * Session (X-Application-Id) from the remote application <br>
      * <br>
      * Can be null
      */

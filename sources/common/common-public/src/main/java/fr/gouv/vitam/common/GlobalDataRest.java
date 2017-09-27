@@ -37,9 +37,14 @@ public class GlobalDataRest {
     public static final String X_HTTP_METHOD_OVERRIDE = "X-Http-Method-Override";
 
     /**
+     * Header Parameter X_SECURITY_CONTEXT_ID
+     */
+    public static final String X_SECURITY_CONTEXT_ID = "X-Security-Context-ID";
+
+    /**
      * Header Parameter X_APPLICATION_ID
      */
-    public static final String X_APPLICATION_ID = "X-APPLICATION-ID";
+    public static final String X_APPLICATION_ID = "X-Application-Id";
 
     /**
      * Header Parameter X_ACTION

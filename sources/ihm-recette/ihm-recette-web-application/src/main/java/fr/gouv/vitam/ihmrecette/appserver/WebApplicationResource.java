@@ -226,7 +226,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         LOGGER.debug("/stat/id_op / id: " + operationId);
         try {
             final RequestResponse logbookOperationResult = UserInterfaceTransactionManager
-                .selectOperationbyId(operationId, TENANT_ID, DEFAULT_CONTRACT_NAME);
+                .selectOperationbyId(operationId, TENANT_ID, DEFAULT_CONTRACT_NAME, getAppSessionId());
             if (logbookOperationResult != null && logbookOperationResult.toJsonNode().has(RESULTS_FIELD)) {
                 final JsonNode logbookOperation = logbookOperationResult.toJsonNode().get(RESULTS_FIELD).get(0);
                 // Create csv file
@@ -393,7 +393,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
                 LOGGER.debug("query >>>>>>>>>>>>>>>>> : " + query);
-                result = UserInterfaceTransactionManager.selectOperation(query, tenantId, DEFAULT_CONTRACT_NAME);
+                result = UserInterfaceTransactionManager.selectOperation(query, tenantId, DEFAULT_CONTRACT_NAME,
+                    getAppSessionId());
 
                 // save result
                 LOGGER.debug("resultr <<<<<<<<<<<<<<<<<<<<<<<: " + result);
@@ -436,7 +437,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             }
             tenantId = Integer.parseInt(xTenantId);
             final RequestResponse<LogbookOperation> result =
-                UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId, DEFAULT_CONTRACT_NAME);
+                UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId, DEFAULT_CONTRACT_NAME,
+                    getAppSessionId());
             return Response.status(Status.OK).entity(result).build();
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
@@ -493,7 +495,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private void downloadObjectAsync(final AsyncResponse asyncResponse, String operationId, int tenantId) {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             final RequestResponse<LogbookOperation> result =
-                UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId, DEFAULT_CONTRACT_NAME);
+                UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId, DEFAULT_CONTRACT_NAME,
+                    getAppSessionId());
 
             RequestResponseOK<LogbookOperation> responseOK = (RequestResponseOK<LogbookOperation>) result;
             LogbookOperation operation = responseOK.getFirstResult();
@@ -552,7 +555,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
                 RequestResponse<AccessContractModel> response =
-                    adminClient.findAccessContracts(new VitamContext(getTenantId(headers)).setAccessContract(null), query);
+                    adminClient.findAccessContracts(new VitamContext(getTenantId(headers)).setAccessContract(null)
+                        .setApplicationSessionId(getAppSessionId()), query);
                 if (response != null && response instanceof RequestResponseOK) {
                     return Response.status(Status.OK).entity(response).build();
                 }
@@ -622,10 +626,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                 switch (requestMethod) {
                                     case HTTP_GET:
                                         if (StringUtils.isBlank(objectID)) {
-                                            result = client.selectUnits(new VitamContext(tenantId).setAccessContract(contractId), criteria
+                                            result = client.selectUnits(new VitamContext(tenantId).setAccessContract(contractId)
+                                                .setApplicationSessionId(getAppSessionId()), criteria
                                             );
                                         } else {
-                                            result = client.selectUnitbyId(new VitamContext(tenantId).setAccessContract(contractId),
+                                            result = client.selectUnitbyId(new VitamContext(tenantId).setAccessContract(contractId)
+                                                    .setApplicationSessionId(getAppSessionId()),
                                                 criteria, objectID
                                             );
                                         }
@@ -635,7 +641,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                             throw new InvalidParseOperationException(
                                                 "Unit ID should be filled.");
                                         } else {
-                                            result = client.updateUnitbyId(new VitamContext(tenantId).setAccessContract(contractId),
+                                            result = client.updateUnitbyId(new VitamContext(tenantId).setAccessContract(contractId)
+                                                    .setApplicationSessionId(getAppSessionId()),
                                                 criteria, objectID);
                                         }
                                         break;
@@ -647,11 +654,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                 switch (requestMethod) {
                                     case HTTP_GET:
                                         if (StringUtils.isBlank(objectID)) {
-                                            result = client.selectOperation(new VitamContext(tenantId).setAccessContract(contractId),
+                                            result = client.selectOperation(new VitamContext(tenantId).setAccessContract(contractId)
+                                                    .setApplicationSessionId(getAppSessionId()),
                                                 criteria
                                             );
                                         } else {
-                                            result = client.selectOperationbyId(new VitamContext(tenantId).setAccessContract(contractId),
+                                            result = client.selectOperationbyId(new VitamContext(tenantId).setAccessContract(contractId)
+                                                    .setApplicationSessionId(getAppSessionId()),
                                                 objectID
                                             );
                                         }
@@ -667,7 +676,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                             throw new InvalidParseOperationException(
                                                 "Object ID should not be empty for collection " + requestedCollection);
                                         } else {
-                                            result = client.selectObjectById(new VitamContext(tenantId).setAccessContract(contractId),
+                                            result = client.selectObjectById(new VitamContext(tenantId).setAccessContract(contractId)
+                                                    .setApplicationSessionId(getAppSessionId()),
                                                 criteria, objectID
                                             );
                                             if (result != null) {
@@ -684,7 +694,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                             } else if (requestedCollection.equalsIgnoreCase(UNIT_LIFECYCLES)) {
                                 switch (requestMethod) {
                                     case HTTP_GET:
-                                        result = client.selectUnitLifeCycleById(new VitamContext(tenantId).setAccessContract(contractId),
+                                        result = client.selectUnitLifeCycleById(new VitamContext(tenantId).setAccessContract(contractId)
+                                                .setApplicationSessionId(getAppSessionId()),
                                             objectID);
                                         break;
                                     default:
@@ -695,7 +706,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                 switch (requestMethod) {
                                     case HTTP_GET:
                                         result = client.selectObjectGroupLifeCycleById(
-                                            new VitamContext(tenantId).setAccessContract(contractId), objectID);
+                                            new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId())
+                                            , objectID);
                                         break;
                                     default:
                                         throw new UnsupportedOperationException(
@@ -715,29 +727,29 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                             if (criteria != null) {
                                                 LOGGER.error("criteria not null");
                                                 result = ingestExternalClient.listOperationsDetails(
-                                                    new VitamContext(tenantId),
+                                                    new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()),
                                                     JsonHandler.getFromJsonNode(criteria, ProcessQuery.class));
                                             } else {
                                                 LOGGER.error("criteria null");
                                                 result = ingestExternalClient.listOperationsDetails(
-                                                    new VitamContext(tenantId), null);
+                                                    new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()), null);
                                             }
 
                                             return Response.status(Status.OK).entity(result).build();
                                         } else {
                                             result =
                                                 ingestExternalClient
-                                                    .getOperationProcessExecutionDetails(new VitamContext(tenantId),
+                                                    .getOperationProcessExecutionDetails(new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()),
                                                         objectID);
                                             return result.toResponse();
                                         }
                                     case HTTP_PUT:
                                         if (!StringUtils.isBlank(objectID)) {
                                             ingestExternalClient.updateOperationActionProcess(
-                                                new VitamContext(tenantId), xAction, objectID
+                                                new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()), xAction, objectID
                                             );
                                             result = ingestExternalClient.getOperationProcessExecutionDetails(
-                                                new VitamContext(tenantId), objectID
+                                                new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()), objectID
                                             );
                                             return result.toResponse();
                                         } else {
@@ -747,7 +759,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                     case HTTP_DELETE:
                                         if (!StringUtils.isBlank(objectID)) {
                                             result = ingestExternalClient.cancelOperationProcessExecution(
-                                                new VitamContext(tenantId), objectID
+                                                new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()), objectID
                                             );
                                             return result.toResponse();
                                         } else {
@@ -762,7 +774,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                 switch (requestMethod) {
                                     case HTTP_GET:
                                         result = ingestExternalClient.getWorkflowDefinitions(
-                                            new VitamContext(tenantId));
+                                            new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()));
                                         return Response.status(Status.OK).entity(result).build();
                                     default:
                                         throw new UnsupportedOperationException(
@@ -786,33 +798,33 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                     switch (requestedAdminCollection) {
                                         case FORMATS:
                                             result = adminExternalClient.findFormats(
-                                                new VitamContext(tenantId).setAccessContract(contractId), criteria);
+                                                new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()), criteria);
                                             break;
                                         case RULES:
                                             result = adminExternalClient.findRules(
-                                                new VitamContext(tenantId).setAccessContract(contractId), criteria);
+                                                new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()), criteria);
                                             break;
                                         case ACCESS_CONTRACTS:
                                             result =
                                                 adminExternalClient.findAccessContracts(
-                                                    new VitamContext(tenantId).setAccessContract(contractId), criteria);
+                                                    new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()), criteria);
                                             break;
                                         case ENTRY_CONTRACTS:
                                             result =
                                                 adminExternalClient.findIngestContracts(
-                                                    new VitamContext(tenantId).setAccessContract(contractId), criteria);
+                                                    new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()), criteria);
                                             break;
                                         case CONTEXTS:
                                             result = adminExternalClient.findContexts(
-                                                new VitamContext(tenantId).setAccessContract(contractId), criteria);
+                                                new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()), criteria);
                                             break;
                                         case PROFILE:
                                             result = adminExternalClient.findProfiles(
-                                                new VitamContext(tenantId).setAccessContract(contractId), criteria);
+                                                new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()), criteria);
                                             break;
                                         case ACCESSION_REGISTERS:
                                             result = adminExternalClient.findAccessionRegister(
-                                                new VitamContext(tenantId).setAccessContract(contractId), criteria
+                                                new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()), criteria
                                             );
                                             break;
                                         default:
@@ -823,35 +835,35 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                 } else {
                                     if (AdminCollections.ACCESSION_REGISTERS.equals(requestedAdminCollection)) {
                                         result = adminExternalClient.getAccessionRegisterDetail(
-                                            new VitamContext(tenantId).setAccessContract(contractId), objectID, criteria
+                                            new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()), objectID, criteria
                                         );
                                     } else {
                                         switch (requestedAdminCollection) {
                                             case FORMATS:
                                                 result = adminExternalClient.findFormatById(
-                                                    new VitamContext(tenantId).setAccessContract(contractId), objectID);
+                                                    new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()), objectID);
                                                 break;
                                             case RULES:
                                                 result = adminExternalClient.findRuleById(
-                                                    new VitamContext(tenantId).setAccessContract(contractId), objectID);
+                                                    new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()), objectID);
                                                 break;
                                             case ACCESS_CONTRACTS:
                                                 result =
                                                     adminExternalClient.findAccessContractById(
-                                                        new VitamContext(tenantId).setAccessContract(contractId), objectID);
+                                                        new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()), objectID);
                                                 break;
                                             case ENTRY_CONTRACTS:
                                                 result =
                                                     adminExternalClient.findIngestContractById(
-                                                        new VitamContext(tenantId).setAccessContract(contractId), objectID);
+                                                        new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()), objectID);
                                                 break;
                                             case CONTEXTS:
                                                 result = adminExternalClient.findContextById(
-                                                    new VitamContext(tenantId).setAccessContract(contractId), objectID);
+                                                    new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()), objectID);
                                                 break;
                                             case PROFILE:
                                                 result = adminExternalClient.findProfileById(
-                                                    new VitamContext(tenantId).setAccessContract(contractId), objectID);
+                                                    new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()), objectID);
                                                 break;
                                             default:
                                                 throw new UnsupportedOperationException(
@@ -863,12 +875,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
                             case HTTP_PUT:
                                 if (!StringUtils.isBlank(objectID)) {
                                     if (AdminCollections.CONTEXTS.equals(requestedAdminCollection)) {
-                                        result = adminExternalClient.updateContext(new VitamContext(tenantId), objectID, criteria);
+                                        result = adminExternalClient.updateContext(new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()), objectID, criteria);
                                     } else if (AdminCollections.ACCESS_CONTRACTS.equals(requestedAdminCollection)) {
-                                        result = adminExternalClient.updateAccessContract(new VitamContext(tenantId),
+                                        result = adminExternalClient.updateAccessContract(new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()),
                                             objectID, criteria);
                                     } else if (AdminCollections.ENTRY_CONTRACTS.equals(requestedAdminCollection)) {
-                                        result = adminExternalClient.updateIngestContract(new VitamContext(tenantId),
+                                        result = adminExternalClient.updateIngestContract(new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()),
                                             objectID, criteria);
                                     } else {
                                         throw new UnsupportedOperationException(
@@ -957,5 +969,18 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * Returns session id for the authenticated user.
+     * <p>
+     * The application may track each logged user by a unique session id. This session id is passed to vitam and is
+     * persisted "as is" in Vitam logbook operations. In case of audit / legal dispute, the application session id can
+     * be used for correlation with application user login logs / db.
+     *
+     * @return application session id
+     */
+    private static String getAppSessionId() {
+        // TODO : Implement session id -> user mapping persistence (login activity journal / logs...).
+        return "MyApplicationId-ChangeIt";
+    }
 }
 

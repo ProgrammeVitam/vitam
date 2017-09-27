@@ -108,7 +108,9 @@ public class IngestStep {
     public void upload_this_sip() throws IOException, VitamException, IOException {
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
             RequestResponse response = world.getIngestClient()
-                .upload(new VitamContext(world.getTenantId()), inputStream, DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
+                .upload(
+                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                    inputStream, DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
             world.setOperationId(operationId);
             final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getIngestClient());
@@ -133,7 +135,9 @@ public class IngestStep {
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
 
             RequestResponse<Void> response = world.getIngestClient()
-                .upload(new VitamContext(world.getTenantId()), inputStream, FILING_SCHEME.name(), ProcessAction.RESUME.name());
+                .upload(
+                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                    inputStream, FILING_SCHEME.name(), ProcessAction.RESUME.name());
 
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
@@ -161,7 +165,9 @@ public class IngestStep {
     public void upload_this_tree() throws IOException, VitamException {
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
             RequestResponse response = world.getIngestClient()
-                .upload(new VitamContext(world.getTenantId()), inputStream, HOLDING_SCHEME.name(), ProcessAction.RESUME.name());
+                .upload(
+                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                    inputStream, HOLDING_SCHEME.name(), ProcessAction.RESUME.name());
 
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
@@ -190,7 +196,9 @@ public class IngestStep {
     public void the_logbook_operation_has_a_status(String status)
         throws VitamClientException, InvalidParseOperationException {
         RequestResponse<LogbookOperation> requestResponse =
-            world.getAccessClient().selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()),
+            world.getAccessClient().selectOperationbyId(
+                new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                    .setApplicationSessionId(world.getApplicationSessionId()),
                 world.getOperationId()
             );
         if (requestResponse instanceof RequestResponseOK) {
@@ -221,7 +229,9 @@ public class IngestStep {
     public void the_status_are(List<String> eventNames, String eventStatus)
         throws VitamClientException, InvalidParseOperationException {
         RequestResponse<LogbookOperation> requestResponse =
-            world.getAccessClient().selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()),
+            world.getAccessClient().selectOperationbyId(
+                new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                    .setApplicationSessionId(world.getApplicationSessionId()),
                 world.getOperationId()
             );
 
@@ -267,7 +277,9 @@ public class IngestStep {
     public void the_results_are(String eventName, String eventResults)
         throws VitamClientException, InvalidParseOperationException {
         RequestResponse<LogbookOperation> requestResponse =
-            world.getAccessClient().selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()),
+            world.getAccessClient().selectOperationbyId(
+                new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                    .setApplicationSessionId(world.getApplicationSessionId()),
                 world.getOperationId()
             );
 
@@ -315,7 +327,9 @@ public class IngestStep {
     public void download_atr()
         throws VitamClientException {
         Response response = world.getIngestClient()
-            .downloadObjectAsync(new VitamContext(world.getTenantId()), world.getOperationId(), IngestCollection.REPORTS);
+            .downloadObjectAsync(
+                new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                world.getOperationId(), IngestCollection.REPORTS);
         InputStream inputStream = response.readEntity(InputStream.class);
         assertThat(inputStream).isNotNull();
         StreamUtils.closeSilently(inputStream);

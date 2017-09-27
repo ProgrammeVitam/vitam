@@ -276,7 +276,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 final Map<String, Object> criteriaMap = JsonHandler.getMapFromString(criteria);
                 final JsonNode preparedQueryDsl = DslQueryHelper.createSelectElasticsearchDSLQuery(criteriaMap);
                 result = UserInterfaceTransactionManager.searchUnits(preparedQueryDsl,
-                    getTenantId(headers), getAccessContractId(headers));
+                    getTenantId(headers), getAccessContractId(headers), getAppSessionId());
 
                 LOGGER.error(result.toString());
                 LOGGER.error(JsonHandler.prettyPrint(result.toJsonNode()));
@@ -331,7 +331,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             final JsonNode preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(selectUnitIdMap);
             final RequestResponse archiveDetails = UserInterfaceTransactionManager
-                .getArchiveUnitDetails(preparedQueryDsl, unitId, getTenantId(headers), getAccessContractId(headers));
+                .getArchiveUnitDetails(preparedQueryDsl, unitId, getTenantId(headers), getAccessContractId(headers),
+                    getAppSessionId());
 
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
@@ -402,7 +403,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
                 final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
-                result = UserInterfaceTransactionManager.selectOperation(query, tenantId, contractId);
+                result = UserInterfaceTransactionManager.selectOperation(query, tenantId, contractId, getAppSessionId());
 
                 if (!result.isOk()) {
                     return result.toResponse();
@@ -447,7 +448,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             result =
-                UserInterfaceTransactionManager.selectOperationbyId(operationId, getTenantId(headers), contractName);
+                UserInterfaceTransactionManager.selectOperationbyId(operationId, getTenantId(headers), contractName,
+                    getAppSessionId());
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -577,7 +579,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
                 final RequestResponse<Void> finalResponse =
-                    client.upload(new VitamContext(tenantId), new FileInputStream(temporarSipFile), contextId, action);
+                    client.upload(new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()), new FileInputStream(temporarSipFile), contextId, action);
 
                 int responseStatus = finalResponse.getHttpCode();
                 final String guid = finalResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
@@ -644,7 +646,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 if (vitamPoolingClient.wait(tenantId, id, 30, 1000L, TimeUnit.MILLISECONDS)) {
 
                     final RequestResponse<ItemStatus> requestResponse =
-                        client.getOperationProcessExecutionDetails(new VitamContext(tenantId), id);
+                        client.getOperationProcessExecutionDetails(new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()), id);
                     if (requestResponse.isOk()) {
                         ItemStatus itemStatus = ((RequestResponseOK<ItemStatus>) requestResponse).getResults().get(0);
                         if (ProcessState.COMPLETED.equals(itemStatus.getGlobalState())) {
@@ -727,7 +729,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         String contractName)
         throws VitamClientException {
         final RequestResponse<LogbookOperation> result =
-            UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId, contractName);
+            UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId, contractName, getAppSessionId());
         RequestResponseOK<LogbookOperation> responseOK = (RequestResponseOK<LogbookOperation>) result;
         List<LogbookOperation> results = responseOK.getResults();
         LogbookOperation operation = results.get(0);
@@ -805,7 +807,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final JsonNode preparedQueryDsl = DslQueryHelper.createUpdateDSLQuery(updateUnitIdMap, updateRules);
             final RequestResponse archiveDetails =
                 UserInterfaceTransactionManager.updateUnits(preparedQueryDsl, unitId,
-                    getTenantId(headers), getAccessContractId(headers));
+                    getTenantId(headers), getAccessContractId(headers), getAppSessionId());
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
@@ -847,7 +849,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
             final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
             final RequestResponse<FileFormatModel> result = adminClient.findFormats(
-                new VitamContext(getTenantId(headers)).setAccessContract(null), query);
+                new VitamContext(getTenantId(headers)).setAccessContract(null)
+                    .setApplicationSessionId(getAppSessionId()), query);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("Bad request Exception ", e);
@@ -881,8 +884,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter("Format Id is mandatory", formatId);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(formatId));
             result = adminClient
-                .findFormatById(new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers)),
-                    formatId);
+                .findFormatById(new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers))
+                        .setApplicationSessionId(getAppSessionId()), formatId);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
@@ -911,7 +914,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response checkRefFormat(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             Response response =
-                adminClient.checkDocuments(new VitamContext(getTenantId(headers)), AdminCollections.FORMATS, input);
+                adminClient.checkDocuments(
+                        new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()),
+                        AdminCollections.FORMATS, input);
             return response;
         } catch (final VitamClientException e) {
             LOGGER.error("VitamClientException ", e);
@@ -939,8 +944,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response uploadRefFormat(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             Status status =
-                adminClient.createDocuments(new VitamContext(getTenantId(headers)), AdminCollections.FORMATS, input,
-                    headers.getHeaderString(GlobalDataRest.X_FILENAME));
+                adminClient.createDocuments(
+                        new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()),
+                        AdminCollections.FORMATS, input, headers.getHeaderString(GlobalDataRest.X_FILENAME));
             return Response.status(status).build();
         } catch (final AccessExternalClientException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
@@ -972,7 +978,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             qualifierProjection.put("projection_qualifiers", "#qualifiers");
             final JsonNode preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(qualifierProjection);
             final RequestResponse searchResult = UserInterfaceTransactionManager.selectObjectbyId(preparedQueryDsl,
-                objectGroupId, getTenantId(headers), getAccessContractId(headers));
+                objectGroupId, getTenantId(headers), getAccessContractId(headers), getAppSessionId());
 
             return Response.status(Status.OK).entity(JsonTransformer.transformResultObjects(searchResult.toJsonNode()))
                 .build();
@@ -1053,7 +1059,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             xmlFormat =
                 client.getUnitByIdWithXMLFormat(
-                    new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers)),
+                    new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers))
+                            .setApplicationSessionId(getAppSessionId()),
                     preparedQueryDsl, idUnit
                 );
             return xmlFormat;
@@ -1092,7 +1099,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final HashMap<String, String> emptyMap = new HashMap<>();
             final JsonNode preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(emptyMap);
             xmlFormat = client.getObjectGroupByIdWithXMLFormat(
-                new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers)),
+                new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers))
+                        .setApplicationSessionId(getAppSessionId()),
                 preparedQueryDsl, idUnit
             );
             return xmlFormat;
@@ -1142,7 +1150,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
         try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
             IngestCollection collection = IngestCollection.valueOf(type.toUpperCase());
-            Response response = client.downloadObjectAsync(new VitamContext(tenantId), objectId, collection);
+            Response response = client.downloadObjectAsync(
+                new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()), objectId, collection);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             if (response.getStatus() == Status.OK.getStatusCode()) {
                 helper.writeResponse(Response.ok().header(CONTENT_DISPOSITION, "filename=" + objectId + ".xml"));
@@ -1184,7 +1193,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 throw new InvalidParameterException();
             }
             UserInterfaceTransactionManager.getObjectAsInputStream(asyncResponse, preparedQueryDsl, unitId,
-                usageAndVersion[0], Integer.parseInt(usageAndVersion[1]), filename, tenantId, contractId);
+                usageAndVersion[0], Integer.parseInt(usageAndVersion[1]), filename, tenantId, contractId,
+                getAppSessionId());
         } catch (InvalidParseOperationException | InvalidCreateOperationException exc) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, exc);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.BAD_REQUEST).build());
@@ -1258,8 +1268,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
                 final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
                 result = adminClient
-                    .findRules(new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers)),
-                        query);
+                        .findRules(
+                                new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers))
+                                .setApplicationSessionId(getAppSessionId()), query);
 
                 // save result
                 PaginationHelper.setResult(sessionId, result.toJsonNode());
@@ -1299,9 +1310,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             ParametersChecker.checkParameter("rule Id is mandatory", ruleId);
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
-            result = adminClient
-                .findRuleById(new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers)),
-                    ruleId);
+            result = adminClient.findRuleById(
+                    new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers))
+                            .setApplicationSessionId(getAppSessionId()), ruleId);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
@@ -1345,7 +1356,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
         Response response = null;
         try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
             response = ingestExternalClient
-                .downloadObjectAsync(new VitamContext(tenantId), guid, IngestCollection.RULES);
+                .downloadObjectAsync(
+                    new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()),
+                    guid, IngestCollection.RULES);
             InputStream inputStream = response.readEntity(InputStream.class);
             if (inputStream != null) {
                 file = PropertiesUtils.fileFromTmpFolder(guid + ".json");
@@ -1391,7 +1404,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private void asyncDownloadErrorReport(InputStream document, int tenant, final AsyncResponse asyncResponse) {
         AsyncInputStreamHelper helper;
         try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
-            final Response response = client.checkDocuments(new VitamContext(tenant), AdminCollections.RULES, document);
+            final Response response = client.checkDocuments(
+                new VitamContext(tenant).setApplicationSessionId(getAppSessionId()),
+                AdminCollections.RULES, document);
             helper = new AsyncInputStreamHelper(asyncResponse, response);
             final Response.ResponseBuilder responseBuilder =
                 Response.status(response.getStatus())
@@ -1426,7 +1441,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response uploadRefRule(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             Status status =
-                adminClient.createDocuments(new VitamContext(getTenantId(headers)), AdminCollections.RULES, input,
+                adminClient.createDocuments(
+                    new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()),
+                    AdminCollections.RULES, input,
                     headers.getHeaderString(GlobalDataRest.X_FILENAME));
             return Response.status(status).build();
         } catch (final AccessExternalClientException e) {
@@ -1486,7 +1503,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             try {
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
                 result = UserInterfaceTransactionManager.findAccessionRegisterSummary(options, getTenantId(headers),
-                    contractName);
+                    contractName, getAppSessionId());
 
                 if (result.isOk()){
                  // save result
@@ -1534,7 +1551,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
             result = UserInterfaceTransactionManager.findAccessionRegisterDetail(id, options, getTenantId(headers),
-                contractName);
+                contractName, getAppSessionId());
         } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();
@@ -1584,7 +1601,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             // 2- Execute Select Query
             final RequestResponse parentsDetails = UserInterfaceTransactionManager.searchUnits(preparedDslQuery,
-                getTenantId(headers), getAccessContractId(headers));
+                getTenantId(headers), getAccessContractId(headers), getAppSessionId());
 
             // 3- Build Unit tree (all paths)
             final JsonNode unitTree = UserInterfaceTransactionManager.buildUnitTree(unitId,
@@ -1663,7 +1680,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         RequestResponse<LogbookLifecycle> result = null;
         try {
             result = UserInterfaceTransactionManager.selectUnitLifeCycleById(unitLifeCycleId, getTenantId(headers),
-                getAccessContractId(headers));
+                getAccessContractId(headers), getAppSessionId());
         } catch (final VitamClientException e) {
             LOGGER.error(LOGBOOK_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
             return Response.status(Status.NOT_FOUND).build();
@@ -1692,7 +1709,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try {
             result = UserInterfaceTransactionManager.selectObjectGroupLifeCycleById(objectGroupLifeCycleId,
-                getTenantId(headers), getAccessContractId(headers));
+                getTenantId(headers), getAccessContractId(headers), getAppSessionId());
         } catch (final VitamClientException e) {
             LOGGER.error(LOGBOOK_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
             return Response.status(Status.NOT_FOUND).build();
@@ -1718,7 +1735,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
             String tenantIdHeader = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
             System.out.println("query: " + query.toString());
             RequestResponse<ProcessDetail> response =
-                client.listOperationsDetails(new VitamContext(Integer.parseInt(tenantIdHeader)), query);
+                client.listOperationsDetails(
+                    new VitamContext(Integer.parseInt(tenantIdHeader)).setApplicationSessionId(getAppSessionId()),
+                    query);
             return Response.status(Status.OK).entity(response).build();
         } catch (VitamClientException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
@@ -1746,7 +1765,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         String contractName = headers.getHeaderString(GlobalDataRest.X_ACCESS_CONTRAT_ID);
         final int tenantId = Integer.parseInt(tenantIdHeader);
         try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
-            RequestResponse<ItemStatus> response = client.updateOperationActionProcess(new VitamContext(tenantId),
+            RequestResponse<ItemStatus> response = client.updateOperationActionProcess(
+                new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()),
                 xAction, id);
 
             if (!response.isOk()) {
@@ -1762,7 +1782,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             if (vitamPoolingClient.wait(tenantId, id, 2000, 3000l, TimeUnit.MILLISECONDS)) {
 
                 final RequestResponse<ItemStatus> requestResponse =
-                    client.getOperationProcessExecutionDetails(new VitamContext(tenantId), id);
+                    client.getOperationProcessExecutionDetails(
+                        new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()), id);
                 if (!requestResponse.isOk()) {
                     return requestResponse.toResponse();
                 }
@@ -1819,7 +1840,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
             RequestResponse<ItemStatus> resp =
-                ingestExternalClient.cancelOperationProcessExecution(new VitamContext(Integer.parseInt(tenantIdHeader)),
+                ingestExternalClient.cancelOperationProcessExecution(
+                    new VitamContext(Integer.parseInt(tenantIdHeader)).setApplicationSessionId(getAppSessionId()),
                     id);
             if (resp.isOk()) {
                 return Response.status(Status.OK).entity(((RequestResponseOK<ItemStatus>) resp).getResults().get(0))
@@ -1853,7 +1875,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse response =
                 adminClient
-                    .importContracts(new VitamContext(getTenantId(headers)), input, AdminCollections.ENTRY_CONTRACTS);
+                    .importContracts(new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()),
+                    input, AdminCollections.ENTRY_CONTRACTS);
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).build();
             }
@@ -1889,7 +1912,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
             try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
                 RequestResponse<IngestContractModel> response =
                     adminClient.findIngestContracts(
-                        new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers)), query);
+                        new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers))
+                            .setApplicationSessionId(getAppSessionId()),
+                        query);
                 if (response != null && response instanceof RequestResponseOK) {
                     return Response.status(Status.OK).entity(response).build();
                 }
@@ -1922,7 +1947,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse<IngestContractModel> response =
                 adminClient.findIngestContractById(
-                    new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers)),
+                    new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers))
+                            .setApplicationSessionId(getAppSessionId()),
                     id);
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).entity(response).build();
@@ -1970,7 +1996,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             updateRequest.setQuery(QueryHelper.eq(IDENTIFIER, contractId));
             updateRequest.addActions(UpdateActionHelper.set((ObjectNode) updateOptions));
             final RequestResponse archiveDetails =
-                adminClient.updateIngestContract(new VitamContext(getTenantId(headers)), contractId,
+                adminClient.updateIngestContract(
+                        new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()), contractId,
                     updateRequest.getFinalUpdate());
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
@@ -2002,8 +2029,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response uploadAccessContracts(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse response =
-                adminClient
-                    .importContracts(new VitamContext(getTenantId(headers)), input, AdminCollections.ACCESS_CONTRACTS);
+                adminClient.importContracts(
+                        new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()),
+                        input, AdminCollections.ACCESS_CONTRACTS);
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).build();
             }
@@ -2041,7 +2069,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
                 RequestResponse<AccessContractModel> response =
                     adminClient.findAccessContracts(
-                        new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers)), query);
+                        new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers))
+                            .setApplicationSessionId(getAppSessionId()), query);
                 if (response != null && response instanceof RequestResponseOK) {
                     return Response.status(Status.OK).entity(response).build();
                 }
@@ -2074,9 +2103,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse<AccessContractModel> response =
-                adminClient.findAccessContractById(
-                    new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers)),
-                    id);
+                    adminClient.findAccessContractById(
+                            new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers))
+                                    .setApplicationSessionId(getAppSessionId()), id);
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).entity(response).build();
             }
@@ -2123,8 +2152,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
             }
             updateRequest.addActions(UpdateActionHelper.set((ObjectNode) updateOptions));
             final RequestResponse archiveDetails =
-                adminClient.updateAccessContract(new VitamContext(getTenantId(headers)), contractId,
-                    updateRequest.getFinalUpdate());
+                adminClient.updateAccessContract(
+                        new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()),
+                        contractId, updateRequest.getFinalUpdate());
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
@@ -2171,7 +2201,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             updateRequest.addActions(UpdateActionHelper.set((ObjectNode) updateOptions));
             final RequestResponse updateResponse =
                 adminClient
-                    .updateContext(new VitamContext(getTenantId(headers)), contextId, updateRequest.getFinalUpdate());
+                    .updateContext(new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()),
+                    contextId, updateRequest.getFinalUpdate());
             LOGGER.error("update status " + updateResponse.toString());
             return Response.status(Status.OK).entity(updateResponse).build();
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
@@ -2201,7 +2232,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response uploadContext(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse response =
-                adminClient.importContexts(new VitamContext(getTenantId(headers)), input);
+                adminClient.importContexts(
+                    new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()), input);
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).build();
             }
@@ -2237,7 +2269,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
                 RequestResponse<ContextModel> response =
                     adminClient.findContexts(
-                        new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers)), query);
+                        new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers))
+                                .setApplicationSessionId(getAppSessionId()), query);
                 if (response != null && response instanceof RequestResponseOK) {
                     return Response.status(Status.OK).entity(response).build();
                 }
@@ -2269,7 +2302,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse<ContextModel> response =
                 adminClient.findContextById(
-                    new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers)), id);
+                    new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers))
+                            .setApplicationSessionId(getAppSessionId()), id);
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).entity(response).build();
             }
@@ -2301,7 +2335,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         // want a creation
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse response =
-                adminClient.createProfiles(new VitamContext(getTenantId(headers)), input);
+                adminClient.createProfiles(
+                    new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()), input);
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).build();
             }
@@ -2331,7 +2366,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response importProfileFile(@Context HttpHeaders headers, InputStream input, @PathParam("id") String id) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse response =
-                adminClient.importProfileFile(new VitamContext(getTenantId(headers)), id, input);
+                adminClient.importProfileFile(
+                    new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()), id, input);
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).build();
             }
@@ -2364,7 +2400,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
 
-            final Response response = client.downloadProfileFile(new VitamContext(tenant), profileMetadataId);
+            final Response response = client.downloadProfileFile(
+                new VitamContext(tenant).setApplicationSessionId(getAppSessionId()), profileMetadataId);
             helper = new AsyncInputStreamHelper(asyncResponse, response);
             final Response.ResponseBuilder responseBuilder =
                 Response.status(Status.OK)
@@ -2410,7 +2447,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
                 RequestResponse<ProfileModel> response =
                     adminClient.findProfiles(
-                        new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers)), query);
+                        new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers))
+                                .setApplicationSessionId(getAppSessionId()), query);
                 if (response != null && response instanceof RequestResponseOK) {
                     return Response.status(Status.OK).entity(response).build();
                 }
@@ -2444,7 +2482,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse<ProfileModel> response =
                 adminClient.findProfileById(
-                    new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers)), id);
+                    new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers))
+                            .setApplicationSessionId(getAppSessionId()), id);
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).entity(response).build();
             }
@@ -2486,7 +2525,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
         Response response = null;
         try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
             response = ingestExternalClient
-                .downloadObjectAsync(new VitamContext(tenantId), guid, IngestCollection.REPORTS);
+                .downloadObjectAsync(
+                    new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()),
+                    guid, IngestCollection.REPORTS);
             InputStream inputStream = response.readEntity(InputStream.class);
             if (inputStream != null) {
                 file = PropertiesUtils.fileFromTmpFolder("ATR_" + guid + ".xml");
@@ -2531,7 +2572,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             // Start check process
             RequestResponse<JsonNode> result =
-                UserInterfaceTransactionManager.checkTraceabilityOperation(dslQuery, tenantIdHeader, contractName);
+                UserInterfaceTransactionManager.checkTraceabilityOperation(dslQuery, tenantIdHeader, contractName,
+                    getAppSessionId());
 
             // By default the returned status is different from the result of the verification process because we are
             // returning the report
@@ -2603,8 +2645,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
 
             response = client
-                .downloadTraceabilityOperationFile(new VitamContext(tenantId).setAccessContract(contractId),
-                    operationId);
+                .downloadTraceabilityOperationFile(new VitamContext(tenantId).setAccessContract(contractId)
+                                .setApplicationSessionId(getAppSessionId()), operationId);
 
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
 
@@ -2661,7 +2703,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
             RequestResponse<WorkFlow> result = ingestExternalClient.getWorkflowDefinitions(
-                new VitamContext(getTenantId(headers)));
+                new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()));
             return Response.status(Status.OK).entity(result).build();
         } catch (VitamClientException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
@@ -2678,12 +2720,27 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response launchAudit(@Context HttpHeaders headers, JsonNode auditOption) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse<JsonNode> result = adminClient.launchAudit(
-                new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers)), auditOption);
+                new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers))
+                    .setApplicationSessionId(getAppSessionId()), auditOption);
             return Response.status(Status.OK).entity(result).build();
         } catch (Exception e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
 
+    }
+
+    /**
+     * Returns session id for the authenticated user.
+     * <p>
+     * The application may track each logged user by a unique session id. This session id is passed to vitam and is
+     * persisted "as is" in Vitam logbook operations. In case of audit / legal dispute, the application session id can
+     * be used for correlation with application user login logs / db.
+     *
+     * @return application session id
+     */
+    private static String getAppSessionId() {
+        // TODO : Implement session id -> user mapping persistence (login activity journal / logs...).
+        return "MyApplicationId-ChangeIt";
     }
 }

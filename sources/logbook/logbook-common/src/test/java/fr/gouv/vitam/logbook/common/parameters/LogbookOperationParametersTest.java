@@ -37,6 +37,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import org.junit.Rule;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -48,6 +52,10 @@ import fr.gouv.vitam.common.model.StatusCode;
  * Test class for LogbookOperationParameters
  */
 public class LogbookOperationParametersTest {
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Test
     public void getMapParameters() {
@@ -76,6 +84,7 @@ public class LogbookOperationParametersTest {
         }
     }
 
+    @RunWithCustomExecutor
     @Test
     public void getMandatoriesParameters() {
         final LogbookOperationParameters params = LogbookParametersFactory.newLogbookOperationParameters();

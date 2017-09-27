@@ -2,7 +2,10 @@ package fr.gouv.vitam.logbook.common.parameters;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.assertj.core.api.Assertions;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import org.junit.Rule;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -37,6 +40,11 @@ import fr.gouv.vitam.common.model.StatusCode;
  */
 public class LogbookParametersFactoryTest {
 
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
+    @RunWithCustomExecutor
     @Test
     public void should_compute_outcome_detail_when_create_logbook_operation_parameter() throws Exception {
         // Given

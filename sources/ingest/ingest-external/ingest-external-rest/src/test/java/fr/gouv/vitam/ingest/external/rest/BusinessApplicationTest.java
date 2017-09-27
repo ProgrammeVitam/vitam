@@ -32,7 +32,7 @@ public class BusinessApplicationTest extends Application {
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
             final IngestExternalConfiguration configuration =
                 PropertiesUtils.readYaml(yamlIS, IngestExternalConfiguration.class);
-            commonBusinessApplication = new CommonBusinessApplication();
+            commonBusinessApplication = new CommonBusinessApplication(true);
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(new IngestExternalResource(configuration, secureEndpointRegistry));

@@ -194,7 +194,8 @@ public class PerformanceService {
         try {
             LOGGER.debug("generate report");
             final RequestResponse<LogbookOperation> requestResponse =
-                UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId, DEFAULT_CONTRACT_NAME);
+                UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId, DEFAULT_CONTRACT_NAME,
+                    getAppSessionId());
 
             if (requestResponse.isOk()) {
                 RequestResponseOK<LogbookOperation> requestResponseOK =
@@ -331,5 +332,7 @@ public class PerformanceService {
             .collect(Collectors.toList());
     }
 
-
+    private static String getAppSessionId() {
+        return "MyApplicationId-ChangeIt";
+    }
 }

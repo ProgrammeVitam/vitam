@@ -34,6 +34,9 @@ import java.util.Set;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.VitamSession;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+
 import static fr.gouv.vitam.common.i18n.VitamLogbookMessages.getOutcomeDetail;
 
 /**
@@ -184,6 +187,11 @@ public class LogbookParametersFactory {
             eventIdentifierProcess, eventIdentifierRequest, outcome, eventTypeProcess);
         ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventType, outcomeDetailMessage);
         final LogbookOperationParameters parameters = newLogbookOperationParameters();
+
+        final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
+        String applicationSessionId = vitamSession.getApplicationSessionId();
+        String contextId = vitamSession.getContextId();
+
         return (LogbookOperationParameters) parameters
                 .putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier.getId())
                 .putParameterValue(LogbookParameterName.eventType, eventType)
@@ -193,7 +201,9 @@ public class LogbookParametersFactory {
                 .putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage)
                 .putParameterValue(LogbookParameterName.eventIdentifierRequest, eventIdentifierRequest.getId())
                 .putParameterValue(LogbookParameterName.outcomeDetail, getOutcomeDetail(eventType, outcome))
-                .putParameterValue(LogbookParameterName.objectIdentifier, eventIdentifierProcess.getId());
+                .putParameterValue(LogbookParameterName.objectIdentifier, eventIdentifierProcess.getId())
+                .putParameterValue(LogbookParameterName.agentIdentifierApplication, contextId)
+                .putParameterValue(LogbookParameterName.agentIdentifierApplicationSession, applicationSessionId);
     }
 
     /**
@@ -217,12 +227,19 @@ public class LogbookParametersFactory {
         ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventIdentifier,
             eventIdentifierProcess, eventIdentifierRequest, outcome, eventTypeProcess);
         ParametersChecker.checkParameter(NO_PARAMETER_CAN_BE_NULL_OR_EMPTY, eventType);
+
+        final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
+        String applicationSessionId = vitamSession.getApplicationSessionId();
+        String contextId = vitamSession.getContextId();
+
         final LogbookOperationParameters parameters = newLogbookOperationParameters();
         parameters
             .putParameterValue(LogbookParameterName.eventIdentifier, eventIdentifier.getId())
             .putParameterValue(LogbookParameterName.eventIdentifierProcess, eventIdentifierProcess.getId())
             .setTypeProcess(eventTypeProcess)
-            .putParameterValue(LogbookParameterName.eventIdentifierRequest, eventIdentifierRequest.getId());
+            .putParameterValue(LogbookParameterName.eventIdentifierRequest, eventIdentifierRequest.getId())
+            .putParameterValue(LogbookParameterName.agentIdentifierApplication, contextId)
+            .putParameterValue(LogbookParameterName.agentIdentifierApplicationSession, applicationSessionId);
         parameters.setFinalStatus(eventType, subtask, outcome, appendedDetailMessage);
         return parameters;
     }

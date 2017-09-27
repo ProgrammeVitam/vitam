@@ -26,10 +26,12 @@
  */
 package fr.gouv.vitam.common.thread;
 
+import java.lang.annotation.Annotation;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+import org.junit.ClassRule;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -56,7 +58,7 @@ import org.junit.runners.model.Statement;
  *
  * @see RunWithCustomExecutor
  */
-public class RunWithCustomExecutorRule implements TestRule {
+public class RunWithCustomExecutorRule implements TestRule, ClassRule {
 
     private final ExecutorService executor;
 
@@ -78,6 +80,10 @@ public class RunWithCustomExecutorRule implements TestRule {
         } else {
             return base;
         }
+    }
+
+    @Override public Class<? extends Annotation> annotationType() {
+        return RunWithCustomExecutor.class;
     }
 
     /**

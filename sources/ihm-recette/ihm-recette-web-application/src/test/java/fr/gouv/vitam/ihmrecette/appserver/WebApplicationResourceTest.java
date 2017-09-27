@@ -127,7 +127,8 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetLogbookStatisticsWithSuccess() throws Exception {
         PowerMockito.when(
-            UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID, DEFAULT_CONTRACT_NAME))
+            UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID, DEFAULT_CONTRACT_NAME,
+                getAppSessionId()))
             .thenReturn(RequestResponseOK.getFromJsonNode(sampleLogbookOperation));
         given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.OK.getStatusCode()).when()
             .get("/stat/" + FAKE_OPERATION_ID);
@@ -138,7 +139,8 @@ public class WebApplicationResourceTest {
     public void testGetLogbookStatisticsWithNotFoundWhenLogbookClientException()
         throws Exception {
         PowerMockito.when(
-            UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID, DEFAULT_CONTRACT_NAME))
+            UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID, DEFAULT_CONTRACT_NAME,
+                getAppSessionId()))
             .thenThrow(LogbookClientException.class);
         given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get("/stat/" + FAKE_OPERATION_ID);
@@ -149,7 +151,8 @@ public class WebApplicationResourceTest {
     public void testGetLogbookStatisticsWithInternalServerErrorWhenInvalidParseOperationException()
         throws Exception {
         PowerMockito.when(
-            UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID, DEFAULT_CONTRACT_NAME))
+            UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID, DEFAULT_CONTRACT_NAME,
+                getAppSessionId()))
             .thenThrow(InvalidParseOperationException.class);
         given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .when()
@@ -181,4 +184,7 @@ public class WebApplicationResourceTest {
             .statusCode(Status.OK.getStatusCode());
     }
 
+    private static String getAppSessionId() {
+        return "MyApplicationId-ChangeIt";
+    }
 }

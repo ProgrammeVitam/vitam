@@ -58,8 +58,12 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.CommonMediaType;
@@ -91,6 +95,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 
 @SuppressWarnings("rawtypes")
+@RunWithCustomExecutor
 public class IngestInternalClientRestTest extends VitamJerseyTest {
 
     private static final String PATH = "/ingest/v1";
@@ -98,6 +103,10 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
     private static final String CONTAINERID = "containerId";
     private static final String WORKFLOWID = "workFlowId";
     private static final String ID = "id1";
+
+    @ClassRule
+    public static RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
 
     private IngestInternalClientRest client;

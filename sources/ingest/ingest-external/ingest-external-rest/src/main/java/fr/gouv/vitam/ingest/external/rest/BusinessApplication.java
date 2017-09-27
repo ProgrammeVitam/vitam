@@ -35,7 +35,7 @@ public class BusinessApplication extends Application {
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
             final IngestExternalConfiguration configuration =
                 PropertiesUtils.readYaml(yamlIS, IngestExternalConfiguration.class);
-            commonBusinessApplication = new CommonBusinessApplication();
+            commonBusinessApplication = new CommonBusinessApplication(true);
             singletons = new HashSet<>();
             singletons.add(new InternalSecurityFilter());
             singletons.addAll(commonBusinessApplication.getResources());

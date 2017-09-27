@@ -41,6 +41,7 @@ public final class VitamContext {
 
     private Integer tenantId;
     private String accessContract;
+    private String applicationSessionId;
 
     /**
      * @param tenantId the tenant id
@@ -90,6 +91,26 @@ public final class VitamContext {
     }
 
     /**
+     * Gets the application session id
+     *
+     * @return the application session id
+     */
+    public String getApplicationSessionId() {
+        return applicationSessionId;
+    }
+
+    /**
+     * Sets the application session id
+     *
+     * @param applicationSessionId the application session id to set
+     * @return "this" instance. May be used for fluent instance creation.
+     */
+    public VitamContext setApplicationSessionId(String applicationSessionId) {
+        this.applicationSessionId = applicationSessionId;
+        return this;
+    }
+
+    /**
      * Returns a vitam context parameters as headers
      *
      * @return header-name/value map of vitam context parameters
@@ -104,6 +125,9 @@ public final class VitamContext {
         if (this.accessContract != null) {
             result.put(GlobalDataRest.X_ACCESS_CONTRAT_ID, Collections.singletonList(this.accessContract));
         }
+        if (this.applicationSessionId != null) {
+            result.put(GlobalDataRest.X_APPLICATION_ID, Collections.singletonList(this.applicationSessionId));
+        }
 
         return result;
     }
@@ -113,6 +137,7 @@ public final class VitamContext {
         return "VitamContext{" +
             "tenantId=" + tenantId +
             ", accessContract='" + accessContract + '\'' +
+            ", applicationSessionId='" + applicationSessionId + '\'' +
             '}';
     }
 
@@ -124,11 +149,12 @@ public final class VitamContext {
             return false;
         VitamContext that = (VitamContext) o;
         return Objects.equals(tenantId, that.tenantId) &&
-            Objects.equals(accessContract, that.accessContract);
+            Objects.equals(accessContract, that.accessContract) &&
+            Objects.equals(applicationSessionId, that.applicationSessionId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(tenantId, accessContract);
+        return Objects.hash(tenantId, accessContract, applicationSessionId);
     }
 }

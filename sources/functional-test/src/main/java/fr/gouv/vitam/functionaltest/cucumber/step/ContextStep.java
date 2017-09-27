@@ -83,8 +83,9 @@ public class ContextStep {
         throws IOException, AccessExternalClientServerException, InvalidParseOperationException {
         Path context = Paths.get(world.getBaseDirectory(), fileName);
         final RequestResponse response =
-            world.getAdminClient()
-                .importContexts(new VitamContext(world.getTenantId()), Files.newInputStream(context, StandardOpenOption.READ));
+            world.getAdminClient().importContexts(
+                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                    Files.newInputStream(context, StandardOpenOption.READ));
         assertThat(Response.Status.OK.getStatusCode() == response.getStatus());
     }
 
@@ -93,8 +94,9 @@ public class ContextStep {
         throws AccessExternalClientServerException, InvalidParseOperationException, IOException {
         Path context = Paths.get(world.getBaseDirectory(), fileName);
         final RequestResponse response =
-            world.getAdminClient()
-                .importContexts(new VitamContext(world.getTenantId()), Files.newInputStream(context, StandardOpenOption.READ));
+            world.getAdminClient().importContexts(
+                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                    Files.newInputStream(context, StandardOpenOption.READ));
         assertThat(Response.Status.BAD_REQUEST.getStatusCode() == response.getStatus());
     }
 
@@ -109,15 +111,19 @@ public class ContextStep {
 
         JsonNode queryDsl = JsonHandler.getFromString(query);
         RequestResponse<ContextModel> requestResponse =
-            world.getAdminClient()
-                .updateContext(new VitamContext(world.getTenantId()), find_a_context_id(), queryDsl);
+            world.getAdminClient().updateContext(
+                new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                find_a_context_id(), queryDsl);
     }
 
     private String find_a_context_id()
         throws VitamClientException {
         JsonNode queryDsl = JsonHandler.createObjectNode();
         RequestResponse<ContextModel> requestResponse =
-            world.getAdminClient().findContexts(new VitamContext(world.getTenantId()).setAccessContract(null), queryDsl);
+            world.getAdminClient().findContexts(
+                new VitamContext(world.getTenantId()).setAccessContract(null)
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                queryDsl);
         if (requestResponse.isOk()) {
             return ((RequestResponseOK<ContextModel>) requestResponse).getFirstResult().getId();
         }
@@ -129,7 +135,10 @@ public class ContextStep {
         throws AccessExternalClientNotFoundException, AccessExternalClientException, InvalidParseOperationException,
         VitamClientException {
         RequestResponse<ContextModel> requestResponse =
-            world.getAdminClient().findContextById(new VitamContext(world.getTenantId()).setAccessContract(null), find_a_context_id());
+            world.getAdminClient().findContextById(
+                new VitamContext(world.getTenantId()).setAccessContract(null)
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                find_a_context_id());
         assertThat(requestResponse.toString().contains(identifier));
     }
 

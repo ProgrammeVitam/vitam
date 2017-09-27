@@ -144,7 +144,9 @@ public class ContractsStep {
             AdminCollections collection = AdminCollections.valueOf(type);
             this.setContractType(collection.getName());
             RequestResponse response =
-                world.getAdminClient().importContracts(new VitamContext(world.getTenantId()), inputStream, collection);
+                world.getAdminClient().importContracts(
+                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                    inputStream, collection);
             assertThat(response instanceof RequestResponseOK);
         }
     }
@@ -163,7 +165,9 @@ public class ContractsStep {
             AdminCollections collection = AdminCollections.valueOf(type);
             this.setContractType(collection.getName());
             RequestResponse response =
-                world.getAdminClient().importContracts(new VitamContext(world.getTenantId()), inputStream, collection);
+                world.getAdminClient().importContracts(
+                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                    inputStream, collection);
             // TODO : this has to be fixed, the returned response is not correct, Bad request must me obtained
             assertThat(Response.Status.BAD_REQUEST.getStatusCode() == response.getStatus());
         } catch (IllegalStateException e) {
@@ -187,7 +191,10 @@ public class ContractsStep {
         switch (collection) {
             case ACCESS_CONTRACTS:
                 RequestResponse<AccessContractModel> accessResponse =
-                    world.getAdminClient().findAccessContracts(new VitamContext(world.getTenantId()).setAccessContract(null), query);
+                    world.getAdminClient().findAccessContracts(
+                        new VitamContext(world.getTenantId()).setAccessContract(null)
+                            .setApplicationSessionId(world.getApplicationSessionId()),
+                        query);
                 if (accessResponse.isOk()) {
                     this.setModel(
                         ((RequestResponseOK<AccessContractModel>) accessResponse).getResultsAsJsonNodes().get(0));
@@ -195,7 +202,10 @@ public class ContractsStep {
                 break;
             case ENTRY_CONTRACTS:
                 RequestResponse<IngestContractModel> ingestResponse =
-                    world.getAdminClient().findIngestContracts(new VitamContext(world.getTenantId()).setAccessContract(null), query);
+                    world.getAdminClient().findIngestContracts(
+                        new VitamContext(world.getTenantId()).setAccessContract(null)
+                            .setApplicationSessionId(world.getApplicationSessionId()),
+                        query);
                 if (ingestResponse.isOk()) {
                     this.setModel(
                         ((RequestResponseOK<IngestContractModel>) ingestResponse).getResultsAsJsonNodes().get(0));
