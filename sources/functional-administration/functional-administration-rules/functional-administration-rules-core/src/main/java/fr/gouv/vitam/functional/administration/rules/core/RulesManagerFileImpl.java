@@ -62,6 +62,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -139,20 +140,19 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
-import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -194,7 +194,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     private final MongoDbAccessAdminImpl mongoAccess;
     private static final String RULE_ID = "RuleId";
     private final VitamCounterService vitamCounterService;
-    private static final String STORAGE_ERROR_REPORT_NAME = "ErrorReport";
     private static final String STORAGE_RULES_WORKSPACE = "RULES";
     private LogbookOperationsClient client;
     private final WorkspaceClientFactory workspaceClientFactory;
@@ -1199,15 +1198,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         actions.add(setRuleValue);
         SetAction setRuleDescription = new SetAction(RULE_DESCRIPTION, fileRulesModel.getRuleDescription());
         actions.add(setRuleDescription);
-        Date date;
-        try {
-            date = LocalDateUtil.getDate(LocalDateUtil.getString(LocalDateTime.now()));
-        } catch (ParseException e) {
-            throw new InvalidParseOperationException("Invalid date");
-        }
-        final LocalDateTime localTime = LocalDateUtil.fromDate(date);
         SetAction setUpdateDate =
-            new SetAction(UPDATE_DATE, localTime.toString());
+            new SetAction(UPDATE_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
         actions.add(setUpdateDate);
         SetAction setRuleMeasurement = new SetAction(RULE_MEASUREMENT, fileRulesModel.getRuleMeasurement());
         actions.add(setRuleMeasurement);
@@ -1586,7 +1578,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         final ArrayNode usedDeletedArrayNode = JsonHandler.createArrayNode();
         final ArrayNode usedUpdatedArrayNode = JsonHandler.createArrayNode();
         guidmasterNode.put("evType", STP_IMPORT_RULES);
-        guidmasterNode.put("evDateTime", LocalDateUtil.now().toString());
+        guidmasterNode.put("evDateTime", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
         for (Integer line : errors.keySet()) {
             List<ErrorReport> errorsReports = errors.get(line);
             for (ErrorReport error : errorsReports) {
@@ -1662,7 +1654,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         final ArrayNode usedDeletedArrayNode = JsonHandler.createArrayNode();
         final ArrayNode usedUpdatedArrayNode = JsonHandler.createArrayNode();
         guidmasterNode.put("evType", STP_IMPORT_RULES);
-        guidmasterNode.put("evDateTime", LocalDateUtil.now().toString());
+        guidmasterNode.put("evDateTime", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
         guidmasterNode.put("evId", eip.toString());
         for (FileRulesModel fileRulesModel : usedDeletedRules) {
             usedDeletedArrayNode.add(fileRulesModel.toString());

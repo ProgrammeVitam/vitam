@@ -238,8 +238,8 @@ public class MongoDbAccessAdminImplTest {
             .setObjectSize(initialValue)
             .setOriginatingAgency(AGENCY)
             .setSubmissionAgency(AGENCY)
-            .setStartDate("startDate")
-            .setEndDate("endDate")
+            .setStartDate("2017-01-01")
+            .setEndDate("2017-01-01")
             .setTotalObjectGroups(initialValue)
             .setTotalObjects(initialValue)
             .setTotalUnits(initialValue);

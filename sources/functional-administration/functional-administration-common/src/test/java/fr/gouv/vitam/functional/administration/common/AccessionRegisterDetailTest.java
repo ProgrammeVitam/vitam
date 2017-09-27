@@ -11,6 +11,7 @@ import org.bson.Document;
 import org.junit.Rule;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterStatus;
@@ -23,6 +24,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 public class AccessionRegisterDetailTest {
 
     private static final String TEST = "test";
+    private static final String DATE = "2017-01-01";
     private static final Integer TENANT_ID = 0;
 
     @Rule
@@ -43,9 +45,9 @@ public class AccessionRegisterDetailTest {
             .setObjectSize(initialValue)
             .setSubmissionAgency(TEST)
             .setArchivalAgreement(TEST)
-            .setEndDate(TEST)
-            .setStartDate(TEST)
-            .setLastUpdate(TEST)
+            .setEndDate(DATE)
+            .setStartDate(DATE)
+            .setLastUpdate(DATE)
             .setStatus(AccessionRegisterStatus.STORED_AND_COMPLETED)
             .setTotalObjectGroups(initialValue)
             .setTotalObjects(initialValue)
@@ -58,7 +60,7 @@ public class AccessionRegisterDetailTest {
         assertEquals(initialValue, register.getTotalObjectSize());
         assertEquals(initialValue, register.getTotalUnits());
         assertEquals(initialValue, register.getTotalObjects());
-        assertEquals(TEST, register.getEndDate());
+        assertEquals(LocalDateUtil.getFormattedDateForMongo(DATE), register.getEndDate());
 
         final InputStream stream =
             Thread.currentThread().getContextClassLoader().getResourceAsStream("accession-register.json");

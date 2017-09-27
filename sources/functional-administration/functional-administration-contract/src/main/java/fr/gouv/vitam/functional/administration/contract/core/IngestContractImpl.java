@@ -26,9 +26,28 @@
  */
 package fr.gouv.vitam.functional.administration.contract.core;
 
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.core.Response;
+
+import org.bson.conversions.Bson;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -79,25 +98,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import org.bson.conversions.Bson;
-
-import javax.ws.rs.core.Response;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.in;
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
 
 public class IngestContractImpl implements ContractService<IngestContractModel> {
 
@@ -487,15 +487,11 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
          */
         private static EntryContractValidator createWrongFieldFormatValidator() {
             return (contract, inputList) -> {
-                EntryContractValidator.GenericRejectionCause rejection = null;
-                final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
-
-                final String now = LocalDateUtil.now().toString();
+                GenericContractValidator.GenericRejectionCause rejection = null;
+                final String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
                 if (contract.getStatus() == null || contract.getStatus().isEmpty()) {
                     contract.setStatus(ContractStatus.INACTIVE.name());
                 }
-
                 if (!contract.getStatus().equals(ContractStatus.ACTIVE.name()) &&
                     !contract.getStatus().equals(ContractStatus.INACTIVE.name())) {
                     LOGGER.error("Error ingest contract status not valide (must be ACTIVE or INACTIVE");
@@ -504,13 +500,11 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                             .rejectMandatoryMissing("Status " + contract.getStatus() +
                                 " not valide must be ACTIVE or INACTIVE");
                 }
-
                 try {
                     if (contract.getCreationdate() == null || contract.getCreationdate().trim().isEmpty()) {
                         contract.setCreationdate(now);
                     } else {
-                        contract.setCreationdate(
-                            LocalDate.parse(contract.getCreationdate(), formatter).atStartOfDay().toString());
+                        contract.setCreationdate(LocalDateUtil.getFormattedDateForMongo(contract.getCreationdate()));
                     }
 
                 } catch (final Exception e) {
@@ -521,22 +515,20 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     if (contract.getActivationdate() == null || contract.getActivationdate().trim().isEmpty()) {
                         contract.setActivationdate(now);
                     } else {
-                        contract.setActivationdate(
-                            LocalDate.parse(contract.getActivationdate(), formatter).atStartOfDay().toString());
-
+                        contract.setActivationdate(LocalDateUtil.getFormattedDateForMongo(contract.getActivationdate
+                            ()));
                     }
                 } catch (final Exception e) {
                     LOGGER.error("Error ingest contract parse dates", e);
                     rejection = EntryContractValidator.GenericRejectionCause.rejectMandatoryMissing("ActivationDate");
                 }
                 try {
-
                     if (contract.getDeactivationdate() == null || contract.getDeactivationdate().trim().isEmpty()) {
                         contract.setDeactivationdate(null);
                     } else {
 
-                        contract.setDeactivationdate(
-                            LocalDate.parse(contract.getDeactivationdate(), formatter).atStartOfDay().toString());
+                        contract.setDeactivationdate(LocalDateUtil.getFormattedDateForMongo(contract
+                            .getDeactivationdate()));
                     }
                 } catch (final Exception e) {
                     LOGGER.error("Error ingest contract parse dates", e);
@@ -648,7 +640,6 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         manager.logUpdateStarted(ingestContractModel.getId());
 
         final JsonNode actionNode = queryDsl.get(GLOBAL.ACTION.exactToken());
-        String updateStatus = null;
         for (final JsonNode fieldToSet : actionNode) {
             final JsonNode fieldName = fieldToSet.get(UPDATEACTION.SET.exactToken());
             if (fieldName != null) {
@@ -663,13 +654,12 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                                 .setMessage(THE_INGEST_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT +
                                     value.asText()));
                         }
-                        updateStatus = value.asText();
                     }
                 }
             }
         }
 
-        Map<String, List<String>> updateDiffs = new HashMap<>();
+        Map<String, List<String>> updateDiffs;
         try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
             if (queryDsl.findValue(IngestContractModel.FILING_PARENT_ID) != null) {
                 final String filingParentId = queryDsl.findValue(IngestContractModel.FILING_PARENT_ID).asText();

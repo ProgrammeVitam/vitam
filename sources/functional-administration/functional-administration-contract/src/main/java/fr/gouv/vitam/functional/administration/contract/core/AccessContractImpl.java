@@ -26,11 +26,31 @@
  */
 package fr.gouv.vitam.functional.administration.contract.core;
 
+import static com.mongodb.client.model.Filters.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+
+import java.io.IOException;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.core.Response;
+
+import org.assertj.core.util.VisibleForTesting;
+import org.bson.conversions.Bson;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.client.model.Filters;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConfiguration;
@@ -82,24 +102,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import org.assertj.core.util.VisibleForTesting;
-import org.bson.conversions.Bson;
-
-import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.mongodb.client.model.Filters.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
 public class AccessContractImpl implements ContractService<AccessContractModel> {
 
@@ -192,6 +194,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 contractNames.add(acm.getName());
                 // validate contract
                 if (manager.validateContract(acm, acm.getName(), error)) {
+                    // TODO: 5/16/17 newIngestContractGUID used for access contract, should create
                     // TODO: 5/16/17 newIngestContractGUID used for access contract, should create
                     // newAccessContractGUID?
                     acm.setId(GUIDFactory.newIngestContractGUID(ParameterHelper.getTenantParameter()).getId());
@@ -506,15 +509,10 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         private static AccessContractValidator createWrongFieldFormatValidator() {
             return (contract, inputList) -> {
                 GenericRejectionCause rejection = null;
-                final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
-
-                final String now = LocalDateUtil.now().toString();
+                final String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
                 if (contract.getStatus() == null || contract.getStatus().isEmpty()) {
                     contract.setStatus(ContractStatus.INACTIVE.name());
                 }
-
-
                 if (!contract.getStatus().equals(ContractStatus.ACTIVE.name()) &&
                     !contract.getStatus().equals(ContractStatus.INACTIVE.name())) {
                     LOGGER.error("Error access contract status not valide (must be ACTIVE or INACTIVE");
@@ -522,16 +520,12 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                         GenericRejectionCause.rejectMandatoryMissing("Status " + contract.getStatus() +
                             " not valide must be ACTIVE or INACTIVE");
                 }
-
-
                 try {
                     if (contract.getCreationdate() == null || contract.getCreationdate().trim().isEmpty()) {
                         contract.setCreationdate(now);
                     } else {
-                        contract.setCreationdate(
-                            LocalDate.parse(contract.getCreationdate(), formatter).atStartOfDay().toString());
+                        contract.setCreationdate(LocalDateUtil.getFormattedDateForMongo(contract.getCreationdate()));
                     }
-
                 } catch (final Exception e) {
                     LOGGER.error("Error access contract parse dates", e);
                     rejection = GenericRejectionCause.rejectMandatoryMissing("Creationdate");
@@ -540,9 +534,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     if (contract.getActivationdate() == null || contract.getActivationdate().trim().isEmpty()) {
                         contract.setActivationdate(now);
                     } else {
-                        contract.setActivationdate(
-                            LocalDate.parse(contract.getActivationdate(), formatter).atStartOfDay().toString());
-
+                        contract.setActivationdate(LocalDateUtil.getFormattedDateForMongo(contract.getActivationdate
+                            ()));
                     }
                 } catch (final Exception e) {
                     LOGGER.error("Error access contract parse dates", e);
@@ -553,8 +546,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     if (contract.getDeactivationdate() == null || contract.getDeactivationdate().trim().isEmpty()) {
                         contract.setDeactivationdate(null);
                     } else {
-                        contract.setDeactivationdate(
-                            LocalDate.parse(contract.getDeactivationdate(), formatter).atStartOfDay().toString());
+                        contract.setDeactivationdate(LocalDateUtil.getFormattedDateForMongo(contract
+                            .getDeactivationdate()));
                     }
                 } catch (final Exception e) {
                     LOGGER.error("Error access contract parse dates", e);

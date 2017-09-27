@@ -27,7 +27,26 @@
 
 package fr.gouv.vitam.functional.administration.profile.core;
 
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.or;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.bson.conversions.Bson;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -56,24 +75,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
-import org.bson.conversions.Bson;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.or;
 
 /**
  * This class manage validation and log operation of profile service
@@ -347,10 +348,9 @@ public class ProfileManager {
     private static ProfileValidator createWrongFieldFormatValidator() {
         return (profile) -> {
             RejectionCause rejection = null;
-            DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE.ofPattern("dd/MM/yyyy");
 
 
-            String now = LocalDateUtil.now().toString();
+            String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
             if (profile.getStatus() == null) {
                 profile.setStatus(ProfileStatus.INACTIVE);
             }
@@ -369,8 +369,7 @@ public class ProfileManager {
                 if (profile.getCreationdate() == null || profile.getCreationdate().trim().isEmpty()) {
                     profile.setCreationdate(now);
                 } else {
-                    profile.setCreationdate(
-                        LocalDate.parse(profile.getCreationdate(), formatter).atStartOfDay().toString());
+                    profile.setCreationdate(LocalDateUtil.getFormattedDateForMongo(profile.getCreationdate()));
                 }
 
             } catch (Exception e) {
@@ -381,8 +380,7 @@ public class ProfileManager {
                 if (profile.getActivationdate() == null || profile.getActivationdate().trim().isEmpty()) {
                     profile.setActivationdate(now);
                 } else {
-                    profile.setActivationdate(
-                        LocalDate.parse(profile.getActivationdate(), formatter).atStartOfDay().toString());
+                    profile.setActivationdate(LocalDateUtil.getFormattedDateForMongo(profile.getActivationdate()));
 
                 }
             } catch (Exception e) {
@@ -395,8 +393,7 @@ public class ProfileManager {
                     profile.setDeactivationdate(null);
                 } else {
 
-                    profile.setDeactivationdate(
-                        LocalDate.parse(profile.getDeactivationdate(), formatter).atStartOfDay().toString());
+                    profile.setDeactivationdate(LocalDateUtil.getFormattedDateForMongo(profile.getDeactivationdate()));
                 }
             } catch (Exception e) {
                 LOGGER.error("Error profile parse dates", e);

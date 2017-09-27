@@ -1,26 +1,26 @@
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *
+ * <p>
  * contact.vitam@culture.gouv.fr
- *
+ * <p>
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- *
+ * <p>
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *
+ * <p>
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- *
+ * <p>
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *
+ * <p>
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
@@ -34,6 +34,7 @@ import org.bson.Document;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterStatus;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
@@ -93,13 +94,13 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
         super(content);
         append(TENANT, ParameterHelper.getTenantParameter());
     }
-    
+
     /**
-     * 
+     *
      * @param tenantId th working tenant
      */
-    public AccessionRegisterDetail(Integer tenantId)  {
-    	append(TENANT, tenantId);
+    public AccessionRegisterDetail(Integer tenantId) {
+        append(TENANT, tenantId);
     }
 
     /**
@@ -117,19 +118,19 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
+     * @return String
+     */
+    public String getOriginatingAgency() {
+        return getString(ORIGINATING_AGENCY);
+    }
+
+    /**
      * @param orgAgency to set
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setOriginatingAgency(String orgAgency) {
         append(ORIGINATING_AGENCY, orgAgency);
         return this;
-    }
-
-    /**
-     * @return String
-     */
-    public String getOriginatingAgency() {
-        return getString(ORIGINATING_AGENCY);
     }
 
     /**
@@ -155,16 +156,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setStartDate(String startDate) {
-        append(START_DATE, startDate);
-        return this;
-    }
-
-    /**
-     * @param endDate to set
-     * @return AccessionRegisterDetail
-     */
-    public AccessionRegisterDetail setEndDate(String endDate) {
-        append(END_DATE, endDate);
+        append(START_DATE, LocalDateUtil.getFormattedDateForMongo(startDate));
         return this;
     }
 
@@ -176,12 +168,28 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
+     * @param endDate to set
+     * @return AccessionRegisterDetail
+     */
+    public AccessionRegisterDetail setEndDate(String endDate) {
+        append(END_DATE, LocalDateUtil.getFormattedDateForMongo(endDate));
+        return this;
+    }
+
+    /**
      * @param lastUpdate to set
      * @return AccessionRegisterDetail
      */
     public AccessionRegisterDetail setLastUpdate(String lastUpdate) {
-        append(LAST_UPDATE, lastUpdate);
+        append(LAST_UPDATE, LocalDateUtil.getFormattedDateForMongo(lastUpdate));
         return this;
+    }
+
+    /**
+     * @return String
+     */
+    public RegisterValueDetailModel getTotalUnits() {
+        return new ObjectMapper().convertValue(this.get(TOTAL_UNITS), RegisterValueDetailModel.class);
     }
 
     /**
@@ -194,10 +202,10 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
-     * @return String
+     * @return RegisterValueDetail
      */
-    public RegisterValueDetailModel getTotalUnits() {
-        return new ObjectMapper().convertValue(this.get(TOTAL_UNITS), RegisterValueDetailModel.class);
+    public RegisterValueDetailModel getTotalObjectGroups() {
+        return new ObjectMapper().convertValue(this.get(TOTAL_OBJECTGROUPS), RegisterValueDetailModel.class);
     }
 
     /**
@@ -212,8 +220,8 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     /**
      * @return RegisterValueDetail
      */
-    public RegisterValueDetailModel getTotalObjectGroups() {
-        return new ObjectMapper().convertValue(this.get(TOTAL_OBJECTGROUPS), RegisterValueDetailModel.class);
+    public RegisterValueDetailModel getTotalObjects() {
+        return new ObjectMapper().convertValue(this.get(TOTAL_OBJECTS), RegisterValueDetailModel.class);
     }
 
     /**
@@ -223,13 +231,6 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     public AccessionRegisterDetail setTotalObjects(RegisterValueDetailModel total) {
         append(TOTAL_OBJECTS, total);
         return this;
-    }
-
-    /**
-     * @return RegisterValueDetail
-     */
-    public RegisterValueDetailModel getTotalObjects() {
-        return new ObjectMapper().convertValue(this.get(TOTAL_OBJECTS), RegisterValueDetailModel.class);
     }
 
     /**
@@ -256,7 +257,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
         append(STATUS, status.name());
         return this;
     }
-    
+
     public AccessionRegisterDetail setOperationIds(List<String> operationIds) {
         if (!operationIds.isEmpty()) {
             final List<String> ids = new ArrayList<>();
@@ -264,7 +265,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
             append(OPERATION_IDS, ids);
         }
         return this;
-	}
+    }
 
     public AccessionRegisterDetail setSymbolic(boolean symbolic) {
         append(SYMBOLIC, symbolic);
