@@ -220,7 +220,7 @@ public class ArchiveUnitUpdateUtils {
             eventIdentifierProcess,
             eventTypeProcess, logbookOutcome,
             VitamLogbookMessages.getOutcomeDetailLfc(action, logbookOutcome),
-            VitamLogbookMessages.getCodeLfc(action, logbookOutcome) + objectIdentifier, objectIdentifier);
+            VitamLogbookMessages.getCodeLfc(action, logbookOutcome), objectIdentifier);
     }
 
 

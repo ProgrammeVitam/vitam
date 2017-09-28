@@ -28,7 +28,6 @@ package fr.gouv.vitam.worker.core.plugin;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -37,18 +36,12 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
-import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.guid.GUIDReader;
-import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -56,15 +49,6 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.common.model.administration.FileRulesModel;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
@@ -103,7 +87,7 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
     private static final String RULES_PREFIX = '.' + RULES_KEY;
 
     private LogbookLifeCyclesClient logbookLifeCycleClient;
-    private ArchiveUnitUpdateUtils archiveUnitUpdateUtils = new ArchiveUnitUpdateUtils();    
+    private ArchiveUnitUpdateUtils archiveUnitUpdateUtils = new ArchiveUnitUpdateUtils();
 
     private HandlerIO handlerIO;
 
@@ -166,7 +150,8 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
                     List<JsonNode> listRulesUpdatedByType = updatedRulesByType.get(key);
                     JsonNode categoryNode = managementNode.get(key);
                     if (categoryNode != null && categoryNode.get(RULES_KEY) != null) {
-                        if (archiveUnitUpdateUtils.updateCategoryRules((ArrayNode) categoryNode.get(RULES_KEY), listRulesUpdatedByType, query,
+                        if (archiveUnitUpdateUtils.updateCategoryRules((ArrayNode) categoryNode.get(RULES_KEY),
+                            listRulesUpdatedByType, query,
                             key)) {
                             nbUpdates++;
                         }
@@ -174,13 +159,16 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
                 }
                 // if at least one action is set
                 if (nbUpdates > 0) {
-                    archiveUnitUpdateUtils.logLifecycle(params, archiveUnitId, StatusCode.STARTED, null, logbookLifeCycleClient);
+                    archiveUnitUpdateUtils.logLifecycle(params, archiveUnitId, StatusCode.STARTED, null,
+                        logbookLifeCycleClient);
                     query.addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getProcessId()));
                     JsonNode updateResultJson = metaDataClient.updateUnitbyId(query.getFinalUpdate(), archiveUnitId);
                     String diffMessage = archiveUnitUpdateUtils.getDiffMessageFor(updateResultJson, archiveUnitId);
                     itemStatus.setEvDetailData(diffMessage);
-                    archiveUnitUpdateUtils.logLifecycle(params, archiveUnitId, StatusCode.OK, diffMessage, logbookLifeCycleClient);
-                    archiveUnitUpdateUtils.commitLifecycle(params.getProcessId(), archiveUnitId, logbookLifeCycleClient);
+                    archiveUnitUpdateUtils.logLifecycle(params, archiveUnitId, StatusCode.OK, diffMessage,
+                        logbookLifeCycleClient);
+                    archiveUnitUpdateUtils.commitLifecycle(params.getProcessId(), archiveUnitId,
+                        logbookLifeCycleClient);
                 }
             }
             itemStatus.increment(StatusCode.OK);
@@ -202,12 +190,12 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
         }
         LOGGER.debug("ArchiveUnitRulesUpdateActionPlugin response: " + itemStatus.getGlobalStatus());
         return new ItemStatus(UPDATE_UNIT_RULES_TASK_ID).setItemsStatus(UPDATE_UNIT_RULES_TASK_ID, itemStatus);
-    }    
+    }
 
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // Do not know...
-    }    
+    }
 
 }
