@@ -3,6 +3,7 @@
     "Identifier": "09877777",
     "Name": "My_Context_3",
     "Status": true,
+    "SecurityProfile" : "SEC_PROFILE-000001",
     "Permissions": [
       {
         "_tenant": 2,
@@ -21,6 +22,7 @@
 
     "Name": "My_Context_5",
     "Status": false,
+    "SecurityProfile" : "SEC_PROFILE-000001",
     "Permissions": [
       {
         "_tenant": 2,

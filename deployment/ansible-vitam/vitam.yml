@@ -129,6 +129,7 @@
 - hosts: hosts-security-internal
   roles:
     - {role: vitam, vitam_component: security-internal, java_args: /vitam/conf/security-internal/security-internal.conf, port_http: "{{vitam_security_internal_port}}", port_http_admin: "{{vitam_security_internal_port_admin}}", secret_platform: "true" }
+    - init_security_profiles
     - init_contexts
 
 - hosts: hosts-workspace

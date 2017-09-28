@@ -29,12 +29,12 @@ package fr.gouv.vitam.functional.administration.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
@@ -47,47 +47,46 @@ import java.util.List;
  * Wrapper around ContextResource to expose many services.
  */
 @Path("/v1/admin")
-public class AdminContextResource {
+public class AdminSecurityProfileResource {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminContextResource.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminSecurityProfileResource.class);
 
-    private ContextResource contextResource;
+    private SecurityProfileResource securityProfileResource;
 
     public static final int ADMIN_TENANT = 1;
 
     /**
      *
-     * @param contextResource
+     * @param securityProfileResource
      */
-    public AdminContextResource(ContextResource contextResource) {
+    public AdminSecurityProfileResource(SecurityProfileResource securityProfileResource) {
         LOGGER.debug("init Admin Management Resource server");
-        this.contextResource = contextResource;
+        this.securityProfileResource = securityProfileResource;
     }
 
-    @Path("/contexts")
+    @Path("/securityprofiles")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importContexts(List<ContextModel> contextModelList, @Context UriInfo uri) {
+    public Response importSecurityProfiles(List<SecurityProfileModel> securityProfileModelList, @Context UriInfo uri) {
         // TODO: report this as a vitam event
-        LOGGER.info("create context with admin interface");
+        LOGGER.info("create security profile with admin interface");
         LOGGER.info("using of admin tenant: 1");
 
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
-        return contextResource.importContexts(contextModelList, uri);
+        return securityProfileResource.importSecurityProfiles(securityProfileModelList, uri);
     }
 
-    @Path("/contexts")
+    @Path("/securityprofiles")
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findContexts(JsonNode queryDsl) {
         // TODO: report this as a vitam event
-        LOGGER.info("find context with admin interface");
+        LOGGER.info("find security profile with admin interface");
         LOGGER.info("using of admin tenant: 1");
 
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
-        return contextResource.findContexts(queryDsl);
+        return securityProfileResource.findSecurityProfiles(queryDsl);
     }
-
 }

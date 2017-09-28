@@ -38,6 +38,7 @@ public class SecurityProfileModel {
     private static final String ID = "_id";
     private static final String IDENTIFIER = "Identifier";
     private static final String NAME = "Name";
+    private static final String FULL_ACCESS = "FullAccess";
     private static final String PERMISSIONS = "Permissions";
 
     /**
@@ -54,6 +55,12 @@ public class SecurityProfileModel {
      */
     @JsonProperty(NAME)
     private String name;
+
+    /**
+     * Flag defining full permission set mode (super admin)
+     */
+    @JsonProperty(FULL_ACCESS)
+    private boolean fullAccess;
 
     /**
      * Permission set
@@ -73,12 +80,14 @@ public class SecurityProfileModel {
      * @param id unique identifier
      * @param identifier the identifier of the security profile. This value must be unique.
      * @param name security profile name
-     * @param permissions set of permissions of the security profile
+     * @param fullAccess defines whether security profile has full access to all permissions.
+     * @param permissions set of permissions of the security profile (should not be defined when fullAccess is true)
      */
-    public SecurityProfileModel(String id, String identifier, String name, Set<String> permissions) {
+    public SecurityProfileModel(String id, String identifier, String name, boolean fullAccess, Set<String> permissions) {
         this.id = id;
         this.identifier = identifier;
         this.name = name;
+        this.fullAccess = fullAccess;
         this.permissions = permissions;
     }
 
@@ -134,14 +143,33 @@ public class SecurityProfileModel {
         this.name = name;
     }
 
+
     /**
-     * Gets the set of permissions of the security profile
+     * @return true if security profile has full access to all permissions. false otherwise.
+     * When set to true, all permissions are granted and "Permissions" set is ignored and should not be set.
+     */
+    public boolean getFullAccess() {
+        return fullAccess;
+    }
+
+    /**
+     * Sets / unsets full access to all permissions for security profile.
+     * When set to true, all permissions are granted and "Permissions" set is ignored and should not be set.
+     * @param fullAccess
+     */
+    public void setFullAccess(boolean fullAccess) {
+        this.fullAccess = fullAccess;
+    }
+
+    /**
+     * Gets the set of permissions of the security profile.
      * @return the
      */
     public Set<String> getPermissions() { return permissions; }
 
     /**
-     * Sets the set
+     * Sets the permission set of the security profile.
+     * Should not be defined when fullAccess is true
      * @param permissions
      */
     public void setPermissions(Set<String> permissions) { this.permissions = permissions; }

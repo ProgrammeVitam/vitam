@@ -108,7 +108,7 @@ public enum FunctionalAdminCollections {
     /**
      * Security profile collection
      */
-    SECURITY_PROFILE(SecurityProfile.class, true, false);
+    SECURITY_PROFILE(SecurityProfile.class, false, false);
 
     final private VitamCollection vitamCollection;
     final private boolean multitenant;

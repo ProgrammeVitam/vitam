@@ -51,6 +51,11 @@ public class Context extends VitamDocument<Context> {
     public static final String STATUS = "Status";
 
     /**
+     * The security profile identifier
+     */
+    public static final String SECURITY_PROFILE = "SecurityProfile";
+
+    /**
      * the Context description
      */
     public static final String PERMISSION = "Permissions";

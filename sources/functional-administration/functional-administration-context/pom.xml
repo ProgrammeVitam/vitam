@@ -23,6 +23,11 @@
 			<artifactId>functional-administration-contract</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+	  <dependency>
+		  <groupId>fr.gouv.vitam</groupId>
+		  <artifactId>functional-administration-security-profile</artifactId>
+		  <version>${project.version}</version>
+	  </dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>common-public</artifactId>

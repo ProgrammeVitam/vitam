@@ -74,6 +74,12 @@ public class AdminFunctionalApplication extends Application {
             AdminContextResource adminContextResource = new AdminContextResource(contextResource);
             singletons.add(adminContextResource);
 
+            SecurityProfileResource securityProfileResource =
+                    new SecurityProfileResource(mongoDbAccess, vitamCounterService);
+            AdminSecurityProfileResource adminSecurityProfileResource =
+                    new AdminSecurityProfileResource(securityProfileResource);
+            singletons.add(adminSecurityProfileResource);
+
         } catch (VitamException | IOException e) {
             throw new RuntimeException(e);
         }

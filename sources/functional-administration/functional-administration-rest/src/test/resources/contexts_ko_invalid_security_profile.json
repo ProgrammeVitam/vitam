@@ -1,0 +1,19 @@
+[
+  {
+    "Name": "My_Context_3",
+    "Status": true,
+    "SecurityProfile" : "UNKOWN_SEC_PROFILE",
+    "Permissions": [
+      {
+        "_tenant": 0,
+        "AccessContracts": [],
+        "IngestContracts": []
+      },
+      {
+        "_tenant": 1,
+        "AccessContracts": [],
+        "IngestContracts": []
+      }
+    ]
+  }
+]

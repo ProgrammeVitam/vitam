@@ -1,6 +1,7 @@
 [
   {
     "Name": "SEC_PROFILE_1",
+    "FullAccess": false,
     "Permissions": [
       "permission_one:read",
       "permission_one:id:read",
@@ -9,6 +10,7 @@
   },
   {
     "Name": "SEC_PROFILE_1",
+    "FullAccess": false,
     "Permissions": [
       "permission_two:read"
     ]

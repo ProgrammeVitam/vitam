@@ -287,6 +287,32 @@ public class SecurityProfileServiceTest {
 
     @Test
     @RunWithCustomExecutor
+    public void givenSecurityProfileWithForFullAccessReturnOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final File securityProfileFiles = PropertiesUtils.getResourceFile("security_profile_ok_full_access.json");
+        final List<SecurityProfileModel> securityProfileModelList =
+                JsonHandler.getFromFileAsTypeRefence(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {
+                });
+        final RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
+
+        assertThat(response.isOk()).isTrue();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenSecurityProfileWithUnauthorizedPermissionSetForFullAccessReturnBadRequest() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final File securityProfileFiles = PropertiesUtils.getResourceFile("security_profile_ko_permissions_with_full_access_mode.json");
+        final List<SecurityProfileModel> securityProfileModelList =
+                JsonHandler.getFromFileAsTypeRefence(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {
+                });
+        final RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
+
+        assertThat(response.isOk()).isFalse();
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void givenSecurityProfileTestFindByFakeID() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         // find securityProfile with the fake id should return Status.OK

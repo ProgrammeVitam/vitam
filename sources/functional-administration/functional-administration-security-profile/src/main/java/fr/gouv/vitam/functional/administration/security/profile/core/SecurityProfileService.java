@@ -86,7 +86,7 @@ public class SecurityProfileService implements VitamAutoCloseable {
     public static String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating security profiles (%s)";
 
     public static String ERR_MISSING_SECURITY_PROFILE_IDENTIFIER =
-        "Identifier must be null when creating security profiles (%s)";
+        "Identifier must not be null when creating security profiles (%s)";
     public static String ERR_DUPLICATE_IDENTIFIER_IN_CREATE =
         "One or many security profiles in the imported list have the same identifier : %s";
 
@@ -94,7 +94,7 @@ public class SecurityProfileService implements VitamAutoCloseable {
     public static String ERR_DUPLICATE_NAME_IN_CREATE =
         "One or many security profiles in the imported list have the same name : %s";
 
-    public static String ERR_MISSING_SECURITY_PROFILE_PERMISSIONS = "Security profile permission set is mandatory (%s)";
+    public static String ERR_UNEXPECTED_PERMISSION_SET_WITH_FULL_ACCESS = "Permission set cannot be set with full access mode : %s";
 
     private static final String SECURITY_PROFILE_IMPORT_EVENT = "STP_IMPORT_SECURITY_PROFILE";
     private static final String SECURITY_PROFILE_UPDATE_EVENT = "STP_UPDATE_SECURITY_PROFILE";
@@ -231,10 +231,14 @@ public class SecurityProfileService implements VitamAutoCloseable {
             // mark the current security profile name as treated
             securityProfileNames.add(securityProfile.getName());
 
-            if (CollectionUtils.isEmpty(securityProfile.getPermissions())) {
-                error.addToErrors(new VitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem()).setMessage(
-                    String.format(ERR_MISSING_SECURITY_PROFILE_PERMISSIONS, securityProfile.getId())));
-                continue;
+            if (securityProfile.getFullAccess()) {
+
+                // Permission set incompatible with full access mode
+                if (!CollectionUtils.isEmpty(securityProfile.getPermissions())) {
+                    error.addToErrors(new VitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem()).setMessage(
+                            String.format(ERR_UNEXPECTED_PERMISSION_SET_WITH_FULL_ACCESS, securityProfile.getName())));
+                    continue;
+                }
             }
         }
     }

@@ -7,6 +7,7 @@ import fr.gouv.vitam.common.security.rest.SecureEndpointScanner;
 import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
 import fr.gouv.vitam.common.security.waf.SanityDynamicFeature;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import fr.gouv.vitam.security.internal.filter.AuthorizationFilter;
 import fr.gouv.vitam.security.internal.filter.InternalSecurityFilter;
 
 import javax.servlet.ServletConfig;
@@ -40,6 +41,7 @@ public class BusinessApplication extends Application {
 
             singletons = new HashSet<>();
             singletons.add(new InternalSecurityFilter());
+            singletons.add(new AuthorizationFilter());
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(accessExternalResource);
             singletons.add(logbookExternalResource);

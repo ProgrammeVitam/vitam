@@ -207,6 +207,9 @@ vitam_tests_gitrepo_baseurl=dev.programmevitam.fr
 vitam_tests_gitrepo_url={{vitam_tests_gitrepo_protocol}}://{{vitam_tests_gitrepo_baseurl}}/gitlab/vitam/vitam-itests.git
 vitam_tests_branch=master
 
+# Admin security profile
+admin_security_profile="admin-security-profile"
+
 # Admin context name
 admin_context_name="admin-context"
 # Indicate certificates relative paths under {{inventory_dir}}/certs/client-external/clients

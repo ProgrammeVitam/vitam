@@ -1,11 +1,9 @@
 package fr.gouv.vitam.functional.administration.rest;
 
-import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -165,7 +163,7 @@ public class SecurityProfileResourceTest {
 
     @After
     public void tearDown() throws Exception {
-        mongoDbAccess.deleteCollection(FunctionalAdminCollections.CONTEXT).close();
+        mongoDbAccess.deleteCollection(FunctionalAdminCollections.SECURITY_PROFILE).close();
     }
 
     @Test
@@ -180,7 +178,7 @@ public class SecurityProfileResourceTest {
 
         // transform to json
         given().contentType(ContentType.JSON).body(json)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(SecurityProfileResource.SECURITY_PROFILE_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
     }

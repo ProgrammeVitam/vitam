@@ -1,5 +1,6 @@
 [
   {
+    "FullAccess": false,
     "Permissions": [
       "permission_one:read",
       "permission_one:id:read",
