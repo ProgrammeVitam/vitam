@@ -20,7 +20,7 @@ $ActionQueueSaveOnShutdown on
 $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
-:programname, startswith, "vitam" @@logstash.service.consul:{{vitam_logstash_port}}
+:programname, startswith, "vitam" @@logstash.service.{{consul_domain}}:{{vitam_logstash_port}}
 
 $ActionQueueType LinkedList
 $ActionQueueFileName logstash-mongo-queue
@@ -29,7 +29,7 @@ $ActionQueueSaveOnShutdown on
 $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
-:programname, startswith, "mongo" @@logstash.service.consul:{{vitam_logstash_port}}
+:programname, startswith, "mongo" @@logstash.service.{{consul_domain}}:{{vitam_logstash_port}}
 
 $ActionQueueType LinkedList
 $ActionQueueFileName logstash-vitam_accesslog-queue
@@ -38,7 +38,7 @@ $ActionQueueSaveOnShutdown on
 $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
-:programname, startswith, "vitam_accesslog" @@logstash.service.consul:{{vitam_logstash_port}}
+:programname, startswith, "vitam_accesslog" @@logstash.service.{{consul_domain}}:{{vitam_logstash_port}}
 
 $ActionQueueType LinkedList
 $ActionQueueFileName logstash-elasticsearch_log-queue
@@ -47,7 +47,7 @@ $ActionQueueSaveOnShutdown on
 $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
-:programname, startswith, "elasticsearch-log" @@logstash.service.consul:{{vitam_logstash_port}}
+:programname, startswith, "elasticsearch-log" @@logstash.service.{{consul_domain}}:{{vitam_logstash_port}}
 
 $ActionQueueType LinkedList
 $ActionQueueFileName logstash-elasticsearch_data-queue
@@ -56,7 +56,7 @@ $ActionQueueSaveOnShutdown on
 $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
-:programname, startswith, "elasticsearch-data" @@logstash.service.consul:{{vitam_logstash_port}}
+:programname, startswith, "elasticsearch-data" @@logstash.service.{{consul_domain}}:{{vitam_logstash_port}}
 
 $ActionQueueType LinkedList
 $ActionQueueFileName logstash-vitam_consul-queue
@@ -65,7 +65,7 @@ $ActionQueueSaveOnShutdown on
 $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
-:programname, startswith, "consul" @@logstash.service.consul:{{vitam_logstash_port}}
+:programname, startswith, "consul" @@logstash.service.{{consul_domain}}:{{vitam_logstash_port}}
 
 $ActionQueueType LinkedList
 $ActionQueueFileName logstash-clamav-queue
@@ -74,7 +74,7 @@ $ActionQueueSaveOnShutdown on
 $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
-:programname, startswith, "clam"  @@logstash.service.consul:{{vitam_logstash_port}}
+:programname, startswith, "clam"  @@logstash.service.{{consul_domain}}:{{vitam_logstash_port}}
 
 $ActionQueueType LinkedList
 $ActionQueueFileName logstash-curator-queue
@@ -83,6 +83,6 @@ $ActionQueueSaveOnShutdown on
 $ActionResumeRetryCount -1
 $ActionQueueHighWatermark 100000
 $ActionQueueLowWatermark 10000
-:programname, startswith, "curator"  @@logstash.service.consul:{{vitam_logstash_port}}
+:programname, startswith, "curator"  @@logstash.service.{{consul_domain}}:{{vitam_logstash_port}}
 
 {% endif %}
