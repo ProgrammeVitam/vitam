@@ -28,10 +28,13 @@
 package fr.gouv.vitam.common.server;
 
 import fr.gouv.vitam.common.lifecycle.ProcessLifeCycle;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.junit.Test;
 
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -41,7 +44,7 @@ public class VitamServerLifeCycleTest {
 
     @Test
     public void whenConstructorWithNotNullArgThenOK() {
-            new VitamServerLifeCycle(mock(ProcessLifeCycle.class));
+        new VitamServerLifeCycle(mock(ProcessLifeCycle.class));
     }
 
     @Test(expected = RuntimeException.class)
@@ -50,16 +53,20 @@ public class VitamServerLifeCycleTest {
     }
 
     @Test
-    public void whenLifeCycleStartedThenProcessLifeCycleStartProcess() {
+    public void whenLifeCycleStartedThenProcessLifeCycleStartProcess() throws InterruptedException {
         ProcessLifeCycle plc = mock(ProcessLifeCycle.class);
+        final Semaphore semaphore = new Semaphore(0);
+        doAnswer(o -> {
+            semaphore.release();
+            return o;
+        }).when(plc).startProcess();
+
         new VitamServerLifeCycle(plc).lifeCycleStarted(mock(LifeCycle.class));
+        semaphore.tryAcquire(1, TimeUnit.SECONDS);
+
         // As startProcess is called in the executor, wait until startProcess be called by the executor
-        try {
-            Thread.sleep(5);
-        } catch (InterruptedException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-        }
         verify(plc).startProcess();
+
     }
 
     @Test
