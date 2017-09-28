@@ -12,7 +12,7 @@
       },
       {
         "Code": "STP_IMPORT_RULES_WRONG_TOTALDURATION.KO",
-        "Message": "Lassociation de RuleDuration et de RuleMeasurement doit \u00EAtre  inf\u00E9rieure ou \u00E9gale \u00E0 999 ans",
+        "Message": "L'association de RuleDuration et de RuleMeasurement doit \u00EAtre  inf\u00E9rieure ou \u00E9gale \u00E0 999 ans",
         "Information additionnelle": "UNKNOWN YEAR"
       }
     ]

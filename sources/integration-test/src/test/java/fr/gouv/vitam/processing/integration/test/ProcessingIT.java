@@ -26,6 +26,45 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.integration.test;
 
+import static com.jayway.restassured.RestAssured.get;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENT_DETAILS;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import javax.ws.rs.core.Response.Status;
+
+import org.bson.Document;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -37,6 +76,7 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.Filters;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -115,43 +155,6 @@ import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
-import org.bson.Document;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import static com.jayway.restassured.RestAssured.get;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENT_DETAILS;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  * Processing integration test
@@ -272,6 +275,9 @@ public class ProcessingIT {
 
     private static String SIP_ARBRE_3062 = "integration-processing/3062_arbre.zip";
 
+    private static String SIP_PROD_SERV_A = "integration-processing/Sip_A.zip";
+    private static String SIP_PROD_SERV_B_ATTACHED = "integration-processing/SIP_B";
+    
     private static ElasticsearchTestConfiguration config = null;
 
     private final static String DUMMY_REQUEST_ID = "reqId";
@@ -2700,5 +2706,134 @@ public class ProcessingIT {
             fail("should not raized an exception");
         }
     }
+    
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowAddAttachementAndCheckRegister() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
+        // 1. First we create an AU by sip
+        try {
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+            final String containerName = objectGuid.getId();
+            createLogbookOperation(operationGuid, objectGuid);
 
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_PROD_SERV_A);
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(containerName);
+            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+                zipInputStreamSipObject);
+            // call processing
+            RestAssured.port = PORT_SERVICE_PROCESSING;
+            RestAssured.basePath = PROCESSING_PATH;
+
+            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
+            final RequestResponse<JsonNode> ret =
+                processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+                    Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+
+            assertNotNull(ret);
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+
+        String zipPath = null;
+        // 2. then we link another SIP to it
+        String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
+
+        // prepare zip
+        final MongoDatabase db = mongoClient.getDatabase("Vitam");
+        MongoIterable<Document> resultUnits = db.getCollection("Unit").find();
+        Document unit = resultUnits.first();
+        String idUnit = (String) unit.get("_id");
+        replaceStringInFile(SIP_PROD_SERV_B_ATTACHED + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
+            idUnit);
+        zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
+            "/" + zipName;
+        zipFolder(PropertiesUtils.getResourcePath(SIP_PROD_SERV_B_ATTACHED), zipPath);
+
+
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+        final String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+        // use link sip
+        final InputStream zipStream = new FileInputStream(new File(
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
+                "/" + zipName));
+
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+            zipStream);
+
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
+        final RequestResponse<JsonNode> ret =
+            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+        assertNotNull(ret);
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+        wait(containerName);
+        ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        assertNotNull(processWorkflow.getSteps());
+
+        
+        MongoIterable<Document> accessReg = db.getCollection("AccessionRegisterSummary").find(Filters.eq("OriginatingAgency", "P-A"));
+        assertNotNull(accessReg);
+        assertNotNull(accessReg.first());
+        Document accessRegDoc = accessReg.first();
+        assertEquals("2", ((Document) accessRegDoc.get("TotalUnits")).get("totalSymbolic").toString());
+        assertEquals("2", ((Document) accessRegDoc.get("TotalUnits")).get("attached").toString());
+        assertEquals("3", ((Document) accessRegDoc.get("TotalUnits")).get("total").toString());
+        
+        assertEquals("1", ((Document) accessRegDoc.get("TotalObjects")).get("totalSymbolic").toString());
+        assertEquals("1", ((Document) accessRegDoc.get("TotalObjects")).get("attached").toString());
+        assertEquals("2", ((Document) accessRegDoc.get("TotalObjects")).get("total").toString());
+        
+        assertEquals("1", ((Document) accessRegDoc.get("TotalObjectGroups")).get("totalSymbolic").toString());
+        assertEquals("1", ((Document) accessRegDoc.get("TotalObjectGroups")).get("attached").toString());
+        assertEquals("2", ((Document) accessRegDoc.get("TotalObjectGroups")).get("total").toString());
+        
+        assertEquals("285804", ((Document) accessRegDoc.get("ObjectSize")).get("totalSymbolic").toString());
+        assertEquals("285804", ((Document) accessRegDoc.get("ObjectSize")).get("attached").toString());
+        assertEquals("289913", ((Document) accessRegDoc.get("ObjectSize")).get("total").toString());
+        
+        try {
+            Files.delete(new File(zipPath).toPath());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    
 }

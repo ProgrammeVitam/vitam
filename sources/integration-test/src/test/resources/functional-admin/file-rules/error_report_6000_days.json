@@ -7,7 +7,7 @@
 		"line 2": [
 			{
 				"Code": "STP_IMPORT_RULES_WRONG_TOTALDURATION.KO",
-				"Message": "Lassociation de RuleDuration et de RuleMeasurement doit être  inférieure ou égale à 999 ans",
+				"Message": "L'association de RuleDuration et de RuleMeasurement doit être  inférieure ou égale à 999 ans",
 				"Information additionnelle": "600000 YEAR"
 			}
 		]

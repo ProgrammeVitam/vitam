@@ -53,8 +53,8 @@ public class AccessionRegisterSummaryTest {
     @Test
     @RunWithCustomExecutor
     public void testConstructor() throws Exception {
-    	VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final RegisterValueDetailModel initialValue = new RegisterValueDetailModel(0, 0, 0);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final RegisterValueDetailModel initialValue = new RegisterValueDetailModel(0, 0, 0, 0, 0, 0);
         AccessionRegisterSummary register = new AccessionRegisterSummary();
         final String id = GUIDFactory.newAccessionRegisterSummaryGUID(TENANT_ID).getId();
         register
@@ -76,6 +76,27 @@ public class AccessionRegisterSummaryTest {
         final Map<String, Object> documentMap = JsonHandler.getMapFromInputStream(stream);
         documentMap.put("_id", id);
         register = new AccessionRegisterSummary(new Document(documentMap));
+        assertEquals(1, register.getTotalObjectGroups().getTotal());
+        assertEquals(1, register.getTotalObjectGroups().getTotalSymbolic());
+        assertEquals(1, register.getTotalObjectGroups().getAttached());
+        assertEquals(0, register.getTotalObjectGroups().getDeleted());
+        assertEquals(0, register.getTotalObjectGroups().getDetached());
+        assertEquals(1, register.getTotalUnits().getTotal());
+        assertEquals(1, register.getTotalUnits().getTotalSymbolic());
+        assertEquals(1, register.getTotalUnits().getAttached());
+        assertEquals(0, register.getTotalUnits().getDeleted());
+        assertEquals(0, register.getTotalUnits().getDetached());
+        assertEquals(1, register.getTotalObjects().getTotal());
+        assertEquals(1, register.getTotalObjects().getTotalSymbolic());
+        assertEquals(1, register.getTotalObjects().getAttached());
+        assertEquals(0, register.getTotalObjects().getDeleted());
+        assertEquals(0, register.getTotalObjects().getDetached());
+        assertEquals(1, register.getTotalObjectSize().getTotal());
+        assertEquals(1, register.getTotalObjectSize().getTotalSymbolic());
+        assertEquals(1, register.getTotalObjectSize().getAttached());
+        assertEquals(0, register.getTotalObjectSize().getDeleted());
+        assertEquals(0, register.getTotalObjectSize().getDetached());
+
     }
 
 

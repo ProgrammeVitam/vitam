@@ -136,30 +136,58 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
 
     private Map<String, Object> createMaptoUpdate(AccessionRegisterDetail registerDetail) {
         final Map<String, Object> updateMap = new HashMap<>();
+        
         updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.TOTAL,
             registerDetail.getTotalObjectGroups().getTotal());
         updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.DELETED,
             registerDetail.getTotalObjectGroups().getDeleted());
         updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.REMAINED,
             registerDetail.getTotalObjectGroups().getRemained());
+        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.DETACHED,
+            registerDetail.getTotalObjectGroups().getDetached());
+        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.ATTACHED,
+            registerDetail.getTotalObjectGroups().getAttached());
+        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.TOTAL_SYMBOLIC,
+            registerDetail.getTotalObjectGroups().getTotalSymbolic());
+        
         updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.TOTAL,
             registerDetail.getTotalObjects().getTotal());
         updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.DELETED,
             registerDetail.getTotalObjects().getDeleted());
         updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.REMAINED,
             registerDetail.getTotalObjects().getRemained());
+        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.DETACHED,
+            registerDetail.getTotalObjects().getDetached());
+        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.ATTACHED,
+            registerDetail.getTotalObjects().getAttached());
+        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.TOTAL_SYMBOLIC,
+            registerDetail.getTotalObjects().getTotalSymbolic());
+        
         updateMap.put(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.TOTAL,
             registerDetail.getTotalUnits().getTotal());
         updateMap.put(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.DELETED,
             registerDetail.getTotalUnits().getDeleted());
         updateMap.put(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.REMAINED,
             registerDetail.getTotalUnits().getRemained());
+        updateMap.put(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.DETACHED,
+            registerDetail.getTotalUnits().getDetached());
+        updateMap.put(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.ATTACHED,
+            registerDetail.getTotalUnits().getAttached());
+        updateMap.put(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.TOTAL_SYMBOLIC,
+            registerDetail.getTotalUnits().getTotalSymbolic());
+        
         updateMap.put(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.TOTAL,
             registerDetail.getTotalObjectSize().getTotal());
         updateMap.put(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.DELETED,
             registerDetail.getTotalObjectSize().getDeleted());
         updateMap.put(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.REMAINED,
             registerDetail.getTotalObjectSize().getRemained());
+        updateMap.put(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.DETACHED,
+            registerDetail.getTotalObjectSize().getDetached());
+        updateMap.put(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.ATTACHED,
+            registerDetail.getTotalObjectSize().getAttached());
+        updateMap.put(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.TOTAL_SYMBOLIC,
+            registerDetail.getTotalObjectSize().getTotalSymbolic());
         return updateMap;
     }
 

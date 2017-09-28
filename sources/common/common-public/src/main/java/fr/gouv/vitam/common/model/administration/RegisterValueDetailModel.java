@@ -39,28 +39,53 @@ public class RegisterValueDetailModel {
     private long deleted;
     @JsonProperty("remained")
     private long remained;
+    @JsonProperty("totalSymbolic")
+    private long totalSymbolic;
+    @JsonProperty("attached")
+    private long attached;
+    @JsonProperty("detached")
+    private long detached;
 
     /**
      * Constructor without fields
      * 
      * use for jackson
      */
-    public RegisterValueDetailModel() {
-    }
-    
+    public RegisterValueDetailModel() {}
+
     /**
      * Constructor using fields
      * 
-     * @param total             number of objects
-     * @param deleted           number of deleted object
-     * @param remained          number of remaining object
+     * @param total number of objects
+     * @param deleted number of deleted object
+     * @param remained number of remaining object
      */
     public RegisterValueDetailModel(long total, long deleted, long remained) {
         this.total = total;
         this.deleted = deleted;
         this.remained = remained;
     }
-    
+
+    /**
+     * Constructor using fields
+     * 
+     * @param total number of objects
+     * @param deleted number of deleted object
+     * @param remained number of remaining object
+     * @param totalSymbolic number of symbolic object
+     * @param attached number of attached object
+     * @param detached number of detached object
+     * 
+     */
+    public RegisterValueDetailModel(long total, long deleted, long remained, long totalSymbolic, long attached, long detached) {
+        this.total = total;
+        this.deleted = deleted;
+        this.remained = remained;
+        this.attached = attached;
+        this.detached = detached;
+        this.totalSymbolic = totalSymbolic;
+    }
+
     /**
      * 
      * @return total
@@ -68,17 +93,17 @@ public class RegisterValueDetailModel {
     public long getTotal() {
         return total;
     }
-    
+
     /**
      * 
-     * @param total value to set field  
+     * @param total value to set field
      * @return this
      */
     public RegisterValueDetailModel setTotal(long total) {
         this.total = total;
         return this;
     }
-    
+
     /**
      * 
      * @return deleted value to set field
@@ -86,7 +111,7 @@ public class RegisterValueDetailModel {
     public long getDeleted() {
         return deleted;
     }
-    
+
     /**
      * 
      * @param deleted value to set field
@@ -96,7 +121,7 @@ public class RegisterValueDetailModel {
         this.deleted = deleted;
         return this;
     }
-    
+
     /**
      * 
      * @return remained
@@ -104,7 +129,7 @@ public class RegisterValueDetailModel {
     public long getRemained() {
         return remained;
     }
-    
+
     /**
      * 
      * @param remained value to set field
@@ -112,6 +137,60 @@ public class RegisterValueDetailModel {
      */
     public RegisterValueDetailModel setRemained(long remained) {
         this.remained = remained;
+        return this;
+    }
+
+    /**
+     * 
+     * @return attached
+     */
+    public long getAttached() {
+        return attached;
+    }
+
+    /**
+     * 
+     * @param attached value to set field
+     * @return this
+     */
+    public RegisterValueDetailModel setAttached(long attached) {
+        this.attached = attached;
+        return this;
+    }
+
+    /**
+     * 
+     * @return detached
+     */
+    public long getDetached() {
+        return detached;
+    }
+
+    /**
+     * 
+     * @param detached value to set field
+     * @return this
+     */
+    public RegisterValueDetailModel setDetached(long detached) {
+        this.detached = detached;
+        return this;
+    }
+
+    /**
+     * 
+     * @return totalSymbolic
+     */
+    public long getTotalSymbolic() {
+        return totalSymbolic;
+    }
+
+    /**
+     * 
+     * @param totalSymbolic value to set field
+     * @return this
+     */
+    public RegisterValueDetailModel setTotalSymbolic(long totalSymbolic) {
+        this.totalSymbolic = totalSymbolic;
         return this;
     }
 }

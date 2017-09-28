@@ -9,33 +9,33 @@
     "deleted": 0,
     "remained": 1,
     "totalSymbolic": 1,
-    "attached":1,
-    "detached":0
+    "attached" : 1,
+    "detached" : 0
   },
   "TotalObjectGroups": {
     "total": 1,
     "deleted": 0,
     "remained": 1,
-    "totalSymbolic": 1, 
-    "attached":1,
-    "detached":0
+    "totalSymbolic": 1,
+    "attached" : 1,
+    "detached" : 0
   },
   "TotalObjects": {
     "total": 1,
     "deleted": 0,
     "remained": 1,
     "totalSymbolic": 1,
-    "attached":1,
-    "detached":0
+    "attached" : 1,
+    "detached" : 0
   },
   "ObjectSize": {
     "total": 1,
     "deleted": 0,
     "remained": 1,
     "totalSymbolic": 1,
-    "attached":1,
-    "detached":0
+    "attached" : 1,
+    "detached" : 0
   },
   "IdOperation": "IdOperation",
-  "Status": "stored and completed"
+  "Status": "STORED_AND_COMPLETED"
 }

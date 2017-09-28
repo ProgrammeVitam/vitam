@@ -91,6 +91,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
     private static final int SEDA_PARAMETERS_RANK = 3;
 
     private MetaDataClientFactory metaDataClientFactory;
+    private AdminManagementClientFactory adminManagementClientFactory;
 
     private static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_FORMAT_PATERN);
 
@@ -98,11 +99,13 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
      * Empty Constructor AccessionRegisterActionHandler
      */
     public AccessionRegisterActionHandler() {
-        this(MetaDataClientFactory.getInstance());
+        this(MetaDataClientFactory.getInstance(), AdminManagementClientFactory.getInstance());
     }
 
-    AccessionRegisterActionHandler(MetaDataClientFactory metaDataClientFactory) {
+    AccessionRegisterActionHandler(MetaDataClientFactory metaDataClientFactory,
+        AdminManagementClientFactory adminManagementClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
+        this.adminManagementClientFactory = adminManagementClientFactory;
         for (int i = 0; i < HANDLER_IO_PARAMETER_NUMBER; i++) {
             handlerInitialIOList.add(File.class);
         }
@@ -125,7 +128,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
         handlerIO = handler;
 
         int tenantId = HeaderIdHelper.getTenantId();
-        try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient();
+        try (AdminManagementClient adminClient = adminManagementClientFactory.getClient();
             MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
 
 
@@ -270,19 +273,36 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
         ObjectGroupPerOriginatingAgency objectGroupPerOriginatingAgency, int tenantId, boolean symbolic)
         throws ProcessingException {
 
-        RegisterValueDetailModel totalObjectsGroups =
-            new RegisterValueDetailModel(objectGroupPerOriginatingAgency.getNumberOfGOT(), 0,
-                objectGroupPerOriginatingAgency.getNumberOfGOT());
+        RegisterValueDetailModel totalObjectsGroups, totalUnits, totalObjects, objectSize;
 
-        RegisterValueDetailModel totalUnits =
-            new RegisterValueDetailModel(agency.getCount(), 0, agency.getCount());
-
-        RegisterValueDetailModel totalObjects =
-            new RegisterValueDetailModel(objectGroupPerOriginatingAgency.getNumberOfObject(), 0,
-                objectGroupPerOriginatingAgency.getNumberOfObject());
-
-        RegisterValueDetailModel objectSize = new RegisterValueDetailModel(objectGroupPerOriginatingAgency.getSize(), 0,
-            objectGroupPerOriginatingAgency.getSize());
+        if (!symbolic) {
+            totalObjectsGroups =
+                new RegisterValueDetailModel(objectGroupPerOriginatingAgency.getNumberOfGOT(), 0,
+                    objectGroupPerOriginatingAgency.getNumberOfGOT());
+            totalUnits =
+                new RegisterValueDetailModel(agency.getCount(), 0, agency.getCount());
+            totalObjects =
+                new RegisterValueDetailModel(objectGroupPerOriginatingAgency.getNumberOfObject(), 0,
+                    objectGroupPerOriginatingAgency.getNumberOfObject());
+            objectSize = new RegisterValueDetailModel(objectGroupPerOriginatingAgency.getSize(), 0,
+                objectGroupPerOriginatingAgency.getSize());
+        } else {
+            totalObjectsGroups =
+                new RegisterValueDetailModel(objectGroupPerOriginatingAgency.getNumberOfGOT(), 0,
+                    objectGroupPerOriginatingAgency.getNumberOfGOT(), objectGroupPerOriginatingAgency.getNumberOfGOT(),
+                    objectGroupPerOriginatingAgency.getNumberOfGOT(), 0);
+            totalUnits =
+                new RegisterValueDetailModel(agency.getCount(), 0, agency.getCount(), agency.getCount(),
+                    agency.getCount(), 0);
+            totalObjects =
+                new RegisterValueDetailModel(objectGroupPerOriginatingAgency.getNumberOfObject(), 0,
+                    objectGroupPerOriginatingAgency.getNumberOfObject(),
+                    objectGroupPerOriginatingAgency.getNumberOfObject(),
+                    objectGroupPerOriginatingAgency.getNumberOfObject(), 0);
+            objectSize = new RegisterValueDetailModel(objectGroupPerOriginatingAgency.getSize(), 0,
+                objectGroupPerOriginatingAgency.getSize(), objectGroupPerOriginatingAgency.getSize(),
+                objectGroupPerOriginatingAgency.getSize(), 0);
+        }
 
         String updateDate = ZonedDateTime.now().format(DATE_TIME_FORMATTER);
 
