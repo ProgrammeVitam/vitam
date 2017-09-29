@@ -178,9 +178,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
         }
 
         itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(), createResultDetailByOriginatingAgency());
-        if (serviceProducteurWarning.size() == 0) {
-            itemStatus.increment(StatusCode.OK);
-        }
+        itemStatus.increment(StatusCode.OK);
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
