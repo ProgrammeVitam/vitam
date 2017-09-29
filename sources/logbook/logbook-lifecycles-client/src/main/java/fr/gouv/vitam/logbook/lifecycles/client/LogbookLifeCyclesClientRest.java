@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.lifecycles.client;
 
+import java.util.List;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -33,7 +34,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -53,6 +53,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
+import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleUnitModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
@@ -61,6 +63,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 /**
  * LogbookLifeCyclesClient REST implementation
  */
+
+
 /**
  *
  */
@@ -686,4 +690,71 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
 
         return lifeCycleStatusCode;
     }
+
+    @Override
+    public void bulkObjectGroup(String eventIdProc, List<LogbookLifeCycleObjectGroupModel> logbookLifeCycleModels)
+        throws LogbookClientAlreadyExistsException, LogbookClientBadRequestException, LogbookClientServerException {
+        Response response = null;
+        try {
+
+            response =
+                performRequest(HttpMethod.PUT, OPERATIONS_URL + "/" + eventIdProc + "/lifecycles/objectgroup/bulk", null,
+                    logbookLifeCycleModels, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case CREATED:
+                    LOGGER.debug(eventIdProc + " " + Response.Status.CREATED.getReasonPhrase());
+                    break;
+                case CONFLICT:
+                    LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_ALREADY_EXIST.getMessage());
+                    throw new LogbookClientAlreadyExistsException(ErrorMessage.LOGBOOK_ALREADY_EXIST.getMessage());
+                case BAD_REQUEST:
+                    LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                    throw new LogbookClientBadRequestException(
+                        ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                default:
+                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                    throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public void bulkUnit(String eventIdProc, List<LogbookLifeCycleUnitModel> logbookLifeCycleModels)
+        throws LogbookClientAlreadyExistsException, LogbookClientBadRequestException, LogbookClientServerException {
+        Response response = null;
+        try {
+
+            response =
+                performRequest(HttpMethod.PUT, OPERATIONS_URL + "/" + eventIdProc + "/lifecycles/unit/bulk", null,
+                    logbookLifeCycleModels, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case CREATED:
+                    LOGGER.debug(eventIdProc + " " + Response.Status.CREATED.getReasonPhrase());
+                    break;
+                case CONFLICT:
+                    LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_ALREADY_EXIST.getMessage());
+                    throw new LogbookClientAlreadyExistsException(ErrorMessage.LOGBOOK_ALREADY_EXIST.getMessage());
+                case BAD_REQUEST:
+                    LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                    throw new LogbookClientBadRequestException(
+                        ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                default:
+                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                    throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
 }

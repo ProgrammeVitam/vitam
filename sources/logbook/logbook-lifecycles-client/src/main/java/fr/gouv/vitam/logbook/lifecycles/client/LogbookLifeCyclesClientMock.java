@@ -54,6 +54,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
+import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleUnitModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
@@ -307,5 +309,16 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
         throws LogbookClientException, InvalidParseOperationException {
         LOGGER.debug("Select request without id:" + queryDsl.findValue(LogbookMongoDbName.objectIdentifier.getDbname()));
         return ClientMockResultHelper.getLogbookLifecycle();
+    }
+
+    @Override
+    public void bulkObjectGroup(String eventIdProc, List<LogbookLifeCycleObjectGroupModel> logbookLifeCycleModels)
+        throws LogbookClientAlreadyExistsException, LogbookClientBadRequestException, LogbookClientServerException {
+        // do nothing
+    }
+
+    @Override public void bulkUnit(String eventIdProc, List<LogbookLifeCycleUnitModel> logbookLifeCycleModels)
+        throws LogbookClientAlreadyExistsException, LogbookClientBadRequestException, LogbookClientServerException {
+        // do nothing
     }
 }

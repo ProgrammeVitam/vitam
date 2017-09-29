@@ -33,7 +33,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -44,6 +43,8 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
+import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleModel;
+import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
@@ -482,6 +483,11 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
 
         // Else, lifeCycle wasn't found
         return null;
+    }
+
+    @Override
+    public void bulk(LogbookCollections collections, String idOp, List<? extends LogbookLifeCycleModel> logbookLifeCycleModels) {
+        mongoDbAccess.bulk(collections, logbookLifeCycleModels);
     }
 }
 

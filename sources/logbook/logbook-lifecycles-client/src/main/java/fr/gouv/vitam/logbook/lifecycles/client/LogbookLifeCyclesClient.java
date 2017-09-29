@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.lifecycles.client;
 
+import java.util.List;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.client.BasicClient;
@@ -37,6 +39,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
+import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleUnitModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 
 /**
@@ -167,7 +171,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws InvalidParseOperationException
      */
     JsonNode selectObjectGroupLifeCycle(JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException;
-    
+
     /**
      * returns VitamRequestIterator on ObjectGroupLifecycles for this operation.</br>
      * </br>
@@ -182,7 +186,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
                     // use it
                 }
             }
-    
+
         }
      * </code>
      * </pre>
@@ -211,7 +215,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
                     // use it
                 }
             }
-    
+
         }
      * </code>
      * </pre>
@@ -318,45 +322,51 @@ public interface LogbookLifeCyclesClient extends BasicClient {
 
     /**
      * Remove created unit lifeCycles during the given operation
-     * 
+     *
      * @param operationId the operation id
      * @throws LogbookClientNotFoundException if the element was not created before
      * @throws LogbookClientBadRequestException if the argument is incorrect
      * @throws LogbookClientServerException if the server got an internal error
      */
-    public void rollBackUnitsByOperation(String operationId)
+    void rollBackUnitsByOperation(String operationId)
         throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException;
 
     /**
      * Remove created object group lifeCycles during the given operation
-     * 
+     *
      * @param operationId the operation id
      * @throws LogbookClientNotFoundException if the element was not created before
      * @throws LogbookClientBadRequestException if the argument is incorrect
      * @throws LogbookClientServerException if the server got an internal error
      */
-    public void rollBackObjectGroupsByOperation(String operationId)
+    void rollBackObjectGroupsByOperation(String operationId)
         throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException;
 
     /**
      * Gets the unit lifeCycle status (COMMITTED or IN_PROCESS)
-     * 
+     *
      * @param unitId the unit id
      * @return the unit lifeCycle status (COMMITTED or IN_PROCESS)
      * @throws LogbookClientNotFoundException if the element was not created before
      * @throws LogbookClientServerException if the server got an internal error
      */
-    public LifeCycleStatusCode getUnitLifeCycleStatus(String unitId)
+    LifeCycleStatusCode getUnitLifeCycleStatus(String unitId)
         throws LogbookClientNotFoundException, LogbookClientServerException;
 
     /**
      * Gets the object group lifeCycle status (COMMITTED or IN_PROCESS)
-     * 
+     *
      * @param objectGroupId the object group id
      * @return the object group lifeCycle status (COMMITTED or IN_PROCESS)
      * @throws LogbookClientNotFoundException if the element was not created before
      * @throws LogbookClientServerException if the server got an internal error
      */
-    public LifeCycleStatusCode getObjectGroupLifeCycleStatus(String objectGroupId)
+    LifeCycleStatusCode getObjectGroupLifeCycleStatus(String objectGroupId)
         throws LogbookClientNotFoundException, LogbookClientServerException;
+
+    void bulkObjectGroup(String eventIdProc, List<LogbookLifeCycleObjectGroupModel> logbookLifeCycleModels)
+        throws LogbookClientAlreadyExistsException, LogbookClientBadRequestException, LogbookClientServerException;
+
+    void bulkUnit(String eventIdProc, List<LogbookLifeCycleUnitModel> logbookLifeCycleModels)
+        throws LogbookClientAlreadyExistsException, LogbookClientBadRequestException, LogbookClientServerException;
 }

@@ -27,6 +27,8 @@
 package fr.gouv.vitam.logbook.operations.client;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
@@ -37,19 +39,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.logbook.rest.LogbookMain;
-import org.jhades.JHades;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Lists;
 import com.jayway.restassured.RestAssured;
-
+import com.mongodb.client.FindIterable;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -57,6 +50,7 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -81,6 +75,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -91,6 +86,14 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.logbook.rest.LogbookMain;
+import org.jhades.JHades;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class LogbookResourceIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResourceIT.class);
@@ -306,7 +309,7 @@ public class LogbookResourceIT {
                     .eq(String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.outcome.getDbname()),
                         "OK");
                 select.setLimitFilter(0, 1);
-                select.setQuery(QueryHelper.and().add(eventProcType,  logType, eventType, outcome));
+                select.setQuery(QueryHelper.and().add(eventProcType, logType, eventType, outcome));
                 JsonNode json = client.selectOperation(select.getFinalSelect());
                 RequestResponseOK response = JsonHandler.getFromJsonNode(json, RequestResponseOK.class);
                 assertEquals(1, response.getHits().getTotal());
@@ -323,7 +326,7 @@ public class LogbookResourceIT {
                 select.addOrderByDescFilter("evDateTime");
                 JsonNode json = client.selectOperation(select.getFinalSelect());
                 RequestResponseOK response = JsonHandler.getFromJsonNode(json, RequestResponseOK.class);
-                Iterator responseResults =  response.getResults().iterator();
+                Iterator responseResults = response.getResults().iterator();
                 Map<String, Object> firstResult = (Map<String, Object>) responseResults.next();
                 String eventIdProc1 = (String) firstResult.get(LogbookMongoDbName.eventIdentifierProcess.getDbname());
                 assertEquals(eip2.toString(), eventIdProc1);
@@ -568,4 +571,57 @@ public class LogbookResourceIT {
             }
         }
     }
+
+
+    @RunWithCustomExecutor
+    @Test
+    public final void testLifeCycleBulk() throws LogbookClientException, VitamApplicationServerException {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        // Creation OK
+        final GUID eip = GUIDFactory.newEventGUID(0);
+        final GUID eip2 = GUIDFactory.newEventGUID(0);
+        logbookLcParametersStart = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+            eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.STARTED, "start ingest", "detail", eip);
+        logbookLcParametersAppend = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", "detail", eip);
+        logbookLcParametersWrongStart = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+            eip2,
+            "eventTypeValue2", eip2, LogbookTypeProcess.INGEST,
+            StatusCode.STARTED, "start ingest", "detail", eip2);
+        logbookLcParametersWrongAppend = LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue2", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", "detail", eip2);
+
+        List<LogbookLifeCycleObjectGroupParameters> logbookLifeCycleObjectGroupParameters = Lists
+            .newArrayList(logbookLcParametersStart, logbookLcParametersAppend);
+
+        ArrayList<LogbookLifeCycleObjectGroupParameters> logbookLifeCycleObjectGroupParameters1 =
+            Lists.newArrayList(logbookLcParametersWrongStart,
+                logbookLcParametersWrongAppend);
+
+        LogbookLifeCycleObjectGroupModel logbookLifeCycleModel = new LogbookLifeCycleObjectGroupModel("10",
+            logbookLifeCycleObjectGroupParameters);
+        LogbookLifeCycleObjectGroupModel logbookLifeCycleModel2 = new LogbookLifeCycleObjectGroupModel("10",
+            logbookLifeCycleObjectGroupParameters1);
+
+        try (final LogbookLifeCyclesClient client =
+            LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+
+            client.checkStatus();
+            client.bulkObjectGroup(eip.toString(), Lists.newArrayList(logbookLifeCycleModel, logbookLifeCycleModel2));
+
+            // Update multiple OK
+
+            FindIterable<LogbookLifeCycleObjectGroupModel> objects =
+                (FindIterable<LogbookLifeCycleObjectGroupModel>) LIFECYCLE_OBJECTGROUP_IN_PROCESS.getVitamCollection()
+                    .getCollection().find();
+            ArrayList<LogbookLifeCycleObjectGroupModel> objects1 = Lists.newArrayList(objects);
+            assertThat(objects1).hasSize(2).extracting("_id").containsExactly(eip.toString(), eip2.toString());
+        }
+    }
+
 }

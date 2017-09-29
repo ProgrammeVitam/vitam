@@ -151,6 +151,19 @@ public class LogbookLifeCyclesClientHelper {
 
     /**
      *
+     * @param key of element to remove
+     * @return the associated finalize Delegate Queue for update
+     */
+    public boolean containsUpdate(String key) {
+        return delegatedUpdates.containsKey(key) && delegatedUpdates.get(key).size() > 0;
+    }
+
+    public boolean containsCreate(String key) {
+        return delegatedCreations.containsKey(key) && delegatedCreations.get(key).size() > 0;
+    }
+
+    /**
+     *
      * @return the Set of LifeCycles entries in creation mode
      */
     public Set<Entry<String, Queue<LogbookLifeCycleParameters>>> getAllCreations() {
