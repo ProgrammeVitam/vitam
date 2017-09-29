@@ -340,15 +340,6 @@ public class StorageClientRestTest extends VitamJerseyTest {
 
     @RunWithCustomExecutor
     @Test
-    public void createFromDatabaseOK() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.post())
-                .thenReturn(Response.status(Response.Status.CREATED).entity(generateStoredInfoResult("idObject")).build());
-        client.storeFileFromDatabase("idStrategy", StorageCollectionType.OBJECTGROUPS, "idObject");
-    }
-
-    @RunWithCustomExecutor
-    @Test
     public void createFromWorkspaceOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post())
@@ -358,26 +349,10 @@ public class StorageClientRestTest extends VitamJerseyTest {
 
     @RunWithCustomExecutor
     @Test(expected = StorageNotFoundClientException.class)
-    public void createFromDatabaseNotFound() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.post()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
-        client.storeFileFromDatabase("idStrategy", StorageCollectionType.OBJECTGROUPS, "idObject");
-    }
-    
-    @RunWithCustomExecutor
-    @Test(expected = StorageNotFoundClientException.class)
     public void createFromWorkspaceNotFound() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         client.storeFileFromWorkspace("idStrategy", StorageCollectionType.OBJECTS, "idObject", getDescription());
-    }
-
-    @RunWithCustomExecutor
-    @Test(expected = StorageAlreadyExistsClientException.class)
-    public void createFromDatabaseAlreadyExist() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.post()).thenReturn(Response.status(Response.Status.CONFLICT).build());
-        client.storeFileFromDatabase("idStrategy", StorageCollectionType.OBJECTGROUPS, "idObject");
     }
 
     @RunWithCustomExecutor
@@ -390,28 +365,12 @@ public class StorageClientRestTest extends VitamJerseyTest {
 
     @RunWithCustomExecutor
     @Test(expected = StorageServerClientException.class)
-    public void createFromDatabaseInternalServerError() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(mock.post()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
-        client.storeFileFromDatabase("idStrategy", StorageCollectionType.OBJECTGROUPS, "idObject");
-    }
-
-    @RunWithCustomExecutor
-    @Test(expected = StorageServerClientException.class)
     public void createFromWorkspaceInternalServerError() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
         client.storeFileFromWorkspace("idStrategy", StorageCollectionType.OBJECTS, "idObject", getDescription());
     }
 
-    @RunWithCustomExecutor
-    @Test(expected = IllegalArgumentException.class)
-    public void createFromDatabaseWithTenantIllegalArgumentException() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(null);
-        when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
-        client.storeFileFromDatabase("idStrategy", StorageCollectionType.OBJECTGROUPS, "idObject");
-    }
-    
     @RunWithCustomExecutor
     @Test(expected = IllegalArgumentException.class)
     public void createFromWorkspaceWithTenantIllegalArgumentException() throws Exception {
@@ -422,23 +381,9 @@ public class StorageClientRestTest extends VitamJerseyTest {
 
     @RunWithCustomExecutor
     @Test(expected = IllegalArgumentException.class)
-    public void createFromDatabaseWithStrategyIllegalArgumentException() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
-        client.storeFileFromDatabase(null, StorageCollectionType.OBJECTGROUPS, "idObject");
-    }
-
-    @RunWithCustomExecutor
-    @Test(expected = IllegalArgumentException.class)
     public void createFromWorkspaceWithStrategyIllegalArgumentException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
         client.storeFileFromWorkspace(null, StorageCollectionType.OBJECTS, "idObject", getDescription());
-    }
-
-    @RunWithCustomExecutor
-    @Test(expected = IllegalArgumentException.class)
-    public void createFromDatabaseWithObjectIdIllegalArgumentException() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
-        client.storeFileFromDatabase("idStrategy", StorageCollectionType.OBJECTGROUPS, "");
     }
 
     @RunWithCustomExecutor

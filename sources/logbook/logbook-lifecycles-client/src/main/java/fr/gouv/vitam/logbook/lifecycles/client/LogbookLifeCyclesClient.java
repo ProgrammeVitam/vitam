@@ -114,6 +114,18 @@ public interface LogbookLifeCyclesClient extends BasicClient {
     JsonNode selectUnitLifeCycleById(String id, JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException;
 
     /**
+     * returns the unit life cycle in progress
+     *
+     * @param id unit life cycle id
+     * @param queryDsl dsl query to be executed
+     * @param lifeCycleStatus the lifecycle status
+     * @return the unit life cycle
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     */
+    JsonNode selectUnitLifeCycleById(String id, JsonNode queryDsl, LifeCycleStatusCode lifeCycleStatus) throws LogbookClientException, InvalidParseOperationException;
+
+    /**
      * returns the unit life cycle
      *
      * @param queryDsl dsl query containing the id
@@ -133,6 +145,18 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws InvalidParseOperationException
      */
     JsonNode selectObjectGroupLifeCycleById(String id, JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException;
+
+    /**
+     * returns the object group life cycle
+     *
+     * @param id the object group life cycle id
+     * @param queryDsl dsl query to be executed
+     * @param lifeCycleStatus the lifecycle status
+     * @return the object group life cycle
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     */
+    JsonNode selectObjectGroupLifeCycleById(String id, JsonNode queryDsl, LifeCycleStatusCode lifeCycleStatus) throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * returns the object group life cycles

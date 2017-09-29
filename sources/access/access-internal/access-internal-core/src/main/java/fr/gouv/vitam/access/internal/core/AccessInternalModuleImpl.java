@@ -26,29 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.core;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
-
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.api.DataCategory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalException;
@@ -57,6 +38,7 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutio
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
@@ -69,6 +51,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserHelper
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
@@ -81,6 +64,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
+import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.VitamConstants.AppraisalRuleFinalAction;
@@ -100,6 +84,7 @@ import fr.gouv.vitam.functional.administration.common.exception.AdminManagementC
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
@@ -126,12 +111,30 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 
@@ -177,12 +180,16 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String ALGORITHM = "Algorithm";
     private static final String DIGEST = "MessageDigest";
 
+    private static final String UNIT_KEY = "unit";
+    private static final String LFC_KEY = "lfc";
+    
     private static final String WORKSPACE_SERVER_EXCEPTION = "workspace server exception";
     private static final String STORAGE_SERVER_EXCEPTION = "Storage server exception";
     private static final String JSON = ".json";
     private static final String CANNOT_CREATE_A_FILE = "Cannot create a file: ";
     private static final String CANNOT_FOUND_OR_READ_SOURCE_FILE = "Cannot found or read source file: ";
     private static final String ARCHIVE_UNIT_NOT_FOUND = "Archive unit not found";
+    private static final String LIFE_CYCLE_NOT_FOUND = "LifeCycle not found";
     private static final String ERROR_ADD_CONDITION = "Error during adding condition of Operations";
     private static final String ERROR_CHECK_RULES = "Error during checking updated rules";
     private static final String ERROR_UPDATE_RULE = "Can't Update Rule: ";
@@ -288,6 +295,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private JsonNode selectMetadataDocumentById(JsonNode jsonQuery, String idDocument, DataCategory dataCategory)
         throws InvalidParseOperationException, AccessInternalExecutionException {
         JsonNode jsonNode;
+        
         ParametersChecker.checkParameter("Data category ", dataCategory);
         ParametersChecker.checkParameter("idDocument is empty", idDocument);
 
@@ -727,19 +735,13 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private StoredInfoResult replaceStoredUnitMetadata(String idUnit, String requestId)
         throws InvalidParseOperationException, ContentAddressableStorageException,
         StorageClientException, AccessInternalException {
-
-        JsonNode jsonResponse = null;
-        SelectMultiQuery query = new SelectMultiQuery();
-        JsonNode constructQuery = query.getFinalSelect();
-        final String fileName = idUnit + JSON;
-
-        // FIXME : no need to save unit in workspace as StorageEngine get it and its lfc from Database
+        
         final WorkspaceClient workspaceClient =
             workspaceClientMock == null ? WorkspaceClientFactory.getInstance().getClient() : workspaceClientMock;
         try {
-            jsonResponse = selectMetadataDocumentById(constructQuery, idUnit, DataCategory.UNIT);
-            if (jsonResponse != null) {
-                JsonNode unit = jsonResponse.get(RESULTS);
+            final String fileName = idUnit + JSON;
+            JsonNode unit = getUnitWithLfc(idUnit);
+            if (unit != null) {
                 workspaceClient.createContainer(requestId);
                 File file = null;
                 try {
@@ -760,8 +762,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                         file.delete();
                     }
                 }
-                // updates (replaces) stored object (get unit and lfc from database and save it)
-                return storeMetaDataUnit(StorageCollectionType.UNITS, idUnit);
+                // updates (replaces) stored object
+                return storeMetaDataUnit(new ObjectDescription(StorageCollectionType.UNITS, requestId, fileName,
+                    IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName));
 
             } else {
                 LOGGER.error(ARCHIVE_UNIT_NOT_FOUND);
@@ -775,24 +778,119 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         }
     }
 
+    /**
+     * getUnitWithLfc, create a jsonNode with the unit and it's lfc
+     *
+     * @param idUnit the unit id
+     * @return a new JsonNode with unit and lfc inside
+     * @throws InvalidParseOperationException 
+     * @throws AccessInternalException if unable to find the unit or it's lfc
+     */
+    private JsonNode getUnitWithLfc(String idUnit) throws InvalidParseOperationException, AccessInternalException {
+        try {
+            // get metadata
+            SelectMultiQuery query = new SelectMultiQuery();
+            ObjectNode constructQuery = query.getFinalSelect();
+            JsonNode jsonResponse = selectMetadataDocumentById(constructQuery, idUnit, DataCategory.UNIT);
+            JsonNode unit = extractNodeFromResponse(jsonResponse, ARCHIVE_UNIT_NOT_FOUND);
+
+            // get lfc
+            final SelectParserSingle parser = new SelectParserSingle();
+            parser.parse(query.getFinalSelect());
+            parser.addCondition(QueryHelper.eq("obId", idUnit));
+            constructQuery = parser.getRequest().getFinalSelect();
+            jsonResponse = retrieveLogbookLifeCycleById(constructQuery, idUnit, DataCategory.UNIT);
+            JsonNode lfc = extractNodeFromResponse(jsonResponse, LIFE_CYCLE_NOT_FOUND);
+
+            // get doc with lfc
+            final ObjectNode docWithLFC = JsonHandler.getFactory().objectNode();
+            docWithLFC.set(UNIT_KEY, unit);
+            docWithLFC.set(LFC_KEY, lfc);
+            
+            return docWithLFC;
+        } catch (final InvalidCreateOperationException e) {
+            LOGGER.error(e);
+            throw new AccessInternalException(e);
+        }
+    }
+
+    /**
+     * retrieveLogbookLifeCycleById, retrieve the LFC for the giving document (Unit or Got)
+     *
+     * @param idDocument     document uuid
+     * @param dataCategory   accepts UNIT or OBJECT_GROUP
+     * @return the LFC of the giving document from logbook
+     * @throws ProcessingException if no result found or error during parsing response from logbook client
+     */
+    private JsonNode retrieveLogbookLifeCycleById(JsonNode jsonQuery, String idDocument, DataCategory dataCategory)
+            throws AccessInternalExecutionException {
+        JsonNode jsonNode;
+
+        ParametersChecker.checkParameter("Data category ", dataCategory);
+        ParametersChecker.checkParameter("idDocument is empty", idDocument);
+
+        try(LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient()){
+            switch (dataCategory) {
+                case UNIT:
+                    jsonNode = logbookClient.selectUnitLifeCycleById(idDocument, jsonQuery, LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unsupported category " + dataCategory);
+            }
+        } catch (final InvalidParseOperationException | LogbookClientException e){
+            LOGGER.error(e);
+            throw new AccessInternalExecutionException(e);
+        }
+
+        return jsonNode;
+    }
+
+    /**
+     * extractNodeFromResponse, check response and extract single result
+     *
+     * @param jsonResponse
+     * @param error        message to throw if response is null or no result could be found
+     * @return a single result from response
+     * @throws AccessInternalException if no result found
+     */
+    private JsonNode extractNodeFromResponse(JsonNode jsonResponse, final String error) throws AccessInternalException {
+
+        JsonNode jsonNode;
+        // check response
+        if (jsonResponse == null) {
+            LOGGER.error(error);
+            throw new AccessInternalException(error);
+        }
+        jsonNode = jsonResponse.get(RESULTS);
+        // if result = 0 then throw Exception
+        if (jsonNode == null || jsonNode.size() == 0) {
+            LOGGER.error(error);
+            throw new AccessInternalException(error);
+        }
+
+        // return a single node
+        return jsonNode.get(0);
+    } 
+
 
     /**
      * The function is used for retrieving ObjectGroup in workspace and storing metaData in storage offer
      *
-     * @param type
-     * @param uuid
+     * @param description
      * @return updated storedInfo for the unit
      * @throws StorageServerClientException
      * @throws StorageNotFoundClientException
      * @throws StorageAlreadyExistsClientException
-     * @throws ProcessingException                 when error in execution
+     * @throws ProcessingException when error in execution
      */
-    private StoredInfoResult storeMetaDataUnit(StorageCollectionType type, String uuid) throws StorageClientException {
+    private StoredInfoResult storeMetaDataUnit(ObjectDescription description) throws StorageClientException {
         final StorageClient storageClient =
-            storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
+                storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
         try {
             // store binary data object
-            return storageClient.storeFileFromDatabase(DEFAULT_STRATEGY, type, uuid);
+            return storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY, description.getType(),
+                    description.getObjectName(),
+                    description);
         } finally {
             if (storageClient != null && storageClientMock == null) {
                 storageClient.close();

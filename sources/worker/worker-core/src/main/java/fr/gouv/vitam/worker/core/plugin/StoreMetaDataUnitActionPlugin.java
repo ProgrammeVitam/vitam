@@ -26,15 +26,11 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
-import java.io.File;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -43,6 +39,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -50,7 +48,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
@@ -58,10 +56,12 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 
+import java.io.File;
+
 /**
  * Stores MetaData Unit plugin.
  */
-public class StoreMetaDataUnitActionPlugin extends StoreObjectActionHandler {
+public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StoreMetaDataUnitActionPlugin.class);
 
@@ -75,9 +75,7 @@ public class StoreMetaDataUnitActionPlugin extends StoreObjectActionHandler {
     /**
      * Empty parameter Constructor
      */
-    public StoreMetaDataUnitActionPlugin() {
-
-    }
+    public StoreMetaDataUnitActionPlugin() {}
 
 
     @Override
@@ -90,11 +88,11 @@ public class StoreMetaDataUnitActionPlugin extends StoreObjectActionHandler {
         final String fileName = guid + JSON;
 
         checkMandatoryIOParameter(actionDefinition);
-        try {
-            // create metadata file in workspace
-            createMetadataFileInWorkspace(params, guid, fileName, itemStatus);
-            // TODO update indexed MetaData
 
+        try {
+            // create metadata-lfc file in workspace
+            saveDocumentWithLfcInStorage(params, guid, fileName, itemStatus);
+            
             itemStatus.increment(StatusCode.OK);
         } catch (ProcessingException e) {
             LOGGER.error(e);
@@ -108,57 +106,67 @@ public class StoreMetaDataUnitActionPlugin extends StoreObjectActionHandler {
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // TODO Auto-generated method stub
-
     }
 
-    private void createMetadataFileInWorkspace(WorkerParameters params, String guid, String fileName,
-        ItemStatus itemStatus) throws VitamException {
-        // select ArchiveUnit
-        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
-            JsonNode jsonResponse = null;
+    /**
+     * saveDocumentWithLfcInStorage
+     * 
+     * @param params
+     * @param guid
+     * @param fileName
+     * @param itemStatus
+     * @throws VitamException
+     */
+    private void saveDocumentWithLfcInStorage(WorkerParameters params, String guid, String fileName, 
+                                              ItemStatus itemStatus) throws VitamException {
+
+        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
+                 LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+            
+            //// get metadata
+            JsonNode unit = selectMetadataDocumentById(guid, DataCategory.UNIT, metaDataClient);
+            //// get lfc
+            JsonNode lfc = retrieveLogbookLifeCycleById(guid, DataCategory.UNIT, logbookClient);
+
+            //// create file for storage (in workspace or temp or memory)
+            JsonNode docWithLfc = getDocumentWithLFC(unit, lfc, DataCategory.UNIT);
+            // transfer json to workspace
             try {
-                SelectMultiQuery query = new SelectMultiQuery();
-                ObjectNode constructQuery = query.getFinalSelect();
-                jsonResponse = metaDataClient.selectUnitbyId(constructQuery, guid);
-                if (jsonResponse == null) {
-                    LOGGER.error(ARCHIVE_UNIT_NOT_FOUND);
-                    itemStatus.increment(StatusCode.KO);
-                    throw new ProcessingException(ARCHIVE_UNIT_NOT_FOUND);
-                }
-                JsonNode unit = jsonResponse.get($RESULTS);
-                // if result = 0 then throw Exception
-                if (unit.size() == 0) {
-                    throw new ProcessingException(ARCHIVE_UNIT_NOT_FOUND);
-                }
-                unit = unit.get(0);
-                // store metadata object
-                StoredInfoResult result = storeObject(StorageCollectionType.UNITS, guid, itemStatus);
-                // Update unit with store information
-                if (result != null) {
-                    // update sub task itemStatus
-                    itemStatus.setEvDetailData(detailsFromStorageInfo(result));
-                    
-                    try {
-                        UpdateMultiQuery queryUpdate = storeStorageInfo((ObjectNode) unit, result, true);
-                        query.addHintFilter(BuilderToken.FILTERARGS.UNITS.exactToken());
-                        metaDataClient.updateUnitbyId(queryUpdate.getFinalUpdate(), guid);
-                        try {
-                            handlerIO.transferJsonToWorkspace(StorageCollectionType.UNITS.getCollectionName(), fileName,
-                                unit, true, asyncIO);
-                        } catch (ProcessingException e) {
-                            LOGGER.error(params.getObjectName(), e);
-                            throw new WorkspaceClientServerException(e);
-                        }
-                    } catch (InvalidCreateOperationException e) {
-                        LOGGER.error(e);
-                    }
-                }
-                
-            } catch (MetaDataExecutionException | MetaDataDocumentSizeException |
-                InvalidParseOperationException | MetaDataClientServerException e) {
-                LOGGER.error(e);
-                throw e;
+                handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER, fileName,
+                        docWithLfc, true, asyncIO);
+            } catch (ProcessingException e) {
+                LOGGER.error(params.getObjectName(), e);
+                throw new WorkspaceClientServerException(e);
             }
+
+            //// call storage (save in offers)
+            // object Description
+            final ObjectDescription description = new ObjectDescription(StorageCollectionType.UNITS, params.getContainerName(),
+                    fileName, IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName);
+            // store metadata object from workspace
+            StoredInfoResult result = storeObject(description, itemStatus);
+
+            // check returned result
+            if (result != null) {
+                // update sub task itemStatus
+                itemStatus.setEvDetailData(detailsFromStorageInfo(result));
+                
+                // Update unit with store information
+                try {
+                    UpdateMultiQuery queryUpdate = storeStorageInfo((ObjectNode) unit, result, true);
+                    queryUpdate.addHintFilter(BuilderToken.FILTERARGS.UNITS.exactToken());
+                    LOGGER.debug("Final Unit: {}", unit);
+                    metaDataClient.updateUnitbyId(queryUpdate.getFinalUpdate(), guid);
+                } catch (InvalidCreateOperationException e) {
+                    LOGGER.error(e);
+                }
+            }
+        } catch (MetaDataExecutionException | MetaDataDocumentSizeException |
+                InvalidParseOperationException | MetaDataClientServerException e) {
+            LOGGER.error(e);
+            throw e;
         }
+            
     }
+
 }

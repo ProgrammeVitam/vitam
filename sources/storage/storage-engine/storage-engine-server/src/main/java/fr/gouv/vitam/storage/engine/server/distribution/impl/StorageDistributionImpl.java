@@ -34,16 +34,10 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.DefaultClient;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -54,15 +48,6 @@ import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.stream.MultiplePipedInputStream;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
@@ -106,8 +91,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.DigestInputStream;
@@ -144,14 +127,6 @@ public class StorageDistributionImpl implements StorageDistribution {
     private static final String SIZE_KEY = "size";
     private static final String STREAM_KEY = "stream";
     private static final String RESPONSE_KEY = "response";
-
-    private static final String UNIT_KEY = "unit";
-    private static final String GOT_KEY = "got";
-    private static final String LFC_KEY = "lfc";
-    private static final String OB_ID = "obId";
-    private static final String $RESULTS = "$results";
-    private static final String DOCUMENT_NOT_FOUND = "Document not found";
-    private static final String LIFE_CYCLE_NOT_FOUND = "LifeCycle not found";
 
     /**
      * Global pool thread
@@ -263,17 +238,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         DataCategory category, String requester, Integer tenantId, TryAndRetryData datas, int attempt,
         StorageLogbookParameters parameters)
         throws StorageTechnicalException, StorageNotFoundException, StorageAlreadyExistsException {
-        Map<String, Object> streamAndInfos;
-        switch (category) {
-            case UNIT:
-            case OBJECT_GROUP:
-                // FIXME P0 This should be done in WORKER Handler not in Storage Engine Bugg #3255
-                streamAndInfos = getInputStreamFromDatabase(objectId, category);
-                break;
-            default:
-
-                streamAndInfos = getInputStreamFromWorkspace(createObjectDescription);
-        }
+        Map<String, Object> streamAndInfos = getInputStreamFromWorkspace(createObjectDescription);
         Digest globalDigest = new Digest(digestType);
         InputStream digestInputStream = globalDigest.getDigestInputStream((InputStream) streamAndInfos.get(STREAM_KEY));
         Response response = (Response) streamAndInfos.get(RESPONSE_KEY);
@@ -436,165 +401,6 @@ public class StorageDistributionImpl implements StorageDistribution {
                 createObjectDescription.getWorkspaceObjectURI(), workspaceClient);
         }
 
-    }
-
-    /**
-     * getInputStreamFromDatabase, Retrieve object infos and inputStream from database
-     *
-     * @param documentId uuid of the unit or objectGroup to fetch
-     * @param dataCategory accepts UNIT or OBJECT_GROUP
-     * @return object infos and inputStream as map
-     * @throws StorageNotFoundException if no result found for the giving uuid
-     * @throws StorageTechnicalException if unable to get input stream or info from database
-     */
-    private Map<String, Object> getInputStreamFromDatabase(String documentId, DataCategory dataCategory)
-            throws StorageNotFoundException, StorageTechnicalException  {
-
-        final ObjectNode docWithLFC = JsonHandler.getFactory().objectNode();
-        switch (dataCategory){
-            case UNIT:
-            case OBJECT_GROUP:
-                // get the document
-                docWithLFC.set(dataCategory.equals(DataCategory.UNIT) ? UNIT_KEY : GOT_KEY,
-                        selectMetadataDocumentById(documentId, dataCategory));
-                // get the lfc
-                docWithLFC.set(LFC_KEY, retrieveLogbookLifeCycleById(documentId, dataCategory));
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported category " + dataCategory);
-        }
-
-        // create the result
-        Map<String, Object> result = new HashMap<>();
-        try{
-            InputStream stream = getInputStreamFromJsonNode(documentId, docWithLFC);
-            result.put(SIZE_KEY, String.valueOf(stream.available()));
-            result.put(STREAM_KEY, stream);
-            // no need to set response as it is already closed by the client
-            //result.put(RESPONSE_KEY, response);
-        } catch (InvalidParseOperationException | IOException e) {
-            throw new StorageTechnicalException(e);
-        }
-        return result;
-    }
-
-    /**
-     * getInputStreamFromJsonNode, get inputStream from ObjectNode
-     *
-     * @param documentId id of the document
-     * @param jsonNode object to use
-     * @return inputStream from objectNode
-     * @throws IOException if error while creating file
-     * @throws InvalidParseOperationException if error while writing JSON to inputStream
-     */
-    private InputStream getInputStreamFromJsonNode(String documentId, ObjectNode jsonNode)
-            throws IOException, InvalidParseOperationException {
-
-        File file = File.createTempFile(documentId, null);
-        JsonHandler.writeAsFile(jsonNode, file);
-        return new FileInputStream(file);
-    }
-
-    /**
-     * selectMetadataDocumentById, Retrieve Metadata Document from DB
-     *
-     * @param idDocument document uuid
-     * @param dataCategory accepts UNIT or OBJECT_GROUP
-     * @return JsonNode from the found document
-     * @throws StorageNotFoundException if no result found
-     * @throws StorageTechnicalException if error during parsing response from metadata client
-     */
-    private JsonNode selectMetadataDocumentById(String idDocument, DataCategory dataCategory)
-            throws StorageNotFoundException, StorageTechnicalException {
-        ParametersChecker.checkParameter("Data category ", dataCategory);
-        ParametersChecker.checkParameter("idDocument is empty", idDocument);
-
-        JsonNode jsonResponse;
-        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
-            SelectMultiQuery query = new SelectMultiQuery();
-            ObjectNode constructQuery = query.getFinalSelect();
-
-            switch (dataCategory) {
-                case UNIT:
-                    jsonResponse = metaDataClient.selectUnitbyId(constructQuery, idDocument);
-                    break;
-                case OBJECT_GROUP:
-                    jsonResponse = metaDataClient.selectObjectGrouptbyId(constructQuery, idDocument);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Unsupported category " + dataCategory);
-            }
-        } catch (InvalidParseOperationException | MetadataInvalidSelectException | MetaDataDocumentSizeException
-                | MetaDataExecutionException | MetaDataClientServerException e) {
-            throw new StorageTechnicalException(e);
-        }
-
-        return extractNodeFromResponse(jsonResponse, DOCUMENT_NOT_FOUND);
-    }
-
-    /**
-     * retrieveLogbookLifeCycleById, retrieve the LFC for the giving document (Unit or Got)
-     *
-     * @param idDocument document uuid
-     * @param dataCategory accepts UNIT or OBJECT_GROUP
-     * @return the LFC of the giving document from logbook
-     * @throws StorageNotFoundException if no result found
-     * @throws StorageTechnicalException if error during parsing response from logbooklfc client
-     */
-    private JsonNode retrieveLogbookLifeCycleById(String idDocument, DataCategory dataCategory)
-            throws StorageNotFoundException, StorageTechnicalException {
-
-        JsonNode jsonResponse;
-        try(LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-            final SelectParserSingle parser = new SelectParserSingle();
-            Select select = new Select();
-            parser.parse(select.getFinalSelect());
-            parser.addCondition(QueryHelper.eq(OB_ID, idDocument));
-            ObjectNode queryDsl = parser.getRequest().getFinalSelect();
-
-            switch (dataCategory) {
-                case UNIT:
-                    jsonResponse = client.selectUnitLifeCycleById(idDocument, queryDsl);
-                    break;
-                case OBJECT_GROUP:
-                    jsonResponse = client.selectObjectGroupLifeCycleById(idDocument, queryDsl);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Unsupported category " + dataCategory);
-            }
-        } catch (final InvalidCreateOperationException | InvalidParseOperationException | LogbookClientException e) {
-            LOGGER.error(e);
-            throw new StorageTechnicalException(e);
-        }
-
-        return extractNodeFromResponse(jsonResponse, LIFE_CYCLE_NOT_FOUND);
-    }
-
-    /**
-     * extractNodeFromResponse, check response and extract single result
-     *
-     * @param jsonResponse
-     * @param error message to throw if response is null or no result could be found
-     * @return a single result from response
-     * @throws StorageNotFoundException if no result found
-     */
-    private JsonNode extractNodeFromResponse(JsonNode jsonResponse, final String error)
-            throws StorageNotFoundException {
-
-        JsonNode jsonNode;
-        // check response
-        if (jsonResponse == null) {
-            LOGGER.error(error);
-            throw new StorageNotFoundException(error);
-        }
-        jsonNode = jsonResponse.get($RESULTS);
-        // if result = 0 then throw Exception
-        if (jsonNode.size() == 0) {
-            throw new StorageNotFoundException(error);
-        }
-
-        // return a single node
-        return jsonNode.get(0);
     }
 
     private MultiplePipedInputStream getMultipleInputStreamFromWorkspace(InputStream stream, int nbCopy,
@@ -765,17 +571,8 @@ public class StorageDistributionImpl implements StorageDistribution {
         ParametersChecker.checkParameter("Object id is mandatory", dataId);
         ParametersChecker.checkParameter("Category is mandatory", category);
         ParametersChecker.checkParameter("Object additional information guid is mandatory", createObjectDescription);
-        switch (category){
-            case UNIT:
-            case OBJECT_GROUP:
-                // do not check createObjectDescription content (empty object accepted)
-                break;
-            default:
-                ParametersChecker
-                    .checkParameter("Container guid is mandatory", createObjectDescription.getWorkspaceContainerGUID());
-                ParametersChecker
-                    .checkParameter("Object URI in workspaceis mandatory", createObjectDescription.getWorkspaceObjectURI());
-        }
+        ParametersChecker.checkParameter("Container guid is mandatory", createObjectDescription.getWorkspaceContainerGUID());
+        ParametersChecker.checkParameter("Object URI in workspaceis mandatory", createObjectDescription.getWorkspaceObjectURI());
     }
 
     private Map<String, Object> retrieveDataFromWorkspace(String containerGUID, String objectURI,

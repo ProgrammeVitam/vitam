@@ -27,30 +27,6 @@
 
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import org.apache.commons.io.IOUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.Mockito;
-
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -60,13 +36,12 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.FakeInputStream;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
-import fr.gouv.vitam.common.server.application.junit.AsyncResponseJunitTest;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
@@ -83,22 +58,11 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
-
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -107,6 +71,15 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 /**
  *
@@ -138,7 +111,7 @@ public class StorageDistributionImplTest {
             new StorageLogbookServiceImpl(list, Paths.get(folder.getRoot().getAbsolutePath()));
         simpleDistribution = new StorageDistributionImpl(configuration, storageLogbookService);
         customDistribution = new StorageDistributionImpl(client, DigestType.SHA1,storageLogbookService);
-        LogbookLifeCyclesClientFactory.changeMode(null);
+        //LogbookLifeCyclesClientFactory.changeMode(null);
     }
 
     @AfterClass
@@ -235,13 +208,6 @@ public class StorageDistributionImplTest {
         info = storedInfoResult.getInfo();
         assertNotNull(info);
         assertTrue(info.contains("Unit") && info.contains("successfully"));
-        // check digest algorithm
-        assertEquals(storedInfoResult.getDigestType(), DigestType.SHA1.getName());
-        // Check stored file by comparing digest
-        final String expectedDigest = Digest.digest(PropertiesUtils.findFile("unit_lfc_result.json"),
-            DigestType.SHA1).digestHex();
-        final String actualDigest = storedInfoResult.getDigest();
-        assertEquals(expectedDigest, actualDigest);
 
         // Store logbook
         stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
@@ -303,13 +269,6 @@ public class StorageDistributionImplTest {
         info = storedInfoResult.getInfo();
         assertNotNull(info);
         assertTrue(info.contains("ObjectGroup") && info.contains("successfully"));
-        // check digest algorithm
-        assertEquals(storedInfoResult.getDigestType(), DigestType.SHA1.getName());
-        // Check stored file by comparing digest
-        final String expectedDigest2 = Digest.digest(PropertiesUtils.findFile("got_lfc_result.json"),
-            DigestType.SHA1).digestHex();
-        final String actualDigest2 = storedInfoResult.getDigest();
-        assertEquals(expectedDigest2, actualDigest2);
 
         Digest digest = Digest.digest(new FileInputStream(PropertiesUtils.findFile("object.zip")),
             VitamConfiguration.getDefaultDigestType());

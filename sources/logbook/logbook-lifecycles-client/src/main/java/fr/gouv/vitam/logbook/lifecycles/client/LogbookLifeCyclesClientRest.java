@@ -261,10 +261,22 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     @Override
     public JsonNode selectUnitLifeCycleById(String id, JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException {
+        return selectUnitLifeCycleById(id, queryDsl, null);
+    }
+
+    @Override
+    public JsonNode selectUnitLifeCycleById(String id, JsonNode queryDsl, LifeCycleStatusCode lifeCycleStatus)
+            throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, UNIT_LIFECYCLES_URL + "/" + id, null,
-                queryDsl, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            MultivaluedHashMap<String, Object> headers = null;
+            if (lifeCycleStatus != null) {
+                headers= new MultivaluedHashMap<>();
+                headers.add(GlobalDataRest.X_EVENT_STATUS, lifeCycleStatus.toString());
+            }
+
+            response = performRequest(HttpMethod.GET, UNIT_LIFECYCLES_URL + "/" + id, headers,
+                    queryDsl, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
@@ -309,10 +321,24 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     @Override
     public JsonNode selectObjectGroupLifeCycleById(String id, JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException {
+        return selectObjectGroupLifeCycleById(id, queryDsl, null);
+    }
+
+    @Override
+    public JsonNode selectObjectGroupLifeCycleById(String id, JsonNode queryDsl, LifeCycleStatusCode lifeCycleStatus)
+            throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
+
+            MultivaluedHashMap<String, Object> headers = null;
+            if (lifeCycleStatus != null) {
+                headers= new MultivaluedHashMap<>();
+                headers.add(GlobalDataRest.X_EVENT_STATUS, lifeCycleStatus.toString());
+            }
+
             response = performRequest(HttpMethod.GET, OBJECT_GROUP_LIFECYCLES_URL + "/" + id,
-                null, queryDsl, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                    headers, queryDsl, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
                 throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());

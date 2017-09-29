@@ -89,17 +89,6 @@ public class StorageClientMockTest {
     }
 
     @Test
-    public void storeFromDb() throws VitamClientException {
-        final StoredInfoResult expectedResult = generateStoredInfoResult("guid");
-
-        final StorageClient client = StorageClientFactory.getInstance().getClient();
-        assertNotNull(client);
-
-        final StoredInfoResult result = client.storeFileFromDatabase("idStrategy", StorageCollectionType.OBJECTGROUPS, "guid");
-        assertEquals(result.getId(), expectedResult.getId());
-    }
-
-    @Test
     public void checkExists() throws VitamClientException {
         final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertNotNull(client);

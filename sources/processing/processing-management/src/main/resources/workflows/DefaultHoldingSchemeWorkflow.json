@@ -134,12 +134,6 @@
       "actions": [
         {
           "action": {
-            "actionKey": "COMMIT_LIFE_CYCLE_UNIT",
-            "behavior": "BLOCKING"
-          }
-        },
-        {
-          "action": {
             "actionKey": "UNIT_METADATA_STORAGE",
             "behavior": "BLOCKING"
           }
