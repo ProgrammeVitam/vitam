@@ -620,7 +620,6 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
 
         SimpleModule module = new SimpleModule();
-        module.addSerializer(Element.class, new ElementSerializer());
         module.addSerializer(TextType.class, new TextTypeSerializer());
         module.addSerializer(LevelType.class, new LevelTypeSerializer());
         module.addSerializer(Signer.class, new SignerSerializer());

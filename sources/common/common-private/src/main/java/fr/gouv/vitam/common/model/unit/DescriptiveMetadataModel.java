@@ -2,8 +2,13 @@ package fr.gouv.vitam.common.model.unit;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import fr.gouv.culture.archivesdefrance.seda.v2.AgentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.CoverageType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
@@ -96,7 +101,8 @@ public class DescriptiveMetadataModel {
 
     private GpsType gps;
 
-    private List<Object> any;
+    @JsonIgnore
+    private Map<String, Object> any = new HashMap<>();
 
     private Object restrictionRuleIdRef;
 
@@ -448,16 +454,24 @@ public class DescriptiveMetadataModel {
         this.gps = gps;
     }
 
-    public List<Object> getAny() {
-        if (any == null) {
-            any = new ArrayList<>();
-        }
+    @JsonIgnore
+    public void setAny(Map<String, Object> any) {
+        this.any = any;
+    }
+
+    @JsonAnyGetter
+    public Map<String, Object> getAny() {
         return any;
     }
 
-    public void setAny(List<Object> any) {
-        this.any = any;
+    @JsonAnySetter
+    public void setAny(String key, Object value) {
+        if (key != null && key.startsWith("#")) {
+            return;
+        }
+        this.any.put(key, value);
     }
+
 
     public Object getRestrictionRuleIdRef() {
         return restrictionRuleIdRef;

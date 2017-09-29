@@ -62,20 +62,18 @@
   "RegisteredDate": "2006-05-04",
   "StartDate": "2006-05-04",
   "EndDate": "2006-05-04",
-  "Any": [
-    {
-      "value24": [
-        "maValeur3"
-      ],
-      "value23": [
-        "maValeur",
-        "maValeur2"
-      ],
-      "description" : {
-        "title" : ["fr"]
-      }
-    }
+  "value24": [
+    "maValeur3"
   ],
+  "value23": [
+    "maValeur",
+    "maValeur2"
+  ],
+  "description": {
+    "title": [
+      "fr"
+    ]
+  },
   "_unitType": "HOLDING_UNIT",
   "_uds": {},
   "#id": "aeaqaaaaaagxsmz2abgscak6jvwjfhiaaaaq",
@@ -109,19 +107,5 @@
       "vitam-iaas-app-03.int"
     ]
   },
-  "#version": 1,
-  "inheritedRule": {
-    "DisseminationRule": {
-      "DIS-00002": {
-        "aeaqaaaaaagxsmz2abgscak6jvwjfhiaaaaq": {
-          "StartDate": "2016-12-04",
-          "path": [
-            [
-              "aeaqaaaaaagxsmz2abgscak6jvwjfhiaaaaq"
-            ]
-          ]
-        }
-      }
-    }
-  }
+  "#version": 1
 }

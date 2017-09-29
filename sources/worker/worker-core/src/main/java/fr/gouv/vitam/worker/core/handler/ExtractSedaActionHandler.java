@@ -1612,9 +1612,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             } else if (event.isEndDocument()) {
                 writer.add(eventFactory.createEndDocument());
             }
-
         }
-
     }
 
     /**

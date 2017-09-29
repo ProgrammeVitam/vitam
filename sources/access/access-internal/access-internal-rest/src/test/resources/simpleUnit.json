@@ -1,5 +1,5 @@
-{
-  "_id": "aeaqaaaaaaggo2kdaamz6ak5xvovt3qaaabq",
+{}
+  "#id": "aeaqaaaaaaggo2kdaamz6ak5xvovt3qaaabq",
   "DescriptionLevel": "RecordGrp",
   "Title": "Discours et interventions de Michel Mercier, garde des sceaux",
   "Titles": {
@@ -12,11 +12,11 @@
   },
   "StartDate": "2012-10-22T12:38:04",
   "EndDate": "2012-11-07T14:49:38",
-  "_sps": [
+  "#sps": [
     "FRAN_NP_009734"
   ],
-  "_sp": "FRAN_NP_009734",
-  "_mgt": {
+  "#sp": "FRAN_NP_009734",
+  "#mgt": {
     "StorageRule": {
       "Rules": [
         {
@@ -29,26 +29,7 @@
     },
     "OriginatingAgency": "FRAN_NP_009734"
   },
-  "_ops": [
+  "#ops": [
     "aedqaaaaacgcs7j2aa3oeak5xvorq3yaaaba"
-  ],
-  "_unitType": "INGEST",
-  "_v": 1,
-  "_tenant": 0,
-  "_max": 1,
-  "_min": 1,
-  "_up": [],
-  "_nbc": 2,
-  "_us": [],
-  "_uds": {},
-  "_storage": {
-    "_nbc": [
-      2
-    ],
-    "strategyId": "default",
-    "offerIds": [
-      "vitam-iaas-app-02.int",
-      "vitam-iaas-app-03.int"
-    ]
-  }
+  ]
 }
