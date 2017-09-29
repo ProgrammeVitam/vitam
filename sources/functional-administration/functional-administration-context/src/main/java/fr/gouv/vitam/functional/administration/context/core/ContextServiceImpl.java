@@ -26,29 +26,9 @@
  */
 package fr.gouv.vitam.functional.administration.context.core;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.core.Response;
-
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.functional.administration.common.AccessContract;
-import fr.gouv.vitam.functional.administration.contract.core.GenericContractValidator;
-import org.bson.conversions.Bson;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.Query;
@@ -58,6 +38,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -78,6 +59,7 @@ import fr.gouv.vitam.common.model.administration.PermissionModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -97,6 +79,19 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import org.bson.conversions.Bson;
+
+import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
 
 public class ContextServiceImpl implements ContextService {
     private static final String INVALID_IDENTIFIER_OF_THE_ACCESS_CONTRACT =
@@ -116,7 +111,7 @@ public class ContextServiceImpl implements ContextService {
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logBookclient;
     private final VitamCounterService vitamCounterService;
-
+    private final ContextServiceImpl.ContextManager manager;
 
     /**
      * Constructor
@@ -127,6 +122,8 @@ public class ContextServiceImpl implements ContextService {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
+        manager = new ContextManager(logBookclient, mongoAccess, vitamCounterService);
+
     }
 
     @Override
@@ -139,8 +136,6 @@ public class ContextServiceImpl implements ContextService {
         boolean slaveMode = vitamCounterService
             .isSlaveFunctionnalCollectionOnTenant(SequenceType.CONTEXT_SEQUENCE.getCollection(),
                 ParameterHelper.getTenantParameter());
-        final ContextServiceImpl.ContextManager manager =
-            new ContextServiceImpl.ContextManager(logBookclient, mongoAccess, vitamCounterService);
 
         manager.logStarted();
 
@@ -197,7 +192,7 @@ public class ContextServiceImpl implements ContextService {
                 }
                 if (slaveMode) {
                     Optional<ContextRejectionCause> result =
-                        ContextManager.checkDuplicateInIdentifierSlaveModeValidator().validate(cm);
+                        manager.checkDuplicateInIdentifierSlaveModeValidator().validate(cm);
                     result.ifPresent(t -> error.addToErrors(
                         new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem()).setMessage(t.getReason())));
                 }
@@ -261,8 +256,6 @@ public class ContextServiceImpl implements ContextService {
             .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
         final ContextModel contextModel = findOneContextById(id);
-        final ContextServiceImpl.ContextManager manager =
-            new ContextServiceImpl.ContextManager(logBookclient, mongoAccess, vitamCounterService);
         manager.logUpdateStarted(contextModel.getId());
         final JsonNode permissionsNode = queryDsl.findValue(ContextModel.PERMISSIONS);
         if (permissionsNode != null && permissionsNode.isArray()) {
@@ -270,7 +263,7 @@ public class ContextServiceImpl implements ContextService {
                 PermissionModel permissionModel = JsonHandler.getFromJsonNode(permission, PermissionModel.class);
                 final int tenantId = permissionModel.getTenant();
                 for (String accessContractId : permissionModel.getAccessContract()) {
-                    if (!ContextManager.checkIdentifierOfAccessContract(accessContractId, tenantId)) {
+                    if (!manager.checkIdentifierOfAccessContract(accessContractId, tenantId)) {
                         error.addToErrors(
                             new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
                                 .setMessage(INVALID_IDENTIFIER_OF_THE_INGEST_CONTRACT + accessContractId));
@@ -278,7 +271,7 @@ public class ContextServiceImpl implements ContextService {
                 }
 
                 for (String ingestContractId : permissionModel.getIngestContract()) {
-                    if (!ContextManager.checkIdentifierOfIngestContract(ingestContractId, tenantId)) {
+                    if (!manager.checkIdentifierOfIngestContract(ingestContractId, tenantId)) {
                         error.addToErrors(
                             new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
                                 .setMessage(INVALID_IDENTIFIER_OF_THE_ACCESS_CONTRACT + ingestContractId));
@@ -321,14 +314,18 @@ public class ContextServiceImpl implements ContextService {
         private final LogbookOperationsClient logBookclient;
         private static ContractService<AccessContractModel> accessContract;
         private static ContractService<IngestContractModel> ingestContract;
-        private static List<ContextValidator> validators = Arrays.asList(
-            createMandatoryParamsValidator(), createCheckDuplicateInDatabaseValidator(), checkContract());
+        private static List<ContextValidator> validators;
 
         public ContextManager(LogbookOperationsClient logBookclient,
             MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService) {
             this.logBookclient = logBookclient;
             ingestContract = new IngestContractImpl(mongoAccess, vitamCounterService);
             accessContract = new AccessContractImpl(mongoAccess, vitamCounterService);
+            //Init validator
+            validators = Arrays.asList(
+                createMandatoryParamsValidator(),
+                createCheckDuplicateInDatabaseValidator(),
+                checkContract());
         }
 
         public boolean validateContext(ContextModel context, VitamError error) {
@@ -478,7 +475,7 @@ public class ContextServiceImpl implements ContextService {
          *
          * @return
          */
-        private static ContextValidator createMandatoryParamsValidator() {
+        private ContextValidator createMandatoryParamsValidator() {
             return (context) -> {
                 ContextValidator.ContextRejectionCause rejection = null;
                 if (context.getName() == null || context.getName().trim().isEmpty()) {
@@ -496,7 +493,7 @@ public class ContextServiceImpl implements ContextService {
          *
          * @return
          */
-        private static ContextValidator createCheckDuplicateInDatabaseValidator() {
+        private ContextValidator createCheckDuplicateInDatabaseValidator() {
             return (context) -> {
                 ContextValidator.ContextRejectionCause rejection = null;
                 final Bson clause = eq(IngestContract.NAME, context.getName());
@@ -513,7 +510,7 @@ public class ContextServiceImpl implements ContextService {
          *
          * @return
          */
-        private static ContextValidator checkContract() {
+        private ContextValidator checkContract() {
             return (context) -> {
                 ContextValidator.ContextRejectionCause rejection = null;
 
@@ -543,7 +540,7 @@ public class ContextServiceImpl implements ContextService {
         }
 
 
-        public static boolean checkIdentifierOfIngestContract(String ic, int tenant) {
+        public boolean checkIdentifierOfIngestContract(String ic, int tenant) {
             final Select select = new Select();
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(tenant);
@@ -560,7 +557,7 @@ public class ContextServiceImpl implements ContextService {
             return true;
         }
 
-        public static boolean checkIdentifierOfAccessContract(String ac, int tenant) {
+        public boolean checkIdentifierOfAccessContract(String ac, int tenant) {
 
             final Select select = new Select();
             try {
@@ -583,7 +580,7 @@ public class ContextServiceImpl implements ContextService {
          *
          * @return
          */
-        private static ContextValidator checkDuplicateInIdentifierSlaveModeValidator() {
+        private ContextValidator checkDuplicateInIdentifierSlaveModeValidator() {
             return (context) -> {
                 if (context.getIdentifier() == null || context.getIdentifier().isEmpty()) {
                     return Optional.of(ContextValidator.ContextRejectionCause.rejectMandatoryMissing(

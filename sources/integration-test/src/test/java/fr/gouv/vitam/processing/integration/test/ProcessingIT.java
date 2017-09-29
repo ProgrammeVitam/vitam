@@ -462,7 +462,8 @@ public class ProcessingIT {
                 client.importRulesFile(
                     PropertiesUtils.getResourceAsStream("integration-processing/jeu_donnees_OK_regles_CSV_regles.csv"),
                     "jeu_donnees_OK_regles_CSV_regles.csv");
-                
+
+                client.importAgenciesFile(PropertiesUtils.getResourceAsStream("agencies.csv"), "agencies.csv");
                 // lets check evdetdata for rules import
                 LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
                 fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =

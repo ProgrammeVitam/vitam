@@ -17,29 +17,9 @@
  */
 package fr.gouv.vitam.functional.administration.agencies.api;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assume.assumeTrue;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-
-import fr.gouv.vitam.common.model.administration.AgenciesModel;
-import org.bson.Document;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -53,6 +33,7 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -64,8 +45,24 @@ import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccess
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import org.bson.Document;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
-public class AgencyServiceTest {
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assume.assumeTrue;
+
+public class AgenciesServiceTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
@@ -89,7 +86,7 @@ public class AgencyServiceTest {
     private final static String HOST_NAME = "127.0.0.1";
     private final static String CLUSTER_NAME = "vitam-cluster";
 
-    static AgenciesService agencyService;
+    static AgenciesService agenciesService;
 
     static int mongoPort;
 
@@ -122,7 +119,7 @@ public class AgencyServiceTest {
 
 
         LogbookOperationsClientFactory.changeMode(null);
-        agencyService = new AgenciesService(dbImpl);
+        agenciesService = new AgenciesService(dbImpl);
     }
 
     @AfterClass
@@ -131,7 +128,7 @@ public class AgencyServiceTest {
         mongodExecutable.stop();
         junitHelper.releasePort(mongoPort);
         client.close();
-        agencyService.close();
+        agenciesService.close();
     }
 
     @After
@@ -147,7 +144,7 @@ public class AgencyServiceTest {
 
         final File fileAgencies = PropertiesUtils.getResourceFile("agencies.csv");
 
-        RequestResponse<AgenciesModel> response = agencyService.importAgencies(new FileInputStream(fileAgencies));
+        RequestResponse<AgenciesModel> response = agenciesService.importAgencies(new FileInputStream(fileAgencies));
         assertThat(response.isOk()).isTrue();
     }
 

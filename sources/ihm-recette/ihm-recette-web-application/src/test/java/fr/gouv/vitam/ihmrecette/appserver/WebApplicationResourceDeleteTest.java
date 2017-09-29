@@ -28,31 +28,10 @@
 package fr.gouv.vitam.ihmrecette.appserver;
 
 
-import static com.jayway.restassured.RestAssured.given;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.ws.rs.core.Response.Status;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 import com.mongodb.BasicDBObject;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -65,7 +44,6 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -98,6 +76,24 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.jayway.restassured.RestAssured.given;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
 public class WebApplicationResourceDeleteTest {
 
@@ -126,7 +122,7 @@ public class WebApplicationResourceDeleteTest {
     private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
     private static final Integer TENANT_ID = 0;
-    static final int tenantId = 0;   
+    static final int tenantId = 0;
     static final List<Integer> tenantList = Arrays.asList(0);
 
     @Rule
@@ -175,7 +171,7 @@ public class WebApplicationResourceDeleteTest {
 
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
-        
+
         RestAssured.port = serverPort;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
 
@@ -190,7 +186,7 @@ public class WebApplicationResourceDeleteTest {
                 realAdminConfig.getClusterName(), realAdminConfig.getElasticsearchNodes(), false,
                 realAdminConfig.getDbUserName(), realAdminConfig.getDbPassword());
         logbookConfiguration.setTenants(realAdminConfig.getTenants());
-        
+
         mongoDbAccessLogbook = LogbookMongoDbAccessFactory.create(logbookConfiguration);
 
         final MetaDataConfiguration metaDataConfiguration =
@@ -254,7 +250,8 @@ public class WebApplicationResourceDeleteTest {
         try {
             final GUID idFormat = addData(FunctionalAdminCollections.FORMATS);
             assertTrue(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));
-            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when().delete("delete/formats");
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+                .delete("delete/formats");
             assertFalse(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));
         } catch (final Exception e) {
             LOGGER.error(e);
@@ -401,6 +398,46 @@ public class WebApplicationResourceDeleteTest {
 
     @Test
     @RunWithCustomExecutor
+    public void testDeleteTnrOk() {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+            // insert and check data
+            final GUID idFormat = addData(FunctionalAdminCollections.FORMATS);
+            assertTrue(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));
+            final GUID idRule = addData(FunctionalAdminCollections.RULES);
+            assertTrue(existsData(FunctionalAdminCollections.RULES, idRule.getId()));
+            final GUID idAgency = addData(FunctionalAdminCollections.AGENCIES);
+            assertTrue(existsData(FunctionalAdminCollections.AGENCIES, idAgency.getId()));
+            final GUID idProfile = addData(FunctionalAdminCollections.PROFILE);
+            assertTrue(existsData(FunctionalAdminCollections.PROFILE, idProfile.getId()));
+            final GUID idAccessContract = addData(FunctionalAdminCollections.ACCESS_CONTRACT);
+            assertTrue(existsData(FunctionalAdminCollections.ACCESS_CONTRACT, idAccessContract.getId()));
+            final GUID idEntryContract = addData(FunctionalAdminCollections.INGEST_CONTRACT);
+            assertTrue(existsData(FunctionalAdminCollections.INGEST_CONTRACT, idEntryContract.getId()));
+            final GUID idRegisterSummary = addData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
+            final GUID idRegisterDetail = addData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
+            assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
+            assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));
+            // delete all
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+                .delete("delete/deleteTnr");
+            // check deleted
+            assertFalse(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));
+            assertFalse(existsData(FunctionalAdminCollections.AGENCIES, idAgency.getId()));
+            assertFalse(existsData(FunctionalAdminCollections.PROFILE, idProfile.getId()));
+            assertFalse(existsData(FunctionalAdminCollections.ACCESS_CONTRACT, idAccessContract.getId()));
+            assertFalse(existsData(FunctionalAdminCollections.INGEST_CONTRACT, idEntryContract.getId()));
+            assertFalse(existsData(FunctionalAdminCollections.RULES, idRule.getId()));
+            assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
+            assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));
+        } catch (final ReferentialException e) {
+            LOGGER.error(e);
+            fail("Exception using mongoDbAccess");
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void testDeleteAllOk() {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -409,6 +446,14 @@ public class WebApplicationResourceDeleteTest {
             assertTrue(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));
             final GUID idRule = addData(FunctionalAdminCollections.RULES);
             assertTrue(existsData(FunctionalAdminCollections.RULES, idRule.getId()));
+            final GUID idAgency = addData(FunctionalAdminCollections.AGENCIES);
+            assertTrue(existsData(FunctionalAdminCollections.AGENCIES, idAgency.getId()));
+            final GUID idProfile = addData(FunctionalAdminCollections.PROFILE);
+            assertTrue(existsData(FunctionalAdminCollections.PROFILE, idProfile.getId()));
+            final GUID idAccessContract = addData(FunctionalAdminCollections.ACCESS_CONTRACT);
+            assertTrue(existsData(FunctionalAdminCollections.ACCESS_CONTRACT, idAccessContract.getId()));
+            final GUID idEntryContract = addData(FunctionalAdminCollections.INGEST_CONTRACT);
+            assertTrue(existsData(FunctionalAdminCollections.INGEST_CONTRACT, idEntryContract.getId()));
             final GUID idRegisterSummary = addData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
             final GUID idRegisterDetail = addData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
@@ -416,8 +461,13 @@ public class WebApplicationResourceDeleteTest {
             // delete all
             given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete");
-            // check no data
+            // check not deleted
             assertTrue(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));
+            assertTrue(existsData(FunctionalAdminCollections.AGENCIES, idAgency.getId()));
+            // check deleted
+            assertFalse(existsData(FunctionalAdminCollections.PROFILE, idProfile.getId()));
+            assertFalse(existsData(FunctionalAdminCollections.ACCESS_CONTRACT, idAccessContract.getId()));
+            assertFalse(existsData(FunctionalAdminCollections.INGEST_CONTRACT, idEntryContract.getId()));
             assertFalse(existsData(FunctionalAdminCollections.RULES, idRule.getId()));
             assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
             assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));

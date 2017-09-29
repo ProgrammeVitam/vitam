@@ -26,31 +26,14 @@
  */
 package fr.gouv.vitam.functional.administration.contract.core;
 
-import static com.mongodb.client.model.Filters.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-
-import java.io.IOException;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.core.Response;
-
-import org.assertj.core.util.VisibleForTesting;
-import org.bson.conversions.Bson;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.mongodb.BasicDBObject;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConfiguration;
@@ -83,6 +66,7 @@ import fr.gouv.vitam.common.model.administration.ContractStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
+import fr.gouv.vitam.functional.administration.common.Agencies;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
@@ -102,11 +86,28 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import org.assertj.core.util.VisibleForTesting;
+import org.bson.conversions.Bson;
+
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.mongodb.client.model.Filters.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
 public class AccessContractImpl implements ContractService<AccessContractModel> {
 
     private static final String DATA_OBJECT_VERSION_INVALID = "Data object version invalid";
     private static final String ROOT_UNIT_INVALID = "RootUnits invalid, should be a list of guid";
+    private static final String ORIGINATING_AGENCIES_INVALID = "OriginatingAgencies invalid, should be a list of guid";
     private static final String THE_ACCESS_CONTRACT_EVERY_DATA_OBJECT_VERSION_MUST_BE_TRUE_OR_FALSE_BUT_NOT =
         "The Access contract EveryDataObjectVersion must be true or false but not ";
     private static final String THE_ACCESS_CONTRACT_EVERY_ORIGINATING_AGENCY_MUST_BE_TRUE_OR_FALSE_BUT_NOT =
@@ -124,6 +125,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     private final LogbookOperationsClient logBookclient;
     private final VitamCounterService vitamCounterService;
     private MetaDataClient metaDataClient;
+    private final AccessContractManager manager;
 
     /**
      * Constructor
@@ -132,10 +134,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
      * @param vitamCounterService
      */
     public AccessContractImpl(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService) {
-        this.mongoAccess = mongoAccess;
-        this.vitamCounterService = vitamCounterService;
-        logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
-        this.metaDataClient = MetaDataClientFactory.getInstance().getClient();
+        this(mongoAccess, vitamCounterService, MetaDataClientFactory.getInstance().getClient());
     }
 
     /**
@@ -148,10 +147,12 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     @VisibleForTesting
     public AccessContractImpl(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService,
         MetaDataClient metaDataClient) {
-        this(mongoAccess, vitamCounterService);
-        if (null != metaDataClient) {
-            this.metaDataClient = metaDataClient;
-        }
+        this.mongoAccess = mongoAccess;
+        this.vitamCounterService = vitamCounterService;
+        this.metaDataClient = metaDataClient;
+
+        logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
+        manager = new AccessContractManager(logBookclient, metaDataClient);
     }
 
     @Override
@@ -165,7 +166,6 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         boolean slaveMode = vitamCounterService
             .isSlaveFunctionnalCollectionOnTenant(SequenceType.ACCESS_CONTRACT_SEQUENCE.getCollection(),
                 ParameterHelper.getTenantParameter());
-        final AccessContractManager manager = new AccessContractManager(logBookclient, metaDataClient);
 
         manager.logStarted();
 
@@ -199,8 +199,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     // newAccessContractGUID?
                     acm.setId(GUIDFactory.newIngestContractGUID(ParameterHelper.getTenantParameter()).getId());
                 }
-                
-                if(acm.getTenant() == null) {
+
+                if (acm.getTenant() == null) {
                     acm.setTenant(ParameterHelper.getTenantParameter());
                 }
 
@@ -308,9 +308,13 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
         public AccessContractManager(LogbookOperationsClient logBookclient, MetaDataClient metaDataClient) {
             this.logBookclient = logBookclient;
+            //Init validator
             validators = Arrays.asList(
-                createMandatoryParamsValidator(), createWrongFieldFormatValidator(),
-                createCheckDuplicateInDatabaseValidator(), validateExistsArchiveUnits(metaDataClient));
+                createMandatoryParamsValidator(),
+                createWrongFieldFormatValidator(),
+                checkExistenceOriginatingAgenciesValidator(),
+                createCheckDuplicateInDatabaseValidator(),
+                validateExistsArchiveUnits(metaDataClient));
         }
 
         private boolean validateContract(AccessContractModel contract, String jsonFormat,
@@ -490,7 +494,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
          *
          * @return
          */
-        private static AccessContractValidator createMandatoryParamsValidator() {
+        private AccessContractValidator createMandatoryParamsValidator() {
             return (contract, jsonFormat) -> {
                 GenericRejectionCause rejection = null;
                 if (contract.getName() == null || contract.getName().trim().isEmpty()) {
@@ -506,7 +510,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
          *
          * @return
          */
-        private static AccessContractValidator createWrongFieldFormatValidator() {
+        private AccessContractValidator createWrongFieldFormatValidator() {
             return (contract, inputList) -> {
                 GenericRejectionCause rejection = null;
                 final String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
@@ -565,7 +569,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
          *
          * @return
          */
-        private static AccessContractValidator checkDuplicateInIdentifierSlaveModeValidator() {
+        private AccessContractValidator checkDuplicateInIdentifierSlaveModeValidator() {
             return (contract, contractName) -> {
                 if (contract.getIdentifier() == null || contract.getIdentifier().isEmpty()) {
                     return Optional.of(GenericRejectionCause
@@ -589,7 +593,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
          *
          * @return
          */
-        private static AccessContractValidator createCheckDuplicateInDatabaseValidator() {
+        private AccessContractValidator createCheckDuplicateInDatabaseValidator() {
             return (contract, contractName) -> {
                 GenericRejectionCause rejection = null;
                 final int tenant = ParameterHelper.getTenantParameter();
@@ -604,13 +608,52 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             };
         }
 
+        /**
+         * Check if OriginatingAgencies exists in database
+         *
+         * @return
+         */
+        private AccessContractValidator checkExistenceOriginatingAgenciesValidator() {
+            return (contract, contractName) -> {
+                if (null == contract.getOriginatingAgencies() || contract.getOriginatingAgencies().isEmpty()) {
+                    return Optional.empty();
+                }
+
+                final int tenant = ParameterHelper.getTenantParameter();
+
+                final Bson clause =
+                    and(Filters.eq(VitamDocument.TENANT_ID, tenant),
+                        Filters.in(Agencies.IDENTIFIER, contract.getOriginatingAgencies()));
+
+                FindIterable find =
+                    FunctionalAdminCollections.AGENCIES.getCollection()
+                        .find(clause).projection(new BasicDBObject(Agencies.IDENTIFIER, 1));
+
+                MongoCursor<VitamDocument<?>> it = find.iterator();
+                Set<String> notFound = new HashSet<>(contract.getOriginatingAgencies());
+
+                if (null != it && it.hasNext()) {
+                    while (it.hasNext()) {
+                        final VitamDocument<?> next = it.next();
+                        notFound.remove(next.get(Agencies.IDENTIFIER));
+                    }
+                }
+
+                if (!notFound.isEmpty()) {
+                    return Optional.of(GenericRejectionCause
+                        .rejectRootUnitsNotFound(contract.getName(), String.join(",", notFound)));
+                }
+                return Optional.empty();
+            };
+        }
+
 
         /**
          * Check if the contract have root Units and all ArchiveUnits corresponding to the rootUnits exists in database
          *
          * @return
          */
-        public static AccessContractValidator validateExistsArchiveUnits(MetaDataClient metaDataClient) {
+        private AccessContractValidator validateExistsArchiveUnits(MetaDataClient metaDataClient) {
 
             return (contract, contractName) -> {
                 Set<String> rootUnits = contract.getRootUnits();
@@ -684,7 +727,6 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             return error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
                 ACCESS_CONTRACT_NOT_FIND + id));
         }
-        final AccessContractManager manager = new AccessContractManager(logBookclient, metaDataClient);
         manager.logUpdateStarted(accContractModel.getId());
         if (queryDsl == null || !queryDsl.isObject()) {
             return error;
@@ -745,6 +787,36 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             }
         }
 
+        if (AccessContractModel.ORIGINATING_AGENCIES.equals(field)) {
+            if (!value.isArray()) {
+                error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
+                    ORIGINATING_AGENCIES_INVALID +
+                        value.asText()));
+            } else {
+
+                try {
+                    Set<String> originatingAgencies = JsonHandler.getFromJsonNode(value, Set.class);
+                    AccessContractModel toValidate = new AccessContractModel();
+                    toValidate.setOriginatingAgencies(originatingAgencies);
+                    Optional<GenericRejectionCause> rejection =
+                        manager.checkExistenceOriginatingAgenciesValidator()
+                            .validate(toValidate, contractName);
+
+                    if (rejection.isPresent()) {
+                        // Validation error
+                        error.addToErrors(
+                            new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(rejection
+                                .get().getReason()));
+                    }
+
+                } catch (InvalidParseOperationException e) {
+                    error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
+                        ROOT_UNIT_INVALID +
+                            value.asText()));
+                }
+            }
+        }
+
         if (AccessContractModel.EVERY_DATA_OBJECT_VERSION.equals(field)) {
             if (!(value instanceof BooleanNode)) {
                 error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
@@ -774,7 +846,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     AccessContractModel toValidate = new AccessContractModel();
                     toValidate.setRootUnits(rootUnits);
                     Optional<GenericRejectionCause> rejection =
-                        AccessContractManager.validateExistsArchiveUnits(metaDataClient).validate(toValidate, contractName);
+                        manager.validateExistsArchiveUnits(metaDataClient)
+                            .validate(toValidate, contractName);
 
                     if (rejection.isPresent()) {
                         // Validation error

@@ -26,34 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
-import static com.jayway.restassured.RestAssured.get;
-import static com.jayway.restassured.RestAssured.given;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assume.assumeTrue;
-
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.Response.Status;
-
-import org.jhades.JHades;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.path.json.JsonPath;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -77,17 +53,22 @@ import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.agencies.api.AgenciesService;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
@@ -95,6 +76,29 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminF
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import org.jhades.JHades;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.jayway.restassured.RestAssured.get;
+import static com.jayway.restassured.RestAssured.given;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assume.assumeTrue;
 
 
 /**
@@ -125,6 +129,7 @@ public class ContractResourceTest {
     private static int databasePort;
     private static File adminConfigFile;
     private static AdminManagementMain application;
+    static AgenciesService agenciesService;
 
 
     @Rule
@@ -194,6 +199,21 @@ public class ContractResourceTest {
             throw new IllegalStateException(
                 "Cannot start the AdminManagement Application Server", e);
         }
+
+        final File fileAgencies = PropertiesUtils.getResourceFile("agencies.csv");
+        final Thread thread = VitamThreadFactory.getInstance().newThread(() -> {
+            RequestResponse<AgenciesModel> response = null;
+            try {
+                VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+                response = agenciesService.importAgencies(new FileInputStream(fileAgencies));
+                assertThat(response.isOk()).isTrue();
+            } catch (VitamException | IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        thread.start();
+        thread.join();
     }
 
     @AfterClass
@@ -337,7 +357,8 @@ public class ContractResourceTest {
             update.setQuery(QueryHelper.eq("Name", "aName"));
             update.addActions(setActionStatusInactive, setActionDesactivationDateInactive, setActionLastUpdateInactive);
             updateParser.parse(update.getFinalUpdate());
-        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {}
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+        }
         JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
 
         List<String> ids = selectContractByName("aName", ContractResource.ACCESS_CONTRACTS_URI);
@@ -389,7 +410,8 @@ public class ContractResourceTest {
 
 
 
-        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {}
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+        }
 
         List<String> ids = selectContractByName("aName", ContractResource.INGEST_CONTRACTS_URI);
 
