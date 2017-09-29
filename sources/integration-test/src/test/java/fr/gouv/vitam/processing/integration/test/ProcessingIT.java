@@ -167,7 +167,8 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 public class ProcessingIT {
     private static final String PROCESSING_UNIT_PLAN = "integration-processing/unit_plan_metadata.json";
     private static final String INGEST_CONTRACTS_PLAN = "integration-processing/ingest_contracts_plan.json";
-    private static final String ACCESS_CONTRACT = "integration-processing/access_contract_every_originating_angency.json";
+    private static final String ACCESS_CONTRACT =
+        "integration-processing/access_contract_every_originating_angency.json";
     private static final String UNIT_ATTACHEMENT_ID = "aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq";
     private static final String OG_ATTACHEMENT_ID = "aebaaaaaaacu6xzeabinwak6t5ecmmaaaaaq";
     private static final String UNIT_PLAN_ATTACHEMENT_ID = "aeaqaaaaaagbcaacabht2ak4x66x2baaaaaq";
@@ -283,7 +284,7 @@ public class ProcessingIT {
 
     private static String SIP_PROD_SERV_A = "integration-processing/Sip_A.zip";
     private static String SIP_PROD_SERV_B_ATTACHED = "integration-processing/SIP_B";
-    
+
     private static ElasticsearchTestConfiguration config = null;
 
     private final static String DUMMY_REQUEST_ID = "reqId";
@@ -476,8 +477,7 @@ public class ProcessingIT {
 
                 File fileProfiles = PropertiesUtils.getResourceFile("integration-processing/OK_profil.json");
                 List<ProfileModel> profileModelList =
-                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {
-                    });
+                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {});
                 RequestResponse improrResponse = client.createProfiles(profileModelList);
 
                 RequestResponseOK<ProfileModel> response =
@@ -489,12 +489,11 @@ public class ProcessingIT {
                 File fileContracts =
                     PropertiesUtils.getResourceFile("integration-processing/referential_contracts_ok.json");
                 List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
-                    new TypeReference<List<IngestContractModel>>() {
-                    });
+                    new TypeReference<List<IngestContractModel>>() {});
 
                 Status importStatus = client.importIngestContracts(IngestContractModelList);
 
-                //import access contract
+                // import access contract
                 File fileAccessContracts = PropertiesUtils.getResourceFile(ACCESS_CONTRACT);
                 List<AccessContractModel> accessContractModelList = JsonHandler
                     .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {});
@@ -626,10 +625,10 @@ public class ProcessingIT {
 
         } catch (final Exception e) {
             LOGGER.error(e);
-            fail("should not raized an exception"+e);
+            fail("should not raized an exception" + e);
         }
     }
-    
+
     @RunWithCustomExecutor
     @Test
     public void testAudit() throws Exception {
@@ -638,9 +637,9 @@ public class ProcessingIT {
             LogbookLifeCyclesClient logbookLFCClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
             AdminManagementClient functionalClient = AdminManagementClientFactory.getInstance().getClient()) {
-            
+
             tryImportFile();
-            
+
             metaDataClient.insertObjectGroup(
                 new InsertMultiQuery()
                     .addData((ObjectNode) JsonHandler
@@ -660,35 +659,36 @@ public class ProcessingIT {
                     GUIDReader.getGUID(OG_ATTACHEMENT_ID)));
             logbookLFCClient.commitObjectGroup(logLfcId.getId(), OG_ATTACHEMENT_ID);
             GUID opIngestId = GUIDFactory.newOperationLogbookGUID(tenantId);
-            
-            LogbookOperationParameters newLogbookOperationParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                opIngestId, 
-                "PROCESS_SIP_UNITARY", 
-                opIngestId, 
-                LogbookTypeProcess.INGEST, 
-                StatusCode.STARTED, 
-                "PROCESS_SIP_UNITARY.STARTED", 
-                opIngestId);
+
+            LogbookOperationParameters newLogbookOperationParameters =
+                LogbookParametersFactory.newLogbookOperationParameters(
+                    opIngestId,
+                    "PROCESS_SIP_UNITARY",
+                    opIngestId,
+                    LogbookTypeProcess.INGEST,
+                    StatusCode.STARTED,
+                    "PROCESS_SIP_UNITARY.STARTED",
+                    opIngestId);
 
             newLogbookOperationParameters.putParameterValue(
                 LogbookParameterName.agIdExt, "{\"originatingAgency\":\"Vitam\"}");
             logbookClient.create(newLogbookOperationParameters);
             newLogbookOperationParameters.putParameterValue(
                 LogbookParameterName.outcomeDetail, "PROCESS_SIP_UNITARY.OK");
-            
+
             logbookClient.update(newLogbookOperationParameters);
 
             AccessionRegisterDetailModel register = new AccessionRegisterDetailModel();
             register.setOriginatingAgency("Vitam");
-            register.setTotalObjects(new RegisterValueDetailModel(1,0,0));
-            register.setTotalObjectsGroups(new RegisterValueDetailModel(1,0,0));
-            register.setTotalUnits(new RegisterValueDetailModel(1,0,0));
-            register.setObjectSize(new RegisterValueDetailModel(1,0,0));
+            register.setTotalObjects(new RegisterValueDetailModel(1, 0, 0));
+            register.setTotalObjectsGroups(new RegisterValueDetailModel(1, 0, 0));
+            register.setTotalUnits(new RegisterValueDetailModel(1, 0, 0));
+            register.setObjectSize(new RegisterValueDetailModel(1, 0, 0));
             register.setEndDate("01/01/2017");
             register.setStartDate("01/01/2017");
             register.setLastUpdate("01/01/2017");
             functionalClient.createorUpdateAccessionRegister(register);
-            
+
             // Test Audit
             final GUID opId = GUIDFactory.newRequestIdGUID(tenantId);
             final String auditId = opId.toString();
@@ -699,7 +699,8 @@ public class ProcessingIT {
             final ProcessingEntry entry = new ProcessingEntry(auditId, Contexts.AUDIT_WORKFLOW.getEventType());
             entry.getExtraParams().put("objectId", "0");
             entry.getExtraParams().put("auditType", "tenant");
-            entry.getExtraParams().put("auditActions", CheckExistenceObjectPlugin.getId() + "," + CheckIntegrityObjectPlugin.getId());
+            entry.getExtraParams().put("auditActions",
+                CheckExistenceObjectPlugin.getId() + "," + CheckIntegrityObjectPlugin.getId());
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(Contexts.AUDIT_WORKFLOW.name(), entry);
 
@@ -711,11 +712,11 @@ public class ProcessingIT {
             ProcessWorkflow processAuditWorkflow = processMonitoring.findOneProcessWorkflow(auditId, tenantId);
             assertNotNull(processAuditWorkflow);
             assertEquals(ProcessState.COMPLETED, processAuditWorkflow.getState());
-            assertEquals(StatusCode.OK, processAuditWorkflow.getStatus());            
+            assertEquals(StatusCode.OK, processAuditWorkflow.getStatus());
         } catch (final Exception e) {
             LOGGER.error(e);
-            fail("should not raized an exception"+e);
-        }  
+            fail("should not raized an exception" + e);
+        }
     }
 
     @RunWithCustomExecutor
@@ -770,9 +771,9 @@ public class ProcessingIT {
             JsonNode agIdExt = JsonHandler.getFromString(logbookNode.get("agIdExt").asText());
 
             assertEquals(agIdExt.get("submissionAgency").asText(), "https://demo.logilab.fr/seda/157118");
-            assertEquals(agIdExt.get("originatingAgency").asText(),"https://demo.logilab.fr/seda/157118");
-            assertEquals(agIdExt.get("ArchivalAgency").asText(),"https://demo.logilab.fr/seda/213109");
-            assertEquals(agIdExt.get("TransferringAgency").asText(),"https://demo.logilab.fr/seda/157118");
+            assertEquals(agIdExt.get("originatingAgency").asText(), "https://demo.logilab.fr/seda/157118");
+            assertEquals(agIdExt.get("ArchivalAgency").asText(), "https://demo.logilab.fr/seda/213109");
+            assertEquals(agIdExt.get("TransferringAgency").asText(), "https://demo.logilab.fr/seda/157118");
 
             assertTrue(logbookNode.get("evDetData").asText().contains("EvDetailReq"));
             assertTrue(logbookNode.get("evDetData").asText().contains("EvDateTimeReq"));
@@ -2751,12 +2752,33 @@ public class ProcessingIT {
             assertNotNull(processWorkflow);
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
             assertEquals(StatusCode.OK, processWorkflow.getStatus());
+
+            final MongoDatabase db = mongoClient.getDatabase("Vitam");
+            ArrayList<Document> logbookLifeCycleUnits =
+                Lists.newArrayList(db.getCollection("LogbookLifeCycleUnit").find().iterator());
+
+            List<Document> currentLogbookLifeCycleUnits =
+                logbookLifeCycleUnits.stream().filter(t -> t.get("evIdProc").equals(containerName2))
+                    .collect(Collectors.toList());
+            currentLogbookLifeCycleUnits.forEach((lifecycle) -> {
+                List<Document> events = (List<Document>) lifecycle.get("events");
+                List<Document> lifecycleEvent =
+                    events.stream().filter(t -> t.get("outDetail").equals("LFC.UPDATE_UNIT_RULES.OK"))
+                        .collect(Collectors.toList());
+                if (lifecycleEvent != null && lifecycleEvent.size() > 0) {
+                    assertThat(Iterables.getOnlyElement(lifecycleEvent).getString(EVENT_DETAILS))
+                        .containsIgnoringCase("diff");
+                    assertThat(Iterables.getOnlyElement(lifecycleEvent).getString("outMessg")).isEqualTo(
+                        "Succès de la mise à jour des règles de gestion de l'unité archivistique");
+                }
+            });
+
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }
     }
-    
+
     @RunWithCustomExecutor
     @Test
     public void testWorkflowAddAttachementAndCheckRegister() throws Exception {
@@ -2857,33 +2879,34 @@ public class ProcessingIT {
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
         assertNotNull(processWorkflow.getSteps());
 
-        
-        MongoIterable<Document> accessReg = db.getCollection("AccessionRegisterSummary").find(Filters.eq("OriginatingAgency", "P-A"));
+
+        MongoIterable<Document> accessReg =
+            db.getCollection("AccessionRegisterSummary").find(Filters.eq("OriginatingAgency", "P-A"));
         assertNotNull(accessReg);
         assertNotNull(accessReg.first());
         Document accessRegDoc = accessReg.first();
         assertEquals("2", ((Document) accessRegDoc.get("TotalUnits")).get("totalSymbolic").toString());
         assertEquals("2", ((Document) accessRegDoc.get("TotalUnits")).get("attached").toString());
         assertEquals("3", ((Document) accessRegDoc.get("TotalUnits")).get("total").toString());
-        
+
         assertEquals("1", ((Document) accessRegDoc.get("TotalObjects")).get("totalSymbolic").toString());
         assertEquals("1", ((Document) accessRegDoc.get("TotalObjects")).get("attached").toString());
         assertEquals("2", ((Document) accessRegDoc.get("TotalObjects")).get("total").toString());
-        
+
         assertEquals("1", ((Document) accessRegDoc.get("TotalObjectGroups")).get("totalSymbolic").toString());
         assertEquals("1", ((Document) accessRegDoc.get("TotalObjectGroups")).get("attached").toString());
         assertEquals("2", ((Document) accessRegDoc.get("TotalObjectGroups")).get("total").toString());
-        
+
         assertEquals("285804", ((Document) accessRegDoc.get("ObjectSize")).get("totalSymbolic").toString());
         assertEquals("285804", ((Document) accessRegDoc.get("ObjectSize")).get("attached").toString());
         assertEquals("289913", ((Document) accessRegDoc.get("ObjectSize")).get("total").toString());
-        
+
         try {
             Files.delete(new File(zipPath).toPath());
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    
-    
+
+
 }
