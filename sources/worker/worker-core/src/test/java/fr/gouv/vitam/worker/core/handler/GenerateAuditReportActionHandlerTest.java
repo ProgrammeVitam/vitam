@@ -47,6 +47,8 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import fr.gouv.vitam.worker.core.plugin.CheckExistenceObjectPlugin;
+import fr.gouv.vitam.worker.core.plugin.CheckIntegrityObjectPlugin;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -89,7 +91,8 @@ public class GenerateAuditReportActionHandlerTest {
             .setObjectName("archiveUnit.json").setCurrentStep("currentStep")
             .setContainerName(guid.getId()).setLogbookTypeProcess(LogbookTypeProcess.UPDATE)
             .putParameterValue(WorkerParameterName.auditType, "tenant")
-            .putParameterValue(WorkerParameterName.objectId, "0");
+            .putParameterValue(WorkerParameterName.objectId, "0")
+            .putParameterValue(WorkerParameterName.auditActions, CheckExistenceObjectPlugin.getId() + ", " + CheckIntegrityObjectPlugin.getId());
 
     @Before
     public void setUp() throws Exception {

@@ -209,5 +209,17 @@ public interface StorageClient extends BasicClient {
      */
     RequestResponseOK secureStorageLogbook() throws StorageServerClientException, InvalidParseOperationException;
 
+    /**
+     * Get object information from objects in storage
+     * 
+     * @param strategyId
+     * @param guid
+     * @param offerIds
+     * @return
+     * @throws StorageServerClientException
+     * @throws StorageNotFoundClientException
+     */
+    JsonNode getObjectInformation(String strategyId, String guid, List<String> offerIds) 
+        throws StorageServerClientException, StorageNotFoundClientException;
 
     }

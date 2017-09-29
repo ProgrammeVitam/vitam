@@ -23,6 +23,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
@@ -39,6 +40,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
@@ -46,9 +48,9 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
 @PrepareForTest({StorageClientFactory.class})
-public class CheckExistenceObjectPluginTest {
+public class CheckIntegrityObjectPluginTest {
+    CheckIntegrityObjectPlugin plugin = new CheckIntegrityObjectPlugin();
 
-    CheckExistenceObjectPlugin plugin = new CheckExistenceObjectPlugin();
     private StorageClient storageClient;
     private StorageClientFactory storageClientFactory;
 
@@ -59,9 +61,6 @@ public class CheckExistenceObjectPluginTest {
     private static final String OG_NODE = "ogNode.json";
     private InputStream og;
     private JsonNode ogNode;
-    
-
-    private static final String SEARCH_RESULTS = "PrepareAuditHandler/searchResults.json";
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -74,7 +73,7 @@ public class CheckExistenceObjectPluginTest {
             .putParameterValue(WorkerParameterName.auditType, "tenant")
             .putParameterValue(WorkerParameterName.objectId, "0");
     
-    public CheckExistenceObjectPluginTest() throws FileNotFoundException, InvalidParseOperationException {
+    public CheckIntegrityObjectPluginTest() throws FileNotFoundException, InvalidParseOperationException {
         og = PropertiesUtils.getResourceAsStream(OG_NODE);
         ogNode = JsonHandler.getFromInputStream(og);
     }
@@ -104,10 +103,13 @@ public class CheckExistenceObjectPluginTest {
     @Test
     public void executeOK() throws Exception {
         action.addOutIOParameters(out);
-        final JsonNode searchResults =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SEARCH_RESULTS));
+        ObjectNode offerIdToMetadata = JsonHandler.createObjectNode();
+        StorageMetadatasResult metaData = new StorageMetadatasResult("aeaaaaaaaacu6xzeabinwak6t5ecmlaaaaaq", "object",
+            "c117854cbca3e51ea94c4bd2bcf4a6756209e6c65ddbf696313e1801b2235ff33d44b2bb272e714c335a44a3b4f92d399056b94dff4dfe6b7038fa56f23b438e",
+            6096, "Vitam_0", "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
+        offerIdToMetadata.set("localhost", JsonHandler.toJsonNode(metaData));
         reset(storageClient);
-        when(storageClient.exists(anyObject(), anyObject(), anyObject(), anyObject())).thenReturn(true);
+        when(storageClient.getObjectInformation(anyObject(), anyObject(), anyObject())).thenReturn(offerIdToMetadata);
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -116,13 +118,11 @@ public class CheckExistenceObjectPluginTest {
     @Test
     public void executeKO() throws Exception {
         action.addOutIOParameters(out);
-        final JsonNode searchResults =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SEARCH_RESULTS));
+        JsonNode metadataInfo = JsonHandler.getFromString("{}");
         reset(storageClient);
-        when(storageClient.exists(anyObject(), anyObject(), anyObject(), anyObject())).thenReturn(false);
+        when(storageClient.getObjectInformation(anyObject(), anyObject(), anyObject())).thenReturn(metadataInfo);
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
-
 }

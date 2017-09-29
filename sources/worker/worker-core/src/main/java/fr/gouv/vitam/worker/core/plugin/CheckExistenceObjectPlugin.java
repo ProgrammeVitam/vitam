@@ -33,17 +33,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.metadata.api.exception.MetaDataException;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -62,12 +57,11 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckExistenceObjectPlugin.class);
 
     private static final String CHECK_EXISTENCE_ID = "AUDIT_FILE_EXISTING";
-    private static final int SHOULD_WRITE_RANK = 0;
+    private static final int OG_NODE_RANK = 0;
     public static final String QUALIFIERS = "#qualifiers";
-    private HandlerIO handlerIO;
 
     /**
-     * Empty constructor UnitsRulesComputePlugin
+     * Empty constructor CheckExistenceObjectPlugin
      */
     public CheckExistenceObjectPlugin() {
         // Empty
@@ -76,17 +70,13 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException {
         LOGGER.debug(CHECK_EXISTENCE_ID + " in execute");
-        handlerIO = handler;
         ObjectNode evDetData = JsonHandler.createObjectNode();
 
         final ItemStatus itemStatus = new ItemStatus(CHECK_EXISTENCE_ID);
         int nbObjectOK = 0;
         int nbObjectKO = 0;
-        try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient();
-            final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
-            JsonNode searchResult =
-                metadataClient.selectObjectGrouptbyId(new SelectMultiQuery().getFinalSelect(), params.getObjectName());
-            JsonNode ogNode = searchResult.get(RequestResponseOK.RESULTS).get(0);
+        try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+            JsonNode ogNode = (JsonNode) handler.getInput(OG_NODE_RANK);
             JsonNode qualifiersList = ogNode.get(QUALIFIERS);
             evDetData.set("OriginatingAgency", ogNode.get("#originating_agency"));
 
@@ -123,9 +113,6 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
         } catch (StorageServerClientException e) {
             LOGGER.error("Storage server errors : ", e);
             itemStatus.increment(StatusCode.FATAL);
-        } catch (InvalidParseOperationException | MetaDataException e) {
-            LOGGER.error("Metadta server errors : ", e);
-            itemStatus.increment(StatusCode.FATAL);
         } catch (NullPointerException e) {
             LOGGER.error("Object does not exist : ", e);
             itemStatus.increment(StatusCode.WARNING);
@@ -133,12 +120,10 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
 
         if (nbObjectKO > 0) {
             itemStatus.increment(StatusCode.KO);
-            handlerIO.addOuputResult(SHOULD_WRITE_RANK, true, true, false);
         }
-
+        
         if (itemStatus.getGlobalStatus().equals(StatusCode.UNKNOWN)) {
             itemStatus.increment(StatusCode.OK);
-            handlerIO.addOuputResult(SHOULD_WRITE_RANK, false, true, false);
         }
 
         itemStatus.setData("Detail", "Detail = OK : "+ nbObjectOK + " KO : " + nbObjectKO);
@@ -155,6 +140,13 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // Nothing to check
+    }
+
+    /**
+     * @return CHECK_EXISTENCE_ID
+     */
+    public static final String getId() {
+        return CHECK_EXISTENCE_ID;
     }
 
 }

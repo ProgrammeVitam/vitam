@@ -71,6 +71,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -82,6 +83,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamConstants;
@@ -156,6 +158,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private static final SingleVarNameAdapter DEFAULT_VARNAME_ADAPTER = new SingleVarNameAdapter();
     public static final String AUDIT_TYPE = "auditType";
     public static final String OBJECT_ID = "objectId";
+    public static final String ACTION_LIST = "auditActions";
     private final MongoDbAccessAdminImpl mongoAccess;
     private final ElasticsearchAccessFunctionalAdmin elasticsearchAccess;
     private VitamCounterService vitamCounterService;
@@ -763,12 +766,12 @@ public class AdminManagementResource extends ApplicationStatusResource {
             final ProcessingEntry entry = new ProcessingEntry(VitamThreadUtils.getVitamSession().getRequestId(),
                 Contexts.AUDIT_WORKFLOW.getEventType());
             if (options.get(AUDIT_TYPE) == null || options.get(OBJECT_ID) == null) {
-                return Response.status(Status.BAD_REQUEST).build();
+                return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
             }
             final String auditType = options.get(AUDIT_TYPE).textValue();
             if (auditType.toLowerCase().equals("tenant")) {
                 if (!options.get(OBJECT_ID).textValue().equals(String.valueOf(tenantId))) {
-                    return Response.status(Status.BAD_REQUEST).build();
+                    return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
                 }
             } else if (auditType.toLowerCase().equals(ORIGINATING_AGENCY.toLowerCase())) {
                 RequestResponseOK<AccessionRegisterSummary> fileFundRegisters;
@@ -777,22 +780,25 @@ public class AdminManagementResource extends ApplicationStatusResource {
                     options.get(OBJECT_ID).textValue()));
                 fileFundRegisters = findFundRegisters(selectRequest.getFinalSelect());
                 if (fileFundRegisters.getResults().size() == 0) {
-                    return Response.status(Status.BAD_REQUEST).build();
+                    return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
                 }
             } else {
-                return Response.status(Status.BAD_REQUEST).build();
+                return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
             }
             createAuditLogbookOperation();
             entry.getExtraParams().put(OBJECT_ID, options.get(OBJECT_ID).textValue());
             entry.getExtraParams().put(AUDIT_TYPE, options.get(AUDIT_TYPE).textValue());
+            entry.getExtraParams().put(ACTION_LIST, options.get(ACTION_LIST).textValue());
             processingClient.initVitamProcess(Contexts.AUDIT_WORKFLOW.name(), entry);
             processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(),
                 VitamThreadUtils.getVitamSession().getRequestId());
-            return Response.status(Status.ACCEPTED).build();
+            
+            return Response.status(Status.ACCEPTED).entity(new RequestResponseOK()
+                .setHttpCode(Status.ACCEPTED.getStatusCode())).build();
         } catch (Exception exp) {
             LOGGER.error(exp);
             final Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(status).build();
+            return Response.status(status).entity(getErrorEntity(status, exp.getLocalizedMessage())).build();
         }
     }
 
@@ -847,5 +853,18 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 operationAuditGuid);
             logbookClient.create(initParameters);
         }
+    }
+    
+    private VitamError getErrorEntity(Status status, String message) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        return new VitamError(status.name()).setHttpCode(status.getStatusCode())
+            .setMessage(status.getReasonPhrase()).setDescription(aMessage);
+    }
+    
+    private VitamError getErrorEntity(Status status) {
+        return new VitamError(status.name()).setHttpCode(status.getStatusCode())
+            .setMessage(status.getReasonPhrase());
     }
 }

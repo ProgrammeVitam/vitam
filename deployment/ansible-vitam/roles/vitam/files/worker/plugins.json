@@ -46,6 +46,14 @@
 		"className": "fr.gouv.vitam.worker.core.plugin.RunningIngestsUpdateActionPlugin",
 		"propertiesFile": "running_ingests_update_plugin.properties"
 	},
+	"AUDIT_CHECK_OBJECT": {
+		"className": "fr.gouv.vitam.worker.core.plugin.AuditCheckObjectPlugin",
+		"propertiesFile": "audit_check_object_plugin.properties"
+	},
+	"AUDIT_FILE_INTEGRITY": {
+		"className": "fr.gouv.vitam.worker.core.plugin.CheckIntegrityObjectPlugin",
+		"propertiesFile": "audit_integrity_object_plugin.properties"
+	},
 	"AUDIT_FILE_EXISTING": {
 		"className": "fr.gouv.vitam.worker.core.plugin.CheckExistenceObjectPlugin",
 		"propertiesFile": "audit_existence_object_plugin.properties"

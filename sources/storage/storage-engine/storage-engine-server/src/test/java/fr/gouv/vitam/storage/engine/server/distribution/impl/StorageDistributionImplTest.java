@@ -581,11 +581,6 @@ public class StorageDistributionImplTest {
     }
 
     @Test(expected = UnsupportedOperationException.class)
-    public void testGetContainerByCategoryInformations() throws Exception {
-        simpleDistribution.getContainerObjectInformations(null, null);
-    }
-
-    @Test(expected = UnsupportedOperationException.class)
     public void testGetContainerLogbook() throws Exception {
         simpleDistribution.getContainerLogbook(null, null);
     }

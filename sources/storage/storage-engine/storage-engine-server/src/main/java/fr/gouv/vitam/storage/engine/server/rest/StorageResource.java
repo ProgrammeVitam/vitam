@@ -341,12 +341,26 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getObjectInformation(@Context HttpHeaders headers, @PathParam("id_object") String objectId) {
-        Response response = checkTenantStrategyHeader(headers);
-        if (response != null) {
-            return response;
+        String strategyId;
+        final Response response = checkTenantStrategyHeader(headers);
+        if (response == null) {
+            strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+            if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.OFFERS_IDS)) {
+                return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
+            }
+            String listOffer = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFERS_IDS).get(0);
+            List<String> offerIds = Arrays.asList(listOffer.split(","));
+            
+            JsonNode offerMetadataInfo;
+            try {
+                offerMetadataInfo = distribution.getContainerObjectInformations(strategyId, objectId, offerIds);
+            } catch (StorageException e) {
+                LOGGER.error(e);
+                return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
+            }
+            return Response.status(Status.OK).entity(offerMetadataInfo).build();
         }
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
+        return response;
     }
 
     /**
