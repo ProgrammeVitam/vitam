@@ -83,7 +83,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamConstants;
@@ -109,6 +108,7 @@ import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflict
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesUpdateException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
@@ -211,7 +211,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * check the file format
      *
      * @param xmlPronom as InputStream
-     * @return Response response 
+     * @return Response response
      */
     @Path("format/check")
     @POST
@@ -277,7 +277,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * Find the file format detail related to a specified Id
      *
      * @param formatId path param as String
-     * @param request 
+     * @param request
      * @return Response jersey response
      * @throws InvalidParseOperationException when transform result to json exception occurred
      * @throws IOException when error json occurs
@@ -399,8 +399,13 @@ public class AdminManagementResource extends ApplicationStatusResource {
         Set<String> notUsedUpdatedRules = new HashSet<>();
         try (RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService,
             securisator)) {
-            rulesManagerFileImpl.checkFile(document, errors, usedDeletedRules, usedUpdatedRules,
-                notUsedDeletedRules, notUsedUpdatedRules);
+            try {
+                rulesManagerFileImpl.checkFile(document, errors, usedDeletedRules, usedUpdatedRules,
+                    notUsedDeletedRules, notUsedUpdatedRules);
+            } catch (FileRulesUpdateException exc) {
+                LOGGER.warn("used Rules ({}) want to be updated",
+                    usedUpdatedRules != null ? usedUpdatedRules.toString() : "");
+            }
             InputStream errorReportInputStream =
                 rulesManagerFileImpl.generateErrorReport(errors, usedDeletedRules, usedUpdatedRules);
             Map<String, String> headers = new HashMap<>();
@@ -409,6 +414,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             return new VitamAsyncInputStreamResponse(errorReportInputStream,
                 Status.OK, headers);
         } catch (Exception e) {
+            LOGGER.error("Error while checking file ", e);
             return handleGenerateReport(errors, usedDeletedRules, usedUpdatedRules);
         }
     }
@@ -761,7 +767,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     public Response launchAudit(JsonNode options) {
         ParametersChecker.checkParameter(OPTIONS_IS_MANDATORY_PATAMETER, options);
         try (ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance()
-            .getClient()) {            
+            .getClient()) {
             final int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
             final ProcessingEntry entry = new ProcessingEntry(VitamThreadUtils.getVitamSession().getRequestId(),
                 Contexts.AUDIT_WORKFLOW.getEventType());
@@ -792,7 +798,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             processingClient.initVitamProcess(Contexts.AUDIT_WORKFLOW.name(), entry);
             processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(),
                 VitamThreadUtils.getVitamSession().getRequestId());
-            
+
             return Response.status(Status.ACCEPTED).entity(new RequestResponseOK()
                 .setHttpCode(Status.ACCEPTED.getStatusCode())).build();
         } catch (Exception exp) {
@@ -854,7 +860,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             logbookClient.create(initParameters);
         }
     }
-    
+
     private VitamError getErrorEntity(Status status, String message) {
         String aMessage =
             (message != null && !message.trim().isEmpty()) ? message
@@ -862,7 +868,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         return new VitamError(status.name()).setHttpCode(status.getStatusCode())
             .setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
-    
+
     private VitamError getErrorEntity(Status status) {
         return new VitamError(status.name()).setHttpCode(status.getStatusCode())
             .setMessage(status.getReasonPhrase());

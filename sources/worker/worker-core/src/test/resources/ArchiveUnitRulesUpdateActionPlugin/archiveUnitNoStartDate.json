@@ -1,0 +1,95 @@
+{
+  "httpCode": 0,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 1,
+    "size": 1
+  },
+  "$results": [
+    {
+      "#tenant": 0,
+      "#management": {
+        "StorageRule": {
+          "Rules": [
+            {
+              "Rule": "STO-00001",
+              "StartDate": "2000-01-01",
+              "FinalAction": "Copy",
+              "EndDate": "2001-01-01"
+            }
+          ]
+        },
+        "AppraisalRule": {
+          "Rules": [
+            {
+              "Rule": "APP-00002",
+              "StartDate": "2000-01-01",
+              "FinalAction": "Destroy",
+              "EndDate": "2005-01-01"
+            }
+          ]
+        },
+        "AccessRule": {
+          "Rules": [
+            {
+              "Rule": "ACC-00003",
+              "StartDate": "2000-01-01",
+              "EndDate": "2025-01-01"
+            },
+            {
+              "Rule": "ACC-00001"
+            }
+          ]
+        },
+        "DisseminationRule": {
+          "Rules": [
+            {
+              "Rule": "DIS-00001",
+              "StartDate": "2000-01-01",
+              "EndDate": "2025-01-01"
+            }
+          ]
+        },
+        "ReuseRule": {
+          "Rules": [
+            {
+              "Rule": "REU-00001",
+              "StartDate": "2000-01-01",
+              "EndDate": "2010-01-01"
+            }
+          ]
+        },
+        "ClassificationRule": {
+          "Rules": [
+            {
+              "ClassificationLevel": "Secret D\u00e9fense",
+              "ClassificationOwner": "RATP",
+              "Rule": "CLASS-00001",
+              "StartDate": "2000-01-01",
+              "EndDate": "2010-01-01"
+            }
+          ]
+        },
+        "OriginatingAgency": "RATP"
+      },
+      "#version": 0
+    }
+  ],
+  "$context": {
+    "$roots": [
+      
+    ],
+    "$query": [
+      
+    ],
+    "$filter": {
+      
+    },
+    "$projection": {
+      "$fields": {
+        "_mgt": 1
+      }
+    }
+  }
+}

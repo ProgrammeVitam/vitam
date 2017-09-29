@@ -102,10 +102,14 @@ public class ArchiveUnitUpdateUtils {
         Iterator<JsonNode> updateRulesIterator = rulesForCategory.iterator();
         while (updateRulesIterator.hasNext()) {
             JsonNode updateRule = updateRulesIterator.next();
-            String updateRuleName = updateRule.get("Rule").asText();
+            String updateRuleName = updateRule.get("Rule").asText();            
             boolean findIt = false;
             for (JsonNode rule : listRulesByType) {
-                if (rule.get("RuleId").asText() != null && rule.get("RuleId").asText().equals(updateRuleName)) {
+                // if the rule to be updated has no start date, then we dont do the maths,  
+                // that means the rule is not really active - even if the query that returns
+                // the list of au to be updated has been updated, just in case, the test is still present
+                if (rule.get("RuleId").asText() != null && rule.get("RuleId").asText().equals(updateRuleName)
+                    && updateRule.get("StartDate") != null) {
                     updateNeeded = true;
                     findIt = true;
                     updateRule = computeEndDate((ObjectNode) updateRule, rule);
