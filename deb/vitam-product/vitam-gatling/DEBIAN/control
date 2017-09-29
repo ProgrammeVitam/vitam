@@ -1,0 +1,9 @@
+Package: vitam-gatling
+Version: 2.3.0
+Section: admin
+Priority: optional
+Architecture: amd64
+Depends: bash, vitam-user-vitam
+Maintainer: French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
+Description: Gatling is a highly capable load testing tool. It is designed for ease of use, maintainability and high performance.
+

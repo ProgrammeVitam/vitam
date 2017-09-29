@@ -1,0 +1,43 @@
+---
+# tasks file for topbeat
+- name: install vitam-gatling package
+  package:
+    name: vitam-gatling
+    state: latest
+  tags: gatling
+
+- name: Copy gatling p12 keystore
+  copy:
+    src: "{{inventory_dir}}/keystores/client-external/keystore_gatling.p12"
+    dest: "/vitam/conf/gatling/keystore_gatling.p12"
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "{{vitam_conf_permission}}"
+  when: "( {{ lookup('pipe', 'test -f {{inventory_dir}}/keystores/client-external/keystore_gatling.p12 || echo nofile') == \"\" }} )"
+  tags:
+    - update_vitam_certificates
+    - gatling
+
+- name: Copy external truststore
+  copy:
+    src: "{{inventory_dir}}/keystores/client-external/truststore_external.jks"
+    dest: "/vitam/conf/gatling/truststore_gatling.jks"
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "{{vitam_conf_permission}}"
+  when: " ( {{ lookup('pipe', 'test -f {{inventory_dir}}/keystores/client-external/truststore_external.jks || echo nofile') == \"\"}} )"
+  tags:
+    - update_vitam_certificates
+    - gatling
+
+- name: Apply new configuration file for Gatling
+  template:
+    src: gatling.conf.j2
+    dest: /vitam/bin/gatling/conf/gatling.conf
+    owner: "{{ vitam_user }}"
+    group: "{{ vitam_group }}"
+    mode: "{{vitam_conf_permission}}"
+  tags:
+    - update_vitam_certificates
+    - gatling
+  

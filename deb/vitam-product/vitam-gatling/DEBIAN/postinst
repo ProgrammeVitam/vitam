@@ -1,0 +1,27 @@
+#!/bin/sh
+echo "Post-installation..."
+case "$1" in
+    configure)
+		echo "   Configuration..."
+		#systemctl daemon-reload
+		chown -R vitam:vitam /vitam/bin/gatling
+		chmod 750 /vitam/bin/gatling/run.sh
+		chmod 750 /vitam/bin/gatling
+		chown -R vitam:vitam /vitam/conf/gatling
+		chmod 750 /vitam/conf/gatling
+		chown -R vitam:vitam /vitam/data/gatling
+		chmod 750 /vitam/data/gatling
+		chown -R vitam:vitam /vitam/log/gatling
+		chmod 750 /vitam/log/gatling
+    ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+exit 0

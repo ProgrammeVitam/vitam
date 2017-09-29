@@ -227,6 +227,7 @@ generateTimestampCertAndStorePassphrase     secure-logbook
 pki_logger "Génération des certificats clients"
 # Method                                    # Component name         # Client type
 generateClientCertAndStorePassphrase        ihm-demo                 client-external
+generateClientCertAndStorePassphrase        gatling                  client-external
 generateClientCertAndStorePassphrase        ihm-recette              client-external
 generateClientCertAndStorePassphrase        reverse                  client-external
 generateClientCertAndStorePassphrase        storage                  client-storage

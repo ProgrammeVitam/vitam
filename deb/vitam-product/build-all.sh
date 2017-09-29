@@ -40,6 +40,8 @@ done
 
 echo "vitam-consul"
 ${WORKING_FOLDER}/build-consul.sh
+echo "vitam-gatling"
+${WORKING_FOLDER}/build-gatling.sh
 echo "vitam-elasticsearch-head"
 ${WORKING_FOLDER}/build-elasticsearch-head.sh
 echo "vitam-elasticsearch-cerebro"
