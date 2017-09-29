@@ -172,7 +172,8 @@ public class ClientMockResultHelper {
         "\"DeactivationDate\":\"2016-11-02\"}";
     
     public static final String CONTEXTS = "{\"Name\": \"My_Context_1\", " +
-        "\"Status\": true," + 
+        "\"Status\": true," +
+        "\"SecurityProfile\" : \"SEC_PROFILE-000001\"," +
         "\"Permissions\": [{" +
             "\"_tenant\": 0," +
             "\"AccessContracts\": []," +
@@ -282,8 +283,9 @@ public class ClientMockResultHelper {
     public static final String SECURITY_PROFILES =
         "{" +
             "\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetcaaaabbbcc\","+
-            "\"Identifier\": \"SEC_PROFILE_000001\"," +
+            "\"Identifier\": \"SEC_PROFILE-000001\"," +
             "\"Name\": \"TEST_PROFILE_1\"," +
+            "\"FullAccess\": false," +
             "\"Permissions\": [" +
             "\"permission_one:read\"," +
             "\"permission_one:id:write\"" +

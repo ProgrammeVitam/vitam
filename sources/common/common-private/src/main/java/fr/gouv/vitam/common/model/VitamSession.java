@@ -60,6 +60,7 @@ public class VitamSession {
     private String contractId = null;
     private String contextId = null;
     private String applicationSessionId = null;
+    private String securityProfileIdentifier = null;
     private AccessContractModel contract = null;
     private Object other = null;
 
@@ -86,6 +87,7 @@ public class VitamSession {
         newSession.other = origin.getOther();
         newSession.contextId = origin.getContextId();
         newSession.applicationSessionId = origin.getApplicationSessionId();
+        newSession.securityProfileIdentifier = origin.getSecurityProfileIdentifier();
         return newSession;
     }
 
@@ -232,6 +234,14 @@ public class VitamSession {
         this.contextId = contextId;
     }
 
+    public String getSecurityProfileIdentifier() {
+        return securityProfileIdentifier;
+    }
+
+    public void setSecurityProfileIdentifier(String securityProfileIdentifier) {
+        this.securityProfileIdentifier = securityProfileIdentifier;
+    }
+
     /**
      * Get vitam application session id
      * @return
@@ -267,6 +277,7 @@ public class VitamSession {
         setOther(newSession.getOther());
         setContextId(newSession.getContextId());
         setApplicationSessionId(newSession.getApplicationSessionId());
+        setSecurityProfileIdentifier(newSession.getSecurityProfileIdentifier());
     }
 
     /**

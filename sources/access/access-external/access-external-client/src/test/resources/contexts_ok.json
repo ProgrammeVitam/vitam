@@ -2,6 +2,7 @@
   {
     "Name": "My_Context_1",
     "Status": true,
+    "SecurityProfile" : "SEC_PROFILE-000001",
     "Permissions": [
       {
         "_tenant": 0,
@@ -18,6 +19,7 @@
   {
     "Name": "My_Context_2",
     "Status": false,
+    "SecurityProfile" : "SEC_PROFILE-000001",
     "Permissions": [
       {
         "_tenant": 0,

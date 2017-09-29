@@ -37,6 +37,8 @@ import java.util.List;
 public class ContextModel {
     public static final String ID = "_id";
 
+    public static final String SECURITY_PROFILE = "SecurityProfile";
+
     private static final String DEACTIVATION_DATE = "DeactivationDate";
 
     private static final String ACTIVATION_DATE = "ActivationDate";
@@ -74,6 +76,9 @@ public class ContextModel {
     @JsonProperty(IDENTIFIER)
     private String identifier;
 
+    @JsonProperty(SECURITY_PROFILE)
+    private String securityProfileIdentifier;
+
     @JsonProperty(PERMISSIONS)
     private List<PermissionModel> permissions = new ArrayList<>();
 
@@ -102,7 +107,8 @@ public class ContextModel {
         @JsonProperty(PERMISSIONS) List<PermissionModel> permissions,
         @JsonProperty(CREATION_DATE) String creationdate, @JsonProperty(LAST_UPDATE) String lastupdate,
         @JsonProperty(ACTIVATION_DATE) String activationdate,
-        @JsonProperty(DEACTIVATION_DATE) String deactivationdate) {
+        @JsonProperty(DEACTIVATION_DATE) String deactivationdate,
+        @JsonProperty(SECURITY_PROFILE) String securityProfileIdentifier) {
         this.id = id;
         this.name = name;
         this.status = status;
@@ -112,6 +118,7 @@ public class ContextModel {
         this.lastupdate = lastupdate;
         this.deactivationdate = deactivationdate;
         this.activationdate = activationdate;
+        this.securityProfileIdentifier = securityProfileIdentifier;
     }
 
     /**
@@ -271,6 +278,22 @@ public class ContextModel {
      */
     public ContextModel setDeactivationdate(String deactivationdate) {
         this.deactivationdate = deactivationdate;
+        return this;
+    }
+
+    /**
+     * @return the security profile identifier
+     */
+    public String getSecurityProfileIdentifier() {
+        return securityProfileIdentifier;
+    }
+
+    /**
+     * @param securityProfileIdentifier tbe security profile identifier to set.
+     * @return this
+     */
+    public ContextModel setSecurityProfileIdentifier(String securityProfileIdentifier) {
+        this.securityProfileIdentifier = securityProfileIdentifier;
         return this;
     }
 }

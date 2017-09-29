@@ -60,6 +60,7 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminI
 import fr.gouv.vitam.functional.administration.context.api.ContextService;
 import fr.gouv.vitam.functional.administration.context.core.ContextServiceImpl;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.security.profile.core.SecurityProfileService;
 
 /**
  * This resource manage contexts create, update, find, ...
@@ -96,7 +97,8 @@ public class ContextResource {
     public Response importContexts(List<ContextModel> ContextModelList, @Context UriInfo uri) {
         ParametersChecker.checkParameter(CONTEXTS_JSON_IS_MANDATORY_PATAMETER, ContextModelList);
 
-        try (ContextService contextService = new ContextServiceImpl(mongoAccess, vitamCounterService)) {
+        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess, vitamCounterService);
+             ContextService contextService = new ContextServiceImpl(mongoAccess, vitamCounterService, securityProfileService)) {
             RequestResponse requestResponse = contextService.createContexts(ContextModelList);
 
             if (!requestResponse.isOk()) {
@@ -148,8 +150,8 @@ public class ContextResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findContexts(JsonNode queryDsl) {
 
-        try(ContextService contextService = new ContextServiceImpl(mongoAccess,
-            vitamCounterService)){
+        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess, vitamCounterService);
+             ContextService contextService = new ContextServiceImpl(mongoAccess, vitamCounterService, securityProfileService)) {
             SanityChecker.checkJsonAll(queryDsl); 
             try (DbRequestResult result = contextService.findContexts(queryDsl)) {
                 RequestResponseOK<ContextModel> response = 
@@ -180,8 +182,8 @@ public class ContextResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateContexts(@PathParam("id") String contextId, JsonNode queryDsl) {
 
-        try (ContextService contextService = new ContextServiceImpl(mongoAccess,
-            vitamCounterService)) {
+        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess, vitamCounterService);
+             ContextService contextService = new ContextServiceImpl(mongoAccess, vitamCounterService, securityProfileService)) {
             RequestResponse requestResponse = contextService.updateContext(contextId, queryDsl);
             if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());

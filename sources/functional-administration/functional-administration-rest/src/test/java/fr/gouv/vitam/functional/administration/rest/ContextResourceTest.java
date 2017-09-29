@@ -61,7 +61,6 @@ public class ContextResourceTest {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContextResourceTest.class);
     private static final String ADMIN_MANAGEMENT_CONF = "functional-administration-test.conf";
-    private static final String RESULTS = "$results";
 
     private static final String RESOURCE_URI = "/adminmanagement/v1";
     private static final String STATUS_URI = "/status";
@@ -74,7 +73,6 @@ public class ContextResourceTest {
     static String DATABASE_NAME = "vitam-test";
     private static String DATABASE_HOST = "localhost";
 
-    private InputStream stream;
     private static JunitHelper junitHelper;
     private static int serverPort;
     private static int databasePort;
@@ -148,6 +146,16 @@ public class ContextResourceTest {
             throw new IllegalStateException(
                 "Cannot start the AdminManagement Application Server", e);
         }
+
+        // Create initial security context
+        File securityProfileFile = PropertiesUtils.getResourceFile("security_profile_ok.json");
+        JsonNode secProfileJson = JsonHandler.getFromFile(securityProfileFile);
+
+        // Create security profile
+        given().contentType(ContentType.JSON).body(secProfileJson)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .when().post(SecurityProfileResource.SECURITY_PROFILE_URI)
+                .then().statusCode(Status.CREATED.getStatusCode());
     }
 
     @AfterClass
@@ -172,6 +180,7 @@ public class ContextResourceTest {
     @After
     public void tearDown() throws Exception {
         mongoDbAccess.deleteCollection(FunctionalAdminCollections.CONTEXT).close();
+        mongoDbAccess.deleteCollection(FunctionalAdminCollections.SECURITY_PROFILE).close();
     }
     
     @Test
@@ -185,7 +194,7 @@ public class ContextResourceTest {
     @RunWithCustomExecutor
     public void givenAWellFormedContextJsonThenReturnCeated() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        
+
         File fileContexts = PropertiesUtils.getResourceFile("contexts_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileContexts);
         
@@ -193,9 +202,26 @@ public class ContextResourceTest {
 
         // transform to json
         given().contentType(ContentType.JSON).body(json)
-            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(ContextResource.CONTEXTS_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenAContextJsonWithInvalidSecurityProfileThenReturnBadRequest() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        File fileContexts = PropertiesUtils.getResourceFile("contexts_ko_invalid_security_profile.json");
+        JsonNode json = JsonHandler.getFromFile(fileContexts);
+
+        MetaDataClientFactory.changeMode(null);
+
+        // transform to json
+        given().contentType(ContentType.JSON).body(json)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .when().post(ContextResource.CONTEXTS_URI)
+                .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
 }

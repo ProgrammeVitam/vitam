@@ -24,70 +24,53 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.functional.administration.rest;
+package fr.gouv.vitam.security.internal.filter;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.administration.ContextModel;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.security.rest.Secured;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-import java.util.List;
+import javax.annotation.Priority;
+import javax.ws.rs.Priorities;
+import javax.ws.rs.container.DynamicFeature;
+import javax.ws.rs.container.PreMatching;
+import javax.ws.rs.container.ResourceInfo;
+import javax.ws.rs.core.FeatureContext;
 
 /**
- * Wrapper around ContextResource to expose many services.
+ * Handles permission based access authorization for REST endpoints.
+ * <p>
+ * Registers for each {@link Secured}-annotated endpoint with an {@link EndpointAuthorizationFilter}.
  */
-@Path("/v1/admin")
-public class AdminContextResource {
+@PreMatching
+@Priority(Priorities.HEADER_DECORATOR + 40) // must go after InternalSecurityFilter
+public class AuthorizationFilter implements DynamicFeature {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminContextResource.class);
-
-    private ContextResource contextResource;
-
-    public static final int ADMIN_TENANT = 1;
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AuthorizationFilter.class);
 
     /**
+     * Registers an {@link EndpointAuthorizationFilter} for each endpoint resource.
+     * Invoked for each endpoint resource.
      *
-     * @param contextResource
+     * @param resourceInfo
+     * @param context
      */
-    public AdminContextResource(ContextResource contextResource) {
-        LOGGER.debug("init Admin Management Resource server");
-        this.contextResource = contextResource;
+    @Override
+    public void configure(ResourceInfo resourceInfo, FeatureContext context) {
+
+        // Retrieve @Secure annotation
+        Secured securedAnnotation = resourceInfo.getResourceMethod().getAnnotation(Secured.class);
+        if (securedAnnotation == null) {
+            LOGGER.debug(String.format("Ignoring Non-@%s annotated method %s.%s",
+                    Secured.class.getName(), resourceInfo.getResourceClass().getName(),
+                    resourceInfo.getResourceMethod().getName()));
+            return;
+        }
+
+        LOGGER.debug(String.format("Registering authorization filter with '%s' permission for %s annotated method %s.%s",
+                securedAnnotation.permission(), Secured.class.getName(),
+                resourceInfo.getResourceClass().getName(), resourceInfo.getResourceMethod().getName()));
+
+        context.register(new EndpointAuthorizationFilter(securedAnnotation.permission()), Priorities.AUTHORIZATION);
     }
-
-    @Path("/contexts")
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response importContexts(List<ContextModel> contextModelList, @Context UriInfo uri) {
-        // TODO: report this as a vitam event
-        LOGGER.info("create context with admin interface");
-        LOGGER.info("using of admin tenant: 1");
-
-        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
-        return contextResource.importContexts(contextModelList, uri);
-    }
-
-    @Path("/contexts")
-    @GET
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response findContexts(JsonNode queryDsl) {
-        // TODO: report this as a vitam event
-        LOGGER.info("find context with admin interface");
-        LOGGER.info("using of admin tenant: 1");
-
-        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
-        return contextResource.findContexts(queryDsl);
-    }
-
 }

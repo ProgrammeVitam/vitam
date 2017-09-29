@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.security.rest;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Arrays;
 
 /**
@@ -33,11 +35,22 @@ import java.util.Arrays;
  */
 public class EndpointInfo {
 
+    @JsonProperty("permission")
     private String permission;
+
+    @JsonProperty("verb")
     private String verb;
+
+    @JsonProperty("endpoint")
     private String endpoint;
+
+    @JsonProperty("consumedMediaTypes")
     private String[] consumedMediaTypes;
+
+    @JsonProperty("producedMediaTypes")
     private String[] producedMediaTypes;
+
+    @JsonProperty("description")
     private String description;
 
     public String getPermission() {

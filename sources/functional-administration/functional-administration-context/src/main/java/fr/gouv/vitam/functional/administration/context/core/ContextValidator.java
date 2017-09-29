@@ -47,6 +47,7 @@ public interface ContextValidator {
         public static String ERR_DUPLICATE_CONTEXT = "The context %s already exists in database";
         public static String ERR_NO_EXISTANCE_INGEST = "The ingest contract %s does not exist";
         public static String ERR_NO_EXISTANCE_ACCESS = "The access contract %s does not exist";
+        public static String ERR_INVALID_SECURITY_PROFILE = "The security profile %s does not exist";
 
         private String reason;
 
@@ -102,6 +103,10 @@ public interface ContextValidator {
 
         public static ContextRejectionCause rejectNoExistanceOfAccessContract(String contextName) {
             return new ContextRejectionCause(String.format(ERR_NO_EXISTANCE_ACCESS, contextName));
+        }
+
+        public static ContextRejectionCause invalidSecurityProfile(String securityProfileIdentifier) {
+            return new ContextRejectionCause(String.format(ERR_INVALID_SECURITY_PROFILE, securityProfileIdentifier));
         }
 
         public String getReason() {

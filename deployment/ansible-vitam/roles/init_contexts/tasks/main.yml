@@ -1,6 +1,6 @@
 ---
 
-- name: "Wait until service functionnal-admin is up"
+- name: "Wait until service functional-admin is up"
   wait_for:
       host: "{{hostvars[groups['hosts-functional-administration'][0]]['ip_admin']}}"
       port: "{{vitam_functional_administration_port_admin}}"
@@ -8,7 +8,7 @@
       timeout: "{{service_restart_timeout}}"
   run_once: true
 
-- name: Check if context already exists in functionnal-admin
+- name: Check if context already exists in functional-admin
   uri:
     method: GET
     body: "{ \"$query\":{\"$and\":[{\"$eq\":{\"Name\":\"{{admin_context_name}}\"}}]},\"$filter\":{\"$orderby\":{\"Name\":1}},\"$projection\":{} }"
@@ -28,7 +28,7 @@
     - name: Send context to functionnal-admin
       uri:
         method: POST
-        body: "[{ \"Name\": \"{{admin_context_name}}\", \"Status\": true, \"Permissions\": [ {% for tenant in admin_context_tenants %}{ \"_tenant\": {{tenant}}, \"AccessContracts\": [], \"IngestContracts\": [] }{% if not loop.last %},{% endif %}{% endfor %} ] }]"
+        body: "[{ \"Name\": \"{{admin_context_name}}\", \"Status\": true, \"SecurityProfile\": \"{{admin_security_profile}}\", \"Permissions\": [ {% for tenant in admin_context_tenants %}{ \"_tenant\": {{tenant}}, \"AccessContracts\": [], \"IngestContracts\": [] }{% if not loop.last %},{% endif %}{% endfor %} ] }]"
         status_code: 200,201
         url: "http://{{hostvars[groups['hosts-functional-administration'][0]]['ip_admin']}}:{{vitam_functional_administration_port_admin}}/v1/admin/contexts"
         body_format: "json"

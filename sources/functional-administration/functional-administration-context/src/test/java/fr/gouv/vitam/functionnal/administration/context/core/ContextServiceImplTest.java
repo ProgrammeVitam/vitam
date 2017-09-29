@@ -21,14 +21,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
+import fr.gouv.vitam.functional.administration.security.profile.core.SecurityProfileService;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -115,6 +120,7 @@ public class ContextServiceImplTest {
 
     static ContextService contextService;
 
+    static SecurityProfileService securityProfileService;
     static ContractService<IngestContractModel> ingestContractService;
     static ContractService<AccessContractModel> accessContractService;
     static int mongoPort;
@@ -158,9 +164,14 @@ public class ContextServiceImplTest {
         vitamCounterService = new VitamCounterService(dbImpl, tenants, listEnableExternalIdentifiers);
         LogbookOperationsClientFactory.changeMode(null);
 
+        securityProfileService = mock(SecurityProfileService.class);
+        String securityProfileIdentifier = "SEC_PROFILE-000001";
+        when(securityProfileService.findOneByIdentifier(securityProfileIdentifier)).thenReturn(
+                new SecurityProfileModel("guid", securityProfileIdentifier, "SEC PROFILE", true, Collections.EMPTY_SET));
+
         contextService =
             new ContextServiceImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
-                vitamCounterService);
+                vitamCounterService, securityProfileService);
 
         ingestContractService = new IngestContractImpl(dbImpl, vitamCounterService);
         accessContractService = new AccessContractImpl(dbImpl, vitamCounterService);
@@ -189,6 +200,7 @@ public class ContextServiceImplTest {
         final List<IngestContractModel> IngestContractModelList =
             JsonHandler.getFromFileAsTypeRefence(fileIngest, new TypeReference<List<IngestContractModel>>() {
             });
+
         ingestContractService.createContracts(IngestContractModelList);
         ingestContractService.findContracts(new Select().getFinalSelect());
         final File fileContexts = PropertiesUtils.getResourceFile("contexts_empty.json");

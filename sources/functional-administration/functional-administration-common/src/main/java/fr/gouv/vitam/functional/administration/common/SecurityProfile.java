@@ -45,17 +45,22 @@ public class SecurityProfile extends VitamDocument<SecurityProfile> {
     private static final long serialVersionUID = 5815621563219852249L;
 
     /**
-     * the Context id
+     * the security profile identifier
      */
     public static final String IDENTIFIER = "Identifier";
 
     /**
-     * the Context name
+     * the security profile name
      */
     public static final String NAME = "Name";
 
     /**
-     * the Context description
+     * full access to all permissions for security profile.
+     */
+    public static final String FULL_ACCESS = "FullAccess";
+
+    /**
+     * the permission set
      */
     public static final String PERMISSIONS = "Permissions";
 
@@ -94,7 +99,7 @@ public class SecurityProfile extends VitamDocument<SecurityProfile> {
 
     @Override
     protected boolean isMultTenant() {
-        return true;
+        return false;
     }
 
 }
