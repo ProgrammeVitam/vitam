@@ -187,11 +187,12 @@ public interface AccessExternalClient extends BasicClient {
      *
      * @param vitamContext the vitam context
      * @param processId the process id
+     * @param select the select query
      * @return logbookOperation representation
      * @throws VitamClientException
      */
     RequestResponse<LogbookOperation> selectOperationbyId(VitamContext vitamContext,
-        String processId)
+        String processId, JsonNode select)
         throws VitamClientException;
 
     /**
@@ -200,11 +201,12 @@ public interface AccessExternalClient extends BasicClient {
      *
      * @param vitamContext the vitam context
      * @param idUnit the unit id
+     * @param select the select query
      * @return logbooklifecycle representation
      * @throws VitamClientException
      */
     RequestResponse<LogbookLifecycle> selectUnitLifeCycleById(VitamContext vitamContext,
-        String idUnit)
+        String idUnit, JsonNode select)
         throws VitamClientException;
 
     /**
@@ -213,11 +215,12 @@ public interface AccessExternalClient extends BasicClient {
      *
      * @param vitamContext the vitam context
      * @param idObject the object id
+     * @param select the select query
      * @return logbooklifecycle representation
      * @throws VitamClientException
      */
     RequestResponse<LogbookLifecycle> selectObjectGroupLifeCycleById(
-        VitamContext vitamContext, String idObject)
+        VitamContext vitamContext, String idObject, JsonNode select)
         throws VitamClientException;
 
 
@@ -235,13 +238,13 @@ public interface AccessExternalClient extends BasicClient {
         throws AccessExternalClientServerException;
 
     /**
-     * DIP export of the Object Group (xml representation with SEDA schema)
-     * Be careful in the external you cannot access directly to the Object group
+     * DIP export of the Object Group (xml representation with SEDA schema) Be careful in the external you cannot access
+     * directly to the Object group
      *
      *
      * @param vitamContext the vitam context
-     * @param queryDsl     the given query dsl
-     * @param idUnit       the given unit
+     * @param queryDsl the given query dsl
+     * @param idUnit the given unit
      * @return object group with a xml representation
      * @throws AccessExternalClientServerException
      */

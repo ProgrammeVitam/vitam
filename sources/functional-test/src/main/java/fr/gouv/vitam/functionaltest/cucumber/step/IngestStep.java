@@ -33,6 +33,7 @@ import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -196,10 +197,9 @@ public class IngestStep {
     public void the_logbook_operation_has_a_status(String status)
         throws VitamClientException, InvalidParseOperationException {
         RequestResponse<LogbookOperation> requestResponse =
-            world.getAccessClient().selectOperationbyId(
-                new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                    .setApplicationSessionId(world.getApplicationSessionId()),
-                world.getOperationId()
+            world.getAccessClient().selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                .setApplicationSessionId(world.getApplicationSessionId()),
+                world.getOperationId(), new Select().getFinalSelect()
             );
         if (requestResponse instanceof RequestResponseOK) {
             RequestResponseOK<LogbookOperation> requestResponseOK =
@@ -229,10 +229,9 @@ public class IngestStep {
     public void the_status_are(List<String> eventNames, String eventStatus)
         throws VitamClientException, InvalidParseOperationException {
         RequestResponse<LogbookOperation> requestResponse =
-            world.getAccessClient().selectOperationbyId(
-                new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                    .setApplicationSessionId(world.getApplicationSessionId()),
-                world.getOperationId()
+            world.getAccessClient().selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                .setApplicationSessionId(world.getApplicationSessionId()),
+                world.getOperationId(), new Select().getFinalSelect()
             );
 
         if (requestResponse.isOk()) {
@@ -277,10 +276,9 @@ public class IngestStep {
     public void the_results_are(String eventName, String eventResults)
         throws VitamClientException, InvalidParseOperationException {
         RequestResponse<LogbookOperation> requestResponse =
-            world.getAccessClient().selectOperationbyId(
-                new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                    .setApplicationSessionId(world.getApplicationSessionId()),
-                world.getOperationId()
+            world.getAccessClient().selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                .setApplicationSessionId(world.getApplicationSessionId()),
+                world.getOperationId(), new Select().getFinalSelect()
             );
 
         if (requestResponse.isOk()) {

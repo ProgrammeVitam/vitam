@@ -26,18 +26,30 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
+import static org.apache.http.HttpHeaders.EXPECT;
+import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
+
+import java.io.InputStream;
+import java.util.concurrent.TimeUnit;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.external.client.DefaultClient;
 import fr.gouv.vitam.common.external.client.IngestCollection;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -49,16 +61,6 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.InputStream;
-
-import static org.apache.http.HttpHeaders.EXPECT;
-import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
 
 /**
  * Ingest External client
@@ -297,20 +299,13 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.putAll(vitamContext.getHeaders());
 
-            if (query == null) {
-                query = new ProcessQuery();
-            }
-
-            response = performRequest(HttpMethod.GET, OPERATION_URI, headers, JsonHandler.toJsonNode(query),
+            response = performRequest(HttpMethod.GET, OPERATION_URI, headers, query,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response, ProcessDetail.class);
 
         } catch (IllegalStateException e) {
             LOGGER.error("Could not parse server response ", e);
             throw createExceptionFromResponse(response);
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error("Could not parse query ", e);
-            throw new VitamClientException(e);
         } catch (VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);

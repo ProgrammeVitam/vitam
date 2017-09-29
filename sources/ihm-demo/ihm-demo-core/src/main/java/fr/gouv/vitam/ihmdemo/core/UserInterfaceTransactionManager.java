@@ -37,7 +37,6 @@ import javax.ws.rs.ProcessingException;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 
-import fr.gouv.vitam.common.client.VitamContext;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -57,7 +56,9 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFou
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -125,8 +126,8 @@ public class UserInterfaceTransactionManager {
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
         InvalidParseOperationException, AccessUnauthorizedException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectUnitbyId(new VitamContext(tenantId).setAccessContract(contractId)
-                .setApplicationSessionId(appSessionId), preparedDslQuery, unitId);
+            return client.selectUnitbyId(new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(appSessionId), preparedDslQuery,
+                unitId);
         }
     }
 
@@ -174,8 +175,8 @@ public class UserInterfaceTransactionManager {
         throws AccessExternalClientServerException, AccessExternalClientNotFoundException,
         InvalidParseOperationException, AccessUnauthorizedException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectObjectById(new VitamContext(tenantId).setAccessContract(contractId)
-                .setApplicationSessionId(appSessionId), preparedDslQuery, objectId);
+            return client.selectObjectById(new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(appSessionId), preparedDslQuery,
+                objectId);
         }
     }
 
@@ -206,8 +207,8 @@ public class UserInterfaceTransactionManager {
         InvalidParseOperationException, UnsupportedEncodingException, AccessUnauthorizedException {
         Response response = null;
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            response = client.getUnitObject(new VitamContext(tenantId).setAccessContract(contractId)
-                .setApplicationSessionId(appSessionId), selectObjectQuery, unitId, usage, version);
+            response = client.getUnitObject(new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(appSessionId), selectObjectQuery,
+                unitId, usage, version);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             final Response.ResponseBuilder responseBuilder = Response.status(Response.Status.OK)
                 .header(GlobalDataRest.X_QUALIFIER, response.getHeaderString(GlobalDataRest.X_QUALIFIER))
@@ -312,8 +313,8 @@ public class UserInterfaceTransactionManager {
         String contractId, String appSessionId)
         throws VitamClientException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectUnitLifeCycleById(new VitamContext(tenantId).setAccessContract(contractId)
-                .setApplicationSessionId(appSessionId), unitLifeCycleId);
+            return client.selectUnitLifeCycleById(new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(appSessionId),
+                unitLifeCycleId, new Select().getFinalSelect());
 
         }
     }
@@ -346,8 +347,8 @@ public class UserInterfaceTransactionManager {
         String contractId, String appSessionId)
         throws VitamClientException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectOperationbyId(new VitamContext(tenantId).setAccessContract(contractId)
-                .setApplicationSessionId(appSessionId), operationId);
+            return client.selectOperationbyId(new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(appSessionId), operationId,
+                new Select().getFinalSelect());
         }
     }
 
@@ -364,8 +365,8 @@ public class UserInterfaceTransactionManager {
         Integer tenantId, String contractId, String appSessionId)
         throws VitamClientException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectObjectGroupLifeCycleById(new VitamContext(tenantId).setAccessContract(contractId)
-                .setApplicationSessionId(appSessionId), objectGroupLifeCycleId);
+            return client.selectObjectGroupLifeCycleById(new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(appSessionId),
+                objectGroupLifeCycleId, new Select().getFinalSelect());
         }
     }
 
@@ -386,8 +387,8 @@ public class UserInterfaceTransactionManager {
         try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()) {
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
             final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            return adminExternalClient.findAccessionRegister(new VitamContext(tenantId).setAccessContract(contractId)
-                .setApplicationSessionId(appSessionId), query);
+            return adminExternalClient.findAccessionRegister(new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(appSessionId),
+                query);
         }
     }
 
@@ -404,8 +405,6 @@ public class UserInterfaceTransactionManager {
      * @throws InvalidCreateOperationException if error when create query
      * @throws AccessUnauthorizedException
      */
-
-
     public static RequestResponse<JsonNode> findAccessionRegisterDetail(String id, String options, Integer tenantId,
         String contractId, String appSessionId)
         throws InvalidParseOperationException, AccessExternalClientServerException,
@@ -414,8 +413,8 @@ public class UserInterfaceTransactionManager {
         try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()) {
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
             final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-            return adminExternalClient.getAccessionRegisterDetail(new VitamContext(tenantId).setAccessContract(contractId)
-                .setApplicationSessionId(appSessionId), id, query);
+            return adminExternalClient
+                .getAccessionRegisterDetail(new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(appSessionId), id, query);
         }
     }
 
@@ -437,8 +436,8 @@ public class UserInterfaceTransactionManager {
         String contractId, String appSessionId)
         throws AccessExternalClientServerException, InvalidParseOperationException, AccessUnauthorizedException {
         try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()) {
-            return adminExternalClient.checkTraceabilityOperation(new VitamContext(tenantId).setAccessContract(contractId)
-                .setApplicationSessionId(appSessionId), query);
+            return adminExternalClient
+                .checkTraceabilityOperation(new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(appSessionId), query);
         }
     }
 
