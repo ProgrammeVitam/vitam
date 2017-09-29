@@ -271,6 +271,6 @@ public class VitamCodeHelper {
             .setState(vitamCode.getDomain().getName())
             .setHttpCode(vitamCode.getStatus().getStatusCode())
             .setMessage(vitamCode.getMessage())
-            .setDescription(description);
+            .setDescription(description != null && !description.isEmpty() ? description : vitamCode.getMessage());
     }
 }

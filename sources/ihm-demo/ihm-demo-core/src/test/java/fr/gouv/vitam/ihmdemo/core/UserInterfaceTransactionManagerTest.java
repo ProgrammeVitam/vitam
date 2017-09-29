@@ -181,7 +181,7 @@ public class UserInterfaceTransactionManagerTest {
                 "{$hits: {'total':'1'}, $results:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}],$context :" +
                     SEARCH_UNIT_DSL_QUERY + "}",
                 RequestResponseOK.class, JsonNode.class);
-        when(accessClient.selectObjectById(eq(new VitamContext(TENANT_ID).setAccessContract(CONTRACT_NAME).setApplicationSessionId(APP_SESSION_ID)),
+        when(accessClient.selectObjectMetadatasByUnitId(eq(new VitamContext(TENANT_ID).setAccessContract(CONTRACT_NAME).setApplicationSessionId(APP_SESSION_ID)),
             eq(JsonHandler.getFromString(OBJECT_GROUP_QUERY)), eq(ID_OBJECT_GROUP)
         ))
                 .thenReturn(result);
@@ -198,7 +198,7 @@ public class UserInterfaceTransactionManagerTest {
     @RunWithCustomExecutor
     public void testSuccessGetObjectAsInputStream()
         throws Exception {
-        when(accessClient.getUnitObject(
+        when(accessClient.getObjectStreamByUnitId(
             eq(new VitamContext(TENANT_ID).setAccessContract(CONTRACT_NAME).setApplicationSessionId(APP_SESSION_ID)),
             eq(JsonHandler.getFromString(OBJECT_GROUP_QUERY)), eq(ID_OBJECT_GROUP), eq("usage"), eq(1)))
                 .thenReturn(new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream("Vitam Test"),

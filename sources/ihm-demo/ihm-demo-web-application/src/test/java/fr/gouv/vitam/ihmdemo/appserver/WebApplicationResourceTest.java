@@ -26,6 +26,51 @@
  */
 package fr.gouv.vitam.ihmdemo.appserver;
 
+import static com.jayway.restassured.RestAssured.given;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.io.IOUtils;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Matchers;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.EncoderConfig;
@@ -33,6 +78,7 @@ import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.response.Cookie;
 import com.jayway.restassured.response.Header;
 import com.jayway.restassured.response.ResponseBody;
+
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
@@ -47,6 +93,7 @@ import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
@@ -69,49 +116,6 @@ import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import org.apache.commons.io.IOUtils;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Matchers;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static com.jayway.restassured.RestAssured.given;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*", "javax.management.*"})
@@ -137,8 +141,6 @@ public class WebApplicationResourceTest {
     private static final JsonNode FAKE_JSONNODE_RETURN = JsonHandler.createObjectNode();
     private static final String FAKE_UNIT_LF_ID = "1";
     private static final String FAKE_OBG_LF_ID = "1";
-    private static JsonNode sampleLogbookOperation;
-    private static final String SAMPLE_LOGBOOKOPERATION_FILENAME = "logbookoperation_sample.json";
     private static final String SIP_DIRECTORY = "sip";
     private static final String INGEST_URI = "/ingests";
     private static JunitHelper junitHelper;
@@ -148,7 +150,6 @@ public class WebApplicationResourceTest {
 
     private static final String TRACEABILITY_CHECK_URL = "traceability/check";
     private static final String TRACEABILITY_CHECK_MAP = "{EventID: \"fake_id\"}";
-    private static final String TRACEABILITY_CHECK_DSL_QUERY = "{EventID: \"fake_id\"}";
 
     private final int TENANT_ID = 0;
     private final String CONTRACT_NAME = "contract";
@@ -183,8 +184,6 @@ public class WebApplicationResourceTest {
         application.start();
         RestAssured.port = port;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
-
-        sampleLogbookOperation = JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_LOGBOOKOPERATION_FILENAME));
     }
 
     @AfterClass
@@ -275,8 +274,7 @@ public class WebApplicationResourceTest {
         Mockito.doReturn("Atr").when(mockResponse).getHeaderString(anyObject());
         Mockito.doReturn(200).when(mockResponse).getStatus();
         Mockito.doReturn(mockResponse).when(adminExternalClient).updateAccessContract(eq(new VitamContext(TENANT_ID)),
-            eq("azercdsqsdf"), eq(jsonNode)
-        );
+            eq("azercdsqsdf"), eq(jsonNode));
     }
 
 
@@ -438,8 +436,26 @@ public class WebApplicationResourceTest {
     }
 
     @Test
-    public void testGetArchiveUnitDetails() {
-        given().param("id", "1").expect().statusCode(Status.OK.getStatusCode()).when().get("/archivesearch/unit/1");
+    public void testGetArchiveUnitDetails() throws Exception {
+
+        final Map<String, String> searchCriteriaMap = new HashMap<>();
+        searchCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
+        searchCriteriaMap.put(DslQueryHelper.PROJECTION_DSL, GLOBAL.RULES.exactToken());
+
+        final JsonNode preparedDslQuery = JsonHandler.createObjectNode();
+
+        PowerMockito.when(DslQueryHelper.createSelectDSLQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
+
+        PowerMockito
+            .when(UserInterfaceTransactionManager.getArchiveUnitDetails(preparedDslQuery, "1", TENANT_ID, CONTRACT_NAME,
+                getAppSessionId()))
+            .thenReturn(new RequestResponseOK<JsonNode>().setHttpCode(Status.OK.getStatusCode()));
+
+        given().param("id", "1").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
+            .statusCode(Status.OK.getStatusCode()).when()
+            .get("/archivesearch/unit/1");
+
     }
 
     @SuppressWarnings({"unchecked"})
@@ -463,7 +479,7 @@ public class WebApplicationResourceTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testArchiveUnitDetailsAccessExternalClientServerException() throws Exception {
-        final Map<String, String> searchCriteriaMap = new HashMap();
+        final Map<String, String> searchCriteriaMap = new HashMap<>();
         searchCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
         searchCriteriaMap.put(DslQueryHelper.PROJECTION_DSL, GLOBAL.RULES.exactToken());
 
@@ -471,8 +487,6 @@ public class WebApplicationResourceTest {
 
         PowerMockito.when(DslQueryHelper.createSelectDSLQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
 
-        // UserInterfaceTransactionManager Exception 1 :
-        // AccessExternalClientServerException
         PowerMockito
             .when(
                 UserInterfaceTransactionManager.getArchiveUnitDetails(preparedDslQuery, "1", TENANT_ID, CONTRACT_NAME,
@@ -487,7 +501,7 @@ public class WebApplicationResourceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testArchiveUnitDetailsAccessExternalClientNotFoundException()
+    public void testArchiveUnitDetailsNotFoundError()
         throws Exception {
         final Map<String, String> searchCriteriaMap = new HashMap<>();
         searchCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
@@ -497,13 +511,10 @@ public class WebApplicationResourceTest {
 
         PowerMockito.when(DslQueryHelper.createSelectDSLQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
 
-        // UserInterfaceTransactionManager Exception 2 :
-        // AccessExternalClientNotFoundException
         PowerMockito
-            .when(
-                UserInterfaceTransactionManager.getArchiveUnitDetails(preparedDslQuery, "1", TENANT_ID, CONTRACT_NAME,
-                    getAppSessionId()))
-            .thenThrow(AccessExternalClientNotFoundException.class);
+            .when(UserInterfaceTransactionManager.getArchiveUnitDetails(preparedDslQuery, "1", TENANT_ID, CONTRACT_NAME,
+                getAppSessionId()))
+            .thenReturn(new VitamError("vitam_code").setHttpCode(Status.NOT_FOUND.getStatusCode()));
 
         given().param("id", "1").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
@@ -558,7 +569,7 @@ public class WebApplicationResourceTest {
             .thenThrow(InvalidParseOperationException.class, InvalidCreateOperationException.class);
 
         given().contentType(ContentType.JSON).body(UPDATE).expect()
-            .statusCode(Status.OK.getStatusCode()).when()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .post("/archiveupdate/units/1");
     }
 
@@ -750,8 +761,7 @@ public class WebApplicationResourceTest {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
         doReturn(ClientMockResultHelper.getFormatList()).when(adminClient).findFormats(
-            anyObject(), anyObject()
-        );
+            anyObject(), anyObject());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
             .thenReturn(JsonHandler.getFromString(OPTIONS));
 
@@ -791,8 +801,7 @@ public class WebApplicationResourceTest {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
         PowerMockito.doThrow(new VitamClientException("")).when(adminClient).findFormats(
-            anyObject(), anyObject()
-        );
+            anyObject(), anyObject());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
             .thenReturn(JsonHandler.getFromString(OPTIONS));
 
@@ -813,8 +822,7 @@ public class WebApplicationResourceTest {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
         doReturn(ClientMockResultHelper.getFormat()).when(adminClient).findFormatById(
-            anyObject(), anyObject()
-        );
+            anyObject(), anyObject());
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
@@ -866,12 +874,17 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testNotFoundGetArchiveObjectGroup() throws Exception {
-
-        PowerMockito
-            .when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), anyObject(), anyObject(),
-                anyString()))
-            .thenThrow(new AccessExternalClientNotFoundException(""));
-
+        VitamError vitamError =
+            new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getItem())
+                .setMessage(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getMessage())
+                .setState(StatusCode.KO.name())
+                .setContext(ServiceName.EXTERNAL_ACCESS.getName())
+                .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getMessage())
+                .setHttpCode(Status.NOT_FOUND.getStatusCode())
+                .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getMessage() + " Cause : " +
+                    Status.NOT_FOUND.getReasonPhrase());
+        PowerMockito.when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), anyObject(),
+            anyObject(), anyString())).thenReturn(vitamError);
         given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
             .expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get("/archiveunit/objects/idOG");
@@ -879,9 +892,9 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testOKGetArchiveObjectGroup() throws Exception {
-        final RequestResponseOK sampleObjectGroup =
-            RequestResponseOK
-                .getFromJsonNode(JsonHandler.getFromFile(PropertiesUtils.findFile("sample_objectGroup_document.json")));
+        JsonNode node = JsonHandler.getFromFile(PropertiesUtils.findFile("sample_objectGroup_document.json"));
+        final RequestResponseOK<JsonNode> sampleObjectGroup = RequestResponseOK.getFromJsonNode(node);
+        sampleObjectGroup.setHttpCode(Status.OK.getStatusCode());
         PowerMockito
             .when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), anyObject(), anyObject(),
                 anyString()))
@@ -907,7 +920,7 @@ public class WebApplicationResourceTest {
         PowerMockito
             .when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), anyObject(), anyObject(),
                 anyString()))
-            .thenThrow(new AccessExternalClientServerException(""));
+            .thenThrow(new VitamClientException(""));
 
         given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
             .expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
@@ -927,18 +940,18 @@ public class WebApplicationResourceTest {
     }
 
     @Test
-    public void testNotFoundGetObjectAsInputStream() throws Exception {
+    public void testVitamExceptionGetObjectAsInputStream() throws Exception {
 
         PowerMockito.when(
             UserInterfaceTransactionManager.getObjectAsInputStream(anyObject(), anyObject(), anyString(), anyString(),
                 anyInt(), anyString(), anyObject(), anyString(), anyString()))
-            .thenThrow(new AccessExternalClientNotFoundException(""));
+            .thenThrow(new VitamClientException(""));
 
         given()
             .accept(MediaType.APPLICATION_OCTET_STREAM)
             .body(OPTIONS_DOWNLOAD)
             .expect()
-            .statusCode(Status.NOT_FOUND.getStatusCode())
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .when()
             .get(
                 "/archiveunit/objects/download/idOG?usage=BinaryMaster_1&version=0&filename=Vitam-Sensibilisation-API-V1.0.odp&tenantId=0");
@@ -950,8 +963,9 @@ public class WebApplicationResourceTest {
     @Test
     public void testOKGetObjectAsInputStream() throws Exception {
 
-        PowerMockito.when(
-            UserInterfaceTransactionManager.getObjectAsInputStream(anyObject(), anyObject(), anyString(), anyString(),
+        PowerMockito
+            .when(UserInterfaceTransactionManager.getObjectAsInputStream(anyObject(), anyObject(), anyString(),
+                anyString(),
                 anyInt(), anyString(), anyObject(), anyString(), anyString()))
             .thenReturn(true);
 
@@ -966,30 +980,16 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testBadRequestGetObjectAsInputStream() throws Exception {
-        PowerMockito.when(
-            UserInterfaceTransactionManager.getObjectAsInputStream(anyObject(), anyObject(), anyString(), anyString(),
+        PowerMockito
+            .when(UserInterfaceTransactionManager.getObjectAsInputStream(anyObject(), anyObject(), anyString(),
+                anyString(),
                 anyInt(), anyString(), anyObject(), anyString(), anyString()))
-            .thenThrow(new InvalidParseOperationException(""));
-        given().accept(MediaType.APPLICATION_OCTET_STREAM).expect().statusCode(Status.BAD_REQUEST.getStatusCode())
-            .when()
-            .get("/archiveunit/objects/download/idOG?usage=Dissemination_1&filename=Vitam-Sensibilisation-API" +
-                "-V1.0.odp&tenantId=0");
-    }
-
-    @Test
-    public void testAccessServerExceptionGetObjectAsInputStream() throws Exception {
-        PowerMockito.when(
-            UserInterfaceTransactionManager.getObjectAsInputStream(anyObject(), anyObject(), anyString(), anyString(),
-                anyInt(), anyString(), anyObject(), anyString(), anyString()))
-            .thenThrow(new AccessExternalClientServerException(""));
-        given()
-            .accept(MediaType.APPLICATION_OCTET_STREAM)
-            .body(OPTIONS_DOWNLOAD)
-            .expect()
+            .thenReturn(true);
+        given().accept(MediaType.APPLICATION_OCTET_STREAM).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .when()
-            .get(
-                "/archiveunit/objects/download/idOG?usage=BinaryMaster_1&version=0&filename=Vitam-Sensibilisation-API-V1.0.odp");
+            .get("/archiveunit/objects/download/idOG?usage=Dissemination&filename=Vitam-Sensibilisation-API" +
+                "-V1.0.odp&tenantId=0");
     }
 
     @Test
@@ -1164,8 +1164,7 @@ public class WebApplicationResourceTest {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
         doReturn(ClientMockResultHelper.getRuleList()).when(adminClient).findRules(
-            anyObject(), anyObject()
-        );
+            anyObject(), anyObject());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
             .thenReturn(JsonHandler.getFromString(OPTIONS));
 
@@ -1186,8 +1185,7 @@ public class WebApplicationResourceTest {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
         doReturn(ClientMockResultHelper.getRuleList()).when(adminClient).findRules(
-            anyObject(), anyObject()
-        );
+            anyObject(), anyObject());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
             .thenThrow(new InvalidParseOperationException(""));
 
@@ -1364,7 +1362,7 @@ public class WebApplicationResourceTest {
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/admin/accession-register");
     }
-    
+
     @Test
     public void testSerachFundsRegisterNotFound() throws Exception {
         VitamError vitamError =
@@ -1376,14 +1374,14 @@ public class WebApplicationResourceTest {
                 .setHttpCode(Status.NOT_FOUND.getStatusCode())
                 .setDescription(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_ERROR.getMessage() + " Cause : " +
                     Status.NOT_FOUND.getReasonPhrase());
-        
+
         PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterSummary(anyObject(), anyObject(),
             anyObject(), anyString())).thenReturn(vitamError);
-        
+
         PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
         PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
             .thenReturn(JsonHandler.createObjectNode());
-        
+
         given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .post("/admin/accession-register");
@@ -1503,8 +1501,9 @@ public class WebApplicationResourceTest {
         String contractName = "test_contract";
 
         when(adminExternalClient.downloadTraceabilityOperationFile(
-            eq(new VitamContext(0).setAccessContract(contractName).setApplicationSessionId(getAppSessionId())), eq("1")))
-            .thenReturn(ClientMockResultHelper.getObjectStream());
+            eq(new VitamContext(0).setAccessContract(contractName).setApplicationSessionId(getAppSessionId())),
+            eq("1")))
+                .thenReturn(ClientMockResultHelper.getObjectStream());
 
         RestAssured.given()
             .when().get("traceability" + "/1/" + "content?contractId=" + contractName)
@@ -1547,8 +1546,7 @@ public class WebApplicationResourceTest {
 
         JsonNode auditOption = JsonHandler.getFromString(AUDIT_OPTION);
         PowerMockito
-            .when(adminExternalClient.launchAudit(anyObject(), Mockito.anyObject()
-            ))
+            .when(adminExternalClient.launchAudit(anyObject(), Mockito.anyObject()))
             .thenReturn(ClientMockResultHelper.checkOperationTraceability());
 
         given().contentType(ContentType.JSON).body(auditOption).expect()

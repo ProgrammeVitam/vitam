@@ -37,6 +37,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -376,6 +378,51 @@ public class ClientMockResultHelper {
         return accessionRegister;
     }
 
+    private static ObjectNode getUnitSimpleItem() {
+        ObjectNode node = JsonHandler.createObjectNode();
+        node.put("#id", "aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq");
+        node.put("Title", "Archive 1");
+        node.put("DescriptionLevel", "Archive Mock");
+        return node;
+    }
+
+    private static ObjectNode getGotSimpleItem() {
+        ObjectNode got = JsonHandler.createObjectNode();
+        ArrayNode versions = JsonHandler.createArrayNode();
+        ObjectNode binaryMaster1 = JsonHandler.createObjectNode();
+        binaryMaster1.put("#id", "aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq");
+        binaryMaster1.put("DataObjectVersion", "BinaryMaster_1");
+        binaryMaster1.put("Size", "6");
+        binaryMaster1.put("LastModified", "2017-04-04T08:07:06.487+02:00");
+        binaryMaster1.put("FormatLitteral", "Plain Text File");
+        binaryMaster1.put("FileName", "Stalingrad.txt");
+        binaryMaster1.put("LastModified", "2017-04-04T08:07:06.487+02:00");
+        binaryMaster1.put("LastModified", "2017-04-04T08:07:06.487+02:00");
+        binaryMaster1.put("LastModified", "2017-04-04T08:07:06.487+02:00");
+        ObjectNode metadatas = JsonHandler.createObjectNode();
+        metadatas.put("_id", "aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq");
+        metadatas.put("DataObjectGroupId", "aebaaaaaaagc44lgabqraak63u6iq2aaaabq");
+        metadatas.put("DataObjectVersion", "BinaryMaster_1");
+        metadatas.put("Uri", "Content/ID55.txt");
+        metadatas.put("MessageDigest",
+            "86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1");
+        metadatas.put("Algorithm", "SHA-512");
+        ObjectNode formatIdentification = JsonHandler.createObjectNode();
+        formatIdentification.put("FormatLitteral", "Plain Text File");
+        formatIdentification.put("MimeType", "text/plain");
+        formatIdentification.put("FormatId", "x-fmt/111");
+        metadatas.set("FormatIdentification", formatIdentification);
+        ObjectNode fileInfo = JsonHandler.createObjectNode();
+        fileInfo.put("Filename", "Stalingrad.txt");
+        fileInfo.put("LastModified", "2017-04-04T08:07:06.487+02:00");
+        metadatas.set("FileInfo", fileInfo);
+        binaryMaster1.set("metadatas", metadatas);
+        versions.add(binaryMaster1);
+        got.put("nbObjects", 1);
+        got.set("versions", versions);
+        return got;
+    }
+
     /**
      * FIXME to remove in 2905
      * 
@@ -529,6 +576,7 @@ public class ClientMockResultHelper {
         return new RequestResponseOK<AgenciesModel>().addResult(getAgeciesModel())
             .setHttpCode(Status.OK.getStatusCode());
     }
+
     /**
      * @return context json
      */
@@ -604,6 +652,22 @@ public class ClientMockResultHelper {
      */
     public static RequestResponse getArchiveUnitResult() throws InvalidParseOperationException {
         return createReponse(UNIT);
+    }
+
+    /**
+     * @return a simple ArchiveUnit result
+     */
+    public static RequestResponse<JsonNode> getArchiveUnitSimpleResult(JsonNode query) {
+        return new RequestResponseOK<JsonNode>(query).addResult(getUnitSimpleItem())
+            .setHttpCode(Status.OK.getStatusCode());
+    }
+
+    /**
+     * @return a simple GOT result
+     */
+    public static RequestResponse<JsonNode> getGotSimpleResult(JsonNode query) {
+        return new RequestResponseOK<JsonNode>(query).addResult(getGotSimpleItem())
+            .setHttpCode(Status.OK.getStatusCode());
     }
 
     /**
