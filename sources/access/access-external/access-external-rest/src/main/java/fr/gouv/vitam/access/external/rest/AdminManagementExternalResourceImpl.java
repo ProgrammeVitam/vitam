@@ -1647,14 +1647,57 @@ public class AdminManagementExternalResourceImpl {
     /**
      * Import security profile documents
      *
+     * @param document inputStream representing the security profiles to import
+     * @return The Response
+     */
+    @Path("/securityprofiles")
+    @POST
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "securityprofiles:create:binary",
+        description = "Importer des profiles de sécurité dans le référentiel")
+    public Response importSecurityProfiles(InputStream document) {
+
+        addRequestId();
+        try {
+            ParametersChecker.checkParameter("document is a mandatory parameter", document);
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+
+                JsonNode json = JsonHandler.getFromInputStream(document);
+                SanityChecker.checkJsonAll(json);
+                Status status = client.importSecurityProfiles(JsonHandler.getFromStringAsTypeRefence(json.toString(),
+                        new TypeReference<List<SecurityProfileModel>>() {}));
+                // Send the http response with no entity and the status got from internalService;
+                ResponseBuilder ResponseBuilder = Response.status(status);
+                return ResponseBuilder.build();
+            } catch (final ReferentialException e) {
+                LOGGER.error(e);
+                return Response.status(Status.BAD_REQUEST)
+                        .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            } catch (InvalidParseOperationException e) {
+                return Response.status(Status.BAD_REQUEST)
+                        .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            }
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        } finally {
+            StreamUtils.closeSilently(document);
+        }
+    }
+
+    /**
+     * Import security profile documents
+     *
      * @param document the security profile to import
-     * @return The jaxRs Response
+     * @return Response
      */
     @Path("/securityprofiles")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "securityprofiles:create",
+    @Secured(permission = "securityprofiles:create:json",
         description = "Importer des profiles de sécurité dans le référentiel")
     public Response importSecurityProfiles(JsonNode document)
         throws DatabaseConflictException {

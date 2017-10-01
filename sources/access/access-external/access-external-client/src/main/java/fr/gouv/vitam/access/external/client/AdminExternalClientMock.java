@@ -9,6 +9,7 @@ import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -270,4 +271,18 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         return ClientMockResultHelper.getAgencies();
     }
 
+    @Override
+    public RequestResponse updateSecurityProfile(VitamContext vitamContext, String identifier, JsonNode queryDsl) throws VitamClientException {
+        return ClientMockResultHelper.getSecurityProfiles();
+    }
+
+    @Override
+    public RequestResponse<SecurityProfileModel> findSecurityProfiles(VitamContext vitamContext, JsonNode select) throws VitamClientException {
+        return (RequestResponse<SecurityProfileModel>)ClientMockResultHelper.getSecurityProfiles();
+    }
+
+    @Override
+    public RequestResponse<SecurityProfileModel> findSecurityProfileById(VitamContext vitamContext, String identifier) throws VitamClientException {
+        return (RequestResponse<SecurityProfileModel>)ClientMockResultHelper.getSecurityProfiles();
+    }
 }

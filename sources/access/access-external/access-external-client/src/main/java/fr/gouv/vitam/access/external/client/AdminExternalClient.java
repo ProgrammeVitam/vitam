@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 
 /**
  * Admin External Client Interface
@@ -479,4 +480,42 @@ public interface AdminExternalClient extends BasicClient {
     RequestResponse<AgenciesModel> findAgencyByID(
         VitamContext vitamContext, String agencyById)
         throws VitamClientException;
+
+    /**
+     * Updates the given security profile by query dsl
+     *
+     * @param vitamContext the vitam context
+     * @param identifier the identifier of the security profile to update
+     * @param queryDsl the given dsl query
+     * @return Response status ok or vitam error
+     * @throws VitamClientException
+     */
+    RequestResponse updateSecurityProfile(VitamContext vitamContext, String identifier,
+                                          JsonNode queryDsl)
+            throws VitamClientException;
+
+    /**
+     * Find security profiles by query dsl.
+     *
+     * @param vitamContext the vitam context
+     * @param select select query
+     * @return list of security profiles
+     * @throws VitamClientException
+     */
+    RequestResponse<SecurityProfileModel> findSecurityProfiles(VitamContext vitamContext,
+                                                               JsonNode select)
+            throws VitamClientException;
+
+    /**
+     * Find a security profile by its identifier.
+     *
+     *
+     * @param vitamContext the vitam context
+     * @param identifier the identifier of the security profile
+     * @return a security profile
+     * @throws VitamClientException
+     */
+    RequestResponse<SecurityProfileModel> findSecurityProfileById(VitamContext vitamContext,
+                                                                  String identifier)
+            throws VitamClientException;
 }

@@ -2,6 +2,7 @@ package fr.gouv.vitam.access.external.client;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 
@@ -89,6 +90,20 @@ public class AdminExternalClientMockTest {
             client.launchAudit(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(AUDIT_OPTION)).getHttpCode(),
             Status.ACCEPTED.getStatusCode());
 
-    }
+        assertEquals(
+                client.createDocuments(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), AdminCollections.SECURITY_PROFILES, new ByteArrayInputStream("test".getBytes()), "test.json"),
+                Status.CREATED);
 
+        assertEquals(
+                client.findSecurityProfiles(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.createObjectNode()).getHttpCode(),
+                Status.OK.getStatusCode());
+
+        assertEquals(
+                client.findSecurityProfileById(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), "ID").getHttpCode(),
+                Status.OK.getStatusCode());
+
+        assertEquals(
+                client.updateSecurityProfile(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), "ID", JsonHandler.createObjectNode()).getHttpCode(),
+                Status.OK.getStatusCode());
+    }
 }

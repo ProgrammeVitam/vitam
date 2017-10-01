@@ -28,6 +28,11 @@ package fr.gouv.vitam.functional.administration.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -36,6 +41,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
+import fr.gouv.vitam.functional.administration.common.SecurityProfile;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
@@ -178,20 +184,23 @@ public class SecurityProfileResource {
         try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess,
             vitamCounterService)) {
 
-            SecurityProfileModel securityProfileModel =
-                securityProfileService.findOneByIdentifier(identifier);
+            final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
+            parser.parse(new Select().getFinalSelect());
+            parser.addCondition(QueryHelper.eq(SecurityProfile.IDENTIFIER, identifier));
+            JsonNode queryDsl = parser.getRequest().getFinalSelect();
+
+            RequestResponseOK<SecurityProfileModel> securityProfileModelList =
+                    securityProfileService.findSecurityProfiles(queryDsl).setQuery(queryDsl);
 
             return Response.status(Response.Status.OK)
-                    .entity(new RequestResponseOK<SecurityProfileModel>()
-                            .addResult(securityProfileModel)
-                            .setHttpCode(Response.Status.OK.getStatusCode()))
+                    .entity(securityProfileModelList)
                     .build();
 
         } catch (ReferentialException e) {
             LOGGER.error(e);
             return Response.status(Response.Status.BAD_REQUEST)
                 .entity(getErrorEntity(Response.Status.BAD_REQUEST, e.getMessage(), null)).build();
-        } catch (final InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error(e);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Response.Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();

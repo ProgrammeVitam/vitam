@@ -39,6 +39,7 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -161,6 +162,18 @@ public class ClientMockResultHelper {
             "\"evDetData\": {\"LogType\":\"OPERATION\",\"StartDate\":\"2017-04-06T22:50:59.657\"," +
             "\"EndDate\":\"2017-04-06T23:01:03.121\",\"Hash\":\"HASH_TEST\",\"TimeStampToken\":\"TimeStamp_TEST\"," +
             "\"NumberOfElement\":4,\"FileName\":\"0_LogbookOperation_20170406_230103.zip\",\"Size\":4141}}]}";
+
+    public static final String SECURITY_PROFILES =
+            "{" +
+            "\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetcaaaabbbcc\"," +
+            "\"Identifier\": \"SEC_PROFILE-000001\"," +
+            "\"Name\": \"TEST_PROFILE_1\"," +
+            "\"FullAccess\": false," +
+            "\"Permissions\": [" +
+            "\"permission_one:read\"," +
+            "\"permission_one:id:write\"" +
+            "]" +
+            "}";
 
 
     private ClientMockResultHelper() {}
@@ -637,5 +650,13 @@ public class ClientMockResultHelper {
      */
     public static RequestResponse getTraceabilityOperationMock() throws InvalidParseOperationException {
         return createReponse(TRACEABILITY_LOGBOOK_OPERATION);
+    }
+
+    public static RequestResponse getSecurityProfiles() throws VitamClientException {
+        try {
+            return createReponse(SECURITY_PROFILES);
+        } catch (InvalidParseOperationException e) {
+            throw new  VitamClientException(e);
+        }
     }
 }
