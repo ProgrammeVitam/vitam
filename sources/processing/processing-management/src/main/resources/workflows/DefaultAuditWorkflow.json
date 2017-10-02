@@ -71,6 +71,12 @@
             "actionKey": "REPORT_AUDIT",
             "behavior": "BLOCKING"
           }
+        },
+        {
+          "action": {
+            "actionKey": "ROLL_BACK",
+            "behavior": "BLOCKING"
+          }
         }
       ]
     }

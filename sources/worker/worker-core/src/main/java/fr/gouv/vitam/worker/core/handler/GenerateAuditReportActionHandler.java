@@ -259,7 +259,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
             for (JsonNode res : result.get(RequestResponseOK.RESULTS)) {
                 JsonNode events = res.get(EVENT);
                 for (JsonNode event : events) {
-                    if (event.get(EV_TYPE).asText().equals("LFC.AUDIT_FILE_EXISTING")
+                    if (event.get(EV_TYPE).asText().equals("LFC.AUDIT_CHECK_OBJECT")
                         && event.get(OUTCOME).asText().equals("KO")
                         && event.get(EV_ID_PROC).asText().equals(auditOperationId)) {
                         JsonNode evDetData = JsonHandler.getFromString(event.get("evDetData").asText());
