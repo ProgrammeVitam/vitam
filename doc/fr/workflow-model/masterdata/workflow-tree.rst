@@ -101,13 +101,9 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
 - **Step 3** - STP_UNIT_STORING : Rangement des unités archivistique / distribution sur LIST GUID/Units
 
-  * COMMIT_LIFE_CYCLE_UNIT (CommitLifeCycleUnitActionHandler.java)
-
-    + Enregistrement en base des journaux du cycle de vie des unités archivistiques
-
   * UNIT_METADATA_STORAGE (StoreMetaDataUnitActionPlugin.java.java) :
 
-    + Ecriture sur les offres de stockage des métadonnées des unités archivistiques.
+    + Ecriture sur les offres de stockage des métadonnées des unités archivistiques ainsi que leurs journaux de cycle de vie.
 
   * COMMIT_LIFE_CYCLE_UNIT (CommitLifeCycleUnitActionHandler.java)
 
