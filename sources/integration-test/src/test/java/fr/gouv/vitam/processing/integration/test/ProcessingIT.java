@@ -234,6 +234,7 @@ public class ProcessingIT {
 
     private static String WORFKLOW_NAME_2 = "PROCESS_SIP_UNITARY";
     private static String WORFKLOW_NAME = "PROCESS_SIP_UNITARY";
+    private static String BLANK_WORKFLOW_NAME = "PROCESS_SIP_UNITARY_TEST";
     private static String INGEST_TREE_WORFKLOW = "HOLDINGSCHEME";
     private static String INGEST_PLAN_WORFKLOW = "FILINGSCHEME";
     private static String BIG_WORFKLOW_NAME = "BigIngestWorkflow";
@@ -2905,6 +2906,72 @@ public class ProcessingIT {
             Files.delete(new File(zipPath).toPath());
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testBlankWorkflow() {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+        final String containerName = objectGuid.getId();
+        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
+            AdminManagementClient functionalClient = AdminManagementClientFactory.getInstance().getClient()) {
+            tryImportFile();
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            createLogbookOperation(operationGuid, objectGuid);
+
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+            final InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_BUG_2721);
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(containerName);
+            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+                zipInputStreamSipObject);
+            // call processing
+            RestAssured.port = PORT_SERVICE_PROCESSING;
+            RestAssured.basePath = PROCESSING_PATH;
+
+            metaDataClient.insertUnit(
+                new InsertMultiQuery()
+                    .addData((ObjectNode) JsonHandler
+                        .getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json")))
+                    .getFinalInsert());
+
+            metaDataClient.insertUnit(
+                new InsertMultiQuery()
+                    .addData(
+                        (ObjectNode) JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
+                    .getFinalInsert());
+
+            metaDataClient.flushUnits();
+            // import contract
+            File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
+            List<IngestContractModel> IngestContractModelList =
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
+
+            functionalClient.importIngestContracts(IngestContractModelList);
+
+            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+            // Testing blank workflow
+            processingClient.initVitamProcess(Contexts.BLANK_TEST.name(), containerName, BLANK_WORKFLOW_NAME);
+
+            RequestResponse<ItemStatus> ret =
+                processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+            assertNotNull(ret);
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+            wait(containerName);
+            ProcessWorkflow processWorkflow = processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+        } catch (final Exception e) {
+            LOGGER.error(e);
+            fail("should not raized an exception" + e);
         }
     }
 
