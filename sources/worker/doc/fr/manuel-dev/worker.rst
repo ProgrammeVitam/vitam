@@ -1408,3 +1408,125 @@ A terme, il faudra que SedaUtils notamment soit "retravaillé" pour que les diff
 
 Le worker client contient le code permettant l'appel vers les API Rest offert par le worker.
 Pour le moment une seule méthode est offerte : submitStep. Pour plus de détail, voir la partie worker-client.
+
+
+
+4.26 Détail du handler : GenerateAuditReportActionHandler
+-----------------------------------------------------------
+
+4.26.1 Description
+==================
+
+Ce handler permet de générer le rapport d'audit
+
+4.26.2 exécution
+================
+
+La rapport commence par une partie généraliste contenant :
+* Le GUID de l'opération d'audit à l'origine de ce rapport
+* Le tenant sur lequel s'est exécuté l'audit
+* Le message (outMessg) du JDO de l'opération de la dernière étape (succès ou échec de l'audit)
+* Le statut final (outcome) de l'opération
+* La date et l'heure du début de la génération du rapport (evDateTime de l'evénement)
+* L'identifiant de ce sur quoi porte l'audit (tenant/SP/opération) 
+
+Deuxièmement, la rapport contient les cas OK, KO, Warning et Fatal de toutes les actions d'audit sur les objets
+
+.. code-block:: java
+
+	//le cas OK
+	source.add(JsonHandler.createObjectNode().put(_TENANT, res.get(_TENANT).asText())
+    	.put(ORIGINATING_AGENCY, agIdExtNode.get("originatingAgency").asText())
+        .put(EV_ID_PROC, res.get(EV_ID_PROC).asText()));
+
+	//le cas KO
+	reportKO.add(JsonHandler.createObjectNode().put("IdOp", event.get(EV_ID_PROC).asText())
+    	.put(ID_GOT, event.get("obId").asText())
+        .put(ID_OBJ, error.get(ID_OBJ).asText())
+        .put(USAGE, error.get(USAGE).asText())
+        .put(ORIGINATING_AGENCY, originatingAgency)
+        .put(OUT_DETAIL, event.get("outDetail").asText()));
+        
+
+
+4.27 Détail du plugin : AuditCheckObjectPlugin
+------------------------------------------------
+
+4.27.1 Description
+==================
+
+Ce plugin permet de contrôler les objets dans le cadre d'un audit consultatif
+
+4.27.2 exécution
+================
+
+Selon le parametre auditActions, il va appeler le plugin,
+soit CheckExistenceObjectPlugin, soit CheckIntegrityObjectPlugin
+
+
+
+4.28 Détail du plugin : CheckExistenceObjectPlugin
+----------------------------------------------------
+
+4.28.1 Description
+==================
+
+Ce plugin permet de contrôler l'existence d'un objet dans le cadre d'un audit
+
+4.28.2 exécution
+================
+
+Le plugin va tester l'existence de la cohérence entre les offres de stockages déclarées dans un GOT 
+et les offres de stockages relatives à la stratégie de stockage connue du moteur de stockage
+
+.. code-block:: java
+
+	JsonNode storageInformation = version.get("_storage");
+    final String strategy = storageInformation.get("strategyId").textValue();
+    final List<String> offerIds = new ArrayList<>();
+    for (JsonNode offerId : storageInformation.get("offerIds")) {
+    	offerIds.add(offerId.textValue());
+    }
+
+    if (!storageClient.exists(strategy, StorageCollectionType.OBJECTS,
+    	version.get("_id").asText(), offerIds)) {
+        nbObjectKO += 1;
+    } else {
+    	nbObjectOK += 1;
+    }
+
+
+
+4.29 Détail du plugin : CheckIntegrityObjectPlugin
+---------------------------------------------------
+
+4.29.1 Description
+==================
+
+Ce plugin permet de contrôler l'intégrité d'un objet archivé dans le cadre d'un audit
+
+4.29.2 exécution
+================
+
+Dans le cadre de l'audit, on va vérifier une empreinte d'un objet est bien celle de l'objet audité, 
+en fonction de son offre de stockage.
+
+.. code-block:: java
+
+	JsonNode offerToMetadata = storageClient.getObjectInformation(strategy, version.get("_id").asText(), offerIds);
+    for (String offerId : offerIds) {
+    	String digest = null;
+        JsonNode metadata = offerToMetadata.findValue(offerId);
+        if (metadata != null){
+        	digest = metadata.get("digest").asText();
+        } else {
+        	checkDigest = false;
+            continue;
+        }
+                        
+        if (messageDigest.equals(digest)) {
+        	checkDigest = true;
+        } else {
+        	checkDigest = false;
+        }
+	}
