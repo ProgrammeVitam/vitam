@@ -46,8 +46,8 @@ Extrait d'un JSON correspondant à une opération d'entrée terminée avec succ�
     "outDetail": "PROCESS_SIP_UNITARY.STARTED",
     "outMessg": "Début du processus d'entrée du SIP : aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
     "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1211004455,\"SiteId\":1,\"GlobalPlatformId\":137262631}",
-    "agIdApp": null,
-    "evIdAppSession": null,
+    "agIdApp": "CT-000001",
+    "evIdAppSession": "MyApplicationId-ChangeIt",
     "evIdReq": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
     "agIdExt": "{\"originatingAgency\":\"Identifier0\",\"TransferringAgency\":\"ARCHIVES DEPARTEMENTALES DE LA VENDEE\",\"ArchivalAgency\":\"ARCHIVES DEPARTEMENTALES DE LA VENDEE\"}",
     "rightsStatementIdentifier": "{\"ArchivalAgreement\":\"ArchivalAgreement0\"}",
@@ -178,13 +178,14 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
 
     *Ce champ existe pour les structures incluantes et incluses*
 
-"agIdApp" (agent Identifier Application): identifiant de l’application externe qui appelle la solution logicielle Vitam pour effectuer l'opération
-    *Actuellement, la valeur est toujours 'null' mais sera renseignée une fois le mécanisme d'authentification mis en place. Ce champ existe uniquement pour la structure incluante.*
+"agIdApp" (agent Identifier Application): identifiant de l’application externe qui appelle la solution logicielle Vitam pour effectuer l'opération. Cet identifiant est celui du contexte utilisé par l'application.
+    * Il s'agit d'une chaîne de caractères. 
+    * Ce champ existe uniquement pour la structure incluante.*
 
-"evIdAppSession" (agent Identifier Application Session): identifiant donnée par l’application utilisatrice externe qui appelle la solution logicielle Vitam lors de la session utilisée pour lancer l’opération. 
+"evIdAppSession" (agent Identifier Application Session): identifiant de la transaction qui a entraîne le lancement d'une opération dans Vitam.
     L’application externe est responsable de la gestion de cet identifiant. Il correspond à un identifiant pour une session donnée côté application externe.
-
-    *Actuellement, la valeur est toujours 'null' mais sera renseignée une fois le mécanisme d'authentification mis en place. Ce champ existe uniquement pour la structure incluante.*
+    Il s'agit d'une chaîne de caractères.
+    * Ce champ existe uniquement pour la structure incluante.*
 
 "evIdReq" (event Identifier Request): identifiant de la requête déclenchant l’opération.
     Il s'agit d'une chaîne de 36 caractères.
