@@ -60,6 +60,13 @@ public enum StorageCollectionType {
      */
     RULES("rules"),
     /**
+     * agencies files
+     */
+    AGENCIES("agencies"),
+
+
+
+    /**
      * ObjectGroups collection
      */
     OBJECTGROUPS("objectgroups"),

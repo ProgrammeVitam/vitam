@@ -39,7 +39,6 @@ import java.util.Map;
 import java.util.Set;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
@@ -75,8 +74,9 @@ public class BusinessApplication extends Application {
             singletons.add(resource);
             singletons.add(new ContractResource(mongoDbAccess, vitamCounterService));
             singletons.add(new ContextResource(mongoDbAccess, vitamCounterService));
-            singletons.add(new AgenciesResource(mongoDbAccess));
             singletons.add(new SecurityProfileResource(mongoDbAccess, vitamCounterService));
+            singletons.add(new AgenciesResource(mongoDbAccess, vitamCounterService));
+
 
             singletons.add(profileResource);
 

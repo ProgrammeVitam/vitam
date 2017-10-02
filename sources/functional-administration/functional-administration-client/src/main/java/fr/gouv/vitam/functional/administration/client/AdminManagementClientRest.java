@@ -79,8 +79,6 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoun
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
-import fr.gouv.vitam.logbook.common.client.ErrorMessage;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 
 /**
  * AdminManagement client
@@ -93,6 +91,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String FORMAT_URL = "/format";
 
     private static final String RULESMANAGER_CHECK_URL = "/rules/check";
+    private static final String AGENCIESMANAGER_CHECK_URL = "/agencies/check";
     private static final String RULESMANAGER_IMPORT_URL = "/rules/import";
     private static final String AGENCIESMANAGER_IMPORT_URL = "/agencies/import";
     private static final String AGENCIES_URL = "/agencies";
@@ -260,6 +259,21 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         }
     }
 
+    @Override
+    public Response checkAgenciesFile(InputStream stream)
+        throws FileRulesException, AdminManagementClientServerException {
+        ParametersChecker.checkParameter("stream is a mandatory parameter", stream);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, AGENCIESMANAGER_CHECK_URL, null,
+                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            return response;
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        }
+    }
     @Override
     public Status importRulesFile(InputStream stream, String filename)
         throws ReferentialException, DatabaseConflictException {

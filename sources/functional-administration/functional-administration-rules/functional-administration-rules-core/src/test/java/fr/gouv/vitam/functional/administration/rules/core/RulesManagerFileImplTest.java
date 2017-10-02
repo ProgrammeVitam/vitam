@@ -44,6 +44,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import fr.gouv.vitam.functional.administration.common.FilesSecurisator;
+import org.bson.Document;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -193,7 +197,7 @@ public class RulesManagerFileImplTest {
         logbookOperationsClientFactory = mock(LogbookOperationsClientFactory.class);
         storageClientFactory = mock(StorageClientFactory.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        RulesSecurisator securisator = mock(RulesSecurisator.class);
+        FilesSecurisator securisator = mock(FilesSecurisator.class);
 
         rulesFileManager =
             new RulesManagerFileImpl(

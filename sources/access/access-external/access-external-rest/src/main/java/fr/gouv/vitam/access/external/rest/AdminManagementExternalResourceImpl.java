@@ -174,7 +174,28 @@ public class AdminManagementExternalResourceImpl {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         addRequestId();
 
-        return asyncDownloadErrorReport(document);
+        return asyncDownloadErrorReportRules(document);
+    }
+
+
+    /**
+     * check agencies
+     * @param document
+     * @return
+     */
+    @Path("/agencies")
+    @PUT
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Secured(permission = "agencies:check",
+        description = "Vérifier si le référentiel de services producteurs que l'on souhaite importer est valide")
+    public Response checkAgencies(InputStream document) {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        LOGGER.debug(String.format("tenant Id %d", tenantId));
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        addRequestId();
+
+        return asyncDownloadErrorReportAgencies(document);
     }
 
     /**
@@ -200,9 +221,26 @@ public class AdminManagementExternalResourceImpl {
      * 
      * @param document the referential to check
      */
-    private Response asyncDownloadErrorReport(InputStream document) {
+    private Response asyncDownloadErrorReportRules(InputStream document) {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             final Response response = client.checkRulesFile(document);
+            Map<String, String> headers = VitamAsyncInputStreamResponse.getDefaultMapFromResponse(response);
+            headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHEMENT_FILENAME);
+            return new VitamAsyncInputStreamResponse(response,
+                (Status) response.getStatusInfo(), headers);
+        } catch (Exception e) {
+            return asyncResponseResume(e, document);
+        }
+    }
+
+    /**
+     * Return the Error Report or close the asyncResonse
+     *
+     * @param document the referential to check
+     */
+    private Response asyncDownloadErrorReportAgencies(InputStream document) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            final Response response = client.checkAgenciesFile(document);
             Map<String, String> headers = VitamAsyncInputStreamResponse.getDefaultMapFromResponse(response);
             headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHEMENT_FILENAME);
             return new VitamAsyncInputStreamResponse(response,

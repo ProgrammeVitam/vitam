@@ -50,7 +50,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.response.Response;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 
@@ -81,7 +80,6 @@ import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
-import fr.gouv.vitam.common.server.application.junit.AsyncResponseJunitTest;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -94,7 +92,7 @@ import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFile
 import fr.gouv.vitam.functional.administration.profile.api.ProfileService;
 import fr.gouv.vitam.functional.administration.profile.api.impl.ProfileServiceImpl;
 import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
-import fr.gouv.vitam.functional.administration.rules.core.RulesSecurisator;
+import fr.gouv.vitam.functional.administration.common.FilesSecurisator;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -133,6 +131,8 @@ public class FunctionalAdminIT {
     static int mongoPort;
     static ElasticsearchTestConfiguration config;
 
+    private static final String logbookSecurisation = "RULES_SECURISATION";
+    private static final String file_name = "RULES";
     private static final String REST_URI = StorageClientFactory.RESOURCE_PATH;
     private static final String LOGBOOK_REST_URI = LogbookOperationsClientFactory.RESOURCE_PATH;
 
@@ -245,14 +245,14 @@ public class FunctionalAdminIT {
 
         rulesManagerFile =
             new RulesManagerFileImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
-                vitamCounterService, new RulesSecurisator());
+                vitamCounterService, new FilesSecurisator());
 
         referentialFormatFile = new ReferentialFormatFileImpl(
             MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)));
 
         ingestContract = new IngestContractImpl(
-                MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
-                vitamCounterService);
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
+            vitamCounterService);
     }
 
     @AfterClass
@@ -283,7 +283,8 @@ public class FunctionalAdminIT {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File fileMetadataProfile = PropertiesUtils.getResourceFile("functional-admin/profile_ok.json");
         List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {});
+            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {
+            });
         RequestResponse response = profileService.createProfiles(profileModelList);
         assertThat(response.isOk()).isTrue();
         RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
@@ -368,11 +369,12 @@ public class FunctionalAdminIT {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         // do the import 
         File fileContracts =
-                PropertiesUtils.getResourceFile("integration-ingest-internal/referential_contracts_ok.json");
+            PropertiesUtils.getResourceFile("integration-ingest-internal/referential_contracts_ok.json");
         List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
-                new TypeReference<List<IngestContractModel>>() {});
+            new TypeReference<List<IngestContractModel>>() {
+            });
         ingestContract.createContracts(IngestContractModelList);
-        
+
         // check import log
         LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         final Select select = new Select();
@@ -384,31 +386,31 @@ public class FunctionalAdminIT {
         JsonNode operation = ((ArrayNode) result.get("$results")).get(0);
         assertThat(operation).isNotNull();
         JsonNode lastEvent =
-                ((ArrayNode) operation.get("events")).get(((ArrayNode) operation.get("events")).size() - 1);
+            ((ArrayNode) operation.get("events")).get(((ArrayNode) operation.get("events")).size() - 1);
         assertThat(lastEvent).isNotNull();
         assertThat(lastEvent.has("outcome")).isTrue();
         assertThat(lastEvent.get("outcome").asText()).isEqualTo("OK");
-        
+
         // check created contract
         final Select select2 = new Select();
         select2.setQuery(exists("Name"));
         List<IngestContractModel> contractModels = ingestContract.findContracts(select2.getFinalSelect()).getResults();
         assertThat(contractModels).isNotEmpty();
-        IngestContractModel contractModel =  contractModels.get(0);
+        IngestContractModel contractModel = contractModels.get(0);
         assertThat(contractModel).isNotNull();
         assertThat(contractModel.getStatus().equals("ACTIVE"));
         String contractToUpdate = contractModel.getIdentifier();
-        
+
         // do an update
         UpdateMultiQuery updateQuery = new UpdateMultiQuery();
         updateQuery.addActions(new SetAction("Status", "INACTIVE"));
         ingestContract.updateContract(contractToUpdate, updateQuery.getFinalUpdate());
-        
+
         // check update
         IngestContractModel updatedContractModel = ingestContract.findOne(contractToUpdate);
         assertThat(updatedContractModel).isNotNull();
         assertThat(updatedContractModel.getStatus().equals("INACTIVE")).isTrue();
-                
+
         // check update log
         select.setQuery(new CompareQuery(QUERY.EQ, "evType", "STP_UPDATE_INGEST_CONTRACT"));
         result = logbookClient.selectOperation(select.getFinalSelect());
@@ -424,6 +426,7 @@ public class FunctionalAdminIT {
         assertThat(evDetData).isNotNull();
         assertThat(evDetData.get("IngestContract")).isNotNull();
         assertThat(evDetData.get("IngestContract").get("updatedDiffs")).isNotNull();
-        assertThat(evDetData.get("IngestContract").get("updatedDiffs").asText()).contains("-  Status : ACTIVE+  Status : INACTIVE");
+        assertThat(evDetData.get("IngestContract").get("updatedDiffs").asText())
+            .contains("-  Status : ACTIVE+  Status : INACTIVE");
     }
 }

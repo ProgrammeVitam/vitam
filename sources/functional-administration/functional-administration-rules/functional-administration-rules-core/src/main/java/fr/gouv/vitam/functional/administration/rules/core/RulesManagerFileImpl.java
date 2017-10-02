@@ -51,6 +51,8 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
+import fr.gouv.vitam.functional.administration.common.FilesSecurisator;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -193,7 +195,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     private final WorkspaceClientFactory workspaceClientFactory;
     private final StorageClientFactory storageClientFactory;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
-    private final RulesSecurisator securisator;
+    private final FilesSecurisator securisator;
 
 
 
@@ -226,7 +228,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
      * @param securisator
      */
     public RulesManagerFileImpl(MongoDbAccessAdminImpl dbConfiguration, VitamCounterService vitamCounterService,
-        RulesSecurisator securisator) {
+        FilesSecurisator securisator) {
         this(dbConfiguration, vitamCounterService, securisator,
             LogbookOperationsClientFactory.getInstance(),
             StorageClientFactory.getInstance(),
@@ -236,7 +238,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     @VisibleForTesting
     RulesManagerFileImpl(MongoDbAccessAdminImpl dbConfiguration,
         VitamCounterService vitamCounterService,
-        RulesSecurisator securisator, LogbookOperationsClientFactory logbookOperationsClientFactory,
+        FilesSecurisator securisator, LogbookOperationsClientFactory logbookOperationsClientFactory,
         StorageClientFactory storageClientFactory, WorkspaceClientFactory workspaceClientFactory) {
         this.mongoAccess = dbConfiguration;
         this.vitamCounterService = vitamCounterService;
@@ -324,6 +326,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                 notUsedDeletedRulesForReport,
                 eip, client);
             generateReport(errors, eip, new ArrayList<>(), new ArrayList<>(), client);
+
             commitRules(fileRulesModelToUpdate, fileRulesModelToDelete, validatedRules,
                 fileRulesModelToInsert,
                 fileRulesModelsToImport, eip, client);
@@ -567,7 +570,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                     updateOperationGUID);
             createLogBookEntry(logbookUpdateParametersStart, client);
             try {
-                securisator.copyFilesOnWorkspaceUpdateWorkflow(
+                copyFilesOnWorkspaceUpdateWorkflow(
                     JsonHandler.writeToInpustream(arrayNode),
                     updateOperationGUID.getId());
 
@@ -668,7 +671,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         LogbookClientAlreadyExistsException {
         Integer sequence = vitamCounterService
             .getSequence(ParameterHelper.getTenantParameter(), SequenceType.RULES_SEQUENCE.getName());
-        securisator.secureFileRules(sequence, stream, extension, eipMaster, digest);
+        securisator.secureFiles(sequence, stream, extension, eipMaster, digest, LogbookTypeProcess.STORAGE_RULE,
+            StorageCollectionType.RULES, STP_IMPORT_RULES, STORAGE_RULES_WORKSPACE);
     }
 
     private void storeJson(GUID eipMaster)
@@ -1671,6 +1675,18 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         reportFinal.set("usedUpdatedRules", usedUpdatedArrayNode);
         String json = JsonHandler.unprettyPrint(reportFinal);
         return new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
+
+    }
+
+    private void copyFilesOnWorkspaceUpdateWorkflow(InputStream stream, String containerName)
+        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException {
+        try (
+            WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();) {
+            workspaceClient.createContainer(containerName);
+            workspaceClient.putObject(containerName,
+                UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON,
+                stream);
+        }
 
     }
 

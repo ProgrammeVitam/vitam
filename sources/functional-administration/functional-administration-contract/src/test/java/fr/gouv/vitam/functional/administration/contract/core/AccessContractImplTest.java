@@ -28,6 +28,7 @@ package fr.gouv.vitam.functional.administration.contract.core;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
@@ -50,7 +51,9 @@ import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -64,7 +67,8 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.agencies.api.AgenciesService;
+import fr.gouv.vitam.functional.administration.common.AgenciesParser;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
@@ -86,6 +90,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.AGENCIES;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
@@ -118,7 +123,6 @@ public class AccessContractImplTest {
     static MongoClient client;
     static MetaDataClient metaDataClientMock;
     static VitamCounterService vitamCounterService;
-    static AgenciesService agenciesService;
 
 
     static ContractService<AccessContractModel> accessContractService;
@@ -153,8 +157,6 @@ public class AccessContractImplTest {
         vitamCounterService = new VitamCounterService(dbImpl, tenants, listEnableExternalIdentifiers);
         LogbookOperationsClientFactory.changeMode(null);
 
-        agenciesService = new AgenciesService(dbImpl);
-
         metaDataClientMock = mock(MetaDataClient.class);
 
         accessContractService =
@@ -166,11 +168,11 @@ public class AccessContractImplTest {
             RequestResponse<AgenciesModel> response = null;
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-                response = agenciesService.importAgencies(new FileInputStream(fileAgencies));
-                assertThat(response.isOk()).isTrue();
+
+                insertDocuments(AgenciesParser.readFromCsv(new FileInputStream(fileAgencies)), TENANT_ID);
+
                 VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
-                response = agenciesService.importAgencies(new FileInputStream(fileAgencies));
-                assertThat(response.isOk()).isTrue();
+                insertDocuments(AgenciesParser.readFromCsv(new FileInputStream(fileAgencies)), EXTERNAL_TENANT);
             } catch (VitamException | IOException e) {
                 throw new RuntimeException(e);
             }
@@ -178,6 +180,25 @@ public class AccessContractImplTest {
 
         thread.start();
         thread.join();
+
+    }
+
+
+
+    private static void insertDocuments(List<AgenciesModel> agenciesToInsert, int tenant)
+        throws InvalidParseOperationException, ReferentialException {
+
+        ArrayNode agenciesNodeToPersist = JsonHandler.createArrayNode();
+
+        for (final AgenciesModel agency : agenciesToInsert) {
+
+            agency.setId(GUIDFactory.newEventGUID(tenant).getId());
+            agency.setTenant(tenant);
+            agenciesNodeToPersist.add(JsonHandler.toJsonNode(agency));
+        }
+        if (!agenciesToInsert.isEmpty()) {
+            dbImpl.insertDocuments(agenciesNodeToPersist, AGENCIES, 0).close();
+        }
 
     }
 

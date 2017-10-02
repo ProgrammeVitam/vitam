@@ -35,6 +35,10 @@ public enum SequenceType {
     /**
      * Rules Collection
      */
+    AGENCIES_SEQUENCE(FunctionalAdminCollections.RULES, "AG"),
+    /**
+     * Rules Collection
+     */
     RULES_SEQUENCE(FunctionalAdminCollections.RULES, "RULE"),
 
     /**

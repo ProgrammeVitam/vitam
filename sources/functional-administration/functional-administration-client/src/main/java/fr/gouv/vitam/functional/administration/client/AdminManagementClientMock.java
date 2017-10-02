@@ -119,6 +119,14 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
+    public Response checkAgenciesFile(InputStream stream) throws ReferentialException {
+        ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, stream);
+        LOGGER.debug("Check file agencies  request:");
+        StreamUtils.closeSilently(stream);
+        return new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream("Vitam Test"),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+    }
+    @Override
     public Status importRulesFile(InputStream stream, String filename)
         throws ReferentialException, DatabaseConflictException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, stream);

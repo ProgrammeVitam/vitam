@@ -35,11 +35,11 @@ public class AgenciesModel {
     public static final String TAG_ID = "_id";
 
 
-    private static final String TAG_TENANT = "_tenant";
+    public static final String TAG_TENANT = "_tenant";
     public static final String TAG_NAME = "Name";
 
     public static final String TAG_IDENTIFIER = "Identifier";
-    private static final String TAG_DESCRIPTION = "Description";
+    public static final String TAG_DESCRIPTION = "Description";
 
     /**
      * unique identifier
@@ -62,11 +62,12 @@ public class AgenciesModel {
      *
      * @param id
      * @param name
+     * @param description
      */
-    public AgenciesModel(@JsonProperty("_id") String id, @JsonProperty(TAG_NAME) String name,@JsonProperty(TAG_DESCRIPTION) String description){
+    public AgenciesModel(@JsonProperty(TAG_IDENTIFIER) String identifier,
+        @JsonProperty(TAG_NAME) String name, @JsonProperty(TAG_DESCRIPTION) String description) {
 
-
-        this.id = id;
+        this.identifier = identifier;
         this.name = name;
         this.description = description;
 

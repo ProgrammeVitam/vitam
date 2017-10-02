@@ -94,16 +94,16 @@ public enum FunctionalAdminCollections {
      * Profile collection
      */
     PROFILE(Profile.class, true, false),
+    /**
+     * Agency collection
+     */
+    AGENCIES(Agencies.class, true, false),
 
     /**
      * Context collection
      */
     CONTEXT(Context.class, false, false),
 
-    /**
-     * Agency collection
-     */
-    AGENCIES(Agencies.class, true, false),
 
     /**
      * Security profile collection

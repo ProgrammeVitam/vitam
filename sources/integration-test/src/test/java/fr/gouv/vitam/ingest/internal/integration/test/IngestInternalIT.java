@@ -45,8 +45,10 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
@@ -67,6 +69,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -78,10 +81,14 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -134,6 +141,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.jayway.restassured.RestAssured.get;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -146,9 +154,11 @@ import static org.junit.Assert.fail;
 public class IngestInternalIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalIT.class);
     private static final int DATABASE_PORT = 12346;
+    private static final String DATABASE_NAME = "Vitam";
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     private static LogbookElasticsearchAccess esClient;
+    private static ElasticsearchAccessFunctionalAdmin elasticsearchAccessFunctionalAdmin;
     private static final Integer tenantId = 0;
     private static final String contractId = "aName3";
 
@@ -233,6 +243,9 @@ public class IngestInternalIT {
     private static String SIP_OK_WITHOUT_SERVICE_LEVEL =
         "integration-processing/SIP_2467_WITHOUT_SERVICE_LEVEL.zip";
     private static final String FILE_RULES_OK = "functional-admin/file-rules/jeu_donnees_OK_regles_CSV.csv";
+    private static final String FILE_AGENCIES_OK = "functional-admin/agencies/agencies.csv";
+    private static final String FILE_AGENCIES_AU_update = "functional-admin/agencies/agencies_update.csv";
+
     private static final String FILE_RULES_KO_DUPLICATED_REFERENCE =
         "functional-admin/file-rules/jeu_donnees_KO_regles_CSV_DuplicatedReference.csv";
     private static final String FILE_RULES_KO_UNKNOWN_DURATION =
@@ -306,9 +319,10 @@ public class IngestInternalIT {
         mongod = mongodExecutable.start();
 
         // ES client
-        final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode("localhost", config.getTcpPort()));
-        esClient = new LogbookElasticsearchAccess(CLUSTER_NAME, nodes);
+        final List<ElasticsearchNode> esNodes = new ArrayList<>();
+        esNodes.add(new ElasticsearchNode("localhost", config.getTcpPort()));
+        esClient = new LogbookElasticsearchAccess(CLUSTER_NAME, esNodes);
+
 
         // launch metadata
         SystemPropertyUtil.set(MetadataMain.PARAMETER_JETTY_SERVER_PORT,
@@ -373,6 +387,8 @@ public class IngestInternalIT {
         SystemPropertyUtil.clear("jetty.access-internal.port");
         AccessInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_ACCESS_INTERNAL);
 
+
+
     }
 
     @AfterClass
@@ -434,7 +450,12 @@ public class IngestInternalIT {
                     "MGT_RULES_REF.csv");
 
                 // import service agent
-                client.importAgenciesFile(PropertiesUtils.getResourceAsStream("agencies.csv"), "agencies.csv");
+                try {
+                    client.importAgenciesFile(PropertiesUtils.getResourceAsStream(FILE_AGENCIES_OK), FILE_AGENCIES_OK);
+
+                } catch (Exception e) {
+
+                }
 
                 // import contract
                 File fileContracts =
@@ -451,7 +472,7 @@ public class IngestInternalIT {
                     .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
                     });
                 client.importAccessContracts(accessContractModelList);
-                
+
             } catch (final Exception e) {
                 LOGGER.error(e);
             }
@@ -615,7 +636,7 @@ public class IngestInternalIT {
                 LOGGER.error(JsonHandler.prettyPrint(logbookResult));
             }
 
-            fail("should not raized an exception");
+            fail("should not raized an exception" + e);
         }
     }
 
@@ -1530,6 +1551,67 @@ public class IngestInternalIT {
             fail(String.format("FileNotFoundException %s", e.getCause()));
         }
     }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldImportAgencies() {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        try {
+
+            FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_AGENCIES_OK));
+
+            AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+            Status status = client.importAgenciesFile(stream, FILE_AGENCIES_OK);
+            ResponseBuilder ResponseBuilder = Response.status(status);
+            Response response = ResponseBuilder.build();
+            assertEquals(response.getStatus(), Status.CREATED.getStatusCode());
+
+
+            Select select = new Select();
+            LogbookOperationsClient operationsClient = LogbookOperationsClientFactory.getInstance().getClient();
+            select.setLimitFilter(0, 1);
+            select.addOrderByDescFilter(LogbookMongoDbName.eventDateTime.getDbname());
+            select.setQuery(eq(LogbookMongoDbName.eventType.getDbname(),
+                "STP_IMPORT_AGENCIES"));
+
+            JsonNode logbookResult = operationsClient.selectOperation(select.getFinalSelect());
+            assertThat(logbookResult).isNotNull();
+
+
+            stream = new FileInputStream(PropertiesUtils.findFile(FILE_AGENCIES_AU_update));
+
+            // import contrat
+            File fileAccessContracts = PropertiesUtils.getResourceFile("access_contrats.json");
+            List<AccessContractModel> accessContractModelList = JsonHandler
+                .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
+                });
+            client.importAccessContracts(accessContractModelList);
+
+            status = client.importAgenciesFile(stream, FILE_AGENCIES_AU_update);
+            ResponseBuilder = Response.status(status);
+            response = ResponseBuilder.build();
+            assertEquals(response.getStatus(), Status.CREATED.getStatusCode());
+
+
+
+        } catch (final FileRulesImportInProgressException e) {
+            LOGGER.error(e);
+            fail(String.format("FileRulesImportInProgressException %s", e.getCause()));
+        } catch (final ReferentialException e) {
+            LOGGER.error(e);
+            fail(String.format("ReferentialException %s", e.getCause()));
+        } catch (FileNotFoundException e) {
+            LOGGER.error(e);
+            fail(String.format("FileNotFoundException %s", e.getCause()));
+        } catch (InvalidParseOperationException e) {
+            fail(String.format("FileNotFoundException %s", e.getCause()));
+        } catch (LogbookClientException e) {
+            e.printStackTrace();
+        } catch (InvalidCreateOperationException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     @Test
     @RunWithCustomExecutor

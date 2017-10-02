@@ -19,6 +19,7 @@ package fr.gouv.vitam.functional.administration.common;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import org.bson.Document;
 
 /**
@@ -104,5 +105,51 @@ public class Agencies extends VitamDocument<Agencies> {
     public Agencies setDescription(String description) {
         append(DESCRIPTION, description);
         return this;
+    }
+
+
+    /**
+     * Get the Agency Identifier
+     *
+     * @return this
+     */
+    public String getIdentifier() {
+        return getString(IDENTIFIER);
+    }
+
+    /**
+     * Set or change the Agency identifier
+     *
+     * @param identifier to set to Agency
+     * @return this
+     */
+    public Agencies setIdentifier(String identifier) {
+        append(IDENTIFIER, identifier);
+        return this;
+    }
+
+    /**
+     * Get the Agency name
+     *
+     * @return this
+     */
+    public String getName() {
+        return getString(NAME);
+    }
+
+    /**
+     * Set or change the Agency name
+     *
+     * @param name to set to Agency
+     * @return this
+     */
+    public Agencies setName(String name) {
+        append(NAME, name);
+        return this;
+    }
+
+
+    public AgenciesModel wrap() {
+        return new AgenciesModel(this.getIdentifier(), this.getName(), this.getDescription());
     }
 }
