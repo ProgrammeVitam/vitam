@@ -626,7 +626,11 @@ Exemple de JSON stocké en base
               "IngestContracts": []
           }
       ],
-      "Identifier": "CT-000001"
+      "CreationDate": "2017-10-02T13:00:15.742",
+      "LastUpdate": "2017-10-02T13:00:15.744",
+      "SecurityProfile": "admin-security-profile",
+      "Identifier": "CT-000001",
+      "_v": 3
   }
 
 Il est possible de mettre plusieurs contextes dans un même fichier, sur le même modèle que les contrats d'entrées ou d'accès par exemple. On pourra noter que le contexte est multi-tenant et définit chaque tenant de manière indépendante.
@@ -664,6 +668,15 @@ Détail des champs
 "AccessContracts": tableau d'identifiants de contrats d'accès appliqués sur le tenant.
 
 "IngestContracts": tableau d'identifiants de contrats d'entrées appliqués sur le tenant.
+
+"CreationDate": "CreationDate": date de création du contexte. 
+  Il s'agit d'une date au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+
+"LastUpdate": date de dernière modification du contexte. 
+  Il s'agit d'une date au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+
+"SecurityProfile": Nom du profil de sécurité utilisé par le contexte. Ce nom doit correspondre à celui d'un profil de sécurité enregistré dans la collection SecurityProfile.
+  Il s'agit d'une chaîne de caractères
 
 "_v": version de l'objet décrit
   Il s'agit d'un entier.
@@ -957,6 +970,57 @@ Détail des champs
 "_tenant": information sur le tenant
   Il s'agit de l'identifiant du tenant utilisant l'enregistrement
   Il s'agit d'un entier.
+
+"_v": version de l'objet décrit
+  Il s'agit d'un entier.
+
+Collection SecurityProfile
+==========================
+
+Utilisation de collection
+-------------------------
+
+Cette collection contient les profils de sécurité mobilisés par les contextes.
+
+Exemple de JSON stocké en base
+------------------------------
+
+{
+    "_id": "aegqaaaaaaeucszwabglyak64gjmgbyaaaba",
+    "Identifier": "SEC_PROFILE-000002",
+    "Name": "demo-security-profile",
+    "FullAccess": false,
+    "Permissions": [
+        "securityprofiles:create",
+        "securityprofiles:read",
+        "securityprofiles:id:read",
+        "securityprofiles:id:update",
+        "accesscontracts:read",
+        "accesscontracts:id:read",
+        "contexts:id:update"
+    ],
+    "_v": 1
+}
+
+Détail des champs
+-----------------
+
+"_id": identifiant unique du profil de sécurité.
+    Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+
+"Identifier": identifiant signifiant donné au profil de sécurité.
+  Il est consituté du préfixe "SEC_PROFILE-" suivi d'une suite de 6 chiffres. Par exemple : SEC_PROFILE-001573.
+  Il s'agit d'une chaîne de caractères. 
+
+"Name":  *Champ obligatoire* nom du profil de sécurité, qui doit être unique sur la plateforme.
+  Il s'agit d'une chaîne de caractères.
+
+"FullAccess": mode super-administrateur. Donne toutes les permissions.
+  Il s'agit d'un booléen.
+  S'il est à false, le mode super-admin n'est pas activé et les valeurs du champ permission sont utilisées. S'il est à true, le champ permission doit être vide.
+
+"Permissions": décrit l'ensemble des permissions auxquelles le profil de sécurité donne accès. Chaque API externe contient un verbe OPTION qui retourne la liste des services avec leur description et permissions associées.
+  Il s'agit d'un tableau de chaînes de caractères.
 
 "_v": version de l'objet décrit
   Il s'agit d'un entier.
