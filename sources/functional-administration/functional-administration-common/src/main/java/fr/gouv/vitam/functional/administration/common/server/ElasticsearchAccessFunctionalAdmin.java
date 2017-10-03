@@ -36,6 +36,7 @@ import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
+import fr.gouv.vitam.functional.administration.common.SecurityProfile;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -75,6 +76,7 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
 
     public static final String MAPPING_PROFILE_FILE = "/profile-es-mapping.json";
     public static final String MAPPING_CONTEXT_FILE = "/context-es-mapping.json";
+    public static final String MAPPING_SECURITY_PROFILE_FILE = "/securityprofile-es-mapping.json";
 
     /**
      * @param clusterName
@@ -238,6 +240,8 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
             return ElasticsearchUtil.transferJsonToMapping(FileRules.class.getResourceAsStream(MAPPING_CONTEXT_FILE));
         } else if (collection.equals(FunctionalAdminCollections.AGENCIES)) {
             return ElasticsearchUtil.transferJsonToMapping(Agencies.class.getResourceAsStream(MAPPING_AGENCIES_FILE));
+        } else if (collection.equals(FunctionalAdminCollections.SECURITY_PROFILE)) {
+            return ElasticsearchUtil.transferJsonToMapping(SecurityProfile.class.getResourceAsStream(MAPPING_SECURITY_PROFILE_FILE));
         }
         return "";
     }
