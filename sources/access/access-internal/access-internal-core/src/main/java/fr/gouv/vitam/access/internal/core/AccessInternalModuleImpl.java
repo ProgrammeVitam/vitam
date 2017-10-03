@@ -740,8 +740,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             workspaceClientMock == null ? WorkspaceClientFactory.getInstance().getClient() : workspaceClientMock;
         try {
             final String fileName = idUnit + JSON;
-            JsonNode unit = getUnitWithLfc(idUnit);
-            if (unit != null) {
+            JsonNode unit = getUnitWithLfc(idUnit);            
+            if (unit != null && unit.size() > 0) {
                 workspaceClient.createContainer(requestId);
                 File file = null;
                 try {
@@ -772,7 +772,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             }
         } finally {
             cleanWorkspace(workspaceClient, requestId);
-            if (workspaceClient != null && workspaceClientMock == null) {
+            if (workspaceClientMock == null) {
                 workspaceClient.close();
             }
         }

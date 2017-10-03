@@ -93,14 +93,14 @@ public class X509KeystoreFileRealmTest {
 
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void givenRealmWhenKeyStoreNotFoundThenReturnNull() {
         realm.setGrantedKeyStoreName("XXX.jks");
         realm.setGrantedKeyStorePassphrase("gazerty");
 
         final X509Certificate[] clientCertChain = new X509Certificate[] {cert};
         final X509AuthenticationToken token = new X509AuthenticationToken(clientCertChain, "XXX");
-        realm.doGetAuthenticationInfo(token);
+        assertNull(realm.doGetAuthenticationInfo(token));
     }
 
     @Test

@@ -648,7 +648,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 while (it.hasNext()) {
                     final String field = it.next();
                     final JsonNode value = fieldName.findValue(field);
-                    if (AbstractContractModel.STATUS.equals(field)) {
+                    if (AbstractContractModel.TAG_STATUS.equals(field)) {
                         if (!(ContractStatus.ACTIVE.name().equals(value.asText()) || ContractStatus.INACTIVE
                             .name().equals(value.asText()))) {
                             error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem())

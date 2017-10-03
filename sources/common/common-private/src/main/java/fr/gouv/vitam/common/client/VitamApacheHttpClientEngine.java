@@ -125,6 +125,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
                     try {
                         return Long.parseLong(value) * 1000;
                     } catch (NumberFormatException ignore) {
+                        LOGGER.warn(ignore);
                     }
                 }
             }
@@ -653,10 +654,8 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
                             keepalive = true;
                         }
                     }
-                    if (keepalive) {
-                        return true;
-                        // neither "close" nor "keep-alive", use default policy
-                    }
+                    return keepalive;
+                    // neither "close" nor "keep-alive", use default policy
 
                 } catch (final ParseException px) {
                     // invalid connection header. do not re-use

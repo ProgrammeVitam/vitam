@@ -35,37 +35,37 @@ import java.util.Set;
  */
 public class SecurityProfileModel {
 
-    private static final String ID = "_id";
-    private static final String IDENTIFIER = "Identifier";
-    private static final String NAME = "Name";
-    private static final String FULL_ACCESS = "FullAccess";
-    private static final String PERMISSIONS = "Permissions";
+    private static final String TAG_ID = "_id";
+    private static final String TAG_IDENTIFIER = "Identifier";
+    private static final String TAG_NAME = "Name";
+    private static final String TAG_FULL_ACCESS = "FullAccess";
+    private static final String TAG_PERMISSIONS = "Permissions";
 
     /**
      * unique identifier
      */
-    @JsonProperty(ID)
+    @JsonProperty(TAG_ID)
     private String id;
 
-    @JsonProperty(IDENTIFIER)
+    @JsonProperty(TAG_IDENTIFIER)
     private String identifier;
 
     /**
      * Security profile name
      */
-    @JsonProperty(NAME)
+    @JsonProperty(TAG_NAME)
     private String name;
 
     /**
      * Flag defining full permission set mode (super admin)
      */
-    @JsonProperty(FULL_ACCESS)
+    @JsonProperty(TAG_FULL_ACCESS)
     private boolean fullAccess;
 
     /**
      * Permission set
      */
-    @JsonProperty(PERMISSIONS)
+    @JsonProperty(TAG_PERMISSIONS)
     private Set<String> permissions;
 
     /**

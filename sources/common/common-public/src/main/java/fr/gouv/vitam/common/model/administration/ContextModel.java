@@ -35,63 +35,63 @@ import java.util.List;
  * Data Transfer Object Model of Context
  */
 public class ContextModel {
-    public static final String ID = "_id";
+    public static final String TAG_ID = "_id";
 
-    public static final String SECURITY_PROFILE = "SecurityProfile";
+    public static final String TAG_SECURITY_PROFILE = "SecurityProfile";
 
-    private static final String DEACTIVATION_DATE = "DeactivationDate";
+    private static final String TAG_DEACTIVATION_DATE = "DeactivationDate";
 
-    private static final String ACTIVATION_DATE = "ActivationDate";
+    private static final String TAG_ACTIVATION_DATE = "ActivationDate";
 
-    private static final String LAST_UPDATE = "LastUpdate";
+    private static final String TAG_LAST_UPDATE = "LastUpdate";
 
-    private static final String CREATION_DATE = "CreationDate";
+    private static final String TAG_CREATION_DATE = "CreationDate";
 
-    public static final String NAME = "Name";
+    public static final String TAG_NAME = "Name";
 
-    public static final String STATUS = "Status";
+    public static final String TAG_STATUS = "Status";
 
-    public static final String ENABLE_CONTROL = "EnableControl";
+    public static final String TAG_ENABLE_CONTROL = "EnableControl";
 
-    public static final String IDENTIFIER = "Identifier";
+    public static final String TAG_IDENTIFIER = "Identifier";
 
-    public static final String PERMISSIONS = "Permissions";
+    public static final String TAG_PERMISSIONS = "Permissions";
 
 
     /**
      * unique identifier
      */
-    @JsonProperty(ID)
+    @JsonProperty(TAG_ID)
     private String id;
 
-    @JsonProperty(NAME)
+    @JsonProperty(TAG_NAME)
     private String name;
 
-    @JsonProperty(STATUS)
+    @JsonProperty(TAG_STATUS)
     private boolean status;
 
-    @JsonProperty(ENABLE_CONTROL)
+    @JsonProperty(TAG_ENABLE_CONTROL)
     private boolean enablecontrol = false;
 
-    @JsonProperty(IDENTIFIER)
+    @JsonProperty(TAG_IDENTIFIER)
     private String identifier;
 
-    @JsonProperty(SECURITY_PROFILE)
+    @JsonProperty(TAG_SECURITY_PROFILE)
     private String securityProfileIdentifier;
 
-    @JsonProperty(PERMISSIONS)
+    @JsonProperty(TAG_PERMISSIONS)
     private List<PermissionModel> permissions = new ArrayList<>();
 
-    @JsonProperty(CREATION_DATE)
+    @JsonProperty(TAG_CREATION_DATE)
     private String creationdate;
 
-    @JsonProperty(LAST_UPDATE)
+    @JsonProperty(TAG_LAST_UPDATE)
     private String lastupdate;
 
-    @JsonProperty(ACTIVATION_DATE)
+    @JsonProperty(TAG_ACTIVATION_DATE)
     private String activationdate;
 
-    @JsonProperty(DEACTIVATION_DATE)
+    @JsonProperty(TAG_DEACTIVATION_DATE)
     private String deactivationdate;
 
     /**
@@ -100,15 +100,21 @@ public class ContextModel {
      * @param id
      * @param name
      * @param status
+     * @param enablecontrol 
      * @param permissions
+     * @param creationdate 
+     * @param lastupdate 
+     * @param activationdate 
+     * @param deactivationdate 
+     * @param securityProfileIdentifier 
      */
-    public ContextModel(@JsonProperty("_id") String id, @JsonProperty(NAME) String name,
-        @JsonProperty(STATUS) boolean status, @JsonProperty(ENABLE_CONTROL) boolean enablecontrol,
-        @JsonProperty(PERMISSIONS) List<PermissionModel> permissions,
-        @JsonProperty(CREATION_DATE) String creationdate, @JsonProperty(LAST_UPDATE) String lastupdate,
-        @JsonProperty(ACTIVATION_DATE) String activationdate,
-        @JsonProperty(DEACTIVATION_DATE) String deactivationdate,
-        @JsonProperty(SECURITY_PROFILE) String securityProfileIdentifier) {
+    public ContextModel(@JsonProperty(TAG_ID) String id, @JsonProperty(TAG_NAME) String name,
+        @JsonProperty(TAG_STATUS) boolean status, @JsonProperty(TAG_ENABLE_CONTROL) boolean enablecontrol,
+        @JsonProperty(TAG_PERMISSIONS) List<PermissionModel> permissions,
+        @JsonProperty(TAG_CREATION_DATE) String creationdate, @JsonProperty(TAG_LAST_UPDATE) String lastupdate,
+        @JsonProperty(TAG_ACTIVATION_DATE) String activationdate,
+        @JsonProperty(TAG_DEACTIVATION_DATE) String deactivationdate,
+        @JsonProperty(TAG_SECURITY_PROFILE) String securityProfileIdentifier) {
         this.id = id;
         this.name = name;
         this.status = status;

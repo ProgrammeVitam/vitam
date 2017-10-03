@@ -32,28 +32,28 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Data Transfer Object Model of Agency
  */
 public class AgenciesModel {
-    public static final String ID = "_id";
+    public static final String TAG_ID = "_id";
 
 
-    private static final String TENANT = "_tenant";
-    public static final String NAME = "Name";
+    private static final String TAG_TENANT = "_tenant";
+    public static final String TAG_NAME = "Name";
 
-    public static final String IDENTIFIER = "Identifier";
-    private static final String DESCRIPTION = "Description";
+    public static final String TAG_IDENTIFIER = "Identifier";
+    private static final String TAG_DESCRIPTION = "Description";
 
     /**
      * unique identifier
      */
-    @JsonProperty(ID)
+    @JsonProperty(TAG_ID)
     private String id;
 
-    @JsonProperty(NAME)
+    @JsonProperty(TAG_NAME)
     private String name;
 
-    @JsonProperty(IDENTIFIER)
+    @JsonProperty(TAG_IDENTIFIER)
     private String identifier;
 
-    @JsonProperty(DESCRIPTION)
+    @JsonProperty(TAG_DESCRIPTION)
     private String description;
 
 
@@ -63,7 +63,7 @@ public class AgenciesModel {
      * @param id
      * @param name
      */
-    public AgenciesModel(@JsonProperty("_id") String id, @JsonProperty(NAME) String name,@JsonProperty(DESCRIPTION) String description){
+    public AgenciesModel(@JsonProperty("_id") String id, @JsonProperty(TAG_NAME) String name,@JsonProperty(TAG_DESCRIPTION) String description){
 
 
         this.id = id;
@@ -74,7 +74,7 @@ public class AgenciesModel {
     /**
      * tenant id
      */
-    @JsonProperty(TENANT)
+    @JsonProperty(TAG_TENANT)
     private Integer tenant;
 
     /**

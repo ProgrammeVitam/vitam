@@ -45,25 +45,23 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
-import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageJcloudsAbstract;
+import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageJcloudsAbstract;
 import fr.gouv.vitam.common.storage.cas.container.api.MetadatasStorageObject;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.common.storage.ContainerInformation;
 
 /**
- * FileSystemMock implements a Content Addressable Storage that stores objects
- * on the file system.
+ * FileSystemMock implements a Content Addressable Storage that stores objects on the file system.
  */
 public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FileSystem.class);
 
     /**
-     * @param configuration
-     *            to associate with the FileSystem
+     * @param configuration to associate with the FileSystem
      */
     public FileSystem(StorageConfiguration configuration) {
         super(configuration);
@@ -75,7 +73,8 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
     }
 
     @Override
-    public ContainerInformation getContainerInformation(String containerName) throws ContentAddressableStorageNotFoundException {
+    public ContainerInformation getContainerInformation(String containerName)
+        throws ContentAddressableStorageNotFoundException {
         ParametersChecker.checkParameter("Container name may not be null", containerName);
         final File baseDirFile = getBaseDir(containerName);
         final long usableSpace = baseDirFile.getUsableSpace();
@@ -128,7 +127,8 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
         return ContextBuilder.newBuilder("filesystem").overrides(props).buildView(BlobStoreContext.class);
     }
 
-    private File getFileFromJClouds(String containerName, String objectId) throws ContentAddressableStorageNotFoundException {
+    private File getFileFromJClouds(String containerName, String objectId)
+        throws ContentAddressableStorageNotFoundException {
         final ProviderMetadata providerMetadata = context.unwrap().getProviderMetadata();
         final Properties properties = providerMetadata.getDefaultProperties();
         final String baseDir = properties.getProperty(FilesystemConstants.PROPERTY_BASEDIR);
@@ -158,34 +158,33 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
 
     @Override
     public MetadatasObject getObjectMetadatas(String containerName, String objectId)
-            throws IOException, ContentAddressableStorageException {
+        throws IOException, ContentAddressableStorageException {
         MetadatasStorageObject result = new MetadatasStorageObject();
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-                containerName, objectId);
+            containerName, objectId);
         try {
             File file = getFileFromJClouds(containerName, objectId);
             BasicFileAttributes basicAttribs = getFileAttributes(file);
             long size = Files.size(Paths.get(file.getPath()));
-            if (null != file) {
-                if (objectId != null) {
-                    result.setObjectName(objectId);
-                    // TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
-                    result.setDigest(computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
-                    result.setFileSize(size);
-                } else {
-                    result.setObjectName(containerName);
-                    // TODO calculer l'empreint de répertoire
-                    result.setDigest(null);
-                    result.setFileSize(getFolderUsedSize(file));
-                }
-                // TODO store vitam metadatas
-                if (containerName != null) {
-                    result.setType(containerName.split("_")[1]);
-                    result.setFileOwner("Vitam_" + containerName.split("_")[0]);
-                }
-                result.setLastAccessDate(basicAttribs.lastAccessTime().toString());
-                result.setLastModifiedDate(basicAttribs.lastModifiedTime().toString());
+            if (objectId != null) {
+                result.setObjectName(objectId);
+                // TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
+                result
+                    .setDigest(computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()));
+                result.setFileSize(size);
+            } else {
+                result.setObjectName(containerName);
+                // TODO calculer l'empreint de répertoire
+                result.setDigest(null);
+                result.setFileSize(getFolderUsedSize(file));
             }
+            // TODO store vitam metadatas
+            if (containerName != null) {
+                result.setType(containerName.split("_")[1]);
+                result.setFileOwner("Vitam_" + containerName.split("_")[0]);
+            }
+            result.setLastAccessDate(basicAttribs.lastAccessTime().toString());
+            result.setLastModifiedDate(basicAttribs.lastModifiedTime().toString());
         } catch (final IOException e) {
             LOGGER.error(e.getMessage());
             throw e;

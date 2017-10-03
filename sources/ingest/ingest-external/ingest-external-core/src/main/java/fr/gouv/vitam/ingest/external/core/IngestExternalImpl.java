@@ -161,10 +161,8 @@ public class IngestExternalImpl implements IngestExternal {
                 ingestGuid);
 
             // TODO P1 should be the file name from a header
-            if (objectName != null) {
-                startedParameters.getMapParameters().put(LogbookParameterName.objectIdentifierIncome,
-                    objectName.getId());
-            }
+            startedParameters.getMapParameters().put(LogbookParameterName.objectIdentifierIncome,
+                objectName.getId());
             helper.createDelegate(startedParameters);
             final LogbookOperationParameters sipSanityParameters =
                 LogbookParametersFactory.newLogbookOperationParameters(
@@ -194,9 +192,7 @@ public class IngestExternalImpl implements IngestExternal {
 
 
             try {
-                if (containerName != null) {
-                    workspaceFileSystem.createContainer(containerName.toString());
-                }
+                workspaceFileSystem.createContainer(containerName.toString());
             } catch (final ContentAddressableStorageAlreadyExistException |
                 ContentAddressableStorageServerException e) {
                 LOGGER.error(CAN_NOT_STORE_FILE, e);
@@ -204,38 +200,19 @@ public class IngestExternalImpl implements IngestExternal {
             }
 
             try {
-                if (containerName != null) {
-                    workspaceFileSystem.putObject(containerName.getId(), objectName.getId(), input);
-                    // Implementation of asynchrone
-                    AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.ACCEPTED)
-                        .header(GlobalDataRest.X_REQUEST_ID, guid.getId())
-                        .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.PAUSE)
-                        .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.UNKNOWN)
-                        .build(), input);
-
-                }
+                workspaceFileSystem.putObject(containerName.getId(), objectName.getId(), input);
+                // Implementation of asynchrone
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.ACCEPTED)
+                    .header(GlobalDataRest.X_REQUEST_ID, guid.getId())
+                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.PAUSE)
+                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.UNKNOWN)
+                    .build(), input);
             } catch (final ContentAddressableStorageException e) {
                 LOGGER.error(CAN_NOT_STORE_FILE, e);
                 throw new IngestExternalException(e);
             }
 
         } catch (LogbookClientNotFoundException | LogbookClientAlreadyExistsException ex) {
-            if (workspaceFileSystem != null) {
-                try {
-                    if (containerName != null) {
-                        workspaceFileSystem.deleteObject(containerName.getId(), objectName.getId());
-                    }
-                } catch (final ContentAddressableStorageException e) {
-                    LOGGER.warn(e);
-                }
-                try {
-                    if (containerName != null) {
-                        workspaceFileSystem.deleteContainer(containerName.getId(), true);
-                    }
-                } catch (final ContentAddressableStorageException e) {
-                    LOGGER.warn(e);
-                }
-            }
             throw new IngestExternalException(ex);
         } catch (IOException ex) {
             LOGGER.error("Cannot load WorkspaceFileSystem ", ex);
@@ -553,32 +530,32 @@ public class IngestExternalImpl implements IngestExternal {
         StatusCode atrStatusCode = StatusCode.OK;
         String atrKo = null;
         try {
-	        if (isFileInfected) {
-	            atrKo = AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined",
-	                "TransferringAgencyToBeDefined",
-	                "SANITY_CHECK_SIP", null, status);
-	
-	        } else if (status.equals(StatusCode.FATAL)) {
-	            atrKo = AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined",
-	                "TransferringAgencyToBeDefined",
-	                "STP_UPLOAD_SIP", null, status);
-	        } else {
-	            atrKo = AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined",
-	                "TransferringAgencyToBeDefined",
-	                "CHECK_CONTAINER", ". Format non supporté : " + mimeType, status);
-	        }
-	
-	        if (!status.equals(StatusCode.FATAL)) {
-	            storeATR(ingestGuid, atrKo);
-	        }
+            if (isFileInfected) {
+                atrKo = AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined",
+                    "TransferringAgencyToBeDefined",
+                    "SANITY_CHECK_SIP", null, status);
+
+            } else if (status.equals(StatusCode.FATAL)) {
+                atrKo = AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined",
+                    "TransferringAgencyToBeDefined",
+                    "STP_UPLOAD_SIP", null, status);
+            } else {
+                atrKo = AtrKoBuilder.buildAtrKo(containerName.getId(), "ArchivalAgencyToBeDefined",
+                    "TransferringAgencyToBeDefined",
+                    "CHECK_CONTAINER", ". Format non supporté : " + mimeType, status);
+            }
+
+            if (!status.equals(StatusCode.FATAL)) {
+                storeATR(ingestGuid, atrKo);
+            }
         } catch (IngestExternalException e) {
-        	LOGGER.error(e);
-        	atrStatusCode = StatusCode.KO;
+            LOGGER.error(e);
+            atrStatusCode = StatusCode.KO;
         }
 
         LOGGER.warn("ATR KO created : " + atrKo);
         byte[] bytes = (atrKo != null) ? atrKo.getBytes(CharsetUtils.UTF8) : new byte[0];
-        responseNoProcess = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,            
+        responseNoProcess = new AbstractMockClient.FakeInboundResponse(Status.BAD_REQUEST,
             new ByteArrayInputStream(bytes), MediaType.APPLICATION_XML_TYPE, null);
         // add the step in the logbook
         addTransferNotificationLog(ingestGuid, containerName, helper, atrStatusCode, logbookTypeProcess);
