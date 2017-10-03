@@ -28,7 +28,6 @@ package fr.gouv.vitam.functional.administration.rules.core;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 import static org.mockito.Mockito.mock;
@@ -45,8 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -102,6 +99,7 @@ import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccess
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -466,8 +464,7 @@ public class RulesManagerFileImplTest {
             try {
                 select.setQuery(eq("#tenant", TENANT_ID));
                 fileRules = convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
-            } catch (ReferentialException e) {
-            }
+            } catch (ReferentialException e) {}
             if (fileRules.size() == 0) {
                 rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
                     FILE_TO_TEST_OK);
@@ -511,8 +508,7 @@ public class RulesManagerFileImplTest {
             try {
                 select.setQuery(eq("#tenant", TENANT_ID));
                 fileRules = convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
-            } catch (ReferentialException e) {
-            }
+            } catch (ReferentialException e) {}
             if (fileRules.size() == 0) {
                 rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
                     FILE_TO_TEST_OK);

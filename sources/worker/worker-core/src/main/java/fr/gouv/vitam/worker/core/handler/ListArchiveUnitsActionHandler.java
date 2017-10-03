@@ -26,7 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,6 +41,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.database.builder.query.CompareQuery;
+import fr.gouv.vitam.common.database.builder.query.ExistsQuery;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -57,7 +61,6 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
@@ -140,8 +143,12 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
             ObjectNode objectNode = JsonHandler.createObjectNode();
             objectNode.put("#id", 1);
             projectionNode.set("$fields", objectNode);
-            ArrayNode arrayNode = JsonHandler.createArrayNode();
-            selectMultiple.setQuery(eq(sb.toString(), fileRule.getRuleId()));
+            ArrayNode arrayNode = JsonHandler.createArrayNode();            
+            CompareQuery ruleQuery = eq(sb.toString(), fileRule.getRuleId());
+            StringBuffer sbexists = new StringBuffer();
+            sbexists.append("#management.").append(fileRule.getRuleType()).append(".Rules").append(".StartDate");
+            ExistsQuery existsQuery = exists(sbexists.toString());
+            selectMultiple.setQuery(and().add(ruleQuery, existsQuery).setDepthLimit(0));
             selectMultiple.addRoots(arrayNode);
             selectMultiple.addProjection(projectionNode);
             LOGGER.debug("Selected Query For linked unit: " + selectMultiple.getFinalSelect().toString());

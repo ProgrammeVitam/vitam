@@ -105,6 +105,7 @@ public class ArchiveUnitRulesUpdateActionPluginTest {
 
     private static final String AU_RULES = "ArchiveUnitRulesUpdateActionPlugin/archiveUnitRules.json";
     private static final String AU_DETAIL = "ArchiveUnitRulesUpdateActionPlugin/archiveUnit.json";
+    private static final String AU_DETAIL_NO_START_DATE = "ArchiveUnitRulesUpdateActionPlugin/archiveUnitNoStartDate.json";
     private static final String UPDATED_AU = "ArchiveUnitRulesUpdateActionPlugin/updatedAu.json";
 
     @Rule
@@ -164,6 +165,41 @@ public class ArchiveUnitRulesUpdateActionPluginTest {
         action.addOutIOParameters(out);
         final JsonNode archiveUnitToBeUpdated =
                 JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_DETAIL));
+        final InputStream archiveUnitRules =
+                PropertiesUtils.getResourceAsStream(AU_RULES);
+        final JsonNode archiveUnitUpdated =
+                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UPDATED_AU));
+        try {
+            reset(workspaceClient);
+            reset(metadataClient);
+            when(metadataClient.selectUnitbyId(anyObject(), eq(guidAu))).thenReturn(archiveUnitToBeUpdated);
+            when(workspaceClient.getObject(anyObject(),
+                    eq(UpdateWorkflowConstants.UNITS_FOLDER + "/" + guidAu + ".json")))
+                    .thenReturn(Response.status(Status.OK).entity(archiveUnitRules).build());
+            when(metadataClient.updateUnitbyId(anyObject(), eq(guidAu))).thenReturn(archiveUnitUpdated);
+            params.setProcessId(GUIDFactory.newOperationLogbookGUID(0).toString());
+            final ItemStatus response = plugin.execute(params, action);
+            assertEquals(StatusCode.OK, response.getGlobalStatus());
+            response.getItemsStatus().forEach((k, v) -> {
+                try {
+                    assertNotNull(JsonHandler.getFromString(v.getEvDetailData()).get("diff"));
+                } catch (Exception e) {
+                    fail("should not failed at this moment, diff value couldnt be empty");
+                }
+            });
+        } finally {
+            archiveUnitRules.close();
+        }
+
+    }
+    
+    @RunWithCustomExecutor
+    @Test
+    public void givenNoStartDateOnAUWhenExecuteThenReturnResponseOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        action.addOutIOParameters(out);
+        final JsonNode archiveUnitToBeUpdated =
+                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_DETAIL_NO_START_DATE));
         final InputStream archiveUnitRules =
                 PropertiesUtils.getResourceAsStream(AU_RULES);
         final JsonNode archiveUnitUpdated =

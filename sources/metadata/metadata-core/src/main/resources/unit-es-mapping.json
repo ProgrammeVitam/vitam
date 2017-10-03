@@ -144,9 +144,10 @@
 						"Inheritance": {
 							"properties": {
 								"PreventInheritance": {
-									"type": "boolean"
+									"type": "boolean",
+									"index": "not_analyzed"
 								},
-								"preventRulesId": {
+								"PreventRulesId": {
 									"type": "string",
 									"index": "not_analyzed"
 								}
@@ -179,9 +180,10 @@
 						"Inheritance": {
 							"properties": {
 								"PreventInheritance": {
-									"type": "boolean"
+									"type": "boolean",
+									"index": "not_analyzed"
 								},
-								"preventRulesId": {
+								"PreventRulesId": {
 									"type": "string",
 									"index": "not_analyzed"
 								}
@@ -210,9 +212,10 @@
 						"Inheritance": {
 							"properties": {
 								"PreventInheritance": {
-									"type": "boolean"
+									"type": "boolean",
+									"index": "not_analyzed"
 								},
-								"preventRulesId": {
+								"PreventRulesId": {
 									"type": "string",
 									"index": "not_analyzed"
 								}
@@ -241,9 +244,10 @@
 						"Inheritance": {
 							"properties": {
 								"PreventInheritance": {
-									"type": "boolean"
+									"type": "boolean",
+									"index": "not_analyzed"
 								},
-								"preventRulesId": {
+								"PreventRulesId": {
 									"type": "string",
 									"index": "not_analyzed"
 								}
@@ -276,9 +280,10 @@
 						"Inheritance": {
 							"properties": {
 								"PreventInheritance": {
-									"type": "boolean"
+									"type": "boolean",
+									"index": "not_analyzed"
 								},
-								"preventRulesId": {
+								"PreventRulesId": {
 									"type": "string",
 									"index": "not_analyzed"
 								}
@@ -321,9 +326,10 @@
 						"Inheritance": {
 							"properties": {
 								"PreventInheritance": {
-									"type": "boolean"
+									"type": "boolean",
+									"index": "not_analyzed"
 								},
-								"preventRulesId": {
+								"PreventRulesId": {
 									"type": "string",
 									"index": "not_analyzed"
 								}
