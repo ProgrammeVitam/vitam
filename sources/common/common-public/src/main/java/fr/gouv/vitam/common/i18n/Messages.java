@@ -118,9 +118,9 @@ public class Messages {
                 stream = loader.getResourceAsStream(resourceName);
             }
             if (stream != null) {
-                try {
+                try (InputStreamReader isr = new InputStreamReader(stream, CharsetUtils.UTF8);) {
                     // Only this line is changed to make it to read properties files as UTF-8.
-                    bundle = new PropertyResourceBundle(new InputStreamReader(stream, CharsetUtils.UTF8));
+                    bundle = new PropertyResourceBundle(isr);
                 } finally {
                     stream.close();
                 }

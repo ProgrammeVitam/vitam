@@ -26,26 +26,23 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.logbook;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.LogInformation;
 import fr.gouv.vitam.storage.StorageLogAppender;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.logbook.parameters.StorageLogbookParameters;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.List;
-
 /**
- * Use as a singleton
- * Implementation of the mock of the storage logbook Only log informations
+ * Use as a singleton Implementation of the mock of the storage logbook Only log informations
  */
 public class StorageLogbookServiceImpl implements StorageLogbookService {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogbookServiceImpl.class);
     private StorageLogAppender appender;
 
     public StorageLogbookServiceImpl(List<Integer> tenants, Path path) throws IOException {
@@ -85,7 +82,8 @@ public class StorageLogbookServiceImpl implements StorageLogbookService {
         return appender.secureAndCreateNewlogByTenant(tenantId);
 
     }
-    //FIXME Secure when server restart
+
+    // FIXME Secure when server restart
     @Override
     public void stopAppenderLoggerAndSecureLastLogs(Integer tenantId) throws IOException {
 

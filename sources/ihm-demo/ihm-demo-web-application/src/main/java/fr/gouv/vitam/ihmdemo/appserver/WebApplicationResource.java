@@ -191,7 +191,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final ConcurrentMap<String, List<Object>> uploadRequestsStatus = new ConcurrentHashMap<>();
     private static final int GUID_INDEX = 0;
 
-    private final WebApplicationConfig webApplicationConfig;
     private Map<String, AtomicLong> uploadMap = new HashMap<>();
     private ExecutorService threadPoolExecutor = Executors.newCachedThreadPool();
 
@@ -206,7 +205,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
      */
     public WebApplicationResource(WebApplicationConfig webApplicationConfig, Set<String> permissions) {
         super(new BasicVitamStatusServiceImpl(), webApplicationConfig.getTenants());
-        this.webApplicationConfig = webApplicationConfig;
         this.permissions = permissions;
     }
 
@@ -506,12 +504,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
         } else {
             operationGuid = headers.getHeaderString(GlobalDataRest.X_REQUEST_ID);
         }
-
-        RandomAccessFile randomAccessFile = null;
         FileChannel fileChannel = null;
-        try {
-            randomAccessFile = new RandomAccessFile(
-                PropertiesUtils.fileFromTmpFolder(operationGuid).getAbsolutePath(), "rw");
+        try (RandomAccessFile randomAccessFile = new RandomAccessFile(
+            PropertiesUtils.fileFromTmpFolder(operationGuid).getAbsolutePath(), "rw");) {
             fileChannel = randomAccessFile.getChannel();
             long offset = Long.parseLong(chunkOffset);
             int writtenByte = fileChannel.write(ByteBuffer.wrap(stream), offset);
@@ -539,13 +534,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
             try {
                 if (fileChannel != null) {
                     fileChannel.close();
-                }
-            } catch (IOException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
-            try {
-                if (randomAccessFile != null) {
-                    randomAccessFile.close();
                 }
             } catch (IOException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);

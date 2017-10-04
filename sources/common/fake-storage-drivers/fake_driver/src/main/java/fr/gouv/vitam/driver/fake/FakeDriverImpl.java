@@ -26,8 +26,26 @@
  *******************************************************************************/
 package fr.gouv.vitam.driver.fake;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.io.IOUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.AbstractMockClient;
@@ -57,22 +75,6 @@ import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
 import fr.gouv.vitam.storage.driver.model.StorageRequest;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
-import org.apache.commons.io.IOUtils;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 
 /**
  * Driver implementation for test only
@@ -82,83 +84,82 @@ public class FakeDriverImpl extends AbstractDriver {
     @Override
     protected VitamClientFactoryInterface addInternalOfferAsFactory(final StorageOffer offer,
         final Properties parameters) {
-        VitamClientFactoryInterface<FakeConnectionImpl> factory = new VitamClientFactoryInterface<FakeConnectionImpl>() {
-            private StorageOffer offerf = offer;
-            private Properties parametersf = parameters;
+        VitamClientFactoryInterface<FakeConnectionImpl> factory =
+            new VitamClientFactoryInterface<FakeConnectionImpl>() {
+                private StorageOffer offerf = offer;
 
+                @Override
+                public Client getHttpClient() {
+                    return null;
+                }
 
-            @Override
-            public Client getHttpClient() {
-                return null;
-            }
+                @Override
+                public Client getHttpClient(boolean useChunkedMode) {
+                    return null;
+                }
 
-            @Override
-            public Client getHttpClient(boolean useChunkedMode) {
-                return null;
-            }
+                @Override
+                public FakeConnectionImpl getClient() {
+                    return new FakeConnectionImpl();
+                }
 
-            @Override
-            public FakeConnectionImpl getClient() {
-                return new FakeConnectionImpl();
-            }
+                @Override
+                public String getResourcePath() {
+                    return null;
+                }
 
-            @Override
-            public String getResourcePath() {
-                return null;
-            }
+                @Override
+                public String getServiceUrl() {
+                    return offerf.getBaseUrl();
+                }
 
-            @Override
-            public String getServiceUrl() {
-                return offerf.getBaseUrl();
-            }
+                @Override
+                public Map<VitamRestEasyConfiguration, Object> getDefaultConfigCient() {
+                    return null;
+                }
 
-            @Override
-            public Map<VitamRestEasyConfiguration, Object> getDefaultConfigCient() {
-                return null;
-            }
+                @Override
+                public Map<VitamRestEasyConfiguration, Object> getDefaultConfigCient(boolean chunkedMode) {
+                    return null;
+                }
 
-            @Override
-            public Map<VitamRestEasyConfiguration, Object> getDefaultConfigCient(boolean chunkedMode) {
-                return null;
-            }
+                @Override
+                public ClientConfiguration getClientConfiguration() {
+                    return null;
+                }
 
-            @Override
-            public ClientConfiguration getClientConfiguration() {
-                return null;
-            }
+                @Override
+                public fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType getVitamClientType() {
+                    return null;
+                }
 
-            @Override
-            public fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType getVitamClientType() {
-                return null;
-            }
+                @Override
+                public VitamClientFactoryInterface<?> setVitamClientType(
+                    fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType vitamClientType) {
+                    return null;
+                }
 
-            @Override
-            public VitamClientFactoryInterface<?> setVitamClientType(
-                fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType vitamClientType) {
-                return null;
-            }
+                @Override
+                public void changeResourcePath(String resourcePath) {
+                    // empty
+                }
 
-            @Override
-            public void changeResourcePath(String resourcePath) {
-                // empty
-            }
+                @Override
+                public void changeServerPort(int port) {
+                    // empty
+                }
 
-            @Override
-            public void changeServerPort(int port) {
-                // empty
-            }
+                @Override
+                public void shutdown() {
+                    // empty
+                }
 
-            @Override
-            public void shutdown() {
-                // empty
-            }
+                @Override
+                public void resume(Client client, boolean chunk) {
+                    // Empty
+                }
 
-            @Override
-            public void resume(Client client, boolean chunk) {
-                // Empty
-            }
-
-        };
+            };
         return factory;
     }
 

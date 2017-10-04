@@ -105,8 +105,6 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
 
     private static final String EV_ID_PROC = "evIdProc";
 
-    private static final String AG_ID_ORIG = "agIdOrig";
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(GenerateAuditReportActionHandler.class);
 
     private static final String HANDLER_ID = "REPORT_AUDIT";

@@ -18,7 +18,16 @@
 
 package fr.gouv.vitam.processing.management.core;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
 import com.google.common.collect.Maps;
+
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -57,15 +66,6 @@ import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-
 /**
  * State Machine class implementing the Interface. Dealing with evolution of workflows
  */
@@ -81,9 +81,6 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
     private int stepIndex = -1;
     private int stepTotal = 0;
-
-    private Long globalStartTime = null;
-    private Long globalEndTime = null;
 
     private List<ProcessStep> steps = new ArrayList<>();
     private ProcessStep currentStep = null;
@@ -144,13 +141,12 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         }
 
         /**
-         * Initialize currentStep needed for processWorkflow stopped from API PauseRecover.RECOVER_FROM_API_PAUSE
-         * when execute the currentStep from stopped processWorkflow two possible case:
-         * 1: Start from stopped processWorkflow without server restart
-         * 2: Start from stopped processWorkflow when server restarts
-         * As executeSteps check the current step PauseOrCancelAction, currentStep is null when server restart.
-         * This is why we have to initialize in the constructor the current step.
-         * This is valable only for processWorkflow where PauseRecover is PauseRecover.RECOVER_FROM_API_PAUSE
+         * Initialize currentStep needed for processWorkflow stopped from API PauseRecover.RECOVER_FROM_API_PAUSE when
+         * execute the currentStep from stopped processWorkflow two possible case: 1: Start from stopped processWorkflow
+         * without server restart 2: Start from stopped processWorkflow when server restarts As executeSteps check the
+         * current step PauseOrCancelAction, currentStep is null when server restart. This is why we have to initialize
+         * in the constructor the current step. This is valable only for processWorkflow where PauseRecover is
+         * PauseRecover.RECOVER_FROM_API_PAUSE
          *
          */
         if (PauseRecover.RECOVER_FROM_API_PAUSE.equals(processWorkflow.getPauseRecover()) &&
@@ -433,26 +429,19 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
                 stepIndex++;
 
                 /**
-                 * In case where ActionPause was occurred,
-                 * But the distributor has completed the current executed step
-                 * In this case, the distributor update PauseOrCancelAction of the step to be ACTION_COMPLETE
-                 * So, we have a processWorkflow in RECOVER_FROM_API_PAUSE but the current step is ACTION_COMPLETE
-                 * As the current step is ACTION_COMPLETE, we have to execute the next step
-                 * but without using the distributorIndex
-                 * To prevent "You run the wrong step" exception thrown by the distributor
-                 * when using the distributorIndex but the step id persisted in the index
-                 * do not match the current executed step
-                 * To disable using distributorIndex, in this cas, we have to start engine with PauseRecover.NO_RECOVER
+                 * In case where ActionPause was occurred, But the distributor has completed the current executed step
+                 * In this case, the distributor update PauseOrCancelAction of the step to be ACTION_COMPLETE So, we
+                 * have a processWorkflow in RECOVER_FROM_API_PAUSE but the current step is ACTION_COMPLETE As the
+                 * current step is ACTION_COMPLETE, we have to execute the next step but without using the
+                 * distributorIndex To prevent "You run the wrong step" exception thrown by the distributor when using
+                 * the distributorIndex but the step id persisted in the index do not match the current executed step To
+                 * disable using distributorIndex, in this cas, we have to start engine with PauseRecover.NO_RECOVER
                  */
                 pauseRecover = PauseRecover.NO_RECOVER;
                 processWorkflow.setPauseRecover(PauseRecover.NO_RECOVER);
             }
         } else {
             stepIndex++;
-        }
-
-        if (stepIndex == 0) {
-            globalStartTime = Calendar.getInstance().getTimeInMillis();
         }
 
         if (stepIndex <= stepTotal - 1) {
@@ -557,7 +546,6 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             }
         }
 
-        globalEndTime = Calendar.getInstance().getTimeInMillis();
     }
 
     @Override
@@ -630,7 +618,6 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             }
 
             engineParams.clear();
-            globalEndTime = Calendar.getInstance().getTimeInMillis();
         }
     }
 

@@ -27,11 +27,19 @@
 
 package fr.gouv.vitam.tools;
 
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.guid.GUIDFactory;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-import java.io.*;
-import java.nio.file.*;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 
 public class SipTool {
 
@@ -40,7 +48,7 @@ public class SipTool {
 
 
     public static Path copyAndModifyManifestInZip(Path zipPath, String text, String replacement) throws IOException {
-        File tempFile = new File( GUIDFactory.newGUID().toString());
+        File tempFile = new File(GUIDFactory.newGUID().toString());
         Files.copy(new FileInputStream(zipPath.toFile()), tempFile.toPath());
         try (FileSystem fs = FileSystems.newFileSystem(tempFile.toPath(), null)) {
             Path source = fs.getPath("manifest.xml");
@@ -57,9 +65,9 @@ public class SipTool {
 
     static void streamCopy(Path src, Path dst, String text, String replacement) throws IOException {
         try (BufferedReader br = new BufferedReader(
-                new InputStreamReader(Files.newInputStream(src)));
-             BufferedWriter bw = new BufferedWriter(
-                     new OutputStreamWriter(Files.newOutputStream(dst)))) {
+            new InputStreamReader(Files.newInputStream(src)));
+            BufferedWriter bw = new BufferedWriter(
+                new OutputStreamWriter(Files.newOutputStream(dst)))) {
 
             String line;
             while ((line = br.readLine()) != null) {

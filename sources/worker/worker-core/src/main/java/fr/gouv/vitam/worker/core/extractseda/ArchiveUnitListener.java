@@ -41,8 +41,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.w3c.dom.Element;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -78,9 +76,6 @@ import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
 import fr.gouv.vitam.common.model.unit.TextByLang;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -130,7 +125,6 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private Set<String> existingUnitGuids;
     private LogbookTypeProcess logbookTypeProcess;
     private String containerId;
-    private LogbookLifeCyclesClient logbookLifeCycleClient;
     private MetaDataClientFactory metaDataClientFactory;
     private Map<String, String> objectGroupIdToGuid;
     private Map<String, Set<String>> unitIdToSetOfRuleId;
@@ -145,7 +139,6 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         Map<String, GotObj> dataObjectIdWithoutObjectGroupId,
         Map<String, LogbookLifeCycleParameters> guidToLifeCycleParameters,
         Set<String> existingUnitGuids, LogbookTypeProcess logbookTypeProcess, String containerId,
-        LogbookLifeCyclesClient logbookLifeCycleClient,
         MetaDataClientFactory metaDataClientFactory,
         Map<String, String> objectGroupIdToGuid,
         Map<String, Set<String>> unitIdToSetOfRuleId, UnitType workflowUnitType,
@@ -158,7 +151,6 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         this.existingUnitGuids = existingUnitGuids;
         this.logbookTypeProcess = logbookTypeProcess;
         this.containerId = containerId;
-        this.logbookLifeCycleClient = logbookLifeCycleClient;
         this.metaDataClientFactory = metaDataClientFactory;
         this.objectGroupIdToGuid = objectGroupIdToGuid;
         this.unitIdToSetOfRuleId = unitIdToSetOfRuleId;
@@ -516,12 +508,11 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
             logbookTypeProcess.name());
 
-        /*try {
-            logbookLifeCycleClient.create(logbookLifecycleUnitParameters);
-        } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
-            LogbookClientServerException e) {
-            LOGGER.error("unable to create logbook lifecycle", e);
-        }*/
+        /*
+         * try { logbookLifeCycleClient.create(logbookLifecycleUnitParameters); } catch
+         * (LogbookClientBadRequestException | LogbookClientAlreadyExistsException | LogbookClientServerException e) {
+         * LOGGER.error("unable to create logbook lifecycle", e); }
+         */
 
         // Update guidToLifeCycleParameters
         guidToLifeCycleParameters.put(unitGuid, logbookLifecycleUnitParameters);

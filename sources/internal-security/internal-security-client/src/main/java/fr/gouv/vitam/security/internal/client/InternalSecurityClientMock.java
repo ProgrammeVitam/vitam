@@ -26,21 +26,17 @@
  */
 package fr.gouv.vitam.security.internal.client;
 
+import java.util.Optional;
+
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.security.internal.common.exception.InternalSecurityException;
 import fr.gouv.vitam.security.internal.common.model.IdentityModel;
-
-import java.util.Optional;
 
 /**
  * mock to internalSecurityClient
  */
 class InternalSecurityClientMock extends AbstractMockClient implements InternalSecurityClient {
-
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(InternalSecurityClientMock.class);
 
 
     /**

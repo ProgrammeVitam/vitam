@@ -113,7 +113,6 @@ public class WorkerImpl implements Worker {
     private static final String HANDLER_NOT_FOUND = ": handler not found exception: ";
     private static final String UNIT_LIST_WITHOUT_LEVEL = "UnitsWithoutLevel";
     private static final String OG_LIST_WITHOUT_LEVEL = "ObjectGroupWithoutLevel";
-    private static final String DETAIL = "Detail";
     private final Map<String, ActionHandler> actions = new HashMap<>();
     private String workerId;
     private final PluginLoader pluginLoader;

@@ -63,8 +63,6 @@ public class World {
 
 
     private int tenantId;
-    private static boolean beforeTest = true;
-
 
     private String contractId;
     private String unitId;
@@ -138,7 +136,7 @@ public class World {
     public void the_test_are_done_on_tenant(int tenantId) throws Throwable {
         this.tenantId = tenantId;
     }
-    
+
     /**
      * define a contractId
      *
@@ -238,6 +236,7 @@ public class World {
     public void setUnitId(String unitId) {
         this.unitId = unitId;
     }
+
     /**
      * @return contractId
      */
@@ -285,7 +284,7 @@ public class World {
      * @return base directory on .feature file
      */
     public String getBaseDirectory() {
-        return baseDirectory;        
+        return baseDirectory;
     }
 
     private void configuration() {
@@ -295,7 +294,7 @@ public class World {
             tnrClientConfiguration = PropertiesUtils.readYaml(confFile, TnrClientConfiguration.class);
 
         } catch (IOException e) {
-            Fail.fail("Unable to load configuration File: \n"+e.getMessage());
+            Fail.fail("Unable to load configuration File: \n" + e.getMessage());
         }
 
     }
@@ -304,13 +303,13 @@ public class World {
      * delete data before testion
      */
     private void purgeData() {
-        try(IhmRecetteClient ihmRecetteClient = IhmRecetteClientFactory.getInstance().getClient() ) {
+        try (IhmRecetteClient ihmRecetteClient = IhmRecetteClientFactory.getInstance().getClient()) {
             tnrClientConfiguration.getTenantsTest().stream().forEach((i) -> {
                 try {
                     ihmRecetteClient.deleteTnrCollectionsTenant(i.toString());
                 } catch (VitamException e) {
                     // FAIL WHEN unable purge ?
-                    Fail.fail("Unable purge data "+i.toString()+" on tenant: " + i+e.getStackTrace());
+                    Fail.fail("Unable purge data " + i.toString() + " on tenant: " + i + e.getStackTrace());
                 }
             });
         }

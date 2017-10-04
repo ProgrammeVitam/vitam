@@ -107,8 +107,6 @@ public class ProfileServiceImpl implements ProfileService {
 
     private static final String FUNCTIONAL_MODULE_PROFILE = "FunctionalModule-Profile";
 
-    private static final String PROFIL_PREFIX = "PR";
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProfileServiceImpl.class);
 
     private static final String PROFILE_IS_MANDATORY_PATAMETER = "profiles parameter is mandatory";

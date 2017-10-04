@@ -88,14 +88,6 @@ public class ProcessManagementImpl implements ProcessManagement {
 
     private static final String WORKFLOW_NOT_FOUND_MESSAGE = "Workflow doesn't exist";
     private static final Map<String, IEventsState> PROCESS_MONITORS = new ConcurrentHashMap<>();
-    private static final String PROCESS_ID_FIELD = "operation_id";
-    private static final String PROCESS_TYPE_FIELD = "processType";
-    private static final String STEP_BY_STEP_FIELD = "stepByStep";
-    private static final String GLOBAL_EXECUTION_STATE_FIELD = "globalState";
-    private static final String PROCESS_DATE_FIELD = "processDate";
-    private static final String PREVIOUS_STEP = "previousStep";
-    private static final String NEXT_STEP = "nextStep";
-    private static final String STEP_EXECUTION_STATUS_FIELD = "stepStatus";
 
     private ServerConfiguration config;
     private final ProcessDataAccess processData;
@@ -262,7 +254,7 @@ public class ProcessManagementImpl implements ProcessManagement {
             .setGlobalState(processWorkflow.getState())
             .setLogbookTypeProcess(processWorkflow.getLogbookTypeProcess().toString());
     }
-    
+
     @Override
     public ItemStatus replay(WorkerParameters workerParameters, Integer tenantId)
         throws ProcessingException,

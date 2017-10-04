@@ -48,86 +48,84 @@ import fr.gouv.vitam.common.model.administration.IngestContractModel;
  */
 public class ClientMockResultHelper {
 
-    private static final String ID = "id0";
-
     private static final String RESULT =
-            "{\"$query\":{}," +
-                    "\"$hits\":{\"total\":100,\"offset\":0,\"limit\":100}," +
-                    "\"$results\":";
+        "{\"$query\":{}," +
+            "\"$hits\":{\"total\":100,\"offset\":0,\"limit\":100}," +
+            "\"$results\":";
 
     private static final String UNIT =
-            "{\"DescriptionLevel\":\"Item\"," +
-                    "\"Title\":[\"METADATA ENCODING AND TRANSMISSION STANDARD: PRIMER AND REFERENCE MANUAL\",\"Manuel METS revu et corrigé\"]," +
-                    "\"Description\":[\"METSPrimerRevised.pdf\",\"Pseudo Archive METSPrimerRevised.pdf\"]," +
-                    "\"Tag\":[\"METS\",\"norme internationale\"],\"TransactedDate\":\"2012-09-16T10:22:02\"," +
-                    "\"Event\":[{\"EventType\":\"Création\",\"EventDateTime\":\"2010-01-01T10:22:02\"},{\"EventType\":\"Validation\",\"EventDateTime\":\"2010-02-01T10:22:02\"}]," +
-                    "\"_uds\":[{\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\":1}],\"#id\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6spqaaaaq\",\"#nbunits\":0,\"#tenant\":0," +
-                    "\"#object\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6sjqaaaaq\",\"#unitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#min\":1,\"#max\":2," +
-                    "\"#allunitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#operations\":[\"aedqaaaaacaam7mxabhniakyq4z4ewaaaaaq\"]}";
+        "{\"DescriptionLevel\":\"Item\"," +
+            "\"Title\":[\"METADATA ENCODING AND TRANSMISSION STANDARD: PRIMER AND REFERENCE MANUAL\",\"Manuel METS revu et corrigé\"]," +
+            "\"Description\":[\"METSPrimerRevised.pdf\",\"Pseudo Archive METSPrimerRevised.pdf\"]," +
+            "\"Tag\":[\"METS\",\"norme internationale\"],\"TransactedDate\":\"2012-09-16T10:22:02\"," +
+            "\"Event\":[{\"EventType\":\"Création\",\"EventDateTime\":\"2010-01-01T10:22:02\"},{\"EventType\":\"Validation\",\"EventDateTime\":\"2010-02-01T10:22:02\"}]," +
+            "\"_uds\":[{\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\":1}],\"#id\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6spqaaaaq\",\"#nbunits\":0,\"#tenant\":0," +
+            "\"#object\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6sjqaaaaq\",\"#unitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#min\":1,\"#max\":2," +
+            "\"#allunitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#operations\":[\"aedqaaaaacaam7mxabhniakyq4z4ewaaaaaq\"]}";
 
     private static final String LOGBOOK_OPERATION =
-            "\"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
-                    "\"evType\": \"Process_SIP_unitary\"," +
-                    "\"evDateTime\": \"2016-06-10T11:56:35.914\"," +
-                    "\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-                    "\"evTypeProc\": \"INGEST\"," +
-                    "\"outcome\": \"STARTED\"," +
-                    "\"outDetail\": null," +
-                    "\"outMessg\": \"SIP entry : SIP.zip\"," +
-                    "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
-                    "\"agIdApp\": null," +
-                    "\"evIdAppSession\": null," +
-                    "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-                    "\"agIdExt\": null," +
-                    "\"obId\": null," +
-                    "\"obIdReq\": null," +
-                    "\"obIdIn\": null," +
-                    "\"events\": []}";
-    
-    
+        "\"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
+            "\"evType\": \"Process_SIP_unitary\"," +
+            "\"evDateTime\": \"2016-06-10T11:56:35.914\"," +
+            "\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+            "\"evTypeProc\": \"INGEST\"," +
+            "\"outcome\": \"STARTED\"," +
+            "\"outDetail\": null," +
+            "\"outMessg\": \"SIP entry : SIP.zip\"," +
+            "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
+            "\"agIdApp\": null," +
+            "\"evIdAppSession\": null," +
+            "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+            "\"agIdExt\": null," +
+            "\"obId\": null," +
+            "\"obIdReq\": null," +
+            "\"obIdIn\": null," +
+            "\"events\": []}";
+
+
     private static final String LOGBOOK_LIFECYCLE =
         "\"evId\": \"aedqaaaaacggo2kdaamz6ak5xswm3uiaaaaq\"," +
-        "\"evType\": \"LFC.LFC_CREATION\"," +
-        "\"evDateTime\": \"2017-08-07T12:30:27.793\"," +
-        "\"evIdProc\": \"aedqaaaaacgcs7j2aa3oeak5xswlyaqaaaaq\"," +
-        "\"evTypeProc\": \"INGEST\"," +
-        "\"outcome\": \"STARTED\"," +
-        "\"outDetail\": \"LFC.LFC_CREATION.STARTED\"," +
-        "\"outMessg\": \"!LFC.LFC_CREATION.STARTED!\"," +
-        "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
-        "\"obId\": \"aeaqaaaaaaggo2kdaamz6ak5xswm3jaaaaba\"," +
-        "\"evDetData\": null,"+
-        "\"events\": []}";
+            "\"evType\": \"LFC.LFC_CREATION\"," +
+            "\"evDateTime\": \"2017-08-07T12:30:27.793\"," +
+            "\"evIdProc\": \"aedqaaaaacgcs7j2aa3oeak5xswlyaqaaaaq\"," +
+            "\"evTypeProc\": \"INGEST\"," +
+            "\"outcome\": \"STARTED\"," +
+            "\"outDetail\": \"LFC.LFC_CREATION.STARTED\"," +
+            "\"outMessg\": \"!LFC.LFC_CREATION.STARTED!\"," +
+            "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
+            "\"obId\": \"aeaqaaaaaaggo2kdaamz6ak5xswm3jaaaaba\"," +
+            "\"evDetData\": null," +
+            "\"events\": []}";
 
     private static final String LOGBOOK_OPERATION_WITH_OBID =
-            "\"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
-                    "\"evType\": \"Process_SIP_unitary\"," +
-                    "\"evDateTime\": \"2016-06-10T11:56:35.914\"," +
-                    "\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-                    "\"evTypeProc\": \"INGEST\"," +
-                    "\"outcome\": \"STARTED\"," +
-                    "\"outDetail\": null," +
-                    "\"outMessg\": \"SIP entry : SIP.zip\"," +
-                    "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
-                    "\"agIdApp\": null," +
-                    "\"evIdAppSession\": null," +
-                    "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-                    "\"agIdExt\": null," +
-                    "\"obId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-                    "\"obIdReq\": null," +
-                    "\"obIdIn\": null," +
-                    "\"events\": []}";
+        "\"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
+            "\"evType\": \"Process_SIP_unitary\"," +
+            "\"evDateTime\": \"2016-06-10T11:56:35.914\"," +
+            "\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+            "\"evTypeProc\": \"INGEST\"," +
+            "\"outcome\": \"STARTED\"," +
+            "\"outDetail\": null," +
+            "\"outMessg\": \"SIP entry : SIP.zip\"," +
+            "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
+            "\"agIdApp\": null," +
+            "\"evIdAppSession\": null," +
+            "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+            "\"agIdExt\": null," +
+            "\"obId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+            "\"obIdReq\": null," +
+            "\"obIdIn\": null," +
+            "\"events\": []}";
 
     private static final String RULE = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
-            "\"_tenant\":\"0\", " +
-            "\"RuleId\":\"APP-00005\", " +
-            "\"RuleType\":\"AppraisalRule\", " +
-            "\"RuleValue\":\"Pièces comptables (comptable)\", " +
-            "\"RuleDescription\":\"Durée de conservation des pièces comptables pour le comptable l’échéance est calculée à partir de la date de solde comptable\", " +
-            "\"RuleDuration\":\"6\", " +
-            "\"RuleMeasurement\":\"year\", " +
-            "\"CreationDate\":\"2016-11-02\", " +
-            "\"UpdateDate\":\"2016-11-02\"}";
+        "\"_tenant\":\"0\", " +
+        "\"RuleId\":\"APP-00005\", " +
+        "\"RuleType\":\"AppraisalRule\", " +
+        "\"RuleValue\":\"Pièces comptables (comptable)\", " +
+        "\"RuleDescription\":\"Durée de conservation des pièces comptables pour le comptable l’échéance est calculée à partir de la date de solde comptable\", " +
+        "\"RuleDuration\":\"6\", " +
+        "\"RuleMeasurement\":\"year\", " +
+        "\"CreationDate\":\"2016-11-02\", " +
+        "\"UpdateDate\":\"2016-11-02\"}";
 
     private static final String AGENCY = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
         "\"_tenant\":\"0\", " +
@@ -135,29 +133,29 @@ public class ClientMockResultHelper {
         "\"Name\":\"agency\", " +
         "\"Description\":\"Une description\"}";
     public static final String INGEST_CONTRACTS = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
-            "\"_tenant\":\"0\", " +
-            "\"Name\":\"ArchivalAgreement0\", " +
-            "\"Identifier\":\"ArchivalAgreement0\", " +
-            "\"Description\":\"DESCRIPTION D'UN CONTRAT\", " +
-            "\"Status\":\"ACTIVE\", " +
-            "\"CreationDate\":\"2016-11-02\", " +
-            "\"LastUpdate\":\"2016-11-02\", " +
-            "\"ActivationDate\":\"2016-11-02\", " +
-            "\"DeactivationDate\":\"2016-11-02\"}";
+        "\"_tenant\":\"0\", " +
+        "\"Name\":\"ArchivalAgreement0\", " +
+        "\"Identifier\":\"ArchivalAgreement0\", " +
+        "\"Description\":\"DESCRIPTION D'UN CONTRAT\", " +
+        "\"Status\":\"ACTIVE\", " +
+        "\"CreationDate\":\"2016-11-02\", " +
+        "\"LastUpdate\":\"2016-11-02\", " +
+        "\"ActivationDate\":\"2016-11-02\", " +
+        "\"DeactivationDate\":\"2016-11-02\"}";
 
     public static final String ACCESS_CONTRACTS = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
-            "\"_tenant\":0, " +
-            "\"DataObjectVersion\":[\"PhysicalMaster\", \"BinaryMaster\"], " +
-            "\"WritingPermission\": \"true\", " +
-            "\"Name\":\"Un contrat\", " +
-            "\"Description\":\"DESCRIPTION D'UN CONTRAT\", " +
-            "\"Status\":\"ACTIVE\", " +
-            "\"OriginatingAgencies\": [\"FR_ORG_AGEC\", \"OriginatingAgency\"], " +
-            "\"EveryDataObjectVersion\": false, " +
-            "\"CreationDate\":\"2016-11-02\", " +
-            "\"LastUpdate\":\"2016-11-02\", " +
-            "\"ActivationDate\":\"2016-11-02\", " +
-            "\"DeactivationDate\":\"2016-11-02\"}";
+        "\"_tenant\":0, " +
+        "\"DataObjectVersion\":[\"PhysicalMaster\", \"BinaryMaster\"], " +
+        "\"WritingPermission\": \"true\", " +
+        "\"Name\":\"Un contrat\", " +
+        "\"Description\":\"DESCRIPTION D'UN CONTRAT\", " +
+        "\"Status\":\"ACTIVE\", " +
+        "\"OriginatingAgencies\": [\"FR_ORG_AGEC\", \"OriginatingAgency\"], " +
+        "\"EveryDataObjectVersion\": false, " +
+        "\"CreationDate\":\"2016-11-02\", " +
+        "\"LastUpdate\":\"2016-11-02\", " +
+        "\"ActivationDate\":\"2016-11-02\", " +
+        "\"DeactivationDate\":\"2016-11-02\"}";
 
     public static final String PROFILES = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
         "\"_tenant\":0, " +
@@ -170,81 +168,81 @@ public class ClientMockResultHelper {
         "\"LastUpdate\":\"2016-11-02\", " +
         "\"ActivationDate\":\"2016-11-02\", " +
         "\"DeactivationDate\":\"2016-11-02\"}";
-    
+
     public static final String CONTEXTS = "{\"Name\": \"My_Context_1\", " +
         "\"Status\": true," +
         "\"SecurityProfile\" : \"SEC_PROFILE-000001\"," +
         "\"Permissions\": [{" +
-            "\"_tenant\": 0," +
-            "\"AccessContracts\": []," +
-            "\"IngestContracts\": []" +
+        "\"_tenant\": 0," +
+        "\"AccessContracts\": []," +
+        "\"IngestContracts\": []" +
         "}]}";
 
     private static final String FORMAT = "{\"_id\":\"aeaaaaaaaaaaaaabaa44qakyetenaeyaaawq\", " +
-            "\"CreatedDate\":\"2016-01-21T10:36:46\", " +
-            "\"VersionPronom\":\"84\", " +
-            "\"Version\":\"1.12\", " +
-            "\"HasPriorityOverFileFormatID\":[], " +
-            "\"MIMEType\":[], " +
-            "\"Name\":\"Microsoft Works Word Processor for DOS\", " +
-            "\"Alert\":\"false\", " +
-            "\"Extension\":[\"wps\"], " +
-            "\"PUID\":\"fmt/164\", " +
-            "\"_tenant\":\"0\"}";
+        "\"CreatedDate\":\"2016-01-21T10:36:46\", " +
+        "\"VersionPronom\":\"84\", " +
+        "\"Version\":\"1.12\", " +
+        "\"HasPriorityOverFileFormatID\":[], " +
+        "\"MIMEType\":[], " +
+        "\"Name\":\"Microsoft Works Word Processor for DOS\", " +
+        "\"Alert\":\"false\", " +
+        "\"Extension\":[\"wps\"], " +
+        "\"PUID\":\"fmt/164\", " +
+        "\"_tenant\":\"0\"}";
 
     private static final String ACCESSION_SUMMARY = "{\"_id\": \"aefaaaaaaaaam7mxaa2gyakygejizayaaaaq\"," +
-            "\"_tenant\": 0," +
-            "\"OriginatingAgency\": \"FRAN_NP_005568\"," +
-            "    \"TotalObjects\": {" +
-            "    \"Total\": 12," +
-            "    \"Deleted\": 0," +
-            "    \"Remained\": 12" +
-            "}," +
-            "\"TotalObjectGroups\": {" +
-            "    \"Total\": 3," +
-            "    \"Deleted\": 0," +
-            "    \"Remained\": 3" +
-            "}," +
-            "\"TotalUnits\": {" +
-            "    \"Total\": 3," +
-            "    \"Deleted\": 0," +
-            "    \"Remained\": 3" +
-            "}," +
-            "\"ObjectSize\": {" +
-            "    \"Total\": 1035126," +
-            "    \"Deleted\": 0," +
-            "    \"Remained\": 1035126" +
-            "}," +
-            "\"creationDate\": \"2016-11-04T20:40:49.030\"}";
+        "\"_tenant\": 0," +
+        "\"OriginatingAgency\": \"FRAN_NP_005568\"," +
+        "    \"TotalObjects\": {" +
+        "    \"Total\": 12," +
+        "    \"Deleted\": 0," +
+        "    \"Remained\": 12" +
+        "}," +
+        "\"TotalObjectGroups\": {" +
+        "    \"Total\": 3," +
+        "    \"Deleted\": 0," +
+        "    \"Remained\": 3" +
+        "}," +
+        "\"TotalUnits\": {" +
+        "    \"Total\": 3," +
+        "    \"Deleted\": 0," +
+        "    \"Remained\": 3" +
+        "}," +
+        "\"ObjectSize\": {" +
+        "    \"Total\": 1035126," +
+        "    \"Deleted\": 0," +
+        "    \"Remained\": 1035126" +
+        "}," +
+        "\"creationDate\": \"2016-11-04T20:40:49.030\"}";
 
     private static final String ACCESSION_DETAIL = "{" +
-            "\"_id\": \"aedqaaaaacaam7mxabsakakygeje2uyaaaaq\"," +
-            "\"_tenant\": 0," +
-            "\"OriginatingAgency\": \"FRAN_NP_005568\"," +
-            "\"SubmissionAgency\": \"FRAN_NP_005061\"," +
-            "\"EndDate\": \"2016-11-04T21:40:47.912+01:00\"," +
-            "\"StartDate\": \"2016-11-04T21:40:47.912+01:00\"," +
-            "\"Status\": \"STORED_AND_COMPLETED\"," +
-            "\"TotalObjectGroups\": {" +
-            "    \"total\": 1," +
-            "    \"deleted\": 0," +
-            "    \"remained\": 1" +
-            "}," +
-            "\"TotalUnits\": {" +
-            "    \"total\": 1," +
-            "    \"deleted\": 0," +
-            "    \"remained\": 1" +
-            "}," +
-            "\"TotalObjects\": {" +
-            "    \"total\": 4," +
-            "    \"deleted\": 0," +
-            "    \"remained\": 4" +
-            "}," +
-            "\"ObjectSize\": {" +
-            "    \"total\": 345042," +
-            "    \"deleted\": 0," +
-            "    \"remained\": 345042" +
-            "}}";
+        "\"_id\": \"aedqaaaaacaam7mxabsakakygeje2uyaaaaq\"," +
+        "\"_tenant\": 0," +
+        "\"OriginatingAgency\": \"FRAN_NP_005568\"," +
+        "\"SubmissionAgency\": \"FRAN_NP_005061\"," +
+        "\"EndDate\": \"2016-11-04T21:40:47.912+01:00\"," +
+        "\"StartDate\": \"2016-11-04T21:40:47.912+01:00\"," +
+        "\"Status\": \"STORED_AND_COMPLETED\"," +
+        "\"TotalObjectGroups\": {" +
+        "    \"total\": 1," +
+        "    \"deleted\": 0," +
+        "    \"remained\": 1" +
+        "}," +
+        "\"TotalUnits\": {" +
+        "    \"total\": 1," +
+        "    \"deleted\": 0," +
+        "    \"remained\": 1" +
+        "}," +
+        "\"TotalObjects\": {" +
+        "    \"total\": 4," +
+        "    \"deleted\": 0," +
+        "    \"remained\": 4" +
+        "}," +
+        "\"ObjectSize\": {" +
+        "    \"total\": 345042," +
+        "    \"deleted\": 0," +
+        "    \"remained\": 345042" +
+        "}}";
 
 
 
@@ -282,7 +280,7 @@ public class ClientMockResultHelper {
 
     public static final String SECURITY_PROFILES =
         "{" +
-            "\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetcaaaabbbcc\","+
+            "\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetcaaaabbbcc\"," +
             "\"Identifier\": \"SEC_PROFILE-000001\"," +
             "\"Name\": \"TEST_PROFILE_1\"," +
             "\"FullAccess\": false," +
@@ -302,7 +300,7 @@ public class ClientMockResultHelper {
         final StringBuilder result = new StringBuilder(RESULT).append("[");
         for (int i = 0; i < 100; i++) {
             result.append("{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa").append(i).append("\",")
-                    .append(LOGBOOK_OPERATION);
+                .append(LOGBOOK_OPERATION);
             if (i < 99) {
                 result.append(",");
             }
@@ -341,19 +339,19 @@ public class ClientMockResultHelper {
      */
     public static JsonNode getLogbookOperation() throws InvalidParseOperationException {
         return JsonHandler
-                .getFromString(RESULT + "[{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0\"," + LOGBOOK_OPERATION + "]}");
+            .getFromString(RESULT + "[{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0\"," + LOGBOOK_OPERATION + "]}");
     }
-    
+
     /**
      * @return a default Logbook Operation
      * @throws InvalidParseOperationException
      */
     public static JsonNode getLogbookLifecycle() throws InvalidParseOperationException {
         return JsonHandler
-                .getFromString(RESULT + "[{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0\"," + LOGBOOK_LIFECYCLE + "]}");
+            .getFromString(RESULT + "[{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0\"," + LOGBOOK_LIFECYCLE + "]}");
     }
-    
-    public static RequestResponse<JsonNode> getMetaDataResult() throws InvalidParseOperationException{
+
+    public static RequestResponse<JsonNode> getMetaDataResult() throws InvalidParseOperationException {
         return getArchiveUnitResult();
     }
 
@@ -373,7 +371,7 @@ public class ClientMockResultHelper {
      */
     public static RequestResponse createReponse(Object s) throws InvalidParseOperationException {
         return new RequestResponseOK()
-                .addResult(s);
+            .addResult(s);
     }
 
     /**
@@ -382,7 +380,7 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse createReponse(String s) throws InvalidParseOperationException {
-        RequestResponseOK responseOK =  new RequestResponseOK();
+        RequestResponseOK responseOK = new RequestResponseOK();
         if (null != s)
             responseOK.addResult(JsonHandler.getFromString(s));
         return responseOK.setHttpCode(Status.OK.getStatusCode());
@@ -395,11 +393,12 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static <T> RequestResponse<T> createReponse(String s, Class<T> clasz) throws InvalidParseOperationException {
-        RequestResponseOK responseOK =  new RequestResponseOK();
+        RequestResponseOK responseOK = new RequestResponseOK();
         if (null != s)
             responseOK.addResult(JsonHandler.getFromString(s, clasz));
         return responseOK.setHttpCode(Status.OK.getStatusCode());
     }
+
     /**
      * @param s the original object to be included in response
      * @param statuscode status to be returned
@@ -407,7 +406,7 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse createReponse(String s, int statuscode) throws InvalidParseOperationException {
-        RequestResponseOK responseOK =  new RequestResponseOK();
+        RequestResponseOK responseOK = new RequestResponseOK();
         if (null != s)
             responseOK.addResult(JsonHandler.getFromString(s));
         return responseOK.setHttpCode(statuscode);
@@ -479,11 +478,11 @@ public class ClientMockResultHelper {
      * @return context json
      * @throws InvalidParseOperationException
      */
-    public static RequestResponse getContexts(int statusCode) throws InvalidParseOperationException{
+    public static RequestResponse getContexts(int statusCode) throws InvalidParseOperationException {
         return createReponse(CONTEXTS, statusCode);
     }
 
-    public static RequestResponse getProfiles(int statusCode)throws InvalidParseOperationException {
+    public static RequestResponse getProfiles(int statusCode) throws InvalidParseOperationException {
         return createReponse(PROFILES, statusCode);
     }
 
@@ -513,27 +512,27 @@ public class ClientMockResultHelper {
         ObjectNode rule = (ObjectNode) JsonHandler.getFromString(RULE);
         String oldRuleId = rule.get("RuleId").asText();
         rule.put("RuleId", ruleId);
-        switch(ruleId.substring(0, 3)) {
-        case "STO":
-            rule.put("RuleType", "StorageRule");
-            break;
-        case "CLA":
-            rule.put("RuleType", "ClassificationRule");
-            break;
-        case "ACC":
-            rule.put("RuleType", "AccessRule");
-            break;
-        case "APP":
-            rule.put("RuleType", "AppraisalRule");
-            break;
-        case "DIS":
-            rule.put("RuleType", "DisseminationRule");
-            break;
-        case "REU":
-            rule.put("RuleType", "ReuseRule");
-            break;
-        default:
-            rule.put("RuleId", oldRuleId);
+        switch (ruleId.substring(0, 3)) {
+            case "STO":
+                rule.put("RuleType", "StorageRule");
+                break;
+            case "CLA":
+                rule.put("RuleType", "ClassificationRule");
+                break;
+            case "ACC":
+                rule.put("RuleType", "AccessRule");
+                break;
+            case "APP":
+                rule.put("RuleType", "AppraisalRule");
+                break;
+            case "DIS":
+                rule.put("RuleType", "DisseminationRule");
+                break;
+            case "REU":
+                rule.put("RuleType", "ReuseRule");
+                break;
+            default:
+                rule.put("RuleId", oldRuleId);
         }
 
         return createReponse(rule);
@@ -543,7 +542,7 @@ public class ClientMockResultHelper {
         ObjectNode rule = (ObjectNode) JsonHandler.getFromString(RULE);
         return createReponse(rule);
     }
-    
+
     /**
      *
      * @return a default list of Rules
@@ -569,7 +568,7 @@ public class ClientMockResultHelper {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add("Content-Disposition", "filename=\"test.txt\"");
         return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
-                MediaType.APPLICATION_OCTET_STREAM_TYPE, headers);
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, headers);
     }
 
     /**

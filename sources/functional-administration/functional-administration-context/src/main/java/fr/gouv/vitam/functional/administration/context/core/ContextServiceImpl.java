@@ -26,9 +26,26 @@
  */
 package fr.gouv.vitam.functional.administration.context.core;
 
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.core.Response;
+
+import org.apache.commons.lang.StringUtils;
+import org.bson.conversions.Bson;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.Query;
@@ -81,20 +98,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import org.apache.commons.lang.StringUtils;
-import org.bson.conversions.Bson;
-
-import javax.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
 
 public class ContextServiceImpl implements ContextService {
     private static final String INVALID_IDENTIFIER_OF_THE_ACCESS_CONTRACT =
@@ -115,7 +118,6 @@ public class ContextServiceImpl implements ContextService {
     private final LogbookOperationsClient logBookclient;
     private final VitamCounterService vitamCounterService;
     private final ContextServiceImpl.ContextManager manager;
-    private final SecurityProfileService securityProfileService;
 
     /**
      * Constructor
@@ -123,11 +125,10 @@ public class ContextServiceImpl implements ContextService {
      * @param mongoAccess MongoDB client
      */
     public ContextServiceImpl(
-            MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService,
-            SecurityProfileService securityProfileService) {
+        MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService,
+        SecurityProfileService securityProfileService) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
-        this.securityProfileService = securityProfileService;
         logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
         manager = new ContextManager(logBookclient, mongoAccess, vitamCounterService, securityProfileService);
 
@@ -331,12 +332,12 @@ public class ContextServiceImpl implements ContextService {
             ingestContract = new IngestContractImpl(mongoAccess, vitamCounterService);
             accessContract = new AccessContractImpl(mongoAccess, vitamCounterService);
             this.securityProfileService = securityProfileService;
-            //Init validator
+            // Init validator
             validators = Arrays.asList(
-                    createMandatoryParamsValidator(),
-                    securityProfileIdentifierValidator(),
-                    createCheckDuplicateInDatabaseValidator(),
-                    checkContract());
+                createMandatoryParamsValidator(),
+                securityProfileIdentifierValidator(),
+                createCheckDuplicateInDatabaseValidator(),
+                checkContract());
         }
 
         public boolean validateContext(ContextModel context, VitamError error) {
@@ -494,7 +495,8 @@ public class ContextServiceImpl implements ContextService {
                 }
 
                 if (StringUtils.isBlank(context.getSecurityProfileIdentifier())) {
-                    return Optional.of(ContextValidator.ContextRejectionCause.rejectMandatoryMissing(Context.SECURITY_PROFILE));
+                    return Optional
+                        .of(ContextValidator.ContextRejectionCause.rejectMandatoryMissing(Context.SECURITY_PROFILE));
                 }
 
                 return Optional.empty();
@@ -511,14 +513,16 @@ public class ContextServiceImpl implements ContextService {
 
                 SecurityProfileModel securityProfileModel = null;
                 try {
-                    securityProfileModel = securityProfileService.findOneByIdentifier(context.getSecurityProfileIdentifier());
+                    securityProfileModel =
+                        securityProfileService.findOneByIdentifier(context.getSecurityProfileIdentifier());
 
                 } catch (ReferentialException | InvalidParseOperationException e) {
                     LOGGER.warn("An error occurred during security profile validation", e);
                 }
 
-                if(securityProfileModel == null) {
-                    return Optional.of(ContextValidator.ContextRejectionCause.invalidSecurityProfile(context.getSecurityProfileIdentifier()));
+                if (securityProfileModel == null) {
+                    return Optional.of(ContextValidator.ContextRejectionCause
+                        .invalidSecurityProfile(context.getSecurityProfileIdentifier()));
                 } else {
                     // OK
                     return Optional.empty();
@@ -615,7 +619,7 @@ public class ContextServiceImpl implements ContextService {
         }
 
         /**
-         * Check if the Id of the  context  already exists in database
+         * Check if the Id of the context already exists in database
          *
          * @return
          */

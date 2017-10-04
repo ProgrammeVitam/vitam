@@ -48,8 +48,6 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -66,7 +64,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 public class IngestInternalClientMock extends AbstractMockClient implements IngestInternalClient {
 
     private static final String PARAMS_CANNOT_BE_NULL = "Params cannot be null";
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalClientMock.class);
     /**
      * mock ingest response
      */

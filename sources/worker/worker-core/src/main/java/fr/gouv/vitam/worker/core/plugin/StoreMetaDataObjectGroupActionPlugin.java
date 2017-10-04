@@ -26,8 +26,11 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
+import java.io.File;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -55,19 +58,16 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 
-import java.io.File;
-
 /**
  * Stores MetaData object group plugin.
  */
 public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectActionHandler {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StoreMetaDataObjectGroupActionPlugin.class);
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(StoreMetaDataObjectGroupActionPlugin.class);
 
     private static final String JSON = ".json";
-    private static final String $RESULTS = "$results";
     private static final String OG_METADATA_STORAGE = "OG_METADATA_STORAGE";
-    private static final String OBJECT_GROUP_NOT_FOUND_EXCEPTION = "objectGroup not found Exception";
     private HandlerIO handlerIO;
     private boolean asyncIO = false;
 
@@ -90,7 +90,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
         try {
             // create metadata-lfc file in workspace
             saveDocumentWithLfcInStorage(params, guid, fileName, itemStatus);
-            
+
             itemStatus.increment(StatusCode.OK);
         } catch (ProcessingException e) {
             LOGGER.error(e);
@@ -115,11 +115,11 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
      * @param itemStatus
      * @throws VitamException
      */
-    private void saveDocumentWithLfcInStorage(WorkerParameters params, String guid, String fileName, 
-                                              ItemStatus itemStatus) throws VitamException {
+    private void saveDocumentWithLfcInStorage(WorkerParameters params, String guid, String fileName,
+        ItemStatus itemStatus) throws VitamException {
 
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
-                 LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient();) {
+            LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient();) {
 
             //// get metadata
             JsonNode got = selectMetadataDocumentById(guid, DataCategory.OBJECT_GROUP, metaDataClient);
@@ -131,7 +131,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
             // transfer json to workspace
             try {
                 handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER, fileName,
-                        docWithLfc, true, asyncIO);
+                    docWithLfc, true, asyncIO);
             } catch (ProcessingException e) {
                 LOGGER.error(params.getObjectName(), e);
                 throw new WorkspaceClientServerException(e);
@@ -139,7 +139,8 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
 
             //// call storage (save in offers)
             // object Description
-            final ObjectDescription description = new ObjectDescription(StorageCollectionType.OBJECTGROUPS, params.getContainerName(),
+            final ObjectDescription description =
+                new ObjectDescription(StorageCollectionType.OBJECTGROUPS, params.getContainerName(),
                     fileName, IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + fileName);
             // store metadata object from workspace
             StoredInfoResult result = storeObject(description, itemStatus);
@@ -148,7 +149,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
             if (result != null) {
                 // update sub task itemStatus
                 itemStatus.setEvDetailData(detailsFromStorageInfo(result));
-                
+
                 // Update got with store information
                 try {
                     UpdateMultiQuery queryUpdate = storeStorageInfo((ObjectNode) got, result, true);
@@ -159,12 +160,12 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
                     LOGGER.error(e);
                 }
             }
-        } catch (MetaDataExecutionException | /*MetaDataDocumentSizeException |*/
-                InvalidParseOperationException | MetaDataClientServerException e) {
+        } catch (MetaDataExecutionException | /* MetaDataDocumentSizeException | */
+            InvalidParseOperationException | MetaDataClientServerException e) {
             LOGGER.error(e);
             throw e;
         }
-            
+
     }
 
 }

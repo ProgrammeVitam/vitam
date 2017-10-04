@@ -36,7 +36,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.BaseXx;
@@ -136,7 +135,7 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
             itemStatus.increment(StatusCode.FATAL);
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);            
+            itemStatus.increment(StatusCode.FATAL);
         }
 
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
@@ -209,8 +208,8 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
         String str = "";
         boolean isMerkelTreeCreated = true;
 
-        try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+        try (InputStreamReader isr = new InputStreamReader(inputStream);
+            BufferedReader reader = new BufferedReader(isr)) {
             if (inputStream != null) {
                 while ((str = reader.readLine()) != null) {
                     String evDate = StringUtils.substringBetween(str, "\"evDateTime\":\"", "\",");

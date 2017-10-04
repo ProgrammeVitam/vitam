@@ -75,8 +75,6 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     private static final String ROLLBACK = "ROLLBACK";
     private static ConcurrentMap<String, List<String>> lifeCyclesByOperation = new ConcurrentHashMap<>();
 
-    private static final String OB_ID = "obId";
-
     @Override
     public void create(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
@@ -145,7 +143,8 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     @Override
-    public JsonNode selectUnitLifeCycleById(String id, JsonNode queryDsl, LifeCycleStatusCode lifeCycleStatus) throws InvalidParseOperationException {
+    public JsonNode selectUnitLifeCycleById(String id, JsonNode queryDsl, LifeCycleStatusCode lifeCycleStatus)
+        throws InvalidParseOperationException {
         LOGGER.debug("Select request with id:" + id);
         return ClientMockResultHelper.getLogbookOperation();
     }
@@ -163,7 +162,8 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     @Override
-    public JsonNode selectObjectGroupLifeCycleById(String id, JsonNode queryDsl, LifeCycleStatusCode lifeCycleStatus) throws InvalidParseOperationException {
+    public JsonNode selectObjectGroupLifeCycleById(String id, JsonNode queryDsl, LifeCycleStatusCode lifeCycleStatus)
+        throws InvalidParseOperationException {
         LOGGER.debug("Select request with id:" + id);
         return ClientMockResultHelper.getLogbookOperation();
     }
@@ -307,7 +307,8 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     @Override
     public JsonNode selectObjectGroupLifeCycle(JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException {
-        LOGGER.debug("Select request without id:" + queryDsl.findValue(LogbookMongoDbName.objectIdentifier.getDbname()));
+        LOGGER
+            .debug("Select request without id:" + queryDsl.findValue(LogbookMongoDbName.objectIdentifier.getDbname()));
         return ClientMockResultHelper.getLogbookLifecycle();
     }
 
@@ -317,7 +318,8 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
         // do nothing
     }
 
-    @Override public void bulkUnit(String eventIdProc, List<LogbookLifeCycleUnitModel> logbookLifeCycleModels)
+    @Override
+    public void bulkUnit(String eventIdProc, List<LogbookLifeCycleUnitModel> logbookLifeCycleModels)
         throws LogbookClientAlreadyExistsException, LogbookClientBadRequestException, LogbookClientServerException {
         // do nothing
     }

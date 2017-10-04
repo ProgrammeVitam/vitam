@@ -1,51 +1,24 @@
 /*
- *  Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *  <p>
- *  contact.vitam@culture.gouv.fr
- *  <p>
- *  This software is a computer program whose purpose is to implement a digital archiving back-office system managing
- *  high volumetry securely and efficiently.
- *  <p>
- *  This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
- *  software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- *  circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *  <p>
- *  As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
- *  users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
- *  successive licensors have only limited liability.
- *  <p>
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
- *  developing or reproducing the software by the user in light of its specific status of free software, that may mean
- *  that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
- *  experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
- *  software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
- *  to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *  <p>
- *  The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
- *  accept its terms.
+ * * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019) * <p> * contact.vitam@culture.gouv.fr
+ * * <p> * This software is a computer program whose purpose is to implement a digital archiving back-office system
+ * managing * high volumetry securely and efficiently. * <p> * This software is governed by the CeCILL 2.1 license under
+ * French law and abiding by the rules of distribution of free * software. You can use, modify and/ or redistribute the
+ * software under the terms of the CeCILL 2.1 license as * circulated by CEA, CNRS and INRIA at the following URL
+ * "http://www.cecill.info". * <p> * As a counterpart to the access to the source code and rights to copy, modify and
+ * redistribute granted by the license, * users are provided only with a limited warranty and the software's author, the
+ * holder of the economic rights, and the * successive licensors have only limited liability. * <p> * In this respect,
+ * the user's attention is drawn to the risks associated with loading, using, modifying and/or * developing or
+ * reproducing the software by the user in light of its specific status of free software, that may mean * that it is
+ * complicated to manipulate, and that also therefore means that it is reserved for developers and * experienced
+ * professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the * software's
+ * suitability as regards their requirements in conditions enabling the security of their systems and/or data * to be
+ * ensured and, more generally, to use and operate it in the same conditions as regards security. * <p> * The fact that
+ * you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you * accept its
+ * terms.
  */
 package fr.gouv.vitam.functional.administration.rest;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.server.DbRequestResult;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.common.model.administration.AgenciesModel;
-
-import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.functional.administration.common.Agencies;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.agencies.api.AgenciesService;
-import fr.gouv.vitam.functional.administration.contract.api.ContractService;
-import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
+import java.io.InputStream;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
@@ -55,36 +28,43 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
-import java.io.InputStream;
 
-/**
- * This resource manage Agencys create, update, find, ...
- */
+import com.fasterxml.jackson.databind.JsonNode;
+
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.server.DbRequestResult;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
+import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.functional.administration.agencies.api.AgenciesService;
+import fr.gouv.vitam.functional.administration.common.Agencies;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+
+/** * This resource manage Agencys create, update, find, ... */
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
 public class AgenciesResource {
-
     private static final String FUNCTIONAL_ADMINISTRATION_MODULE = "FUNCTIONAL_ADMINISTRATION_MODULE";
     static final String AGENCIES = "/agencies";
     static final String AGENCIES_IMPORT = "/agencies/import";
-
     static final String UPDATE_AGENCIES_URI = "/agencies";
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AgenciesResource.class);
-    private static final String AGENCIES_FILES_IS_MANDATORY_PATAMETER =
-        "The json input of agency is mandatory";
-
+    private static final String AGENCIES_FILES_IS_MANDATORY_PATAMETER = "The json input of agency is mandatory";
     private final MongoDbAccessAdminImpl mongoAccess;
 
-    /**
-     * @param mongoAccess
-     */
+    /** * @param mongoAccess */
     public AgenciesResource(MongoDbAccessAdminImpl mongoAccess) {
         this.mongoAccess = mongoAccess;
         LOGGER.debug("init Admin Management Resource server");
@@ -96,18 +76,14 @@ public class AgenciesResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response importAgencies(InputStream inputStream, @Context UriInfo uri) {
         ParametersChecker.checkParameter(AGENCIES_FILES_IS_MANDATORY_PATAMETER, inputStream);
-
         try (AgenciesService agencies = new AgenciesService(mongoAccess)) {
-
             RequestResponse requestResponse = agencies.importAgencies(inputStream);
-
             if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
                 return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
             } else {
                 return Response.created(uri.getRequestUri().normalize()).entity(requestResponse).build();
             }
-
         } catch (VitamException exp) {
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
@@ -117,39 +93,27 @@ public class AgenciesResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
         }
-
     }
 
     /**
-     * Construct the error following input
-     *
-     * @param status  Http error status
-     * @param message The functional error message, if absent the http reason phrase will be used instead
-     * @param code    The functional error code, if absent the http code will be used instead
-     * @return
+     * * Construct the error following input * * @param status Http error status * @param message The functional error
+     * message, if absent the http reason phrase will be used instead * @param code The functional error code, if absent
+     * the http code will be used instead * @return
      */
     private VitamError getErrorEntity(Status status, String message, String code) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        String aMessage = (message != null && !message.trim().isEmpty()) ? message
+            : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
-        return new VitamError(aCode).setHttpCode(status.getStatusCode())
-            .setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
+        return new VitamError(aCode).setHttpCode(status.getStatusCode()).setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
             .setState("ko").setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 
-    /**
-     * Find agencies by queryDsl
-     *
-     * @param queryDsl
-     * @return Response
-     */
+    /** * Find agencies by queryDsl * * @param queryDsl * @return Response */
     @POST
     @Path(AGENCIES)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findAgencies(JsonNode queryDsl) {
-
         try (AgenciesService agencyService = new AgenciesService(mongoAccess)) {
             SanityChecker.checkJsonAll(queryDsl);
             try (DbRequestResult result = agencyService.findAgencies(queryDsl)) {
@@ -159,8 +123,8 @@ public class AgenciesResource {
             }
         } catch (ReferentialException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null))
+                .build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
@@ -168,12 +132,7 @@ public class AgenciesResource {
         }
     }
 
-    /**
-     * find access contracts by queryDsl
-     *
-     * @param queryDsl
-     * @return Response
-     */
+    /** * find access contracts by queryDsl * * @param queryDsl * @return Response */
     @Path(AGENCIES)
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
@@ -181,17 +140,14 @@ public class AgenciesResource {
     public Response getAgencies(JsonNode queryDsl) {
         try (AgenciesService agencyService = new AgenciesService(mongoAccess)) {
             SanityChecker.checkJsonAll(queryDsl);
-
             final DbRequestResult agenciesModelList = agencyService.findAgencies(queryDsl);
             RequestResponseOK reponse =
                 agenciesModelList.getRequestResponseOK(queryDsl, Agencies.class, AgenciesModel.class);
-
-            return Response.status(Status.OK)
-                .entity(reponse).build();
+            return Response.status(Status.OK).entity(reponse).build();
         } catch (ReferentialException e) {
             LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+            return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null))
+                .build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
@@ -199,27 +155,18 @@ public class AgenciesResource {
         }
     }
 
-
-    /**
-     * Update agencys
-     *
-     * @param agencyId
-     * @param queryDsl
-     * @return Response
-     */
+    /** * Update agencys * * @param agencyId * @param queryDsl * @return Response */
     @Path(UPDATE_AGENCIES_URI + "/{id}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateAgencies(@PathParam("id") String agencyId, JsonNode queryDsl) {
-
         try (AgenciesService agencyService = new AgenciesService(mongoAccess)) {
             RequestResponse requestResponse = agencyService.updateAgency(agencyId, queryDsl);
             if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
                 return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
             } else {
-
                 return Response.status(Status.OK).entity(requestResponse).build();
             }
         } catch (VitamException exp) {
@@ -232,5 +179,5 @@ public class AgenciesResource {
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
         }
     }
-
 }
+

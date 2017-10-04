@@ -34,7 +34,8 @@ import fr.gouv.vitam.common.model.administration.AbstractContractModel;
  * Used to validate contracts (any class that extends AbstractContractModel) and to apply acceptance rules.
  *
  * Bellow the example of usage :
- *<pre>
+ * 
+ * <pre>
  * {@code
  * private static GenericContractValidator checkDuplicateInDatabaseValidator() {
  *    return (contract, contractName) -> {
@@ -73,102 +74,110 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
 
     public class GenericRejectionCause {
 
-        private static final String ERR_INVALID_CONTRACT = "The input contract json is is invalid";
-        public static String ERR_DUPLICATE_CONTRACT_ENTRY = "One or many contracts in the imported list have the same name : %s";
+        public static String ERR_DUPLICATE_CONTRACT_ENTRY =
+            "One or many contracts in the imported list have the same name : %s";
         public static String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating contracts (%s)";
         public static String ERR_DUPLICATE_CONTRACT = "The contract %s already exists in database";
-        public static String ERR_ARCHIVEPROFILE_NOT_FOUND_CONTRACT = "One or multiple archive profiles or the contract %s not found in db";
+        public static String ERR_ARCHIVEPROFILE_NOT_FOUND_CONTRACT =
+            "One or multiple archive profiles or the contract %s not found in db";
         public static String ERR_CONTRACT_EXCEPTION_OCCURRED = "Exception while validate contract (%s), %s : %s";
-        public static String ERR_CONTRACT_ROOT_UNITS_NOT_FOUND = "Error while validate contract (%s), RootUnits (%s) not found in database";
+        public static String ERR_CONTRACT_ROOT_UNITS_NOT_FOUND =
+            "Error while validate contract (%s), RootUnits (%s) not found in database";
         public static String ERR_INVALID_FIELD = "The field %s has an invalid format";
         public static String ERR_MANDATORY_FIELD = "The field %s is mandatory";
         public static String ERR_WRONG_FILING_PARENT_ID = "the id of the AU %s is not in filing schema";
 
         private String reason;
-        
+
         public GenericRejectionCause(String error) {
             setReason(error);
         }
 
         /**
-         * Reject if id exisit and the action is creation.
-         * If id exists, it should be an update instead of create
+         * Reject if id exisit and the action is creation. If id exists, it should be an update instead of create
          *
          * @param contractName
          * @return GenericRejectionCause
          */
-        public static GenericRejectionCause rejectIdNotAllowedInCreate(String contractName){
-            return new GenericRejectionCause(String.format(ERR_ID_NOT_ALLOWED_IN_CREATE , contractName));
+        public static GenericRejectionCause rejectIdNotAllowedInCreate(String contractName) {
+            return new GenericRejectionCause(String.format(ERR_ID_NOT_ALLOWED_IN_CREATE, contractName));
         }
 
         /**
-         * Reject if multiple contract have the same name in the same request before persist into database.
-         * The contract name must be unique
+         * Reject if multiple contract have the same name in the same request before persist into database. The contract
+         * name must be unique
          *
          * @param contractName
          * @return GenericRejectionCause
          */
-        public static GenericRejectionCause rejectDuplicatedEntry(String contractName){
-            return new GenericRejectionCause(String.format(ERR_DUPLICATE_CONTRACT_ENTRY , contractName));
+        public static GenericRejectionCause rejectDuplicatedEntry(String contractName) {
+            return new GenericRejectionCause(String.format(ERR_DUPLICATE_CONTRACT_ENTRY, contractName));
         }
-        
+
         /**
          * Reject if the id of the AU is not in filing schema
          *
          * @param filingParentId
          * @return GenericRejectionCause
          */
-        public static GenericRejectionCause rejectWrongFilingParentId(String filingParentId){
-            return new GenericRejectionCause(String.format(ERR_WRONG_FILING_PARENT_ID , filingParentId));
+        public static GenericRejectionCause rejectWrongFilingParentId(String filingParentId) {
+            return new GenericRejectionCause(String.format(ERR_WRONG_FILING_PARENT_ID, filingParentId));
         }
 
         /**
-         * Verify for each contract if already exists one in database that have the same name.
-         * The database my manage this kind of constraint (by creating an unique index on the field or column)
+         * Verify for each contract if already exists one in database that have the same name. The database my manage
+         * this kind of constraint (by creating an unique index on the field or column)
+         * 
          * @param contractName
          * @return GenericRejectionCause
          */
-        public static GenericRejectionCause rejectDuplicatedInDatabase(String contractName){
-            return new GenericRejectionCause(String.format(ERR_DUPLICATE_CONTRACT , contractName));
+        public static GenericRejectionCause rejectDuplicatedInDatabase(String contractName) {
+            return new GenericRejectionCause(String.format(ERR_DUPLICATE_CONTRACT, contractName));
         }
 
         /**
          * Verify for each contract that all archive profiles exists in database
+         * 
          * @param contractName
          * @return GenericRejectionCause
          */
-        public static GenericRejectionCause rejectArchiveProfileNotFoundInDatabase(String contractName){
-            return new GenericRejectionCause(String.format(ERR_ARCHIVEPROFILE_NOT_FOUND_CONTRACT , contractName));
+        public static GenericRejectionCause rejectArchiveProfileNotFoundInDatabase(String contractName) {
+            return new GenericRejectionCause(String.format(ERR_ARCHIVEPROFILE_NOT_FOUND_CONTRACT, contractName));
         }
 
         /**
          * Generate RejectionCause from any throwable
+         * 
          * @param contractName the contract name or identifier
          * @param msg custom message
          * @param e throwable
          * @return GenericRejectionCause
          */
         public static GenericRejectionCause rejectExceptionOccurred(String contractName, String msg, Throwable e) {
-            return new GenericRejectionCause(String.format(ERR_CONTRACT_EXCEPTION_OCCURRED , contractName, msg, e.getMessage()));
+            return new GenericRejectionCause(
+                String.format(ERR_CONTRACT_EXCEPTION_OCCURRED, contractName, msg, e.getMessage()));
         }
 
         /**
          * Generate RejectionCause for not found unit for given GUID
+         * 
          * @param contractName the contract name or identifier
          * @param guidArrayAsString root units as string (guid array as string)
          * @return GenericRejectionCause
          */
         public static GenericRejectionCause rejectRootUnitsNotFound(String contractName, String guidArrayAsString) {
-            return new GenericRejectionCause(String.format(ERR_CONTRACT_ROOT_UNITS_NOT_FOUND , contractName, guidArrayAsString));
+            return new GenericRejectionCause(
+                String.format(ERR_CONTRACT_ROOT_UNITS_NOT_FOUND, contractName, guidArrayAsString));
         }
 
         /**
          * Reject if one of multiple mandatory parameter are null
+         * 
          * @param fieldName
          * @return GenericRejectionCause
          */
-        public static GenericRejectionCause rejectMandatoryMissing(String fieldName){
-            return new GenericRejectionCause(String.format(ERR_MANDATORY_FIELD , fieldName));
+        public static GenericRejectionCause rejectMandatoryMissing(String fieldName) {
+            return new GenericRejectionCause(String.format(ERR_MANDATORY_FIELD, fieldName));
         }
 
         public String getReason() {

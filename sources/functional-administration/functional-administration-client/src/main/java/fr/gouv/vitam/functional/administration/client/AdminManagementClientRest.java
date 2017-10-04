@@ -95,7 +95,6 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String RULESMANAGER_CHECK_URL = "/rules/check";
     private static final String RULESMANAGER_IMPORT_URL = "/rules/import";
     private static final String AGENCIESMANAGER_IMPORT_URL = "/agencies/import";
-    private static final String AGENCIESMANAGER_GET_DOCUMENT_URL = "/agencies";
     private static final String AGENCIES_URL = "/agencies";
 
     private static final String RULESMANAGER_GET_DOCUMENT_URL = "/rules/document";

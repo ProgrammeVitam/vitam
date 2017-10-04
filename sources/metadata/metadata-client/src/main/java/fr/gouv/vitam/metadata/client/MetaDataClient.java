@@ -27,15 +27,22 @@
 
 package fr.gouv.vitam.metadata.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.client.BasicClient;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.metadata.api.exception.*;
-import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
-import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
+import java.util.List;
 
 import javax.ws.rs.PathParam;
-import java.util.List;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
+import fr.gouv.vitam.common.client.BasicClient;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
+import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
+import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 
 /**
  * Metadata client interface

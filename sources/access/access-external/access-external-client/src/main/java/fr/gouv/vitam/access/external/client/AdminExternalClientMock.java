@@ -7,17 +7,13 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.model.administration.AgenciesModel;
-import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
-import org.apache.commons.io.IOUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -29,19 +25,19 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.stream.StreamUtils;
 
 /**
  * Mock client implementation for Admin External
  */
 public class AdminExternalClientMock extends AbstractMockClient implements AdminExternalClient {
-    private static final String COLLECTION_NOT_VALID = "Collection not valid";
-
 
     @Override
     public Response checkDocuments(VitamContext vitamContext, AdminCollections documentType,
@@ -266,23 +262,27 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         return ClientMockResultHelper.getAgencies();
     }
 
-    @Override public RequestResponse<AgenciesModel> findAgencyByID(VitamContext vitamContext, String agencyById)
+    @Override
+    public RequestResponse<AgenciesModel> findAgencyByID(VitamContext vitamContext, String agencyById)
         throws VitamClientException {
         return ClientMockResultHelper.getAgencies();
     }
 
     @Override
-    public RequestResponse updateSecurityProfile(VitamContext vitamContext, String identifier, JsonNode queryDsl) throws VitamClientException {
+    public RequestResponse updateSecurityProfile(VitamContext vitamContext, String identifier, JsonNode queryDsl)
+        throws VitamClientException {
         return ClientMockResultHelper.getSecurityProfiles();
     }
 
     @Override
-    public RequestResponse<SecurityProfileModel> findSecurityProfiles(VitamContext vitamContext, JsonNode select) throws VitamClientException {
-        return (RequestResponse<SecurityProfileModel>)ClientMockResultHelper.getSecurityProfiles();
+    public RequestResponse<SecurityProfileModel> findSecurityProfiles(VitamContext vitamContext, JsonNode select)
+        throws VitamClientException {
+        return (RequestResponse<SecurityProfileModel>) ClientMockResultHelper.getSecurityProfiles();
     }
 
     @Override
-    public RequestResponse<SecurityProfileModel> findSecurityProfileById(VitamContext vitamContext, String identifier) throws VitamClientException {
-        return (RequestResponse<SecurityProfileModel>)ClientMockResultHelper.getSecurityProfiles();
+    public RequestResponse<SecurityProfileModel> findSecurityProfileById(VitamContext vitamContext, String identifier)
+        throws VitamClientException {
+        return (RequestResponse<SecurityProfileModel>) ClientMockResultHelper.getSecurityProfiles();
     }
 }

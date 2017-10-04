@@ -48,7 +48,6 @@ public class CreateUnitSecureFileActionPlugin extends CreateSecureFileActionPlug
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CreateUnitSecureFileActionPlugin.class);
     private static final String UNITS_CREATE_SECURED_FILE = "UNITS_CREATE_SECURED_FILE";
     private HandlerIO handlerIO;
-    private boolean asyncIO = false;
 
     /**
      * Empty constructor

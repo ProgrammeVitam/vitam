@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -41,8 +39,7 @@ import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
  * Check Seda Handler
  */
 public class CheckSedaActionHandler extends ActionHandler {
-    
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckSedaActionHandler.class);
+
     private static final String NOT_XSD_VALID = "NOT_XSD_VALID";
     private static final String NOT_XML_FILE = "NOT_XML_FILE";
     private static final String NO_FILE = "NO_FILE";
@@ -50,7 +47,7 @@ public class CheckSedaActionHandler extends ActionHandler {
     private static final String CONTAINER_FORMAT = "CONTAINER_FORMAT";
     private static final String FILE = "FILE";
     private static final String DIRECTORY = "DIRECTORY";
-    private static final String SUBTASK_CHECK_MULTI_MANIFEST = CONTAINER_FORMAT + "." + FILE;    
+    private static final String SUBTASK_CHECK_MULTI_MANIFEST = CONTAINER_FORMAT + "." + FILE;
     private static final String SUBTASK_CHECK_MULTI_FOLDER_CONTENT_ID = CONTAINER_FORMAT + "." + DIRECTORY;
 
     /**
@@ -97,7 +94,7 @@ public class CheckSedaActionHandler extends ActionHandler {
             case MORE_THAN_ONE_MANIFEST:
                 itemStatus.setItemId(SUBTASK_CHECK_MULTI_MANIFEST);
                 itemStatus.increment(StatusCode.KO);
-                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);                
+                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             case MORE_THAN_ONE_FOLDER_CONTENT:
                 itemStatus.setItemId(SUBTASK_CHECK_MULTI_FOLDER_CONTENT_ID);
                 itemStatus.increment(StatusCode.KO);

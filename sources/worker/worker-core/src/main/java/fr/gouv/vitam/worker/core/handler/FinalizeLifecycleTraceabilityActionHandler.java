@@ -128,7 +128,6 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
     private static final String HANDLER_SUB_ACTION_SECURISATION_STORAGE = "OP_SECURISATION_STORAGE";
 
     private HandlerIO handlerIO;
-    private boolean asyncIO = false;
 
     private static final String LOGBOOK = "logbook";
 

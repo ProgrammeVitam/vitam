@@ -73,18 +73,11 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
 
     public static final String UPDATE_UNIT_RULES_TASK_ID = "UPDATE_UNIT_RULES";
 
-    private static final String _DIFF = "$diff";
     private static final String RESULTS = "$results";
-    private static final String DIFF = "#diff";
-    private static final String FINAL_DIFF = "diff";
-    private static final String ID = "#id";
-
     private static final String ARCHIVE_UNIT_NOT_FOUND = "Archive unit not found";
     private static final String MANAGEMENT_KEY = "#management";
     private static final String FIELDS_KEY = "$fields";
     private static final String RULES_KEY = "Rules";
-    private static final String MANAGEMENT_PREFIX = MANAGEMENT_KEY + '.';
-    private static final String RULES_PREFIX = '.' + RULES_KEY;
 
     private LogbookLifeCyclesClient logbookLifeCycleClient;
     private ArchiveUnitUpdateUtils archiveUnitUpdateUtils = new ArchiveUnitUpdateUtils();
