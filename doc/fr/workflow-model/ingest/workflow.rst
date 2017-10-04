@@ -336,7 +336,7 @@ Ecriture des objets sur l'offre de stockage (OBJ_STORAGE)
 Indexation des métadonnées des groupes d'objets (OG_METADATA_INDEXATION)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** : indexation des métadonnées liées aux groupes d'objets, commela taille des objets, les métadonnées liées aux formats (Type MIME, PUID, etc.), l'empreinte des objets, etc.
++ **Règle** : indexation des métadonnées liées aux groupes d'objets, comme la taille des objets, les métadonnées liées aux formats (Type MIME, PUID, etc.), l'empreinte des objets, etc.
 
 + **Type** : bloquant.
 
@@ -371,23 +371,10 @@ Indexation des métadonnées des unités archivistiques (UNIT_METADATA_INDEXATIO
 Enregistrement et écriture des métadonnées des objets et groupes d'objets(STP_OG_STORING)
 ================================================================================================================
 
-Enregistrement des journaux du cycle de vie des groupes d'objets (COMMIT_LIFE_CYCLE_OBJECT_GROUP)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-+ **Règle** : sécurisation en base des journaux du cycle de vie des groupes d'objets (avant cette étape, les journaux du cycle de vie des groupes d'objets sont dans une collection temporaire afin de garder une cohérence entre les métadonnées indexées et les journaux lors d'une entrée en succès ou en échec)
-
-+ **Type** : bloquant.
-
-+ **Statuts** :
-
-  - OK : La sécurisation des journaux du cycle de vie s'est correctement déroulée (COMMIT_LIFE_CYCLE_OBJECT_GROUP.OK=Succès de l'enregistrement des journaux du cycle de vie des groupes d''objets)
-
-  - FATAL : La sécurisation du journal du cycle de vie n'a pas pu être réalisée suite à une erreur technique (COMMIT_LIFE_CYCLE_OBJECT_GROUP.FATAL=Erreur fatale lors de l''enregistrement des journaux du cycle de vie des groupes d'objets)
-
 Ecriture des métadonnées du groupe d'objet sur l'offre de stockage (OG_METADATA_STORAGE)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** : sauvegarde des métadonnées liées aux groupes d'objets sur les offres de stockage en fonction de la stratégie de stockage
++ **Règle** : sauvegarde des métadonnées liées aux groupes d'objets ainsi que leurs journaux de cycle de vie sur les offres de stockage en fonction de la stratégie de stockage
 
 + **Type** : bloquant.
 
@@ -414,23 +401,10 @@ Enregistrement des journaux du cycle de vie des groupes d'objets (COMMIT_LIFE_CY
 Enregistrement et écriture des unités archivistiques (STP_UNIT_STORING)
 ==========================================================================
 
-Enregistrement du journal du cycle de vie des unités archivistiques (COMMIT_LIFE_CYCLE_UNIT)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-+ **Règle** : sécurisation en base des journaux du cycle de vie des unités archivistiques (avant cette étape, les journaux du cycle de vie des unités archivistiques sont dans une collection temporaire afin de garder une cohérence entre les métadonnées indexées et les journaux lors d'une entrée en succès ou en échec)
-
-+ **Type** : bloquant.
-
-+ **Statuts** :
-
-  - OK : La sécurisation des journaux du cycle de vie s'est correctement déroulée (COMMIT_LIFE_CYCLE_UNIT.OK=Succès de l'enregistrement des journaux du cycle de vie des unités archivistiques)
-
-  - FATAL : La sécurisation des journaux du cycle de vie n'a pas pu être réalisée suite à une erreur système (COMMIT_LIFE_CYCLE_UNIT.FATAL=Erreur fatale lors de de l'enregistrement des journaux du cycle de vie des unités archivistiques)
-
 Ecriture des métadonnées de lunité archivistique sur loffre de stockage (UNIT_METADATA_STORAGE)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** : sauvegarde des métadonnées liées aux unités archivistiques sur les offres de stockage en fonction de la stratégie de stockage
++ **Règle** : sauvegarde des métadonnées liées aux unités archivistiques ainsi que leur journaux de cycle de vie sur les offres de stockage en fonction de la stratégie de stockage
 
 + **Type** : bloquant.
 
@@ -656,10 +630,6 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
 - **Step 7** - STP_OG_STORING : Rangement des métadonnées des objets
 
-  * COMMIT_LIFE_CYCLE_OBJECT_GROUP (CommitLifeCycleObjectGroupActionHandler.java)
-
-    + Enregistrement en base des journaux du cycle de vie des groupes d'objets
-
   * OG_METADATA_STORAGE (StoreMetaDataObjectGroupActionPlugin.java) :
 
     + Ecriture sur les offres de stockage des métadonnées des groupes d'objets.
@@ -669,10 +639,6 @@ D'une façon synthétique, le workflow est décrit de cette façon :
     + Enregistrement en base des journaux du cycle de vie des groupes d'objets
 
 - **Step 8** - STP_UNIT_STORING : Rangement des unités archivistique / distribution sur LIST GUID/Units
-
-  * COMMIT_LIFE_CYCLE_UNIT (CommitLifeCycleUnitActionHandler.java)
-
-    + Transformation sous la forme Json des unités archivistiques et intégration du GUID Unit et du GUID des groupes d'objets
 
   * UNIT_METADATA_STORAGE (StoreMetaDataUnitActionPlugin.java.java) :
 

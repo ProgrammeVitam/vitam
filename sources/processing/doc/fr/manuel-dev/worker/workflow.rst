@@ -135,17 +135,13 @@ Etapes
 
 - **Step 7** - STP_OG_STORING : Rangement des métadonnées des objets
 
-  - COMMIT_LIFE_CYCLE_OBJECT_GROUP : Écriture des objets sur l’offre de stockage des BDO des GO
-
-  - OG_METADATA_STORAGE : Enregistrement en base des métadonnées des ObjectGroup
+  - OG_METADATA_STORAGE : Enregistrement en base des métadonnées des ObjectGroup ainsi que leurs journaux de cycle de vie
 
   - COMMIT_LIFE_CYCLE_OBJECT_GROUP : Écriture des objets sur l’offre de stockage des BDO des GO
 
 - **Step 8** - STP_UNIT_STORING : Index Units / distribution sur LIST GUID/Units
 
-  - COMMIT_LIFE_CYCLE_UNIT : Écriture des métadonnées des Units sur l’offre de stockage des BDO des GO
-
-  - UNIT_METADATA_STORAGE : Enregistrement en base des métadonnées des Units
+  - UNIT_METADATA_STORAGE : Enregistrement en base des métadonnées des Units ainsi que leurs journaux de cycle de vie
 
   - COMMIT_LIFE_CYCLE_UNIT : Écriture des métadonnées des Units sur l’offre de stockage des BDO des GO
 
