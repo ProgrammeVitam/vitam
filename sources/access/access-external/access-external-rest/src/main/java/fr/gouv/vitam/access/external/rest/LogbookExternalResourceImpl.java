@@ -56,6 +56,7 @@ import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.Secured;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 
 /**
  * AccessResourceImpl implements AccessResource
@@ -155,6 +156,14 @@ public class LogbookExternalResourceImpl {
             RequestResponse<JsonNode> result = client.selectOperationById(operationId, queryDsl);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
+        } catch (LogbookClientNotFoundException e) {
+            LOGGER.error("Client exception while trying to get operation by id: ", e);
+            status = Status.NOT_FOUND;
+            return Response.status(status)
+                    .entity(VitamCodeHelper
+                            .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
+                            .setHttpCode(status.getStatusCode()))
+                    .build();
         } catch (final LogbookClientException e) {
             LOGGER.error("Client exception while trying to get operation by id: ", e);
             status = Status.INTERNAL_SERVER_ERROR;

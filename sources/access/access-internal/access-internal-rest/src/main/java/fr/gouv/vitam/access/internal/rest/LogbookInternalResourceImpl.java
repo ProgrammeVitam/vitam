@@ -168,6 +168,10 @@ public class LogbookInternalResourceImpl {
             queryDsl = parser.getRequest().getFinalSelect();
             final JsonNode result = client.selectOperationById(operationId, queryDsl);
             return Response.status(Status.OK).entity(result).build();
+        } catch (final LogbookClientNotFoundException e) {
+            LOGGER.error(e);
+            status = Status.NOT_FOUND;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
@@ -444,11 +448,6 @@ public class LogbookInternalResourceImpl {
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response downloadTraceabilityOperation(@PathParam("idOperation") String operationId) {
 
-        return downloadObject(operationId);
-    }
-
-    private Response downloadObject(String operationId) {
-
         // Get the TRACEABILITY operation
         LogbookOperation operationToCheck = null;
         try (LogbookOperationsClient logbookOperationsClient =
@@ -479,6 +478,11 @@ public class LogbookInternalResourceImpl {
                 return Response.status(Status.BAD_REQUEST)
                     .entity(getErrorStream(Status.BAD_REQUEST, "Not a traceability operation")).build();
             }
+        } catch (final LogbookClientNotFoundException e) {
+            LOGGER.error(e.getMessage(), e);
+            // More than operation found return BAD_REQUEST response
+            return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorStream(Status.BAD_REQUEST, "Operation not found")).build();
         } catch (InvalidParseOperationException | InvalidCreateOperationException | LogbookClientException |
             IllegalArgumentException e) {
             LOGGER.error(e.getMessage(), e);
