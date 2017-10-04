@@ -3,6 +3,7 @@ package fr.gouv.vitam.access.external.client;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
@@ -24,7 +25,17 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
+import fr.gouv.vitam.common.security.rest.Secured;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Assert;
 import org.junit.Test;
@@ -198,7 +209,6 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         public Response checkExistenceAudit(JsonNode query) {
             return expectedResponse.post();
         }
-
     }
 
     @Test
@@ -763,6 +773,33 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         JsonNode auditOption = JsonHandler.getFromString(AUDIT_OPTION);
         assertThat(client.launchAudit(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), auditOption).getHttpCode()).isEqualTo(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void testImportSecurityProfiles()
+            throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.OK).build());
+        assertEquals(
+                client.createDocuments(new VitamContext(TENANT_ID), AdminCollections.SECURITY_PROFILES,
+                        new ByteArrayInputStream("test".getBytes()), "test.csv"
+                ),
+                Status.OK);
+    }
+
+    @Test
+    public void testFindSecurityProfiles()
+            throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getSecurityProfiles()).build());
+        assertThat(client.findSecurityProfileById(
+                new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID).isOk()).isTrue();
+    }
+
+    @Test
+    public void testFindSecurityProfileById()
+            throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getSecurityProfiles()).build());
+        assertThat(client.findSecurityProfileById(
+                new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID).isOk()).isTrue();
     }
 
 }

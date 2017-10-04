@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 
 /**
@@ -57,8 +58,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     private static final String UPDATE_ACCESS_CONTRACT = AccessExtAPI.ACCESS_CONTRACT_API_UPDATE + "/";
     private static final String UPDATE_INGEST_CONTRACT = AccessExtAPI.ENTRY_CONTRACT_API_UPDATE + "/";
     private static final String UPDATE_CONTEXT = AccessExtAPI.CONTEXTS_API_UPDATE + "/";
+    private static final String UPDATE_SECURITY_PROFILE = AccessExtAPI.SECURITY_PROFILES+ "/";
     private static final String LOGBOOK_CHECK = AccessExtAPI.TRACEABILITY_API + "/check";
-
 
 
     AdminExternalClientRest(AdminExternalClientFactory factory) {
@@ -159,6 +160,14 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         throws VitamClientException {
         return internalFindDocuments(vitamContext, AdminCollections.ACCESSION_REGISTERS, select,
             AccessionRegisterSummaryModel.class);
+    }
+
+    @Override
+    public RequestResponse<SecurityProfileModel> findSecurityProfiles(
+            VitamContext vitamContext, JsonNode select)
+            throws VitamClientException {
+        return internalFindDocuments(vitamContext, AdminCollections.SECURITY_PROFILES, select,
+                SecurityProfileModel.class);
     }
 
 
@@ -637,4 +646,28 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             AgenciesModel.class);
     }
 
+    @Override
+    public RequestResponse<SecurityProfileModel> findSecurityProfileById(
+            VitamContext vitamContext, String identifier) throws VitamClientException {
+        return internalFindDocumentById(vitamContext, AdminCollections.SECURITY_PROFILES, identifier, SecurityProfileModel.class);
+    }
+
+    @Override
+    public RequestResponse updateSecurityProfile(VitamContext vitamContext, String identifier, JsonNode queryDsl) throws VitamClientException {
+
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.putAll(vitamContext.getHeaders());
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.PUT, UPDATE_SECURITY_PROFILE + identifier, headers,
+                    queryDsl, MediaType.APPLICATION_JSON_TYPE,
+                    MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new VitamClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
 }

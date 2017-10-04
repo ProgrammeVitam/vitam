@@ -74,7 +74,12 @@ public enum AdminCollections {
     /**
      * Traceability collection
      */
-    TRACEABILITY(AccessExtAPI.TRACEABILITY);
+    TRACEABILITY(AccessExtAPI.TRACEABILITY),
+
+    /**
+     * Security profile collection
+     */
+    SECURITY_PROFILES(AccessExtAPI.SECURITY_PROFILES);
 
     private String name;
 
