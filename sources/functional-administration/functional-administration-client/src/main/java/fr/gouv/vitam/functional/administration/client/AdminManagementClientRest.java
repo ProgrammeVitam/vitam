@@ -381,7 +381,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             final SelectParserSingle parser = new SelectParserSingle();
             Select select = new Select();
             parser.parse(select.getFinalSelect());
-            parser.addCondition(QueryHelper.eq(AgenciesModel.IDENTIFIER, id));
+            parser.addCondition(QueryHelper.eq(AgenciesModel.TAG_IDENTIFIER, id));
             JsonNode queryDsl = parser.getRequest().getFinalSelect();
             response = performRequest(HttpMethod.GET, AGENCIES_URL, null, queryDsl,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
@@ -1108,10 +1108,10 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         RequestResponse result = null;
         try {
             response = performRequest(HttpMethod.POST, AUDIT_URI, null, options,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);           
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             return RequestResponse.parseFromResponse(response);
-            
+
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);

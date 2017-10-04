@@ -264,7 +264,7 @@ public class ContextServiceImpl implements ContextService {
 
         final ContextModel contextModel = findOneContextById(id);
         manager.logUpdateStarted(contextModel.getId());
-        final JsonNode permissionsNode = queryDsl.findValue(ContextModel.PERMISSIONS);
+        final JsonNode permissionsNode = queryDsl.findValue(ContextModel.TAG_PERMISSIONS);
         if (permissionsNode != null && permissionsNode.isArray()) {
             for (JsonNode permission : permissionsNode) {
                 PermissionModel permissionModel = JsonHandler.getFromJsonNode(permission, PermissionModel.class);

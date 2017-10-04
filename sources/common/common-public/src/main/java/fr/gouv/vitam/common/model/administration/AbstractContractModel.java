@@ -34,40 +34,40 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class AbstractContractModel {
 
-    public static final String DESCRIPTION = "Description";
+    public static final String TAG_DESCRIPTION = "Description";
 
-    public static final String NAME = "Name";
+    public static final String TAG_NAME = "Name";
 
-    public static final String IDENTIFIER = "Identifier";
+    public static final String TAG_IDENTIFIER = "Identifier";
 
-    private static final String TENANT = "_tenant";
+    private static final String TAG_TENANT = "_tenant";
 
-    public static final String ID = "_id";
+    public static final String TAG_ID = "_id";
 
-    public static final String STATUS = "Status";
+    public static final String TAG_STATUS = "Status";
 
     /**
      * unique identifier
      */
-    @JsonProperty(ID)
+    @JsonProperty(TAG_ID)
     private String id;
 
     /**
      * tenant id
      */
-    @JsonProperty(TENANT)
+    @JsonProperty(TAG_TENANT)
     private Integer tenant;
 
-    @JsonProperty(NAME)
+    @JsonProperty(TAG_NAME)
     private String name;
 
-    @JsonProperty(IDENTIFIER)
+    @JsonProperty(TAG_IDENTIFIER)
     private String identifier;
 
-    @JsonProperty(DESCRIPTION)
+    @JsonProperty(TAG_DESCRIPTION)
     private String description;
 
-    @JsonProperty(STATUS)
+    @JsonProperty(TAG_STATUS)
     private String status;
 
     @JsonProperty("CreationDate")

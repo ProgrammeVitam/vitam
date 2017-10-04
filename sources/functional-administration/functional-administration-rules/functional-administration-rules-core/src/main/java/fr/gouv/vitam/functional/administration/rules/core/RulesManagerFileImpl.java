@@ -1147,7 +1147,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
 
 
     /**
-     * Check existance of file rules linked to unit in database
+     * Check existence of file rules linked to unit in database
      *
      * @param fileRulesModelToCheck fileRulesModelToCheck
      * @param rulesLinkedToUnit rulesLinkedToUnit
@@ -1162,7 +1162,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         try {
             for (FileRulesModel fileRulesModel : fileRulesModelToCheck) {
                 ArrayNode arrayNodeResult =
-                    checkUnitLinkedtofileRules(fileRulesLinkedToUnitQueryBuilder(fileRulesModel),
+                    checkUnitLinkedtofileRulesInDatabase(fileRulesLinkedToUnitQueryBuilder(fileRulesModel),
                         fileRulesModel.getRuleId());
                 if (arrayNodeResult != null && arrayNodeResult.size() > 0) {
                     linked = true;
@@ -1548,7 +1548,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
      * @throws FileFormatNotFoundException when no results found
      * @throws ReferentialException when error occurs
      */
-    private ArrayNode checkUnitLinkedtofileRules(JsonNode select, String ruleFilesId)
+    private ArrayNode checkUnitLinkedtofileRulesInDatabase(JsonNode select, String ruleFilesId)
         throws FileFormatNotFoundException, ReferentialException {
         ArrayNode resultUnitsArray = null;
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {

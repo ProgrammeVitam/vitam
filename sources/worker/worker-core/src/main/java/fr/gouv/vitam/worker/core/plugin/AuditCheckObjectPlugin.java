@@ -63,7 +63,7 @@ public class AuditCheckObjectPlugin extends ActionHandler {
             // param.getObjectName() get id of the object group
             JsonNode searchResult =
                 metadataClient.selectObjectGrouptbyId(new SelectMultiQuery().getFinalSelect(), param.getObjectName());
-            JsonNode ogNode = searchResult.get(RequestResponseOK.RESULTS);
+            JsonNode ogNode = searchResult.get(RequestResponseOK.TAG_RESULTS);
             if (ogNode != null && ogNode.size() > 0) {
                 handler.getInput().add(ogNode.get(0));
             } else {

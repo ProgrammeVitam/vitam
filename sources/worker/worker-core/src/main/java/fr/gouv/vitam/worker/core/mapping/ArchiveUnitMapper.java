@@ -176,13 +176,16 @@ public class ArchiveUnitMapper {
         if (archiveUnit.getManagement().getClassification() != null &&
             archiveUnit.getManagement().getClassification().getRules().size() > 0) {
             RuleModel lastRule = Iterables.getLast(archiveUnit.getManagement().getClassification().getRules());
-            lastRule.setClassificationLevel(classificationRule.getClassificationLevel());
-            lastRule.setClassificationOwner(classificationRule.getClassificationOwner());
-            if (classificationRule.getClassificationReassessingDate() != null) {
-                lastRule
-                    .setClassificationReassessingDate(classificationRule.getClassificationReassessingDate().toString());
+            if (classificationRule != null) {
+                lastRule.setClassificationLevel(classificationRule.getClassificationLevel());
+                lastRule.setClassificationOwner(classificationRule.getClassificationOwner());
+                if (classificationRule.getClassificationReassessingDate() != null) {
+                    lastRule
+                        .setClassificationReassessingDate(
+                            classificationRule.getClassificationReassessingDate().toString());
+                }
+                lastRule.setNeedReassessingAuthorization(classificationRule.isNeedReassessingAuthorization());
             }
-            lastRule.setNeedReassessingAuthorization(classificationRule.isNeedReassessingAuthorization());
         }
     }
 

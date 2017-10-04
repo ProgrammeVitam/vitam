@@ -187,7 +187,7 @@ public class PrepareAuditActionHandler extends ActionHandler {
             RequestResponse<AccessionRegisterSummaryModel> results =
                 client.getAccessionRegister(selectQuery.getFinalSelect());
 
-            JsonNode searchResults = results.toJsonNode().get(RequestResponseOK.RESULTS);
+            JsonNode searchResults = results.toJsonNode().get(RequestResponseOK.TAG_RESULTS);
             if (searchResults.isArray()) {
                 for (JsonNode og : searchResults) {
                     String registerName = og.get(ORIGINATING_AGENCY).asText();

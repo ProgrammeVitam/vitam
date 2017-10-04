@@ -53,23 +53,23 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
     /**
      * result detail in response
      */
-    private static final String HITS = "$hits";
+    private static final String TAG_HITS = "$hits";
 
     /**
      * result in response
      */
-    public static final String RESULTS = "$results";
+    public static final String TAG_RESULTS = "$results";
 
     /**
      * context in response
      */
-    public static final String CONTEXT = "$context";
+    public static final String TAG_CONTEXT = "$context";
 
-    @JsonProperty(HITS)
+    @JsonProperty(TAG_HITS)
     private DatabaseCursor hits;
-    @JsonProperty(RESULTS)
+    @JsonProperty(TAG_RESULTS)
     private final List<T> results;
-    @JsonProperty(CONTEXT)
+    @JsonProperty(TAG_CONTEXT)
     private JsonNode query;
 
     /**

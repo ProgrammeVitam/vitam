@@ -616,8 +616,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     }
 
     private void resetQuery(JsonNode result, JsonNode queryDsl) {
-        if (result != null && result.has(RequestResponseOK.CONTEXT)) {
-            ((ObjectNode) result).set(RequestResponseOK.CONTEXT, queryDsl);
+        if (result != null && result.has(RequestResponseOK.TAG_CONTEXT)) {
+            ((ObjectNode) result).set(RequestResponseOK.TAG_CONTEXT, queryDsl);
         }
     }
 

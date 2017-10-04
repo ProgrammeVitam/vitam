@@ -201,7 +201,7 @@ public class WorkerImpl implements Worker {
             new ListLifecycleTraceabilityActionHandler());
         actions.put(FinalizeLifecycleTraceabilityActionHandler.getId(),
             new FinalizeLifecycleTraceabilityActionHandler());
-        
+
         actions.put(GenerateAuditReportActionHandler.getId(),
             new GenerateAuditReportActionHandler());
     }
@@ -257,19 +257,21 @@ public class WorkerImpl implements Worker {
 
                             ItemStatus pluginResponse;
                             LOGGER.debug("START plugin ", actionDefinition.getActionKey(), step.getStepName());
-                            boolean shouldWriteLFC = (!actionPlugin.lfcHandledInternally()) && 
+                            boolean shouldWriteLFC = (!actionPlugin.lfcHandledInternally()) &&
                                 ((step.getDistribution().getKind().equals(DistributionKind.LIST) ||
-                                     step.getDistribution().getKind().equals(DistributionKind.LIST_IN_FILE)) &&
-                                (!step.getDistribution().getElement().equals(UNIT_LIST_WITHOUT_LEVEL) &&
-                                    !step.getDistribution().getElement().equals(OG_LIST_WITHOUT_LEVEL)));
+                                    step.getDistribution().getKind().equals(DistributionKind.LIST_IN_FILE)) &&
+                                    (!step.getDistribution().getElement().equals(UNIT_LIST_WITHOUT_LEVEL) &&
+                                        !step.getDistribution().getElement().equals(OG_LIST_WITHOUT_LEVEL)));
                             if (shouldWriteLFC) {
-                                LogbookLifeCycleParameters lfcParam = createStartLogbookLfc(step, handlerName, workParams);
+                                LogbookLifeCycleParameters lfcParam =
+                                    createStartLogbookLfc(step, handlerName, workParams);
                                 pluginResponse = actionPlugin.execute(workParams, handlerIO);
                                 if (!StatusCode.ALREADY_EXECUTED.equals(pluginResponse.getGlobalStatus())) {
                                     // LFC STARTED
                                     logbookLfcClient.update(lfcParam);
                                     // LFC AFTER
-                                    writeLogBookLfcFromResponse(handlerName, logbookLfcClient, pluginResponse, lfcParam);
+                                    writeLogBookLfcFromResponse(handlerName, logbookLfcClient, pluginResponse,
+                                        lfcParam);
                                 }
                             } else {
                                 pluginResponse = actionPlugin.execute(workParams, handlerIO);
@@ -359,8 +361,10 @@ public class WorkerImpl implements Worker {
                 VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.STARTED),
                 GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(workParams)));
         }
-        lfcParam.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
+        if (lfcParam != null) {
+            lfcParam.putParameterValue(LogbookParameterName.eventDateTime,
+                LocalDateUtil.now().toString());
+        }
         return lfcParam;
     }
 
@@ -398,7 +402,8 @@ public class WorkerImpl implements Worker {
             }
             entry.getValue().getSubTaskStatus().clear();
         }
-        // FIXME : If one step has more than one action that is executed by a plugin, the output of the LFC will be incorrect
+        // FIXME : If one step has more than one action that is executed by a plugin, the output of the LFC will be
+        // incorrect
         // That is because at the first plugin execution end we write the end event for all the setp
         for (int i = logbookParamList.size() - 1; i >= 0; i--) {
             logbookLfcClient.update(logbookParamList.get(i));

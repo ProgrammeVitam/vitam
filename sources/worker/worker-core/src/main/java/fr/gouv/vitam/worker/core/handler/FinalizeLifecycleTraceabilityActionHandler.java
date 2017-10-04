@@ -159,17 +159,22 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
         } catch (IOException e) {
             LOGGER.error("Processing exception", e);
         }
-        try {
-            final File file = PropertiesUtils.findFile(configuration.getP12LogbookFile());
-            timeStampSignature =
-                new TimeStampSignatureWithKeystore(file, configuration.getP12LogbookPassword().toCharArray());
-        } catch (KeyStoreException | CertificateException | IOException | UnrecoverableKeyException |
-            NoSuchAlgorithmException e) {
-            LOGGER.error("unable to instanciate TimeStampGenerator", e);
-            throw new RuntimeException(e);
+        if (configuration != null) {
+            try {
+                final File file = PropertiesUtils.findFile(configuration.getP12LogbookFile());
+                timeStampSignature =
+                    new TimeStampSignatureWithKeystore(file, configuration.getP12LogbookPassword().toCharArray());
+            } catch (KeyStoreException | CertificateException | IOException | UnrecoverableKeyException |
+                NoSuchAlgorithmException e) {
+                LOGGER.error("unable to instanciate TimeStampGenerator", e);
+                throw new RuntimeException(e);
+            }
+            timestampGenerator = new TimestampGenerator(timeStampSignature);
+            joiner = Joiner.on("").skipNulls();
+        } else {
+            LOGGER.error("unable to instanciate TimeStampGenerator");
+            throw new RuntimeException("Configuration is null");
         }
-        timestampGenerator = new TimestampGenerator(timeStampSignature);
-        joiner = Joiner.on("").skipNulls();
     }
 
     @Override

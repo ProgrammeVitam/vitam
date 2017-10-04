@@ -73,9 +73,8 @@ public class ObjectGroupMapper {
     }
 
     /**
-     * Map the object objectGroupResponse generated from queryDsl Response
-     * To a jaxb object DataObjectPackageType
-     * This help convert DslQueryResponse to xml using jaxb
+     * Map the object objectGroupResponse generated from queryDsl Response To a jaxb object DataObjectPackageType This
+     * help convert DslQueryResponse to xml using jaxb
      *
      * @param objectGroupResponse the given queryDsl response for object Group
      * @return jaxb DataObjectPackageType
@@ -103,18 +102,20 @@ public class ObjectGroupMapper {
                 } else {
                     final BinaryDataObjectType binaryDataObjectType = new BinaryDataObjectType();
                     final BinaryObjectType binaryObjectType = new BinaryObjectType();
-                    //FIXME : BinaryDataObjectType.Compressed not supported yet in SIP ingest
-                    //  final BinaryDataObjectType.Compressed compressed = new BinaryDataObjectType.Compressed();
-                    //  compressed.setAlgorithm(version.getAlgorithm());
-                    //  binaryDataObjectType.setCompressed(compressed);
-                    final FormatIdentificationType formatIdentificationType = new FormatIdentificationType();
-                    final FormatIdentificationModel formatIdentification = version.getFormatIdentification();
-                    if (formatIdentification != null) {
-                        formatIdentificationType.setFormatLitteral(formatIdentification.getFormatLitteral());
-                        formatIdentificationType.setMimeType(formatIdentification.getMimeType());
-                        formatIdentificationType.setFormatId(formatIdentification.getFormatId());
-                        formatIdentificationType.setEncoding(formatIdentification.getEncoding());
-                        binaryDataObjectType.setFormatIdentification(formatIdentificationType);
+                    // FIXME : BinaryDataObjectType.Compressed not supported yet in SIP ingest
+                    // final BinaryDataObjectType.Compressed compressed = new BinaryDataObjectType.Compressed();
+                    // compressed.setAlgorithm(version.getAlgorithm());
+                    // binaryDataObjectType.setCompressed(compressed);
+                    if (version != null) {
+                        final FormatIdentificationType formatIdentificationType = new FormatIdentificationType();
+                        final FormatIdentificationModel formatIdentification = version.getFormatIdentification();
+                        if (formatIdentification != null) {
+                            formatIdentificationType.setFormatLitteral(formatIdentification.getFormatLitteral());
+                            formatIdentificationType.setMimeType(formatIdentification.getMimeType());
+                            formatIdentificationType.setFormatId(formatIdentification.getFormatId());
+                            formatIdentificationType.setEncoding(formatIdentification.getEncoding());
+                            binaryDataObjectType.setFormatIdentification(formatIdentificationType);
+                        }
                     }
                     final FileInfoType fileInfoType = new FileInfoType();
                     final FileInfoModel fileInfoModel = version.getFileInfoModel();
@@ -169,10 +170,10 @@ public class ObjectGroupMapper {
     /**
      * Map Common informations contains in MinimalDataObjectType
      *
-     * @param version               the version of the model to map
-     * @param minimalDataObjectType the given minimalDataObjectType to complete can be (physicalDataObjectType
-     *                              or binaryDataObjectType
-     * @param <T>                   object that extend MinimalDataObjectType
+     * @param version the version of the model to map
+     * @param minimalDataObjectType the given minimalDataObjectType to complete can be (physicalDataObjectType or
+     *        binaryDataObjectType
+     * @param <T> object that extend MinimalDataObjectType
      * @return the given object that extend MinimalDataObjectType
      */
     public <T extends MinimalDataObjectType> T mapCommonInformations(final VersionsModel version,

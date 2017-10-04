@@ -195,7 +195,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
             QueryHelper.eq(EV_TYPE_PROC, AUDIT)));
 
         JsonNode result = jopClient.selectOperation(select.getFinalSelect());
-        JsonNode res = result.get(RequestResponseOK.RESULTS).get(0);
+        JsonNode res = result.get(RequestResponseOK.TAG_RESULTS).get(0);
         report.put("DateTime", res.get("evDateTime").textValue());
 
         ArrayNode events = (ArrayNode) res.get(EVENT);
@@ -223,7 +223,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
 
         try {
             JsonNode result = jopClient.selectOperation(selectQuery.getFinalSelect());
-            for (JsonNode res : result.get(RequestResponseOK.RESULTS)){
+            for (JsonNode res : result.get(RequestResponseOK.TAG_RESULTS)){
                 if (res.get("agIdExt") != null ) {
                     final String agIdExt = res.get("agIdExt").asText();
                     final JsonNode agIdExtNode =JsonHandler.getFromString(agIdExt);
@@ -256,7 +256,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
         try {
             JsonNode result = lfcClient.selectObjectGroupLifeCycle(selectQuery.getFinalSelect());
 
-            for (JsonNode res : result.get(RequestResponseOK.RESULTS)) {
+            for (JsonNode res : result.get(RequestResponseOK.TAG_RESULTS)) {
                 JsonNode events = res.get(EVENT);
                 for (JsonNode event : events) {
                     if (event.get(EV_TYPE).asText().equals("LFC.AUDIT_CHECK_OBJECT")
@@ -305,7 +305,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
             RequestResponse<AccessionRegisterSummaryModel> results =
                 client.getAccessionRegister(selectQuery.getFinalSelect());
 
-            JsonNode searchResults = results.toJsonNode().get(RequestResponseOK.RESULTS);
+            JsonNode searchResults = results.toJsonNode().get(RequestResponseOK.TAG_RESULTS);
             if (searchResults.isArray()) {
                 for (JsonNode og : searchResults) {
                     String registerName = og.get(ORIGINATING_AGENCY).asText();

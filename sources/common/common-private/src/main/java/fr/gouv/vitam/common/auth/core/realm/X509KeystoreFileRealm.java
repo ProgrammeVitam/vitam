@@ -95,23 +95,27 @@ public class X509KeystoreFileRealm extends AbstractX509Realm {
             ParametersChecker.checkParameter(grantedKeyStorePassphrase, "grantedKeyStorePassphrase cannot be null");
             ParametersChecker.checkParameter(trustedKeyStorePassphrase, "trustedKeyStorePassphrase cannot be null");
             final KeyStore trustedks = readAndLoadKeystore(trustedKeyStoreName, trustedKeyStorePassphrase);
-            for (final Enumeration<String> e = trustedks.aliases(); e.hasMoreElements();) {
-                final String alias = e.nextElement();
-                grantedIssuers.add((X509Certificate) trustedks.getCertificate(alias));
+            if (trustedks != null) {
+                for (final Enumeration<String> e = trustedks.aliases(); e.hasMoreElements();) {
+                    final String alias = e.nextElement();
+                    grantedIssuers.add((X509Certificate) trustedks.getCertificate(alias));
+                }
             }
 
             final KeyStore grantedks = readAndLoadKeystore(grantedKeyStoreName, grantedKeyStorePassphrase);
-            for (final Enumeration<String> e = grantedks.aliases(); e.hasMoreElements();) {
-                final String alias = e.nextElement();
-                final X509Certificate x509cert = (X509Certificate) grantedks.getCertificate(alias);
-                if (new Sha256Hash(x509cert.getEncoded())
-                    .equals(new Sha256Hash(x509AuthenticationToken.getX509Certificate().getEncoded()))) {
-                    x509AuthenticationInfo = new X509AuthenticationInfo(
-                        x509AuthenticationToken.getSubjectDN(),
-                        x509AuthenticationToken.getX509Certificate(),
-                        grantedIssuers,
-                        REALM_NAME);
-                    break;
+            if (grantedks != null) {
+                for (final Enumeration<String> e = grantedks.aliases(); e.hasMoreElements();) {
+                    final String alias = e.nextElement();
+                    final X509Certificate x509cert = (X509Certificate) grantedks.getCertificate(alias);
+                    if (new Sha256Hash(x509cert.getEncoded())
+                        .equals(new Sha256Hash(x509AuthenticationToken.getX509Certificate().getEncoded()))) {
+                        x509AuthenticationInfo = new X509AuthenticationInfo(
+                            x509AuthenticationToken.getSubjectDN(),
+                            x509AuthenticationToken.getX509Certificate(),
+                            grantedIssuers,
+                            REALM_NAME);
+                        break;
+                    }
                 }
             }
             if (x509AuthenticationInfo != null) {
