@@ -1431,7 +1431,7 @@ public class AdminManagementExternalResourceImpl {
      * @throws AdminManagementClientServerException
      * @throws InvalidParseOperationException
      */
-    @Path("/context/{id:.+}")
+    @Path("/contexts/{id:.+}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
