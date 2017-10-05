@@ -370,11 +370,11 @@ public class ClientMockResultHelper {
         accessionRegister.setOriginatingAgency("FRAN_NP_005568");
         accessionRegister.setCreationDate("22016-11-04T20:40:49.030");
         accessionRegister
-            .setTotalObjectsGroups(new RegisterValueDetailModel().setTotal(3).setDeleted(0).setRemained(3));
-        accessionRegister.setTotalUnits(new RegisterValueDetailModel().setTotal(3).setDeleted(0).setRemained(3));
-        accessionRegister.setTotalObjects(new RegisterValueDetailModel().setTotal(12).setDeleted(0).setRemained(12));
+            .setTotalObjectsGroups(new RegisterValueDetailModel().setIngested(3).setDeleted(0).setRemained(3));
+        accessionRegister.setTotalUnits(new RegisterValueDetailModel().setIngested(3).setDeleted(0).setRemained(3));
+        accessionRegister.setTotalObjects(new RegisterValueDetailModel().setIngested(12).setDeleted(0).setRemained(12));
         accessionRegister
-            .setObjectSize(new RegisterValueDetailModel().setTotal(1035126).setDeleted(0).setRemained(1035126));
+            .setObjectSize(new RegisterValueDetailModel().setIngested(1035126).setDeleted(0).setRemained(1035126));
         return accessionRegister;
     }
 

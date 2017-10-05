@@ -73,7 +73,7 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminF
 
 public class ReferentialAccessionRegisterImplTest {
     static String FILE_TO_TEST_OK = "accession-register.json";
-    static String FILE_TO_TEST_SYMBOLIC_OK = "accession-register_detached.json";    
+    static String FILE_TO_TEST_SYMBOLIC_OK = "accession-register_detached.json";
     File pronomFile = null;
     private static final Integer TENANT_ID = 0;
 
@@ -140,8 +140,9 @@ public class ReferentialAccessionRegisterImplTest {
         assertEquals(1, collection.count());
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
         assertEquals(1, collection.count());
-        final JsonNode totalUnit = JsonHandler.toJsonNode(collection.find().first().get("TotalUnits"));
-        assertEquals(2, totalUnit.get("total").asInt());
+        final JsonNode totalUnit =
+            JsonHandler.toJsonNode(collection.find().first().get(AccessionRegisterSummary.TOTAL_UNITS));
+        assertEquals(2, totalUnit.get(AccessionRegisterSummary.INGESTED).asInt());
         register.setOriginatingAgency("newOriginalAgency");
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
         assertEquals(2, collection.count());
@@ -165,7 +166,7 @@ public class ReferentialAccessionRegisterImplTest {
         ReferentialAccessionRegisterImpl.resetIndexAfterImport();
 
         register.setOriginatingAgency("testFindAccessionRegisterDetailAgency");
-        
+
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         assertEquals(1, collection.count());
@@ -201,10 +202,10 @@ public class ReferentialAccessionRegisterImplTest {
         final AccessionRegisterSummary item = summary.getResults().get(0);
         assertEquals("OriginatingAgency", item.getOriginatingAgency());
         assertEquals(1, item.getTotalObjects().getRemained());
-        assertEquals(1, item.getTotalObjects().getTotal());
+        assertEquals(1, item.getTotalObjects().getIngested());
         assertEquals(0, item.getTotalObjects().getDeleted());
         assertEquals(1, item.getTotalObjects().getAttached());
         assertEquals(0, item.getTotalObjects().getDetached());
-        assertEquals(1, item.getTotalObjects().getTotalSymbolic());
+        assertEquals(1, item.getTotalObjects().getSymbolicRemained());
     }
 }

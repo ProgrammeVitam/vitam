@@ -66,9 +66,9 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
      */
     public static final String OBJECT_SIZE = "ObjectSize";
     /**
-     * the total field of accession register
+     * the ingested field of accession register
      */
-    public static final String TOTAL = "total";
+    public static final String INGESTED = "ingested";
     /**
      * the deleted field of accession register
      */
@@ -86,9 +86,9 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
      */
     public static final String ATTACHED = "attached";
     /**
-     * the total Symbolic field of accession register
+     * the symbolic Remained field of accession register
      */
-    public static final String TOTAL_SYMBOLIC = "totalSymbolic";
+    public static final String SYMBOLIC_REMAINED = "symbolicRemained";
     /**
      * the creationDate field of accession register
      */

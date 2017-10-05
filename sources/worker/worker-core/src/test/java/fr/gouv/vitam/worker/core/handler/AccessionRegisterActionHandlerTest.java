@@ -29,10 +29,11 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +47,7 @@ import org.junit.Test;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.IOParameter;
@@ -57,7 +59,10 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
@@ -81,11 +86,11 @@ public class AccessionRegisterActionHandlerTest {
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    
-    
+
+
     MetaDataClient metaDataClient = mock(MetaDataClient.class);
     MetaDataClientFactory metaDataClientFactory = mock(MetaDataClientFactory.class);
-    
+
     AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
     AdminManagementClientFactory adminManagementClientFactory = mock(AdminManagementClientFactory.class);
 
@@ -98,7 +103,7 @@ public class AccessionRegisterActionHandlerTest {
                 .setObjectNameList(Lists.newArrayList("objectName.json")).setObjectName("objectName.json")
                 .setCurrentStep("currentStep").setContainerName(guid.getId());
         handlerIO = new HandlerIOImpl(guid.getId(), "workerId");
-        
+
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
     }
@@ -114,9 +119,9 @@ public class AccessionRegisterActionHandlerTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         GUID operationId = GUIDFactory.newGUID();
-        VitamThreadUtils.getVitamSession().setRequestId(operationId);        
+        VitamThreadUtils.getVitamSession().setRequestId(operationId);
 
-        params.setContainerName(operationId.getId());        
+        params.setContainerName(operationId.getId());
 
         List<UnitPerOriginatingAgency> originatingAgencies = new ArrayList<>();
         originatingAgencies.add(new UnitPerOriginatingAgency("sp1", 3));
@@ -151,8 +156,150 @@ public class AccessionRegisterActionHandlerTest {
 
         // Then
         assertEquals(StatusCode.OK, response.getGlobalStatus());
+        assertNotNull(response.getEvDetailData());
+        assertNotNull(JsonHandler.getFromString(response.getEvDetailData()).get("Volumetry"));
+
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testResponseKOCouldNotCreateRegister() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        GUID operationId = GUIDFactory.newGUID();
+        VitamThreadUtils.getVitamSession().setRequestId(operationId);
+
+        params.setContainerName(operationId.getId());
+
+        List<UnitPerOriginatingAgency> originatingAgencies = new ArrayList<>();
+        originatingAgencies.add(new UnitPerOriginatingAgency("sp1", 3));
+
+        reset(metaDataClient);
+        reset(adminManagementClient);
+        when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString()))
+            .thenReturn(originatingAgencies);
+
+        when(adminManagementClient.getAccessionRegisterDetail(anyObject(), anyObject()))
+            .thenThrow(new ReferentialNotFoundException("AccessionRegister Detail Not found "));
+
+        when(adminManagementClient.createorUpdateAccessionRegister(anyObject()))
+            .thenThrow(new AdminManagementClientServerException("AdminManagementClientServerException"));
+
+        AdminManagementClientFactory.changeMode(null);
+        final List<IOParameter> in = new ArrayList<>();
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/ARCHIVE_ID_TO_GUID_MAP.json")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/BDO_TO_BDO_INFO_MAP.json")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "ATR/globalSEDAParameters.json")));
+        handlerIO.addOutIOParameters(in);
+        handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP), false);
+        handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
+        handlerIO.addOuputResult(2, PropertiesUtils.getResourceFile(BDO_TO_BDO_INFO_MAP), false);
+        handlerIO.addOuputResult(3, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
+        handlerIO.reset();
+        handlerIO.addInIOParameters(in);
+        accessionRegisterHandler =
+            new AccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
+        assertEquals(AccessionRegisterActionHandler.getId(), HANDLER_ID);
+
+        // When
+        final ItemStatus response = accessionRegisterHandler.execute(params, handlerIO);
+
+        // Then
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
+
     }
     
+    @Test
+    @RunWithCustomExecutor
+    public void testResponseKOConflictRegister() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        GUID operationId = GUIDFactory.newGUID();
+        VitamThreadUtils.getVitamSession().setRequestId(operationId);
+
+        params.setContainerName(operationId.getId());
+
+        List<UnitPerOriginatingAgency> originatingAgencies = new ArrayList<>();
+        originatingAgencies.add(new UnitPerOriginatingAgency("sp1", 3));
+
+        reset(metaDataClient);
+        reset(adminManagementClient);
+        when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString()))
+            .thenReturn(originatingAgencies);
+
+        when(adminManagementClient.getAccessionRegisterDetail(anyObject(), anyObject()))
+            .thenThrow(new ReferentialNotFoundException("AccessionRegister Detail Not found "));
+
+        when(adminManagementClient.createorUpdateAccessionRegister(anyObject()))
+            .thenThrow(new DatabaseConflictException("DatabaseConflictException"));
+
+        AdminManagementClientFactory.changeMode(null);
+        final List<IOParameter> in = new ArrayList<>();
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/ARCHIVE_ID_TO_GUID_MAP.json")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/BDO_TO_BDO_INFO_MAP.json")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "ATR/globalSEDAParameters.json")));
+        handlerIO.addOutIOParameters(in);
+        handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP), false);
+        handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
+        handlerIO.addOuputResult(2, PropertiesUtils.getResourceFile(BDO_TO_BDO_INFO_MAP), false);
+        handlerIO.addOuputResult(3, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
+        handlerIO.reset();
+        handlerIO.addInIOParameters(in);
+        accessionRegisterHandler =
+            new AccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
+        assertEquals(AccessionRegisterActionHandler.getId(), HANDLER_ID);
+
+        // When
+        final ItemStatus response = accessionRegisterHandler.execute(params, handlerIO);
+
+        // Then
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
+
+    }
+        
+
+    @Test
+    @RunWithCustomExecutor
+    public void testResponseFatal() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        GUID operationId = GUIDFactory.newGUID();
+        VitamThreadUtils.getVitamSession().setRequestId(operationId);
+
+        params.setContainerName(operationId.getId());
+
+        List<UnitPerOriginatingAgency> originatingAgencies = new ArrayList<>();
+        originatingAgencies.add(new UnitPerOriginatingAgency("sp1", 3));
+
+        reset(metaDataClient);
+        reset(adminManagementClient);
+        when(metaDataClient.selectAccessionRegisterOnUnitByOperationId(operationId.toString()))
+            .thenThrow(new MetaDataClientServerException("MetaDataClientServerException"));
+
+        AdminManagementClientFactory.changeMode(null);
+        final List<IOParameter> in = new ArrayList<>();
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/ARCHIVE_ID_TO_GUID_MAP.json")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/OBJECT_GROUP_ID_TO_GUID_MAP.json")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Maps/BDO_TO_BDO_INFO_MAP.json")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "ATR/globalSEDAParameters.json")));
+        handlerIO.addOutIOParameters(in);
+        handlerIO.addOuputResult(0, PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP), false);
+        handlerIO.addOuputResult(1, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
+        handlerIO.addOuputResult(2, PropertiesUtils.getResourceFile(BDO_TO_BDO_INFO_MAP), false);
+        handlerIO.addOuputResult(3, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
+        handlerIO.reset();
+        handlerIO.addInIOParameters(in);
+        accessionRegisterHandler =
+            new AccessionRegisterActionHandler(metaDataClientFactory, adminManagementClientFactory);
+        assertEquals(AccessionRegisterActionHandler.getId(), HANDLER_ID);
+        // When
+        final ItemStatus response = accessionRegisterHandler.execute(params, handlerIO);
+        // Then
+        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
+    }
+
     @Test
     @RunWithCustomExecutor
     public void testResponseOKWithNoAgency() throws Exception {

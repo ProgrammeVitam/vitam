@@ -119,12 +119,15 @@ import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
+import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -2880,27 +2883,63 @@ public class ProcessingIT {
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
         assertNotNull(processWorkflow.getSteps());
 
+        LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+        JsonNode logbookResult = logbookClient.selectOperationById(containerName,
+            new fr.gouv.vitam.common.database.builder.request.single.Select().getFinalSelect());
+        assertNotNull(logbookResult.get("$results").get(0));
+        LogbookOperation logOperation =
+            JsonHandler.getFromJsonNode(logbookResult.get("$results").get(0), LogbookOperation.class);
+        List<LogbookEventOperation> events = logOperation.getEvents().stream()
+            .filter(p -> (p.getEvType().equals("ACCESSION_REGISTRATION") && p.getOutcome().equals("OK")))
+            .collect(Collectors.toList());
+        events.forEach((event) -> {
+            assertNotNull(event.getEvDetData());
+            try {
+                assertNotNull(JsonHandler.getFromString(event.getEvDetData()).get("Volumetry"));
+            } catch (Exception e) {
+                e.printStackTrace();
+                fail("should not throws exception ");
+            }
+        });
 
         MongoIterable<Document> accessReg =
             db.getCollection("AccessionRegisterSummary").find(Filters.eq("OriginatingAgency", "P-A"));
         assertNotNull(accessReg);
         assertNotNull(accessReg.first());
         Document accessRegDoc = accessReg.first();
-        assertEquals("2", ((Document) accessRegDoc.get("TotalUnits")).get("totalSymbolic").toString());
-        assertEquals("2", ((Document) accessRegDoc.get("TotalUnits")).get("attached").toString());
-        assertEquals("3", ((Document) accessRegDoc.get("TotalUnits")).get("total").toString());
+        // 2 units are attached - 1 was previously added
+        assertEquals("2",
+            ((Document) accessRegDoc.get("TotalUnits")).get(AccessionRegisterSummary.SYMBOLIC_REMAINED).toString());
+        assertEquals("2",
+            ((Document) accessRegDoc.get("TotalUnits")).get(AccessionRegisterSummary.ATTACHED).toString());
+        assertEquals("1",
+            ((Document) accessRegDoc.get("TotalUnits")).get(AccessionRegisterSummary.INGESTED).toString());
+        assertEquals("1",
+            ((Document) accessRegDoc.get("TotalUnits")).get(AccessionRegisterSummary.REMAINED).toString());
 
-        assertEquals("1", ((Document) accessRegDoc.get("TotalObjects")).get("totalSymbolic").toString());
-        assertEquals("1", ((Document) accessRegDoc.get("TotalObjects")).get("attached").toString());
-        assertEquals("2", ((Document) accessRegDoc.get("TotalObjects")).get("total").toString());
+        // 1 object is attached - 1 was previously added
+        assertEquals("1",
+            ((Document) accessRegDoc.get("TotalObjects")).get(AccessionRegisterSummary.SYMBOLIC_REMAINED).toString());
+        assertEquals("1",
+            ((Document) accessRegDoc.get("TotalObjects")).get(AccessionRegisterSummary.ATTACHED).toString());
+        assertEquals("1",
+            ((Document) accessRegDoc.get("TotalObjects")).get(AccessionRegisterSummary.INGESTED).toString());
 
-        assertEquals("1", ((Document) accessRegDoc.get("TotalObjectGroups")).get("totalSymbolic").toString());
-        assertEquals("1", ((Document) accessRegDoc.get("TotalObjectGroups")).get("attached").toString());
-        assertEquals("2", ((Document) accessRegDoc.get("TotalObjectGroups")).get("total").toString());
+        // 1 Got is attached - 1 was previously added
+        assertEquals("1", ((Document) accessRegDoc.get("TotalObjectGroups"))
+            .get(AccessionRegisterSummary.SYMBOLIC_REMAINED).toString());
+        assertEquals("1",
+            ((Document) accessRegDoc.get("TotalObjectGroups")).get(AccessionRegisterSummary.ATTACHED).toString());
+        assertEquals("1",
+            ((Document) accessRegDoc.get("TotalObjectGroups")).get(AccessionRegisterSummary.INGESTED).toString());
 
-        assertEquals("285804", ((Document) accessRegDoc.get("ObjectSize")).get("totalSymbolic").toString());
-        assertEquals("285804", ((Document) accessRegDoc.get("ObjectSize")).get("attached").toString());
-        assertEquals("289913", ((Document) accessRegDoc.get("ObjectSize")).get("total").toString());
+        // 285804 octets is attached - 4109 was previously added
+        assertEquals("285804",
+            ((Document) accessRegDoc.get("ObjectSize")).get(AccessionRegisterSummary.SYMBOLIC_REMAINED).toString());
+        assertEquals("285804",
+            ((Document) accessRegDoc.get("ObjectSize")).get(AccessionRegisterSummary.ATTACHED).toString());
+        assertEquals("4109",
+            ((Document) accessRegDoc.get("ObjectSize")).get(AccessionRegisterSummary.INGESTED).toString());
 
         try {
             Files.delete(new File(zipPath).toPath());
@@ -2950,8 +2989,7 @@ public class ProcessingIT {
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
-                });
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
 
             functionalClient.importIngestContracts(IngestContractModelList);
 

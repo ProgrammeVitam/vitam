@@ -5,22 +5,22 @@
   "EndDate": "EndDate",
   "LastUpdate": "LastUpdate",
   "TotalUnits": {
-    "total": 1,
+    "ingested": 1,
     "deleted": 0,
     "remained": 1
   },
   "TotalObjectGroups": {
-    "total": 1,
+    "ingested": 1,
     "deleted": 0,
     "remained": 1
   },
   "TotalObjects": {
-    "total": 1,
+    "ingested": 1,
     "deleted": 0,
     "remained": 1
   },
   "ObjectSize": {
-    "total": 1,
+    "ingested": 1,
     "deleted": 0,
     "remained": 1
   },

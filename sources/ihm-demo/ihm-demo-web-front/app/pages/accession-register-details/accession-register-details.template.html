@@ -23,10 +23,10 @@
                 <th>Volumétrie des objets</th>
               </tr>
               <tr>
-                <td>Total: {{summaryData.TotalUnits.total}}</td>
-                <td>Total: {{summaryData.TotalObjectGroups.total}}</td>
-                <td>Total: {{summaryData.TotalObjects.total}}</td>
-                <td>Total: {{summaryData.ObjectSize.total}}</td>
+                <td>Total: {{summaryData.TotalUnits.ingested}}</td>
+                <td>Total: {{summaryData.TotalObjectGroups.ingested}}</td>
+                <td>Total: {{summaryData.TotalObjects.ingested}}</td>
+                <td>Total: {{summaryData.ObjectSize.ingested}}</td>
               </tr>
               <tr>
                 <td>Supprimé: {{summaryData.TotalUnits.deleted}}</td>
@@ -41,16 +41,10 @@
                 <td>Restant: {{summaryData.ObjectSize.remained}}</td>
               </tr>
               <tr>
-                <td>Total des objets symboliques: {{summaryData.TotalUnits.totalSymbolic}}</td>
-                <td>Total des objets symboliques: {{summaryData.TotalObjectGroups.totalSymbolic}}</td>
-                <td>Total des objets symboliques: {{summaryData.TotalObjects.totalSymbolic}}</td>
-                <td>Total des objets symboliques: {{summaryData.ObjectSize.totalSymbolic}}</td>
-              </tr>
-              <tr>
-                <td>Attaché: {{summaryData.TotalUnits.attached}}</td>
-                <td>Attaché: {{summaryData.TotalObjectGroups.attached}}</td>
-                <td>Attaché: {{summaryData.TotalObjects.attached}}</td>
-                <td>Attaché: {{summaryData.ObjectSize.attached}}</td>
+                <td>Total des objets symboliques: {{summaryData.TotalUnits.attached}}</td>
+                <td>Total des objets symboliques: {{summaryData.TotalObjectGroups.attached}}</td>
+                <td>Total des objets symboliques: {{summaryData.TotalObjects.attached}}</td>
+                <td>Total des objets symboliques: {{summaryData.ObjectSize.attached}}</td>
               </tr>
               <tr>
                 <td>Détaché: {{summaryData.TotalUnits.detached}}</td>
@@ -58,6 +52,13 @@
                 <td>Détaché: {{summaryData.TotalObjects.detached}}</td>
                 <td>Détaché: {{summaryData.ObjectSize.detached}}</td>
               </tr>
+              <tr>
+                <td>Attaché: {{summaryData.TotalUnits.symbolicRemained}}</td>
+                <td>Attaché: {{summaryData.TotalObjectGroups.symbolicRemained}}</td>
+                <td>Attaché: {{summaryData.TotalObjects.symbolicRemained}}</td>
+                <td>Attaché: {{summaryData.ObjectSize.symbolicRemained}}</td>
+              </tr>
+              
             </table>
           </div>
         </div>
@@ -85,12 +86,12 @@
               <td>{{result.SubmissionAgency}}</td>
               <td>{{result.ArchivalAgreement}}</td>
               <td>{{result.EndDate | vitamFormatDate}}</td>
-              <td>Total: {{result.TotalUnits.total}}, Supprimé: {{result.TotalUnits.deleted}}, Restant: {{result.TotalUnits.remained}}, 
-              Total des objets symboliques: {{result.TotalUnits.totalSymbolic}}, Attaché: {{result.TotalUnits.attached}}, Détaché: {{result.TotalUnits.detached}}</td>
-              <td>Total: {{result.TotalObjectGroups.total}}, Supprimé: {{result.TotalObjectGroups.deleted}}, Restant: {{result.TotalObjectGroups.remained}}, 
-              Total des objets symboliques: {{result.TotalObjectGroups.totalSymbolic}}, Attaché: {{result.TotalObjectGroups.attached}}, Détaché: {{result.TotalObjectGroups.detached}}</td>
-              <td>Total: {{result.TotalObjects.total}}, Supprimé: {{result.TotalObjects.deleted}}, Restant: {{result.TotalObjects.remained}}, 
-              Total des objets symboliques: {{result.TotalObjects.totalSymbolic}}, Attaché: {{result.TotalObjects.attached}}, Détaché: {{result.TotalObjects.detached}}</td>
+              <td>Total: {{result.TotalUnits.ingested}}, Supprimé: {{result.TotalUnits.deleted}}, Restant: {{result.TotalUnits.remained}}, 
+              Total des objets symboliques: {{result.TotalUnits.symbolicRemained}}, Attaché: {{result.TotalUnits.attached}}, Détaché: {{result.TotalUnits.detached}}</td>
+              <td>Total: {{result.TotalObjectGroups.ingested}}, Supprimé: {{result.TotalObjectGroups.deleted}}, Restant: {{result.TotalObjectGroups.remained}}, 
+              Total des objets symboliques: {{result.TotalObjectGroups.symbolicRemained}}, Attaché: {{result.TotalObjectGroups.attached}}, Détaché: {{result.TotalObjectGroups.detached}}</td>
+              <td>Total: {{result.TotalObjects.ingested}}, Supprimé: {{result.TotalObjects.deleted}}, Restant: {{result.TotalObjects.remained}}, 
+              Total des objets symboliques: {{result.TotalObjects.symbolicRemained}}, Attaché: {{result.TotalObjects.attached}}, Détaché: {{result.TotalObjects.detached}}</td>
               <td>{{'search.accessionRegister.fields.Status.' + result.Status | translate | replaceDoubleQuote}}</td>
             </tr>
             </tbody>

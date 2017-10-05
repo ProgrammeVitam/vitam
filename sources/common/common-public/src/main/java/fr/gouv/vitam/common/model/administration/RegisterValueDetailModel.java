@@ -33,18 +33,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class RegisterValueDetailModel {
 
-    @JsonProperty("total")
-    private long total;
+    @JsonProperty("ingested")
+    private long ingested;
     @JsonProperty("deleted")
     private long deleted;
     @JsonProperty("remained")
     private long remained;
-    @JsonProperty("totalSymbolic")
-    private long totalSymbolic;
+
     @JsonProperty("attached")
     private long attached;
     @JsonProperty("detached")
     private long detached;
+    @JsonProperty("symbolicRemained")
+    private long symbolicRemained;
 
     /**
      * Constructor without fields
@@ -56,12 +57,12 @@ public class RegisterValueDetailModel {
     /**
      * Constructor using fields
      * 
-     * @param total number of objects
+     * @param ingested number of objects
      * @param deleted number of deleted object
      * @param remained number of remaining object
      */
-    public RegisterValueDetailModel(long total, long deleted, long remained) {
-        this.total = total;
+    public RegisterValueDetailModel(long ingested, long deleted, long remained) {
+        this.ingested = ingested;
         this.deleted = deleted;
         this.remained = remained;
     }
@@ -75,32 +76,32 @@ public class RegisterValueDetailModel {
      * @param totalSymbolic number of symbolic object
      * @param attached number of attached object
      * @param detached number of detached object
+     * @param symbolic if the register is symbolic
      * 
      */
-    public RegisterValueDetailModel(long total, long deleted, long remained, long totalSymbolic, long attached, long detached) {
-        this.total = total;
-        this.deleted = deleted;
-        this.remained = remained;
-        this.attached = attached;
-        this.detached = detached;
-        this.totalSymbolic = totalSymbolic;
+    public RegisterValueDetailModel(long totalSymbolic, long attached, long detached, boolean symbolic) {
+        if (symbolic) {
+            this.attached = totalSymbolic;
+            this.detached = detached;
+            this.symbolicRemained = attached;
+        }
     }
 
     /**
      * 
-     * @return total
+     * @return ingested
      */
-    public long getTotal() {
-        return total;
+    public long getIngested() {
+        return ingested;
     }
 
     /**
      * 
-     * @param total value to set field
+     * @param ingested value to set field
      * @return this
      */
-    public RegisterValueDetailModel setTotal(long total) {
-        this.total = total;
+    public RegisterValueDetailModel setIngested(long ingested) {
+        this.ingested = ingested;
         return this;
     }
 
@@ -178,19 +179,19 @@ public class RegisterValueDetailModel {
 
     /**
      * 
-     * @return totalSymbolic
+     * @return symbolicRemained
      */
-    public long getTotalSymbolic() {
-        return totalSymbolic;
+    public long getSymbolicRemained() {
+        return symbolicRemained;
     }
 
     /**
      * 
-     * @param totalSymbolic value to set field
+     * @param symbolicRemained value to set field
      * @return this
      */
-    public RegisterValueDetailModel setTotalSymbolic(long totalSymbolic) {
-        this.totalSymbolic = totalSymbolic;
+    public RegisterValueDetailModel setSymbolicRemained(long symbolicRemained) {
+        this.symbolicRemained = symbolicRemained;
         return this;
     }
 }
