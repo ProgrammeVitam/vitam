@@ -56,7 +56,7 @@ gatling {
   http {
     #fetchedCssCacheMaxCapacity = 200          # Cache size for CSS parsed content, set to 0 to disable
     #fetchedHtmlCacheMaxCapacity = 200         # Cache size for HTML parsed content, set to 0 to disable
-    #perUserCacheMaxCapacity = 200             # Per virtual user cache size, set to 0 to disable
+    perUserCacheMaxCapacity = 0             # Per virtual user cache size, set to 0 to disable
     warmUpUrl = "https://{{vitam_ingestexternal_host}}:{{vitam_ingestexternal_port_https}}{{vitam_ingestexternal_baseuri}}/v1/status"           # The URL to use to warm-up the HTTP stack (blank means disabled)
     enableGA = false                           # Very light Google Analytics, please support
     ssl {
