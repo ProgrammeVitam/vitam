@@ -673,7 +673,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                             throw new InvalidParseOperationException(
                                                 "Object ID should not be empty for collection " + requestedCollection);
                                         } else {
-                                            result = client.selectObjectById(new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()),
+                                            result = client.selectObjectMetadatasByUnitId(new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()),
                                                 criteria, objectID);
                                             if (result != null) {
                                                 return Response.status(Status.OK)

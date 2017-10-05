@@ -13,18 +13,14 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServer
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.error.VitamCode;
-import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.external.client.DefaultClient;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
@@ -33,8 +29,6 @@ import fr.gouv.vitam.logbook.common.client.ErrorMessage;
  * Rest client implementation for Access External
  */
 class AccessExternalClientRest extends DefaultClient implements AccessExternalClient {
-
-    private static final String ACCESS_EXTERNAL_MODULE = "AccessExternalModule";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalClientRest.class);
 
@@ -57,183 +51,87 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse selectUnits(VitamContext vitamContext, JsonNode selectQuery)
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, AccessUnauthorizedException {
+    public RequestResponse<JsonNode> selectUnits(VitamContext vitamContext, JsonNode selectQuery)
+        throws VitamClientException {
         Response response = null;
-
-        if (selectQuery == null || selectQuery.size() == 0) {
-            throw new IllegalArgumentException(BLANK_DSL);
-        }
 
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.putAll(vitamContext.getHeaders());
+
         try {
             response = performRequest(HttpMethod.GET, "/units", headers,
                 selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
 
-            RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (requestResponse.isOk()) {
-                return requestResponse;
-            } else {
-                final VitamError vitamError = new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR.getItem())
-                    .setMessage(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR.getMessage())
-                    .setState(StatusCode.KO.name())
-                    .setContext(ACCESS_EXTERNAL_MODULE)
-                    .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR.getMessage());
-
-                if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                    return vitamError.setHttpCode(Status.UNAUTHORIZED.getStatusCode())
-                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR.getMessage() + " Cause : " +
-                            Status.UNAUTHORIZED.getReasonPhrase());
-                } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                    return vitamError.setHttpCode(Status.NOT_FOUND.getStatusCode())
-                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR.getMessage() + " Cause : " +
-                            Status.NOT_FOUND.getReasonPhrase());
-                } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                    return vitamError.setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
-                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR.getMessage() + " Cause : " +
-                            Status.PRECONDITION_FAILED.getReasonPhrase());
-                } else {
-                    return requestResponse;
-                }
-
-            }
-
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } catch (IllegalStateException e) {
+            LOGGER.error("Could not parse server response ", e);
+            throw createExceptionFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientException(e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
+
     }
 
     @Override
-    public RequestResponse selectUnitbyId(VitamContext vitamContext, JsonNode selectQuery,
-        String unitId)
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, AccessUnauthorizedException {
+    public RequestResponse<JsonNode> selectUnitbyId(VitamContext vitamContext, JsonNode selectQuery, String unitId)
+        throws VitamClientException {
         Response response = null;
+
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
         headers.putAll(vitamContext.getHeaders());
 
-        if (selectQuery == null || selectQuery.size() == 0) {
-            throw new IllegalArgumentException(BLANK_DSL);
-        }
         ParametersChecker.checkParameter(BLANK_UNIT_ID, unitId);
 
         try {
-            response = performRequest(HttpMethod.POST, UNITS + unitId, headers,
+            response = performRequest(HttpMethod.GET, UNITS + unitId, headers,
                 selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
 
-            RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (requestResponse.isOk()) {
-                return requestResponse;
-            } else {
-                final VitamError vitamError =
-                    new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR.getItem())
-                        .setMessage(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR.getMessage())
-                        .setState(StatusCode.KO.name())
-                        .setContext(ACCESS_EXTERNAL_MODULE)
-                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR.getMessage());
-
-                if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                    return vitamError.setHttpCode(Status.UNAUTHORIZED.getStatusCode())
-                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR.getMessage() + " Cause : " +
-                            Status.UNAUTHORIZED.getReasonPhrase());
-                } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                    return vitamError.setHttpCode(Status.NOT_FOUND.getStatusCode())
-                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR.getMessage() + " Cause : " +
-                            Status.NOT_FOUND.getReasonPhrase());
-                } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-                    return vitamError.setHttpCode(Status.BAD_REQUEST.getStatusCode())
-                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR.getMessage() + " Cause : " +
-                            Status.BAD_REQUEST.getReasonPhrase());
-                } else {
-                    return requestResponse;
-                }
-            }
-
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } catch (IllegalStateException e) {
+            LOGGER.error("Could not parse server response ", e);
+            throw createExceptionFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientException(e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
     }
 
     @Override
-    public RequestResponse updateUnitbyId(VitamContext vitamContext, JsonNode updateQuery,
-        String unitId)
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, NoWritingPermissionException, AccessUnauthorizedException {
+    public RequestResponse<JsonNode> updateUnitbyId(VitamContext vitamContext, JsonNode updateQuery, String unitId)
+        throws VitamClientException {
         Response response = null;
 
-        if (updateQuery == null || updateQuery.size() == 0) {
-            throw new IllegalArgumentException(BLANK_DSL);
-        }
-        ParametersChecker.checkParameter(BLANK_UNIT_ID, unitId);
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.putAll(vitamContext.getHeaders());
 
+        ParametersChecker.checkParameter(BLANK_UNIT_ID, unitId);
+
         try {
-            response = performRequest(HttpMethod.PUT, UNITS + unitId, headers,
-                updateQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+            response = performRequest(HttpMethod.PUT, UNITS + unitId, headers, updateQuery,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
 
-            RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (requestResponse.isOk()) {
-                return requestResponse;
-            } else {
-                final VitamError vitamError =
-                    new VitamError(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR.getItem())
-                        .setMessage(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR.getMessage())
-                        .setState(StatusCode.KO.name())
-                        .setContext(ACCESS_EXTERNAL_MODULE)
-                        .setDescription(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR.getMessage());
-
-                if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                    return vitamError.setHttpCode(Status.UNAUTHORIZED.getStatusCode())
-                        .setDescription(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR.getMessage() + " Cause : " +
-                            Status.UNAUTHORIZED.getReasonPhrase());
-                } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                    return vitamError.setHttpCode(Status.NOT_FOUND.getStatusCode())
-                        .setDescription(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR.getMessage() + " Cause : " +
-                            Status.NOT_FOUND.getReasonPhrase());
-                } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-                    // TODO Make a generic method that take entity + VitamCode and return a nex vitamError or the
-                    // response vitamError ?
-                    if (requestResponse instanceof VitamError) {
-                        return requestResponse;
-                    }
-                    LOGGER.info("Return new Vitam error");
-                    return vitamError.setHttpCode(Status.BAD_REQUEST.getStatusCode())
-                        .setDescription(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR.getMessage() + " Cause : " +
-                            Status.BAD_REQUEST.getReasonPhrase());
-                } else if (response.getStatus() == Status.METHOD_NOT_ALLOWED.getStatusCode()) {
-                    return vitamError.setHttpCode(Status.METHOD_NOT_ALLOWED.getStatusCode())
-                        .setDescription(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR.getMessage() + " Cause : " +
-                            Status.METHOD_NOT_ALLOWED.getReasonPhrase());
-                } else {
-                    return requestResponse;
-                }
-            }
-
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } catch (IllegalStateException e) {
+            LOGGER.error("Could not parse server response ", e);
+            throw createExceptionFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientException(e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
-
     }
 
     @Override
-    public RequestResponse selectObjectById(VitamContext vitamContext,
+    public RequestResponse<JsonNode> selectObjectMetadatasByUnitId(VitamContext vitamContext,
         JsonNode selectObjectQuery,
         String unitId)
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, AccessUnauthorizedException {
+        throws VitamClientException {
 
         if (selectObjectQuery == null || selectObjectQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
@@ -246,44 +144,14 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         try {
             response = performRequest(HttpMethod.GET, "/units/" + unitId + "/object", headers,
                 selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
 
-            final Status status = Status.fromStatusCode(response.getStatus());
-
-            RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
-            if (requestResponse.isOk()) {
-                return requestResponse;
-            } else {
-                final VitamError vitamError =
-                    new VitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getItem())
-                        .setMessage(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getMessage())
-                        .setState(StatusCode.KO.name())
-                        .setContext(ACCESS_EXTERNAL_MODULE)
-                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getMessage());
-
-                if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                    LOGGER.error("Internal Server Error" + " : " + status.getReasonPhrase());
-                    return vitamError.setHttpCode(Status.UNAUTHORIZED.getStatusCode())
-                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getMessage() + " Cause : " +
-                            Status.UNAUTHORIZED.getReasonPhrase());
-                } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                    return vitamError.setHttpCode(Status.NOT_FOUND.getStatusCode())
-                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getMessage() + " Cause : " +
-                            Status.NOT_FOUND.getReasonPhrase());
-                } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-                    return vitamError.setHttpCode(Status.BAD_REQUEST.getStatusCode())
-                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getMessage() + " Cause : " +
-                            Status.BAD_REQUEST.getReasonPhrase());
-                } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                    return vitamError.setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
-                        .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getMessage() + " Cause : " +
-                            Status.PRECONDITION_FAILED.getReasonPhrase());
-                } else {
-                    return requestResponse;
-                }
-            }
+        } catch (IllegalStateException e) {
+            LOGGER.error("Could not parse server response ", e);
+            throw createExceptionFromResponse(response);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientException(e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
@@ -291,12 +159,11 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
 
     @Override
-    public Response getUnitObject(VitamContext vitamContext, JsonNode selectObjectQuery,
+    public Response getObjectStreamByUnitId(VitamContext vitamContext, JsonNode selectObjectQuery,
         String unitId,
         String usage,
         int version)
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
+        throws VitamClientException {
 
         if (selectObjectQuery == null || selectObjectQuery.size() == 0) {
             throw new IllegalArgumentException(BLANK_DSL);
@@ -315,30 +182,15 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             response = performRequest(HttpMethod.GET, "/units/" + unitId + "/object", headers,
                 selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
 
-            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-            if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                LOGGER.error("Internal Server Error" + " : " + status.getReasonPhrase());
-                throw new AccessExternalClientServerException("Internal Server Error");
-            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new AccessExternalClientNotFoundException(status.getReasonPhrase());
-            } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
-            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new AccessExternalClientServerException(response.getStatusInfo().getReasonPhrase());
-            }
-
-            return response;
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
-                consumeAnyEntityAndClose(response);
-            }
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientException(e);
         }
+        return response;
     }
 
     @Override
+    @Deprecated
     public Response getObject(VitamContext vitamContext, JsonNode selectObjectQuery,
         String objectId,
         String usage, int version)
@@ -439,9 +291,11 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     }
 
     @Override
-    public RequestResponse<LogbookLifecycle> selectUnitLifeCycleById(VitamContext vitamContext, String idUnit, JsonNode select)
+    public RequestResponse<LogbookLifecycle> selectUnitLifeCycleById(VitamContext vitamContext, String idUnit,
+        JsonNode select)
         throws VitamClientException {
         Response response = null;
+        ParametersChecker.checkParameter(BLANK_UNIT_ID, idUnit);
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.putAll(vitamContext.getHeaders());
         try {
@@ -467,6 +321,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         VitamContext vitamContext, String idObject, JsonNode select)
         throws VitamClientException {
         Response response = null;
+        ParametersChecker.checkParameter(BLANK_OBJECT_GROUP_ID, idObject);
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.putAll(vitamContext.getHeaders());
         try {
@@ -485,7 +340,6 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             throw new VitamClientException(e);
         }
     }
-
 
     @Override
     public Response getUnitByIdWithXMLFormat(VitamContext vitamContext, JsonNode queryDsl,
@@ -510,8 +364,10 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         }
     }
 
-    @Override public Response getObjectGroupByIdWithXMLFormat(VitamContext vitamContext,
-        JsonNode queryDsl, String idUnit) throws AccessExternalClientServerException {
+    @Override
+    public Response getObjectGroupByIdWithXMLFormat(VitamContext vitamContext,
+        JsonNode queryDsl, String idUnit)
+        throws AccessExternalClientServerException {
         ParametersChecker.checkParameter(BLANK_DSL, queryDsl);
         ParametersChecker.checkParameter(BLANK_UNIT_ID, idUnit);
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();

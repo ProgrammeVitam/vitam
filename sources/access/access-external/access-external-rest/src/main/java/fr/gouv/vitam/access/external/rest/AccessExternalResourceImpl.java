@@ -26,7 +26,28 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.OPTIONS;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
@@ -62,27 +83,6 @@ import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResour
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.OPTIONS;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 
 /**
  * AccessResourceImpl implements AccessResource
@@ -110,6 +110,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
     /**
      * List secured resource end points
+     * 
      * @return response
      */
     @Path("/")
@@ -148,22 +149,38 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Predicate Failed Exception ", e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error("Request unauthorized ", e);
             status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error("Request resources does not exits ", e);
             status = Status.NOT_FOUND;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
         } catch (BadRequestException e) {
             LOGGER.error("No search query specified, this is mandatory", e);
-            return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, e.getLocalizedMessage());
+            status = Status.BAD_REQUEST;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
         }
     }
 
@@ -177,7 +194,8 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Path("/units")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "units:update", description = "Réaliser des mises à jour de masse sur les unités archivistiques")
+    @Secured(permission = "units:update",
+        description = "Réaliser des mises à jour de masse sur les unités archivistiques")
     public Response updateUnits(JsonNode queryDsl) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
@@ -189,14 +207,15 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * get units list by query based on identifier
      *
      * @param queryJson query as String
-     * @param idUnit    the id of archive unit to get
+     * @param idUnit the id of archive unit to get
      * @return Archive Unit
      */
     @GET
     @Path("/units/{idu}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "units:id:read:json", description = "Obtenir le détail d'une unité archivistique au format json")
+    @Secured(permission = "units:id:read:json",
+        description = "Obtenir le détail d'une unité archivistique au format json")
     public Response getUnitById(JsonNode queryJson, @PathParam("idu") String idUnit) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
@@ -210,22 +229,33 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error("Unauthorized request Exception ", e);
             status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error("Request resources does not exits", e);
             status = Status.NOT_FOUND;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
         }
     }
-
 
     /**
      * Get unit int xml format
@@ -238,7 +268,8 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Path("/units/{idu}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_XML)
-    @Secured(permission = "units:id:read:xml", description = "Obtenir le détail d'une unité archivistique au format xml")
+    @Secured(permission = "units:id:read:xml",
+        description = "Obtenir le détail d'une unité archivistique au format xml")
     public Response selectUnitByIdOnXML(JsonNode queryJson, @PathParam("idu") String idUnit) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
@@ -248,8 +279,8 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             xmlFormat = client.getUnitByIdWithXMLFormat(queryJson, idUnit);
             return xmlFormat;
-            //            xmlFormat.getStatus();
-            //            Response.status().entity().build();
+            // xmlFormat.getStatus();
+            // Response.status().entity().build();
         } catch (final InvalidParseOperationException e) {
             DefaultClient.staticConsumeAnyEntityAndClose(xmlFormat);
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
@@ -287,7 +318,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * update archive units by Id with Json query
      *
      * @param queryJson the update query (null not allowed)
-     * @param idUnit    units identifier
+     * @param idUnit units identifier
      * @return a archive unit result list
      */
     @PUT
@@ -311,23 +342,38 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
         } catch (final AccessInternalClientServerException e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Internal request error ", e);
             status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
         } catch (final AccessInternalClientNotFoundException e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Request resources does not exits", e);
             status = Status.NOT_FOUND;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
         } catch (NoWritingPermissionException e) {
-            LOGGER.error(e.getMessage(), e);
+            LOGGER.error("Writing permission invalid", e);
             status = Status.METHOD_NOT_ALLOWED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
         }
     }
 
@@ -352,8 +398,8 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * Retrieve Object group list by query based on identifier of the unit
      *
-     * @param headers   the http header defined parameters of request
-     * @param idu       the id of archive unit
+     * @param headers the http header defined parameters of request
+     * @param unitId the id of archive unit
      * @param queryJson the query to get object
      * @return Response
      */
@@ -361,34 +407,47 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Path("/units/{idu}/object")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "units:id:object:read", description = "Télécharger le groupe d'objet technique de l'unité archivistique donnée")
-    public Response getObjectGroupMetadata(@Context HttpHeaders headers, @PathParam("idu") String idu,
+    @Secured(permission = "units:id:object:read",
+        description = "Télécharger le groupe d'objet technique de l'unité archivistique donnée")
+    public Response getObjectGroupMetadataByUnitId(@Context HttpHeaders headers, @PathParam("idu") String unitId,
         JsonNode queryJson) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(queryJson);
-            String idObjectGroup = idObjectGroup(idu);
+            String idObjectGroup = idObjectGroup(unitId);
             RequestResponse<JsonNode> result = client.selectObjectbyId(queryJson, idObjectGroup);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error(e);
             status = Status.NOT_FOUND;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
         }
     }
 
@@ -397,7 +456,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
      * @param headers the http header defined parameters of request
-     * @param idu the id of archive unit
+     * @param unitId the id of archive unit
      * @param query the query to get object
      * @return response
      */
@@ -406,7 +465,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Secured(permission = "units:id:object:read:binary", description = "Télecharger un objet")
-    public Response getObject(@Context HttpHeaders headers, @PathParam("idu") String idu,
+    public Response getDataObjectByUnitId(@Context HttpHeaders headers, @PathParam("idu") String unitId,
         JsonNode query) {
 
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
@@ -415,7 +474,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         Status status;
         try {
             SanityChecker.checkJsonAll(query);
-            String idObjectGroup = idObjectGroup(idu);
+            String idObjectGroup = idObjectGroup(unitId);
             Integer tenantId = ParameterHelper.getTenantParameter();
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
             MultivaluedMap<String, String> multipleMap = headers.getRequestHeaders();
@@ -423,19 +482,35 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorStream(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(getErrorStream(
+                    VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_DATA_OBJECT_BY_UNIT_ID_ERROR,
+                        e.getLocalizedMessage()).setHttpCode(status.getStatusCode())))
+                .build();
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error("Unauthorized request Exception ", e);
             status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorStream(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(getErrorStream(
+                    VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_DATA_OBJECT_BY_UNIT_ID_ERROR,
+                        e.getLocalizedMessage()).setHttpCode(status.getStatusCode())))
+                .build();
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error("Request resources does not exits", e);
             status = Status.NOT_FOUND;
-            return Response.status(status).entity(getErrorStream(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(getErrorStream(
+                    VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_DATA_OBJECT_BY_UNIT_ID_ERROR,
+                        e.getLocalizedMessage()).setHttpCode(status.getStatusCode())))
+                .build();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
             status = Status.UNAUTHORIZED;
-            return Response.status(status).entity(getErrorStream(status, e.getLocalizedMessage())).build();
+            return Response.status(status)
+                .entity(getErrorStream(
+                    VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_DATA_OBJECT_BY_UNIT_ID_ERROR,
+                        e.getLocalizedMessage()).setHttpCode(status.getStatusCode())))
+                .build();
         }
     }
 
@@ -481,27 +556,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         }
     }
 
-    private InputStream getErrorStream(Status status, String message) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
-        try {
-            return JsonHandler.writeToInpustream(new VitamError(status.name())
-                .setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
-                .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage));
-        } catch (InvalidParseOperationException e) {
-            return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
-        }
-    }
-
-    private VitamError getErrorEntity(Status status, String message) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
-        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
-            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
-    }
-
     private String idObjectGroup(String idu)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException, AccessUnauthorizedException {
@@ -526,13 +580,19 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                 LOGGER.error("At least one required header is missing. Required headers: (" +
                     VitamHttpHeader.QUALIFIER.name() + ", " + VitamHttpHeader.VERSION.name() + ")");
                 return Response.status(Status.PRECONDITION_FAILED)
-                    .entity(getErrorStream(Status.PRECONDITION_FAILED, "QUALIFIER or VERSION missing").toString())
+                    .entity(getErrorStream(VitamCodeHelper
+                        .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_DATA_OBJECT_BY_UNIT_ID_ERROR,
+                            "QUALIFIER or VERSION missing")
+                        .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())))
                     .build();
             }
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorStream(Status.PRECONDITION_FAILED, e.getLocalizedMessage()).toString())
+                .entity(getErrorStream(VitamCodeHelper
+                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_DATA_OBJECT_BY_UNIT_ID_ERROR,
+                        e.getLocalizedMessage())
+                    .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())))
                 .build();
         }
 
@@ -553,32 +613,52 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
             LOGGER.error(exc);
             return Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorStream(Status.PRECONDITION_FAILED, exc.getLocalizedMessage()).toString())
+                .entity(getErrorStream(VitamCodeHelper
+                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_DATA_OBJECT_BY_UNIT_ID_ERROR,
+                        exc.getLocalizedMessage())
+                    .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())))
                 .build();
         } catch (final AccessInternalClientServerException exc) {
             LOGGER.error(exc.getMessage(), exc);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, exc.getLocalizedMessage())
-                    .toString())
+                .entity(getErrorStream(VitamCodeHelper
+                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_DATA_OBJECT_BY_UNIT_ID_ERROR,
+                        exc.getLocalizedMessage())
+                    .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())))
                 .build();
         } catch (final AccessInternalClientNotFoundException exc) {
             LOGGER.error(exc.getMessage(), exc);
             return Response.status(Status.NOT_FOUND)
-                .entity(getErrorStream(Status.NOT_FOUND, exc.getLocalizedMessage()).toString()).build();
-        } catch (AccessUnauthorizedException e) {
+                .entity(getErrorStream(VitamCodeHelper
+                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_DATA_OBJECT_BY_UNIT_ID_ERROR,
+                        exc.getLocalizedMessage())
+                    .setHttpCode(Status.NOT_FOUND.getStatusCode())))
+                .build();
+        } catch (AccessUnauthorizedException exc) {
             return Response.status(Status.UNAUTHORIZED)
-                .entity(getErrorStream(Status.UNAUTHORIZED, e.getLocalizedMessage())
-                    .toString())
+                .entity(getErrorStream(VitamCodeHelper
+                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_DATA_OBJECT_BY_UNIT_ID_ERROR,
+                        exc.getLocalizedMessage())
+                    .setHttpCode(Status.UNAUTHORIZED.getStatusCode())))
                 .build();
         }
     }
 
-    private Response buildErrorResponse(VitamCode vitamCode, String message) {
-        return Response.status(vitamCode.getStatus())
-            .entity(new RequestResponseError().setError(new VitamError(VitamCodeHelper.getCode(vitamCode))
-                .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
-                .setMessage(vitamCode.getMessage()).setDescription(message)).toString())
-            .build();
+    @Deprecated
+    private VitamError getErrorEntity(Status status, String message) {
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
+            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
+    }
+
+    private InputStream getErrorStream(VitamError vitamError) {
+        try {
+            return JsonHandler.writeToInpustream(vitamError);
+        } catch (InvalidParseOperationException e) {
+            return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
+        }
     }
 
     private Response buildErrorFromError(VitamCode vitamCode, String message, VitamError oldVitamError) {

@@ -9,21 +9,17 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.client.VitamContext;
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
-import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 
@@ -33,26 +29,22 @@ import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 class AccessExternalClientMock extends AbstractMockClient implements AccessExternalClient {
 
     @Override
-    public RequestResponse selectUnits(VitamContext vitamContext, JsonNode selectQuery)
-        throws InvalidParseOperationException {
-        return RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(
-            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"Title\" : \"Archive1\" }}, $projection: {}, $filter: {}}, $result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
+    public RequestResponse<JsonNode> selectUnits(VitamContext vitamContext, JsonNode selectQuery)
+        throws VitamClientException {
+        return ClientMockResultHelper.getArchiveUnitSimpleResult(selectQuery);
     }
 
     @Override
-    public RequestResponse selectUnitbyId(VitamContext vitamContext, JsonNode selectQuery,
-        String unitId)
-        throws InvalidParseOperationException {
-        return RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(
-            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
+    public RequestResponse<JsonNode> selectUnitbyId(VitamContext vitamContext, JsonNode selectQuery, String unitId)
+        throws VitamClientException {
+        return ClientMockResultHelper.getArchiveUnitSimpleResult(selectQuery);
     }
 
     @Override
-    public RequestResponse updateUnitbyId(VitamContext vitamContext, JsonNode updateQuery,
+    public RequestResponse<JsonNode> updateUnitbyId(VitamContext vitamContext, JsonNode updateQuery,
         String unitId)
-        throws InvalidParseOperationException {
-        return RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(
-            "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, $projection: {}, $filter: {}},$result:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}]}"));
+        throws VitamClientException {
+        return ClientMockResultHelper.getArchiveUnitSimpleResult(updateQuery);
     }
 
     @Override
@@ -65,10 +57,10 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     }
 
     @Override
-    public RequestResponse selectObjectById(VitamContext vitamContext, JsonNode selectQuery,
+    public RequestResponse<JsonNode> selectObjectMetadatasByUnitId(VitamContext vitamContext, JsonNode selectQuery,
         String unitId)
-        throws InvalidParseOperationException {
-        return ClientMockResultHelper.getArchiveUnitResult();
+        throws VitamClientException {
+        return ClientMockResultHelper.getGotSimpleResult(selectQuery);
     }
 
     @Override
@@ -112,9 +104,11 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
         }
     }
 
-    @Override public Response getObjectGroupByIdWithXMLFormat(VitamContext vitamContext,
-        JsonNode queryDsl, String idUnit) throws AccessExternalClientServerException {
-        try (InputStream resourceAsStream = getClass().getResourceAsStream("/object_group.xml")){
+    @Override
+    public Response getObjectGroupByIdWithXMLFormat(VitamContext vitamContext,
+        JsonNode queryDsl, String idUnit)
+        throws AccessExternalClientServerException {
+        try (InputStream resourceAsStream = getClass().getResourceAsStream("/object_group.xml")) {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             IOUtils.copy(resourceAsStream, byteArrayOutputStream);
             return Response.ok().entity(byteArrayOutputStream.toByteArray()).build();
@@ -124,11 +118,10 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     }
 
     @Override
-    public Response getUnitObject(VitamContext vitamContext, JsonNode selectQuery,
+    public Response getObjectStreamByUnitId(VitamContext vitamContext, JsonNode selectQuery,
         String unitId,
         String usage, int version)
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, AccessUnauthorizedException {
+        throws VitamClientException {
         return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }

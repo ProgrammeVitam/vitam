@@ -525,7 +525,7 @@ public class AccessStep {
     public void search_archive_unit_object_group(String title) throws Throwable {
         String unitId = replaceTitleByGUID(title);
         RequestResponse responseObjectGroup =
-            world.getAccessClient().selectObjectById(
+            world.getAccessClient().selectObjectMetadatasByUnitId(
                 new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
                     .setApplicationSessionId(world.getApplicationSessionId()),
                 new SelectMultiQuery().getFinalSelect(), unitId);

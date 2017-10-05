@@ -35,7 +35,6 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServer
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.BasicClient;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -55,14 +54,10 @@ public interface AccessExternalClient extends BasicClient {
      * @param vitamContext the vitam context
      * @param selectQuery the select query
      * @return Json representation
-     * @throws InvalidParseOperationException
-     * @throws AccessExternalClientServerException
-     * @throws AccessExternalClientNotFoundException
-     * @throws AccessUnauthorizedException
+     * @throws VitamClientException
      */
-    RequestResponse selectUnits(VitamContext vitamContext, JsonNode selectQuery)
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, AccessUnauthorizedException;
+    RequestResponse<JsonNode> selectUnits(VitamContext vitamContext, JsonNode selectQuery)
+        throws VitamClientException;
 
     /**
      * selectUnitbyId GET(POST overrided) /units/{id}
@@ -72,15 +67,10 @@ public interface AccessExternalClient extends BasicClient {
      * @param selectQuery the select query
      * @param unitId the unit id to select
      * @return Json representation
-     * @throws InvalidParseOperationException
-     * @throws AccessExternalClientServerException
-     * @throws AccessExternalClientNotFoundException
-     * @throws AccessUnauthorizedException
+     * @throws VitamClientException
      */
-    RequestResponse selectUnitbyId(VitamContext vitamContext, JsonNode selectQuery,
-        String unitId)
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, AccessUnauthorizedException;
+    RequestResponse<JsonNode> selectUnitbyId(VitamContext vitamContext, JsonNode selectQuery, String unitId)
+        throws VitamClientException;
 
     /**
      * updateUnitbyId UPDATE /units/{id}
@@ -90,15 +80,10 @@ public interface AccessExternalClient extends BasicClient {
      * @param updateQuery the update query
      * @param unitId the unit id to update
      * @return Json representation
-     * @throws InvalidParseOperationException
-     * @throws AccessExternalClientServerException
-     * @throws AccessExternalClientNotFoundException
-     * @throws AccessUnauthorizedException
+     * @throws VitamClientException
      */
-    RequestResponse updateUnitbyId(VitamContext vitamContext, JsonNode updateQuery,
-        String unitId)
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, NoWritingPermissionException, AccessUnauthorizedException;
+    RequestResponse<JsonNode> updateUnitbyId(VitamContext vitamContext, JsonNode updateQuery, String unitId)
+        throws VitamClientException;
 
     /**
      * getObjectAsInputStream<br>
@@ -133,15 +118,11 @@ public interface AccessExternalClient extends BasicClient {
      * @param selectQuery the select query
      * @param unitId the unit id for getting object
      * @return Json representation
-     * @throws InvalidParseOperationException
-     * @throws AccessExternalClientServerException
-     * @throws AccessExternalClientNotFoundException
-     * @throws AccessUnauthorizedException
+     * @throws VitamClientException
      */
-    RequestResponse selectObjectById(VitamContext vitamContext, JsonNode selectQuery,
+    RequestResponse<JsonNode> selectObjectMetadatasByUnitId(VitamContext vitamContext, JsonNode selectQuery,
         String unitId)
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, AccessUnauthorizedException;
+        throws VitamClientException;
 
     /**
      * getObjectAsInputStream<br>
@@ -160,11 +141,10 @@ public interface AccessExternalClient extends BasicClient {
      * @throws AccessExternalClientNotFoundException
      * @throws AccessUnauthorizedException
      */
-    Response getUnitObject(VitamContext vitamContext, JsonNode selectQuery, String unitId,
+    Response getObjectStreamByUnitId(VitamContext vitamContext, JsonNode selectQuery, String unitId,
         String usage,
         int version)
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, AccessUnauthorizedException;
+        throws VitamClientException;
 
     /**
      * selectOperation

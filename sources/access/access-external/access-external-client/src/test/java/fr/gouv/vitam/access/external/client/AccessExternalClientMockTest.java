@@ -29,7 +29,6 @@ public class AccessExternalClientMockTest {
         assertNotNull(client);
     }
 
-
     @Test
     public void givenMockConfExistWhenAccessExternalSelectUnitsThenReturnResult()
         throws Exception {
@@ -57,7 +56,7 @@ public class AccessExternalClientMockTest {
     @Test
     public void givenMockConfExistWhenAccessExternalSelectObjectbyIDThenReturnResult()
         throws Exception {
-        assertNotNull(client.selectObjectById(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql), ID));
+        assertNotNull(client.selectObjectMetadatasByUnitId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql), ID));
     }
 
     @Test

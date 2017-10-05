@@ -42,7 +42,11 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.hamcrest.CoreMatchers;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
@@ -55,6 +59,7 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.response.Header;
 import com.jayway.restassured.response.Headers;
+
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
@@ -78,31 +83,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.ByteArrayInputStream;
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.jayway.restassured.RestAssured.given;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
 
 
 @RunWith(PowerMockRunner.class)
@@ -181,7 +161,8 @@ public class AccessExternalResourceImplTest {
         AccessExtAPI.ACCESSION_REGISTERS_DETAIL;
     private static final String OBJECT_RETURN =
         "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"ArchiveUnit1\" }}, " +
-            "$projection: {}, $filter: {}},$result:[{\"#id\":\"1\",\"#tenant\":0,\"#object\":\""+ OBJECT_ID +"\",\"#version\":0}]}";
+            "$projection: {}, $filter: {}},$result:[{\"#id\":\"1\",\"#tenant\":0,\"#object\":\"" + OBJECT_ID +
+            "\",\"#version\":0}]}";
 
     private static AdminManagementClient adminCLient;
 
@@ -1069,17 +1050,13 @@ public class AccessExternalResourceImplTest {
             .then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
 
-        PowerMockito.doThrow(new BadRequestException("Bad Request, empty query is not allowed"))
-            .when(clientAccessInternal).selectUnits(anyObject());
-
         given()
             .contentType(ContentType.JSON)
-            .body(BODY_TEST)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get(ACCESS_UNITS_URI)
             .then()
-            .statusCode(Status.FORBIDDEN.getStatusCode());
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
     }
 
@@ -1143,8 +1120,7 @@ public class AccessExternalResourceImplTest {
             .then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
 
-
-        PowerMockito.doThrow(new BadRequestException("Bad Request, empty query is not allowed"))
+        PowerMockito.doThrow(new BadRequestException("Bad Request"))
             .when(clientAccessInternal).selectUnits(anyObject());
 
         given()
@@ -1155,7 +1131,7 @@ public class AccessExternalResourceImplTest {
             .when()
             .post(ACCESS_UNITS_URI)
             .then()
-            .statusCode(Status.FORBIDDEN.getStatusCode());
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
 
     }
 
@@ -1465,12 +1441,11 @@ public class AccessExternalResourceImplTest {
         final JsonNode result = JsonHandler.getFromString(objectnode);
 
         when(clientAccessInternal.selectObjectbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
-            "\"" + anyString() + "\""))
-                .thenReturn(new RequestResponseOK().addResult(result));
+            "\"" + anyString() + "\"")).thenReturn(new RequestResponseOK<JsonNode>().addResult(result));
 
         when(clientAccessInternal.selectUnitbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
             "\"" + anyString() + "\""))
-                .thenReturn(new RequestResponseOK().addResult(objectGroup));
+                .thenReturn(new RequestResponseOK<JsonNode>().addResult(objectGroup));
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders()).body(JsonHandler.getFromString(objectnode)).when()
             .get(ACCESS_UNITS_URI + "/goodId/object")
@@ -1528,7 +1503,7 @@ public class AccessExternalResourceImplTest {
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
-            "GET")
+                "GET")
             .body(JsonHandler.getFromString(BODY_TEST)).when().get("/units/goodId/object").then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
