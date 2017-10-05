@@ -27,7 +27,9 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
@@ -108,13 +110,27 @@ public class CheckHeaderActionHandler extends ActionHandler {
         itemStatus.setEvDetailData( evDevDetailData );
         itemStatus.setMasterData( LogbookParameterName.eventDetailData.name(), evDevDetailData );
 
-        if (shouldCheckOriginatingAgency && 
-            Strings.isNullOrEmpty((String) madatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER))) {
-            itemStatus.increment(StatusCode.KO);
-            return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+        if (shouldCheckOriginatingAgency)  {
+            if (!Strings.isNullOrEmpty((String) madatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER))) {
+                Set<String> serviceAgentList = new HashSet<String>();
+                serviceAgentList.add((String) madatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
+                if (!Strings.isNullOrEmpty((String) madatoryValueMap.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER))) {
+                    serviceAgentList.add((String) madatoryValueMap.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
+                }
+                handlerIO.getInput().clear();
+                handlerIO.getInput().add(serviceAgentList);
+                CheckOriginatingAgencyHandler checkOriginatingAgencyHandler = new CheckOriginatingAgencyHandler();
+                final ItemStatus checkOriginatingAgencyStatus = checkOriginatingAgencyHandler.execute(params, handlerIO);
+                itemStatus.setItemsStatus(CheckOriginatingAgencyHandler.getId(), checkOriginatingAgencyStatus);
+                checkOriginatingAgencyHandler.close();
+                if (checkOriginatingAgencyStatus.shallStop(true)) {
+                    return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                }                
+            } else {
+                itemStatus.increment(StatusCode.KO);
+                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+            }
         }
-
-
 
         if (madatoryValueMap.get(SedaConstants.TAG_COMMENT) != null) {
             itemStatus.setMasterData(LogbookParameterName.objectIdentifierIncome.name(), madatoryValueMap.get

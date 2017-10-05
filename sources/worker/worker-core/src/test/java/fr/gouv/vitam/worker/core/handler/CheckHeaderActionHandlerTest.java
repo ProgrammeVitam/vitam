@@ -119,7 +119,7 @@ public class CheckHeaderActionHandlerTest {
         PowerMockito.when(SedaUtilsFactory.create(action)).thenReturn(sedaUtils);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         Map<String, Object> sedaMap = new HashMap<>();
-        sedaMap.put(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER, SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
+        sedaMap.put(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER, "AG-0000001");
         sedaMap.put(SedaConstants.TAG_ARCHIVAL_AGREEMENT, CONTRACT_NAME);
         sedaMap.put(SedaConstants.TAG_MESSAGE_IDENTIFIER, SedaConstants.TAG_MESSAGE_IDENTIFIER);
         AdminManagementClientFactory.changeMode(null);

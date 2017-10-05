@@ -152,7 +152,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
                 auditTypeString = "tenant";
                 originatingAgency = listOriginatingAgency(null);
             } else if (auditType.equals(BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCY.exactToken())){
-                originatingAgency = listOriginatingAgency(objectId);
+                originatingAgency.add(objectId);
                 auditTypeString = "originatingagency";
             }
 
