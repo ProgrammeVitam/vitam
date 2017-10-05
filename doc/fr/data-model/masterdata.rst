@@ -653,7 +653,6 @@ Détail des champs
   Il est consituté du préfixe "CT-" suivi d'une suite de 6 chiffres. Par exemple : CT-001573.
   Il s'agit d'une chaîne de caractères. 
 
-
 "Status": statut du contexte. Il peut être "true" ou "false" et a la valeur par défaut : "false". Selon son statut :
 
   * "true" : le contexte est actif
@@ -1021,6 +1020,51 @@ Détail des champs
 
 "Permissions": décrit l'ensemble des permissions auxquelles le profil de sécurité donne accès. Chaque API externe contient un verbe OPTION qui retourne la liste des services avec leur description et permissions associées.
   Il s'agit d'un tableau de chaînes de caractères.
+
+"_v": version de l'objet décrit
+  Il s'agit d'un entier.
+
+Collection Agencies
+===================
+
+Utilisation de collection
+-------------------------
+
+La collection IngestContract permet de référencer et décrire unitairement les services agent.
+
+Exemple de JSON stocké en base
+------------------------------
+
+::
+
+  {
+    "_id": "aehqaaaaaaehiikjabagmak6zz4tzpqaaaaq",
+    "Name": "Identifier1",
+    "Description": "une description de service agent",
+    "Identifier": "Identifier1",
+    "_tenant": 0,
+    "_v": 0
+  }
+
+Détail des champs
+-----------------
+
+"_id": Identifiant unique.
+  Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+
+"Name": *Champ obligatoire* nom du service agent, qui doit être unique sur la plateforme.
+  Il s'agit d'une chaîne de caractères.
+
+"Description": *Champ obligatoire* Description du service agent.
+  Il s'agit d'une chaîne de caractères.
+
+"Identifier": *Champ obligatoire* identifiant signifiant donné au service agent.
+  Le contenu de ce champs est obligatoirement renseignée dans le Json permettant de créer le contrat. En aucun cas Vitam peut être maître sur la création de cet identifiant comme cela peut être le cas pour d'autres données référentielles.
+  Il s'agit d'une chaîne de caractères. 
+
+"_tenant": information sur le tenant
+  Il s'agit de l'identifiant du tenant utilisant l'enregistrement
+  Il s'agit d'un entier.
 
 "_v": version de l'objet décrit
   Il s'agit d'un entier.
