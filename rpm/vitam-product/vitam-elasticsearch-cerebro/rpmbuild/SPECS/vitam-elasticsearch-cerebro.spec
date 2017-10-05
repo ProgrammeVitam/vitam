@@ -1,6 +1,6 @@
 Name:          vitam-elasticsearch-cerebro
-Version:       0.6.5
-Release:       2%{?dist}
+Version:       0.6.8
+Release:       1%{?dist}
 Summary:       Cerebro is a simple web administration tool for elasticsearch written in JavaScript + AngularJS + jQuery + Twitter bootstrap.
 Group:         Applications/File
 License:       MIT Licence
@@ -34,8 +34,8 @@ mkdir -p %{buildroot}/%{cerebro_conffolder}
 mkdir -p %{buildroot}/%{cerebro_datafolder}
 
 mkdir -p %{buildroot}/usr/lib/systemd/system
-# On pousse les fichiers 
-cp -rp cerebro-0.6.5/* %{buildroot}/%{cerebro_folder}
+# On pousse les fichiers
+cp -rp cerebro-%{version}/* %{buildroot}/%{cerebro_folder}
 cp %{SOURCE1} %{buildroot}/usr/lib/systemd/system/vitam-elasticsearch-cerebro.service
 cp %{SOURCE2} %{buildroot}/%{cerebro_conffolder}/application.conf
 

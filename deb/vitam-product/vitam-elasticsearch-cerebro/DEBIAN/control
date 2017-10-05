@@ -1,5 +1,5 @@
 Package: vitam-elasticsearch-cerebro
-Version: 0.6.5-2
+Version: 0.6.8-1
 Section: database
 Priority: optional
 Architecture: all
