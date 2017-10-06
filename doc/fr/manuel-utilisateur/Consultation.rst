@@ -29,7 +29,8 @@ Recherche simple
 ----------------
 
 Pour effectuer une recherche simple, l'utilisateur saisit un ou plusieurs mots dans le champ de recherche puis presse la touche "Entrée" de son clavier ou clique sur le bouton "Rechercher".
-Le ou les mots saisis vont être recherchés dans les métadonnées "Titre" et "Description" des unités archivistiques. La recherche simple s'effectue sur chacun des mots entrés de manière indépendante et permet de trouver les mots appartenant à l'un, à l'autre, ou aux deux ensembles de métadonnées visés. Il n’est pas possible de la paramétrer.
+Le ou les mots saisis vont être recherchés dans les métadonnées "Titre" et "Description" des unités archivistiques. La recherche simple s'effectue sur chacun des mots entrés de manière indépendante (réalisé avec un opérateur "OU") et permet de trouver les mots appartenant à l'un, à l'autre, ou aux deux ensembles de métadonnées visés. Il n’est pas possible de la paramétrer.
+Par exemple, une recherche "département gironde" retournera des résultats comprenant le mot "département" ou le mot  "gironde".
 
 .. image:: images/search_v1.png
 
@@ -76,7 +77,7 @@ Suite à une recherche, les résultats se présentent sous forme de tableau affi
 - ID
 - Titre
 - Date
-- Objet(s) disponible(s) (une coche est affichée si l'unité archivistique dispose d'un ou de plusieurs objets (dans le cas contraire, une croix est affichée).
+- Objet(s) disponible(s) (une coche est affichée si l'unité archivistique dispose d'un ou de plusieurs objets, dans le cas contraire, une croix est affichée).
 
 .. image:: images/liste_resultats.png
 
@@ -96,7 +97,7 @@ Détail de l'unité archivistique
 
 Cet écran affiche les informations concernant l'unité archivistique et le groupe d'objets associé, informations contenues dans le bordereau SEDA et récupérées lors de l'entrée de l'unité archivistique dans la solution logicielle Vitam.
 
-Avertissement : Le Title et la Description sont présents deux fois, cette situation est temporaire dans l'attente d'une refonte globale de cet écran. 
+Avertissement : Le Title et la Description sont présents deux fois, cette situation est temporaire dans l'attente d'une refonte globale de cet écran.
 
 En premier, s'affiche la ou les arborescences de l'unité archivistique.
 Il est possible de cliquer sur les nœuds de l'arborescence pour naviguer entre les unités archivistiques pères.
@@ -105,9 +106,9 @@ Les blocs "Description" et "Gestion" affichent les métadonnées descriptives et
 
 Concernant les services producteurs, il faut différencier :
 
- - Identiant service producteur, le service producteur de l'unité archivistique, repris du bloc <content> du bordereau
+ - Identifiant service producteur, le service producteur de l'unité archivistique, repris du bloc <content> du bordereau
  - Service producteur de l'entrée, l'information correspondant à la valeur de l'OriginatingAgencyIdentifier déclarée dans le SIP
- - Services producteurs ayant des droits sur l'entrée, correspondants au service producteur de l'entrée et à ceux des entrées des parents auxquels des unités archivistiques ont été rattachées
+ - Services producteurs ayant des droits sur l'entrée, correspondants aux servicez producteurz de l'entrée et à ceux des entrées des parents auxquels des unités archivistiques ont été rattachées
 
 La plupart des métadonnées descriptives peuvent être modifiées en cliquant sur le bouton "Modifier".
 
