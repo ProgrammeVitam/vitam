@@ -1,0 +1,12 @@
+<Content>
+    <metadata>
+        <Addressee>a</Addressee>
+        <Addressee2>a</Addressee2>
+        <Addressee2>b</Addressee2>
+    </metadata>
+    <metadata>
+        <Addressee>c</Addressee>
+    </metadata>
+    <locator>tata</locator>
+    <locator>toto</locator>
+</Content>

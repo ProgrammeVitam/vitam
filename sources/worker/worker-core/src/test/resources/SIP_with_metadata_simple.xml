@@ -34,8 +34,16 @@
                     <Description>C:\Users\mehdi.afnai\Desktop\LEVANT</Description>
                     <StartDate>2015-06-18T13:54:42</StartDate>
                     <EndDate>2015-06-18T13:54:42</EndDate>
-                    <metadata><Addressee>a</Addressee></metadata>
+                    <metadata>
+                        <Addressee>a</Addressee>
+                        <Addressee2>a</Addressee2>
+                        <Addressee2>b</Addressee2>
+                    </metadata>
+                    <metadata>
+                        <Addressee>c</Addressee>
+                    </metadata>
                     <locator>tata</locator>
+                    <locator>toto</locator>
                 </Content>
             </ArchiveUnit>
         </DescriptiveMetadata>
