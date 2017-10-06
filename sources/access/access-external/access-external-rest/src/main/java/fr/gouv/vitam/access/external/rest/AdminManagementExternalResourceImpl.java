@@ -102,8 +102,6 @@ import java.util.Map;
 @javax.ws.rs.ApplicationPath("webresources")
 public class AdminManagementExternalResourceImpl {
 
-    private static final String CONTENT_TYPE = "Content-Type";
-    private static final String CONTENT_DISPOSITION = "Content-Disposition";
     private static final String ATTACHEMENT_FILENAME = "attachment; filename=rapport.json";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementExternalResourceImpl.class);
     private static final String ACCESS_EXTERNAL_MODULE = "ADMIN_EXTERNAL";

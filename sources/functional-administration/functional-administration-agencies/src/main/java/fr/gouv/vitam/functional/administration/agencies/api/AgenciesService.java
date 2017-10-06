@@ -29,12 +29,8 @@ package fr.gouv.vitam.functional.administration.agencies.api;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -42,14 +38,8 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
 
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.common.model.administration.AgenciesModel;
-import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.functional.administration.common.AccessContract;
-import fr.gouv.vitam.functional.administration.common.Agencies;
 import org.bson.conversions.Bson;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -61,6 +51,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -74,9 +65,11 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.functional.administration.common.Agencies;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
@@ -94,11 +87,7 @@ public class AgenciesService implements VitamAutoCloseable {
     private static final String AGENCIES_UPDATE_EVENT = "STP_UPDATE_AGENCIES";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AgenciesService.class);
 
-    private static final String AGENCIES_IS_MANDATORY_PATAMETER = "agency parameter is mandatory";
-    private static final String IDENTIFIER = "Identifier";
     private static final String UPDATE_AGENCIES_MANDATORY_PATAMETER = "agency is mandatory";
-    private static final String TMP = "tmpAgencies";
-    private static final String CSV = "csv";
 
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logBookclient;
@@ -200,8 +189,7 @@ public class AgenciesService implements VitamAutoCloseable {
         }
     }
 
-    public RequestResponse<AgenciesModel> updateAgency(String id, JsonNode queryDsl)
-        throws VitamException {
+    public RequestResponse<AgenciesModel> updateAgency(String id, JsonNode queryDsl) throws VitamException {
         ParametersChecker.checkParameter(UPDATE_AGENCIES_MANDATORY_PATAMETER, queryDsl);
         SanityChecker.checkJsonAll(queryDsl);
         final VitamError error = new VitamError(VitamCode.AGENCIES_VALIDATION_ERROR.getItem())
@@ -392,7 +380,7 @@ public class AgenciesService implements VitamAutoCloseable {
         }
 
         /**
-         * Check if the Id of the  agency  already exists in database
+         * Check if the Id of the agency already exists in database
          *
          * @return
          */

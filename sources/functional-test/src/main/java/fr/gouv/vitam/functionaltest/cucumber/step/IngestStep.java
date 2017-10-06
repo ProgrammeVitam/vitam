@@ -26,7 +26,31 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
+import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.FILING_SCHEME;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.HOLDING_SCHEME;
+import static java.lang.String.format;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.core.Response;
+
+import org.assertj.core.api.AutoCloseableSoftAssertions;
+import org.assertj.core.api.Fail;
+
 import com.google.common.collect.Iterables;
+
 import cucumber.api.java.After;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
@@ -51,33 +75,11 @@ import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.VitamPoolingClient;
 import fr.gouv.vitam.tools.SipTool;
-import org.assertj.core.api.AutoCloseableSoftAssertions;
-import org.assertj.core.api.Fail;
-
-import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.FILING_SCHEME;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.HOLDING_SCHEME;
-import static java.lang.String.format;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 public class IngestStep {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestStep.class);
 
-    private String fileName;
     private Path sip;
 
     private World world;
@@ -95,7 +97,6 @@ public class IngestStep {
      */
     @Given("^un fichier SIP nommé (.*)$")
     public void a_sip_named(String fileName) {
-        this.fileName = fileName;
         this.sip = Paths.get(world.getBaseDirectory(), fileName);
     }
 
@@ -197,10 +198,10 @@ public class IngestStep {
     public void the_logbook_operation_has_a_status(String status)
         throws VitamClientException, InvalidParseOperationException {
         RequestResponse<LogbookOperation> requestResponse =
-            world.getAccessClient().selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId()),
-                world.getOperationId(), new Select().getFinalSelect()
-            );
+            world.getAccessClient()
+                .selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                    world.getOperationId(), new Select().getFinalSelect());
         if (requestResponse instanceof RequestResponseOK) {
             RequestResponseOK<LogbookOperation> requestResponseOK =
                 (RequestResponseOK<LogbookOperation>) requestResponse;
@@ -229,10 +230,10 @@ public class IngestStep {
     public void the_status_are(List<String> eventNames, String eventStatus)
         throws VitamClientException, InvalidParseOperationException {
         RequestResponse<LogbookOperation> requestResponse =
-            world.getAccessClient().selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId()),
-                world.getOperationId(), new Select().getFinalSelect()
-            );
+            world.getAccessClient()
+                .selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                    world.getOperationId(), new Select().getFinalSelect());
 
         if (requestResponse.isOk()) {
             RequestResponseOK<LogbookOperation> requestResponseOK =
@@ -276,10 +277,10 @@ public class IngestStep {
     public void the_results_are(String eventName, String eventResults)
         throws VitamClientException, InvalidParseOperationException {
         RequestResponse<LogbookOperation> requestResponse =
-            world.getAccessClient().selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId()),
-                world.getOperationId(), new Select().getFinalSelect()
-            );
+            world.getAccessClient()
+                .selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                    world.getOperationId(), new Select().getFinalSelect());
 
         if (requestResponse.isOk()) {
             RequestResponseOK<LogbookOperation> requestResponseOK =

@@ -78,7 +78,6 @@ import java.util.concurrent.CompletableFuture;
 public class ProcessEngineImpl implements ProcessEngine {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessEngineImpl.class);
-    private static final String TRANSFER_AGENCY = "TransferringAgency";
     private static final String AGENCY_DETAIL = "agIdExt";
     private static String ORIGIN_AGENCY_NAME = "OriginatingAgency";
     private static final String OBJECTS_LIST_EMPTY = "OBJECTS_LIST_EMPTY";

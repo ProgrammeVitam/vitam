@@ -48,7 +48,6 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckDataObjectPackageActionHandler.class);
     private static final String HANDLER_ID = "CHECK_DATAOBJECTPACKAGE";
     private static final int CHECK_NO_OBJECT_INPUT_RANK = 0;
-    private HandlerIO handlerIO;
 
     /**
      * Empty Constructor
@@ -66,11 +65,11 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) throws ContentAddressableStorageServerException {
-        this.handlerIO = handlerIO;
+    public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO)
+        throws ContentAddressableStorageServerException {
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         UnitType unitType = null;
-        if (handlerIO.getInput() != null && !handlerIO.getInput().isEmpty() && handlerIO.getInput(1) !=null) {
+        if (handlerIO.getInput() != null && !handlerIO.getInput().isEmpty() && handlerIO.getInput(1) != null) {
             unitType = UnitType.valueOf(UnitType.getUnitTypeString((String) handlerIO.getInput(1)));
             if (null == unitType) {
                 // TODO: 6/19/17 should throw exception ?!
@@ -78,7 +77,7 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
             }
         }
         try {
-            if (Boolean.valueOf((String)handlerIO.getInput(CHECK_NO_OBJECT_INPUT_RANK))) {
+            if (Boolean.valueOf((String) handlerIO.getInput(CHECK_NO_OBJECT_INPUT_RANK))) {
                 CheckNoObjectsActionHandler checkNoObjectsActionHandler = new CheckNoObjectsActionHandler();
                 ItemStatus checkNoObjectStatus = checkNoObjectsActionHandler.execute(params, handlerIO);
                 itemStatus.setItemsStatus(CheckNoObjectsActionHandler.getId(), checkNoObjectStatus);
@@ -133,13 +132,18 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
                 }
 
                 List<IOParameter> inputList = new ArrayList<>();
-                inputList.add(new IOParameter().setUri(handlerIO.getOutput(ExtractSedaActionHandler.OG_ID_TO_UNID_ID_IO_RANK)));
-                inputList.add(new IOParameter().setUri(handlerIO.getOutput(ExtractSedaActionHandler.OG_ID_TO_GUID_IO_MEMORY_RANK)));
+                inputList.add(
+                    new IOParameter().setUri(handlerIO.getOutput(ExtractSedaActionHandler.OG_ID_TO_UNID_ID_IO_RANK)));
+                inputList.add(new IOParameter()
+                    .setUri(handlerIO.getOutput(ExtractSedaActionHandler.OG_ID_TO_GUID_IO_MEMORY_RANK)));
                 handlerIO.addInIOParameters(inputList);
                 handlerIO.getOutput().clear();
-                CheckObjectUnitConsistencyActionHandler checkObjectUnitConsistencyActionHandler = new CheckObjectUnitConsistencyActionHandler();
-                ItemStatus checkObjectUnitConsistencyStatus = checkObjectUnitConsistencyActionHandler.execute(params, handlerIO);
-                itemStatus.setItemsStatus(CheckObjectUnitConsistencyActionHandler.getId(), checkObjectUnitConsistencyStatus);
+                CheckObjectUnitConsistencyActionHandler checkObjectUnitConsistencyActionHandler =
+                    new CheckObjectUnitConsistencyActionHandler();
+                ItemStatus checkObjectUnitConsistencyStatus =
+                    checkObjectUnitConsistencyActionHandler.execute(params, handlerIO);
+                itemStatus.setItemsStatus(CheckObjectUnitConsistencyActionHandler.getId(),
+                    checkObjectUnitConsistencyStatus);
 
                 checkVersionActionHandler.close();
                 checkObjectsNumberActionHandler.close();

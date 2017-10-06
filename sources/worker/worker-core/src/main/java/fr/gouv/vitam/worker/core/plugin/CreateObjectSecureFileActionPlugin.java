@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -46,9 +47,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 public class CreateObjectSecureFileActionPlugin extends CreateSecureFileActionPlugin implements VitamAutoCloseable {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CreateObjectSecureFileActionPlugin.class);
     private static final String OG_CREATE_SECURED_FILE = "OG_CREATE_SECURED_FILE";
-    private static final String OG_LFC_NOT_FOUND = "Object group lifecycle not found";
     private HandlerIO handlerIO;
-    private boolean asyncIO = false;
 
     /**
      * Empty constructor

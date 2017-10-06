@@ -80,13 +80,10 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
 
     private static final String OPERATION_URI = "/operations";
     private static final String WORKFLOWS_URI = "/workflows";
-    private static final String INGESTS_URI = "/ingests";
-    private static final String OPERATION_ID_URI = "/id";
     private static final String CONTEXT_ID_MUST_HAVE_A_VALID_VALUE = "Context id must have a valid value";
     private static final String ACTION_ID_MUST_HAVE_A_VALID_VALUE = "Action id must have a valid value";
     private static final String BLANK_OPERATION_ID = "Operation identifier should be filled";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessingManagementClientRest.class);
-    private static final String ERR_ACTION_IS_MANDATORY = "The action is mandatory";
 
     /**
      * Constructor

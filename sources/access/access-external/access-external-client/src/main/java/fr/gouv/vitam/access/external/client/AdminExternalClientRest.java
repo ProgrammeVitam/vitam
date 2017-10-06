@@ -48,8 +48,6 @@ import fr.gouv.vitam.logbook.common.client.ErrorMessage;
  */
 public class AdminExternalClientRest extends DefaultClient implements AdminExternalClient {
 
-    private static final String ADMIN_EXTERNAL_MODULE = "AdminExternalModule";
-
     private static final String ACCESS_EXTERNAL_MODULE = "AccessExternalModule";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminExternalClientRest.class);
@@ -602,7 +600,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     @Override
     public RequestResponse<AccessContractModel> findAccessContractById(
         VitamContext vitamContext, String contractId) throws VitamClientException {
-        return internalFindDocumentById(vitamContext, AdminCollections.ACCESS_CONTRACTS, contractId, AccessContractModel.class);
+        return internalFindDocumentById(vitamContext, AdminCollections.ACCESS_CONTRACTS, contractId,
+            AccessContractModel.class);
     }
 
     @Override
@@ -629,7 +628,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
 
     /**
      * @param vitamContext the vitam context
-     * @param query        select query
+     * @param query select query
      * @return
      */
     @Override

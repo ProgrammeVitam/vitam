@@ -26,19 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.core;
 
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.processing.management.api.ProcessManagement;
-
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import fr.gouv.vitam.processing.management.api.ProcessManagement;
 
 /**
  * WorkflowsLoader
  */
 public class WorkflowsLoader implements Runnable {
-
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkflowsLoader.class);
 
     final private ProcessManagement processManagement;
 

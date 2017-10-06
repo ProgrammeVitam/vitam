@@ -28,7 +28,6 @@ package fr.gouv.vitam.worker.core.handler;
 
 import static fr.gouv.vitam.common.LocalDateUtil.getString;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleMongoDbName.eventDateTime;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventIdentifier;
 
 import java.io.File;
 import java.text.ParseException;
@@ -84,7 +83,6 @@ public class ListLifecycleTraceabilityActionHandler extends ActionHandler {
     private boolean asyncIO = false;
 
     private static final String EVENT_DATE_TIME = eventDateTime.getDbname();
-    private static final String EVENT_ID = eventIdentifier.getDbname();
 
     private static final int LAST_OPERATION_LIFECYCLES_RANK = 0;
     private static final int TRACEABILITY_INFORMATION_RANK = 1;
@@ -166,7 +164,8 @@ public class ListLifecycleTraceabilityActionHandler extends ActionHandler {
                 numberObjectLifecycles++;
             }
             JsonNode lastUnit = unitLifecycles.size() > 0 ? unitLifecycles.get(unitLifecycles.size() - 1) : null;
-            JsonNode lastObject = objectGroupLifecycles.size() > 0 ? objectGroupLifecycles.get(objectGroupLifecycles.size() - 1) : null;
+            JsonNode lastObject =
+                objectGroupLifecycles.size() > 0 ? objectGroupLifecycles.get(objectGroupLifecycles.size() - 1) : null;
             JsonNode firstUnit = unitLifecycles.size() > 0 ? unitLifecycles.get(0) : null;
             JsonNode firstObject = objectGroupLifecycles.size() > 0 ? objectGroupLifecycles.get(0) : null;
             traceabilityInformations.put("endDate",

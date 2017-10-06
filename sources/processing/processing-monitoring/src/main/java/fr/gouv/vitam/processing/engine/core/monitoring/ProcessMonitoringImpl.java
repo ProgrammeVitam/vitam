@@ -26,12 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.engine.core.monitoring;
 
+import java.util.List;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
-
-import java.util.List;
 
 /**
  * ProcessMonitoringImpl class implementing the ProcessMonitoring
@@ -41,8 +41,6 @@ public class ProcessMonitoringImpl implements ProcessMonitoring {
     private static final ProcessMonitoringImpl INSTANCE = new ProcessMonitoringImpl();
 
     private ProcessDataAccessImpl processDataAccess;
-
-    private static final String STEP_DOES_NOT_EXIST = "Step does not exist";
 
     private ProcessMonitoringImpl() {
         processDataAccess = ProcessDataAccessImpl.getInstance();
@@ -61,7 +59,8 @@ public class ProcessMonitoringImpl implements ProcessMonitoring {
 
 
     @Override
-    public ProcessWorkflow findOneProcessWorkflow(String operationId, Integer tenantId) throws WorkflowNotFoundException {
+    public ProcessWorkflow findOneProcessWorkflow(String operationId, Integer tenantId)
+        throws WorkflowNotFoundException {
         ParametersChecker.checkParameter("operationId cannot be null", operationId);
         return processDataAccess.findOneProcessWorkflow(operationId, tenantId);
     }

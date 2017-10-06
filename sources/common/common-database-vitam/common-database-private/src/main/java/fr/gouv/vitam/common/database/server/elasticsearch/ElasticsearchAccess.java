@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.server.elasticsearch;
 
-import java.io.FileNotFoundException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
@@ -39,11 +38,8 @@ import org.elasticsearch.common.settings.Settings.Builder;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
@@ -56,24 +52,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
     private static final int TOSECOND = 1000;
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchAccess.class);
-    
-    private static final String FRENCH_STOP_WORDS = "[\"vers\", \"a\", \"à\", \"afin\", \"ai\", \"ainsi\", \"après\", \"au\", \"auquel\", \"aussi\", " +
-        "\"autre\", \"autres\", \"aux\", \"auxquelles\", \"auxquels\", \"avait\", \"c\", \"ça\", \"ce\", \"ceci\", \"cela\", \"celle\", \"celles\", " +
-        "\"celui\", \"cependant\", \"certain\", \"certaine\", \"certaines\", \"certains\", \"ces\", \"cet\", \"cette\", \"ceux\", \"chez\", \"ci\", " +
-        "\"combien\", \"comme\", \"comment\", \"concernant\", \"contre\", \"d\", \"dans\", \"de\", \"dedans\", \"dehors\", \"delà\", \"depuis\", " +
-        "\"des\", \"dès\", \"désormais\", \"desquelles\", \"desquels\", \"dessous\", \"dessus\", \"devant\", \"devers\", \"devra\", \"divers\", " +
-        "\"diverse\", \"diverses\", \"doit\", \"donc\", \"dont\", \"du\", \"duquel\", \"durant\", \"elle\", \"elles\", \"en\", \"entre\", " +
-        "\"environ\", \"et\", \"etc\", \"etre\", \"être\", \"eu\", \"eux\", \"hélas\", \"hormis\", \"hors\", \"hui\", \"il\", \"ils\", \"j\", \"je\", " +
-        "\"jusqu\", \"jusque\", \"l\", \"la\", \"là\", \"laquelle\", \"le\", \"lequel\", \"les\", \"lesquelles\", \"lesquels\", \"leur\", \"leurs\", " +
-        "\"lorsque\", \"lui\", \"ma\", \"mais\", \"malgré\", \"me\", \"même\", \"mêmes\", \"mes\", \"mien\", \"mienne\", \"miennes\", \"miens\", " +
-        "\"moi\", \"moins\", \"mon\", \"moyennant\", \"n\", \"ne\", \"néanmoins\", \"ni\", \"non\", \"nos\", \"notre\", \"nôtre\", \"nôtres\", " +
-        "\"nous\", \"ô\", \"on\", \"ont\", \"ou\", \"où\", \"outre\", \"par\", \"parmi\", \"pas\", \"pendant\", \"plein\", \"plus\", \"plusieurs\", " +
-        "\"pour\", \"pourquoi\", \"près\", \"proche\", \"puisque\", \"qu\", \"quand\", \"que\", \"quel\", \"quelle\", \"quelles\", \"quels\", \"qui\", " +
-        "\"quoi\", \"quoique\", \"revoici\", \"revoilà\", \"s\", \"sa\", \"sauf\", \"se\", \"selon\", \"seront\", \"ses\", \"si\", \"sien\", \"sienne\", " +
-        "\"siennes\", \"siens\", \"sinon\", \"soi\", \"soit\", \"son\", \"sont\", \"sous\", \"suivant\", \"sur\", \"ta\", \"te\", \"tes\", \"tien\", " +
-        "\"tienne\", \"tiennes\", \"tiens\", \"toi\", \"ton\", \"tous\", \"tout\", \"toute\", \"toutes\", \"tu\", \"un\", \"une\", \"va\", \"voici\", " +
-        "\"voilà\", \"vos\", \"votre\", \"vôtre\", \"vôtres\", \"vous\", \"vu\", \"y\"]";
-    
+
     public Builder default_builder;
 
     private static String ES_CONFIGURATION_FILE = "/elasticsearch-configuration.json";
@@ -189,7 +168,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
     public String getInfo() {
         return clusterName;
     }
-    
+
     public final boolean addIndex(String collectionName, String mapping, String type) {
         if (!client.admin().indices().prepareExists(collectionName).get().isExists()) {
             try {
@@ -197,9 +176,9 @@ public class ElasticsearchAccess implements DatabaseConnection {
                 LOGGER.debug("setMapping: " + collectionName + " type: " + type + "\n\t" + mapping);
                 final CreateIndexResponse response =
                     client.admin().indices().prepareCreate(collectionName)
-                    .setSettings(settings())
-                    .addMapping(type, mapping)
-                    .get();
+                        .setSettings(settings())
+                        .addMapping(type, mapping)
+                        .get();
                 if (!response.isAcknowledged()) {
                     LOGGER.error(type + ":" + response.isAcknowledged());
                     return false;
@@ -211,8 +190,9 @@ public class ElasticsearchAccess implements DatabaseConnection {
         }
         return true;
     }
-    
-    public Builder settings(){
-        return Settings.builder().loadFromStream(ES_CONFIGURATION_FILE, ElasticsearchAccess.class.getResourceAsStream(ES_CONFIGURATION_FILE));
+
+    public Builder settings() {
+        return Settings.builder().loadFromStream(ES_CONFIGURATION_FILE,
+            ElasticsearchAccess.class.getResourceAsStream(ES_CONFIGURATION_FILE));
     }
 }

@@ -93,12 +93,7 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
     private LogbookLifeCyclesClient logbookLifeCycleClient;
     private ArchiveUnitUpdateUtils archiveUnitUpdateUtils = new ArchiveUnitUpdateUtils();
 
-    private static final String UNIT_METADATA_UPDATE = "UPDATE_UNIT_RULES";
-
-    private static final String _DIFF = "$diff";
     private static final String RESULTS = "$results";
-    private static final String DIFF = "#diff";
-    private static final String FINAL_DIFF = "diff";
     private static final String ID = "#id";
 
     private static final String MANAGEMENT_KEY = "#management";

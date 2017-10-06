@@ -26,9 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.core;
 
+import java.io.StringWriter;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.datatype.DatatypeConfigurationException;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.vitam.access.internal.api.DipService;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -39,14 +49,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.datatype.DatatypeConfigurationException;
-import java.io.StringWriter;
-
 /**
  * Unit Dip service impl for retrieve DIP
  */
@@ -54,11 +56,7 @@ public class UnitDipServiceImpl implements DipService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(UnitDipServiceImpl.class);
     private static final String END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS = "End of execution of DSL Vitam from Access";
-    private static final String EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING =
-        "Execution of DSL Vitam from Access ongoing...";
     private static final String BAD_REQUEST_EXCEPTION = "Bad request Exception ";
-    private static final String ACCESS_MODULE = "ACCESS";
-    private static final String CODE_VITAM = "code_vitam";
     private static final String ACCESS_RESOURCE_INITIALIZED = "AccessResource initialized";
     private static final String ACCESS_EXTERNAL_MODULE = "AccessExternalModule";
 
@@ -100,7 +98,8 @@ public class UnitDipServiceImpl implements DipService {
                             .setMessage(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR.getMessage())
                             .setState(StatusCode.KO.name())
                             .setContext(ACCESS_EXTERNAL_MODULE)
-                            .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR.getMessage()))).build();
+                            .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR.getMessage())))
+                    .build();
             }
         } catch (JsonProcessingException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
@@ -120,16 +119,17 @@ public class UnitDipServiceImpl implements DipService {
             status = Status.BAD_REQUEST;
             return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
                 .build();
+        } catch (NullPointerException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
+            // Unprocessable Entity not implemented by Jersey
+            status = Status.BAD_REQUEST;
+            return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
+                .build();
         } catch (Exception e) {
             status = Status.BAD_REQUEST;
-            if (e instanceof NullPointerException) {
-                return Response.status(status)
-                    .entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
-                    .build();
-            } else {
-                return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
-                    .build();
-            }
+            return Response.status(status)
+                .entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
+                .build();
         }
     }
 

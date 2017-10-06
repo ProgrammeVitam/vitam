@@ -179,7 +179,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String OBJECT_GROUP_ID = "_og";
     private static final String TRANSFER_AGENCY = "TransferringAgency";
     private static final String ARCHIVAL_AGENCY = "ArchivalAgency";
-    private static final String AGENCY_DETAIL = "agIdExt";
     public static final int BATCH_SIZE = 50;
     private static String ORIGIN_ANGENCY_NAME = "originatingAgency";
     private static final String ORIGIN_ANGENCY_SUBMISSION = "submissionAgency";
@@ -284,7 +283,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         this(MetaDataClientFactory.getInstance());
     }
 
-    @VisibleForTesting ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory) {
+    @VisibleForTesting
+    ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory) {
         dataObjectIdToGuid = new HashMap<>();
         dataObjectIdWithoutObjectGroupId = new HashMap<>();
         objectGroupIdToGuid = new HashMap<>();
@@ -342,7 +342,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             unmarshaller.setListener(new ArchiveUnitListener(handlerIO, archiveUnitTree, unitIdToGuid, unitIdToGroupId,
                 objectGroupIdToUnitId, dataObjectIdToObjectGroupId, dataObjectIdWithoutObjectGroupId,
                 guidToLifeCycleParameters, existingUnitGuids, params.getLogbookTypeProcess(),
-                params.getContainerName(), lifeCycleClient, metaDataClientFactory, objectGroupIdToGuid,
+                params.getContainerName(), metaDataClientFactory, objectGroupIdToGuid,
                 unitIdToSetOfRuleId,
                 getWorkflowUnitType(), originatingAgencies, existingGOTs));
 
@@ -403,15 +403,18 @@ public class ExtractSedaActionHandler extends ActionHandler {
              * setting rightsStatementIdentifier informations
              */
             if (rightsStatementIdentifier.size() > 0) {
-                globalCompositeItemStatus.setData(LogbookMongoDbName.rightsStatementIdentifier.getDbname(), rightsStatementIdentifier.toString());
+                globalCompositeItemStatus.setData(LogbookMongoDbName.rightsStatementIdentifier.getDbname(),
+                    rightsStatementIdentifier.toString());
                 globalCompositeItemStatus
-                    .setMasterData(LogbookMongoDbName.rightsStatementIdentifier.getDbname(), rightsStatementIdentifier.toString());
-                ObjectNode data = null ;
+                    .setMasterData(LogbookMongoDbName.rightsStatementIdentifier.getDbname(),
+                        rightsStatementIdentifier.toString());
+                ObjectNode data = null;
                 try {
                     data = (ObjectNode) JsonHandler.getFromString(globalCompositeItemStatus.getEvDetailData());
                     data.set(LogbookMongoDbName.rightsStatementIdentifier.getDbname(), rightsStatementIdentifier);
                     globalCompositeItemStatus.setEvDetailData(data.toString());
-                    globalCompositeItemStatus.setData(LogbookMongoDbName.rightsStatementIdentifier.getDbname(), rightsStatementIdentifier.toString());
+                    globalCompositeItemStatus.setData(LogbookMongoDbName.rightsStatementIdentifier.getDbname(),
+                        rightsStatementIdentifier.toString());
 
                 } catch (InvalidParseOperationException e) {
                     LOGGER.debug("Invalid Json", e);
@@ -517,7 +520,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Split Element from InputStream and write it to workspace
      *
      * @param logbookLifeCycleClient
-     * @param params                    parameters of workspace server
+     * @param params parameters of workspace server
      * @param globalCompositeItemStatus the global status
      * @throws ProcessingException throw when can't read or extract element from SEDA
      * @throws CycleFoundException when a cycle is found in data extract
@@ -541,7 +544,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
         /**
          * Retrieves SEDA
          **/
-        InputStream xmlFile = null;
 
         final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         XMLEventReader reader = null;
@@ -549,14 +551,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         final QName physicalDataObjectName = new QName(SedaConstants.NAMESPACE_URI, PHYSICAL_DATA_OBJECT);
         final QName unitName = new QName(SedaConstants.NAMESPACE_URI, ARCHIVE_UNIT);
 
-        try {
-            try {
-                xmlFile = handlerIO.getInputStreamFromWorkspace(
-                    IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
-            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
-                LOGGER.error(MANIFEST_NOT_FOUND);
-                throw new ProcessingException(e);
-            }
+        try (InputStream xmlFile = handlerIO.getInputStreamFromWorkspace(
+            IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);) {
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
             final JsonXMLConfig config =
                 new JsonXMLConfigBuilder().autoArray(true).autoPrimitive(true).prettyPrint(true)
@@ -870,8 +866,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
         } catch (final ArchiveUnitContainDataObjectException e) {
             LOGGER.error("Archive Unit Reference to BDO", e);
             throw e;
+        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+            LOGGER.error(MANIFEST_NOT_FOUND);
+            throw new ProcessingException(e);
         } finally {
-            StreamUtils.closeSilently(xmlFile);
             if (reader != null) {
                 try {
                     reader.close();
@@ -1056,7 +1054,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 // Write to workspace
                 try {
                     handlerIO
-                        .transferFileToWorkspace(path + File.separator + unitGuid + JSON_EXTENSION, 
+                        .transferFileToWorkspace(path + File.separator + unitGuid + JSON_EXTENSION,
                             unitCompleteTmpFile, true, asyncIO);
                 } finally {
                     if (!unitTmpFileForRead.delete()) {
@@ -1067,34 +1065,34 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             uuids.add(unitGuid);
 
-            if (uuids.size() == BATCH_SIZE ) {
+            if (uuids.size() == BATCH_SIZE) {
                 bulkLifeCycleUnit(containerId, logbookLifeCycleClient, uuids);
                 uuids.clear();
             }
         }
 
         // finish missing AU
-        if (! uuids.isEmpty()) {
+        if (!uuids.isEmpty()) {
             bulkLifeCycleUnit(containerId, logbookLifeCycleClient, uuids);
             uuids.clear();
         }
     }
 
-    private void bulkLifeCycleUnit(String containerId, LogbookLifeCyclesClient logbookLifeCycleClient, List<String> strings)
+    private void bulkLifeCycleUnit(String containerId, LogbookLifeCyclesClient logbookLifeCycleClient,
+        List<String> strings)
         throws LogbookClientBadRequestException, LogbookClientServerException {
         List<LogbookLifeCycleUnitModel> collect =
             strings.stream()
                 .filter(value -> handlerIO.getHelper().containsUpdate(value))
                 .map(value -> {
 
-                        Queue<? extends LogbookLifeCycleParameters> logbookLifeCycleParameters1 =
-                            handlerIO.getHelper().removeUpdateDelegate(value);
-                        Collection<LogbookLifeCycleUnitParameters> logbookLifeCycleParameters =
-                            (Collection<LogbookLifeCycleUnitParameters>) logbookLifeCycleParameters1;
+                    Queue<? extends LogbookLifeCycleParameters> logbookLifeCycleParameters1 =
+                        handlerIO.getHelper().removeUpdateDelegate(value);
+                    Collection<LogbookLifeCycleUnitParameters> logbookLifeCycleParameters =
+                        (Collection<LogbookLifeCycleUnitParameters>) logbookLifeCycleParameters1;
 
-                        return new LogbookLifeCycleUnitModel(value, logbookLifeCycleParameters);
-                    }
-                ).collect(Collectors.toList());
+                    return new LogbookLifeCycleUnitModel(value, logbookLifeCycleParameters);
+                }).collect(Collectors.toList());
         try {
             logbookLifeCycleClient.bulkUnit(containerId, collect);
         } catch (LogbookClientAlreadyExistsException e) {
@@ -1102,21 +1100,21 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
     }
 
-    private void bulkLifeCycleObjectGroup(String containerId, LogbookLifeCyclesClient logbookLifeCycleClient, List<String> strings)
+    private void bulkLifeCycleObjectGroup(String containerId, LogbookLifeCyclesClient logbookLifeCycleClient,
+        List<String> strings)
         throws LogbookClientBadRequestException, LogbookClientServerException {
         List<LogbookLifeCycleObjectGroupModel> collect =
             strings.stream()
                 .filter(value -> handlerIO.getHelper().containsCreate(value))
                 .map(value -> {
 
-                        Queue<? extends LogbookLifeCycleParameters> logbookLifeCycleParameters1 =
-                            handlerIO.getHelper().removeCreateDelegate(value);
-                        Collection<LogbookLifeCycleObjectGroupParameters> logbookLifeCycleParameters =
-                            (Collection<LogbookLifeCycleObjectGroupParameters>) logbookLifeCycleParameters1;
+                    Queue<? extends LogbookLifeCycleParameters> logbookLifeCycleParameters1 =
+                        handlerIO.getHelper().removeCreateDelegate(value);
+                    Collection<LogbookLifeCycleObjectGroupParameters> logbookLifeCycleParameters =
+                        (Collection<LogbookLifeCycleObjectGroupParameters>) logbookLifeCycleParameters1;
 
-                        return new LogbookLifeCycleObjectGroupModel(value, logbookLifeCycleParameters);
-                    }
-                ).collect(Collectors.toList());
+                    return new LogbookLifeCycleObjectGroupModel(value, logbookLifeCycleParameters);
+                }).collect(Collectors.toList());
         try {
             logbookLifeCycleClient.bulkObjectGroup(containerId, collect);
         } catch (LogbookClientAlreadyExistsException e) {
@@ -1127,7 +1125,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * Merge global rules to specific archive rules and clean management node
      *
-     * @param archiveUnit      archiveUnit
+     * @param archiveUnit archiveUnit
      * @param globalMgtIdExtra list of global management rule ids
      * @throws InvalidParseOperationException
      */
@@ -1170,9 +1168,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * Merge global management rule in root units management rules.
      *
-     * @param globalMgtRuleNode          global management node
+     * @param globalMgtRuleNode global management node
      * @param archiveUnitManagementModel rule management model
-     * @param ruleType                   category of rule
+     * @param ruleType category of rule
      * @throws InvalidParseOperationException
      */
     private void mergeRule(JsonNode globalMgtRuleNode, ManagementModel archiveUnitManagementModel, String ruleType)
@@ -1302,9 +1300,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
     }
 
-    private LogbookLifeCycleUnitParameters createUnitLifeCycle(String unitGuid, String containerId, LogbookTypeProcess logbookTypeProcess) {
+    private LogbookLifeCycleUnitParameters createUnitLifeCycle(String unitGuid, String containerId,
+        LogbookTypeProcess logbookTypeProcess) {
         final LogbookLifeCycleUnitParameters logbookLifecycleUnitParameters =
-            (LogbookLifeCycleUnitParameters) initLogbookLifeCycleParameters( unitGuid, true, false);
+            (LogbookLifeCycleUnitParameters) initLogbookLifeCycleParameters(unitGuid, true, false);
 
         logbookLifecycleUnitParameters.setBeginningLog(LFC_INITIAL_CREATION_EVENT_TYPE, null, null);
 
@@ -1858,7 +1857,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         if (logbookLifeCycleParameters == null) {
             logbookLifeCycleParameters = isArchive ? LogbookParametersFactory.newLogbookLifeCycleUnitParameters()
                 : isObjectGroup ? LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters()
-                : LogbookParametersFactory.newLogbookOperationParameters();
+                    : LogbookParametersFactory.newLogbookOperationParameters();
 
 
             logbookLifeCycleParameters.putParameterValue(LogbookParameterName.objectIdentifier, guid);
@@ -2007,7 +2006,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         .get(objectGroupGuid).setFinalStatus(HANDLER_ID, null, StatusCode.OK,
                             null));
 
-                if (uuids.size() == BATCH_SIZE ) {
+                if (uuids.size() == BATCH_SIZE) {
                     bulkLifeCycleObjectGroup(containerId, logbookLifeCycleClient, uuids);
                     uuids.clear();
                 }
@@ -2029,7 +2028,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 throw new ProcessingException(e);
             }
         }
-        if (! uuids.isEmpty()) {
+        if (!uuids.isEmpty()) {
             try {
                 bulkLifeCycleObjectGroup(containerId, logbookLifeCycleClient, uuids);
                 uuids.clear();
@@ -2095,7 +2094,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Update data object json node with data from maps
      *
      * @param objectNode data object json node
-     * @param guid       guid of data object
+     * @param guid guid of data object
      * @param isPhysical is this object a physical object
      */
 
@@ -2218,8 +2217,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         // Write to workspace
         handlerIO.transferFileToWorkspace(
-            IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + filingParentId 
-            + JSON_EXTENSION, unitCompleteTmpFile, true, asyncIO);
+            IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + filingParentId + JSON_EXTENSION,
+            unitCompleteTmpFile, true, asyncIO);
     }
 
     private void createLifeCycleForError(String subTask, String message, String guid, boolean isArchive,

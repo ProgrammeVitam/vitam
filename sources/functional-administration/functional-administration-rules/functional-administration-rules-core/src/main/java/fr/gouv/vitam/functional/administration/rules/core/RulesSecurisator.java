@@ -48,7 +48,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -83,7 +82,7 @@ public class RulesSecurisator {
 
     private static final String STRATEGY_ID = "default";
     public static final String STORAGE_LOGBOOK_RULE = "StorageRule";
-    private static String STP_IMPORT_RULES = "STP_IMPORT_RULES";
+
     private LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient();
 
     /**

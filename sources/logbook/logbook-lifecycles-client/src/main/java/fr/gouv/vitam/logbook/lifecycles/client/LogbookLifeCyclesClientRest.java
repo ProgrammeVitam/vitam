@@ -27,6 +27,7 @@
 package fr.gouv.vitam.logbook.lifecycles.client;
 
 import java.util.List;
+
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -34,6 +35,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -77,7 +79,6 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     private static final String OPERATIONS_URL = "/operations";
     private static final String UNIT_LIFECYCLES_URL = "/unitlifecycles";
     private static final String OBJECT_GROUP_LIFECYCLES_URL = "/objectgrouplifecycles";
-    private static final String COMMIT_URL = "/commit";
     private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
 
 
@@ -270,17 +271,17 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
 
     @Override
     public JsonNode selectUnitLifeCycleById(String id, JsonNode queryDsl, LifeCycleStatusCode lifeCycleStatus)
-            throws LogbookClientException, InvalidParseOperationException {
+        throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
             MultivaluedHashMap<String, Object> headers = null;
             if (lifeCycleStatus != null) {
-                headers= new MultivaluedHashMap<>();
+                headers = new MultivaluedHashMap<>();
                 headers.add(GlobalDataRest.X_EVENT_STATUS, lifeCycleStatus.toString());
             }
 
             response = performRequest(HttpMethod.GET, UNIT_LIFECYCLES_URL + "/" + id, headers,
-                    queryDsl, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                queryDsl, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
@@ -330,18 +331,18 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
 
     @Override
     public JsonNode selectObjectGroupLifeCycleById(String id, JsonNode queryDsl, LifeCycleStatusCode lifeCycleStatus)
-            throws LogbookClientException, InvalidParseOperationException {
+        throws LogbookClientException, InvalidParseOperationException {
         Response response = null;
         try {
 
             MultivaluedHashMap<String, Object> headers = null;
             if (lifeCycleStatus != null) {
-                headers= new MultivaluedHashMap<>();
+                headers = new MultivaluedHashMap<>();
                 headers.add(GlobalDataRest.X_EVENT_STATUS, lifeCycleStatus.toString());
             }
 
             response = performRequest(HttpMethod.GET, OBJECT_GROUP_LIFECYCLES_URL + "/" + id,
-                    headers, queryDsl, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                headers, queryDsl, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
@@ -698,7 +699,8 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         try {
 
             response =
-                performRequest(HttpMethod.PUT, OPERATIONS_URL + "/" + eventIdProc + "/lifecycles/objectgroup/bulk", null,
+                performRequest(HttpMethod.PUT, OPERATIONS_URL + "/" + eventIdProc + "/lifecycles/objectgroup/bulk",
+                    null,
                     logbookLifeCycleModels, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {

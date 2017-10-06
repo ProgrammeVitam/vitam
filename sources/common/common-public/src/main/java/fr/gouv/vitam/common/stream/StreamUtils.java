@@ -26,7 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.stream;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -35,12 +39,12 @@ import java.util.Arrays;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
+
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import org.apache.commons.io.IOUtils;
 
 /**
  * This class supports Helpers on streams.
@@ -215,13 +219,13 @@ public class StreamUtils {
 
     /**
      *
-     * @param stream
+     * @param inputStream
      * @return the corresponding String from InputStream
+     * @throws IOException 
      */
     public static final String toString(InputStream inputStream) throws IOException {
-        try {
-            return CharStreams.toString(new InputStreamReader(
-                inputStream, Charsets.UTF_8));
+        try (InputStreamReader isr = new InputStreamReader(inputStream, Charsets.UTF_8);) {
+            return CharStreams.toString(isr);
         } catch (IOException e) {
             LOGGER.error(e);
             throw e;
@@ -245,8 +249,8 @@ public class StreamUtils {
      * @return True if equals
      */
     public static boolean contentEquals(InputStream is1, InputStream is2) {
-        byte [] buffer = new byte[BUFFER_SIZE];
-        byte [] buffer2 = new byte[BUFFER_SIZE];
+        byte[] buffer = new byte[BUFFER_SIZE];
+        byte[] buffer2 = new byte[BUFFER_SIZE];
         Arrays.fill(buffer, (byte) 0);
         Arrays.fill(buffer2, (byte) 0);
         boolean equals = true;

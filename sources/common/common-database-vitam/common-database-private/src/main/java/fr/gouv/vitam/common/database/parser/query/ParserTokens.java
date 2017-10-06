@@ -31,8 +31,6 @@ import java.util.List;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.logging.SysErrLogger;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Main language definition
@@ -40,8 +38,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  *
  */
 public class ParserTokens extends BuilderToken {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ParserTokens.class);
-    
     /**
      * Default prefix for internal variable
      */
@@ -55,27 +51,29 @@ public class ParserTokens extends BuilderToken {
      */
     public static final char DEFAULT_UNDERSCORE_PREFIX_CHAR = '_';
 
-    private static final List<String>  SUB_FIELDS_NOT_ARRAY  = Arrays.asList( new String[] {
+    private static final List<String> SUB_FIELDS_NOT_ARRAY = Arrays.asList(new String[] {
         "evDetData",
-        "FirstName", "Corpname", "Gender", "BirthPlace", "GivenName", "DeathPlace", "BirthDate", "Identifier", "BirthName", "DeathDate", "Nationality",
+        "FirstName", "Corpname", "Gender", "BirthPlace", "GivenName", "DeathPlace", "BirthDate", "Identifier",
+        "BirthName", "DeathDate", "Nationality",
         "Function", "Activity", "Position", "Role",
         "Geogname", "Address", "PostalCode", "City", "Region", "Country",
-        "PhysicalId", "Filename", "MessageDigest", "Size", "FormatIdentification", "FileInfo", "Metadata", "OtherMetadata",
+        "PhysicalId", "Filename", "MessageDigest", "Size", "FormatIdentification", "FileInfo", "Metadata",
+        "OtherMetadata",
         "Algorithm", "DataObjectGroupId", "DataObjectVersion", "strategyId",
         "EndDate", "Rule", "PreventInheritance", "StartDate", "FinalAction",
         "ClassificationLevel", "ClassificationOwner", "ClassificationReassessingDate", "NeedReassessingAuthorization"
-    } );
+    });
 
-    private static final List<String> FIELD_NOT_ANALYZED = Arrays.asList( new String[] {
+    private static final List<String> FIELD_NOT_ANALYZED = Arrays.asList(new String[] {
         "ArchivalAgencyArchiveUnitIdentifier", "ArchiveUnitProfile", "DescriptionLevel", "DocumentType",
         "Identifier", "OriginatingAgencyArchiveUnitIdentifier", "OriginatingSystemId", "SubmissionAgency",
         "SystemId", "TransferringAgencyArchiveUnitIdentifier", "Rule", "RefNonRuleId", "FinalAction",
         "PreventInheritance", "RefNonRuleId", "ClassificationLevel",
         "PhysicalId", "MessageDigest", "Algorithm", "DataObjectGroupId", "DataObjectVersion", "strategyId",
         "unit", "offerIds", "strategyId"
-    } );
-    private static final List<String> FIELD_ANALYZED = Arrays.asList( new String[] {"RuleValue", "RuleDescription"} );
-    
+    });
+    private static final List<String> FIELD_ANALYZED = Arrays.asList(new String[] {"RuleValue", "RuleDescription"});
+
     private ParserTokens() {
         // Empty
     }
@@ -212,8 +210,8 @@ public class ParserTokens extends BuilderToken {
          */
         public static final boolean isValid(String token) {
             // Exception for getObject sliced projection
-            return token.startsWith("_qualifiers.") || token.equals("mgt") || token.startsWith("_mgt.")
-                || token.startsWith("_storage.");
+            return token.startsWith("_qualifiers.") || token.equals("mgt") || token.startsWith("_mgt.") ||
+                token.startsWith("_storage.");
         }
 
         /**
@@ -249,159 +247,160 @@ public class ParserTokens extends BuilderToken {
         }
 
         /**
-        *
-        * @param name
-        * @return the PROJECTIONARGS associated
-        * @throws IllegalArgumentException if not found
-        */
-       private static PROJECTIONARGS getPROJECTIONARGS(String name) {
-           // TODO Try to find a better way since this is already defined in Metadata
-           if (name.charAt(0) == DEFAULT_UNDERSCORE_PREFIX_CHAR) {
-               switch (name) {
-                   case "_qualifiers.qualifier":
-                       return USAGE;
-                   case "_qualifiers.versions.FormatIdentification.FormatId":
-                       return FORMAT;
-                   case "_id":
-                       return ID;
-                   case "_og":
-                       return OBJECT;
-                   case "_ops":
-                       return OPERATIONS;
-                   case "_up":
-                       return UNITUPS;
-                   case "_us":
-                       return ALLUNITUPS;
-                   case "_tenant":
-                       return TENANT;
-                   case "_unitType":
-                       return UNITTYPE;
-                   case "_sp":
-                       return ORIGINATING_AGENCY;
-                   case "_sps":
-                       return ORIGINATING_AGENCIES;
-                   case "_storage":
-                       return STORAGE;
-                   case "_qualifiers":
-                       return QUALIFIERS;
-                   case "_type":
-                       return TYPE;
-                   case "_nbunits":
-                       return NBUNITS;
-                   case "_nbobjects":
-                       return NBOBJECTS;
-                   case "_min":
-                       return MIN;
-                   case "_max":
-                       return MAX;
-                   case "_version":
-                       return VERSION;
-                   case "_score":
-                       return SCORE;
-                   default:
-               }
-           } else if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
-               // Check on prefix (preceding '.')
-               final int pos = name.indexOf('.');
-               final String realname;
-               if (pos > 1) {
-                   realname = name.substring(1, pos);
-               } else {
-                   realname = name.substring(1);
-               }
-               try {
-                   return PROJECTIONARGS.valueOf(realname.toUpperCase());
-               } catch (final Exception e) {
-                   // Ignore
-                   SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-               }
-           }
-           throw new IllegalArgumentException("Not found");
-       }
+         *
+         * @param name
+         * @return the PROJECTIONARGS associated
+         * @throws IllegalArgumentException if not found
+         */
+        private static PROJECTIONARGS getPROJECTIONARGS(String name) {
+            // TODO Try to find a better way since this is already defined in Metadata
+            if (name.charAt(0) == DEFAULT_UNDERSCORE_PREFIX_CHAR) {
+                switch (name) {
+                    case "_qualifiers.qualifier":
+                        return USAGE;
+                    case "_qualifiers.versions.FormatIdentification.FormatId":
+                        return FORMAT;
+                    case "_id":
+                        return ID;
+                    case "_og":
+                        return OBJECT;
+                    case "_ops":
+                        return OPERATIONS;
+                    case "_up":
+                        return UNITUPS;
+                    case "_us":
+                        return ALLUNITUPS;
+                    case "_tenant":
+                        return TENANT;
+                    case "_unitType":
+                        return UNITTYPE;
+                    case "_sp":
+                        return ORIGINATING_AGENCY;
+                    case "_sps":
+                        return ORIGINATING_AGENCIES;
+                    case "_storage":
+                        return STORAGE;
+                    case "_qualifiers":
+                        return QUALIFIERS;
+                    case "_type":
+                        return TYPE;
+                    case "_nbunits":
+                        return NBUNITS;
+                    case "_nbobjects":
+                        return NBOBJECTS;
+                    case "_min":
+                        return MIN;
+                    case "_max":
+                        return MAX;
+                    case "_version":
+                        return VERSION;
+                    case "_score":
+                        return SCORE;
+                    default:
+                }
+            } else if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
+                // Check on prefix (preceding '.')
+                final int pos = name.indexOf('.');
+                final String realname;
+                if (pos > 1) {
+                    realname = name.substring(1, pos);
+                } else {
+                    realname = name.substring(1);
+                }
+                try {
+                    return PROJECTIONARGS.valueOf(realname.toUpperCase());
+                } catch (final Exception e) {
+                    // Ignore
+                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                }
+            }
+            throw new IllegalArgumentException("Not found");
+        }
 
-       /**
-       *
-       * @param name
-       * @return True if attribute is not analyzed
-       */
-      public static boolean isNotAnalyzed(String name) {
-          if (name == null || name.isEmpty()) {
-              return false;
-          }
-          try {
-              final PROJECTIONARGS proj = getPROJECTIONARGS(name);
-              switch (proj) {
-                  case ALLUNITUPS:
-                  case FORMAT:
-                  case ID:
-                  case OBJECT:
-                  case OPERATIONS:
-                  case ORIGINATING_AGENCIES:
-                  case ORIGINATING_AGENCY:
-                  case QUALIFIERS:
-                  case TENANT:
-                  case TYPE:
-                  case UNITTYPE:
-                  case UNITUPS:
-                  case USAGE:
-                  case NBUNITS:
-                  case NBOBJECTS:
-                  case MIN:
-                  case MAX:
-                  case STORAGE:
-                  case VERSION:
-                  case SCORE:
-                      return true;
-                  default:
-                      break;
+        /**
+         *
+         * @param name
+         * @return True if attribute is not analyzed
+         */
+        public static boolean isNotAnalyzed(String name) {
+            if (name == null || name.isEmpty()) {
+                return false;
+            }
+            try {
+                final PROJECTIONARGS proj = getPROJECTIONARGS(name);
+                switch (proj) {
+                    case ALLUNITUPS:
+                    case FORMAT:
+                    case ID:
+                    case OBJECT:
+                    case OPERATIONS:
+                    case ORIGINATING_AGENCIES:
+                    case ORIGINATING_AGENCY:
+                    case QUALIFIERS:
+                    case TENANT:
+                    case TYPE:
+                    case UNITTYPE:
+                    case UNITUPS:
+                    case USAGE:
+                    case NBUNITS:
+                    case NBOBJECTS:
+                    case MIN:
+                    case MAX:
+                    case STORAGE:
+                    case VERSION:
+                    case SCORE:
+                        return true;
+                    default:
+                        break;
 
-              }
-          } catch (final IllegalArgumentException e) {
-              // Ignore
-              SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-          }
-          return ParserTokens.isSingleNotAnalyzedVariable(name);
-      }
-      /**
-       * Used in Set for Update
-       * 
-       * @param name
-       * @return True if attribute is an array
-       */
-      public static boolean isAnArray(String name) {
-          if (name == null || name.isEmpty()) {
-              return false;
-          }
-          try {
-              final PROJECTIONARGS proj = getPROJECTIONARGS(name);
-              switch (proj) {
-                  case ID:
-                  case NBUNITS:
-                  case NBOBJECTS:
-                  case SIZE:
-                  case FORMAT:
-                  case TYPE:
-                  case TENANT:
-                  case OBJECT:
-                  case MIN:
-                  case MAX:
-                  case MANAGEMENT:
-                  case UNITTYPE:
-                  case ORIGINATING_AGENCY:
-                  case STORAGE:
-                  case VERSION:
-                      return false;
-                  default:
-                      break;
+                }
+            } catch (final IllegalArgumentException e) {
+                // Ignore
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+            return ParserTokens.isSingleNotAnalyzedVariable(name);
+        }
 
-              }
-          } catch (final IllegalArgumentException e) {
-              // Ignore
-              SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-          }
-          // FIXME Patch for Single collection and Metadata
-          return ParserTokens.isAnArrayVariable(name);
-      }
+        /**
+         * Used in Set for Update
+         * 
+         * @param name
+         * @return True if attribute is an array
+         */
+        public static boolean isAnArray(String name) {
+            if (name == null || name.isEmpty()) {
+                return false;
+            }
+            try {
+                final PROJECTIONARGS proj = getPROJECTIONARGS(name);
+                switch (proj) {
+                    case ID:
+                    case NBUNITS:
+                    case NBOBJECTS:
+                    case SIZE:
+                    case FORMAT:
+                    case TYPE:
+                    case TENANT:
+                    case OBJECT:
+                    case MIN:
+                    case MAX:
+                    case MANAGEMENT:
+                    case UNITTYPE:
+                    case ORIGINATING_AGENCY:
+                    case STORAGE:
+                    case VERSION:
+                        return false;
+                    default:
+                        break;
+
+                }
+            } catch (final IllegalArgumentException e) {
+                // Ignore
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
+            // FIXME Patch for Single collection and Metadata
+            return ParserTokens.isAnArrayVariable(name);
+        }
 
         /**
          *
@@ -495,17 +494,17 @@ public class ParserTokens extends BuilderToken {
             case "Version":
             case "Alert":
             case "Comment":
-           // Profile
+                // Profile
             case "Format":
             case "Path":
-            // Rule
+                // Rule
             case "RuleId":
             case "RuleType":
             case "RuleMeasurement":
             case "RuleValue":
             case "RuleDescription":
             case "RuleDuration":
-            // Access contracts
+                // Access contracts
             case "Identifier":
             case "CreationDate":
             case "LastUpdate":
@@ -515,7 +514,7 @@ public class ParserTokens extends BuilderToken {
             case "WritingPermission":
             case "EveryOriginatingAgency":
             case "EveryDataObjectVersion":
-            // AccessionRegisterDetails
+                // AccessionRegisterDetails
             case "SubmissionAgency":
             case "ArchivalAgreement":
             case "EndDate":
@@ -549,9 +548,9 @@ public class ParserTokens extends BuilderToken {
             case "ObjectSize.attached":
             case "ObjectSize.symbolicRemained":
             case "OriginatingAgency":
-            // Sequence
+                // Sequence
             case "Counter":
-            // Logbook
+                // Logbook
             case "evId":
             case "evType":
             case "evDateTime":
@@ -581,12 +580,12 @@ public class ParserTokens extends BuilderToken {
             case "obIdReq":
             case "obIdIn":
             case "events.agIdApp":
-            case "events.evIdAppSession": 
+            case "events.evIdAppSession":
             case "events.evIdReq":
             case "events.agIdSubm":
             case "events.obIdReq":
             case "events.obIdIn":
-            // Unit
+                // Unit
             case "DescriptionLevel":
             case "LevelType":
             case "Title":
@@ -612,7 +611,7 @@ public class ParserTokens extends BuilderToken {
             case "RegisteredDate":
             case "Signature":
             case "Gps":
-            // OG
+                // OG
                 return false;
             default:
         }

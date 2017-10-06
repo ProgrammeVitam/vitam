@@ -27,6 +27,8 @@
 package fr.gouv.vitam.access.internal.rest;
 
 
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -50,6 +52,7 @@ import org.bson.Document;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -106,8 +109,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventDetailData;
-
 /**
  * AccessResourceImpl implements AccessResource
  */
@@ -117,10 +118,6 @@ import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMo
 @javax.ws.rs.ApplicationPath("webresources")
 public class LogbookInternalResourceImpl {
 
-    private static final String LOGBOOK = "logbook";
-    /**
-     * 
-     */
     private static final String CHECK_LOGBOOK_OP_SECURISATION = "CHECK_LOGBOOK_OP_SECURISATION";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookInternalResourceImpl.class);
     private static final String LOGBOOK_MODULE = "LOGBOOK";
@@ -487,7 +484,7 @@ public class LogbookInternalResourceImpl {
             IllegalArgumentException e) {
             LOGGER.error(e.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
+                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
         }
 
         // A valid operation found : download the related file
@@ -532,11 +529,11 @@ public class LogbookInternalResourceImpl {
         } catch (StorageServerClientException | StorageNotFoundException e) {
             LOGGER.error(e.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
+                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
+                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
         }
     }
 
