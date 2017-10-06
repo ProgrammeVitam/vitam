@@ -341,6 +341,14 @@ public class AdminManagementClientMockTest {
         RequestResponse resp = client.createProfiles(new ArrayList<>());
         assertEquals(resp.getHttpCode(), Status.CREATED.getStatusCode());
     }
+    
+    @Test
+    @RunWithCustomExecutor
+    public void givenClientMockWhenUpdateProfile() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        RequestResponse resp = client.updateProfile("fakeId", JsonHandler.createObjectNode());
+        assertEquals(resp.getHttpCode(), Status.OK.getStatusCode());
+    }
 
     @Test
     @RunWithCustomExecutor

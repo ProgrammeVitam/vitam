@@ -194,6 +194,14 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         public Response importProfileFile(@PathParam("id") String id, InputStream document) {
             return expectedResponse.put();
         }
+        
+        @PUT
+        @Path("/{collections}/{id}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response updateProfile(@PathParam("id") String id, JsonNode queryDsl) {
+            return expectedResponse.put();
+        }
 
         @GET
         @Path("/{collections}/{id}")
@@ -800,6 +808,13 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getSecurityProfiles()).build());
         assertThat(client.findSecurityProfileById(
                 new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID).isOk()).isTrue();
+    }
+    
+    @Test
+    public void testUpdateProfile() throws Exception {
+        when(mock.put()).thenReturn(Response.status(Status.OK).entity(new RequestResponseOK<>()).build());
+        assertThat(client.updateProfile(
+                new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID, JsonHandler.createObjectNode()).isOk()).isTrue();
     }
 
 }

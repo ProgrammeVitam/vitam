@@ -518,4 +518,16 @@ public interface AdminExternalClient extends BasicClient {
     RequestResponse<SecurityProfileModel> findSecurityProfileById(VitamContext vitamContext,
                                                                   String identifier)
             throws VitamClientException;
+    
+    /**
+     * Update the detail of the profile
+     * 
+     * @param vitamContext
+     * @param profileMetadataId
+     * @param queryDsl
+     * @return a profile
+     * @throws AccessExternalClientException
+     */
+    RequestResponse updateProfile(VitamContext vitamContext, String profileMetadataId, JsonNode queryDsl) 
+        throws AccessExternalClientException;
 }

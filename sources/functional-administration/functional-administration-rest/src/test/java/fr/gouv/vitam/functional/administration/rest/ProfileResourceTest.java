@@ -18,6 +18,7 @@
 package fr.gouv.vitam.functional.administration.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.jayway.restassured.RestAssured;
@@ -33,7 +34,14 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.action.SetAction;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.builder.request.single.Update;
+import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
+import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -95,6 +103,7 @@ public class ProfileResourceTest {
     private static final String ADMIN_MANAGEMENT_CONF = "functional-administration-test.conf";
 
     private static final String RESOURCE_URI = "/adminmanagement/v1";
+    private static final String IDENTIFIER = "Identifier";
 
     private static final int TENANT_ID = 0;
 
@@ -372,6 +381,16 @@ public class ProfileResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().put(ProfileResource.PROFILE_URI + "/" + identifierProfile)
             .then().statusCode(Status.CREATED.getStatusCode());
+        
+        // update profile
+        Update update = new Update();
+        SetAction setDescription = UpdateActionHelper.set("Description", "New Description of the profile");
+        update.addActions(setDescription);
+        update.setQuery(QueryHelper.eq("Name", "aName"));
+        
+        given().contentType(ContentType.JSON).body(update.getFinalUpdate()).header(GlobalDataRest.X_TENANT_ID, 0)
+        .when().put(ProfileResource.UPDATE_PROFIL_URI + "/" + ids.get(0)).then()
+        .statusCode(Status.OK.getStatusCode());
 
     }
 }

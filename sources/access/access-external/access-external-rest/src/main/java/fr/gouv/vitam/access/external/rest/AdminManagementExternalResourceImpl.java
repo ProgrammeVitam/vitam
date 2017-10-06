@@ -679,7 +679,7 @@ public class AdminManagementExternalResourceImpl {
     @PUT
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "profiles:id:update", description = "Importer un fichier xsd ou rng dans un profil")
+    @Secured(permission = "profiles:id:update:binaire", description = "Importer un fichier xsd ou rng dans un profil")
     public Response importProfileFile(@Context UriInfo uriInfo,
         @PathParam("id") String profileMetadataId,
         InputStream profileFile) {
@@ -1440,6 +1440,26 @@ public class AdminManagementExternalResourceImpl {
         try {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 RequestResponse response = client.updateContext(id, queryDsl);
+                return getResponse(response);
+            }
+        } catch (IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+        }
+    }
+    
+    @Path("/profiles/{id:.+}")
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "profiles:id:update:json", description = "Effectuer une mise à jour sur un profil")
+    public Response updateProfile(@PathParam("id") String id, JsonNode queryDsl)
+        throws AdminManagementClientServerException, InvalidParseOperationException {
+        addRequestId();
+        try {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+                RequestResponse response = client.updateProfile(id, queryDsl);
                 return getResponse(response);
             }
         } catch (IllegalArgumentException e) {

@@ -82,7 +82,10 @@ public class ProfileResource {
         "The profile file is mandatory";
     private static final String PROFILE_ID_IS_MANDATORY_PATAMETER =
         "The profile id is mandatory";
+    private static final String DSL_QUERY_IS_MANDATORY_PATAMETER =
+        "The dsl query is mandatory";
     public static final String PROFILE_URI = "/profiles";
+    public static final String UPDATE_PROFIL_URI = "/profiles";
 
     private final MongoDbAccessAdminImpl mongoAccess;
     private final WorkspaceClientFactory workspaceClientFactory;
@@ -202,6 +205,44 @@ public class ProfileResource {
             StreamUtils.closeSilently(profileFile);
         }
     }
+    
+    /**
+     * Update the detail of the profile
+     * 
+     * @param profileMetadataId
+     * @param queryDsl
+     * @return Response
+     */
+    @Path(UPDATE_PROFIL_URI + "/{id}")
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateProfileFile(@PathParam("id") String profileMetadataId, JsonNode queryDsl) {
+        ParametersChecker.checkParameter(PROFILE_ID_IS_MANDATORY_PATAMETER, profileMetadataId);
+        ParametersChecker.checkParameter(DSL_QUERY_IS_MANDATORY_PATAMETER, queryDsl);
+
+        try (ProfileService profileService =
+            new ProfileServiceImpl(mongoAccess, workspaceClientFactory, vitamCounterService)) {
+            SanityChecker.checkParameter(profileMetadataId);
+            RequestResponse requestResponse = profileService.updateProfiles(queryDsl);
+            if (!requestResponse.isOk()) {
+                ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
+                return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
+            } else {
+
+                return Response.status(Status.OK).entity(requestResponse).build();
+            }
+        } catch (VitamException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
+        }  catch (Exception e) {
+            LOGGER.error("Unexpected server error {}", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null)).build();
+        }
+    }
+    
 
     @GET
     @Path(PROFILE_URI + "/{id}")

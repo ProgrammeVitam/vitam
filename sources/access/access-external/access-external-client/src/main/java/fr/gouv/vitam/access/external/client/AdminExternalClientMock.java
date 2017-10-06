@@ -285,4 +285,10 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         throws VitamClientException {
         return (RequestResponse<SecurityProfileModel>) ClientMockResultHelper.getSecurityProfiles();
     }
+
+    @Override
+    public RequestResponse updateProfile(VitamContext vitamContext, String profileMetadataId, JsonNode queryDsl)
+        throws AccessExternalClientException {
+        return ClientMockResultHelper.getProfiles(200);
+    }
 }

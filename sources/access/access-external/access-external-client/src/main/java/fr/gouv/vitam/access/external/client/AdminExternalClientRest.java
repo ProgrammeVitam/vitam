@@ -56,6 +56,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     private static final String UPDATE_ACCESS_CONTRACT = AccessExtAPI.ACCESS_CONTRACT_API_UPDATE + "/";
     private static final String UPDATE_INGEST_CONTRACT = AccessExtAPI.ENTRY_CONTRACT_API_UPDATE + "/";
     private static final String UPDATE_CONTEXT = AccessExtAPI.CONTEXTS_API_UPDATE + "/";
+    private static final String UPDATE_PROFILE = AccessExtAPI.PROFILES_API_UPDATE + "/";
     private static final String UPDATE_SECURITY_PROFILE = AccessExtAPI.SECURITY_PROFILES+ "/";
     private static final String LOGBOOK_CHECK = AccessExtAPI.TRACEABILITY_API + "/check";
 
@@ -447,6 +448,25 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         } finally {
             consumeAnyEntityAndClose(response);
         }
+    }
+    
+    @Override
+    public RequestResponse updateProfile(VitamContext vitamContext, String profileMetadataId, JsonNode queryDsl) 
+        throws AccessExternalClientException {
+        Response response = null;
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.putAll(vitamContext.getHeaders());
+        try {
+            response = performRequest(HttpMethod.PUT, UPDATE_PROFILE + profileMetadataId, headers,
+                queryDsl, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }          
     }
 
     @Override

@@ -396,6 +396,9 @@ public interface AdminManagementClient extends MockOrRestClient {
     RequestResponse<ProfileModel> findProfilesByID(String id)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
 
+    
+    RequestResponse<ProfileModel> updateProfile(String id, JsonNode queryDsl) 
+        throws AdminManagementClientServerException, InvalidParseOperationException;
 
     /**
      * Import a set of context

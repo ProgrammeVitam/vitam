@@ -2374,6 +2374,48 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
+    
+    /**
+     * Update the detail of the profile
+     * 
+     * @param headers
+     * @param profileMetadataId
+     * @param updateOptions
+     * @return Response
+     */
+    @PUT
+    @Path("/profiles/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("profiles:update")
+    public Response updateProfile(@Context HttpHeaders headers, @PathParam("id") String profileMetadataId,
+        JsonNode updateOptions) {
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            Update updateRequest = new Update();
+            updateRequest.setQuery(QueryHelper.eq(IDENTIFIER, profileMetadataId));
+            if (!updateOptions.isObject()) {
+                throw new InvalidCreateOperationException("Query not valid");
+            }
+            updateRequest.addActions(UpdateActionHelper.set((ObjectNode) updateOptions));
+            
+            RequestResponse response =
+                adminClient.updateProfile(
+                    new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()), 
+                    profileMetadataId, updateRequest.getFinalUpdate());
+            if (response != null && response instanceof RequestResponseOK) {
+                return Response.status(Status.OK).build();
+            }
+            if (response != null && response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 
     @GET
     @Path("/profiles/{id}")

@@ -358,6 +358,15 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
             InputStream profileFile) {
             return expectedResponse.put();
         }
+        
+        @PUT
+        @Path("/profiles/{id}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response updateProfileFile(@PathParam("id") String profileMetadataId,
+            JsonNode queryDsl) {
+            return expectedResponse.put();
+        }
 
         @GET
         @Path("/profiles")
@@ -836,7 +845,18 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         assertThat(resp).isInstanceOf(RequestResponseOK.class);
         assertThat(((RequestResponseOK) resp).getResults()).hasSize(0);
     }
+    
+    @Test
+    @RunWithCustomExecutor
+    public void updateProfile() 
+        throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
+        when(mock.put()).thenReturn(Response.status(Status.OK)
+            .entity(new RequestResponseOK<ProfileModel>()).build());
+        RequestResponse resp = client.updateProfile("fakeId", JsonHandler.createObjectNode());
+        assertThat(resp).isInstanceOf(RequestResponseOK.class);
+    }
 
     /**
      * Test that profiles is reachable and return two elements as expected
