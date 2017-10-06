@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
@@ -129,7 +130,8 @@ public class PrepareAuditActionHandler extends ActionHandler {
                     if (ogTotalNumber > GlobalDatas.LIMIT_LOAD) {
                         while (offset < ogTotalNumber) {
                             selectQuery.setLimitFilter(offset, GlobalDatas.LIMIT_LOAD);
-                            final JsonNode nextSearchResults = metadataClient.selectObjectGroups(selectQuery.getFinalSelect());
+                            final JsonNode nextSearchResults =
+                                metadataClient.selectObjectGroups(selectQuery.getFinalSelect());
                             addToOgIdList(ogIdList, nextSearchResults);
                             offset += GlobalDatas.LIMIT_LOAD;
                         }
@@ -149,17 +151,17 @@ public class PrepareAuditActionHandler extends ActionHandler {
             } else {
                 itemStatus.increment(StatusCode.OK);
             }
-        } catch (InvalidParseOperationException | InvalidCreateOperationException| MetaDataException e) {
+        } catch (InvalidParseOperationException | InvalidCreateOperationException | MetaDataException e) {
             LOGGER.error("Metadata errors : ", e);
             itemStatus.increment(StatusCode.FATAL);
         } catch (ContentAddressableStorageAlreadyExistException e) {
-            LOGGER.error("Workspace errors : ",e);
+            LOGGER.error("Workspace errors : ", e);
             itemStatus.increment(StatusCode.FATAL);
         } catch (ReferentialNotFoundException e) {
             LOGGER.error("No Accession Register found ");
             itemStatus.increment(StatusCode.WARNING);
         } catch (ReferentialException | AccessUnauthorizedException e) {
-            LOGGER.error("Functional admin errors : ",e);
+            LOGGER.error("Functional admin errors : ", e);
             itemStatus.increment(StatusCode.FATAL);
         }
 
@@ -191,7 +193,8 @@ public class PrepareAuditActionHandler extends ActionHandler {
             if (searchResults.isArray()) {
                 for (JsonNode og : searchResults) {
                     String registerName = og.get(ORIGINATING_AGENCY).asText();
-                    final int total = og.get("TotalObjects").get("total").intValue();
+                    final int total = og.get(AccessionRegisterSummary.TOTAL_OBJECTS)
+                        .get(AccessionRegisterSummary.INGESTED).intValue();
                     originatingAgency.add(og.get(ORIGINATING_AGENCY).asText());
                     if (total == 0) {
                         originatingAgencyEmpty.add(registerName);
@@ -204,6 +207,5 @@ public class PrepareAuditActionHandler extends ActionHandler {
     }
 
     @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-    }
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {}
 }

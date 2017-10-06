@@ -578,39 +578,41 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         accessionRegisterDetail.setLastUpdate(model.getLastUpdate());
 
         if (model.getTotalObjectsGroups() != null) {
-            totalObjectsGroups.setTotal(model.getTotalObjectsGroups().getTotal())
+            totalObjectsGroups.setIngested(model.getTotalObjectsGroups().getIngested())
                 .setRemained(model.getTotalObjectsGroups().getRemained())
                 .setDeleted(model.getTotalObjectsGroups().getDeleted())
-                .setTotalSymbolic(model.getTotalObjectsGroups().getTotalSymbolic())
+                .setSymbolicRemained(model.getTotalObjectsGroups().getSymbolicRemained())
                 .setAttached(model.getTotalObjectsGroups().getAttached())
                 .setDetached(model.getTotalObjectsGroups().getDetached());
 
             accessionRegisterDetail.setTotalObjectGroups(totalObjectsGroups);
         }
         if (model.getTotalUnits() != null) {
-            totalUnits.setTotal(model.getTotalUnits().getTotal()).setRemained(model.getTotalUnits().getRemained())
+            totalUnits.setIngested(model.getTotalUnits().getIngested())
+                .setRemained(model.getTotalUnits().getRemained())
                 .setDeleted(model.getTotalUnits().getDeleted())
                 .setAttached(model.getTotalUnits().getAttached())
-                .setTotalSymbolic(model.getTotalUnits().getTotalSymbolic())
+                .setSymbolicRemained(model.getTotalUnits().getSymbolicRemained())
                 .setDetached(model.getTotalUnits().getDetached());
 
             accessionRegisterDetail.setTotalUnits(totalUnits);
         }
         if (model.getTotalObjects() != null) {
-            totalObjects.setTotal(model.getTotalObjects().getTotal())
+            totalObjects.setIngested(model.getTotalObjects().getIngested())
                 .setRemained(model.getTotalObjects().getRemained())
                 .setDeleted(model.getTotalObjects().getDeleted())
-                .setTotalSymbolic(model.getTotalObjects().getTotalSymbolic())
+                .setSymbolicRemained(model.getTotalObjects().getSymbolicRemained())
                 .setAttached(model.getTotalObjects().getAttached())
                 .setDetached(model.getTotalObjects().getDetached());
 
             accessionRegisterDetail.setTotalObjects(totalObjects);
         }
         if (model.getObjectSize() != null) {
-            objectSize.setTotal(model.getObjectSize().getTotal()).setRemained(model.getObjectSize().getRemained())
+            objectSize.setIngested(model.getObjectSize().getIngested())
+                .setRemained(model.getObjectSize().getRemained())
                 .setDeleted(model.getObjectSize().getDeleted())
                 .setAttached(model.getObjectSize().getAttached())
-                .setTotalSymbolic(model.getObjectSize().getTotalSymbolic())
+                .setSymbolicRemained(model.getObjectSize().getSymbolicRemained())
                 .setDetached(model.getObjectSize().getDetached());
             accessionRegisterDetail.setObjectSize(objectSize);
         }

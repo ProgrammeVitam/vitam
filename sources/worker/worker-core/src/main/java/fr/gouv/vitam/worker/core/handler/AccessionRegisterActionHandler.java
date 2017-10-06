@@ -35,6 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -83,6 +85,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessionRegisterActionHandler.class);
     private static final String HANDLER_ID = "ACCESSION_REGISTRATION";
+    private static final String VOLUMETRY = "Volumetry";
     private HandlerIO handlerIO;
 
     private final List<Class<?>> handlerInitialIOList = new ArrayList<>();
@@ -153,7 +156,8 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
             ImmutableMap<String, ObjectGroupPerOriginatingAgency> objectGroupPerOriginatingAgencyImmutableMap =
                 Maps.uniqueIndex(objectGroupPerOriginatingAgencies,
                     ObjectGroupPerOriginatingAgency::getOriginatingAgency);
-
+            ObjectNode evDetDataInformation = JsonHandler.createObjectNode();
+            ArrayNode arrayInformation = JsonHandler.createArrayNode();
             for (UnitPerOriginatingAgency agency : agencies) {
                 final AccessionRegisterDetailModel register = generateAccessionRegister(params,
                     objectGroupPerOriginatingAgencyImmutableMap
@@ -186,12 +190,30 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
                         ". Lets continue anyways.");
                 }
 
+                ArrayNode agencyVolumetry = JsonHandler.createArrayNode();
+                agencyVolumetry.addPOJO(JsonHandler.createObjectNode().set("TotalObjects",
+                    JsonHandler.toJsonNode(register.getTotalObjects())));
+                agencyVolumetry.addPOJO(JsonHandler.createObjectNode().set("TotalObjectsGroups",
+                    JsonHandler.toJsonNode(register.getTotalObjectsGroups())));
+                agencyVolumetry.addPOJO(
+                    JsonHandler.createObjectNode().set("TotalUnits", JsonHandler.toJsonNode(register.getTotalUnits())));
+                agencyVolumetry.addPOJO(
+                    JsonHandler.createObjectNode().set("ObjectSize", JsonHandler.toJsonNode(register.getObjectSize())));
+                arrayInformation.addPOJO(JsonHandler.createObjectNode().set(agency.getId(), agencyVolumetry));
                 adminClient.createorUpdateAccessionRegister(register);
+            }
+
+            if (arrayInformation.size() > 0) {
+                evDetDataInformation.set(VOLUMETRY, arrayInformation);
+                itemStatus.setEvDetailData(JsonHandler.unprettyPrint(evDetDataInformation));
             }
 
             itemStatus.increment(StatusCode.OK);
         } catch (ProcessingException | AdminManagementClientServerException e) {
             LOGGER.error("Inputs/outputs are not correct", e);
+            itemStatus.increment(StatusCode.KO);
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("Can not parse register", e);
             itemStatus.increment(StatusCode.KO);
         } catch (AccessionRegisterException | DatabaseConflictException e) {
             LOGGER.error("Can not create func register", e);
@@ -288,20 +310,16 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
                 objectGroupPerOriginatingAgency.getSize());
         } else {
             totalObjectsGroups =
-                new RegisterValueDetailModel(objectGroupPerOriginatingAgency.getNumberOfGOT(), 0,
-                    objectGroupPerOriginatingAgency.getNumberOfGOT(), objectGroupPerOriginatingAgency.getNumberOfGOT(),
-                    objectGroupPerOriginatingAgency.getNumberOfGOT(), 0);
+                new RegisterValueDetailModel(objectGroupPerOriginatingAgency.getNumberOfGOT(),
+                    objectGroupPerOriginatingAgency.getNumberOfGOT(), 0, true);
             totalUnits =
-                new RegisterValueDetailModel(agency.getCount(), 0, agency.getCount(), agency.getCount(),
-                    agency.getCount(), 0);
+                new RegisterValueDetailModel(agency.getCount(),
+                    agency.getCount(), 0, true);
             totalObjects =
-                new RegisterValueDetailModel(objectGroupPerOriginatingAgency.getNumberOfObject(), 0,
-                    objectGroupPerOriginatingAgency.getNumberOfObject(),
-                    objectGroupPerOriginatingAgency.getNumberOfObject(),
-                    objectGroupPerOriginatingAgency.getNumberOfObject(), 0);
-            objectSize = new RegisterValueDetailModel(objectGroupPerOriginatingAgency.getSize(), 0,
-                objectGroupPerOriginatingAgency.getSize(), objectGroupPerOriginatingAgency.getSize(),
-                objectGroupPerOriginatingAgency.getSize(), 0);
+                new RegisterValueDetailModel(objectGroupPerOriginatingAgency.getNumberOfObject(),
+                    objectGroupPerOriginatingAgency.getNumberOfObject(), 0, true);
+            objectSize = new RegisterValueDetailModel(objectGroupPerOriginatingAgency.getSize(),
+                objectGroupPerOriginatingAgency.getSize(), 0, true);
         }
 
         String updateDate = ZonedDateTime.now().format(DATE_TIME_FORMATTER);

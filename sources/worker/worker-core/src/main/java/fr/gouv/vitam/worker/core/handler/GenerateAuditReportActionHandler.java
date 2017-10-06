@@ -22,6 +22,7 @@ import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -62,7 +63,7 @@ import java.util.Map.Entry;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 
 public class GenerateAuditReportActionHandler extends ActionHandler {
-    
+
     private static final String ID_GOT = "IdGOT";
 
     private static final String EV_TYPE = "evType";
@@ -130,7 +131,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
 
         Map<WorkerParameterName, String> mapParameters = param.getMapParameters();
         auditType = mapParameters.get(WorkerParameterName.auditType);
-        
+
         String actions = mapParameters.get(WorkerParameterName.auditActions);
         List<String> auditActions = Arrays.asList(actions.split("\\s*,\\s*"));
 
@@ -139,7 +140,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
         } else if (auditType.toLowerCase().equals("originatingagency")) {
             auditType = BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCY.exactToken();
         }
-        
+
         List<String> originatingAgency = new ArrayList<>();
 
         try (LogbookOperationsClient jopClient = LogbookOperationsClientFactory.getInstance().getClient();
@@ -147,8 +148,8 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
 
             String objectId = mapParameters.get(WorkerParameterName.objectId);
             String auditTypeString = "";
-           
-            if (auditType.equals(BuilderToken.PROJECTIONARGS.TENANT.exactToken())){
+
+            if (auditType.equals(BuilderToken.PROJECTIONARGS.TENANT.exactToken())) {
                 auditTypeString = "tenant";
                 originatingAgency = listOriginatingAgency(null);
             } else if (auditType.equals(BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCY.exactToken())){
@@ -188,8 +189,10 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
 
     }
 
-    private void getStatusAndDateTime(ObjectNode report, LogbookOperationsClient jopClient, String auditOperationId, List<String> auditActions) 
-        throws InvalidCreateOperationException, LogbookClientException, InvalidParseOperationException, UnsupportedEncodingException{
+    private void getStatusAndDateTime(ObjectNode report, LogbookOperationsClient jopClient, String auditOperationId,
+        List<String> auditActions)
+        throws InvalidCreateOperationException, LogbookClientException, InvalidParseOperationException,
+        UnsupportedEncodingException {
         Select select = new Select();
         select.setQuery(QueryHelper.and().add(QueryHelper.eq(EV_ID_PROC, auditOperationId),
             QueryHelper.eq(EV_TYPE_PROC, AUDIT)));
@@ -207,11 +210,11 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
         } else {
             report.put("LastEvent", CheckExistenceObjectPlugin.getId());
         }
-        
+
     }
 
-    private ArrayNode createSource(LogbookOperationsClient jopClient, String[] originatingAgency) 
-        throws InvalidCreateOperationException, LogbookClientException, InvalidParseOperationException{
+    private ArrayNode createSource(LogbookOperationsClient jopClient, String[] originatingAgency)
+        throws InvalidCreateOperationException, LogbookClientException, InvalidParseOperationException {
         ArrayNode source = JsonHandler.createArrayNode();
         Select selectQuery = new Select();
         selectQuery.setQuery(
@@ -223,10 +226,10 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
 
         try {
             JsonNode result = jopClient.selectOperation(selectQuery.getFinalSelect());
-            for (JsonNode res : result.get(RequestResponseOK.TAG_RESULTS)){
-                if (res.get("agIdExt") != null ) {
+            for (JsonNode res : result.get(RequestResponseOK.TAG_RESULTS)) {
+                if (res.get("agIdExt") != null) {
                     final String agIdExt = res.get("agIdExt").asText();
-                    final JsonNode agIdExtNode =JsonHandler.getFromString(agIdExt);
+                    final JsonNode agIdExtNode = JsonHandler.getFromString(agIdExt);
                     source.add(JsonHandler.createObjectNode().put(_TENANT, res.get(_TENANT).asText())
                         .put(ORIGINATING_AGENCY, agIdExtNode.get("originatingAgency").asText())
                         .put(EV_ID_PROC, res.get(EV_ID_PROC).asText()));
@@ -236,7 +239,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
             LOGGER.error("Logbook error, can not create source ", e);
             return source;
         }
-         
+
         return source;
     }
 
@@ -248,7 +251,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
      * @throws InvalidParseOperationException
      */
     private ArrayNode createReportKOPart(LogbookLifeCyclesClient lfcClient, String auditOperationId)
-        throws InvalidCreateOperationException, LogbookClientException, InvalidParseOperationException{
+        throws InvalidCreateOperationException, LogbookClientException, InvalidParseOperationException {
         ArrayNode reportKO = JsonHandler.createArrayNode();
         Select selectQuery = new Select();
         selectQuery.setQuery(QueryHelper.and()
@@ -259,9 +262,9 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
             for (JsonNode res : result.get(RequestResponseOK.TAG_RESULTS)) {
                 JsonNode events = res.get(EVENT);
                 for (JsonNode event : events) {
-                    if (event.get(EV_TYPE).asText().equals("LFC.AUDIT_CHECK_OBJECT")
-                        && event.get(OUTCOME).asText().equals("KO")
-                        && event.get(EV_ID_PROC).asText().equals(auditOperationId)) {
+                    if (event.get(EV_TYPE).asText().equals("LFC.AUDIT_CHECK_OBJECT") &&
+                        event.get(OUTCOME).asText().equals("KO") &&
+                        event.get(EV_ID_PROC).asText().equals(auditOperationId)) {
                         JsonNode evDetData = JsonHandler.getFromString(event.get("evDetData").asText());
                         final String originatingAgency = evDetData.get(ORIGINATING_AGENCY).asText();
                         for (JsonNode error : evDetData.get("errors")) {
@@ -284,8 +287,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
                     }
                 }
             }
-        }
-        catch (LogbookClientNotFoundException e) {
+        } catch (LogbookClientNotFoundException e) {
             // no Audit KO
             return reportKO;
         }
@@ -309,7 +311,8 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
             if (searchResults.isArray()) {
                 for (JsonNode og : searchResults) {
                     String registerName = og.get(ORIGINATING_AGENCY).asText();
-                    final int total = og.get("TotalObjects").get("total").intValue();
+                    final int total = og.get(AccessionRegisterSummary.TOTAL_OBJECTS)
+                        .get(AccessionRegisterSummary.INGESTED).intValue();
                     originatingAgency.add(registerName);
                     serviceProducteur.put(registerName,
                         total);
@@ -330,9 +333,10 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
         return HANDLER_ID;
     }
 
-    public void storeAuditReport(String guid, InputStream report) 
-        throws InvalidParseOperationException, ContentAddressableStorageServerException, StorageAlreadyExistsClientException, 
-        StorageNotFoundClientException, StorageServerClientException, ContentAddressableStorageNotFoundException{
+    public void storeAuditReport(String guid, InputStream report)
+        throws InvalidParseOperationException, ContentAddressableStorageServerException,
+        StorageAlreadyExistsClientException,
+        StorageNotFoundClientException, StorageServerClientException, ContentAddressableStorageNotFoundException {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient();
             WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             SanityChecker.checkParameter(guid);
@@ -351,16 +355,16 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
                 StorageCollectionType.REPORTS, guid + JSON, description);
             workspaceClient.deleteContainer(guid, true);
 
-        } 
+        }
     }
 
-    private String createResultDetailByOriginatingAgency(){
+    private String createResultDetailByOriginatingAgency() {
         ObjectNode result = JsonHandler.createObjectNode();
-        for (Entry<String, Integer> sp : serviceProducteur.entrySet()){
-            int nbKO = serviceProducteurKO.containsKey(sp.getKey()) ? serviceProducteurKO.get(sp.getKey()) : 0 ;
-            result.set(sp.getKey(), 
+        for (Entry<String, Integer> sp : serviceProducteur.entrySet()) {
+            int nbKO = serviceProducteurKO.containsKey(sp.getKey()) ? serviceProducteurKO.get(sp.getKey()) : 0;
+            result.set(sp.getKey(),
                 JsonHandler.createObjectNode().put("OK", sp.getValue() - nbKO)
-                .put("KO", nbKO));
+                    .put("KO", nbKO));
         }
         return JsonHandler.unprettyPrint(result);
     }

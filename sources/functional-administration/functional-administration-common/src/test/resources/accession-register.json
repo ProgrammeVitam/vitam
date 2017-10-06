@@ -5,34 +5,34 @@
   "EndDate": "EndDate",
   "LastUpdate": "LastUpdate",
   "TotalUnits": {
-    "total": 1,
+    "ingested": 1,
     "deleted": 0,
     "remained": 1,
-    "totalSymbolic": 1,
+    "symbolicRemained": 1,
     "attached":1,
     "detached":0
   },
   "TotalObjectGroups": {
-    "total": 1,
+    "ingested": 1,
     "deleted": 0,
     "remained": 1,
-    "totalSymbolic": 1, 
+    "symbolicRemained": 1, 
     "attached":1,
     "detached":0
   },
   "TotalObjects": {
-    "total": 1,
+    "ingested": 1,
     "deleted": 0,
     "remained": 1,
-    "totalSymbolic": 1,
+    "symbolicRemained": 1,
     "attached":1,
     "detached":0
   },
   "ObjectSize": {
-    "total": 1,
+    "ingested": 1,
     "deleted": 0,
     "remained": 1,
-    "totalSymbolic": 1,
+    "symbolicRemained": 1,
     "attached":1,
     "detached":0
   },

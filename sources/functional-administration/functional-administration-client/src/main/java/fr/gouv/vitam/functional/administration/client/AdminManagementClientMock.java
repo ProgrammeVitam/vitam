@@ -196,34 +196,34 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
             .setTenant(0)
             .setOriginatingAgency("FRAN_NP_005568");
 
-        totalObjects.setTotal(12)
+        totalObjects.setIngested(12)
             .setDeleted(0)
             .setRemained(12)
-            .setTotalSymbolic(12)
+            .setSymbolicRemained(12)
             .setAttached(12)
             .setDetached(0);
         model.setTotalObjects(totalObjects);
 
-        totalObjectsGroups.setTotal(3)
+        totalObjectsGroups.setIngested(3)
             .setDeleted(0)
             .setRemained(3)
-            .setTotalSymbolic(3)
+            .setSymbolicRemained(3)
             .setAttached(3)
             .setDetached(0);
         model.setTotalObjectsGroups(totalObjectsGroups);
 
-        totalUnits.setTotal(3)
+        totalUnits.setIngested(3)
             .setDeleted(0)
             .setRemained(3)
-            .setTotalSymbolic(3)
+            .setSymbolicRemained(3)
             .setAttached(3)
             .setDetached(0);
         model.setTotalUnits(totalUnits);
 
-        objectSize.setTotal(1035126)
+        objectSize.setIngested(1035126)
             .setDeleted(0)
             .setRemained(1035126)
-            .setTotalSymbolic(1035126)
+            .setSymbolicRemained(1035126)
             .setAttached(1035126)
             .setDetached(0);
         model.setObjectSize(objectSize)
