@@ -167,17 +167,18 @@ mongod
 
 [mongod] # mongod declaration ; add host name after
 # TODO: Put here servers where this service will be deployed : mongod cluster
-# Each host need 3 vars:
-#     - replica_number: number of replicas in the current replica set (mongodb recommendation: 3 for production servers)
-#     - shard_id: id of the current shard, increment by 1 from 0 to n
-#     - rs_member_id: id of the member of the replica set, increment by 1 from 0 to n
+# Each replica_set should have an odd number of members (2n + 1)
+# Reminder: For Vitam, one mongodb shard is using one replica_set
+# Each host need 2 vars:
+#     - mongo_shard_id: id of the current shard, increment by 1 from 0 to n
+#     - mongo_rs_bootstrap: mandatory for 1 node of the shard, some init commands will be executed on it
 # Example:
-# vitam-iaas-db-01.int  replica_number=3    shard_id=0  rs_member_id=0
-# vitam-iaas-db-02.int  replica_number=3    shard_id=0  rs_member_id=1
-# vitam-iaas-db-03.int  replica_number=3    shard_id=0  rs_member_id=2
-# vitam-iaas-db-04.int  replica_number=3    shard_id=1  rs_member_id=0
-# vitam-iaas-db-05.int  replica_number=3    shard_id=1  rs_member_id=1
-# vitam-iaas-db-06.int  replica_number=3    shard_id=1  rs_member_id=2
+# vitam-iaas-db-01.int  mongo_shard_id=0  mongo_rs_bootstrap=true
+# vitam-iaas-db-02.int  mongo_shard_id=0
+# vitam-iaas-db-03.int  mongo_shard_id=0
+# vitam-iaas-db-04.int  mongo_shard_id=1  mongo_rs_bootstrap=true
+# vitam-iaas-db-05.int  mongo_shard_id=1
+# vitam-iaas-db-06.int  mongo_shard_id=1
 
 ###### Zone admin
 

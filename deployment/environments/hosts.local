@@ -133,7 +133,7 @@ localhost
 localhost
 
 [mongod]
-localhost   replica_number=1    shard_id=0  rs_member_id=0
+localhost   mongo_shard_id=0  mongo_rs_bootstrap=true
 
 ###### Zone admin
 
