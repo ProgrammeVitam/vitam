@@ -1,6 +1,6 @@
 #!/bin/bash
 WORKING_FOLDER=$(dirname $0)
-CONSUL_VERSION="0.9.2"
+CONSUL_VERSION="0.9.3"
 
 if [ ! -d ${WORKING_FOLDER}/target ]; then
 	mkdir ${WORKING_FOLDER}/target
@@ -10,7 +10,11 @@ pushd ${WORKING_FOLDER}/vitam-consul/vitam/bin/consul/
 echo "Repertoire courant: $(pwd)"
 echo "Récupérer consul_${CONSUL_VERSION}_linux_amd64.zip"
 if [ ! -f consul_${CONSUL_VERSION}_linux_amd64.zip ]; then
-	curl -k https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip -o consul_${CONSUL_VERSION}_linux_amd64.zip
+	curl -k --max-time 120 https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip -o consul_${CONSUL_VERSION}_linux_amd64.zip
+	if [ ${?} != 0 ]; then
+		echo "Erreur sur le telechargement du fichier zip de consul: https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip"
+		exit 1
+	fi
 fi
 echo "Décompacter consul_${CONSUL_VERSION}_linux_amd64.zip"
 unzip -o consul_${CONSUL_VERSION}_linux_amd64.zip
