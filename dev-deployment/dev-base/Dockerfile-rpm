@@ -7,7 +7,7 @@
 #########################################################################################
 
 # Set the base image to Centos 7
-FROM centos:7.3.1611
+FROM centos:7.4.1708
 MAINTAINER French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
 
 # Make sure the package repository and packages are up to date.
@@ -37,10 +37,6 @@ RUN yum install -y \
         initscripts.x86_64 \
         golang \
         npm \
-        # Bug 1481008 - http-parser removed from EPEL - Dependency of Node.js
-        # https://bugzilla.redhat.com/show_bug.cgi?id=1481008
-        # https://www.centos.org/forums/viewtopic.php?f=47&t=63579&sid=d65ccb75ad2a25c49965dd944c422974&start=10
-        yum --enablerepo=cr install nodejs \
     && yum clean all
 
 # Add Java to path
