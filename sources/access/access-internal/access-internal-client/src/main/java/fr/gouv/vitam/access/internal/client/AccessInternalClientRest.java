@@ -543,7 +543,8 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
         }
     }
 
-    @Override public Response getObjectByUnitIdWithXMLFormat(JsonNode queryDsl, String unitId)
+    @Override
+    public Response getObjectByUnitIdWithXMLFormat(JsonNode queryDsl, String unitId)
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
         InvalidParseOperationException {
         ParametersChecker.checkParameter(BLANK_DSL, queryDsl);
@@ -554,6 +555,24 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             response = performRequest(HttpMethod.GET, OBJECTS + unitId, null, queryDsl,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_XML_TYPE);
             return response;
+        } catch (final VitamClientInternalException e) {
+            consumeAnyEntityAndClose(response);
+            throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
+        } catch (final Exception e) {
+            consumeAnyEntityAndClose(response);
+            throw e;
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> export(JsonNode queryDSL) throws AccessInternalClientServerException {
+        ParametersChecker.checkParameter(BLANK_DSL, queryDSL);
+        VitamThreadUtils.getVitamSession().checkValidRequestId();
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, "export", null, queryDSL,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
             consumeAnyEntityAndClose(response);
             throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common

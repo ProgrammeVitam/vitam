@@ -24,13 +24,14 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.access.internal.core.serializer;
+package fr.gouv.vitam.common.mapping.serializer;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
+import fr.gouv.culture.archivesdefrance.seda.v2.CodeKeywordType;
+import fr.gouv.culture.archivesdefrance.seda.v2.KeywordsType;
 
 import java.io.IOException;
 
@@ -38,7 +39,7 @@ import java.io.IOException;
  * Deserialize a (json, xml, string) representation to LevelType
  * To be registered in jackson objectMapper
  */
-public class LevelTypeDeserializer extends JsonDeserializer<LevelType> {
+public class KeywordTypeDeserializer extends JsonDeserializer<KeywordsType.KeywordType> {
     /**
      *
      * @param jp (json, xml, string) representation
@@ -47,9 +48,11 @@ public class LevelTypeDeserializer extends JsonDeserializer<LevelType> {
      * @throws IOException
      */
     @Override
-    public LevelType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+    public KeywordsType.KeywordType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
-        return LevelType.fromValue(node.asText());
+        KeywordsType.KeywordType keywordType = new KeywordsType.KeywordType();
+        keywordType.setValue(CodeKeywordType.fromValue(node.asText()));
+        return keywordType;
     }
 
 }

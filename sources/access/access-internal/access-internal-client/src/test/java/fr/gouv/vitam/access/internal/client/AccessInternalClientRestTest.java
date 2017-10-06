@@ -174,6 +174,10 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
             return expectedResponse.post();
         }
 
+        @Override public Response export(JsonNode queryDsl) {
+            return null;
+        }
+
         @Override
         @GET
         @Path("/units/{id_unit}")

@@ -52,18 +52,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
-import org.bson.Document;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -76,7 +66,6 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.Filters;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -90,6 +79,7 @@ import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.database.builder.query.CompareQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
@@ -163,6 +153,15 @@ import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import org.bson.Document;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 /**
  * Processing integration test
@@ -1652,6 +1651,71 @@ public class ProcessingIT {
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void should_export_dip() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
+
+        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+        String containerName = objectGuid.getId();
+        VitamThreadUtils.getVitamSession().setRequestId(objectGuid);
+
+        createLogbookOperation(operationGuid, objectGuid);
+
+        WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+
+
+        // upload SIP
+        final InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_PLAN);
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+            zipInputStreamSipObject);
+        // call processing
+
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, INGEST_PLAN_WORFKLOW);
+        RequestResponse<ItemStatus> ret =
+            processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+        assertNotNull(ret);
+
+        assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+        wait(containerName);
+
+        Select select = new Select();
+        CompareQuery eq = QueryHelper.eq("#operations", containerName);
+        select.setQuery(eq);
+
+        ObjectNode finalSelect = select.getFinalSelect();
+
+        operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        objectGuid = GUIDFactory.newManifestGUID(tenantId);
+        containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
+
+        workspaceClient.createContainer(containerName);
+
+        workspaceClient.putObject(containerName, "query.json", JsonHandler.writeToInpustream(finalSelect));
+
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(Contexts.EXPORT_DIP.name(), containerName, "EXPORT_DIP");
+
+        // When
+        RequestResponse<JsonNode> jsonNodeRequestResponse =
+            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+
+        // Then
+        assertNotNull(jsonNodeRequestResponse);
+        assertEquals(Response.Status.ACCEPTED.getStatusCode(), jsonNodeRequestResponse.getStatus());
+
+        wait(containerName);
+    }
+
+
     // Status Warn
     @RunWithCustomExecutor
     @Test
@@ -2002,8 +2066,7 @@ public class ProcessingIT {
 
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
-        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-            zipStream);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipStream);
 
         // call processing
         RestAssured.port = PORT_SERVICE_PROCESSING;

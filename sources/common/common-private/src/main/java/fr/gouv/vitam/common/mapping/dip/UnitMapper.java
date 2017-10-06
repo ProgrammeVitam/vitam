@@ -1,4 +1,4 @@
-package fr.gouv.vitam.access.internal.core;
+package fr.gouv.vitam.common.mapping.dip;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,12 +10,12 @@ import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.KeywordsType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
-import fr.gouv.vitam.access.internal.core.serializer.AgentTypeDeserializer;
-import fr.gouv.vitam.access.internal.core.serializer.IdentifierTypeDeserializer;
-import fr.gouv.vitam.access.internal.core.serializer.KeywordTypeDeserializer;
-import fr.gouv.vitam.access.internal.core.serializer.LevelTypeDeserializer;
-import fr.gouv.vitam.access.internal.core.serializer.TextByLangDeserializer;
-import fr.gouv.vitam.access.internal.core.serializer.TextTypeDeSerializer;
+import fr.gouv.vitam.common.mapping.serializer.AgentTypeDeserializer;
+import fr.gouv.vitam.common.mapping.serializer.IdentifierTypeDeserializer;
+import fr.gouv.vitam.common.mapping.serializer.KeywordTypeDeserializer;
+import fr.gouv.vitam.common.mapping.serializer.LevelTypeDeserializer;
+import fr.gouv.vitam.common.mapping.serializer.TextByLangDeserializer;
+import fr.gouv.vitam.common.mapping.serializer.TextTypeDeSerializer;
 import fr.gouv.vitam.common.model.unit.TextByLang;
 
 public interface UnitMapper {

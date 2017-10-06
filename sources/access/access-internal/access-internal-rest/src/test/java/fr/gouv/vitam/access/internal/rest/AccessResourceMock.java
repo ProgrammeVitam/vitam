@@ -68,6 +68,10 @@ public class AccessResourceMock implements AccessInternalResource {
         return Response.status(200).entity("{\"unit\" = \"OK_MockUnits\"}").build();
     }
 
+    @Override public Response export(JsonNode queryDsl) {
+        return null;
+    }
+
     /**
      * get unit list by unit id
      */

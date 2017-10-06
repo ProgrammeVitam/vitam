@@ -27,19 +27,7 @@
 
 package fr.gouv.vitam.workspace.common;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.apache.commons.compress.archivers.ArchiveStreamFactory;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
@@ -47,6 +35,27 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExi
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 
 public class WorkspaceFileSystemTest {
 
@@ -317,12 +326,53 @@ public class WorkspaceFileSystemTest {
     }
 
     @Test
+    public void should_compress_container_name() throws Exception {
+
+        // Given
+        String fileName = "result.zip";
+        storage.createContainer(CONTAINER_NAME);
+        String folder1 = "folder1";
+        storage.createFolder(CONTAINER_NAME, folder1);
+
+        storage.putObject(CONTAINER_NAME + "/" + folder1, "1.txt", new ByteArrayInputStream("bobbie1".getBytes()));
+        storage.putObject(CONTAINER_NAME + "/" + folder1, "2.txt", new ByteArrayInputStream("bobby404".getBytes()));
+
+        storage.putObject(CONTAINER_NAME, "3.txt", new ByteArrayInputStream("bobby5".getBytes()));
+
+        // When
+        storage.compress(CONTAINER_NAME, Lists.newArrayList(folder1, "3.txt"), fileName);
+
+        // Then
+        Path zipPath = Paths.get(tempDir.toString(), CONTAINER_NAME, fileName);
+        assertThat(zipPath).exists();
+
+        ArchiveStreamFactory archiveStreamFactory = new ArchiveStreamFactory();
+        ArchiveInputStream archiveInputStream = archiveStreamFactory
+            .createArchiveInputStream(ArchiveStreamFactory.ZIP, new FileInputStream(zipPath.toString()));
+
+        List<ArchiveEntry> entries = findArchiveEntries(archiveInputStream);
+        assertThat(entries).extracting("name", "size")
+            .containsExactlyInAnyOrder(tuple("folder1/1.txt", 7L), tuple("folder1/2.txt", 8L), tuple("3.txt", 6L));
+        assertThat(entries).extracting("name").containsExactlyInAnyOrder("folder1/1.txt", "folder1/2.txt", "3.txt");
+    }
+
+    @Test
     public void countObjectsOK() throws Exception {
         storage.createContainer(CONTAINER_NAME);
         storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.TAR, getInputStream(SIP_TAR));
         long number = storage.countObjects(CONTAINER_NAME);
         Assert.assertNotNull(number);
         Assert.assertEquals(7, number);
+    }
+
+    private List<ArchiveEntry> findArchiveEntries(ArchiveInputStream archiveInputStream) throws IOException {
+        List<ArchiveEntry> entries = new ArrayList<>();
+        ArchiveEntry nextEntry = archiveInputStream.getNextEntry();
+        while (nextEntry != null) {
+            entries.add(nextEntry);
+            nextEntry = archiveInputStream.getNextEntry();
+        }
+        return entries;
     }
 
 }

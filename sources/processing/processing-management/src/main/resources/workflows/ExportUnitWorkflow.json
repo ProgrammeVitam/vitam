@@ -1,0 +1,32 @@
+{
+  "id": "ExportUnitWorkflow",
+  "name": "export archive unit ",
+  "identifier": "EXPORT_DIP",
+  "typeProc": "DIP",
+  "comment": "Default export archiveUnit",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_CREATE_MANIFEST",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": ""
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "CREATE_MANIFEST",
+            "behavior": "BLOCKING"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "STORE_MANIFEST",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    }
+  ]
+}

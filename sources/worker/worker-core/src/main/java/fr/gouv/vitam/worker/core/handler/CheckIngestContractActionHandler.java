@@ -113,7 +113,7 @@ public class CheckIngestContractActionHandler extends ActionHandler {
 
 
     /**
-     * @param contractName name contract
+     * @param contractIdentifier name contract
      * @return true if contract ok
      */
     private boolean checkIngestContract(String contractIdentifier) {

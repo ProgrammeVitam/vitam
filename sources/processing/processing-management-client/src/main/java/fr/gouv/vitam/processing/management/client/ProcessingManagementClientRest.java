@@ -453,8 +453,8 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
     }
 
     @Override
-    public void unregisterWorker(String familyId, String workerId)
-        throws ProcessingBadRequestException {
+    public void unregisterWorker(String familyId, String workerId) throws ProcessingBadRequestException {
+
         ParametersChecker.checkParameter("familyId is a mandatory parameter", familyId);
         ParametersChecker.checkParameter("workerId is a mandatory parameter", workerId);
         Response response = null;

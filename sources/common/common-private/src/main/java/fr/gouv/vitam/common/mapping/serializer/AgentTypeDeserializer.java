@@ -1,4 +1,4 @@
-package fr.gouv.vitam.access.internal.core.serializer;
+package fr.gouv.vitam.common.mapping.serializer;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;

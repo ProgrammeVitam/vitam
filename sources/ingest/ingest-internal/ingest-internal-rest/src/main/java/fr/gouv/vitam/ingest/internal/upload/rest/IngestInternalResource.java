@@ -254,7 +254,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
      *
      * @param headers       contain X-Action and X-Context-ID
      * @param id            operation identifier
-     * @param asyncResponse asyncResponse
      * @return http response
      */
     @Path("/operations/{id}")
@@ -507,7 +506,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * get the workflow status
      *
      * @param id    operation identifier
-     * @param query body
      * @return http response
      */
     @Path("/operations/{id}")

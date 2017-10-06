@@ -27,7 +27,10 @@
 
 package fr.gouv.vitam.workspace.common;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -45,18 +48,12 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.ArchiveException;
-import org.apache.commons.compress.archivers.ArchiveInputStream;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -77,6 +74,14 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressed
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.ArchiveOutputStream;
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.compressors.CompressorException;
+import org.apache.commons.compress.utils.IOUtils;
 
 /**
  * Workspace Filesystem implementation
@@ -217,7 +222,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
             try {
                 Files.walk(folderPath, FileVisitOption.FOLLOW_LINKS).sorted(Comparator.reverseOrder())
                     .map(Path::toFile).forEach(File::delete);
-            } catch (IOException exc) {                
+            } catch (IOException exc) {
                 throw new ContentAddressableStorageServerException(exc);
             }
         } catch (IOException ex) {
@@ -486,12 +491,12 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
     /**
      * Extract compressed SIP and push the objects on the SIP folder
      *
-     * @param containerName GUID
-     * @param folderName folder Name
-     * @param archiverType archive type zip, tar tar.gz
+     * @param containerName     GUID
+     * @param folderName        folder Name
+     * @param archiverType      archive type zip, tar tar.gz
      * @param inputStreamObject :compressed SIP stream
      * @throws ContentAddressableStorageCompressedFileException if the file is not a zip or an empty zip
-     * @throws ContentAddressableStorageException if an IOException occurs when extracting the file
+     * @throws ContentAddressableStorageException               if an IOException occurs when extracting the file
      */
     private void extractArchiveInputStreamOnContainer(final String containerName, final String folderName,
         final MediaType archiverType, final InputStream inputStreamObject)
@@ -540,6 +545,48 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
         headersList.add(size);
         headers.put(VitamHttpHeader.X_CONTENT_LENGTH.getName(), headersList);
         return headers;
+    }
+
+    /**
+     *
+     * @param containerName name of the container
+     * @param folderNames list of file or directory to archive
+     * @param zipName name of the archive file
+     * @throws IOException
+     * @throws CompressorException
+     * @throws ArchiveException
+     */
+    public void compress(String containerName, List<String> folderNames, String zipName)
+        throws IOException, CompressorException, ArchiveException {
+
+        Path zip = Paths.get(root.toString(), containerName, zipName);
+
+        try (ArchiveOutputStream archive = new ArchiveStreamFactory()
+            .createArchiveOutputStream(ArchiveStreamFactory.ZIP, new FileOutputStream(zip.toString()))) {
+
+            for (String folderName : folderNames) {
+                final Path target = Paths.get(root.toString(), containerName, folderName);
+
+                Files.walkFileTree(Paths.get(target.toString()), new SimpleFileVisitor<Path>() {
+
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        if (!attrs.isDirectory()) {
+                            Path relativize = Paths.get(target.getParent().toString()).relativize(file);
+                            ArchiveEntry entry = new ZipArchiveEntry(relativize.toString());
+                            archive.putArchiveEntry(entry);
+
+                            BufferedInputStream input = new BufferedInputStream(new FileInputStream(file.toFile()));
+
+                            IOUtils.copy(input, archive);
+                            input.close();
+                            archive.closeArchiveEntry();
+                        }
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+            }
+        }
     }
 
     /**

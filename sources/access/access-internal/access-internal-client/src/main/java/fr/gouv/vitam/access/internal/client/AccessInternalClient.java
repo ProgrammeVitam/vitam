@@ -241,4 +241,6 @@ public interface AccessInternalClient extends MockOrRestClient {
     Response getObjectByUnitIdWithXMLFormat(JsonNode queryDsl, String unitId)
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
         InvalidParseOperationException;
+
+    RequestResponse<JsonNode> export(JsonNode queryJson) throws AccessInternalClientServerException;
 }

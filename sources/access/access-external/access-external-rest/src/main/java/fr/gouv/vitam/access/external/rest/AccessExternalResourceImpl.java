@@ -30,7 +30,6 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
@@ -47,7 +46,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
@@ -110,7 +108,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
     /**
      * List secured resource end points
-     * 
+     *
      * @return response
      */
     @Path("/")
@@ -127,7 +125,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     }
 
     /**
-     * get units list by query
+     * get a DIP by dsl query
      *
      * @param queryJson the query to get units
      * @return Response
@@ -181,6 +179,32 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNITS_ERROR,
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
+        }
+    }
+
+    /**
+     * get units list by query
+     *
+     * @param queryJson the query to get units
+     * @return Response
+     */
+    @GET
+    @Path("/export")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "units:export:read", description = "Récupérer le DIP")
+    public Response export(JsonNode queryJson) {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status;
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+
+            client.export(queryJson);
+            return Response.status(Status.ACCEPTED.getStatusCode()).build();
+        } catch (final AccessInternalClientServerException e) {
+            LOGGER.error("Predicate Failed Exception ", e);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
         }
     }
 
@@ -259,7 +283,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
     /**
      * Get unit int xml format
-     * 
+     *
      * @param queryJson
      * @param idUnit
      * @return ArchiveUnit in xml format

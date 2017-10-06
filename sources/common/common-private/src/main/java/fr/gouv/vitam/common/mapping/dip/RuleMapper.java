@@ -1,4 +1,4 @@
-package fr.gouv.vitam.access.internal.core;
+package fr.gouv.vitam.common.mapping.dip;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.RuleIdType;
 import fr.gouv.vitam.common.model.unit.CommonRule;

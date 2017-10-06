@@ -26,24 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.client;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.Collections;
-import java.util.List;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -55,7 +38,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.cas.container.api.MetadatasStorageObject;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
@@ -65,6 +47,20 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
+import fr.gouv.vitam.workspace.common.CompressInformation;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.Collections;
+import java.util.List;
 
 
 /**
@@ -386,6 +382,25 @@ public class WorkspaceClient extends DefaultClient {
         } finally {
             consumeAnyEntityAndClose(response);
         }
+    }
+
+    public void compress(String containerName, CompressInformation compressInformation)
+        throws ContentAddressableStorageServerException {
+        ParametersChecker
+            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, CONTAINERS + containerName, null,
+                compressInformation, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR2, e);
+            throw new ContentAddressableStorageServerException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+
+
     }
 
     public void uncompressObject(String containerName, String folderName, String archiveType,

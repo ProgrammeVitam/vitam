@@ -26,32 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.rest;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -70,9 +46,35 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExi
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.common.CompressInformation;
 import fr.gouv.vitam.workspace.common.RequestResponseError;
 import fr.gouv.vitam.workspace.common.VitamError;
 import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.apache.commons.compress.compressors.CompressorException;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The Workspace Resource.
@@ -138,7 +140,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * deletes a container in the workspace
      *
      * @param containerName path param of container name
-     * @param recursive true if the container should be deleted recursively
+     * @param recursive     true if the container should be deleted recursively
      * @return Response
      */
     @Path("/containers/{containerName}")
@@ -255,7 +257,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * creates a folder into a container
      *
      * @param containerName path param of container name
-     * @param folderName path param of folder
+     * @param folderName    path param of folder
      * @return Response
      */
     @Path("/containers/{containerName}/folders/{folderName:.*}")
@@ -288,7 +290,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * deletes a folder in a container
      *
      * @param containerName path param for container name
-     * @param folderName path param for folder name
+     * @param folderName    path param for folder name
      * @return Response
      */
     @Path("/containers/{containerName}/folders/{folderName:.*}")
@@ -319,7 +321,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * checks if a folder exists in a container
      *
      * @param containerName path param for container name
-     * @param folderName path param for folder name
+     * @param folderName    path param for folder name
      * @return Response
      */
     @Path("/containers/{containerName}/folders/{folderName:.*}")
@@ -348,10 +350,10 @@ public class WorkspaceResource extends ApplicationStatusResource {
     /**
      * uncompress a sip into the workspace
      *
-     * @param stream data input stream
+     * @param stream        data input stream
      * @param containerName name of container
-     * @param folderName name of folder
-     * @param archiveType the type of archive
+     * @param folderName    name of folder
+     * @param archiveType   the type of archive
      * @return Response
      */
     @Path("/containers/{containerName}/folders/{folderName:.*}")
@@ -401,10 +403,36 @@ public class WorkspaceResource extends ApplicationStatusResource {
     }
 
     /**
+     * zip a specific folder into a other directory
+     *
+     * @param containerName
+     * @return
+     */
+    @Path("/containers/{containerName}")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response compress(@PathParam(CONTAINER_NAME) String containerName, CompressInformation compressInformation) {
+
+        try {
+            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+                containerName, compressInformation);
+            workspace.compress(containerName, compressInformation.getFiles(), compressInformation.getOutputFile());
+            return Response.status(Status.CREATED).build();
+
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (CompressorException | ArchiveException | IOException e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+        }
+    }
+
+    /**
      * gets the list of object from folder
      *
      * @param containerName name of container
-     * @param folderName name of folder
+     * @param folderName    name of folder
      * @return Response
      */
     @Path("/containers/{containerName}/folders/{folderName:.*}")
@@ -441,8 +469,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     /**
      * puts an object into a container
      *
-     * @param stream data input stream
-     * @param objectName name of data object
+     * @param stream        data input stream
+     * @param objectName    name of data object
      * @param containerName name of container
      * @return Response
      */
@@ -475,7 +503,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * Deletes an objects in a container *
      *
      * @param containerName container name
-     * @param objectName object name
+     * @param objectName    object name
      * @return Response
      */
     @Path("/containers/{containerName}/objects/{objectName:.*}")
@@ -506,8 +534,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * gets an objects from a container in the workspace
      *
      * @param containerName name of container
-     * @param objectName name of object
-     * @param asyncResponse response async
+     * @param objectName    name of object
      * @return response
      * @throws IOException when there is an error of get object
      */
@@ -523,7 +550,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * gets an objects from a container in the workspace
      *
      * @param containerName name of container
-     * @param objectName name of object
+     * @param objectName    name of object
      * @return Response
      * @throws IOException when there is an error of get object
      */
@@ -555,8 +582,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * checks if a object exists in an container or compute object Digest
      *
      * @param containerName name of container
-     * @param objectName name of object
-     * @param algo path parameter of algo
+     * @param objectName    name of object
+     * @param algo          path parameter of algo
      * @return Response
      */
     @Path("/containers/{containerName}/objects/{objectName:.*}")

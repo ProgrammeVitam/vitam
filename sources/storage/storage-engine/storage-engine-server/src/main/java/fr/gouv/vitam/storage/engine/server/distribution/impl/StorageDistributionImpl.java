@@ -490,10 +490,15 @@ public class StorageDistributionImpl implements StorageDistribution {
                 break;
             case PROFILE:
                 description.append("Profile ");
+                break;
             case STORAGELOG:
                 description.append("Storagelog ");
+                break;
             case RULES:
                 description.append("Rules ");
+                break;
+            case DIP:
+                description.append("DIP ");
                 break;
             default:
                 throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);

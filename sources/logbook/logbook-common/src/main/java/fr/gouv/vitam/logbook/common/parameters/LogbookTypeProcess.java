@@ -83,5 +83,10 @@ public enum LogbookTypeProcess {
     /**
      * Filing scheme type process (classification plan)
      */
-    FILINGSCHEME;
+    FILINGSCHEME,
+    /**
+     * export du DIP
+     */
+    EXPORT_DIP
+
 }
