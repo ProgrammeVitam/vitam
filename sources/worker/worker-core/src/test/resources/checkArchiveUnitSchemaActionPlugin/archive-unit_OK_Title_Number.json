@@ -97,7 +97,9 @@
 				"FirstName": "John",
 				"GivenName": "Doe",
 				"BirthName": "1990-01-01",
-				"BirthPlace": "Random Place"
+				"BirthPlace": {
+					"City":"Lagny sur Marne"
+				}
 			}
 		]
 	}

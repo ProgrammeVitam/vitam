@@ -836,8 +836,29 @@
             ]
           },
           "BirthPlace": {
-            "type": "string"
-          },
+			  "description": "LocationGroup",
+			  "type": "object",
+			  "properties": {
+				  "Geogname": {
+					  "type": "string"
+				  },
+				  "Address": {
+					  "type": "string"
+				  },
+				  "PostalCode": {
+					  "type": "string"
+				  },
+				  "City": {
+					  "type": "string"
+				  },
+				  "Region": {
+					  "type": "string"
+				  },
+				  "Country": {
+					  "type": "string"
+				  }
+			  }
+		  },
           "DeathDate": {
             "description": "pattern: Date",
             "oneOf": [
@@ -995,8 +1016,29 @@
             ]
           },
           "BirthPlace": {
-            "type": "string"
-          },
+			  "description": "LocationGroup",
+			  "type": "object",
+			  "properties": {
+				  "Geogname": {
+					  "type": "string"
+				  },
+				  "Address": {
+					  "type": "string"
+				  },
+				  "PostalCode": {
+					  "type": "string"
+				  },
+				  "City": {
+					  "type": "string"
+				  },
+				  "Region": {
+					  "type": "string"
+				  },
+				  "Country": {
+					  "type": "string"
+				  }
+			  }
+		  },
           "DeathDate": {
             "description": "pattern: Date",
             "oneOf": [
@@ -1116,8 +1158,29 @@
             ]
           },
           "BirthPlace": {
-            "type": "string"
-          },
+			  "description": "LocationGroup",
+			  "type": "object",
+			  "properties": {
+				  "Geogname": {
+					  "type": "string"
+				  },
+				  "Address": {
+					  "type": "string"
+				  },
+				  "PostalCode": {
+					  "type": "string"
+				  },
+				  "City": {
+					  "type": "string"
+				  },
+				  "Region": {
+					  "type": "string"
+				  },
+				  "Country": {
+					  "type": "string"
+				  }
+			  }
+		  },
           "DeathDate": {
             "description": "pattern: Date",
             "oneOf": [
@@ -1274,8 +1337,29 @@
             ]
           },
           "BirthPlace": {
-            "type": "string"
-          },
+			  "description": "LocationGroup",
+			  "type": "object",
+			  "properties": {
+				  "Geogname": {
+					  "type": "string"
+				  },
+				  "Address": {
+					  "type": "string"
+				  },
+				  "PostalCode": {
+					  "type": "string"
+				  },
+				  "City": {
+					  "type": "string"
+				  },
+				  "Region": {
+					  "type": "string"
+				  },
+				  "Country": {
+					  "type": "string"
+				  }
+			  }
+		  },
           "DeathDate": {
             "description": "pattern: Date",
             "oneOf": [
@@ -1785,8 +1869,29 @@
               ]
             },
             "BirthPlace": {
-              "type": "string"
-            },
+				"description": "LocationGroup",
+				"type": "object",
+				"properties": {
+					"Geogname": {
+						"type": "string"
+					},
+					"Address": {
+						"type": "string"
+					},
+					"PostalCode": {
+						"type": "string"
+					},
+					"City": {
+						"type": "string"
+					},
+					"Region": {
+						"type": "string"
+					},
+					"Country": {
+						"type": "string"
+					}
+				}
+			},
             "DeathDate": {
               "description": "pattern: Date",
               "oneOf": [
@@ -1962,8 +2067,29 @@
               ]
             },
             "BirthPlace": {
-              "type": "string"
-            },
+				"description": "LocationGroup",
+				"type": "object",
+				"properties": {
+					"Geogname": {
+						"type": "string"
+					},
+					"Address": {
+						"type": "string"
+					},
+					"PostalCode": {
+						"type": "string"
+					},
+					"City": {
+						"type": "string"
+					},
+					"Region": {
+						"type": "string"
+					},
+					"Country": {
+						"type": "string"
+					}
+				}
+			},
             "DeathDate": {
               "description": "pattern: Date",
               "oneOf": [
