@@ -26,13 +26,39 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.model;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+
+import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectType;
 
 /**
  * The override of the generated pojo is needed to describe it as a root element for physical data objects to generate
  * the XML Stream
  */
-@XmlRootElement(name = "PhysicalDataObject")
-public class PhysicalDataObjectTypeRoot extends DataObjectTypeRoot {
+@XmlRootElement(name = "DataObject")
+public class DataObjectTypeRoot extends DataObjectType {
+
+    @XmlElement(name = "DataObjectSystemId")
+    protected String dataObjectSystemId;
+
+    /**
+     * Get value for dataObjectSystemId.
+     * 
+     * @return possible object is {@link String }
+     * 
+     */
+    public String getDataObjectSystemId() {
+        return dataObjectSystemId;
+    }
+
+    /**
+     * Defines value for dataObjectSystemId.
+     * 
+     * @param value allowed object is {@link String }
+     * 
+     */
+    public void setDataObjectSystemId(String value) {
+        this.dataObjectSystemId = value;
+    }
 
 }

@@ -2807,7 +2807,7 @@ public class ProcessingIT {
 
     @RunWithCustomExecutor
     @Test
-    public void testWorkflowRulesUpdate() throws Exception {
+    public void testWorkflowRulesUpdate() throws Exception {        
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             tryImportFile();

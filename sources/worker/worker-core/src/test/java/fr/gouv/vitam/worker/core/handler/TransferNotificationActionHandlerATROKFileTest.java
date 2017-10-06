@@ -31,9 +31,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 
-import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -149,39 +147,54 @@ public class TransferNotificationActionHandlerATROKFileTest {
     @Test
     public void givenXMLCreationWhenValidThenResponseOK_and_objectGroupGuid_OK()
         throws Exception {
-        final TransferNotificationActionHandler handler = new TransferNotificationActionHandler();
-        final InputStream xmlFile;
-        assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
-        action.reset();
-        action.addInIOParameters(in);
-        action.addOutIOParameters(out);
-        WorkerParameters parameters =
-            params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.OK.name())
-                .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
-        final ItemStatus response = handler
-            .execute(parameters, action);
+        try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler();) {
+            final InputStream xmlFile;
+            assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
+            action.reset();
+            action.addInIOParameters(in);
+            action.addOutIOParameters(out);
+            WorkerParameters parameters =
+                params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.OK.name())
+                    .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
+            final ItemStatus response = handler
+                .execute(parameters, action);
 
-        try {
-            xmlFile = action.getInputStreamFromWorkspace(out.get(0).getUri().getPath());
-        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
-            throw new ProcessingException(e);
-        }
-        assertEquals(StatusCode.OK, response.getGlobalStatus());
-
-        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-        XMLEventReader reader = xmlInputFactory.createXMLEventReader(xmlFile);
-        String objectGroupGuid = null;
-
-        while (true) {
-            final XMLEvent event = reader.nextEvent();
-            if (event.isStartElement() &&
-                event.asStartElement().getName().getLocalPart().equals("DataObjectGroupSystemId")) {
-                objectGroupGuid = reader.getElementText();
-                break;
+            try {
+                xmlFile = action.getInputStreamFromWorkspace(out.get(0).getUri().getPath());
+            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+                throw new ProcessingException(e);
             }
-        }
+            assertEquals(StatusCode.OK, response.getGlobalStatus());
 
-        JsonNode guidOG = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP));
-        assertTrue(guidOG.toString().contains(objectGroupGuid));
+            final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+            XMLEventReader reader = xmlInputFactory.createXMLEventReader(xmlFile);
+            String objectGroupGuid = null;
+            String objectGuid = null;
+            int count = 0;
+
+            while (true) {
+                final XMLEvent event = reader.nextEvent();
+                if (event.isStartElement() &&
+                    event.asStartElement().getName().getLocalPart().equals("DataObjectGroupSystemId")) {
+                    objectGroupGuid = reader.getElementText();
+                    count++;
+                }
+                if (event.isStartElement() &&
+                    event.asStartElement().getName().getLocalPart().equals("DataObjectSystemId")) {
+                    objectGuid = reader.getElementText();
+                    count++;
+                }
+                if (count == 2) {
+                    break;
+                }
+            }
+
+
+            JsonNode guidOG = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP));
+            JsonNode guidObj = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(DATA_OBJECT_ID_TO_GUID_MAP));
+
+            assertTrue(guidOG.toString().contains(objectGroupGuid));
+            assertTrue(guidObj.toString().contains(objectGuid));
+        }
     }
 }

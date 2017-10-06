@@ -52,7 +52,6 @@ import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectType;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
@@ -96,6 +95,7 @@ import fr.gouv.vitam.worker.core.MarshallerObjectCache;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.worker.model.ArchiveUnitReplyTypeRoot;
 import fr.gouv.vitam.worker.model.BinaryDataObjectTypeRoot;
+import fr.gouv.vitam.worker.model.DataObjectTypeRoot;
 import fr.gouv.vitam.worker.model.PhysicalDataObjectTypeRoot;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -191,7 +191,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 LOGGER.error("Error while creating DSL query", e);
                 throw new ProcessingException(e);
             }
-            
+
             if (workflowStatus.isGreaterOrEqualToKo()) {
                 atrFile = createATRKO(params, handlerIO, logbookOperation);
             } else {
@@ -212,7 +212,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                     "\", \"MessageDigest\": \"" + vitamDigestString +
                     "\", \"Algorithm\": \"" + VitamConfiguration.getDefaultDigestType() + "\"}";
 
-            itemStatus.setEvDetailData( eventDetailData );
+            itemStatus.setEvDetailData(eventDetailData);
             try {
                 // TODO : Works for ATR_OK but not for some ATR_KO - need to be fixed
                 ValidationXsdUtils.checkWithXSD(new FileInputStream(atrFile), XSD_VERSION);
@@ -341,7 +341,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVAL_AGREEMENT,
                 (infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) != null)
                     ? infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT).textValue() : "");
-            
+
             if (logbookOperation.get(LogbookMongoDbName.eventDetailData.getDbname()) != null) {
                 final JsonNode evDetDataNode = JsonHandler.getFromString(
                     logbookOperation.get(LogbookMongoDbName.eventDetailData.getDbname()).toString());
@@ -350,7 +350,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                     writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVE_PROFILE, profilId);
                 }
             }
-            
+
             xmlsw.writeStartElement(SedaConstants.TAG_CODE_LIST_VERSIONS);
             if (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS) != null) {
                 writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE_LIST_VERSION,
@@ -383,49 +383,73 @@ public class TransferNotificationActionHandler extends ActionHandler {
             xmlsw.writeStartElement(SedaConstants.TAG_MANAGEMENT_METADATA);
             xmlsw.writeStartElement(SedaConstants.TAG_REPLY_OUTCOME);
 
-            xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVE_UNIT_LIST);
-            if (archiveUnitSystemGuid != null) {
-                for (final Map.Entry<String, Object> entry : archiveUnitSystemGuid.entrySet()) {
-                    final ArchiveUnitReplyTypeRoot au = new ArchiveUnitReplyTypeRoot();
-                    au.setId(entry.getKey());
-                    au.setSystemId(entry.getValue().toString());
-                    writeXMLFragment(au, xmlsw);
+            // if status equals WARNING, we'll add informations here
+            if (workflowStatus.WARNING.name().equals(workflowStatus.name())) {
+                List<String> statusToBeChecked = new ArrayList();
+                statusToBeChecked.add(StatusCode.WARNING.toString());
+                final List<Document> logbookOperationEvents =
+                    (List<Document>) logbookOperation.get(LogbookDocument.EVENTS.toString());
+                xmlsw.writeStartElement(SedaConstants.TAG_OPERATION);
+                for (final Document event : logbookOperationEvents) {
+                    writeEvent(xmlsw, event, SedaConstants.TAG_OPERATION, null, statusToBeChecked);
                 }
+                xmlsw.writeEndElement(); // END SedaConstants.TAG_OPERATION
             }
 
+            xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVE_UNIT_LIST); // START ARCHIVE_UNIT_LIST
+            if (archiveUnitSystemGuid != null) {
+                if (workflowStatus.WARNING.name().equals(workflowStatus.name())) {
+                    handleWarningArchiveUnits(archiveUnitSystemGuid, xmlsw, params);
+                } else {
+                    for (final Map.Entry<String, Object> entry : archiveUnitSystemGuid.entrySet()) {
+                        final ArchiveUnitReplyTypeRoot au = new ArchiveUnitReplyTypeRoot();
+                        au.setId(entry.getKey());
+                        au.setSystemId(entry.getValue().toString());
+                        writeXMLFragment(au, xmlsw);
+                    }
+                }
+            }
             xmlsw.writeEndElement(); // END ARCHIVE_UNIT_LIST
+
             xmlsw.writeStartElement(SedaConstants.TAG_DATA_OBJECT_LIST);
             // Set to known which DOGIG has already be used in the XML
-            final Set<String> usedDataObjectGroup = new HashSet<>();
             if (dataObjectSystemGuid != null) {
-                for (final Map.Entry<String, Object> entry : dataObjectSystemGuid.entrySet()) {
-                    final String dataOGID = bdoObjectGroupSystemGuid.get(entry.getKey()).toString();
-                    final DataObjectDetail dataObjectDetail = dataObjectToDetailDataObject.get(entry.getKey());
-                    final DataObjectType dotr;
-                    if (dataObjectDetail.isPhysical()) {
-                        dotr = new PhysicalDataObjectTypeRoot();
-                    } else {
-                        dotr = new BinaryDataObjectTypeRoot();
-                    }
+                if (workflowStatus.WARNING.name().equals(workflowStatus.name())) {
+                    handleWarningGots(dataObjectSystemGuid, xmlsw, params, bdoObjectGroupSystemGuid,
+                        dataObjectToDetailDataObject, objectGroupSystemGuid);
+                } else {
+                    final Set<String> usedDataObjectGroup = new HashSet<>();
+                    for (final Map.Entry<String, Object> entry : dataObjectSystemGuid.entrySet()) {
+                        final String dataOGID = bdoObjectGroupSystemGuid.get(entry.getKey()).toString();
+                        final DataObjectDetail dataObjectDetail = dataObjectToDetailDataObject.get(entry.getKey());
+                        final DataObjectTypeRoot dotr;
+                        if (dataObjectDetail.isPhysical()) {
+                            dotr = new PhysicalDataObjectTypeRoot();
+                        } else {
+                            dotr = new BinaryDataObjectTypeRoot();
+                        }
+                        if (dataObjectSystemGuid.get(entry.getKey()) != null) {
+                            dotr.setDataObjectSystemId(dataObjectSystemGuid.get(entry.getKey()).toString());
+                        }
 
-                    // final BinaryDataObjectTypeRoot dotr = new BinaryDataObjectTypeRoot();
-                    dotr.setId(entry.getKey());
-                    // Test if the DOGID has already be used . If so, use DOGRefID, else DOGID in the SEDA XML
-                    if (usedDataObjectGroup.contains(dataOGID)) {
-                        dotr.setDataObjectGroupRefId(dataOGID);
-                    } else {
-                        dotr.setDataObjectGroupId(dataOGID);
-                        usedDataObjectGroup.add(dataOGID);
+                        // final BinaryDataObjectTypeRoot dotr = new BinaryDataObjectTypeRoot();
+                        dotr.setId(entry.getKey());
+                        // Test if the DOGID has already be used . If so, use DOGRefID, else DOGID in the SEDA XML
+                        if (usedDataObjectGroup.contains(dataOGID)) {
+                            dotr.setDataObjectGroupRefId(dataOGID);
+                        } else {
+                            dotr.setDataObjectGroupId(dataOGID);
+                            usedDataObjectGroup.add(dataOGID);
+                        }
+                        dotr.setDataObjectVersion(dataObjectDetail.getVersion());
+                        dotr.setDataObjectGroupSystemId(objectGroupSystemGuid.get(dataOGID).toString());
+                        writeXMLFragment(dotr, xmlsw);
                     }
-                    dotr.setDataObjectVersion(dataObjectDetail.getVersion());
-                    dotr.setDataObjectGroupSystemId(objectGroupSystemGuid.get(dataOGID).toString());
-                    writeXMLFragment(dotr, xmlsw);
                 }
             }
             xmlsw.writeEndElement();// END DATA_OBJECT_LIST
 
             xmlsw.writeEndElement(); // END ARCHIVE_UNIT_LIST
-
 
             xmlsw.writeEndElement(); // END REPLY_OUTCOME
             xmlsw.writeEndElement(); // END MANAGEMENT_METADATA
@@ -433,7 +457,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE, statusPrefix + workflowStatus.name());
 
             writeAttributeValue(xmlsw, SedaConstants.TAG_MESSAGE_REQUEST_IDENTIFIER, messageIdentifier);
-            
+
 
             if (!isBlankTestWorkflow) {
                 writeAttributeValue(xmlsw, SedaConstants.TAG_GRANT_DATE, sdfDate.format(new Date()));
@@ -469,6 +493,165 @@ public class TransferNotificationActionHandler extends ActionHandler {
             throw new ProcessingException(e);
         }
         return atrTmpFile;
+    }
+
+    private void handleWarningGots(Map<String, Object> dataObjectSystemGuid, XMLStreamWriter xmlsw,
+        WorkerParameters params, Map<String, Object> bdoObjectGroupSystemGuid,
+        Map<String, DataObjectDetail> dataObjectToDetailDataObject, Map<String, Object> objectGroupSystemGuid)
+        throws ProcessingException, XMLStreamException {
+        List<String> statusToBeChecked = new ArrayList();
+        statusToBeChecked.add(StatusCode.WARNING.toString());
+        final Set<String> usedDataObjectGroup = new HashSet<>();
+        try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+            try (VitamRequestIterator<JsonNode> iterator =
+                client.objectGroupLifeCyclesByOperationIterator(params.getContainerName(),
+                    LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS)) {
+                final Map<String, String> objectGroupGuid = new HashMap<>();
+                final Map<String, List<String>> dataObjectsForOG = new HashMap<>();
+
+                for (final Map.Entry<String, Object> entry : bdoObjectGroupSystemGuid.entrySet()) {
+                    final String idOG = entry.getValue().toString();
+                    final String idObj = entry.getKey();
+                    if (!dataObjectsForOG.containsKey(idOG)) {
+                        final List<String> listObj = new ArrayList<>();
+                        listObj.add(idObj);
+                        dataObjectsForOG.put(idOG, listObj);
+                    } else {
+                        dataObjectsForOG.get(idOG).add(idObj);
+                    }
+                }
+                if (objectGroupSystemGuid != null) {
+                    for (final Map.Entry<String, Object> entry : objectGroupSystemGuid.entrySet()) {
+                        final String guid = entry.getValue().toString();
+                        objectGroupGuid.put(guid, entry.getKey());
+                    }
+                }
+
+                while (iterator.hasNext()) {
+                    final LogbookLifeCycleObjectGroupInProcess logbookLifeCycleObjectGroup =
+                        new LogbookLifeCycleObjectGroupInProcess(iterator.next());
+
+                    final String eventIdentifier = null;
+                    xmlsw.writeStartElement(SedaConstants.TAG_DATA_OBJECT_GROUP);
+
+                    final String ogGUID =
+                        logbookLifeCycleObjectGroup.get(LogbookMongoDbName.objectIdentifier.getDbname()) != null
+                            ? logbookLifeCycleObjectGroup.get(LogbookMongoDbName.objectIdentifier.getDbname())
+                                .toString()
+                            : "";
+                    String igId = "";
+                    if (objectGroupGuid.containsKey(ogGUID)) {
+                        igId = objectGroupGuid.get(ogGUID);
+                    }
+                    if (dataObjectsForOG.get(igId) != null) {
+                        final List<Document> logbookLifeCycleObjectGroupEvents =
+                            (List<Document>) logbookLifeCycleObjectGroup.get(LogbookDocument.EVENTS.toString());
+                        HashMap<String, Document> eventsFordataOb = new HashMap<>();
+                        for (final String idObj : dataObjectsForOG.get(igId)) {
+                            DataObjectDetail dataObjectDetail = dataObjectToDetailDataObject.get(idObj);
+                            DataObjectTypeRoot dotr;
+                            final String dataOGID = bdoObjectGroupSystemGuid.get(idObj).toString();
+                            if (dataObjectDetail != null && dataObjectDetail.isPhysical()) {
+                                dotr = new PhysicalDataObjectTypeRoot();
+                            } else {
+                                dotr = new BinaryDataObjectTypeRoot();
+                            }
+                            if (dataObjectSystemGuid.get(idObj) != null) {
+                                dotr.setDataObjectSystemId(dataObjectSystemGuid.get(idObj).toString());
+                            }
+                            dotr.setId(idObj);
+                            // Test if the DOGID has already be used . If so, use DOGRefID, else DOGID in the SEDA XML
+                            if (usedDataObjectGroup.contains(dataOGID)) {
+                                dotr.setDataObjectGroupRefId(dataOGID);
+                            } else {
+                                dotr.setDataObjectGroupId(dataOGID);
+                                usedDataObjectGroup.add(dataOGID);
+                            }
+                            dotr.setDataObjectVersion(dataObjectDetail.getVersion());
+                            dotr.setDataObjectGroupSystemId(objectGroupSystemGuid.get(dataOGID).toString());
+                            writeXMLFragment(dotr, xmlsw);
+                            if (dataObjectSystemGuid.get(idObj) != null) {
+                                for (final Document event : logbookLifeCycleObjectGroupEvents) {
+                                    writeEvent(xmlsw, event, SedaConstants.TAG_DATA_OBJECT_GROUP, eventIdentifier,
+                                        statusToBeChecked);
+                                }
+                            }
+                        }
+
+                    }
+                    xmlsw.writeEndElement(); // END SedaConstants.TAG_DATA_OBJECT_GROUP
+                }
+            } catch (final LogbookClientException | InvalidParseOperationException e) {
+                LOGGER.error("Error while loading logbook lifecycle units", e);
+                throw new ProcessingException(e);
+            }
+        }
+
+    }
+
+    private void handleWarningArchiveUnits(Map<String, Object> archiveUnitSystemGuid, XMLStreamWriter xmlsw,
+        WorkerParameters params)
+        throws ProcessingException, XMLStreamException {
+        List<String> statusToBeChecked = new ArrayList();
+        statusToBeChecked.add(StatusCode.WARNING.toString());
+
+        Map<String, String> systemGuidArchiveUnitId = null;
+
+        if (archiveUnitSystemGuid != null) {
+            if (archiveUnitSystemGuid != null) {
+                systemGuidArchiveUnitId = new HashMap<>();
+                for (final Map.Entry<String, Object> entry : archiveUnitSystemGuid.entrySet()) {
+                    systemGuidArchiveUnitId.put(entry.getValue().toString(), entry.getKey());
+                }
+            }
+        }
+
+        try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+            try (VitamRequestIterator<JsonNode> iterator =
+                client.unitLifeCyclesByOperationIterator(params.getContainerName(),
+                    LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS)) {
+                while (iterator.hasNext()) {
+                    JsonNode next = iterator.next();
+
+                    final LogbookLifeCycleUnitInProcess logbookLifeCycleUnit =
+                        new LogbookLifeCycleUnitInProcess(next);
+                    final List<Document> logbookLifeCycleUnitEvents =
+                        (List<Document>) logbookLifeCycleUnit.get(LogbookDocument.EVENTS.toString());
+
+                    xmlsw.writeStartElement(SedaConstants.TAG_ARCHIVE_UNIT);
+
+                    if (systemGuidArchiveUnitId != null && logbookLifeCycleUnit.get(SedaConstants.PREFIX_ID) != null &&
+                        systemGuidArchiveUnitId
+                            .get(logbookLifeCycleUnit.get(SedaConstants.PREFIX_ID).toString()) != null) {
+                        xmlsw.writeAttribute(SedaConstants.ATTRIBUTE_ID,
+                            systemGuidArchiveUnitId
+                                .get(logbookLifeCycleUnit.get(SedaConstants.PREFIX_ID).toString()));
+                        writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVE_SYSTEM_ID,
+                            logbookLifeCycleUnit.get(SedaConstants.PREFIX_ID).toString());
+                        systemGuidArchiveUnitId.remove(logbookLifeCycleUnit.get(SedaConstants.PREFIX_ID).toString());
+                    }
+
+                    for (final Document event : logbookLifeCycleUnitEvents) {
+                        writeEvent(xmlsw, event, SedaConstants.TAG_ARCHIVE_UNIT, null, statusToBeChecked);
+                    }
+
+                    xmlsw.writeEndElement(); // END SedaConstants.TAG_ARCHIVE_UNIT
+                }
+
+            } catch (final LogbookClientException | InvalidParseOperationException e) {
+                LOGGER.error("Error while loading logbook lifecycle units", e);
+                throw new ProcessingException(e);
+            }
+        }
+
+
+        for (final Map.Entry<String, String> entry : systemGuidArchiveUnitId.entrySet()) {
+            final ArchiveUnitReplyTypeRoot au = new ArchiveUnitReplyTypeRoot();
+            au.setId(entry.getValue());
+            au.setSystemId(entry.getKey());
+            writeXMLFragment(au, xmlsw);
+        }
+
     }
 
     /**
@@ -534,7 +717,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 writeAttributeValue(xmlsw, SedaConstants.TAG_ARCHIVAL_AGREEMENT,
                     (infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) != null)
                         ? infoATR.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT).textValue() : "");
-                
+
                 xmlsw.writeStartElement(SedaConstants.TAG_CODE_LIST_VERSIONS);
                 if (infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS) != null) {
                     writeAttributeValue(xmlsw, SedaConstants.TAG_REPLY_CODE_LIST_VERSION,
@@ -627,15 +810,18 @@ public class TransferNotificationActionHandler extends ActionHandler {
      * @throws InvalidParseOperationException
      * @throws InvalidCreateOperationException
      */
-    private void addKOReplyOutcomeIterator(XMLStreamWriter xmlsw, String containerName, LogbookOperation logbookOperation)
+    private void addKOReplyOutcomeIterator(XMLStreamWriter xmlsw, String containerName,
+        LogbookOperation logbookOperation)
         throws ProcessingException, XMLStreamException, FileNotFoundException, InvalidParseOperationException,
         InvalidCreateOperationException {
-
+        List<String> statusToBeChecked = new ArrayList();
+        statusToBeChecked.add(StatusCode.FATAL.toString());
+        statusToBeChecked.add(StatusCode.KO.toString());
         final List<Document> logbookOperationEvents =
             (List<Document>) logbookOperation.get(LogbookDocument.EVENTS.toString());
         xmlsw.writeStartElement(SedaConstants.TAG_OPERATION);
         for (final Document event : logbookOperationEvents) {
-            writeEvent(xmlsw, event, SedaConstants.TAG_OPERATION, null);
+            writeEvent(xmlsw, event, SedaConstants.TAG_OPERATION, null, statusToBeChecked);
         }
         xmlsw.writeEndElement(); // END SedaConstants.TAG_OPERATION
 
@@ -683,7 +869,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                     }
 
                     for (final Document event : logbookLifeCycleUnitEvents) {
-                        writeEvent(xmlsw, event, SedaConstants.TAG_ARCHIVE_UNIT, null);
+                        writeEvent(xmlsw, event, SedaConstants.TAG_ARCHIVE_UNIT, null, statusToBeChecked);
                     }
                     xmlsw.writeEndElement(); // END SedaConstants.TAG_ARCHIVE_UNIT
                 }
@@ -776,6 +962,10 @@ public class TransferNotificationActionHandler extends ActionHandler {
                                 writeAttributeValue(xmlsw, SedaConstants.TAG_DATA_OBJECT_SYSTEM_ID,
                                     dataObjectSystemGuid.get(idObj).toString());
                             }
+                            if (ogGUID != null && !ogGUID.isEmpty()) {
+                                writeAttributeValue(xmlsw, SedaConstants.TAG_DATA_OBJECT_GROUP_SYSTEM_ID, ogGUID);
+                            }
+
                             xmlsw.writeEndElement(); // END TAG_BINARY_DATA_OBJECT OR TAG_PHYSICAL_DATA_OBJECT
                         }
 
@@ -783,7 +973,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
                     final List<Document> logbookLifeCycleObjectGroupEvents =
                         (List<Document>) logbookLifeCycleObjectGroup.get(LogbookDocument.EVENTS.toString());
                     for (final Document event : logbookLifeCycleObjectGroupEvents) {
-                        writeEvent(xmlsw, event, SedaConstants.TAG_DATA_OBJECT_GROUP, eventIdentifier);
+                        writeEvent(xmlsw, event, SedaConstants.TAG_DATA_OBJECT_GROUP, eventIdentifier,
+                            statusToBeChecked);
                     }
                     xmlsw.writeEndElement(); // END SedaConstants.TAG_DATA_OBJECT_GROUP
                 }
@@ -824,12 +1015,11 @@ public class TransferNotificationActionHandler extends ActionHandler {
      * @param event
      * @throws XMLStreamException
      */
-    private void writeEvent(XMLStreamWriter xmlsw, Document event, String eventType, String eventIdentifierManifest)
+    private void writeEvent(XMLStreamWriter xmlsw, Document event, String eventType, String eventIdentifierManifest,
+        List<String> statusToBeChecked)
         throws XMLStreamException {
         if (event.get(LogbookMongoDbName.outcome.getDbname()) != null &&
-            (StatusCode.FATAL.toString().equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) ||
-                StatusCode.KO.toString()
-                    .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()))) {
+            statusToBeChecked.contains(event.get(LogbookMongoDbName.outcome.getDbname()).toString())) {
 
             xmlsw.writeStartElement(SedaConstants.TAG_EVENT);
             if (event.get(LogbookMongoDbName.eventType.getDbname()) != null) {
