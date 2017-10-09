@@ -112,6 +112,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String CONTEXT_URI = "/contexts";
     private static final String AUDIT_URI = "/audit";
     private static final String UPDATE_CONTEXT_URI = "/context/";
+    private static final String UPDATE_PROFIL_URI = "/profiles/";
     private static final String SECURITY_PROFILES_URI = "/securityprofiles";
 
     AdminManagementClientRest(AdminManagementClientFactory factory) {
@@ -935,6 +936,30 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
         } catch (InvalidCreateOperationException e) {
             LOGGER.error("unable to create query", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+    
+    @Override
+    public RequestResponse<ProfileModel> updateProfile(String id, JsonNode queryDsl) 
+        throws InvalidParseOperationException, AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.PUT, UPDATE_PROFIL_URI + id, null, queryDsl,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            if (status == Status.OK) {
+                LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                return new RequestResponseOK<ProfileModel>().setHttpCode(Status.OK.getStatusCode());
+            }
+
+            return RequestResponse.parseFromResponse(response, AccessContractModel.class);
+
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);

@@ -430,4 +430,12 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
             JsonHandler.getFromString(ClientMockResultHelper.SECURITY_PROFILES, SecurityProfileModel.class);
         return ClientMockResultHelper.createReponse(model);
     }
+
+    @Override
+    public RequestResponse<ProfileModel> updateProfile(String id, JsonNode queryDsl) 
+        throws InvalidParseOperationException, AdminManagementClientServerException  {
+        ProfileModel model = 
+            JsonHandler.getFromString(ClientMockResultHelper.PROFILES, ProfileModel.class);
+        return ClientMockResultHelper.createReponse(model).setHttpCode(200);
+    }
 }

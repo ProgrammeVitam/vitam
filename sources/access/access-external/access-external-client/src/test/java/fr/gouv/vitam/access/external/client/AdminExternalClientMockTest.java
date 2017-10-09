@@ -105,5 +105,9 @@ public class AdminExternalClientMockTest {
         assertEquals(
                 client.updateSecurityProfile(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), "ID", JsonHandler.createObjectNode()).getHttpCode(),
                 Status.OK.getStatusCode());
+        
+        assertEquals(
+                client.updateProfile(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), "ID", JsonHandler.createObjectNode()).getHttpCode(),
+                Status.OK.getStatusCode());
     }
 }

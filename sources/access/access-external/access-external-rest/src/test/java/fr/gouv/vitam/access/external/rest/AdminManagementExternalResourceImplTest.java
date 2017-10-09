@@ -9,7 +9,6 @@ import static org.powermock.api.mockito.PowerMockito.doThrow;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -19,13 +18,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.query.action.AddAction;
-import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
-import fr.gouv.vitam.common.database.builder.request.single.Update;
-import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
-import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
-import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import org.hamcrest.CoreMatchers;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -40,12 +32,19 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
+
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.action.AddAction;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.builder.request.single.Update;
+import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -57,6 +56,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
@@ -1027,5 +1027,24 @@ public class AdminManagementExternalResourceImplTest {
             .body(update.getFinalUpdate())
             .when().put(SECURITY_PROFILES_URI + "/" + securityProfileIdentifier)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+    
+    @Test
+    public void testUpdateProfile() throws InvalidCreateOperationException, InvalidParseOperationException, AdminManagementClientServerException {
+        String NewPermission = "new_permission:update:json";
+        
+        final Update update = new Update();
+        update.setQuery(QueryHelper.eq("Name", "aName"));
+        final AddAction setActionAddPermission = UpdateActionHelper.add("Permissions", NewPermission);
+        update.addActions(setActionAddPermission);
+        AdminManagementClientFactory.changeMode(null);
+        
+        given()
+            .contentType(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(update.getFinalUpdate())
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().put(PROFILE_URI + "/" +  GOOD_ID)
+            .then().statusCode(Status.OK.getStatusCode());
     }
 }
