@@ -103,6 +103,7 @@ public class CheckIngestContractActionHandlerTest {
         when(adminClient.findIngestContractsByID(anyObject()))
             .thenReturn(createIngestContract(ContractStatus.INACTIVE.toString()));
         response = handler.execute(params, handlerIO);
+        assertEquals(response.getGlobalOutcomeDetailSubcode(), "INACTIVE");
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
     }
 
