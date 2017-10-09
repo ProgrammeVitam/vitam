@@ -17,7 +17,7 @@
 
 - name: Install logstash package from repo
   package:
-    name: logstash-all-plugins
+    name: logstash
     state: latest
   notify:
     - restart logstash
@@ -54,39 +54,17 @@
   notify:
     - restart logstash
 
-# TODO: Check if useful, else remove.
-- name: create conf subdir for logstash (useless)
-  file:
-    path: /opt/logstash/conf
-    state: directory
-    owner: logstash
-    mode: 0755
-
-- name: copy default logstash file (preferIPv4)
+- name: apply configuration files
   template:
-    src: logstash.j2
-    dest: /etc/default/logstash
+    src: "{{item}}.j2"
+    dest: "/etc/logstash/{{item}}"
     owner: root
     mode: 0644
-  notify:
-    - restart logstash
-
-# FIXME : find a more proper solution later for this on Debian
-- name: ensure /etc/sysyconfig exists on Debian
-  file:
-    path: /etc/sysconfig
-    state: directory
-    owner: root
-    group: root
-    mode: 0644
-  when: ansible_distribution == "Debian"
-
-- name: configure logstash sysconfig file
-  template:
-    src: logstash_sysconfig.j2
-    dest: /etc/sysconfig/logstash
-    owner: root
-    mode: 0664
+  with_items:
+    - "jvm.options"
+    - "log4j2.properties"
+    - "startup.options"
+    - "logstash.yml"
   notify:
     - restart logstash
 
@@ -103,23 +81,25 @@
   notify:
     - restart logstash
 
-- name: add json extra conf
-  template:
-    src: "{{item}}.j2"
-    dest: "{{logstash_confextra_dir}}/{{item}}"
-    owner: logstash
-  with_items:
-    - "elasticsearch-template.json"
-  notify:
-    - restart logstash
-
 - name: add vitam patterns conf
   template:
     src: "vitam-patterns.j2"
-    dest: "/opt/logstash/vendor/bundle/jruby/1.9/gems/logstash-patterns-core-2.0.5/patterns/vitam"
+    dest: "/usr/share/logstash/vendor/bundle/jruby/1.9/gems/logstash-patterns-core-4.1.2/patterns/vitam"
     owner: logstash
   notify:
     - restart logstash
+
+
+# - name: configure extra parser configuration
+#   template:
+#     src: "{{item}}.j2"
+#     dest: "{{logstash_conf_dir}}/extra/{{item}}"
+#     owner: logstash
+#     mode: "{{ vitam_conf_permission }}"
+#   with_items:
+#     - "elasticsearch-template.json"
+#   notify:
+#     - restart logstash
 
 #### Consul configuration ####
 

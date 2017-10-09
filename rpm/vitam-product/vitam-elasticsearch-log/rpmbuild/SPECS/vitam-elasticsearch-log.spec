@@ -1,4 +1,4 @@
-%define version 2.4.4
+%define        version 5.6.1
 Name:          vitam-elasticsearch-log
 Version:       %{version}
 Release:       1%{?dist}
@@ -15,6 +15,9 @@ Requires:      systemd
 Requires:      java-1.8.0
 Requires:      elasticsearch = %{version}
 Requires:      vitam-user-vitamdb
+Conflicts:     vitam-elasticsearch-data
+Conflicts:     elasticsearch < 5
+Packager:	   Programme VITAM
 
 %description
 Elasticsearch is a distributed RESTful search engine built for the cloud.

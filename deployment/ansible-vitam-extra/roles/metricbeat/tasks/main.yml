@@ -1,0 +1,82 @@
+---
+# tasks file for topbeat
+- name: Ensure old topbeat package is absent
+  package:
+    name: topbeat
+    state: absent
+
+- name: install metricbeat package
+  package:
+    name: metricbeat
+    state: latest
+
+- name: apply metricbeat configuration
+  template:
+    src: metricbeat.yml.j2
+    dest: /etc/metricbeat/metricbeat.yml
+    owner: root
+    mode: 0644
+    
+# curl -XDELETE 'http://localhost:9200/metricbeat-*'
+# curl -H 'Content-Type: application/json' -XPUT 'http://localhost:9200/_template/metricbeat' -d@/etc/metricbeat/metricbeat.template.json
+# OMA: needs more testing ; when recreating, ...
+#- name: load metricbeat index pattern into Elasticsearch log
+#  uri:
+#    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/_template/metricbeat'
+#    method: PUT
+#    body: "{{ lookup('file', '/etc/metricbeat/metricbeat.template.json') }}"
+#    body_format: json
+#    status_code: 200, 201
+#  when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
+#  delegate_to: "{{groups['hosts-kibana-log'][0]}}"
+#  run_once: true
+
+- name: download dashboards from interrnet
+  get_url:
+    url: https://artifacts.elastic.co/downloads/beats/beats-dashboards/beats-dashboards-5.6.1.zip
+    dest: /tmp/beats-dashboards-5.6.1.zip
+  environment:
+    - http_proxy: "{{http_proxy_environnement}}"
+    - https_proxy: "{{http_proxy_environnement}}"
+
+    
+# OMA: needs more testing ; when recreating, ... Needs Internet access !!!
+- name: import metricbeat dashboard into kibana
+  shell: /usr/share/metricbeat/scripts/import_dashboards -file /tmp/beats-dashboards-5.6.1.zip -es http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}
+  run_once: true
+  when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
+  delegate_to: "{{groups['hosts-kibana-log'][0]}}"
+  notify:
+    - restart kibana
+  #OMA: not sure for run_once...
+
+# OMA Commented curl -XDELETE 'http://{{vitam_log_host}}:{{elasticsearch_log_http_port}}/topbeat-*';
+# OMA added ignore_errors due to stange things sometimes when redeploying
+# - name: force use topbeat index
+#   when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
+#   command: curl -XPUT 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/_template/topbeat' -d@/etc/topbeat/topbeat.template.json
+#   notify:
+#     - restart kibana
+#   delegate_to: "{{groups['hosts-kibana-log'][0]}}"
+#   run_once: true
+
+# - name: load dashboards into Elasticsearch log .kibana index
+#   when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
+#   run_once: true
+#   uri:
+#     url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/{{ item.split(".")[0] }}'
+#     method: PUT
+#     body: "{{ lookup('file', '{{role_path}}/files/kibana-metrics-configuration/{{item}}') }}"
+#     body_format: json
+#     status_code: 200, 201
+#   with_lines: find {{ search_dir }} {{ dashboard_dir }} {{ visualization_dir }} -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
+#   vars:
+#     search_dir: "{{role_path}}/files/kibana-metrics-configuration/search"
+#     dashboard_dir: "{{role_path}}/files/kibana-metrics-configuration/dashboard"
+#     visualization_dir: "{{role_path}}/files/kibana-metrics-configuration/visualization"
+
+- name: restart metricbeat
+  service:
+    name: metricbeat
+    state: restarted
+    enabled: true

@@ -66,11 +66,11 @@
     - role: cerebro
 
 ### KIBANA DATA INSTALLATION ###
-
-- hosts: hosts-kibana-data
-  roles:
-    - {role: kibana, groupe: data, elasticsearch_host: "{{elasticsearch_data_host}}", elasticsearch_port: "{{elasticsearch_data_http_port}}", kibana_port: "{{kibana_data_port}}"}
-    - kibana_data_dashboards
+# OMA/ desactivated as long as ES 5 is not on data cluster
+# - hosts: hosts-kibana-data
+#   roles:
+#     - {role: kibana, groupe: data, elasticsearch_host: "{{elasticsearch_data_host}}", elasticsearch_port: "{{elasticsearch_data_http_port}}", kibana_port: "{{kibana_data_port}}"}
+#     - kibana_data_dashboards
 
 ### MONGO DB INSTALLATION ###
 

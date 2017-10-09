@@ -122,6 +122,7 @@ vitam_mongodb_port: "{{mongos_port}}"
 
 vitam_logstash_host: "{{ groups['hosts-logstash'][0] }}"
 vitam_logstash_port: 10514
+vitam_logstash_rest_port: 20514
 
 # FIXME : changing port doesn't work, yet (not taken into account in kibana configuration)
 kibana_log_port: 5601

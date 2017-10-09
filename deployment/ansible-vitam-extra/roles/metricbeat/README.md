@@ -1,7 +1,7 @@
 Role Name
 =========
 
-This role installs Topbeat && adds templates.
+This role installs Metricbeat && adds templates.
 
 License
 -------

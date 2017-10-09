@@ -147,7 +147,7 @@ hosts-elasticsearch-log
 localhost
 
 [hosts-kibana-data]
-localhost
+#localhost
 
 [log-servers:children]
 hosts-kibana-log

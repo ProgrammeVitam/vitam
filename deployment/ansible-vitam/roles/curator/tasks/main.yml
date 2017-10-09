@@ -3,17 +3,28 @@
 #### Curator ####
 
 # Disabled when docker detected (local deployement)
-- name: remove PyYAML.x86_64 as incompatible with Curator
-  package:
-    name: PyYAML.x86_64
-    state: absent
-  when: "inventory_hostname != 'localhost'"
+# - name: remove PyYAML.x86_64 as incompatible with Curator
+#   package:
+#     name: PyYAML.x86_64
+#     state: absent
+#   when: "inventory_hostname != 'localhost'"
 
-- name: install Curator package
+# - name: install Curator package
+#   package:
+#     name: python-elasticsearch-curator
+#     state: latest
+#   when: "inventory_hostname != 'localhost'"
+
+- name: ensure old package "python-elasticsearch-curator" is absent
   package:
     name: python-elasticsearch-curator
+    state: absent
+
+- name: install elasticsearch-curator package
+  package:
+    name: elasticsearch-curator
     state: latest
-  when: "inventory_hostname != 'localhost'"
+  # when: "inventory_hostname != 'localhost'"
 
 - name: ensure Curator directories exist
   file:
@@ -27,7 +38,7 @@
     - log
     - conf
     - lib
-  when: "inventory_hostname != 'localhost'"
+#  when: "inventory_hostname != 'localhost'"
 
 - name: apply configuration files for curator
   template:
@@ -41,21 +52,21 @@
     - "delete_index.yml"
     - "close_index.yml"
     - "metrics_index.yml"
-  when: "inventory_hostname != 'localhost'"
+#  when: "inventory_hostname != 'localhost'"
 
 - name: copy the systemd unit & timer files for curator
   template:
     src: "{{role_path}}/templates/systemd/{{item}}.j2"
     dest: "/usr/lib/systemd/system/{{item}}"
   with_items: "{{ lookup('pipe','find {{role_path}}/templates/systemd/ -type f  -exec basename {} .j2 \\; || true').split('\n') }}"
-  when: "inventory_hostname != 'localhost' and ansible_distribution == 'CentOS' and {{ lookup('pipe', 'test -d {{role_path}}/templates/systemd || echo nofolder') == \"\" }}"
+  when: "ansible_distribution == 'CentOS' and {{ lookup('pipe', 'test -d {{role_path}}/templates/systemd || echo nofolder') == \"\" }}"
 
 - name: copy the systemd unit & timer files for curator
   template:
     src: "{{role_path}}/templates/systemd/{{item}}.j2"
     dest: "/lib/systemd/system/{{item}}"
   with_items: "{{ lookup('pipe','find {{role_path}}/templates/systemd/ -type f  -exec basename {} .j2 \\; || true').split('\n') }}"
-  when: "inventory_hostname != 'localhost' and ansible_distribution == 'Debian' and {{ lookup('pipe', 'test -d {{role_path}}/templates/systemd || echo nofolder') == \"\" }}"
+  when: "ansible_distribution == 'Debian' and {{ lookup('pipe', 'test -d {{role_path}}/templates/systemd || echo nofolder') == \"\" }}"
 
 - name: Enable systemd timers
   systemd:
@@ -64,7 +75,7 @@
     enabled: "yes"
     state: "started"
   with_items: "{{ lookup('pipe','find {{role_path}}/templates/systemd/ -type f -name *.timer.j2 -exec basename {} .j2 \\; || true').split('\n') }}"
-  when: "inventory_hostname != 'localhost' and {{ lookup('pipe', 'test -d {{role_path}}/templates/systemd || echo nofolder') == \"\" }}"
+  when: "{{ lookup('pipe', 'test -d {{role_path}}/templates/systemd || echo nofolder') == \"\" }}"
 
 - name: Ensure consul service is started
   service:

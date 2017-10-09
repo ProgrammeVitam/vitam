@@ -63,7 +63,7 @@ network.host: {{ip_admin}}
 # Set a custom port for HTTP:
 #
 http.port: {{port_http}}
-network.port: {{port_tcp}}
+#network.port: {{port_tcp}}
 transport.tcp.port: {{port_tcp}}
 
 # For more information, see the documentation at:
@@ -101,14 +101,3 @@ discovery.zen.ping.unicast.hosts: [ {% for host in groups['hosts-elasticsearch-l
 # Require explicit names when deleting indices:
 #
 # action.destructive_requires_name: true
-{% if groups['hosts-elasticsearch-log']|length == 1 %}
-index.number_of_replicas: 0
-{% else %}
-index.number_of_replicas: 1
-{% endif %}#
-
-index.refresh_interval: 10s
-indices.memory.index_buffer_size: 30%
-index.translog.flush_threshold_ops: 50000
-refresh_interval_in_millis: 30000
-threadpool.search.queue_size: 12000

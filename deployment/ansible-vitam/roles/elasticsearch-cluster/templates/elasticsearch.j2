@@ -19,7 +19,7 @@ CONF_DIR=/vitam/conf/elasticsearch-{{groupe}}
 
 # Heap size defaults to 256m min, 1g max
 # Set ES_HEAP_SIZE to 50% of available RAM, but no more than 31g
-ES_HEAP_SIZE={{elasticsearch_memory}}
+#ES_JAVA_OPTS=
 
 # Heap new generation
 #ES_HEAP_NEWSIZE=
@@ -28,13 +28,13 @@ ES_HEAP_SIZE={{elasticsearch_memory}}
 #ES_DIRECT_SIZE=
 
 # Additional Java OPTS
-ES_JAVA_OPTS="-XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+PrintGCDetails -XX:+PrintGCApplicationStoppedTime"
+ES_JAVA_OPTS="-Xms{{elasticsearch_memory}} -Xmx{{elasticsearch_memory}} -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+PrintGCDetails -XX:+PrintGCApplicationStoppedTime"
 
 # Configure restart on package upgrade (true, every other setting will lead to not restarting)
 #RESTART_ON_UPGRADE=true
 
 # Path to the GC log file
-ES_GC_LOG_FILE=/vitam/log/elasticsearch-{{groupe}}/gc.log
+#ES_GC_LOG_FILE=/vitam/log/elasticsearch-{{groupe}}/gc.log
 
 ################################
 # Elasticsearch service
