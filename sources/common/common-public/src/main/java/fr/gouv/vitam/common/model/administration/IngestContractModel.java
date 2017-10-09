@@ -26,11 +26,10 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
-import java.util.Set;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import fr.gouv.vitam.common.SingletonUtils;
+
+import java.util.Set;
 
 /**
  * Data Transfer Object Model of contract (DTO).
@@ -40,10 +39,10 @@ public class IngestContractModel extends AbstractContractModel {
 
     public static final String ARCHIVE_PROFILES = "ArchiveProfiles";
 
-    public static final String FILING_PARENT_ID = "FilingParentId";
+    public static final String LINK_PARENT_ID = "LinkParentId";
 
-    @JsonProperty(FILING_PARENT_ID)
-    private String filingParentId;
+    @JsonProperty(LINK_PARENT_ID)
+    private String linkParentId;
 
     @JsonProperty(ARCHIVE_PROFILES)
     private Set<String> archiveProfiles;
@@ -54,17 +53,17 @@ public class IngestContractModel extends AbstractContractModel {
     
     
     /**
-     * @return filingParentId
+     * @return linkParentId
      */
-    public String getFilingParentId() {
-        return filingParentId;
+    public String getLinkParentId() {
+        return linkParentId;
     }
 
     /**
-     * @param filingParentId
+     * @param linkParentId
      */
-    public void setFilingParentId(String filingParentId) {
-        this.filingParentId = filingParentId;
+    public void setLinkParentId(String linkParentId) {
+        this.linkParentId = linkParentId;
     }
 
     public Set<String> getArchiveProfiles() {
