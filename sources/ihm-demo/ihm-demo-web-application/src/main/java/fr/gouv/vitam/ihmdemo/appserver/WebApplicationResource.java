@@ -73,6 +73,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -2767,6 +2768,115 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
 
     }
+
+
+    /**
+     * Upload Service Agencies
+     *
+     * @param headers HTTP Headers
+     * @param input the Service Agency file CSV
+     * @return Response
+     */
+    @POST
+    @Path("/agencies")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("agencies:create")
+    public Response uploadServiceAgencies(@Context HttpHeaders headers, InputStream input) {
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            Status status =
+                adminClient.createDocuments(
+                    new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()), AdminCollections.AGENCIES,
+                    input, headers.getHeaderString(GlobalDataRest.X_FILENAME));
+            return Response.status(status).build();
+        } catch (final AccessExternalClientException e) {
+            LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
+            return Response.status(Status.FORBIDDEN).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } finally {
+            StreamUtils.closeSilently(input);
+        }
+    }
+
+    /**
+     * Find Service Agencies by DSL
+     *
+     * @param headers HTTP Headers
+     * @param  select the query to find Service Agency
+     * @return Response
+     */
+    @POST
+    @Path("/agencies")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("agencies:read")
+    public Response findServiceAgencies(@Context HttpHeaders headers, String select) {
+        try {
+
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, select);
+            final Map<String, Object> optionsMap = JsonHandler.getMapFromString(select);
+
+            final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+
+            try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+                RequestResponse<AgenciesModel> response =
+                    adminClient.findAgencies(
+                        new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers))
+                            .setApplicationSessionId(getAppSessionId()),
+                        query);
+                if (response != null && response instanceof RequestResponseOK) {
+                    return Response.status(Status.OK).entity(response).build();
+                }
+                if (response != null && response instanceof VitamError) {
+                    LOGGER.error(response.toString());
+                    return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+                }
+                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            }
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * Query to Service Agency by identifier
+     *
+     * @param headers HTTP Headers
+     * @param id of the requested Service Agency
+     * @return Response
+     */
+    @GET
+    @Path("/agencies/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("agencies:read")
+    public Response findServiceAgencyById(@Context HttpHeaders headers, @PathParam("id") String id) {
+        ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, id);
+
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            RequestResponse<AgenciesModel> response =
+                adminClient.findAgencyByID(
+                    new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers))
+                        .setApplicationSessionId(getAppSessionId()),
+                    id);
+            if (response != null && response instanceof RequestResponseOK) {
+                return Response.status(Status.OK).entity(response).build();
+            }
+            if (response != null && response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
 
     /**
      * Returns session id for the authenticated user.

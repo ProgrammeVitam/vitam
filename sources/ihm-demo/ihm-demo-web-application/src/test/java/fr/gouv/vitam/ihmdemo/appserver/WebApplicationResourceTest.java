@@ -55,6 +55,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import org.apache.commons.io.IOUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -1552,6 +1553,87 @@ public class WebApplicationResourceTest {
         given().contentType(ContentType.JSON).body(auditOption).expect()
             .when().post("audits")
             .then().statusCode(Status.OK.getStatusCode());
+    }
+
+
+    @Test
+    public void testSerViceAgencies() throws Exception {
+        AdminExternalClient adminExternalClient = Mockito.mock(AdminExternalClient.class);
+
+        final AdminExternalClientFactory adminExternalClientFactory =
+            PowerMockito.mock(AdminExternalClientFactory.class);
+        PowerMockito.when(adminExternalClientFactory.getClient()).thenReturn(adminExternalClient);
+        PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminExternalClientFactory);
+
+        PowerMockito
+            .when(adminExternalClient.createDocuments(anyObject(), anyObject(),anyObject(),anyObject()))
+            .thenReturn(Status.OK);
+        PowerMockito
+            .when(adminExternalClient.findAgencies(anyObject(), anyObject()))
+            .thenReturn(ClientMockResultHelper.getAgenciesList());
+        PowerMockito
+            .when(adminExternalClient.findAgencyByID(anyObject(), anyObject()))
+            .thenReturn(ClientMockResultHelper.getAgency());
+
+        final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam-ko.fake");
+
+        //import agencies
+        given().contentType(ContentType.BINARY)
+            .content(stream)
+            .expect()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
+            .post("/agencies").getBody();
+
+        //find agencies by DSL
+        given().contentType(ContentType.JSON)
+            .body(new Select().getFinalSelect())
+            .expect()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
+            .post("/agencies");
+
+        //find agencies by Id
+        given().contentType(ContentType.JSON)
+            .expect()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
+            .get("/agencies/id");
+
+
+        PowerMockito
+            .when(adminExternalClient.createDocuments(anyObject(), anyObject(),anyObject(),anyObject()))
+            .thenThrow(new AccessExternalClientException(""));
+        PowerMockito
+            .when(adminExternalClient.findAgencies(anyObject(), anyObject()))
+            .thenThrow(new VitamClientException(""));
+        PowerMockito
+            .when(adminExternalClient.findAgencyByID(anyObject(), anyObject()))
+            .thenThrow(new VitamClientException(""));
+        final InputStream stream2 = PropertiesUtils.getResourceAsStream("FF-vitam-ko.fake");
+        //import agencies
+        given().contentType(ContentType.BINARY)
+            .content(stream2)
+            .expect()
+            .statusCode(Status.FORBIDDEN.getStatusCode())
+            .when()
+            .post("/agencies").getBody();
+
+        //find agencies by DSL
+        given().contentType(ContentType.JSON)
+            .body(new Select().getFinalSelect())
+            .expect()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+            .when()
+            .post("/agencies");
+
+        //find agencies by Id
+        given().contentType(ContentType.JSON)
+            .expect()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+            .when()
+            .get("/agencies/id");
+
     }
 
     private static String getAppSessionId() {
