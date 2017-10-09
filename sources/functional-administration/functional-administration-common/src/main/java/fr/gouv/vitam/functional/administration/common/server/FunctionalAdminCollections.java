@@ -103,7 +103,7 @@ public enum FunctionalAdminCollections {
     /**
      * Agency collection
      */
-    AGENCIES(Agencies.class, false, false),
+    AGENCIES(Agencies.class, true, false),
 
     /**
      * Security profile collection
