@@ -26,15 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.json;
 
-import static org.junit.Assert.assertTrue;
-
-import java.io.FileNotFoundException;
-
-import org.junit.Test;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum;
+import org.junit.Test;
+
+import java.io.FileNotFoundException;
+
+import static org.junit.Assert.assertTrue;
 
 public class SchemaValidationUtilsTest {
 
@@ -42,6 +41,8 @@ public class SchemaValidationUtilsTest {
     private static final String AU_INVALID_JSON_FILE = "archive-unit_Invalid.json";
     private static final String AU_INVALID_DATE_JSON_FILE = "archive-unit_date_Invalid.json";
     private static final String COMPLEX_JSON_FILE = "complex_archive_unit.json";
+    private static final String OBJECT_BIRTH_PLACE_JSON_FILE = "object_birth_place_archive_unit.json";
+    private static final String STRING_BIRTH_PLACE_JSON_FILE = "string_birth_place_archive_unit.json";
 
     public static final String TAG_ARCHIVE_UNIT = "ArchiveUnit";
 
@@ -62,6 +63,23 @@ public class SchemaValidationUtilsTest {
             .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_JSON_FILE))
                 .get(TAG_ARCHIVE_UNIT));
         assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.VALID));
+    }
+
+    @Test
+    public void givenComplexArchiveUnitJsonThenValidateJsonObjectBirthPlaceOK() throws Exception {
+        final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
+        SchemaValidationStatus status = schemaValidation
+            .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_BIRTH_PLACE_JSON_FILE))
+                .get(TAG_ARCHIVE_UNIT));
+        assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.VALID));
+    }
+    @Test
+    public void givenComplexArchiveUnitJsonThenValidateJsonObjectBirthPlaceKO() throws Exception {
+        final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
+        SchemaValidationStatus status = schemaValidation
+            .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(STRING_BIRTH_PLACE_JSON_FILE))
+                .get(TAG_ARCHIVE_UNIT));
+        assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.NOT_AU_JSON_VALID));
     }
 
     @Test

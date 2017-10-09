@@ -1,0 +1,27 @@
+{
+  "ArchiveUnit": {
+    "_id": "aeaqaaaaaadd4sjaaa34yak66ewcooyaaaaq",
+    "DescriptionLevel": "RecordGrp",
+    "Title": "AU plan",
+    "Titles": {
+      "fr": "AU plan"
+    },
+    "Descriptions": {},
+    "Recipient": [
+      {
+        "FirstName": "Maman",
+        "BirthName": "HERVE",
+        "GivenName": "HERVE",
+        "Gender": "F",
+        "BirthPlace": {
+          "City": "Paris",
+          "Country": "FR"
+        },
+        "Identifier": "ID03"
+      }
+    ],
+    "_unitType": "INGEST",
+    "_uds": {},
+    "Management" : { }
+  }
+}
