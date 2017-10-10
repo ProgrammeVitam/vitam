@@ -46,18 +46,13 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
-import org.assertj.core.api.AutoCloseableSoftAssertions;
-import org.assertj.core.api.Fail;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Iterables;
-
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
@@ -85,6 +80,8 @@ import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import org.assertj.core.api.AutoCloseableSoftAssertions;
+import org.assertj.core.api.Fail;
 
 /**
  * step defining access glue
@@ -103,7 +100,7 @@ public class AccessStep {
         "\"CreationDate\":\"10/12/2016\"," +
         "\"ActivationDate\":\"10/12/2016\"," +
         "\"DeactivationDate\":\"10/12/2016\"," +
-        "\"FilingParentId\": \"" + UNIT_GUID + "\"}]";
+        "\"LinkParentId\": \"" + UNIT_GUID + "\"}]";
 
     private static final String OPERATION_ID = "Operation-Id";
 
@@ -172,18 +169,22 @@ public class AccessStep {
             } else {
                 if (isArray) {
                     Set<String> resultArray =
-                        JsonHandler.getFromStringAsTypeRefence(resultValue, new TypeReference<Set<String>>() {});
+                        JsonHandler.getFromStringAsTypeRefence(resultValue, new TypeReference<Set<String>>() {
+                        });
 
                     Set<String> expectedrray =
-                        JsonHandler.getFromStringAsTypeRefence(resultExpected, new TypeReference<Set<String>>() {});
+                        JsonHandler.getFromStringAsTypeRefence(resultExpected, new TypeReference<Set<String>>() {
+                        });
                     assertThat(resultArray).isEqualTo(expectedrray);
                 } else {
                     Set<Set<String>> resultArray =
-                        JsonHandler.getFromStringAsTypeRefence(resultValue, new TypeReference<Set<Set<String>>>() {});
+                        JsonHandler.getFromStringAsTypeRefence(resultValue, new TypeReference<Set<Set<String>>>() {
+                        });
 
                     Set<Set<String>> expectedrray =
                         JsonHandler
-                            .getFromStringAsTypeRefence(resultExpected, new TypeReference<Set<Set<String>>>() {});
+                            .getFromStringAsTypeRefence(resultExpected, new TypeReference<Set<Set<String>>>() {
+                            });
 
                     assertThat(expectedrray).isEqualTo(resultArray);
                 }
@@ -292,7 +293,7 @@ public class AccessStep {
     /**
      * Get a specific field value from a result identified by its index
      *
-     * @param field field name
+     * @param field     field name
      * @param numResult number of the result in results
      * @return value if found or null
      * @throws Throwable
@@ -397,6 +398,7 @@ public class AccessStep {
             this.query = this.query.replace(OPERATION_ID, world.getOperationId());
         }
     }
+
     /**
      * define a query to reuse it after
      *
@@ -508,8 +510,10 @@ public class AccessStep {
     public void update_archive_unit_with_query(String query) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(query);
         // get id of last result
-    requestResponse =
-            world.getAccessClient().updateUnitbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()), queryJSON, savedUnit);
+        requestResponse =
+            world.getAccessClient()
+                .updateUnitbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()),
+                    queryJSON, savedUnit);
 
     }
 
@@ -585,8 +589,8 @@ public class AccessStep {
     /**
      * Import or Check an admin referential file
      *
-     * @param action the action we want to execute : "vérifie" for check / "importe" for import
-     * @param filename name of the file to import or check
+     * @param action     the action we want to execute : "vérifie" for check / "importe" for import
+     * @param filename   name of the file to import or check
      * @param collection name of the collection
      * @throws Throwable
      */
@@ -697,7 +701,7 @@ public class AccessStep {
         RequestResponse<LogbookLifecycle> requestResponse =
             world.getAccessClient().selectUnitLifeCycleById(
                 new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId()), unitId, new Select().getFinalSelect());
+                    .setApplicationSessionId(world.getApplicationSessionId()), unitId, new Select().getFinalSelect());
         if (requestResponse.isOk()) {
             RequestResponseOK<LogbookLifecycle> requestResponseOK =
                 (RequestResponseOK<LogbookLifecycle>) requestResponse;
@@ -731,7 +735,8 @@ public class AccessStep {
             }
             RequestResponse<LogbookLifecycle> requestResponseLFC =
                 world.getAccessClient().selectObjectGroupLifeCycleById(
-                    new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()).setApplicationSessionId(world.getApplicationSessionId()),
+                    new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                        .setApplicationSessionId(world.getApplicationSessionId()),
                     unit.get(PROJECTIONARGS.OBJECT.exactToken()).asText(), new Select().getFinalSelect());
             if (requestResponseLFC.isOk()) {
                 RequestResponseOK<LogbookLifecycle> requestResponseLFCOK =
@@ -751,7 +756,7 @@ public class AccessStep {
     /**
      * check if the status is valid for a list of event type according to logbook lifecycle
      *
-     * @param eventNames list of event
+     * @param eventNames  list of event
      * @param eventStatus status of event
      * @throws LogbookClientException
      * @throws InvalidParseOperationException

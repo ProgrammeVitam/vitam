@@ -85,7 +85,7 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
             "Error while validate contract (%s), RootUnits (%s) not found in database";
         public static String ERR_INVALID_FIELD = "The field %s has an invalid format";
         public static String ERR_MANDATORY_FIELD = "The field %s is mandatory";
-        public static String ERR_WRONG_FILING_PARENT_ID = "the id of the AU %s is not in filing schema";
+        public static String ERR_WRONG_LINK_PARENT_ID = "the id of the AU %s is not in filing nor holding schema";
 
         private String reason;
 
@@ -117,11 +117,11 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
         /**
          * Reject if the id of the AU is not in filing schema
          *
-         * @param filingParentId
+         * @param linkParentId
          * @return GenericRejectionCause
          */
-        public static GenericRejectionCause rejectWrongFilingParentId(String filingParentId) {
-            return new GenericRejectionCause(String.format(ERR_WRONG_FILING_PARENT_ID, filingParentId));
+        public static GenericRejectionCause rejectWrongLinkParentId(String linkParentId) {
+            return new GenericRejectionCause(String.format(ERR_WRONG_LINK_PARENT_ID, linkParentId));
         }
 
         /**

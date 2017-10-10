@@ -68,7 +68,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
-
 import com.google.common.collect.Lists;
 import de.odysseus.staxon.json.JsonXMLConfig;
 import de.odysseus.staxon.json.JsonXMLConfigBuilder;
@@ -102,7 +101,6 @@ import fr.gouv.vitam.common.model.unit.ManagementModel;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
@@ -255,7 +253,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private String contractName = null;
     private String archivalProfile = null;
 
-    private String filingParentId = null;
+    private String linkParentId = null;
 
     private UnitType workflowUnitTYpe = UnitType.INGEST;
     private static JAXBContext jaxbContext;
@@ -283,8 +281,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         this(MetaDataClientFactory.getInstance());
     }
 
-    @VisibleForTesting
-    ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory) {
+    @VisibleForTesting ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory) {
         dataObjectIdToGuid = new HashMap<>();
         dataObjectIdWithoutObjectGroupId = new HashMap<>();
         objectGroupIdToGuid = new HashMap<>();
@@ -520,7 +517,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Split Element from InputStream and write it to workspace
      *
      * @param logbookLifeCycleClient
-     * @param params parameters of workspace server
+     * @param params                    parameters of workspace server
      * @param globalCompositeItemStatus the global status
      * @throws ProcessingException throw when can't read or extract element from SEDA
      * @throws CycleFoundException when a cycle is found in data extract
@@ -1125,7 +1122,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * Merge global rules to specific archive rules and clean management node
      *
-     * @param archiveUnit archiveUnit
+     * @param archiveUnit      archiveUnit
      * @param globalMgtIdExtra list of global management rule ids
      * @throws InvalidParseOperationException
      */
@@ -1168,9 +1165,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * Merge global management rule in root units management rules.
      *
-     * @param globalMgtRuleNode global management node
+     * @param globalMgtRuleNode          global management node
      * @param archiveUnitManagementModel rule management model
-     * @param ruleType category of rule
+     * @param ruleType                   category of rule
      * @throws InvalidParseOperationException
      */
     private void mergeRule(JsonNode globalMgtRuleNode, ManagementModel archiveUnitManagementModel, String ruleType)
@@ -1857,7 +1854,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         if (logbookLifeCycleParameters == null) {
             logbookLifeCycleParameters = isArchive ? LogbookParametersFactory.newLogbookLifeCycleUnitParameters()
                 : isObjectGroup ? LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters()
-                    : LogbookParametersFactory.newLogbookOperationParameters();
+                : LogbookParametersFactory.newLogbookOperationParameters();
 
 
             logbookLifeCycleParameters.putParameterValue(LogbookParameterName.objectIdentifier, guid);
@@ -2094,7 +2091,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Update data object json node with data from maps
      *
      * @param objectNode data object json node
-     * @param guid guid of data object
+     * @param guid       guid of data object
      * @param isPhysical is this object a physical object
      */
 
@@ -2146,8 +2143,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private void linkToArchiveUnitDeclaredInTheIngestContract(ArrayNode upNode) {
         findArchiveUnitDeclaredInTheIngestContract();
-        if (filingParentId != null) {
-            upNode.add(filingParentId);
+        if (linkParentId != null) {
+            upNode.add(linkParentId);
         }
     }
 
@@ -2164,19 +2161,20 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     List<IngestContractModel> results = ((RequestResponseOK) referenceContracts).getResults();
                     if (!results.isEmpty()) {
                         for (IngestContractModel result : results) {
-                            filingParentId = result.getFilingParentId();
+                            linkParentId = result.getLinkParentId();
                         }
                     }
 
-                    if (filingParentId != null) {
+                    if (linkParentId != null) {
                         select = new Select();
-                        select.setQuery(QueryHelper.eq(UNITTYPE.exactToken(), FILING_UNIT).setDepthLimit(0));
+                        String[] schemaArray = new String[] {UnitType.FILING_UNIT.name(), UnitType.HOLDING_UNIT.name()};
+                        select.setQuery(QueryHelper.in(UNITTYPE.exactToken(), schemaArray).setDepthLimit(0));
                         queryDsl = select.getFinalSelect();
-                        JsonNode res = metaDataClient.selectUnitbyId(queryDsl, filingParentId).get("$results").get(0);
+                        JsonNode res = metaDataClient.selectUnitbyId(queryDsl, linkParentId).get("$results").get(0);
 
                         ObjectNode archiveUnit = JsonHandler.createObjectNode();
                         createArchiveUnitDeclaredInTheIngestContract(archiveUnit, res);
-                        saveArchiveUnitDeclaredInTheIngestContract(archiveUnit, filingParentId);
+                        saveArchiveUnitDeclaredInTheIngestContract(archiveUnit, linkParentId);
                         return true;
                     }
 
@@ -2207,17 +2205,17 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private void saveArchiveUnitDeclaredInTheIngestContract(ObjectNode archiveUnit,
-        String filingParentId)
+        String linkParentId)
         throws InvalidParseOperationException, ProcessingException {
 
-        final File unitCompleteTmpFile = handlerIO.getNewLocalFile(filingParentId);
+        final File unitCompleteTmpFile = handlerIO.getNewLocalFile(linkParentId);
 
         // Write to new File
         JsonHandler.writeAsFile(archiveUnit, unitCompleteTmpFile);
 
         // Write to workspace
         handlerIO.transferFileToWorkspace(
-            IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + filingParentId + JSON_EXTENSION,
+            IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + linkParentId + JSON_EXTENSION,
             unitCompleteTmpFile, true, asyncIO);
     }
 
