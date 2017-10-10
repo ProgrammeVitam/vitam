@@ -7,7 +7,5 @@
 
    recette.rst
    collections.rst
-   performance.rst
+   tests.rst
    securisation.rst
-   fonctionnel.rst
-   dsl.rst
