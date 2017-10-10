@@ -18,6 +18,7 @@
 
 package fr.gouv.vitam.processing.distributor.v2;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -164,6 +165,10 @@ public class WorkerTask implements Supplier<ItemStatus> {
 
     public String getObjectName() {
         return descriptionStep.getWorkParams().getObjectName();
+    }
+    
+    public List<String> getObjectNameList() {
+        return descriptionStep.getWorkParams().getObjectNameList();
     }
 
     public boolean isCompleted() {

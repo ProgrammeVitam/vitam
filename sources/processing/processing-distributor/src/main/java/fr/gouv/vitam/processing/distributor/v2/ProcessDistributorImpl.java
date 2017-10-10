@@ -396,7 +396,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         }
         final Set<ItemStatus> cancelled = new HashSet<>();
         final Set<ItemStatus> paused = new HashSet<>();
-        while (offset < sizeList) {
+        boolean fatalOccurred = false;
+        while (offset < sizeList && !fatalOccurred) {
             int nextOffset = sizeList > offset + batchSize
                 ? offset + batchSize : sizeList;
             List<String> subList = objectsList.subList(offset, nextOffset);
@@ -461,23 +462,32 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                         remainingElements.add(e.getObjectName());
                     }
                 });
-                if (remainingElements.isEmpty()) {
-                    offset = nextOffset;
-                }
-                distributorIndex =
-                    new DistributorIndex(level, offset, itemStatus, requestId, uniqueStepId, remainingElements);
-                // All elements of the current level are treated so finish it
-                if (offset >= sizeList) {
-                    distributorIndex.setLevelFinished(true);
-                }
-                try {
-                    processDataManagement.persistDistributorIndex(DISTRIBUTOR_INDEX, operationId, distributorIndex);
-                    LOGGER
-                        .debug("Store for the container " + operationId + " the DistributorIndex offset" + offset +
-                            " GlobalStatus " + itemStatus.getGlobalStatus());
-                } catch (Exception e) {
-                    LOGGER.error("Error while persist DistributorIndex", e);
-                    throw new ProcessingException("Error while persist DistributorIndex", e);
+                
+
+                if(itemStatus.getGlobalStatus().isGreaterOrEqualToFatal()) {
+                    // Do not update index as we have to restart from old saved index
+                    fatalOccurred = true;
+                } else {
+                    if (remainingElements.isEmpty()) {
+                        offset = nextOffset;
+                    }
+
+                    distributorIndex =
+                            new DistributorIndex(level, offset, itemStatus, requestId, uniqueStepId, remainingElements);
+
+                    // All elements of the current level are treated so finish it
+                    if (offset >= sizeList) {
+                        distributorIndex.setLevelFinished(true);
+                    }
+                    // update persisted DistributorIndex if not Fatal
+                    try {
+                        processDataManagement.persistDistributorIndex(DISTRIBUTOR_INDEX, operationId, distributorIndex);
+                        LOGGER.debug("Store for the container " + operationId + " the DistributorIndex offset" + offset +
+                                " GlobalStatus " + itemStatus.getGlobalStatus());
+                    } catch (Exception e) {
+                        LOGGER.error("Error while persist DistributorIndex", e);
+                        throw new ProcessingException("Error while persist DistributorIndex", e);
+                    }
                 }
 
                 if (cancelled.size() > 0) {
@@ -518,12 +528,12 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                         new ItemStatus(WORKER_CALL_EXCEPTION).increment(StatusCode.FATAL));
             })
             .thenApply(is -> {
-                //Do not update processed if pause or cancel occurs
-                if (StatusCode.UNKNOWN.equals(is.getGlobalStatus())) {
+                //Do not update processed if pause or cancel occurs or if status is Fatal
+                if (StatusCode.UNKNOWN.equals(is.getGlobalStatus()) || StatusCode.FATAL.equals(is.getGlobalStatus())) {
                     return is;
                 }
                 // update processed elements
-                processDataAccess.updateStep(operationId, step.getId(), 0, true, tenantId);
+                processDataAccess.updateStep(operationId, step.getId(), task.getObjectNameList().size(), true, tenantId);
                 return is;
             });
     }
