@@ -62,7 +62,7 @@ public class DslQueryHelperTest {
 
     private static final String result =
         "QUERY: Requests: " + "{\"$and\":[" + "{\"$eq\":{\"date\":\"2006-03-05\"}}," +
-            "{\"$eq\":{\"events.obIdIn\":\"name\"}}," +
+            "{\"$match\":{\"Name\":\"Name\"}},{\"$eq\":{\"events.obIdIn\":\"name\"}}," +
             "{\"$exists\":\"PUID\"},{\"$or\":[{\"$eq\":{\"evTypeProc\":\"INGEST\"}},{\"$eq\":{\"evTypeProc\":\"INGEST_TEST\"}}]}," +
             "{\"$eq\":{\"title\":\"Archive2\"}}]}\n" +
             "\tFilter: {\"$limit\":10000,\"$orderby\":{\"evDateTime\":-1}}\n" +
@@ -122,6 +122,7 @@ public class DslQueryHelperTest {
         myHashMap.put("obIdIn", "name");
         myHashMap.put("INGEST", "date");
         myHashMap.put("FORMAT", "PUID");
+        myHashMap.put("AgencyName", "Name");
 
         final JsonNode request = DslQueryHelper.createSingleQueryDSL(myHashMap);
         assertNotNull(request);

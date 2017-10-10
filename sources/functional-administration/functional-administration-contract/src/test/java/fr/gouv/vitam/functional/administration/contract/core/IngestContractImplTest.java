@@ -574,10 +574,11 @@ public class IngestContractImplTest {
         final SetAction setActionStatusActive = UpdateActionHelper.set("Status", activeStatus);
         final SetAction setActionDesactivationDateActive = UpdateActionHelper.set("ActivationDate", now);
         final SetAction setActionLastUpdateActive = UpdateActionHelper.set("LastUpdate", now);
+        final SetAction setLinkParentId = UpdateActionHelper.set(IngestContractModel.LINK_PARENT_ID, "");
         final Update updateStatusActive = new Update();
         updateStatusActive.setQuery(QueryHelper.eq("Identifier", identifier));
         updateStatusActive.addActions(setActionStatusActive, setActionDesactivationDateActive,
-            setActionLastUpdateActive);
+            setActionLastUpdateActive, setLinkParentId);
         updateParserActive.parse(updateStatusActive.getFinalUpdate());
         JsonNode queryDslStatusActive = updateParserActive.getRequest().getFinalUpdate();
         ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslStatusActive);
@@ -591,6 +592,7 @@ public class IngestContractImplTest {
             assertThat(activeStatus.equals(ingestContractModel.getStatus())).isTrue();
             assertThat(ingestContractModel.getActivationdate()).isNotEmpty();
             assertThat(ingestContractModel.getLastupdate()).isNotEmpty();
+            assertThat(ingestContractModel.getLinkParentId()).isEqualTo("");
         }
     }
 
