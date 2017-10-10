@@ -5,6 +5,8 @@
     name: java-1.8.0
     state: latest
   when: ansible_distribution == "CentOS"
+  notify:
+    - restart cerebro
 
 - name: install openjdk from jessie-backports (prerequisite for cerebro) only when Debian
   apt:
@@ -12,11 +14,15 @@
     state: latest
     default_release: jessie-backports
   when: ansible_distribution == "Debian"
+  notify:
+    - restart cerebro
 
 - name: install vitam-elasticsearch-cerebro package
   package:
     name: vitam-elasticsearch-cerebro
     state: latest
+  notify:
+    - restart cerebro
 
 - name: aply custom configuration
   template:
