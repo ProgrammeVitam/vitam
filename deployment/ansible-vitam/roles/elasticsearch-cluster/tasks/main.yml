@@ -1,6 +1,25 @@
 ---
 #### Compute variables ####
 
+# OMA: will need something better
+# - name: remove vitam-{{cluster_name}} package
+#   package:
+#     name: vitam-{{cluster_name}}
+#     state: absent
+#   when: groupe=="log"
+
+# - name: Ensure elasticsearch directories do not exist
+#   file:
+#     path: "{{vitam_folder_root}}/{{item}}/{{cluster_name}}"
+#     state: absent
+#     mode: "{{vitam_folder_permission}}"
+#   with_items:
+#     - conf
+#     - data
+#     - log
+#     - lib
+#   when: groupe=="log"
+
 - name: Update elasticsearch memory value if empty and total memory < 64 Go
   set_fact:
     elasticsearch_memory: "{{ (ansible_memory_mb.real.total / 2) | int }}m"
@@ -26,7 +45,11 @@
     default_release: jessie-backports
   when: ansible_distribution == "Debian"
 
-# tasks file for elasticsearch-cluster
+# - name: install java on CentOS
+#   yum:
+#     name: java-1.8.0-openjdk
+#     state: latest
+#   when: ansible_distribution == "CentOS"
 
 - name: install vitam-{{cluster_name}} package
   package:
@@ -34,6 +57,28 @@
     state: latest
   notify:
     - restart elasticsearch
+
+# OMA: TODO : add to java.policy (/etc/alternates/jre/lib/security/java.policy
+# permission javax.management.MBeanTrustPermission "register";
+#
+
+- name: apply java MBean security on CentOS
+  blockinfile:
+    path: /usr/lib/jvm/jre/lib/security/java.policy
+    marker: "// {mark} ANSIBLE MANAGED BLOCK"
+    insertafter: "that can be read by anyone"
+    content: |
+      permission javax.management.MBeanTrustPermission "register";
+  when: ansible_distribution == "CentOS"
+
+# OMA: to be tested
+- name: apply java MBean security on Debian
+  blockinfile:
+    dest: /usr/lib/jvm/java-8-openjdk-amd64/jre/lib/security/java.policy
+    marker: "// {mark} ANSIBLE MANAGED BLOCK"
+    insertafter: "that can be read by anyone"
+    content: "permission javax.management.MBeanTrustPermission \"register\";"
+  when: ansible_distribution == "Debian"
 
 - name: ensure /var/run/{{cluster_name}} exists
   file:
@@ -107,13 +152,16 @@
 
 - name: apply logging configuration yml
   template:
-    src: "logging.yml.j2"
-    dest: "{{elasticsearch_conf_dir}}/logging.yml"
+    src: "{{item}}.j2"
+    dest: "{{elasticsearch_conf_dir}}/{{item}}"
     owner: "{{ vitamdb_user }}"
     group: "{{ vitam_group }}"
     mode: "{{vitam_conf_permission}}"
+  with_items:
+    - "log4j2.properties"
   notify:
     - restart elasticsearch
+
 
 - name: apply elasticsearch sysconfig default
   template:
@@ -173,13 +221,3 @@
   service:
     name: "vitam-{{cluster_name}}"
     state: started
-
-
-
-# OMA : needs a restart to be effective
-- name: install vitam-elasticsearch-analysis-icu package
-  package:
-    name: vitam-elasticsearch-analysis-icu
-    state: latest
-  notify:
-    - restart elasticsearch

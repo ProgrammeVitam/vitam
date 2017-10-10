@@ -1,10 +1,10 @@
-{
-  "title": "Nombre d'appels au GC PSScavenge",
-  "visState": "{\"title\":\"PSScavengeCoun\",\"type\":\"metric\",\"params\":{\"handleNoResults\":true,\"fontSize\":60},\"aggs\":[{\"id\":\"1\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"value\",\"customLabel\":\"PS-Scavenge count\"}}],\"listeners\":{}}",
-  "uiStateJSON": "{}",
-  "description": "",
-  "version": 1,
-  "kibanaSavedObjectMeta": {
-    "searchSourceJSON": "{\"index\":\"metrics-vitam-jvm*\",\"query\":{\"query_string\":{\"query\":\"name:PS-Scavenge.count\",\"analyze_wildcard\":true}},\"filter\":[]}"
+
+  {
+      "visState": "{\"title\":\"PSScavengeCoun\",\"type\":\"metric\",\"params\":{\"handleNoResults\":true,\"fontSize\":60},\"aggs\":[{\"id\":\"1\",\"type\":\"max\",\"schema\":\"metric\",\"params\":{\"field\":\"value\",\"customLabel\":\"PS-Scavenge count\"}}],\"listeners\":{}}",
+      "kibanaSavedObjectMeta": {
+        "searchSourceJSON": "{\"index\":\"metrics-vitam-jvm*\",\"query\":{\"query_string\":{\"query\":\"name:PS-Scavenge.count\",\"analyze_wildcard\":true}},\"filter\":[]}"
+      },
+      "uiStateJSON": "{}",
+      "description": "",
+      "title": "Nombre d'appels au GC PSScavenge"
   }
-}

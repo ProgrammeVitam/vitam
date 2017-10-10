@@ -34,5 +34,7 @@ fi
 
 for item in $(ls -d ${WORKING_FOLDER}/*/ | grep -v "target" | awk -F "/" '{print $(NF-1)}'); do
 	# Need to give the target folder relatively to the base folder...
+	echo $item
 	${WORKING_FOLDER}/build.sh $item target
+	
 done

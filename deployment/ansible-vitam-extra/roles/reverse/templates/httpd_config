@@ -227,12 +227,12 @@
 
     {% if groups['hosts-elasticsearch-log']|length >0 %}
     # Elasticsearch log
-    ProxyPass /elasticsearch-log http://{{ hostvars[groups['hosts-elasticsearch-log'][0]]['ip_admin']}}:{{elasticsearch_log_http_port}}/
+    ProxyPass /elasticsearch-log/ http://{{ hostvars[groups['hosts-elasticsearch-log'][0]]['ip_admin']}}:{{elasticsearch_log_http_port}}/
     ProxyPassReverse /elasticsearch-log http://{{ hostvars[groups['hosts-elasticsearch-log'][0]]['ip_admin']}}:{{elasticsearch_log_http_port}}/
     {% endif %}
 
     {% if groups['hosts-elasticsearch-data']|length >0 %}
-    # Elasticsearch data
+    # Elasticsearch data ; no / at end as still in ES 2.x
     ProxyPass /elasticsearch-data http://{{hostvars [groups['hosts-elasticsearch-data'][0]]['ip_service']}}:{{elasticsearch_data_http_port}}/
     ProxyPassReverse /elasticsearch-data http://{{hostvars [groups['hosts-elasticsearch-data'][0]]['ip_service']}}:{{elasticsearch_data_http_port}}/
     {% endif %}

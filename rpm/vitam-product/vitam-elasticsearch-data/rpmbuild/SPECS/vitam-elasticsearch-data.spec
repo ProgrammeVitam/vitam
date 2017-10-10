@@ -15,6 +15,7 @@ BuildRequires: systemd-units
 Requires:      systemd
 Requires:      java-1.8.0
 Requires:      elasticsearch = %{version}
+Requires:	   vitam-elasticsearch-analysis-icu = %{version}
 Requires:      vitam-user-vitamdb
 
 %description

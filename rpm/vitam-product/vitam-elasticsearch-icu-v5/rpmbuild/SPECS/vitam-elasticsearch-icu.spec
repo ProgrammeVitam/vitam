@@ -1,13 +1,13 @@
 Name:          vitam-elasticsearch-analysis-icu
-Version:       2.4.4
+Version:       5.6.1
 Release:       1%{?dist}
 Summary:       The ICU Analysis plugin for ElasticSearch integrates Lucene ICU module into elasticsearch, adding ICU relates analysis components.
 Group:         Applications/File
 License:       MIT Licence
 BuildArch:     noarch
-URL:           https://github.com/elastic/elasticsearch/tree/2.4/plugins/analysis-icu
-Source0:       https://download.elastic.co/elasticsearch/release/org/elasticsearch/plugin/analysis-icu/%{version}/analysis-icu-%{version}.zip
-Requires:      elasticsearch < 5
+URL:           https://github.com/elastic/elasticsearch/tree/5.6/plugins/analysis-icu
+Source0:       https://artifacts.elastic.co/downloads/elasticsearch-plugins/analysis-icu/analysis-icu-%{version}.zip
+Requires:      elasticsearch = %{version}
 
 
 %global icu_plugin_folder analysis-icu
@@ -25,8 +25,8 @@ true
 %install
 # On crée l'arborescence cible
 mkdir -p %{buildroot}/usr/share/elasticsearch/plugins/%{icu_plugin_folder}
-# On pousse les fichiers 
-cp -rp * %{buildroot}/usr/share/elasticsearch/plugins/%{icu_plugin_folder}
+# On pousse les fichiers
+cp -rp elasticsearch/* %{buildroot}/usr/share/elasticsearch/plugins/%{icu_plugin_folder}
 
 %pre
 

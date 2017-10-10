@@ -3,6 +3,32 @@
 
 #### Kibana dashboards configuration ####
 
+- name: Wait for the kibana port to be open
+  wait_for:
+    host: "{{ip_service}}"
+    port: "{{kibana_log_port}}"
+    timeout: "{{service_restart_timeout}}"
+  run_once: true
+
+- name: Wait until kibana service is OK
+  uri:
+    url: 'http://{{ip_service}}:{{kibana_log_port}}/status'
+    method: GET
+  register: kibana_result
+  until: kibana_result.status != 503
+  retries: 60
+  delay: 1
+
+- name: Wait until .kibana index exists
+  uri:
+    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana'
+    method: HEAD
+    status_code: 200
+  register: kibana_result
+  until: kibana_result.status == 200
+  retries: 60
+  delay: 1
+
 # We have a specific task for index pattern to add the "*" at the end of the url
 - name: load index patterns into Elasticsearch log .kibana index
   when: "{{ (groups['hosts-kibana-log'] | length) > 0 }}"
@@ -48,9 +74,8 @@
   when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
   run_once: true
   uri:
-    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/config/4.6.1'
+    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/config/5.6.1'
     method: PUT
-    body: '{"defaultIndex": "logstash-vitam*", "buildNum": 10229}'
+    body: '{"defaultIndex": "logstash-vitam*", "buildNum": 15533}'
     body_format: json
     status_code: 200, 201
-

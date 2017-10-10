@@ -8,7 +8,7 @@
 # Vitam solution deployment
 - hosts: vitam
   roles:
-    - topbeat
+    - metricbeat
 
 #- hosts: vitam
 #  roles:

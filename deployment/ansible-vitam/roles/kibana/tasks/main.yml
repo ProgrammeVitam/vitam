@@ -19,16 +19,16 @@
 
 - name: Configure Kibana connection to elasticsearch
   replace:
-    dest: /opt/kibana/config/kibana.yml
-    regexp: '^# elasticsearch\.url:.*$'
+    dest: /etc/kibana/kibana.yml
+    regexp: '^#elasticsearch\.url:.*$'
     replace: "elasticsearch.url: \"http://{{elasticsearch_host}}:{{elasticsearch_port}}\""
   notify:
     - restart kibana
 
 - name: Configure basePath for reverse if one is declared in the inventory
   replace:
-    dest: /opt/kibana/config/kibana.yml
-    regexp: '^# server.basePath:.*$'
+    dest: /etc/kibana/kibana.yml
+    regexp: '^#server.basePath:.*$'
     replace: "server.basePath: \"/kibana_{{groupe}}\""
   when: groups['reverse']|length > 0
   notify:
@@ -36,11 +36,16 @@
 
 - name: Configure Kibana web listening
   replace:
-    dest: /opt/kibana/config/kibana.yml
-    regexp: '^# server\.host:.*$'
+    dest: /etc/kibana/kibana.yml
+    regexp: '^#server\.host:.*$'
     replace: "server.host: \"{{ip_service}}\""
   notify:
     - restart kibana
+
+- name: Make sure kibana is started
+  systemd:
+    name: kibana
+    state: started
 
 #### Consul configuration ####
 
@@ -60,4 +65,3 @@
     mode: "{{vitam_conf_permission}}"
   notify:
    - reload consul configuration
-
