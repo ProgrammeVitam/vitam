@@ -18,6 +18,27 @@
  */
 package fr.gouv.vitam.functional.administration.rest;
 
+import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriInfo;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import java.io.InputStream;
 
 import javax.ws.rs.ApplicationPath;
@@ -35,8 +56,8 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -46,27 +67,54 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
+
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.functional.administration.agencies.api.AgenciesService;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.functional.administration.common.Agencies;
+import fr.gouv.vitam.functional.administration.common.ErrorReportAgencies;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.agencies.api.AgenciesService;
+import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.common.FilesSecurisator;
 
-/** * This resource manage Agencys create, update, find, ... */
+
+/**
+ * This resource manage Agencys create, update, find, ...
+ */
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
 public class AgenciesResource {
+
     private static final String FUNCTIONAL_ADMINISTRATION_MODULE = "FUNCTIONAL_ADMINISTRATION_MODULE";
     static final String AGENCIES = "/agencies";
     static final String AGENCIES_IMPORT = "/agencies/import";
-    static final String UPDATE_AGENCIES_URI = "/agencies";
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AgenciesResource.class);
-    private static final String AGENCIES_FILES_IS_MANDATORY_PATAMETER = "The json input of agency is mandatory";
-    private final MongoDbAccessAdminImpl mongoAccess;
+    static final String AGENCIES_CHECK = "/agencies/check";
+    private static final String ATTACHEMENT_FILENAME = "attachment; filename=ErrorReport.json";
 
-    /** * @param mongoAccess */
-    public AgenciesResource(MongoDbAccessAdminImpl mongoAccess) {
+    static final String UPDATE_AGENCIES_URI = "/agencies";
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AgenciesResource.class);
+    private static final String AGENCIES_FILES_IS_MANDATORY_PATAMETER =
+        "The json input of agency is mandatory";
+
+    private final MongoDbAccessAdminImpl mongoAccess;
+    private VitamCounterService vitamCounterService;
+
+    private String logbookSecurisation = "AGENCIES_SECURISATION";
+    private String logbookReport = "AGENCIES_REPORT";
+
+    private final String file_name = "AGENCIES";
+    private FilesSecurisator securisator = new FilesSecurisator();
+
+    /**
+     * @param mongoAccess
+     * @param vitamCounterService
+     */
+    public AgenciesResource(MongoDbAccessAdminImpl mongoAccess,
+        VitamCounterService vitamCounterService) {
         this.mongoAccess = mongoAccess;
+        this.vitamCounterService = vitamCounterService;
         LOGGER.debug("init Admin Management Resource server");
     }
 
@@ -76,23 +124,29 @@ public class AgenciesResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response importAgencies(InputStream inputStream, @Context UriInfo uri) {
         ParametersChecker.checkParameter(AGENCIES_FILES_IS_MANDATORY_PATAMETER, inputStream);
-        try (AgenciesService agencies = new AgenciesService(mongoAccess)) {
+
+        try (AgenciesService agencies = new AgenciesService(mongoAccess, vitamCounterService, securisator)) {
+
             RequestResponse requestResponse = agencies.importAgencies(inputStream);
+
             if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
                 return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
             } else {
                 return Response.created(uri.getRequestUri().normalize()).entity(requestResponse).build();
             }
+
         } catch (VitamException exp) {
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
                 .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
+
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
         }
+
     }
 
     /**
@@ -101,20 +155,28 @@ public class AgenciesResource {
      * the http code will be used instead * @return
      */
     private VitamError getErrorEntity(Status status, String message, String code) {
-        String aMessage = (message != null && !message.trim().isEmpty()) ? message
-            : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        String aMessage =
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
-        return new VitamError(aCode).setHttpCode(status.getStatusCode()).setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
+        return new VitamError(aCode).setHttpCode(status.getStatusCode())
+            .setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
             .setState("ko").setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 
-    /** * Find agencies by queryDsl * * @param queryDsl * @return Response */
+    /**
+     * Find agencies by queryDsl
+     *
+     * @param queryDsl
+     * @return Response
+     */
     @POST
     @Path(AGENCIES)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findAgencies(JsonNode queryDsl) {
-        try (AgenciesService agencyService = new AgenciesService(mongoAccess)) {
+
+        try (AgenciesService agencyService = new AgenciesService(mongoAccess, vitamCounterService, securisator)) {
             SanityChecker.checkJsonAll(queryDsl);
             try (DbRequestResult result = agencyService.findAgencies(queryDsl)) {
                 RequestResponseOK<AgenciesModel> response =
@@ -132,14 +194,20 @@ public class AgenciesResource {
         }
     }
 
-    /** * find access contracts by queryDsl * * @param queryDsl * @return Response */
+    /**
+     * find access contracts by queryDsl
+     *
+     * @param queryDsl
+     * @return Response
+     */
     @Path(AGENCIES)
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAgencies(JsonNode queryDsl) {
-        try (AgenciesService agencyService = new AgenciesService(mongoAccess)) {
+        try (AgenciesService agencyService = new AgenciesService(mongoAccess, vitamCounterService, securisator)) {
             SanityChecker.checkJsonAll(queryDsl);
+
             final DbRequestResult agenciesModelList = agencyService.findAgencies(queryDsl);
             RequestResponseOK reponse =
                 agenciesModelList.getRequestResponseOK(queryDsl, Agencies.class, AgenciesModel.class);
@@ -155,29 +223,85 @@ public class AgenciesResource {
         }
     }
 
-    /** * Update agencys * * @param agencyId * @param queryDsl * @return Response */
+    /**
+     * check the agencie file
+     *
+     * @return Response response jersey
+     * @throws IOException                     convert inputstream agency to File exception occurred
+     * @throws InvalidCreateOperationException if exception occurred when create query
+     * @throws InvalidParseOperationException  if parsing json data exception occurred
+     * @throws ReferentialException            if exception occurred when create agency file manager
+     */
+    @Path(AGENCIES_CHECK)
+    @POST
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response checkAgenciesFile(InputStream agencyStream)
+        throws IOException, ReferentialException, InvalidParseOperationException, InvalidCreateOperationException {
+        ParametersChecker.checkParameter("agenciessStream is a mandatory parameter", agencyStream);
+        return downloadErrorReport(agencyStream);
+    }
+
+    /**
+     * async Download Report
+     *
+     * @param document the document to check
+     */
+    private Response downloadErrorReport(InputStream document) {
+        Map<Integer, List<ErrorReportAgencies>> errors = new HashMap<>();
+        try (AgenciesService agenciesService = new AgenciesService(mongoAccess, vitamCounterService, securisator)) {
+            agenciesService.checkFile(document);
+            InputStream errorReportInputStream =
+                agenciesService.generateErrorReport();
+            Map<String, String> headers = new HashMap<>();
+            headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
+            headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHEMENT_FILENAME);
+            return new VitamAsyncInputStreamResponse(errorReportInputStream,
+                Status.OK, headers);
+        } catch (Exception e) {
+            return handleGenerateReport(errors);
+        }
+    }
+
+    /**
+     * Handle Generation of the report in case of exception
+     *
+     * @param errors
+     * @return response
+     */
+    private Response handleGenerateReport(
+        Map<Integer, List<ErrorReportAgencies>> errors) {
+        InputStream errorReportInputStream = null;
+        try (AgenciesService agenciesService = new AgenciesService(mongoAccess, vitamCounterService, securisator)) {
+            errorReportInputStream =
+                agenciesService.generateErrorReport();
+            Map<String, String> headers = new HashMap<>();
+            headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
+            headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHEMENT_FILENAME);
+            return new VitamAsyncInputStreamResponse(errorReportInputStream,
+                Status.BAD_REQUEST, headers);
+        } catch (Exception e1) {
+            LOGGER.error(e1);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+
+    /**
+     * Update agencys
+     *
+     * @param agencyId
+     * @param queryDsl
+     * @return Response
+     */
     @Path(UPDATE_AGENCIES_URI + "/{id}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateAgencies(@PathParam("id") String agencyId, JsonNode queryDsl) {
-        try (AgenciesService agencyService = new AgenciesService(mongoAccess)) {
-            RequestResponse requestResponse = agencyService.updateAgency(agencyId, queryDsl);
-            if (!requestResponse.isOk()) {
-                ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
-                return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
-            } else {
-                return Response.status(Status.OK).entity(requestResponse).build();
-            }
-        } catch (VitamException exp) {
-            LOGGER.error(exp);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();
-        } catch (Exception exp) {
-            LOGGER.error("Unexpected server error {}", exp);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage(), null)).build();
-        }
+        return Response.status(Status.NOT_IMPLEMENTED).entity(null).build();
+
     }
+
 }
 

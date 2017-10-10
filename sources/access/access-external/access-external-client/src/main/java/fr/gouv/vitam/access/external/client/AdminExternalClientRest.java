@@ -646,11 +646,6 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             AccessionRegisterSummaryModel.class);
     }
 
-    /**
-     * @param vitamContext the vitam context
-     * @param query select query
-     * @return
-     */
     @Override
     public RequestResponse<AgenciesModel> findAgencies(VitamContext vitamContext, JsonNode query)
         throws VitamClientException {

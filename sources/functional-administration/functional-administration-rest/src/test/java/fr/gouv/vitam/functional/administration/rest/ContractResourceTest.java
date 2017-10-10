@@ -205,9 +205,12 @@ public class ContractResourceTest {
             RequestResponse<AgenciesModel> response = null;
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+
                 response = agenciesService.importAgencies(new FileInputStream(fileAgencies));
+
                 assertThat(response.isOk()).isTrue();
-            } catch (VitamException | IOException e) {
+            } catch (VitamException | InvalidCreateOperationException | IOException e) {
                 throw new RuntimeException(e);
             }
         });

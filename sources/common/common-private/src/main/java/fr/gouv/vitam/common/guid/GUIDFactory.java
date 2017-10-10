@@ -283,9 +283,9 @@ public final class GUIDFactory {
      * @return a new GUID
      * @throws IllegalArgumentException if any of the argument are out of range
      */
-    public static final GUID newAgencyGUID() {
+    public static final GUID newAgencyGUID(final int tenantId) {
         final int type = GUIDObjectType.AGENCY_TYPE;
-        return new GUIDImplPrivate(type, 0, serverIdentity.getGlobalPlatformId(),
+        return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
             GUIDObjectType.getDefaultWorm(type));
     }
 

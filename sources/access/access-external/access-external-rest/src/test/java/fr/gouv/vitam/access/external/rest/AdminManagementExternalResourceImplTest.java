@@ -182,6 +182,22 @@ public class AdminManagementExternalResourceImplTest {
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().put(AGENCIES_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        stream = PropertiesUtils.getResourceAsStream("vitam.conf");
+        given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when().put(AGENCIES_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        stream = PropertiesUtils.getResourceAsStream("vitam.conf");
+        given().contentType(ContentType.BINARY).body(stream)
+            .when().put(AGENCIES_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+        stream = PropertiesUtils.getResourceAsStream("vitam.conf");
+        given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().put(WRONG_URI)
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
 
@@ -271,6 +287,33 @@ public class AdminManagementExternalResourceImplTest {
             .header(GlobalDataRest.X_FILENAME, "vitam.conf")
             .when().post(RULES_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+
+        stream = PropertiesUtils.getResourceAsStream("vitam.conf");
+        given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, "vitam.conf")
+            .when().post(AGENCIES_URI)
+            .then().statusCode(Status.CREATED.getStatusCode());
+        stream = PropertiesUtils.getResourceAsStream("vitam.conf");
+        given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, "vitam.conf")
+            .when().post(AGENCIES_URI)
+            .then().statusCode(Status.CREATED.getStatusCode());
+        stream = PropertiesUtils.getResourceAsStream("vitam.conf");
+        given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, "vitam.conf")
+            .when().post(AGENCIES_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        stream = PropertiesUtils.getResourceAsStream("vitam.conf");
+        given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_FILENAME, "vitam.conf")
+            .when().post(AGENCIES_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
 
         given().contentType(ContentType.BINARY)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -374,6 +417,34 @@ public class AdminManagementExternalResourceImplTest {
             .body(select.getFinalSelect())
             .when().post(RULES_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+
+        given()
+            .accept(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .when().post(RULES_URI + DOCUMENT_ID)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(RULES_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when().post(RULES_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .when().post(RULES_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
 
         given()
             .accept(ContentType.JSON)

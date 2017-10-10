@@ -1,26 +1,26 @@
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *
+ * <p>
  * contact.vitam@culture.gouv.fr
- *
+ * <p>
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- *
+ * <p>
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *
+ * <p>
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- *
+ * <p>
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *
+ * <p>
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
@@ -49,6 +49,7 @@ import java.util.regex.Pattern;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import org.apache.commons.io.FileUtils;
 import org.jhades.JHades;
 import org.junit.AfterClass;
@@ -76,7 +77,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.rules.core.RulesSecurisator;
+import fr.gouv.vitam.functional.administration.common.FilesSecurisator;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
@@ -114,6 +115,12 @@ public class StorageTestMultiIT {
     private static final String WORKSPACE_CONF = "storage-test/workspace.conf";
     private static final String WORKSPACE_FOLDER = "workspace";
     private static final String TMP_FOLDER = "tmp";
+
+    private static final String logbookSecurisation = "RULES_SECURISATION";
+    private static final String logbookSecurisation_agencies = "RULES_SECURISATION";
+
+    private static final String file_name = "RULES";
+    private static final String file_name_agencies = "AGENCIES";
 
     private static final String CONTAINER = "object";
     private static String OBJECT_ID;
@@ -273,17 +280,20 @@ public class StorageTestMultiIT {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
-        RulesSecurisator rulesSecurisator = new RulesSecurisator();
+        FilesSecurisator filesSecurisator = new FilesSecurisator();
         final GUID eipMaster = GUIDFactory.newOperationLogbookGUID(0);
 
         File file = PropertiesUtils.findFile("static-offer.json");
         final DigestType digestType = VitamConfiguration.getDefaultTimestampDigestType();
         final Digest digest = new Digest(digestType);
         digest.update(new FileInputStream(file));
-        rulesSecurisator.secureFileRules(1, new FileInputStream(file), "json", eipMaster,
-            digest.toString());
-        rulesSecurisator.secureFileRules(2, new FileInputStream(file), "json", eipMaster,
-            digest.toString());
+        filesSecurisator.secureFiles(1, new FileInputStream(file), "json", eipMaster,
+            digest.toString(), LogbookTypeProcess.STORAGE_RULE, StorageCollectionType.RULES, logbookSecurisation,
+            file_name
+        );
+        filesSecurisator.secureFiles(2, new FileInputStream(file), "json", eipMaster,
+            digest.toString(), LogbookTypeProcess.STORAGE_RULE, StorageCollectionType.RULES, logbookSecurisation,
+            file_name);
         VitamRequestIterator<JsonNode> result = storageClient.listContainer("default", DataCategory.RULES);
 
         TestCase.assertNotNull(result);
@@ -298,6 +308,40 @@ public class StorageTestMultiIT {
 
     }
 
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void testAgenciesSecurisator() throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
+        FilesSecurisator filesSecurisator = new FilesSecurisator();
+        final GUID eipMaster = GUIDFactory.newOperationLogbookGUID(0);
+
+        File file = PropertiesUtils.findFile("static-offer.json");
+        final DigestType digestType = VitamConfiguration.getDefaultTimestampDigestType();
+        final Digest digest = new Digest(digestType);
+        digest.update(new FileInputStream(file));
+        filesSecurisator.secureFiles(1, new FileInputStream(file), "json", eipMaster,
+            digest.toString(), LogbookTypeProcess.STORAGE_AGENCIES, StorageCollectionType.AGENCIES,
+            logbookSecurisation_agencies, file_name_agencies);
+        filesSecurisator.secureFiles(2, new FileInputStream(file), "json", eipMaster,
+            digest.toString(), LogbookTypeProcess.STORAGE_AGENCIES, StorageCollectionType.AGENCIES,
+            logbookSecurisation_agencies, file_name_agencies);
+        VitamRequestIterator<JsonNode> result = storageClient.listContainer("default", DataCategory.AGENCIES);
+
+        TestCase.assertNotNull(result);
+
+        Assert.assertTrue(result.hasNext());
+        JsonNode node = result.next();
+        TestCase.assertNotNull(node);
+
+        // assertEquals(node.get("objectId").asText()., "0_RULES-1.json");
+        assertTrue(node.get("objectId").asText().startsWith("0_AGENCIES-1"));
+        assertTrue(node.get("objectId").asText().endsWith(".json"));
+
+    }
 
     @RunWithCustomExecutor
     // @Test

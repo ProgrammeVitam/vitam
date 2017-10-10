@@ -77,6 +77,10 @@ public enum LogbookTypeProcess {
      */
     STORAGE_RULE,
     /**
+     * Storage Rule type process
+     */
+    STORAGE_AGENCIES,
+    /**
      * Holding scheme type process (tree)
      */
     HOLDINGSCHEME,

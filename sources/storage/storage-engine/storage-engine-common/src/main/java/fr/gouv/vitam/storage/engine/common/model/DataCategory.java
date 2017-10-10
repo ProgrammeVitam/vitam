@@ -73,7 +73,11 @@ public enum DataCategory {
     /**
      * dip collection
      */
-    DIP("dip", false, true);
+    DIP("dip", false, true),
+    /**
+     * Rules files
+     */
+    AGENCIES("agencies", false, false);
 
     /**
      * Folder

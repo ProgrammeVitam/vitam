@@ -164,6 +164,9 @@ public class CounterServiceTest {
         assertThat(
             vitamCounterService.isSlaveFunctionnalCollectionOnTenant(SequenceType.RULES_SEQUENCE.getCollection(), 0))
             .isFalse();
+        assertThat(
+            vitamCounterService.isSlaveFunctionnalCollectionOnTenant(SequenceType.AGENCIES_SEQUENCE.getCollection(), 0))
+            .isFalse();
         assertThat(vitamCounterService
             .isSlaveFunctionnalCollectionOnTenant(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, 0)).isFalse();
 

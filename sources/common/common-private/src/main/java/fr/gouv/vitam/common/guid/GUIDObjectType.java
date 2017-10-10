@@ -86,7 +86,12 @@ public final class GUIDObjectType {
         /**
          * Ingest contract type
          */
-        INGEST_CONTRACT(INGEST_CONTRACT_TYPE);
+        INGEST_CONTRACT(INGEST_CONTRACT_TYPE),
+
+        /**
+         * Ingest contract type
+         */
+        AGENCIES(AGENCY_TYPE);
 
         final int id;
 
@@ -212,6 +217,8 @@ public final class GUIDObjectType {
                 return GUIDObjectEnumType.ACCESSION_REGISTER_SUMMARY;
             case INGEST_CONTRACT_TYPE:
                 return GUIDObjectEnumType.INGEST_CONTRACT;
+            case AGENCY_TYPE:
+                return GUIDObjectEnumType.AGENCIES;
             default:
                 return GUIDObjectEnumType.UNASSIGNED;
         }

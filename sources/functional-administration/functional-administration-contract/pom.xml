@@ -26,7 +26,7 @@
         </dependency>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
-            <artifactId>functional-administration-agencies</artifactId>
+            <artifactId>functional-administration-counter</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -49,16 +49,6 @@
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>fr.gouv.vitam</groupId>
-            <artifactId>logbook-operations-client</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>fr.gouv.vitam</groupId>
-            <artifactId>functional-administration-counter</artifactId>
-            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

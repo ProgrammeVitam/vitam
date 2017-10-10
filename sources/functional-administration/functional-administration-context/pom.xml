@@ -54,10 +54,5 @@
 			<artifactId>assertj-core</artifactId>
 			<scope>compile</scope>
 		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>logbook-operations-client</artifactId>
-			<version>${project.version}</version>
-		</dependency>
 	</dependencies>
 </project>

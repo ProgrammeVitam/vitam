@@ -109,6 +109,16 @@ public interface AdminManagementClient extends MockOrRestClient {
     Response checkRulesFile(InputStream stream) throws FileRulesException, AdminManagementClientServerException;
 
     /**
+     * Check if agencies file is well formated
+     *
+     * @param stream agencies file inputstream to check
+     * @return Response
+     * @throws FileRulesException
+     * @throws AdminManagementClientServerException
+     */
+    Response checkAgenciesFile(InputStream stream) throws ReferentialException, AdminManagementClientServerException;
+
+    /**
      * Import a the set of rules for a given tenant
      * 
      * @param stream rule file inputstream to import

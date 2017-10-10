@@ -24,35 +24,36 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.functional.administration.rules.core;
+package fr.gouv.vitam.functional.administration.common;
 
 
 import java.io.InputStream;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
+
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
@@ -62,28 +63,42 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-public class RulesSecurisator {
+import static fr.gouv.vitam.common.i18n.VitamLogbookMessages.getCodeOp;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory.*;
 
+public class FilesSecurisator {
 
-    private static final String STORAGE_RULE_NAME = "RULES-";
-    private static final String STORAGE_RULE_WORKSPACE = "RULES";
+    public FilesSecurisator() {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RulesSecurisator.class);
+    }
 
-    private static final String RULE_SECURISATION = "RULES_SECURISATION";
-    private static final String FLE_NAME = "FileName";
-    private static final String DIGEST = "Digest";
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FilesSecurisator.class);
+
+    private final String FLE_NAME = "FileName";
+    private final String DIGEST = "Digest";
 
 
     private static final String STRATEGY_ID = "default";
-    public static final String STORAGE_LOGBOOK_RULE = "StorageRule";
-
     private LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient();
+    private final DateTimeFormatter formater = DateTimeFormatter.ofPattern("yyyyMMddhhmmss");
+    private WorkspaceClientFactory workspaceClientFactory;
+    private StorageClientFactory storageClientFactory;
+    private ObjectNode evDetData = JsonHandler.createObjectNode();
+
+    @VisibleForTesting
+    public FilesSecurisator(String storage_name, String logBook_securisation,
+        WorkspaceClientFactory workspaceClientFactory, StorageClientFactory storageClientFactory) {
+        this.storageClientFactory = storageClientFactory;
+        this.workspaceClientFactory = workspaceClientFactory;
+    }
+
+
 
     /**
      * Create a LogBook Entry related to object's update
@@ -99,100 +114,114 @@ public class RulesSecurisator {
     }
 
 
+    public void secureFiles(int version, InputStream stream, String extension, GUID eipMaster,
+        String digest, LogbookTypeProcess process, StorageCollectionType storageCollectionType, String logbook_event,
+        String prefix_name)
+        throws LogbookClientServerException, StorageException, LogbookClientBadRequestException,
+        LogbookClientAlreadyExistsException {
+
+
+        evDetData.put(DIGEST, digest);
+        String name = getName(version, extension, prefix_name, ParameterHelper.getTenantParameter());
+
+        secureFiles(stream, extension, eipMaster, process, storageCollectionType, logbook_event, prefix_name, name);
+    }
 
     /**
-     * secure File rules
+     * secure File
      */
-    public void secureFileRules(int version, InputStream stream, String extension, GUID eipMaster, String digest)
+    public void secureFiles(InputStream stream, String extension, GUID eipMaster,
+        LogbookTypeProcess process, StorageCollectionType storageCollectionType,
+        String logbook_event, String prefix_name, String fileName)
 
         throws StorageException, LogbookClientServerException, LogbookClientBadRequestException,
         LogbookClientAlreadyExistsException {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        try (
-            WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-            StorageClient storageClient = StorageClientFactory.getInstance().getClient();) {
 
-            final GUID eip1 = GUIDFactory.newOperationLogbookGUID(tenantId);
-            final String fileName =
-                String.format("%d_" + STORAGE_RULE_NAME + "%s_%s." + extension, tenantId, version,
-                    LocalDateTime.now().format(
-                        DateTimeFormatter.ofPattern("yyyyMMddhhmmss")));
-            final LogbookOperationParameters logbookParametersStart = LogbookParametersFactory
-                .newLogbookOperationParameters(eip1, RULE_SECURISATION + "_" + extension.toUpperCase(), eipMaster,
-                    LogbookTypeProcess.STORAGE_RULE,
-                    StatusCode.STARTED, VitamLogbookMessages
-                        .getCodeOp(RULE_SECURISATION + "_" + extension.toUpperCase(), StatusCode.STARTED),
-                    eip1);
+        Integer tenantId = ParameterHelper.getTenantParameter();
+
+        try (
+            WorkspaceClient workspaceClient = workspaceClientFactory.getInstance().getClient();
+            StorageClient storageClient = storageClientFactory.getInstance().getClient()
+        ) {
+
+            final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
+            final String eventCode = logbook_event + "_" + extension.toUpperCase();
+            final String uri = String.format("%s/%s", prefix_name, fileName);
+            final ObjectDescription description = new ObjectDescription();
+
+            final LogbookOperationParameters logbookParametersStart =
+                newLogbookOperationParameters(eip, eventCode, eipMaster, process,
+                    StatusCode.STARTED, getCodeOp(eventCode, StatusCode.STARTED), eip);
+
             updateLogBookEntry(logbookParametersStart);
 
-
-            final String uri = String.format("%s/%s", STORAGE_RULE_WORKSPACE, fileName);
-
             try {
-                workspaceClient.createContainer(fileName);
-                workspaceClient.putObject(fileName, uri, stream);
-                final ObjectDescription description = new ObjectDescription();
-                description.setWorkspaceContainerGUID(fileName);
-                description.setWorkspaceObjectURI(uri);
 
-                try {
-                    storageClient.storeFileFromWorkspace(
-                        STRATEGY_ID, StorageCollectionType.RULES, fileName, description);
-                    workspaceClient.deleteContainer(fileName, true);
-                } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
-                    StorageServerClientException | ContentAddressableStorageNotFoundException e) {
+                storeInWorkSpace(stream, eipMaster, process, storageCollectionType, workspaceClient, storageClient, eip,
+                    fileName, eventCode, uri, description);
 
-                    final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
-                        .newLogbookOperationParameters(eip1, RULE_SECURISATION + "_" + extension.toUpperCase(),
-                            eipMaster,
-                            LogbookTypeProcess.STORAGE_RULE,
-                            StatusCode.KO, VitamLogbookMessages
-                                .getCodeOp(RULE_SECURISATION + "_" + extension.toUpperCase(), StatusCode.KO),
-                            eip1);
-                    updateLogBookEntry(logbookParametersEnd);
+                final LogbookOperationParameters logbookEnd = newLogbookOperationParameters(eip,
+                    eventCode, eipMaster, process, StatusCode.OK, getCodeOp(eventCode, StatusCode.OK), eip);
 
-                    LOGGER.error("unable to store file", e);
-                    throw new StorageException(e);
-                }
-
-
-                final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
-                    .newLogbookOperationParameters(eip1, RULE_SECURISATION + "_" + extension.toUpperCase(), eipMaster,
-                        LogbookTypeProcess.STORAGE_RULE,
-                        StatusCode.OK, VitamLogbookMessages.getCodeOp(RULE_SECURISATION + "_" + extension.toUpperCase(),
-                            StatusCode.OK),
-                        eip1);
-                final ObjectNode evDetData = JsonHandler.createObjectNode();
                 evDetData.put(FLE_NAME, fileName);
-                evDetData.put(DIGEST, digest);
-                logbookParametersEnd.putParameterValue(LogbookParameterName.eventDetailData,
-                    JsonHandler.unprettyPrint(evDetData));
-                updateLogBookEntry(logbookParametersEnd);
+                logbookEnd
+                    .putParameterValue(LogbookParameterName.eventDetailData, JsonHandler.unprettyPrint(evDetData));
+
+                updateLogBookEntry(logbookEnd);
+
             } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException e) {
+
                 LOGGER.error("unable to create container or store file in workspace", e);
-                final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
-                    .newLogbookOperationParameters(eip1, RULE_SECURISATION + "_" + extension.toUpperCase(), eipMaster,
-                        LogbookTypeProcess.STORAGE_RULE,
-                        StatusCode.KO, VitamLogbookMessages.getCodeOp(RULE_SECURISATION + "_" + extension.toUpperCase(),
-                            StatusCode.KO),
-                        eip1);
+                final LogbookOperationParameters logbookParametersEnd =
+                    newLogbookOperationParameters(eip, eventCode, eipMaster, process,
+                        StatusCode.KO, getCodeOp(eventCode, StatusCode.KO), eip);
+
                 updateLogBookEntry(logbookParametersEnd);
+
                 throw new StorageException(e);
+
             } finally {
+
                 StreamUtils.closeSilently(stream);
             }
         }
     }
 
-    public void copyFilesOnWorkspaceUpdateWorkflow(InputStream stream, String containerName)
-        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException {
-        try (
-            WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();) {
-            workspaceClient.createContainer(containerName);
-            workspaceClient.putObject(containerName,
-                UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON,
-                stream);
-        }
+    private void storeInWorkSpace(InputStream stream, GUID eipMaster, LogbookTypeProcess process,
+        StorageCollectionType storageCollectionType, WorkspaceClient workspaceClient, StorageClient storageClient,
+        GUID eip, String fileName, String eventCode, String uri, ObjectDescription description)
+        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException,
+        StorageException {
+        workspaceClient.createContainer(fileName);
+        workspaceClient.putObject(fileName, uri, stream);
+        description.setWorkspaceContainerGUID(fileName);
+        description.setWorkspaceObjectURI(uri);
 
+        try {
+
+            storageClient.storeFileFromWorkspace(STRATEGY_ID, storageCollectionType, fileName, description);
+
+            workspaceClient.deleteContainer(fileName, true);
+
+        } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
+            StorageServerClientException | ContentAddressableStorageNotFoundException e) {
+
+            final LogbookOperationParameters logbookParametersEnd =
+                newLogbookOperationParameters(eip, eventCode,
+                    eipMaster, process, StatusCode.KO, getCodeOp(eventCode, StatusCode.KO), eip);
+
+            updateLogBookEntry(logbookParametersEnd);
+
+            LOGGER.error("unable to store file", e);
+            throw new StorageException(e);
+        }
     }
+
+    private String getName(int version, String extension, String prefix_name, Integer tenantId) {
+        return String.format("%d_" + prefix_name + "-%s_%s." + extension,
+            tenantId, version, LocalDateTime.now().format(formater)
+        );
+    }
+
+
 }

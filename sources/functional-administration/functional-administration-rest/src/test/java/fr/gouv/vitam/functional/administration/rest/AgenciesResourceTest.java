@@ -1,6 +1,8 @@
 package fr.gouv.vitam.functional.administration.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.path.json.JsonPath;
@@ -14,6 +16,7 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
@@ -30,16 +33,21 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.Agencies;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -54,8 +62,11 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assume.assumeTrue;
 
@@ -79,12 +90,14 @@ public class AgenciesResourceTest {
     static String DATABASE_NAME = "vitam-test";
     private static String DATABASE_HOST = "localhost";
 
-    private InputStream stream;
-    private static JunitHelper junitHelper;
+    private static JunitHelper junitHelper = JunitHelper.getInstance();
     private static int serverPort;
     private static int databasePort;
     private static File adminConfigFile;
     private static AdminManagementMain application;
+
+
+    private static int workspacePort = junitHelper.findAvailablePort();
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -94,6 +107,13 @@ public class AgenciesResourceTest {
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
+
+    @ClassRule
+    public static WireMockClassRule wireMockRule = new WireMockClassRule(workspacePort);
+
+    @Rule
+    public WireMockClassRule instanceRule = wireMockRule;
+
 
     private final static String CLUSTER_NAME = "vitam-cluster";
     private static ElasticsearchAccessFunctionalAdmin esClient;
@@ -128,6 +148,9 @@ public class AgenciesResourceTest {
         realAdminConfig.getMongoDbNodes().get(0).setDbPort(databasePort);
         realAdminConfig.setElasticsearchNodes(nodesEs);
         realAdminConfig.setClusterName(CLUSTER_NAME);
+
+        realAdminConfig.setWorkspaceUrl("http://localhost:" + workspacePort);
+
         adminConfigFile = File.createTempFile("test", ADMIN_MANAGEMENT_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 
@@ -178,6 +201,16 @@ public class AgenciesResourceTest {
         }
     }
 
+    @Before
+    public void setUp() throws Exception {
+        instanceRule.stubFor(WireMock.post(urlMatching("/workspace/v1/containers/(.*)"))
+            .willReturn(
+                aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+        instanceRule.stubFor(WireMock.delete(urlMatching("/workspace/v1/containers/(.*)"))
+            .willReturn(
+                aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+    }
+
     @After
     public void tearDown() throws Exception {
         mongoDbAccess.deleteCollection(FunctionalAdminCollections.AGENCIES).close();
@@ -194,7 +227,7 @@ public class AgenciesResourceTest {
     @RunWithCustomExecutor
     public void givenAWellFormedAgenciesThenReturnCeated() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileAgencies = PropertiesUtils.getResourceFile("agencies_3.csv");
+        File fileAgencies = PropertiesUtils.getResourceFile("agencies.csv");
         MetaDataClientFactory.changeMode(null);
 
         given().contentType(ContentType.BINARY).body(new FileInputStream(fileAgencies))
@@ -207,14 +240,9 @@ public class AgenciesResourceTest {
     @RunWithCustomExecutor
     public void testDuplicatedAgencies() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileAgencies = PropertiesUtils.getResourceFile("agencies_1.csv");
+        File fileAgencies = PropertiesUtils.getResourceFile("agencies_duplicate.csv");
 
         MetaDataClientFactory.changeMode(null);
-
-        given().contentType(ContentType.BINARY).body(new FileInputStream(fileAgencies))
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(AGENCIES_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
 
         given().contentType(ContentType.BINARY).body(new FileInputStream(fileAgencies))
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -228,23 +256,21 @@ public class AgenciesResourceTest {
     @RunWithCustomExecutor
     public void givenAgenciesTest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        File fileAgencies = PropertiesUtils.getResourceFile("agencies_2.csv");
+        File fileAgencies = PropertiesUtils.getResourceFile("agencies.csv");
         // first succefull create
         given().contentType(ContentType.BINARY).body(new FileInputStream(fileAgencies))
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(AGENCIES_URI);
+            .when().post(AGENCIES_URI)
+            .then().statusCode(Status.CREATED.getStatusCode());
+
 
         String name = "AG-000003";
-        SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         Select select = new Select();
-        parser.parse(select.getFinalSelect());
-        parser.addCondition(QueryHelper.eq("Identifier", name));
-        JsonNode queryDsl = parser.getRequest().getFinalSelect();
-
+        select.setQuery(QueryHelper.eq(Agencies.IDENTIFIER, name));
 
         JsonPath body = given().contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, 0)
-            .body(queryDsl)
+            .body(select.getFinalSelect())
             .when()
             .get(AgenciesResource.AGENCIES)
             .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
@@ -252,26 +278,23 @@ public class AgenciesResourceTest {
 
         assertThat(names).hasSize(1);
 
-
         name = "agency";
-        parser = new SelectParserSingle(new SingleVarNameAdapter());
         select = new Select();
-        parser.parse(select.getFinalSelect());
-        parser.addCondition(QueryHelper.eq("Name", name));
-        parser.getRequest().getFinalSelect();
-        queryDsl = parser.getRequest().getFinalSelect();
-
-
+        select.setQuery(QueryHelper.eq("Name", name));
         body = given().contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, 0)
-            .body(queryDsl)
+            .body(select.getFinalSelect())
             .when()
             .post(AgenciesResource.AGENCIES)
             .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
         names = body.get("$results.Identifier");
-
         assertThat(names.size()).isGreaterThan(1);
 
+        fileAgencies = PropertiesUtils.getResourceFile("agencies_remove.csv");
+        given().contentType(ContentType.BINARY).body(new FileInputStream(fileAgencies))
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(AGENCIES_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
 }

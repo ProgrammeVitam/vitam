@@ -45,7 +45,8 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         throws VitamClientException {
         StreamUtils.closeSilently(stream);
 
-        if (AdminCollections.RULES.equals(documentType) || AdminCollections.FORMATS.equals(documentType)) {
+        if (AdminCollections.RULES.equals(documentType) || AdminCollections.FORMATS.equals(documentType) ||
+            AdminCollections.AGENCIES.equals(documentType)) {
             return new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream("Vitam Test"),
                 MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
         } else {
