@@ -520,7 +520,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     try {
                         workerManager.unregisterWorker(step.getWorkerGroupId(), wue.getWorkerId());
                     } catch (WorkerFamilyNotFoundException | WorkerNotFoundException | InterruptedException e1) {
-                        LOGGER.error("Exception while unrigster worker " + wue.getWorkerId(), cause);
+                        LOGGER.error("Exception while unregister worker " + wue.getWorkerId(), cause);
                     }
                 }
                 return new ItemStatus(WORKER_CALL_EXCEPTION)

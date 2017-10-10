@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.access.internal.core;
+package fr.gouv.vitam.common.mapping.dip;
 
 import static org.junit.Assert.assertEquals;
 
@@ -55,7 +55,6 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.mapping.dip.UnitMapper;
 import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
 import fr.gouv.vitam.common.model.objectgroup.FormatIdentificationModel;
 import fr.gouv.vitam.common.model.objectgroup.MeasurementModel;
@@ -68,6 +67,7 @@ import org.junit.Test;
 
 
 public class ObjectGroupMapperTest {
+
     private static final String SIMPLE_OBJECT_GROUP_DBREQUEST_RESULT_WITH_BINARY_AND_PHYSICAL =
         "simple_objectGroup_with_phisical_and_objectGroup.json";
     private static final String SIMPLE_OBJECT_GROUP_DBREQUEST_RESULT_WITH_METADATA =

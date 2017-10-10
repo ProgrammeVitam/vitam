@@ -1671,16 +1671,16 @@ public class ProcessingIT {
 
         WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
 
-
         // upload SIP
-        final InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_PLAN);
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_FUND_REGISTER_OK);
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
             zipInputStreamSipObject);
         // call processing
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, INGEST_PLAN_WORFKLOW);
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
         RequestResponse<ItemStatus> ret =
             processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
         assertNotNull(ret);

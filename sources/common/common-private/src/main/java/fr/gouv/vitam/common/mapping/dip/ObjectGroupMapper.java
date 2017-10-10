@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.access.internal.core;
+package fr.gouv.vitam.common.mapping.dip;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.BinaryDataObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.BinaryObjectType;
@@ -36,7 +36,6 @@ import fr.gouv.culture.archivesdefrance.seda.v2.MessageDigestBinaryObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.MinimalDataObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.PhysicalDataObjectType;
 import fr.gouv.vitam.common.exception.InternalServerException;
-import fr.gouv.vitam.common.mapping.dip.TransformJsonTreeToListOfXmlElement;
 import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
 import fr.gouv.vitam.common.model.objectgroup.FormatIdentificationModel;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
@@ -56,7 +55,6 @@ public class ObjectGroupMapper {
 
     private static PhysicalDimensionsMapper physicalDimensionsMapper = new PhysicalDimensionsMapper();
     private CoreMetadataMapper coreMetadataMapper;
-
 
     public ObjectGroupMapper() {
         this.coreMetadataMapper = new CoreMetadataMapper();
@@ -135,7 +133,7 @@ public class ObjectGroupMapper {
                         } catch (DatatypeConfigurationException e) {
                             throw new InternalServerException(String
                                 .format(
-                                    "Exception Occured During parsing of field DateCreatedByApplication or lastModified: %s",
+                                    "Exception occurred During parsing of field DateCreatedByApplication or lastModified: %s",
                                     dateCreatedByApplication));
                         }
                     }

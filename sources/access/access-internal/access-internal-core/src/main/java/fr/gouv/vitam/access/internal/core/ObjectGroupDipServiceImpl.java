@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.mapping.dip.ObjectGroupMapper;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 

@@ -49,6 +49,24 @@
         </jxb:bindings>
     </jxb:bindings>
 
+    <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.0-technical.xsd" node="/xs:schema">
+
+        <jxb:bindings node="xs:complexType[@name='BinaryDataObjectType']">
+            <annox:annotate>
+                <annox:annotate annox:class="javax.xml.bind.annotation.XmlRootElement"
+                                name="BinaryDataObject"/>
+            </annox:annotate>
+
+        </jxb:bindings>
+        <jxb:bindings node="xs:complexType[@name='PhysicalDataObjectType']">
+            <annox:annotate>
+                <annox:annotate annox:class="javax.xml.bind.annotation.XmlRootElement"
+                                name="PhysicalDataObject"/>
+            </annox:annotate>
+
+        </jxb:bindings>
+    </jxb:bindings>
+
 
 
     <jxb:bindings schemaLocation="seda-vitam/seda-vitam-2.0-management.xsd">

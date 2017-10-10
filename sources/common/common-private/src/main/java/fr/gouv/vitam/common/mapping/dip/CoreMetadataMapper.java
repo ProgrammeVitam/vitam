@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.access.internal.core;
+package fr.gouv.vitam.common.mapping.dip;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.AudioTechnicalMetadataType;
 import fr.gouv.culture.archivesdefrance.seda.v2.CoreMetadataType;
