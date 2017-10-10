@@ -1,0 +1,15 @@
+<p-panel header="Tests fonctionnels">
+  <div class="inline-block">
+    <button pButton type="button" icon="fa-download" iconPos="left" label='Lancer les tests' (click)="launchTests()">
+    </button>
+    <button pButton type="button" label='Mise à jour référentiel' (click)="getResults()">
+    </button>
+    <div *ngIf="pending"><span>Tests fonctionnels en cours ...</span></div>
+    <div *ngIf="error"><span>Les tests fonctionnels sont déjà en cours ou une erreur s'est produite</span></div>
+  </div>
+</p-panel>
+
+<p-panel header="Résultats des derniers tests">
+  <vitam-generic-table [items]="results" [cols]="cols" [route]="'/tests/functional-tests'" [getClass]="getClass" selectionMode="single">
+  </vitam-generic-table >
+</p-panel>

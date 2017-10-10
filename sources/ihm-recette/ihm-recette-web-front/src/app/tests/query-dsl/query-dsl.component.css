@@ -1,0 +1,28 @@
+/*Alignment*/
+.align-left {
+  text-align: left;
+}
+.align-right {
+  text-align: right;
+}
+
+/*Margins*/
+.margin-top-5 {
+  margin-top: 5px;
+}
+.margin-left-5-percent {
+  margin-left: 5%;
+}
+
+/*Font size*/
+.fs-1-1em {
+  font-size: 1.1em;
+}
+
+/*Font color*/
+.font-color-green {
+  color: #4CAF50;
+}
+.font-color-red {
+  color: #cd0a0a;
+}

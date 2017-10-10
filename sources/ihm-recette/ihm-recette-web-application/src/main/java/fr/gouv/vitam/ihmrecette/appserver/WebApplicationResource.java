@@ -154,6 +154,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String HTTP_DELETE = "DELETE";
 
     private ExecutorService threadPoolExecutor = Executors.newCachedThreadPool();
+    private String secureMode;
 
     /**
      * Constructor
@@ -161,9 +162,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @param tenants list of working tenant
      *
      */
-    public WebApplicationResource(List<Integer> tenants) {
+    public WebApplicationResource(List<Integer> tenants, String secureMode) {
         super(new BasicVitamStatusServiceImpl(), tenants);
-
+        this.secureMode = secureMode;
         LOGGER.debug("init Admin Management Resource server");
     }
 
@@ -247,6 +248,18 @@ public class WebApplicationResource extends ApplicationStatusResource {
             LOGGER.error("INTERNAL SERVER ERROR", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    /**
+     * Return authentication mode
+     *
+     * @return the statistics file (csv format)
+     */
+    @GET
+    @Path("/securemode")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response getSecureMode() {
+        return Response.status(Status.OK).entity(this.secureMode).build();
     }
 
     /**

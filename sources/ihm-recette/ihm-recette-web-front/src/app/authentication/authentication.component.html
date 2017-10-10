@@ -1,0 +1,25 @@
+<p-panel [header]="'Authentification'">
+  <p *ngIf="needCertificate">
+    Vous devez choisir votre certificat pour utiliser ihm-recette
+  </p>
+  <div *ngIf="showLoginForm" class="ui-g ui-fluid">
+    <div class="ui-g-12 ui-md-12 logout-error-message">
+      <span *ngIf="showLoginErrorMessage">Merci de vérifier votre identifiant et votre mot de passe</span>
+    </div>
+
+    <div class="ui-g-12 ui-md-4">
+      <label>Identifiant</label><br/>
+      <input type="text" pInputText [(ngModel)]="username">
+    </div>
+    <div class="ui-g-12 ui-md-4">
+      <label>Mot de passe</label><br/>
+      <input pInputText type="password"  [(ngModel)]="password"/>
+    </div>
+  </div>
+  <div *ngIf="showLoginForm" class="ui-g ui-fluid">
+    <div class="ui-g-12 ui-md-5"></div>
+    <div class="ui-g-12 ui-md-2">
+      <button pButton (click)="logIn()" label="Connexion"></button>
+    </div>
+  </div>
+</p-panel>

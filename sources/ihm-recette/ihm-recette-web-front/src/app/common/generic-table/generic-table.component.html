@@ -1,0 +1,8 @@
+<p-dataTable [value]="items" (onRowClick)="navigateTo($event.data)" [rowStyleClass]="getClass" [sortField]="filter" [selectionMode]="selectionMode">
+  <p-column *ngFor="let col of cols" [field]="col.field" [header]="col.label" [style]="{'overflow-x':'auto'}"></p-column>
+  <p-column *ngFor="let colIcon of colsWithIcon" [header]="colIcon.label">
+    <ng-template let-item="rowData" pTemplate="body">
+      <i [ngClass]="colIcon.icon" (click)="actionOnIcon(item)" class="clickableDiv"></i>
+    </ng-template>
+  </p-column>
+</p-dataTable >

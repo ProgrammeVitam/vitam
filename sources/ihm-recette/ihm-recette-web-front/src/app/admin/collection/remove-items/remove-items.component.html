@@ -1,0 +1,19 @@
+<p-panel header="{{label}}" *ngIf="label" >
+  <button pButton label="Purger" icon="fa-trash" (click)="removeItems()" ></button>
+</p-panel>
+<p-dialog header="Suppression des {{name}} ?" [(visible)]="displayCheck">
+  <p>Êtes-vous certain de vouloir vider la collection des {{name}} ?</p>
+  <p-footer>
+    <button pButton icon="fa-check" (click)="doRemove()" label="Yes"></button>
+    <button pButton icon="fa-close" (click)="displayCheck=false" label="No"></button>
+  </p-footer>
+</p-dialog>
+
+<p-dialog header="Suppression des {{name}}." [(visible)]="displayResult">
+  <p *ngIf="success">La base des {{name}} a bien été purgée.</p>
+  <p *ngIf="!success">Erreur lors de la purge de la base des {{name}}.</p>
+  <p-footer>
+    <button pButton icon="fa-close" (click)="displayResult=false" label="OK"></button>
+  </p-footer>
+</p-dialog>
+

@@ -196,7 +196,7 @@
 			</pluginRepositories>
 
 			<properties>
-				<nodeDownloadRoot>https://dev.programmevitam.fr/nexus/content/sites/node-dist-mirror/</nodeDownloadRoot>
+				<nodeDownloadRoot>https://dev.preprod.programmevitam.fr/nexus/repository/node-distrib/</nodeDownloadRoot>
 			</properties>
 
 		</profile>

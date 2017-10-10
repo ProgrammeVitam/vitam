@@ -211,7 +211,7 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         setServiceRegistry(new VitamServiceRegistry());
         final WebApplicationResourceDelete deleteResource = new WebApplicationResourceDelete(getConfiguration());
-        final WebApplicationResource resource = new WebApplicationResource(getConfiguration().getTenants());
+        final WebApplicationResource resource = new WebApplicationResource(getConfiguration().getTenants(), getConfiguration().getSecureMode());
         serviceRegistry.register(deleteResource.getMongoDbAccessAdmin());
         Path sipDirectory = Paths.get(getConfiguration().getSipDirectory());
         Path reportDirectory = Paths.get(getConfiguration().getPerformanceReportDirectory());

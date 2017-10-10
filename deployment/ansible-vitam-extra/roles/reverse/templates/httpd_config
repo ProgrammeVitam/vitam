@@ -109,8 +109,8 @@
     {% endfor %}
     # IHM Recette
     {% for host in groups['hosts-ihm-recette'] %}
-    ProxyPass {{ vitam_ihm_recette_baseurl }}  http://{{hostvars[host]['ip_service']}}:{{vitam_ihm_recette_port}}{{ vitam_ihm_recette_baseurl }} {{reverse_connection_params}}
-    ProxyPassReverse  {{ vitam_ihm_recette_baseurl }}  http://{{hostvars[host]['ip_service']}}:{{vitam_ihm_recette_port}}{{ vitam_ihm_recette_baseurl }}
+    ProxyPass {{ vitam_ihm_recette_baseurl }}  https://{{hostvars[host]['ip_service']}}:{{vitam_ihm_recette_port_https}}{{ vitam_ihm_recette_baseurl }} {{reverse_connection_params}}
+    ProxyPassReverse  {{ vitam_ihm_recette_baseurl }}  https://{{hostvars[host]['ip_service']}}:{{vitam_ihm_recette_port_https}}{{ vitam_ihm_recette_baseurl }}
     {% endfor %}
 
     # Enable chunked mode for all requests to access-external & ingest-external

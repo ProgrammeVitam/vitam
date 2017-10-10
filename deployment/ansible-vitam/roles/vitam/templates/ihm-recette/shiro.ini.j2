@@ -1,51 +1,63 @@
-# =======================
-# Shiro INI configuration
-# =======================
+{% if vitam_ihm_recette_secure_mode == 'x509' %}
 
+[main]
+
+x509 = fr.gouv.vitam.common.auth.web.filter.X509AuthenticationFilter
+
+x509.useHeader = {{vitam_ssl_user_header}}
+
+x509credentialsMatcher = fr.gouv.vitam.common.auth.core.authc.X509CredentialsSha256Matcher
+
+x509Realm = fr.gouv.vitam.common.auth.core.realm.X509KeystoreFileRealm
+x509Realm.grantedKeyStoreName = {{vitam_folder_conf}}/grantedstore_ihm-recette.jks
+x509Realm.grantedKeyStorePassphrase = {{password_grantedstore}}
+x509Realm.trustedKeyStoreName = {{vitam_folder_conf}}/truststore_ihm-recette.jks
+x509Realm.trustedKeyStorePassphrase = {{password_truststore}}
+x509Realm.credentialsMatcher = $x509credentialsMatcher
+securityManager.realm = $x509Realm
+securityManager.subjectDAO.sessionStorageEvaluator.sessionStorageEnabled = false
+[urls]
+/v1/api/** = x509
+
+{% else %}
 [main]
 # Objects and their properties are defined here,
 # Such as the securityManager, Realms and anything
 # else needed to build the SecurityManager
-
 # credentialsMatcher
 sha256Matcher = org.apache.shiro.authc.credential.Sha256CredentialsMatcher
 iniRealm.credentialsMatcher = $sha256Matcher
-
 # Cache Manager
 builtInCacheManager = org.apache.shiro.cache.MemoryConstrainedCacheManager
-
 # Security Manager
 securityManager.cacheManager = $builtInCacheManager
-
 sessionManager = org.apache.shiro.web.session.mgt.DefaultWebSessionManager
 securityManager.sessionMode=native
 securityManager.sessionManager.globalSessionTimeout = 60000
 securityManager.sessionManager = $sessionManager
-
 # Notice how we didn't define the class for the FormAuthenticationFilter ('authc') - it is instantiated and available already:
 authc.loginUrl = /#!/login
-
 [users]
 # The 'users' section is for simple deployments
 # when you only need a small number of statically-defined
 # set of User accounts.
 #username = password
-
 {% for item in vitam_users %}
 {% if item.role == "admin" %}
 {{item.login}}={{item.password|hash('sha256')}}
 {% endif %}
 {% endfor %}
-
 [roles]
 # The 'roles' section is for simple deployments
 # when you only need a small number of statically-defined
 # roles.
-
 [urls]
 # make sure the end-user is authenticated.  If not, redirect to the 'authc.loginUrl' above,
 # and after successful authentication, redirect them back to the original account page they
 # were trying to view:
 /v1/api/login = anon
 /v1/api/logout = logout
+/v1/api/securemode = anon
 /** = authc
+
+{% endif %}

@@ -24,4 +24,4 @@ local.json
 */functional-test/src/main/dev-resources/
 .metadata
 report.json
-
+**/package-lock.json

@@ -28,10 +28,32 @@
 package fr.gouv.vitam.ihmrecette.appserver;
 
 
+import static com.jayway.restassured.RestAssured.given;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.ws.rs.core.Response.Status;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 import com.mongodb.BasicDBObject;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -41,11 +63,17 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -56,6 +84,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
@@ -76,28 +105,13 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static com.jayway.restassured.RestAssured.given;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
 
 public class WebApplicationResourceDeleteTest {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResourceDeleteTest.class);
+
+    private static final String CONTEXT_NAME = "Name";
+    private static final String ADMIN_CONTEXT = "admin-context";
 
     // Take it from conf file
     private static final String DEFAULT_WEB_APP_CONTEXT = "/test-admin";
@@ -436,9 +450,46 @@ public class WebApplicationResourceDeleteTest {
         }
     }
 
+    public void testDeleteMasterdataProfileOK() {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+            final GUID idProfile = addData(FunctionalAdminCollections.PROFILE);
+            assertTrue(existsData(FunctionalAdminCollections.PROFILE, idProfile.getId()));
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+                .delete("delete/masterdata/profile");
+            assertFalse(existsData(FunctionalAdminCollections.PROFILE, idProfile.getId()));
+        } catch (final Exception e) {
+            LOGGER.error(e);
+            fail("Exception using mongoDbAccess");
+        }
+    }
+
+
     @Test
     @RunWithCustomExecutor
-    public void testDeleteAllOk() {
+    public void testDeleteMasterdataContextOK() {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+            final GUID adminContext = addAdminContextData(FunctionalAdminCollections.CONTEXT);
+            // Needs two contexts for testing purposes (admin context won't be deleted)
+            final GUID idContext2 = addData(FunctionalAdminCollections.CONTEXT);
+            assertTrue(existsData(FunctionalAdminCollections.CONTEXT, adminContext.getId()));
+            assertTrue(existsData(FunctionalAdminCollections.CONTEXT, idContext2.getId()));
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+                .delete("delete/masterdata/context");
+            assertTrue(existsData(FunctionalAdminCollections.CONTEXT, adminContext.getId()));
+            assertFalse(existsData(FunctionalAdminCollections.CONTEXT, idContext2.getId()));
+        } catch (final Exception e) {
+            LOGGER.error(e);
+            fail("Exception using mongoDbAccess");
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testDeleteAllOk() throws InvalidCreateOperationException, InvalidGuidOperationException {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
             // insert and check data
@@ -458,6 +509,10 @@ public class WebApplicationResourceDeleteTest {
             final GUID idRegisterDetail = addData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));
+            final GUID adminContext = addAdminContextData(FunctionalAdminCollections.CONTEXT);
+            final GUID idContext2 = addData(FunctionalAdminCollections.CONTEXT);
+            assertTrue(existsData(FunctionalAdminCollections.CONTEXT, adminContext.getId()));
+            assertTrue(existsData(FunctionalAdminCollections.CONTEXT, idContext2.getId()));
             // delete all
             given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete");
@@ -471,6 +526,10 @@ public class WebApplicationResourceDeleteTest {
             assertFalse(existsData(FunctionalAdminCollections.RULES, idRule.getId()));
             assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
             assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));
+            assertFalse(existsData(FunctionalAdminCollections.PROFILE, idProfile.getId()));
+            assertFalse(existsData(FunctionalAdminCollections.CONTEXT, idContext2.getId()));
+            //Admin context must still exist
+            assertTrue(existsData(FunctionalAdminCollections.CONTEXT, adminContext.getId()));
         } catch (final ReferentialException e) {
             LOGGER.error(e);
             fail("Exception using mongoDbAccess");
@@ -518,6 +577,23 @@ public class WebApplicationResourceDeleteTest {
         mongoDbAccessLogbook.getMongoDatabase().getCollection(collection.getClasz().getSimpleName())
             .insertOne(document);
         return guid;
+    }
+
+    public GUID addAdminContextData(FunctionalAdminCollections collection)
+        throws ReferentialException, InvalidCreateOperationException, InvalidGuidOperationException {
+        final Query query = QueryHelper.or().add(QueryHelper.eq(CONTEXT_NAME, ADMIN_CONTEXT));
+        JsonNode select = query.getCurrentObject();
+        DbRequestResult result = mongoDbAccessAdmin.findDocuments(select, FunctionalAdminCollections.CONTEXT);
+        GUID adminContext = null;
+        if (result.getCount() > 0) {
+            adminContext = GUIDReader.getGUID(result.getDocuments(Context.class).get(0).getId());
+        } else {
+            adminContext = GUIDFactory.newGUID();
+            final ObjectNode data1 = JsonHandler.createObjectNode().put("_id", adminContext.getId());
+            data1.put(CONTEXT_NAME, ADMIN_CONTEXT);
+            mongoDbAccessAdmin.insertDocument(data1, collection).close();
+        }
+        return adminContext;
     }
 
     public boolean existsData(FunctionalAdminCollections collection, String id)

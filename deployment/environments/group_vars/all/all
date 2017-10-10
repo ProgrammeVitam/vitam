@@ -50,10 +50,12 @@ vitam_ihm_demo_baseuri: "/ihm-demo"
 
 vitam_ihm_recette_host: "{{groups['hosts-ihm-recette'][0]}}"
 vitam_ihm_recette_port: 8204
+vitam_ihm_recette_port_https: 8445
 vitam_ihm_recette_port_admin: 28204
 vitam_ihm_recette_baseurl: /ihm-recette
 vitam_ihm_recette_static_content: "{{vitam_folder_root}}/app/ihm-recette"
 vitam_ihm_recette_baseuri: "/ihm-recette"
+vitam_ihm_recette_secure_mode: authc
 
 # Internal components communication configuration
 vitam_logbook_host: "logbook.service.{{consul_domain}}"

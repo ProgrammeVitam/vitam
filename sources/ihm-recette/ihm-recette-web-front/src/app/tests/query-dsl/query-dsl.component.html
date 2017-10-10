@@ -1,0 +1,61 @@
+<div class="ui-g-12">
+  <div class="ui-g-1"></div>
+  <div class="ui-g-1">
+    <label class="" for="tenant">Tenant</label>
+    <div id="tenant" class="fs-1-1em">{{getTenant() ? getTenant() : "-"}}</div>
+  </div>
+  <div class="ui-g-4">
+    <label for="identifier">Identifiant</label>
+    <input id="identifier" class="fs-1-1em" size="35" pInputText [(ngModel)]="objectId"
+           placeholder="Identifiant de l'objet (facultatif)"/>
+  </div>
+</div>
+
+<div class="ui-g-12">
+  <div class="ui-g-1"></div>
+  <div class="ui-g-3">
+    <label for="contract">Contrat</label>
+    <p-dropdown id="contract" [options]="contractsList" [(ngModel)]="selectedContract"
+                [style]="{'width':'100%'}" [scrollHeight]="300"
+                placeholder="Sélectionner un contrat"></p-dropdown>
+  </div>
+  <div class="ui-g-3">
+    <label for="collection">Collection</label>
+    <p-dropdown id="collection"[options]="collections" [(ngModel)]="selectedCollection"
+                [style]="{'width':'100%'}" [scrollHeight]="300" (onChange)="updateMethods()"
+                placeholder="Sélectionner une collection"></p-dropdown>
+  </div>
+  <div class="ui-g-3">
+    <label for="action">Action</label>
+    <p-dropdown id="action" [options]="methods" [(ngModel)]="selectedMethod"
+                [style]="{'width':'100%'}" [scrollHeight]="300"
+                placeholder="Sélectionner une action"></p-dropdown>
+  </div>
+</div>
+
+
+<div class="ui-g-12">
+  <div class="ui-g-6">
+    <textarea rows="30" style="width:90%; resize: vertical;" pInputTextarea [(ngModel)]="jsonRequest"></textarea>
+  </div>
+
+  <div class="ui-g-6">
+    <textarea rows="30" style="width:90%; resize: vertical;" pInputTextarea>{{requestResponse | json}}</textarea>
+  </div>
+</div>
+
+<div class="ui-g-12">
+  <div class="ui-g-6">
+    <div class="ui-g-1"></div>
+    <div class="ui-g-7">
+      <button pButton type="button" label="Valider JSON" (click)="checkJson()"></button>
+      <button pButton type="button" label="Envoyer requête" (click)="sendRequest()"></button>
+    </div>
+    <div class="ui-g-3 margin-top-5" [ngClass]="validRequest ? validRequest.css : ''">
+      {{validRequest ? "JSON " + validRequest.valid : ""}}
+    </div>
+  </div>
+  <div class="ui-g-6">
+    <button pButton type="button" label="Effacer" (click)="requestResponse = undefined"></button>
+  </div>
+</div>
