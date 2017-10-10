@@ -9,7 +9,6 @@
     </parent>
 
     <artifactId>ihm-recette-front</artifactId>
-    <version>0.23.0-SNAPSHOT</version>
     <name>ihm-recette-front</name>
     <packaging>jar</packaging>
 
