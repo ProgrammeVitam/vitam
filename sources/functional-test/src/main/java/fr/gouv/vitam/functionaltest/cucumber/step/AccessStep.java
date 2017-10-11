@@ -328,7 +328,7 @@ public class AccessStep {
     public void the_status_of_the_select_result(String status) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(query);
 
-        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(
+        requestResponse = world.getAccessClient().selectUnits(
             new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
                 .setApplicationSessionId(world.getApplicationSessionId()), queryJSON);
 
