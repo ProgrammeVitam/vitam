@@ -14,8 +14,8 @@ Utilisation de la collection FileFormat
 
 La collection FileFormat permet de référencer et décrire les différents formats de fichiers ainsi que leur description. La collection est initialisée à partir de l'import du fichier de signature PRONOM, mis à disposition par The National Archive (UK).
 
-Exemple de JSON stocké en base
-------------------------------
+Exemple de JSON stocké en base comprenant l'exhaustivité des champs
+-------------------------------------------------------------------
 
 ::
 
@@ -55,15 +55,21 @@ Ci-après, la portion d'un fichier de signature (DROID_SignatureFile_VXX.xml) ut
 Détail des champs du JSON stocké en base
 ------------------------------------------
 
-"_id": identifiant unique du format dans la solution logicielle Vitam.
-    Il s'agit d'une chaîne de caractères composée de 36 caractères correspondant à un GUID.
+**"_id": Champs obligatoire peuplé par Vitam** identifiant unique du format.
 
-"CreatedDate": date de création de la version du fichier de signatures PRONOM utilisé pour initialiser la collection.
-    Il s'agit d'une date au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+  * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+  * Cardinalité : 1-1
 
-"VersionPronom": numéro de version du fichier de signatures PRONOM utilisé.
-    Il s'agit d'un entier.
-    Le numéro de version de PRONOM est à l'origine déclaré dans le fichier de signature au niveau de la balise <FFSignatureFile> au niveau de l'attribut "version ".
+**"CreatedDate":** date de création de la version du fichier de signatures PRONOM utilisé pour initialiser la collection.
+
+  * Il s'agit d'une date au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"  
+  * Cardinalité : 1-1
+
+**"VersionPronom":** numéro de version du fichier de signatures PRONOM utilisé.
+    
+    * Il s'agit d'un entier.
+    * Le numéro de version de PRONOM est à l'origine déclaré dans le fichier de signature au niveau de la balise <FFSignatureFile> au niveau de l'attribut "version ".
+    * Cardianlité : 1:1
 
 Dans cet exemple, le numéro de version est 88 :
 
@@ -71,11 +77,15 @@ Dans cet exemple, le numéro de version est 88 :
 
  <FFSignatureFile DateCreated="2016-09-27T15:37:53" Version="88" xmlns="http://www.nationalarchives.gov.uk/pronom/SignatureFile">
 
-"MIMEType": MIMEtype correspondant au format de fichier.
-    Il s'agit d'une chaîne de caractères.
-    Elle est renseignée avec le contenu de l'attribut "MIMEType" de la balise <FileFormat>. Cet attribut est facultatif dans le fichier de signature.
+**"MIMEType":** MIMEtype correspondant au format de fichier.
+    
+    * Il s'agit d'une chaîne de caractères.
+    * Elle est renseignée avec le contenu de l'attribut "MIMEType" de la balise <FileFormat>. Cet attribut est facultatif dans le fichier de signature.
 
-**"HasPriorityOverFileFormatID"**: liste des PUID des formats sur lesquels le format a la priorité.
+**"HasPriorityOverFileFormatID":** liste des PUID des formats sur lesquels le format a la priorité.
+
+  * Il s'agit d'un tableau de chaînes de caractères
+  * Cardinalité : 0:1
 
 ::
 
@@ -92,9 +102,11 @@ Cet ID est ensuite utilisé dans Vitam pour retrouver le PUID correspondant.
       "fmt/716"
   ],
 
-"PUID": identifiant unique du format au sein du référentiel PRONOM.
-    Il s'agit d'une chaîne de caractères.
-    Il est issu du champ "PUID" de la balise <FileFormat>. La valeur est composée du préfixe "fmt" ou "x-fmt", puis d'un nombre correspondant au numéro d'entrée du format dans le référentiel PRONOM. Les deux éléments sont séparés par un "/"
+**"PUID":** identifiant unique du format au sein du référentiel PRONOM.
+    
+    * Il s'agit d'une chaîne de caractères.
+    * Il est issu du champ "PUID" de la balise <FileFormat>. La valeur est composée du préfixe "fmt" ou "x-fmt", puis d'un nombre correspondant au numéro d'entrée du format dans le référentiel PRONOM. Les deux éléments sont séparés par un "/"
+  * Cardinalité : 1-1
 
 Par exemple
 
@@ -105,7 +117,9 @@ Par exemple
 Les PUID comportant un préfixe "x-fmt" indiquent que ces formats sont en cours de validation par The National Archives (UK). Ceux possédant un préfixe "fmt" sont validés.
 
 "Version": version du format.
-    Il s'agit d'une chaîne de caractères.
+    
+    * Il s'agit d'une chaîne de caractères.
+    * Cardinalité : 1-1
 
 Exemples de formats :
 
@@ -117,13 +131,17 @@ Exemples de formats :
 
 L'attribut "version" n'est pas obligatoire dans la balise <fileformat> du fichier de signature.
 
-"Name": nom du format.
-    Il s'agit d'une chaîne de caractères.
-    Le nom du format est issu de la valeur de l'attribut "Name" de la balise <FileFormat> du fichier de signature.
+**"Name":** nom du format.
+    
+    * Il s'agit d'une chaîne de caractères.
+    * Le nom du format est issu de la valeur de l'attribut "Name" de la balise <FileFormat> du fichier de signature.
+    * Cardinalité : 1-1
 
-"Extension": Extension(s) du format.
-    Il s'agit d'un tableau de chaînes de caractères.
-    Il contient les valeurs situées entre les balises <Extension> elles-mêmes encapsulées entre les balises <FileFormat>. Le champ <Extension> peut-être multivalué. Dans ce cas, les différentes valeurs situées entre les différentes balises <Extensions> sont placées dans le tableau et séparées par une virgule.
+**"Extension":** Extension(s) du format.
+    
+    * Il s'agit d'un tableau de chaînes de caractères.
+    * Il contient les valeurs situées entre les balises <Extension> elles-mêmes encapsulées entre les balises <FileFormat>. Le champ <Extension> peut-être multivalué. Dans ce cas, les différentes valeurs situées entre les différentes balises <Extensions> sont placées dans le tableau et séparées par une virgule.
+    * Cardinalité : 1-1
 
 Par exemple, pour le format dont le PUID est : fmt/918 on la XML suivant :
 
@@ -146,20 +164,27 @@ Les valeurs des balises <Extensions> seront stockées de la façon suivante dans
       "hx"
   ],
 
-"Alert": alerte sur l'obsolescence du format.
-    Il s'agit d'un booléen dont la valeur est par défaut placée à false.
+**"Alert":** alerte sur l'obsolescence du format.
+    
+  * Il s'agit d'un booléen dont la valeur est par défaut placée à false.
+  * Cardinalité : 0-1
 
-"Comment": commentaire.
-	Il s'agit d'une chaîne de caractères.
-	C'est un champ propre à la solution logicielle Vitam.
+**"Comment":** commentaire.
+	
+  * Il s'agit d'une chaîne de caractères.
+	* C'est un champ propre à la solution logicielle Vitam.
+  * Cardinalité : 0-1
 
+**"Group":** Champ permettant d'indiquer le nom d'une famille de format.
+	
+  * Il s'agit d'une chaîne de caractères.
+  * C'est un champ propre à la solution logicielle Vitam.
+  * Cardinalité : 0-1
 
-"Group": Champ permettant d'indiquer le nom d'une famille de format.
-	Il s'agit d'une chaîne de caractères.
-  C'est un champ propre à la solution logicielle Vitam.
+**"_v": Champs obligatoire peuplé par Vitam** version de l'objet décrit
 
-"_v": version de l'objet décrit
-  Il s'agit d'un entier.
+  * Il s'agit d'un entier.
+  * Cardinalité : 1-1
 
 Collection FileRules
 ====================
@@ -171,8 +196,8 @@ La collection FileRules permet de stocker unitairement les différentes règles 
 
 Cette collection est alimentée par l'import d'un fichier CSV contenant l'ensemble des règles.
 
-Exemple de JSON stocké en base
-------------------------------
+Exemple de JSON stocké en base comprenant l'exhaustivité des champs
+-------------------------------------------------------------------
 
 ::
 
@@ -202,6 +227,7 @@ Structure du fichier d'import
 La liste des type de règles disponibles est en annexe 5.4.
 
 Les valeurs renseignées dans la colonne unité de mesure doivent correspondre à une valeur de l'énumération RuleMeasurementEnum, à savoir :
+
   * MONTH
   * DAY
   * YEAR
@@ -210,12 +236,16 @@ Les valeurs renseignées dans la colonne unité de mesure doivent correspondre �
 Détail des champs
 -----------------
 
-"_id": identifiant unique par tenant de la règle de gestion.
-    Il s'agit d'une chaîne de caractères composée de 36 caractères correspondant à une GUID.
+**"_id": Champs obligatoire peuplé par Vitam** identifiant unique.
 
-"RuleId": identifiant unique par tenant de la règle dans le référentiel utilisé.
-    Il s'agit d'une chaîne de caractères.
-    La valeur est reprise du champs RuleId du fichier d'import. Par commodité, les exemples sont composés d'un préfixe puis d'une nombre, séparés par un tiret, mais ce formalisme n'est pas obligatoire.
+  * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+  * Cardinalité : 1-1
+
+**"RuleId":** identifiant unique par tenant de la règle dans le référentiel utilisé.
+    
+  * Il s'agit d'une chaîne de caractères.
+  * La valeur est reprise du champs RuleId du fichier d'import. Par commodité, les exemples sont composés d'un préfixe puis d'une nombre, séparés par un tiret, mais ce formalisme n'est pas obligatoire.
+  * Cardinalité : 1-1
 
 Par exemple :
 
@@ -225,39 +255,55 @@ Par exemple :
 
 Les préfixes indiquent le type de règle dont il s'agit. La liste des valeurs pouvant être utilisées comme préfixes ainsi que les types de règles auxquelles elles font référence sont disponibles en annexe.
 
-"RuleType": *Champ obligatoire* Type de règle.
-    Il s'agit d'une chaîne de caractères.
-    Il correspond à la valeur située dans la colonne RuleType du fichier d'import. Les valeurs possibles pour ce champ sont indiquées en annexe.
+**"RuleType":** Type de règle.
 
-"RuleValue": *Champ obligatoire* Intitulé de la règle.
-    Il s'agit d'une chaîne de caractères.
-    Elle correspond à la valeur de la colonne RuleValue du fichier d'import.
+  * Il s'agit d'une chaîne de caractères.
+  * Il correspond à la valeur située dans la colonne RuleType du fichier d'import. Les valeurs possibles pour ce champ sont indiquées en annexe.
+  * Cardinalité : 1-1
 
-"RuleDescription": description de la règle.
-    Il s'agit d'une chaîne de caractères.
-    Elle correspond à la valeur de la colonne RuleDescriptionRule du fichier d'import.
+**"RuleValue":** Intitulé de la règle.
 
-"RuleDuration": *Champ obligatoire* Durée de la règle.
-    Il s'agit d'un entier compris entre 0 et 9999.
-    Associé à la valeur indiqué dans RuleMeasurement, il permet de décrire la durée d'application de la règle de gestion. Il correspond à la valeur de la colonne RuleDuration du fichier d'import.
+  * Il s'agit d'une chaîne de caractères.
+  * Elle correspond à la valeur de la colonne RuleValue du fichier d'import.
+  * Cardinalité : 1-1
 
-"RuleMeasurement": *Champ obligatoire* Unité de mesure de la durée décrite dans la colonne RuleDuration du fichier d'import.
-    Il s'agit d'une chaîne de caractères devant correspondre à une valeur de l'énumération RuleMeasurementEnum, à savoir :
+**"RuleDescription":** description de la règle.
+    
+  * Il s'agit d'une chaîne de caractères.
+  * Elle correspond à la valeur de la colonne RuleDescriptionRule du fichier d'import.
+  * Cardinalité : 1-1
+
+**"RuleDuration":**  Durée de la règle.
+    
+  * Il s'agit d'un entier compris entre 0 et 999.
+  * Associé à la valeur indiqué dans RuleMeasurement, il permet de décrire la durée d'application de la règle de gestion. Il correspond à la valeur de la colonne RuleDuration du fichier d'import.
+  * Cardinalité : 1-1
+
+**"RuleMeasurement":**  Unité de mesure de la durée décrite dans la colonne RuleDuration du fichier d'import.
+    
+    * Il s'agit d'une chaîne de caractères devant correspondre à une valeur de l'énumération RuleMeasurementEnum, à savoir :
+
       * MONTH
       * DAY
       * YEAR
       * SECOND
+        
+  * Cardinalité : 1-1
 
-"CreationDate": date de création de la règle dans la collection FileRule.
-    Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
-    ``Exemple : "2016-08-17T08:26:04.227"``
+**"CreationDate":** date de création de la règle dans la collection FileRule.
 
-"UpdateDate": Date de dernière mise à jour de la règle dans la collection FileRules.
-    Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
-    ``Exemple : "2016-08-17T08:26:04.227"``
+  * La date est au format ISO 8601
+  * Cardinalité : 1-1
 
-"_v": version de l'objet décrit.
-    Il s'agit d'un entier.
+**"UpdateDate":** Date de dernière mise à jour de la règle dans la collection FileRules.
+
+  * La date est au format ISO 8601
+  * Cardinalité : 1-1
+
+**"_v": Champs obligatoire peuplé par Vitam** version de l'objet décrit
+
+  * Il s'agit d'un entier.
+  * Cardinalité : 1-1
 
 Collection IngestContract
 =========================
@@ -267,8 +313,8 @@ Utilisation de la collection
 
 La collection IngestContract permet de référencer et décrire unitairement les contrats d'entrée.
 
-Exemple de JSON stocké en base
-------------------------------
+Exemple de JSON stocké en base comprenant l'exhaustivité des champs
+--------------------------------------------------------------------
 
 ::
 
@@ -325,47 +371,70 @@ Un fichier d'import peut décrire plusieurs contrats.
 Détail des champs
 -----------------
 
-"_id": identifiant unique par tenant.
-  Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+**"_id": Champs obligatoire peuplé par Vitam** identifiant unique.
 
-"_tenant": information sur le tenant.
-  Il s'agit de l'identifiant du tenant.
+  * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+  * Cardinalité : 1-1
 
-"Name": *Champ obligatoire* Nom du contrat d'entrée, unique par tenant.
-  Il s'agit d'une chaîne de caractères.
+**"Name":** Nom du contrat d'entrée, unique par tenant.
+  
+  * Il s'agit d'une chaîne de caractères.
+  * Cardinalité : 1-1
 
-"Identifier": *Champ obligatoire* Identifiant signifiant donné au contrat.
-  Il est constitué du préfixe "IC-" suivi d'une suite de 6 chiffres. Par exemple : IC-007485.
-  Il s'agit d'une chaîne de caractères.
+**"Identifier": Champ obligatoire peuplé par Vitam** Identifiant signifiant donné au contrat.
+  
+  * Il est constitué du préfixe "IC-" suivi d'une suite de 6 chiffres. Par exemple : IC-007485.
+  * Il s'agit d'une chaîne de caractères.
+  * Cardinalité : 1-1
 
-"Description": description du contrat d'entrée.
-  Il s'agit d'une chaîne de caractères.
+**"Description":** description du contrat d'entrée.
+  
+  * Il s'agit d'une chaîne de caractères.
+  * Cardinalité : 1-1
 
-"Status": statut du contrat.
-  Peut être ACTIVE ou INACTIVE
+**"Status":** statut du contrat.
 
-"CreationDate": date de création du contrat.
-  La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+  * Il s'agit d'une chaîne de caractères.
+  * Peut être ACTIVE ou INACTIVE
+  * Cardinalité : 1-1
 
-"LastUpdate": date de dernière mise à jour du contrat dans la collection IngestContract.
-  La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+**"CreationDate":** date de création du contrat.
 
-"ActivationDate": date d'activation du contrat.
-  La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+  * La date est au format ISO 8601
+  * Cardinalité : 1-1
 
-"DeactivationDate": date de désactivation du contrat.
-  La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+**"LastUpdate":** date de dernière mise à jour du contrat dans la collection IngestContract.
 
-"ArchiveProfiles": liste des profils d'archivage pouvant être utilisés par le contrat d'entrée.
-  Tableau de chaînes de caractères correspondant à la valeur du champ Identifier de la collection Profile.
+  * La date est au format ISO 8601
+  * Cardinalité : 1-1
 
-"FilingParentId": point de rattachement automatique des SIP en application de ce contrat correspondant à l'id d’une unité archivistique dans le plan de classement
-  Il s'agit d'une chaîne de 36 caractères correspondant à un GUID dans le champ _id de la collection Unit.
+**"ActivationDate":** date d'activation du contrat.
 
-  **L'unité archivistique concernée doit être de type FILING_UNIT afin que l'opération aboutisse**
+  * La date est au format ISO 8601
+  * Cardinalité : 0-1
 
-"_v": version de l'objet décrit
-  Il s'agit d'un entier.
+**"DeactivationDate":** date de désactivation du contrat.
+
+  * La date est au format ISO 8601
+  * Cardinalité : 0-1
+
+**"ArchiveProfiles":** liste des profils d'archivage pouvant être utilisés par le contrat d'entrée.
+  
+  * Tableau de chaînes de caractères correspondant à la valeur du champ Identifier de la collection Profile.
+  * Cardinalité : 0-1
+
+**"FilingParentId":** point de rattachement automatique des SIP en application de ce contrat correspondant à l'id d’une unité archivistique dans le plan de classement
+  
+  * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID dans le champ _id de la collection Unit.
+  * Cardinalité : 0-1
+
+
+**L'unité archivistique concernée doit être de type FILING_UNIT afin que l'opération aboutisse**
+
+**"_v": Champs obligatoire peuplé par Vitam** version de l'objet décrit
+
+  * Il s'agit d'un entier.
+  * Cardinalité : 1-1
 
 Collection AccessContract
 =========================
@@ -375,8 +444,8 @@ Utilisation de la collection
 
 La collection AccessContract permet de référencer et de décrire unitairement les contrats d'accès.
 
-Exemple de JSON stocké en base
-------------------------------
+Exemple de JSON stocké en base comprenant l'exhaustivité des champs
+-------------------------------------------------------------------
 
 ::
 
@@ -438,59 +507,93 @@ Un fichier d'import peut décrire plusieurs contrats.
 Détail des champs
 -----------------
 
-"_id": identifiant unique par tenant.
-  Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+**"_id": Champs obligatoire peuplé par Vitam** identifiant unique par tenant.
 
-"_tenant": information sur le tenant.
-  Il s'agit de l'identifiant du tenant.
+  * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+  * Cardinalité : 1-1
 
-"Name": *Champ obligatoire* Nom du contrat d'entrée unique par tenant.
-  Il s'agit d'une chaîne de caractères.
+**"_tenant": Champs obligatoire peuplé par Vitam** information sur le tenant.
 
-"Identifier": identifiant signifiant donné au contrat.
-  Il est consituté du préfixe "AC-" suivi d'une suite de 6 chiffres. Par exemple : AC-001223.
-  Il s'agit d'une chaîne de caractères.
+  * Il s'agit de l'identifiant du tenant.
+  * Cardinalité : 1-1
 
-"Description": *Champ obligatoire* Description du contrat d'accès.
-  Il s'agit d'une chaîne de caractères.
+**"Name": Champ obligatoire** Nom du contrat d'entrée unique par tenant.
 
-"Status": statut du contrat.
-  Peut être ACTIVE ou INACTIVE
+  * Il s'agit d'une chaîne de caractères.
+  * Cardinalité : 1-1
 
-"CreationDate": date de création du contrat.
-  La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+**"Identifier" : Champs obligatoire peuplé par Vitam ou par l'application créant le contrat selon la configuration** identifiant signifiant donné au contrat.
 
-"LastUpdate": date de dernière mise à jour du contrat dans la collection AccesContrat.
-  La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+  * Il est consituté du préfixe "AC-" suivi d'une suite de 6 chiffres s'il est peuplé par Vitam. Par exemple : AC-001223.
+  * Il s'agit d'une chaîne de caractères.
+  * Cardinalité : 1-1
 
-"ActivationDate": date d'activation du contrat.
-  La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+**"Description": Champ obligatoire** Description du contrat d'accès.
 
-"DeactivationDate": date de désactivation du contrat.
-  La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+  * Il s'agit d'une chaîne de caractères.
+  * Cardinalité : 1-1
 
-"OriginatingAgencies": services producteurs pour lesquels le détenteur du contrat peut consulter les archives.
-  Il s'agit d'un tableau de chaînes de caractères.
+**"Status": Champ bligatoire** statut du contrat.
 
-"DataObjectVersion": usages d'un groupe d'objet auxquels le détenteur d'un contrat a access.
-  Il s'agit d'un tableau de chaînes de caractères.
+  * Peut être ACTIVE ou INACTIVE
+  * Cardinalité : 1-1
 
-"WritingPermission": droit d'écriture. 
-  Peut être true ou false. S'il est true, le détenteur du contrat peut effectuer des mises à jour.
+**"CreationDate": Champ obligatoire peuplé par Vitam** date de création du contrat.
 
-"EveryOriginatingAgency": droit de consultation sur tous les services producteurs.
-  Il s'agit d'un booléen.
-  Si la valeur est à true, alors le détenteur du contrat peut accéder aux archives de tous les services producteurs.
+  * La date est au format ISO 8601
+  * Cardinalité : 1-1
 
-"EveryDataObjectVersion": droit de consultation sur tous les usages.
-  Il s'agit d'un booléen.
-  Si la valeur est à true, alors le détenteur du contrat peut accéder à tous les types d'usages.
+**"LastUpdate": Champ obligatoire peuplé par Vitam**  date de dernière mise à jour du contrat dans la collection AccesContrat.
 
-"_v": version de l'objet décrit
-  Il s'agit d'un entier.
+  * La date est au format ISO 8601
+  * Cardinalité : 1-1
 
-"RootUnits": Liste des noeuds de consultation auxquels le détenteur du contrat a accès. Si aucun noeud n'est spécifié, alors l'utilisateur a accès à tous les noeuds.
-  Il s'agit d'un tableau de chaînes de caractères.
+**"ActivationDate": Champ obligatoire peuplé par Vitam** date d'activation du contrat.
+
+  * La date est au format ISO 8601
+  * Cardinalité : 1-1
+
+**"DeactivationDate": Champ obligatoire peuplé par Vitam** date de désactivation du contrat.
+
+  * La date est au format ISO 8601
+  * Cardinalité : 1-1
+
+**"OriginatingAgencies":** services producteurs pour lesquels le détenteur du contrat peut consulter les archives.
+
+  * Il s'agit d'un tableau de chaînes de caractères.
+  * Cardinalité : 0-n
+
+**"DataObjectVersion":** usages d'un groupe d'objet auxquels le détenteur d'un contrat a access.
+
+  * Il s'agit d'un tableau de chaînes de caractères.
+  * Cardinalité : 0-1
+
+**"WritingPermission": Champ obligatoire** droit d'écriture. 
+
+  * Peut être true ou false. S'il est true, le détenteur du contrat peut effectuer des mises à jour.
+  * Cardinalité : 1-1
+
+**"EveryOriginatingAgency": Champ obligatoire** droit de consultation sur tous les services producteurs.
+
+  * Il s'agit d'un booléen.
+  * Si la valeur est à true, alors le détenteur du contrat peut accéder aux archives de tous les services producteurs.
+  * Cardinalité : 1-1
+
+**"EveryDataObjectVersion": Champ obligatoire** droit de consultation sur tous les usages.
+
+  * Il s'agit d'un booléen.
+  * Si la valeur est à true, alors le détenteur du contrat peut accéder à tous les types d'usages.
+  * Cardinalité : 1-1
+
+**"_v": Champs obligatoire peuplé par Vitam**  version de l'objet décrit
+
+  * Il s'agit d'un entier.
+  * Cardinalité : 1-1
+
+**"RootUnits":** Liste des noeuds de consultation auxquels le détenteur du contrat a accès. Si aucun noeud n'est spécifié, alors l'utilisateur a accès à tous les noeuds.
+
+  * Il s'agit d'un tableau de chaînes de caractères.
+  * Cardinalité : 0-1
 
 Collection Profile
 ===================
@@ -500,8 +603,8 @@ Utilisation de la collection
 
 La collection Profile permet de référencer et décrire unitairement les profils SEDA.
 
-Exemple de JSON stocké en base
---------------------------------
+Exemple de JSON stocké en base comprenant l'exhaustivité des champs
+-------------------------------------------------------------------
 
 ::
 
@@ -552,45 +655,74 @@ Les champs à renseigner obligatoirement à la création d'un contrat sont :
 Détail des champs
 -----------------
 
-"_id": identifiant unique.
-  Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+**"_id": Champs obligatoire peuplé par Vitam** identifiant unique.
 
-"_tenant": identifiant du tenant.
-  Il s'agit d'un entier.
+  * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+  * Cardinalité : 1-1
+
+**"_tenant": Champs obligatoire peuplé par Vitam** information sur le tenant.
+
+  * Il s'agit de l'identifiant du tenant.
+  * Cardinalité : 1-1
 
 "Identifier": Indique l'identifiant signifiant du profil SEDA.
-  Il est consituté du préfixe "PR-" suivi d'une suite de 6 chiffres. Par exemple : PR-001573.
-  Il s'agit d'une chaîne de caractères. 
 
-"Name": *Champ obligatoire* Indique le nom du profil SEDA.
-  Il s'agit d'une chaîne de caractères unique par tenant. 
+  * Si Vitam est maître dans la création de cet identifiant, il est alors consituté du préfixe "PR-" suivi d'une suite de 6 chiffres. Par exemple : PR-001573.
+  * Si Vitam est esclave, a
+  * Il s'agit d'une chaîne de caractères.
+  * Cardinalité : 1-1
 
-"Description": *Champ obligatoire* Description du profil SEDA.
-  Il s'agit d'une chaîne de caractères.
+"Name": Indique le nom du profil SEDA.
 
-"Status": Indique l'état du profil SEDA. 
-  Il s'agit d'une chaîne de caractères devant correspondre à une valeur de l'énuméartion ProfileStatus, soit ACTIVE soit INACTIVE.
+  * Il s'agit d'une chaîne de caractères.
+  * Cardinalité : 1-1
 
-"Format": *Champ obligatoire* Indique le format attendu pour le fichier décrivant les règles du profil d'archivage.
-  Il s'agit d'une chaîne de caractères devant correspondre à l'énumération ProfileFormat. 
+"Description": Description du profil SEDA.
+
+  * Il s'agit d'une chaîne de caractères.
+  * Cardinalité : 1-1
+
+"Status": statut du contrat.
+
+  * Peut être ACTIVE ou INACTIVE
+  * Si ce champ n'est pas défini lors de la création de l'enregistrement
+  * Cardinalité : 1-1
+
+**"Format": Champ obligatoire** Indique le format attendu pour le fichier décrivant les règles du profil d'archivage.
   
-"CreationDate": date de création du profil SEDA. 
-  Il s'agit d'une date au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+  * Il s'agit d'une chaîne de caractères devant correspondre à l'énumération ProfileFormat.
+  * Cardinalité : 1-1
+  
+**"CreationDate": Champ obligatoire peuplé par Vitam** date de création du contrat.
 
-"LastUpdate": date de dernière modification du profil SEDA dans la collection profile.. 
-  Il s'agit d'une date au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+  * La date est au format ISO 8601
+  * Cardinalité : 1-1
 
-"ActivationDate": date d'activation du profil SEDA. 
-  Il s'agit d'une date au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+**"LastUpdate": Champ obligatoire peuplé par Vitam**  date de dernière mise à jour du contrat dans la collection AccesContrat.
 
-"DeactivationDate": date de désactivation du profil SEDA. 
-  Il s'agit d'une date au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+  * La date est au format ISO 8601
+  * Cardinalité : 1-1
 
-"_v": version de l'objet décrit
-  Il s'agit d'un entier.
+**"ActivationDate": Champ obligatoire peuplé par Vitam** date d'activation du contrat.
 
-"Path": Indique le chemin pour accéder au fichier du profil d'archivage.
-  Chaîne de caractères. 
+  * La date est au format ISO 8601
+  * Cardinalité : 1-1
+
+**"DeactivationDate": Champ obligatoire peuplé par Vitam** date de désactivation du contrat.
+
+  * La date est au format ISO 8601
+  * Cardinalité : 1-1
+
+**"_v": Champ obligatoire peuplé par Vitam**  version de l'objet décrit
+
+  * Il s'agit d'un entier.
+  * Cardinalité : 1-1
+
+**"Path": Champ contribué par Vitam lors d'un import de fichier xds ou RNG** Indique le chemin pour accéder au fichier du profil d'archivage.
+
+  * Chaîne de caractères.
+  * Le type de fichier doit être 
+  * Cardinalité : 0-1 
 
 Collection Context
 ==================
@@ -600,8 +732,8 @@ Utilisation de la collection
 
 La collection Context permet de stocker unitairement les contextes applicatifs
 
-Exemple de JSON stocké en base
-------------------------------
+Exemple de JSON stocké en base comprenant l'exhaustivité des champs
+-------------------------------------------------------------------
 
 ::
 
@@ -643,42 +775,69 @@ Les champs à renseigner obligatoirement à la création d'un contexte sont :
 Détail des champs
 -----------------
 
-"_id": identifiant unique dans l'ensemble du système.
-  Il s'agit d'une chaîne de 36 caractères,.
+**"_id": Champs obligatoire peuplé par Vitam** identifiant unique.
 
-"Name": *Champ obligatoire* nom du contexte, qui doit être unique sur la plateforme.
-  Il s'agit d'une chaîne de caractères.
+  * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+  * Cardinalité : 1-1
 
-"Identifier": identifiant signifiant donné au contexte.
-  Il est consituté du préfixe "CT-" suivi d'une suite de 6 chiffres. Par exemple : CT-001573.
-  Il s'agit d'une chaîne de caractères. 
+**"Name": Champ obligatoire** nom du contexte, qui doit être unique sur la plateforme.
+  
+  * Il s'agit d'une chaîne de caractères.
+  * Cardinalité : 1-1
 
-"Status": statut du contexte. Il peut être "true" ou "false" et a la valeur par défaut : "false". Selon son statut :
+**"Identifier":** identifiant signifiant donné au contexte.
+  
+  * Il est consituté du préfixe "CT-" suivi d'une suite de 6 chiffres. Par exemple : CT-001573.
+  * Il s'agit d'une chaîne de caractères. 
+  * Cardinalité : 1-1
 
+**"Status":** statut du contexte. Il peut être "true" ou "false" et a la valeur par défaut : "false". Selon son statut :
+
+  * Il s'agit d'un booléen
   * "true" : le contexte est actif
   * "false" : le contexte est inactif
+  * Cardinalité : 1-1
 
-"Permissions": *Champ obligatoire* Début du bloc appliquant les permissions à chaque tenant.
-  C'est un mot clé qui n'a pas de valeur associée.
+**"Permissions":** Début du bloc appliquant les permissions à chaque tenant.
 
-"_tenant": information sur le tenant.
-  Il s'agit de l'identifiant du tenant dans lequel vont s'appliquer des permissions.
+  * C'est un mot clé qui n'a pas de valeur associée.
+  * Il s'agit d'une chaîne de caractères. 
+  * Cardinalité : 1-1 
 
-"AccessContracts": tableau d'identifiants de contrats d'accès appliqués sur le tenant.
+**"_tenant": Champs obligatoire peuplé par Vitam** Il s'agit de l'identifiant du tenant dans lequel vont s'appliquer des permissions.
+  
+  * Il s'agit d'une chaîne de caractères.
+  * Cardinalité : 1-1 
 
-"IngestContracts": tableau d'identifiants de contrats d'entrées appliqués sur le tenant.
+**"AccessContracts":** tableau d'identifiants de contrats d'accès appliqués sur le tenant.
 
-"CreationDate": "CreationDate": date de création du contexte. 
-  Il s'agit d'une date au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+  * Il s'agit d'un tableau de chaines de caractères
+  * Cardinalité : 0-1
 
-"LastUpdate": date de dernière modification du contexte. 
-  Il s'agit d'une date au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+**"IngestContracts":** tableau d'identifiants de contrats d'entrées appliqués sur le tenant.
 
-"SecurityProfile": Nom du profil de sécurité utilisé par le contexte. Ce nom doit correspondre à celui d'un profil de sécurité enregistré dans la collection SecurityProfile.
-  Il s'agit d'une chaîne de caractères
+  * Il s'agit d'un tableau de chaines de caractères
+  * Cardinalité : 0-1
 
-"_v": version de l'objet décrit
-  Il s'agit d'un entier.
+**"CreationDate":** "CreationDate": date de création du contexte. 
+  
+  * Il s'agit d'une date au format ISO 8601
+  * Cardinalité : 1-1 
+
+**"LastUpdate":** date de dernière modification du contexte. 
+  
+  * Il s'agit d'une date au format ISO 8601
+  * Cardinalité : 1-1 
+
+**"SecurityProfile":** Nom du profil de sécurité utilisé par le contexte. Ce nom doit correspondre à celui d'un profil de sécurité enregistré dans la collection SecurityProfile.
+
+  * Il s'agit d'une chaîne de caractères
+  * Cardinalité : 1-1
+
+**"_v": Champs obligatoire peuplé par Vitam** version de l'objet décrit
+
+  * Il s'agit d'un entier.
+  * Cardinalité : 1-1
 
 Collection AccessionRegisterSummary
 ===================================
@@ -688,8 +847,8 @@ Utilisation de la collection
 
 Cette collection contient une vue macroscopique des fonds pris en charge dans la solution logicielle Vitam.
 
-Exemple de JSON stocké en base
---------------------------------
+Exemple de JSON stocké en base comprenant l'exhaustivité des champs
+-------------------------------------------------------------------
 
 ::
 
@@ -736,14 +895,20 @@ Les seuls élements issus du  message ArchiveTransfer, utilisés ici sont ceux c
 Détail des champs
 -----------------
 
-"_id": identifiant unique. 
-  Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+**"_id": Champs obligatoire peuplé par Vitam** identifiant unique.
 
-"_tenant": identifiant du tenant.
-  Il s'agit d'un entier.
+  * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+  * Cardinalité : 1-1
 
-"OriginatingAgency": la valeur de ce champ est une chaîne de caractère.
-  Ce champ est la clef primaire et sert de concaténation pour toutes les entrées effectuées sur ce producteur d'archives. Récupère la valeur contenue dans le bloc <OriginatinAgencyIdentifier> du message ArchiveTransfer.
+**"_tenant": Champs obligatoire peuplé par Vitam** Il s'agit de l'identifiant du tenant dans lequel vont s'appliquer des permissions.
+  
+  * Il s'agit d'une chaîne de caractères.
+  * Cardinalité : 1-1 
+
+**"OriginatingAgency":** la valeur de ce champ est une chaîne de caractère.
+  
+  * Ce champ est la clef primaire et sert de concaténation pour toutes les entrées effectuées sur ce producteur d'archives. Récupère la valeur contenue dans le bloc <OriginatinAgencyIdentifier> du message ArchiveTransfer.
+  * Cardinalité : 1-1 
 
 Par exemple pour
 
@@ -753,39 +918,55 @@ Par exemple pour
 
 On récupère la valeur FRAN_NP_051314.
 
-"TotalObjectGroups": Contient la répartition du nombre de groupes d'objets du service producteur par état
+**"TotalObjectGroups": Champs obligatoire peuplé par Vitam** Contient la répartition du nombre de groupes d'objets du service producteur par état
     (total, deleted et remained)
 
     - "total": Nombre total de groupes d'objets pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
     - "deleted": Nombre de groupes d'objets supprimés ou sortis du système. La valeur contenue dans ce champ est un entier.
     - "remained": Nombre actualisé de groupes d'objets conservés dans le système. La valeur contenue dans ce champ est un entier.
+      
+  * Il s'agit d'un Json
+  * Cardinalité : 1-1 
 
-"TotalObjects": Contient la répartition du nombre d'objets du service producteur par état
+**"TotalObjects": Champs obligatoire peuplé par Vitam** Contient la répartition du nombre d'objets du service producteur par état
     (total, deleted et remained)
 
     - "total": Nombre total d'objets pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
     - "deleted": Nombre d'objets supprimés ou sortis du système. La valeur contenue dans ce champ est un entier.
     - "remained": Nombre actualisé d'objets conservés dans le système. La valeur contenue dans ce champ est un entier.
+      
+  * Il s'agit d'un Json
+  * Cardinalité : 1-1 
 
-"TotalUnits": Contient la répartition du nombre d'unités archivistiques du service producteur par état
+**"TotalUnits": Champs obligatoire peuplé par Vitam** Contient la répartition du nombre d'unités archivistiques du service producteur par état
     (total, deleted et remained)
 
     - "total": Nombre total d'unités archivistiques pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
     - "deleted": Nombre d'unités archivistiques supprimées ou sorties du système. La valeur contenue dans ce champ est un entier.
     - "remained": Nombre actualisé d'unités archivistiques conservées. La valeur contenue dans ce champ est un entier.
-
-"ObjectSize": Contient la répartition du volume total des fichiers du service producteur par état
+      
+  * Il s'agit d'un Json
+  * Cardinalité : 1-1 
+  
+**"ObjectSize": Champs obligatoire peuplé par Vitam** Contient la répartition du volume total des fichiers du service producteur par état
     (total, deleted et remained)
 
     - "total": Volume total en octets des fichiers pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
     - "deleted": Volume total en octets des fichiers supprimés ou sortis du système. La valeur contenue dans ce champ est un entier.
     - "remained": Volume actualisé en octets des fichiers conservés dans le système. La valeur contenue dans ce champ est un entier.
+      
+  * Il s'agit d'un Json
+  * Cardinalité : 1-1 
+    
+**"creationDate": Champs obligatoire peuplé par Vitam**  Date d'inscription du producteur d'archives concerné dans le registre des fonds. 
 
-"creationDate":  Date d'inscription du producteur d'archives concerné dans le registre des fonds. 
-  La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+  * La date est au format ISO 8601
+  * Cardinalité : 0-1
+    
+**"_v": Champs obligatoire peuplé par Vitam** version de l'objet décrit
 
-"_v": Version de l'objet décrit
-  Il s'agit d'un entier.
+  * Il s'agit d'un entier.
+  * Cardinalité : 1-1
 
 Collection AccessionRegisterDetail
 ==================================
@@ -795,8 +976,8 @@ Utilisation de la collection
 
 Cette collection a pour vocation de référencer l'ensemble des informations sur les opérations d'entrées réalisées pour un service producteur. A ce jour, il y a autant d'enregistrements que d'opérations d'entrées effectuées pour ce service producteur, mais des évolutions sont d'ores et déjà prévues.
 
-Exemple de JSON stocké en base
-------------------------------
+Exemple de JSON stocké en base comprenant l'exhaustivité des champs
+-------------------------------------------------------------------
 
 ::
 
@@ -851,13 +1032,17 @@ Les seuls élements issus du message ArchiveTransfer utilisés ici sont ceux cor
 Détail des champs
 -----------------
 
-"_id": identifiant unique.
-  Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+**"_id": Champs obligatoire peuplé par Vitam** identifiant unique.
 
-"_tenant": identifiant du tenant.
-  Il s'agit d'un entier.
+  * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+  * Cardinalité : 1-1
 
-"OriginatingAgency": Contient l'identifiant du service producteur.
+**"_tenant": Champs obligatoire peuplé par Vitam** identifiant du tenant.
+
+  * Il s'agit d'un entier.
+  * Cardinalité : 1-1
+
+**"OriginatingAgency":** Contient l'identifiant du service producteur.
   Il est issu du le bloc <OriginatinAgencyIdentifier>.
 
 Par exemple :
@@ -895,34 +1080,52 @@ Par exemple pour
 On récupère la valeur ArchivalAgreement0.
 La valeur est une chaîne de caractères.
 
-"StartDate": date de la première opération d'entrée correspondant à l'enregistrement concerné. 
-  La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00".
+**"StartDate": Champs obligatoire peuplé par Vitam** date de la première opération d'entrée correspondant à l'enregistrement concerné. 
 
-"EndDate": date de la dernière opération d'entrée correspondant à l'enregistrement concerné. 
-  La date est au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. Exemple : "2016-08-19T16:36:07.942+02:00"
+  * La date est au format ISO 8601
+  * Cardinalité : 1-1
+  
+**"EndDate": Champs obligatoire peuplé par Vitam** date de la dernière opération d'entrée correspondant à l'enregistrement concerné. 
 
-"Status": indication sur l'état des archives concernées par l'enregistrement.
-  La liste des valeurs possibles pour ce champ se trouve en annexe 5.5.
+  * La date est au format ISO 8601
+  * Cardinalité : 1-1
+  
+**"Status": Champs obligatoire peuplé par Vitam** indication sur l'état des archives concernées par l'enregistrement.
 
-"TotalObjectGroups": Contient la répartition du nombre de groupes d'objets du fonds par état pour l'opération journalisée (total, deleted et remained) :
+  * Il s'agit d'une chaîne de caractères
+  * Cardinalité : 1-1
+    
+**"TotalObjectGroups": Champs obligatoire peuplé par Vitam** Contient la répartition du nombre de groupes d'objets du fonds par état pour l'opération journalisée (total, deleted et remained) :
     - "total": Nombre total de groupes d'objets pris en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
     - "deleted": Nombre de groupes d'objets supprimés ou sortis du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
     - "remained": Nombre de groupes d'objets conservés dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
+      
+  * Il s'agit d'un Json
+  * Cardinalité : 1-1
 
-"TotalUnits": Contient la répartition du nombre d'unités archivistiques du fonds par état pour l'opération journalisée (total, deleted et remained) :
+**"TotalUnits": Champs obligatoire peuplé par Vitam** Contient la répartition du nombre d'unités archivistiques du fonds par état pour l'opération journalisée (total, deleted et remained) :
     - "total": Nombre total d'unités archivistiques pris en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
     - "deleted": Nombre d'unités archivistiques supprimées ou sortis du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
     - "remained": Nombre d'unités archivistiques conservées dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
+      
+  * Il s'agit d'un Json
+  * Cardinalité : 1-1
 
-"TotalObjects": Contient la répartition du nombre d'objets du fonds par état pour l'opération journalisée (total, deleted et remained) :
+**"TotalObjects": Champs obligatoire peuplé par Vitam** Contient la répartition du nombre d'objets du fonds par état pour l'opération journalisée (total, deleted et remained) :
     - "total": Nombre total d'objets pris en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
     - "deleted": Nombre d'objets supprimés ou sortis du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
     - "remained": Nombre d'objets conservés dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
+      
+  * Il s'agit d'un Json
+  * Cardinalité : 1-1
 
-"ObjectSize": Contient la répartition du volume total des fichiers du fonds par état pour l'opération journalisée (total, deleted et remained) :
+**"ObjectSize": Champs obligatoire peuplé par Vitam** Contient la répartition du volume total des fichiers du fonds par état pour l'opération journalisée (total, deleted et remained) :
     - "total": Volume total en octet des fichiers pris en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
     - "deleted": Volume total en octets des fichiers supprimés ou sortis du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
     - "remained": Volume total en octets des fichiers conservés dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
+    
+  * Il s'agit d'un Json
+  * Cardinalité : 1-1
 
 Collection VitamSequence
 =========================
@@ -939,8 +1142,8 @@ Cette collection permet de générer des identifiants signifiants pour les enreg
   
 Ces identifiants sont composés d'un préfixe de deux lettres, d'un tiret et d'une suite de six chiffres. Par exemple : IC-027593. Il sont reportés dans les champs Identifier des collections concernées. 
 
-Exemple de JSON stocké en base
-------------------------------
+Exemple de JSON stocké en base comprenant l'exhaustivité des champs
+-------------------------------------------------------------------
 
 ::
 
@@ -955,23 +1158,30 @@ Exemple de JSON stocké en base
 Détail des champs
 -----------------
 
-"_id": Identifiant unique.
-    Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+**"_id": Champs obligatoire peuplé par Vitam** identifiant unique.
 
-"Name": préfixe.
-  Il s'agit du préfixe utilisé pour générer un identifiant signifiant. La valeur contenue dans ce champ doit correspondre à la map du service VitamCounterService.java. La liste des valeurs possibles est détaillée en annexe 5.6.
-  Il s'agit d'une chaîne de caractères.
+  * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+  * Cardinalité : 1-1
 
-"Counter": numéro incrémental.
-  Il s'agit du dernier numéro utilisé pour générer un identifiant signifiant.
-  Il s'agit d'un entier.
+**"Name": Champs obligatoire peuplé par Vitam** préfixe. Il s'agit du préfixe utilisé pour générer un identifiant signifiant. La valeur contenue dans ce champ doit correspondre à la map du service VitamCounterService.java. La liste des valeurs possibles est détaillée en annexe 5.6.
 
-"_tenant": information sur le tenant
-  Il s'agit de l'identifiant du tenant utilisant l'enregistrement
-  Il s'agit d'un entier.
+  * Il s'agit d'une chaîne de caractères.
+  * Cardinalité : 1-1
 
-"_v": version de l'objet décrit
-  Il s'agit d'un entier.
+**"Counter": Champs obligatoire peuplé par Vitam** numéro incrémental. Il s'agit du dernier numéro utilisé pour générer un identifiant signifiant.
+
+  * Il s'agit d'un entier.
+  * Cardinalité : 1-1
+
+**"_tenant": Champs obligatoire peuplé par Vitam** information sur le tenant. Il s'agit de l'identifiant du tenant utilisant l'enregistrement
+
+  * Il s'agit d'un entier.
+  * Cardinalité : 1-1
+
+**"_v": Champs obligatoire peuplé par Vitam** version de l'objet décrit
+
+  * Il s'agit d'un entier.
+  * Cardinalité : 1-1
 
 Collection SecurityProfile
 ==========================
@@ -981,8 +1191,8 @@ Utilisation de collection
 
 Cette collection contient les profils de sécurité mobilisés par les contextes.
 
-Exemple de JSON stocké en base
-------------------------------
+Exemple de JSON stocké en base comprenant l'exhaustivité des champs
+-------------------------------------------------------------------
 
 {
     "_id": "aegqaaaaaaeucszwabglyak64gjmgbyaaaba",
@@ -1004,25 +1214,37 @@ Exemple de JSON stocké en base
 Détail des champs
 -----------------
 
-"_id": identifiant unique du profil de sécurité.
-    Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+**"_id": Champs obligatoire peuplé par Vitam** identifiant unique.
 
-"Identifier": identifiant signifiant donné au profil de sécurité.
-  Il est consituté du préfixe "SEC_PROFILE-" suivi d'une suite de 6 chiffres. Par exemple : SEC_PROFILE-001573.
-  Il s'agit d'une chaîne de caractères. 
+  * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+  * Cardinalité : 1-1
 
-"Name":  *Champ obligatoire* nom du profil de sécurité, qui doit être unique sur la plateforme.
-  Il s'agit d'une chaîne de caractères.
+**"Identifier": Champs obligatoire peuplé par Vitam** identifiant signifiant donné au profil de sécurité.
+  
+  * Il est consituté du préfixe "SEC_PROFILE-" suivi d'une suite de 6 chiffres. Par exemple : SEC_PROFILE-001573.
+  * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+  * Cardinalité : 1-1
 
-"FullAccess": mode super-administrateur. Donne toutes les permissions.
-  Il s'agit d'un booléen.
-  S'il est à false, le mode super-admin n'est pas activé et les valeurs du champ permission sont utilisées. S'il est à true, le champ permission doit être vide.
+**"Name":** nom du profil de sécurité, qui doit être unique sur la plateforme.
+  
+  * Il s'agit d'une chaîne de caractères.
+  * Cardinalité : 1-1
+
+**"FullAccess":** mode super-administrateur. Donne toutes les permissions.
+  
+  * Il s'agit d'un booléen.
+  * S'il est à false, le mode super-admin n'est pas activé et les valeurs du champ permission sont utilisées. S'il est à true, le champ permission doit être vide.
+  * Cardinalité : 1-1
 
 "Permissions": décrit l'ensemble des permissions auxquelles le profil de sécurité donne accès. Chaque API externe contient un verbe OPTION qui retourne la liste des services avec leur description et permissions associées.
-  Il s'agit d'un tableau de chaînes de caractères.
+  
+  * Il s'agit d'un tableau de chaînes de caractères.
+  * Cardinalité : 0-1
 
-"_v": version de l'objet décrit
-  Il s'agit d'un entier.
+**"_v": Champs obligatoire peuplé par Vitam** version de l'objet décrit
+
+  * Il s'agit d'un entier.
+  * Cardinalité : 1-1
 
 Collection Agencies
 ===================
@@ -1032,8 +1254,8 @@ Utilisation de collection
 
 La collection IngestContract permet de référencer et décrire unitairement les services agent.
 
-Exemple de JSON stocké en base
-------------------------------
+Exemple de JSON stocké en base comprenant l'exhaustivité des champs
+--------------------------------------------------------------------
 
 ::
 
@@ -1049,22 +1271,31 @@ Exemple de JSON stocké en base
 Détail des champs
 -----------------
 
-"_id": Identifiant unique.
-  Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+**"_id": Champs obligatoire peuplé par Vitam** identifiant unique.
 
-"Name": *Champ obligatoire* nom du service agent, qui doit être unique sur la plateforme.
-  Il s'agit d'une chaîne de caractères.
+  * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+  * Cardinalité : 1-1
 
-"Description": *Champ obligatoire* Description du service agent.
-  Il s'agit d'une chaîne de caractères.
+**"Name":** nom du service agent, qui doit être unique sur la plateforme.
 
-"Identifier": *Champ obligatoire* identifiant signifiant donné au service agent.
+  * Il s'agit d'une chaîne de caractères.
+  * Cardinalité : 1-1
+
+"Description": Description du service agent.
+  
+  * Il s'agit d'une chaîne de caractères.
+  * Cardinalité : 0-1
+
+"Identifier":  identifiant signifiant donné au service agent.
   Le contenu de ce champs est obligatoirement renseignée dans le Json permettant de créer le contrat. En aucun cas Vitam peut être maître sur la création de cet identifiant comme cela peut être le cas pour d'autres données référentielles.
   Il s'agit d'une chaîne de caractères. 
 
-"_tenant": information sur le tenant
-  Il s'agit de l'identifiant du tenant utilisant l'enregistrement
-  Il s'agit d'un entier.
+**"_tenant": Champs obligatoire peuplé par Vitam** information sur le tenant. Il s'agit de l'identifiant du tenant utilisant l'enregistrement
 
-"_v": version de l'objet décrit
-  Il s'agit d'un entier.
+  * Il s'agit d'un entier.
+  * Cardinalité : 1-1
+
+**"_v": Champs obligatoire peuplé par Vitam** version de l'objet décrit
+
+  * Il s'agit d'un entier.
+  * Cardinalité : 1-1

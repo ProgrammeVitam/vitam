@@ -32,6 +32,13 @@ Les fichiers à renseigner pour rajouter un nouvel index sont stockés dans le r
 Généralités
 ===========
 
+Cardinalité
+------------
+
+La cardinalité présentée pour chacun des champs présents dans les différents enregistrements présentés sont ceux de la base de donnée.
+
+Certains champs ayant une cardinalité 1:1 peuplés par la solution logiciele Vitam seront donc obligatoirement présent dans la base de données mais ne le sont pas dans les données envoyées.
+
 Nommage des champs
 ------------------
 

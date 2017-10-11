@@ -12,10 +12,13 @@ Collection Unit
 Utilisation de la collection Unit
 ---------------------------------
 
-La collection Unit contient les informations relatives aux unités archivistiques.
+La collection Unit contient les informations relatives aux unités archivistiques. 
 
-Exemple de JSON
----------------
+Exemple de Json stocké en base
+------------------------------
+
+Les champs présentés dans l'exemple ci-après ne fait pas état de l'exhaustivité des champs disponibles dans le SEDA. Ceux-ci sont référencés dans la documentation SEDA disponible au lien suivant : https://redirect.francearchives.fr/seda/api_v2/doc.html
+
 
 .. code-block:: json
 
@@ -120,81 +123,124 @@ La structure de la collection Unit est composée de la transposition JSON de tou
 
 Cette transposition se fait comme suit :
 
-"_id": identifiant unique de l'unité archivistique.
-    Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+**"_id": Champs obligatoire peuplé par Vitam** identifiant unique de l'unité archivistique.
+    
+  * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+  * Cardinalité : 1-1
 
-"_og" (objectGroup): identifiant du groupe d'objets référencé dans cette unité archivistique.
-    Il s'agit d'une chaîne de 36 caractères correspondant au GUID du champ _id de la collection objectGroup.
+**"_og" (objectGroup):** identifiant du groupe d'objets référencé dans cette unité archivistique.
+    
+  * Il s'agit d'une chaîne de 36 caractères correspondant au GUID du champ _id de la collection objectGroup.
+  * Cardinalité : 0-1
 
-"_sps": services producteurs liés à l'unité archivistique.
-  Il s'agit d'un tableau contenant tous les services producteurs référençant l'unité archivistique.
-  Il s'agit d'un tableau de chaînes de caractères.
+**"_sps":** services producteurs liés à l'unité archivistique.
+  
+  * Il s'agit d'un tableau contenant tous les services producteurs référençant l'unité archivistique.
+  * Il s'agit d'un tableau de chaînes de caractères.
+  * Cardinalité : 1-1
 
-"_sp": service producteur d'origine.
-  Il s'agit du service producteur inscrit dans le bordereau lié au transfert de l'unité archivistique.
-  Il s'agit d'une chaîne de caractères.
+**"_sp":** service producteur d'origine.
+  
+  * Il s'agit du service producteur inscrit dans le bordereau lié au transfert de l'unité archivistique.
+  * Il s'agit d'une chaîne de caractères.
+  * Cardinalité : 1-1
 
-"DescriptionLevel": niveau de description archivistique de l'unité archivistique.
-    Il s'agit d'une chaîne de caractères.
-    Ce champ est renseigné avec les valeurs situées entre les balises <DescriptionLevel> dans le bordereau.
+**"DescriptionLevel":** niveau de description archivistique de l'unité archivistique.
+    
+  * Il s'agit d'une chaîne de caractères.
+  * Ce champ est renseigné avec les valeurs situées entre les balises <DescriptionLevel> dans le bordereau.
+  * Cardinalité : 1-1
 
-"Title": titre de l'unité archivistique.
-    Il s'agit d'une chaîne de caractères.
-    Ce champ est renseigné avec les valeurs situées entre les balises <Title> dans le bordereau.
+**"Title":** titre de l'unité archivistique.
+  
+  * Il s'agit d'une chaîne de caractères.
+  * Ce champ est renseigné avec les valeurs situées entre les balises <Title> dans le bordereau.
+  * Cardinalité : 1-1
 
-"Titles": titres de l'unité archivistique par langue.
-    Il s'agit d'un JSON.
-    Les titres sont organisés sous la forme de clef - valeur, la clef étant l'indicatif de la langue, la valeur le titre. Par exemple : "fr": "Maecenas sodales eleifend suscipit. Fusce vitae magna nec erat bibendum imperdiet in vel eros."
+**"Titles":** titres de l'unité archivistique par langue.
+    
+  * Il s'agit d'un JSON.
+  * Les titres sont organisés sous la forme de clef - valeur, la clef étant l'indicatif de la langue, la valeur le titre. Par exemple : "fr": "Maecenas sodales eleifend suscipit. Fusce vitae magna nec erat bibendum imperdiet in vel eros."
+  * Cardinalité : 0-1
 
-"Description": description de l'unité archivistique.
-    Il s'agit d'une chaîne de caractères.
-    Ce champ est renseigné avec les informations situées entre les balises <description> de l'unité archivistique concernée dans le bordereau.
+**"Description":** description de l'unité archivistique.
 
-"Description": description de l'unité archivistique par langue.
-    Il s'agit d'un JSON.
-    Les descriptions sont organisées sous la forme de clef - valeur, la clef étant l'indicatif de la langue, la valeur la description. Par exemple : "fr": "Maecenas sodales eleifend suscipit. Fusce vitae magna nec erat bibendum imperdiet in vel eros."
+  * Il s'agit d'une chaîne de caractères.
+  * Ce champ est renseigné avec les informations situées entre les balises <description> de l'unité archivistique concernée dans le bordereau.
+  * Cardinalité : 1-1
 
-"XXXXX": des champs facultatifs peuvent être contenus dans le JSON lorsqu'ils sont renseignés dans le bordereau au niveau du Content de chaque unité archivistique.
-    Se reporter à la documentation descriptive du SEDA 2.0 et notamment le schéma ontology.xsd pour connaître la liste des métadonnées facultatives)
+**"Description":** description de l'unité archivistique par langue.
+    
+  * Il s'agit d'un JSON
+  * Les descriptions sont organisées sous la forme de clef - valeur, la clef étant l'indicatif de la langue, la valeur la description. Par exemple : "fr": "Maecenas sodales eleifend suscipit. Fusce vitae magna nec erat bibendum imperdiet in vel eros."
+  * Cardinalité : 0-N
 
-"_ops" (operations): tableau contenant les identifiants d'opérations auxquelles cette unité archivistique a participé.
+**"XXXXX":** des champs facultatifs peuvent être contenus dans le JSON lorsqu'ils sont renseignés dans le bordereau au niveau du Content de chaque unité archivistique.
+    
+  * Se reporter à la documentation descriptive du SEDA 2.0 et notamment le schéma ontology.xsd pour connaître la liste des métadonnées facultatives)
+
+**"_ops"** (operations): tableau contenant les identifiants d'opérations auxquelles cette unité archivistique a participé.
     Il s'agit d'une chaîne de 36 caractères correspondant au GUID du champs _id de la collection logBookOpération.
 
-"_unitType": champ indiquant le type d'unité archivistique concerné. Il s'agit d'une chaîne de caractères. La valeur contenue doit être conforme à l'énumération UnitType. Celle-ci peut être :
-  * INGEST : unité d'archivistique issue d'un SIP
-  * FILING_UNIT : unité d'archivistique issue d'un plan de classement
-  * HOLDING_UNIT : unité d'archivistique issue d'un arbre de positionnement
+**"_unitType":** champ indiquant le type d'unité archivistique concerné. 
 
-"_v": version de l'objet décrit.
-    Il s'agit d'un entier.
+  * Il s'agit d'une chaîne de caractères. 
+  * La valeur contenue doit être conforme à l'énumération UnitType. Celle-ci peut être :
+  
+      * INGEST : unité d'archivistique issue d'un SIP
+      * FILING_UNIT : unité d'archivistique issue d'un plan de classement
+      * HOLDING_UNIT : unité d'archivistique issue d'un arbre de positionnement
 
-"_tenant" (tenant): identifiant du tenant.
-  Il s'agit d'un entier.
+  * Cardinalité : 1-1
 
-"_max": profondeur maximale de l'unité archivistique par rapport à une racine.
-  Calculée, cette profondeur correspond au maximum des profondeurs, quelles que soient les racines concernées et les chemins possibles.
+**"_v": Champs obligatoire peuplé par Vitam** version de l'objet décrit.
+  
+  * Il s'agit d'un entier.
+  * Cardinalité : 1-1
 
-"_min": profondeur minimum de l'unité archivistique par rapport à une racine.
-  Calculée, symétriquement le minimum des profondeurs, quel que soient les racines concernées et les chemins possibles.
+**"_tenant": Champs obligatoire peuplé par Vitam** identifiant du tenant.
+    
+  * Il s'agit d'un entier.
+  * Cardinalité : 1-1
 
-"_up": tableau recenssant les _id des unités archivistiques parentes (parents immédiats).
-  Il s'agit d'une chaîne de 36 caractères correspondant au GUID. Valeur du champ _id de la collection Unit.
+**"_max": Champs obligatoire peuplé par Vitam** profondeur maximale de l'unité archivistique par rapport à une racine.
+      
+  * Calculée, cette profondeur correspond au maximum des profondeurs, quelles que soient les racines concernées et les chemins possibles.
+  * Cardinalité : 1-1
 
-"_nbc" : nombre d'enfants immédiats de l'unité archivistique.
-  Il s'agit d'une chaîne de 36 caractères.
+**"_min": Champs obligatoire peuplé par Vitam** profondeur minimum de l'unité archivistique par rapport à une racine.
+      
+  * Calculée, symétriquement le minimum des profondeurs, quel que soient les racines concernées et les chemins possibles.
+  * Cardinalité : 1-1
 
-"_us": tableau contenant la parentalité, indexé de la manière suivante : [ GUID1, GUID2, ... ].
-  Tableau de chaînes de 36 caractères.
+**"_up": Champs obligatoire peuplé par Vitam** tableau recenssant les _id des unités archivistiques parentes (parents immédiats).
+      
+  * Il s'agit d'une chaîne de 36 caractères correspondant au GUID. Valeur du champ _id de la collection Unit.
+  * Cardinalité : 1-1
 
-"_uds": tableau contenant la parentalité ainsi que le niveau de profondeur relative.
-  Ces informations sont réunies dans le tableau sous la forme de clef/valeur. Exemple [{GUID1 : depth1}, {GUID2 : depth2}, ... }].
-  Il s'agit d'un tableau de JSON.
+**"_nbc" : Champs obligatoire peuplé par Vitam** nombre d'enfants immédiats de l'unité archivistique.
+      
+  * Il s'agit d'une chaîne de 36 caractères.
+  * Cardinalité : 1-1
 
-_profil: Type de document utilisé lors de l'entrée.
-  Correspond à ArchiveUnitProfile, le profil d'archivage utilisé lors de l'entrée.
-  Chaîne de caractères.
+**"_us": Champs obligatoire peuplé par Vitam** tableau contenant la parentalité, indexé de la manière suivante : [ GUID1, GUID2, ... ].
+      
+  * Tableau de chaînes de 36 caractères.
+  * Cardinalité : 1-1
 
-"_mgt": **contient les balises reprises du bloc <Management> du bordereau pour cette unité archivistique** :
+**"_uds": Champs obligatoire peuplé par Vitam** tableau contenant la parentalité ainsi que le niveau de profondeur relative.
+      
+  * Ces informations sont réunies dans le tableau sous la forme de clef/valeur. Exemple [{GUID1 : depth1}, {GUID2 : depth2}, ... }].   
+  * Il s'agit d'un tableau de JSON.
+
+**_profil:** Type de document utilisé lors de l'entrée.
+      
+  * Correspond à ArchiveUnitProfile, le profil d'archivage utilisé lors de l'entrée.   
+  * Chaîne de caractères.
+  * Cardinalité : 1-1
+
+**"_mgt": contient les balises reprises du bloc <Management> du bordereau pour cette unité archivistique** :
+
   * "OriginatingAgency": service producteur déclaré dans le message ArchiveTransfer (OriginatingAgencyIdentifier)
   * "RuleType" : catégorie de règles de gestion appliquées à cette unité archivistiques. Chaque catégorie contient un tableau de règles de gestion et des paramétres d'héritage de règles. Pour être valide, la catégorie de règle doit être présente dans la collection FileRules.
     * "Rules" : Tableau, optionnel, contient une à n règles. Chaque règle est composée des champs suivants :
@@ -210,7 +256,6 @@ _profil: Type de document utilisé lors de l'entrée.
     * "PreventInheritance" : champ booléan indiquant si les règles de gestion de la même catégorie ne doivent pas être héritées d'un ancêtre.
     * "PreventRulesId" : tableau de d'identifiants de règles de gestion qui ne doivent pas être héritées d'un ancêtre.
 
-
 Collection ObjectGroup
 ======================
 
@@ -221,6 +266,8 @@ La collection ObjectGroup contient les informations relatives aux groupes d'obje
 
 Exemple de Json stocké en base
 ------------------------------
+
+Les champs présentés dans l'exemple ci-après ne fait pas état de l'exhaustivité des champs disponibles dans le SEDA. Ceux-ci sont référencés dans la documentation SEDA disponible au lien suivant : https://redirect.francearchives.fr/seda/api_v2/doc.html
 
 .. code-block:: json
 
@@ -357,23 +404,31 @@ Ci-après, la portion d'un bordereau (manifest.xml) utilisée pour contribuer le
 Détail des champs du JSON
 ---------------------------
 
-"_id": identifiant du groupe d'objet.
-  Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
+**"_id":** identifiant du groupe d'objet.
+      
+  * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
   Cet id est ensuite reporté dans chaque structure incluse
+  * Cardinalité : 1-1
 
-"_tenant": identifiant du tenant.
-  Il s'agit d'un entier.
+**"_tenant":** identifiant du tenant.
+      
+  * Il s'agit d'un entier.
+  * Cardinalité : 1-1
 
-"_profil": typologie de document.
-  Repris du nom de la balise présente dans le <Metadata> du <DataObjectPackage> du bordereau qui concerne le BinaryMaster.
+**"_profil":** typologie de document.
+      
+  * Repris du nom de la balise présente dans le <Metadata> du <DataObjectPackage> du bordereau qui concerne le BinaryMaster.
   Attention, il s'agit d'une reprise de la balise et non pas des valeurs à l'intérieur.
   Les valeurs possibles pour ce champ sont : Audio, Document, Text, Image et Video. Des extensions seront possibles (Database, Plan3D, ...).
 
-"FileInfo": reprend le bloc FileInfo du BinaryMaster.
- L'objet de cette copie est de pouvoir conserver les informations initiales du premier BinaryMaster (version de création), au cas où cette version serait détruite (selon les règles de conservation), car ces informations ne sauraient être maintenues de manière garantie dans les futures versions.
+**"FileInfo":** reprend le bloc FileInfo du BinaryMaster.
+      
+  * L'objet de cette copie est de pouvoir conserver les informations initiales du premier BinaryMaster (version de création), au cas où cette version serait détruite (selon les règles de conservation), car ces informations ne sauraient être maintenues de manière garantie dans les futures versions.
+  * Cardinalité : 1-1
 
-"_qualifiers": tableau de structures décrivant les objets inclus dans ce groupe d'objets.
-  Il est composé comme suit :
+**"_qualifiers":** tableau de structures décrivant les objets inclus dans ce groupe d'objets.
+      
+  * Il est composé comme suit :
 
   - "qualifier": usage de l'objet.
     Ceci correspond à la valeur contenue dans le champ <DataObjectVersion> du bordereau. Par exemple pour <DataObjectVersion>BinaryMaster_1</DataObjectVersion>. C'est la valeur "BinaryMaster" qui est reportée.
@@ -411,25 +466,33 @@ Détail des champs du JSON
           - "offerIds": Liste des offres de stockage pour une stratégie donnée
           - "_nbc": Nombre d'offres.
 
-"_up" (unitup): tableau identifiant les unités archivistiques parentes
-  Il s'agit d'un tableau de chaînes de 36 caractères correspondant à un GUID contenu à la valeur contenue dans le champ _id de la collection Unit.
+**"_up"** (unitup): tableau identifiant les unités archivistiques parentes
+        
+  * Il s'agit d'un tableau de chaînes de 36 caractères correspondant à un GUID contenu à la valeur contenue dans le champ _id de la collection Unit.
+  * Cardinalité : 1-1
 
-"_nbc" (nbobjects): nombre d'objets dans le groupe d'objet.
-  Il s'agit d'un entier.
+**"_nbc"** (nbobjects): nombre d'objets dans le groupe d'objet.
+        
+  * Il s'agit d'un entier.
+  * Cardinalité : 1-1
 
-"_ops" (operations): tableau des identifiants d'opérations auxquelles ce GOT a participé.
-  Il s'agit d'un tableau de chaînes de 36 caractères correspondant à un GUID contenu à la valeur contenue dans le champ _id de la collection LogBookOperation.
+**"_ops"** (operations): tableau des identifiants d'opérations auxquelles ce GOT a participé.
+        
+  * Il s'agit d'un tableau de chaînes de 36 caractères correspondant à un GUID contenu à la valeur contenue dans le champ _id de la collection LogBookOperation.
+  * Cardinalité : 1-1
 
-"OriginatingAgency": service producteur déclaré dans le message ArchiveTransfer (OriginatingAgencyIdentifier)
-  Il s'agit d'une chaîne de caractères.
+**"OriginatingAgency":** service producteur déclaré dans le message ArchiveTransfer (OriginatingAgencyIdentifier)
+        
+  * Il s'agit d'une chaîne de caractères.
+  * Cardinalité : 1-1
 
-"_sps": services producteurs liées au groupe d'objets
-  Il s'agit d'un tableau contenant tous les services producteurs référençant le groupe d'objet.
-  Il s'agit d'un tableau de chaînes de caractère.
+**"_sps":** services producteurs liées au groupe d'objets
+        
+  * Il s'agit d'un tableau contenant tous les services producteurs référençant le groupe d'objet.    
+  * Il s'agit d'un tableau de chaînes de caractère.
+  * Cardinalité : 1-1
 
-"_v": version de l'objet décrit
-  Il s'agit d'un entier.
-
-"_sps": services producteurs liées au groupe d'objets
-  Il s'agit d'un tableau contenant tous les services producteurs référençant le groupe d'objet.
-  Il s'agit d'un tableau de chaînes de caractère.
+**"_v":** version de l'objet décrit
+        
+  * Il s'agit d'un entier.
+  * Cardinalité : 1-1
