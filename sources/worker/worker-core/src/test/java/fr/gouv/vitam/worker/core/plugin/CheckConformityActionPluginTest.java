@@ -95,6 +95,10 @@ public class CheckConformityActionPluginTest {
 
     private static final String OBJECT_GROUP_BDO_AND_PDO =
         "checkConformityActionPlugin/aebaaaaaaaakwtamaai7cak32lvlyoyaaaba.json";
+    private static final String OBJECT_GROUP_DIGEST_EMPTY = 
+        "checkConformityActionPlugin/aebaaaaaaaakwtamaai7cak32lvlyoyaaabb.json";
+    private static final String OBJECT_GROUP_DIGEST_INVALID = 
+        "checkConformityActionPlugin/aebaaaaaaaakwtamaai7cak32lvlyoyaaabc.json";
 
     @Before
     public void setUp() {
@@ -165,6 +169,54 @@ public class CheckConformityActionPluginTest {
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
         assertEquals(response.getItemsStatus().get(CALC_CHECK).getEvDetailData(), EV_DETAIL_DATA_BDO_AND_PDO);
+        handlerIO.close();
+    }
+    
+    @Test
+    public void checkEmptyDigestMessage() throws Exception {
+        InputStream objectGroupEmptyDigest = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_DIGEST_EMPTY);
+        when(workspaceClient.getObject(anyObject(), eq("ObjectGroup/objectName2")))
+            .thenReturn(Response.status(Status.OK).entity(objectGroupEmptyDigest).build());
+        when(workspaceClient.getObject(anyObject(), eq("SIP/Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf")))
+            .thenReturn(Response.status(Status.OK).entity(PropertiesUtils
+            .getResourceAsStream("checkConformityActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))
+            .build());
+        
+        plugin = new CheckConformityActionPlugin();
+        final WorkerParameters params = getDefaultWorkerParameters();
+        params.setObjectName("objectName2");
+        final HandlerIOImpl handlerIO = new HandlerIOImpl("CheckConformityActionHandlerTest", "workerId");
+        final List<IOParameter> in = new ArrayList<>();
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.VALUE, "SHA-512")));
+        handlerIO.addInIOParameters(in);
+        handlerIO.addOutIOParameters(out);
+        final ItemStatus response = plugin.execute(params, handlerIO);
+        assertEquals("EMPTY", response.getGlobalOutcomeDetailSubcode());
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
+        handlerIO.close();
+    }
+    
+    @Test
+    public void checkInvalidDigestMessage() throws Exception {
+        InputStream objectGroupInvalideDigest = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_DIGEST_INVALID);
+        when(workspaceClient.getObject(anyObject(), eq("ObjectGroup/objectName3")))
+            .thenReturn(Response.status(Status.OK).entity(objectGroupInvalideDigest).build());
+        when(workspaceClient.getObject(anyObject(), eq("SIP/Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf")))
+            .thenReturn(Response.status(Status.OK).entity(PropertiesUtils
+            .getResourceAsStream("checkConformityActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))
+            .build());
+        
+        plugin = new CheckConformityActionPlugin();
+        final WorkerParameters params = getDefaultWorkerParameters();
+        params.setObjectName("objectName3");
+        final HandlerIOImpl handlerIO = new HandlerIOImpl("CheckConformityActionHandlerTest", "workerId");
+        final List<IOParameter> in = new ArrayList<>();
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.VALUE, "SHA-512")));
+        handlerIO.addInIOParameters(in);
+        handlerIO.addOutIOParameters(out);
+        final ItemStatus response = plugin.execute(params, handlerIO);
+        assertEquals("INVALID", response.getGlobalOutcomeDetailSubcode());
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
         handlerIO.close();
     }
 
