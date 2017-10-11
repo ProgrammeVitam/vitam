@@ -26,14 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.json;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import java.io.FileNotFoundException;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum;
 import org.junit.Test;
-
-import java.io.FileNotFoundException;
-
-import static org.junit.Assert.assertTrue;
 
 public class SchemaValidationUtilsTest {
 
@@ -79,7 +80,7 @@ public class SchemaValidationUtilsTest {
         SchemaValidationStatus status = schemaValidation
             .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(STRING_BIRTH_PLACE_JSON_FILE))
                 .get(TAG_ARCHIVE_UNIT));
-        assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.NOT_AU_JSON_VALID));
+        assertThat(status.getValidationStatus()).isEqualTo(SchemaValidationStatusEnum.NOT_AU_JSON_VALID);
     }
 
     @Test
