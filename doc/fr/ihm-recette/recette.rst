@@ -17,6 +17,11 @@ Elle contient des interfaces utilisateurs permettant, par tenant, de :
   * Lancer des tests automatisés via SOAP UI
   * Sécuriser manuellement les journaux des opérations
   * Consulter les journaux de sécurisation
+
+Certificat
+----------
+
+L'accès de l'IHM recette de la solution logicielle Vitam nécéssite l'utilisation d'un certificat. Celui-ci sera mis à disposition par l'administrateur de la soution logicielle Vitam.
     
 Accès 
 -----
@@ -28,6 +33,40 @@ L'accès à l'IHM de recette s'effectue par un chemin différent de l'IHM démo.
 Par soucis de distinction visuelle avec l'interface de démo, la couleur dominante de cette IHM est le rouge.
 
 .. image:: images/RECETTE_accueil.png
+
+Navigation
+----------
+
+Par défaut, suite à sa connexion l'utilisateur accède à la page d'administration des collections.
+
+Le menu de navigation contient trois menus
+
+.. image:: images/RECETTE_navigation.png
+
+Les pages accesibles sont réparties de la façon suivante.
+
+**Admin**
+
+	* Administreation des collections
+
+**Tests**
+
+	* Tests de performance
+	* Tests fonctionnels
+	* Tests requêtes DSL
+
+**Sécurisation**
+
+	* Sécurisation du journal des opérations
+
+Fil d'Ariane
+------------
+
+Le fil d’Ariane est un élément qui permet de visualiser le chemin d’accès à la page affichée. Il est situé sur toutes les pages, en dessous du menu.
+
+Il est est composé d'un symbole "home" du nom du menu dans lequel se trouve la page en cours puis de la page en cours.
+
+.. image:: images/RECETTE_Fil_Ariane.png
 
 Titre des onglets
 -----------------
@@ -53,21 +92,6 @@ Dans le reste de ce document, il est considéré que l'utilisateur s'est placé 
 L'utilisateur peut changer de tenant à tout moment, en réitérant l'opération précédente.
 
 NB : le référentiel des formats est lié à la plateforme et non à un tenant. C'est pour cette raison que l'option de suppression du référentiel des formats est toujours disponible, même si aucun tenant n'est sélectionné.
-
-Navigation
-----------
-
-Par défaut, suite à sa connexion l'utilisateur accède à la page d'administration des collections.
-
-Le menu de navigation contient les entrées suivantes :
-
-  * Administration des collections
-  * Transfert (test de performance)
-  * Sécurisation d'un journal des opérations
-  * Tests fonctionnels
-  * Tests requêtes DSL
-
-.. image:: images/RECETTE_navigation.png
 
 
 
