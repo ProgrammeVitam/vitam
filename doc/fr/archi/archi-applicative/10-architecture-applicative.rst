@@ -22,16 +22,29 @@ Les principes d'implémentation applicative ont pour but de faciliter, voire d'a
 Services
 ========
 
-Le système VITAM est découpé en services autonomes interagissant pour permettre de rendre le service global; ce découpage applicatif suit en grande partie le découpage présenté plus haut dans l'architecture fonctionnelle :
+Le système VITAM est découpé en services autonomes interagissant pour permettre de rendre le service global; ce découpage applicatif suit en grande partie le découpage présenté plus haut dans l'architecture fonctionnelle. 
 
-.. figure:: images/vitam-applicative-architecture.*
+Les schémas suivants présentent l'architecture applicative et les flux d'informations entre composants. Tous les composants jaunes sont fournis dans le cadre de la solution VITAM ; tous sont requis pour le bon fonctionnement de la solution, à l'exception de deux d'entre eux : ihm-demo et storage-offer-default (selon les choix de déploiement). Enfin, chaque service possède un nom propre qui l'identifie de manière unique au sein du système VITAM.
+
+.. figure:: images/vitam-applicative-architecture-datacmd.*
     :align: center
     :height: 15 cm
 
+    Architecture applicative : flux de données d'archives et de commandes    
 
-    Architecture applicative et flux d'informations entre composants. Tous les composants jaunes sont fournis dans le cadre de la solution VITAM ; tous sont requis pour le bon fonctionnement de la solution, à l'exception de deux d'entre eux : ihm-demo et storage-offer-default (selon les choix de déploiement)
+.. figure:: images/vitam-applicative-architecture-logbook.*
+    :align: center
+    :height: 15 cm
 
-    Chaque service possède un nom propre qui l'identifie de manière unique au sein du système VITAM.
+    Architecture applicative : flux de données de journalisation   
+ 
+.. figure:: images/vitam-applicative-architecture-ref.*
+    :align: center
+    :height: 15 cm
+
+    Architecture applicative : flux de données de référentiels    
+
+
 
 Les services sont organisés en zones logiques :
 
