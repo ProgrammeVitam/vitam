@@ -28,9 +28,11 @@ package fr.gouv.vitam.worker.core.handler;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
@@ -60,6 +62,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -198,8 +201,8 @@ public class CheckDataObjectPackageActionHandlerTest {
         when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
                 .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
 
-        when(adminManagementClient.findIngestContracts(anyObject()))
-                .thenReturn(new RequestResponseOK());
+        when(adminManagementClient.findIngestContractsByID(Matchers.anyString()))
+                .thenReturn(ClientMockResultHelper.getIngestContracts());
         action.addOutIOParameters(out);
         action.addInIOParameters(in);
         final ItemStatus response = handler.execute(params, action);

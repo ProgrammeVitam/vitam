@@ -74,6 +74,8 @@ public final class DslQueryHelper {
     private static final String CONTEXT_NAME = "ContextName";
     private static final String CONTRACT_ID = "ContractID";
     private static final String CONTRACT_NAME = "ContractName";
+    private static final String AGENCY_ID = "AgencyID";
+    private static final String AGENCY_NAME = "AgencyName";
     private static final String PROFILE_ID = "ProfileID";
     private static final String PROFILE_IDENTIFIER = "ProfileIdentifier";
     private static final String PROFILE_NAME = "ProfileName";
@@ -156,6 +158,7 @@ public final class DslQueryHelper {
 
                 String realSortField = sortField;
                 switch (sortField) {
+                    case AGENCY_NAME:
                     case CONTRACT_NAME:
                         realSortField = "Name";
                         break;
@@ -283,7 +286,11 @@ public final class DslQueryHelper {
                             query.add(lte(TRACEABILITY_EV_DET_DATA + '.' + END_DATE, searchValue));
                         }
                         break;
+
+                    case AGENCY_NAME:
+                    case CONTEXT_NAME:
                     case CONTRACT_NAME:
+                    case PROFILE_NAME:
                         if ("all".equals(searchValue)) {
                             query.add(exists("Name"));
                         }
@@ -292,26 +299,15 @@ public final class DslQueryHelper {
                         }
                         break;
 
+                    case AGENCY_ID:
                     case CONTRACT_ID:
-                        if (!"all".equals(searchValue)) {
-                            query.add(eq("Identifier", searchValue));
-                        }
-                        break;
-                        
-                    case CONTEXT_NAME:
-                        if ("all".equals(searchValue)) {
-                            query.add(exists("Name"));
-                        }
-                        else  if (!searchValue.isEmpty()) {
-                            query.add(match("Name", searchValue));
-                        }
-                        break;
-                        
                     case CONTEXT_ID:
+                    case PROFILE_ID:
                         if (!"all".equals(searchValue)) {
                             query.add(eq("Identifier", searchValue));
                         }
                         break;
+
 
                     case PROFILE_IDENTIFIER:
                         if ("all".equals(searchValue)) {
@@ -319,20 +315,6 @@ public final class DslQueryHelper {
                         }
                         else  if (!searchValue.isEmpty()) {
                             query.add(match("Identifier", searchValue));
-                        }
-                        break;
-
-                    case PROFILE_ID:
-                        if (!"all".equals(searchValue)) {
-                            query.add(eq("Identifier", searchValue));
-                        }
-                        break;
-                    case PROFILE_NAME:
-                        if ("all".equals(searchValue)) {
-                            query.add(exists("Name"));
-                        }
-                        else  if (!searchValue.isEmpty()) {
-                            query.add(match("Name", searchValue));
                         }
                         break;
 

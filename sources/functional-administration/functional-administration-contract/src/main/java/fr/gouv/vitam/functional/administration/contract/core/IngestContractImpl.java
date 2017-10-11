@@ -682,10 +682,11 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         }
 
         Map<String, List<String>> updateDiffs;
-        try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
-            if (queryDsl.findValue(IngestContractModel.LINK_PARENT_ID) != null) {
-                final String linkParentId = queryDsl.findValue(IngestContractModel.LINK_PARENT_ID).asText();
-                if (linkParentId != null) {
+        try {
+            JsonNode linkParentNode = queryDsl.findValue(IngestContractModel.LINK_PARENT_ID);
+            if (linkParentNode != null) {
+                final String linkParentId = linkParentNode.asText();
+                if (!linkParentId.equals("")) {
                     if (!manager.checkIfAUInFilingOrHoldingSchema(linkParentId)) {
                         error
                             .addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(

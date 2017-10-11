@@ -104,6 +104,7 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -2149,14 +2150,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private boolean findArchiveUnitDeclaredInTheIngestContract() {
-        try (final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+        try (final AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient();
             final MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
 
             if (contractName != null) {
-                Select select = new Select();
-                select.setQuery(QueryHelper.eq(CONTRACT_NAME, contractName));
-                JsonNode queryDsl = select.getFinalSelect();
-                RequestResponse<IngestContractModel> referenceContracts = client.findIngestContracts(queryDsl);
+                RequestResponse<IngestContractModel> referenceContracts = adminClient.findIngestContractsByID(contractName);
                 if (referenceContracts.isOk()) {
                     List<IngestContractModel> results = ((RequestResponseOK) referenceContracts).getResults();
                     if (!results.isEmpty()) {
@@ -2165,11 +2163,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         }
                     }
 
-                    if (linkParentId != null) {
-                        select = new Select();
+                    if (linkParentId != null && !linkParentId.equals("")) {
+                        final Select select = new Select();
                         String[] schemaArray = new String[] {UnitType.FILING_UNIT.name(), UnitType.HOLDING_UNIT.name()};
                         select.setQuery(QueryHelper.in(UNITTYPE.exactToken(), schemaArray).setDepthLimit(0));
-                        queryDsl = select.getFinalSelect();
+                        final ObjectNode queryDsl = select.getFinalSelect();
                         JsonNode res = metaDataClient.selectUnitbyId(queryDsl, linkParentId).get("$results").get(0);
 
                         ObjectNode archiveUnit = JsonHandler.createObjectNode();
@@ -2184,7 +2182,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
             LOGGER.error("Contract found but inactive: ", e);
-        } catch (InvalidCreateOperationException e) {
+        } catch (ReferentialNotFoundException | InvalidCreateOperationException e) {
             LOGGER.error("Contract not found :", e);
         } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
             LOGGER.error("Metadata does not work :", e);
