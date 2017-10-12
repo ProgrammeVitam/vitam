@@ -53,8 +53,13 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyObject;
@@ -73,10 +78,28 @@ public class CheckConformityActionPluginTest {
     private static final String CALC_CHECK = "CALC_CHECK";
     private List<IOParameter> out;
 
-    private static final String EV_DETAIL_DATA = "{\"MessageDigest\":\"3273aa2ccb0cf4d5d37cef899d1774b9\"," +
-        "\"Algorithm\": \"MD5\", " +
-        "\"SystemMessageDigest\": \"d156f4a4cc725cc6eaaafdcb7936c9441d25bdf033e4e2f1852cf540d39713446cfcd42f2ba087eb66f3f9dbfeca338180ca64bdde645706ec14499311d557f4\", " +
-        "\"SystemAlgorithm\": \"SHA-512\"} ";
+    private static final Map<String, String> EV_DETAIL_DATA = Collections.unmodifiableMap(Stream.of(
+            new AbstractMap.SimpleEntry<>("aeaaaaaaaaaaaaababaumakxynrf3rqaaaaq", 
+                    "{\"MessageDigest\":\"e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804\"," +
+                            "\"Algorithm\": \"SHA512\", " +
+                            "\"SystemMessageDigest\": \"e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804\", " +
+                            "\"SystemAlgorithm\": \"SHA-512\"} "),
+            new AbstractMap.SimpleEntry<>("aeaaaaaaaaaaaaababaumakxynrf3tqaaaaq", 
+                    "{\"MessageDigest\":\"f332ca3fd108067eb3500df34283485a1c35e36bdf8f4bd3db3fd9064efdb954\"," +
+                            "\"Algorithm\": \"SHA256\", " +
+                            "\"SystemMessageDigest\": \"abead17e841c937187270cb95b0656bf3f7a9e71c8ca95e7fc8efa38cfffcab9889f353a95136fa3073a422d825175bf1bef24dc355bfa081f7e48b106070fd5\", " +
+                            "\"SystemAlgorithm\": \"SHA-512\"} "),
+            new AbstractMap.SimpleEntry<>("aeaaaaaaaaaaaaababaumakxynrf3uaaaaaq", 
+                    "{\"MessageDigest\":\"fe2b0664fc66afd85f839be6ee4b6433b60a06b9a4481e0743c9965394fa0b8aa51b30df11f3281fef3d7f6c86a35cd2925351076da7abc064ad89369edf44f0\"," +
+                            "\"Algorithm\": \"SHA512\", " +
+                            "\"SystemMessageDigest\": \"fe2b0664fc66afd85f839be6ee4b6433b60a06b9a4481e0743c9965394fa0b8aa51b30df11f3281fef3d7f6c86a35cd2925351076da7abc064ad89369edf44f0\", " +
+                            "\"SystemAlgorithm\": \"SHA-512\"} "),
+            new AbstractMap.SimpleEntry<>("aeaaaaaaaaaaaaababaumakxynrf3uyaaaaq", 
+                    "{\"MessageDigest\":\"3273aa2ccb0cf4d5d37cef899d1774b9\"," +
+                            "\"Algorithm\": \"MD5\", " +
+                            "\"SystemMessageDigest\": \"d156f4a4cc725cc6eaaafdcb7936c9441d25bdf033e4e2f1852cf540d39713446cfcd42f2ba087eb66f3f9dbfeca338180ca64bdde645706ec14499311d557f4\", " +
+                            "\"SystemAlgorithm\": \"SHA-512\"} "))
+            .collect(Collectors.toMap((e) -> e.getKey(), (e) -> e.getValue())));
 
     private static final String EV_DETAIL_DATA_BDO_AND_PDO =
         "{\"MessageDigest\":\"942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7\",\"Algorithm\": \"SHA512\", " +
@@ -145,7 +168,10 @@ public class CheckConformityActionPluginTest {
         handlerIO.addOutIOParameters(out);
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
-        assertEquals(response.getItemsStatus().get(CALC_CHECK).getEvDetailData(), EV_DETAIL_DATA);
+        // check all subtasks
+        response.getItemsStatus().get(CALC_CHECK).getSubTaskStatus().forEach((k,v)->{
+            assertEquals(v.getEvDetailData(), EV_DETAIL_DATA.get(k));
+        });
         handlerIO.close();
     }
 
@@ -168,7 +194,8 @@ public class CheckConformityActionPluginTest {
         handlerIO.addOutIOParameters(out);
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
-        assertEquals(response.getItemsStatus().get(CALC_CHECK).getEvDetailData(), EV_DETAIL_DATA_BDO_AND_PDO);
+        assertEquals(response.getItemsStatus().get(CALC_CHECK).getSubTaskStatus().values()
+                .iterator().next().getEvDetailData(), EV_DETAIL_DATA_BDO_AND_PDO);
         handlerIO.close();
     }
     

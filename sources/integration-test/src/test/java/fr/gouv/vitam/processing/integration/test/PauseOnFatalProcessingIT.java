@@ -95,6 +95,7 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -175,8 +176,12 @@ public class PauseOnFatalProcessingIT {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        // set bulk size to 1 for tests
+        VitamConfiguration.setWorkerBulkSize(1);
+        
         VitamConfiguration.getConfiguration()
                 .setData(PropertiesUtils.getResourcePath("integration-processing/").toString());
+
         CONFIG_METADATA_PATH = PropertiesUtils.getResourcePath("integration-processing/metadata.conf").toString();
         CONFIG_WORKER_PATH = PropertiesUtils.getResourcePath("integration-processing/worker.conf").toString();
         CONFIG_WORKSPACE_PATH = PropertiesUtils.getResourcePath("integration-processing/workspace.conf").toString();
@@ -253,6 +258,8 @@ public class PauseOnFatalProcessingIT {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+        VitamConfiguration.setWorkerBulkSize(10);
+        
         WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.deleteContainer("process", true);
         if (configES != null) {
@@ -355,32 +362,9 @@ public class PauseOnFatalProcessingIT {
          * resume process
          * check process complete with status warning
          */
-        testPauseOnFatal(false, true, true, false);
-
-        /**
-         * start process, go to first step 
-         * resume process until 4th step started (running)
-         * stop metadata application while process running
-         * check process in pause with status Fatal
-         * restart metadata application
-         * resume process
-         * check process complete with status warning
-         */
-        testPauseOnFatal(false, false, true, false);
-
-        /**
-         * start process, go to first step
-         * stop metadata application
-         * check process in pause with status Fatal
-         * restart metadata application
-         * replay last step
-         * check status warning and process in pause
-         * resume process
-         * check process complete with status warning
-         */
-        testPauseOnFatal(true, true, true, false);
+        testPauseOnFatal(true, false);
     }
-
+    
     @RunWithCustomExecutor
     @Test
     public void testPauseProcessWorkflowOnFatalThenRecoverThenRestartProcessingAndResume() throws Exception {
@@ -393,32 +377,7 @@ public class PauseOnFatalProcessingIT {
          * resume process
          * check process complete with status warning
          */
-        testPauseOnFatal(false, true, true, true);
-
-        /**
-         * start process, go to first step
-         * resume process until 4th step started (running)
-         * stop metadata application while process running
-         * check process in pause with status Fatal
-         * restart metadata application
-         * stop and restart Processing
-         * resume process
-         * check process complete with status warning
-         */
-        testPauseOnFatal(false, false, true, true);
-
-        /**
-         * start process, go to first step (pause)
-         * stop metadata application
-         * check process in pause with status Fatal
-         * restart metadata application
-         * stop and restart Processing
-         * replay last step
-         * check status warning and process in pause
-         * resume process
-         * check process complete with status warning
-         */
-        testPauseOnFatal(true, true, true, true);
+        testPauseOnFatal(true, true);
     }
 
     @RunWithCustomExecutor
@@ -431,42 +390,17 @@ public class PauseOnFatalProcessingIT {
          * resume process
          * check process still in pause with status Fatal
          */
-        testPauseOnFatal(false, true, false, false);
-
-        /**
-         * start process, go to first step
-         * resume process until 4th step started (running)
-         * stop metadata application while process running
-         * check process in pause with status Fatal
-         * replay last step
-         * check step still Fatal and process in pause with status Fatal
-         * resume process
-         * check process still in pause with status Fatal
-         */
-        testPauseOnFatal(true, false, false, false);
-
-        /**
-         * start process, go to first step
-         * stop metadata application
-         * check process in pause with status Fatal
-         * stop and restart processing
-         * resume process
-         * check process still in pause with status Fatal
-         */
-        testPauseOnFatal(false, true, false, true);
+        testPauseOnFatal(false, false);
     }
 
     /**
      * test pause on fatal then resume 
      * 
-     * @param replayLastStepAfterFatal if true last step will be replayed after pause on Fatal
-     * @param stopMDServerBeforeStepStart if true MD server will be stopped while process in Pause, otherwise it will be stopped while step is running
      * @param restartMDServerAfterFatal if true MD server will be started after pause on Fatal
      * @param stopAndRestartProcessingServerAfterFatal if true Processing Server wil be stopped and restarted after pause on Fatal
      * @throws Exception
      */
-    public void testPauseOnFatal(boolean replayLastStepAfterFatal, boolean stopMDServerBeforeStepStart, boolean restartMDServerAfterFatal, 
-                                 boolean stopAndRestartProcessingServerAfterFatal) throws Exception {
+    public void testPauseOnFatal(boolean restartMDServerAfterFatal, boolean stopAndRestartProcessingServerAfterFatal) throws Exception {
         try {
             // prepare
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -501,25 +435,14 @@ public class PauseOnFatalProcessingIT {
             assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
             // stop MD server while process in pause
-            if(stopMDServerBeforeStepStart){
-                // shutdown metadata, this should generate FATAl status
-                metadataApplication.stop();
-                waitServer(true, MetaDataClientFactory.getInstance().getClient());
-            }
+            // shutdown metadata, this should generate FATAl status
+            metadataApplication.stop();
+            waitServer(true, MetaDataClientFactory.getInstance().getClient());
             
             // resume process
             RequestResponse<ItemStatus> ret = processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
-
-            // stop MD server while process running
-            if(!stopMDServerBeforeStepStart) {
-                waitStep(processWorkflow, 4);
-
-                // shutdown metadata, this should generate FATAl status
-                metadataApplication.stop();
-                //waitServer(true, MetaDataClientFactory.getInstance().getClient());
-            }
             
             // check process status
             wait(containerName);
@@ -552,21 +475,6 @@ public class PauseOnFatalProcessingIT {
                 processManagementMain.start();
                 SystemPropertyUtil.clear(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT);
                 waitServer(false, processingClient);
-            }
-
-            // replay last step
-            if(replayLastStepAfterFatal) {
-                ret = processingClient.updateOperationActionProcess(ProcessAction.REPLAY.getValue(), containerName);
-                assertNotNull(ret);
-                assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
-
-                // check process status
-                wait(containerName);
-                processWorkflow = ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
-                assertNotNull(processWorkflow);
-                assertEquals(ProcessState.PAUSE, processWorkflow.getState());
-                // if MD server restarted status code should be Warning otherwise still Fatal
-                assertEquals(restartMDServerAfterFatal ? StatusCode.WARNING : StatusCode.FATAL, processWorkflow.getStatus());
             }
 
             // resume process
@@ -609,23 +517,12 @@ public class PauseOnFatalProcessingIT {
         int stepIndex = 0;
         for (ProcessStep step: processWorkflow.getSteps()) {
             // check status
-            assertTrue(step.getStepStatusCode().equals(StatusCode.OK) || step.getStepStatusCode().equals(StatusCode.WARNING));
+            assertTrue(step.getStepStatusCode().equals(StatusCode.OK) ||
+                    step.getStepStatusCode().equals(StatusCode.WARNING));
             
             // check processed elements
             assertTrue(step.getElementProcessed() == step.getElementToProcess());
             assertTrue (step.getElementProcessed() == elementCountPerStep[stepIndex++]);
-        }
-    }
-
-    private void waitStep(ProcessWorkflow processWorkflow, int stepId) {
-
-        ProcessStep step = processWorkflow.getSteps().get(stepId);
-        while (step.getStepStatusCode() != StatusCode.STARTED) {
-            try {
-                Thread.sleep(5);
-            } catch (InterruptedException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
         }
     }
 

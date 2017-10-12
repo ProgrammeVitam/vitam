@@ -358,19 +358,15 @@ En fonction du statut de chaque traitement on aura donc des messages différents
 
   {
     "evType" : "LFC.CHECK_DIGEST",
-    "outcome" : "STARTED",
-    "outDetail" : "LFC.CHECK_DIGEST.STARTED",
+    "outcome" : "OK",
+    "outDetail" : "LFC.CHECK_DIGEST.OK",
   }
   {
     "evType" : "LFC.CHECK_DIGEST.CALC_CHECK",
     "outcome" : "OK",
     "outDetail" : "LFC.CHECK_DIGEST.CALC_CHECK.OK",
   }
-  {
-    "evType" : "LFC.CHECK_DIGEST",
-    "outcome" : "OK",
-    "outDetail" : "LFC.CHECK_DIGEST.OK",
-  }
+  
 
 
 Il convient donc d'avoir dans le fichier de properties VITAM (vitam-logbook-messages_fr.properties) ou bien dans le fichier de properties du plugin (si les clés ne sont pas définies dans le VITAM) : 
@@ -378,7 +374,6 @@ Il convient donc d'avoir dans le fichier de properties VITAM (vitam-logbook-mess
 .. code-block:: properties
 
   LFC.CHECK_DIGEST=Vérification de l''intégrité des objets versés
-  LFC.CHECK_DIGEST.STARTED=Début de la vérification des objets versés
   LFC.CHECK_DIGEST.OK=Succès de la vérification de l''intégrité des objets versés
   LFC.CHECK_DIGEST.WARNING=Empreinte de l''objet recalculée en enregistrées dans les métadonnées de l''objet
   LFC.CHECK_DIGEST.KO=Échec de la vérification de l''intégrité des objets versés   

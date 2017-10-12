@@ -552,6 +552,7 @@ public class ParserTokens extends BuilderToken {
             case "Counter":
                 // Logbook
             case "evId":
+            case "evParentId":
             case "evType":
             case "evDateTime":
             case "evIdProc":

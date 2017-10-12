@@ -35,6 +35,9 @@ public class LogbookEvent {
     @JsonProperty("evId")
     private String evId;
 
+    @JsonProperty("evParentId")
+    private String evParentId;
+
     @JsonProperty("evType")
     private String evType;
 
@@ -75,13 +78,27 @@ public class LogbookEvent {
         return evId;
     }
 
-    /**
+   /**
      * @param evId the evId to set
      *
      * @return this
      */
     public void setEvId(String evId) {
         this.evId = evId;
+    }
+
+    /**
+     * @return the evParentId
+     */
+    public String getEvParentId() {
+        return evParentId;
+    }
+
+    /**
+     * @param evParentId the evParentId to set
+     */
+    public void setEvParentId(String evParentId) {
+        this.evParentId = evParentId;
     }
 
     /**

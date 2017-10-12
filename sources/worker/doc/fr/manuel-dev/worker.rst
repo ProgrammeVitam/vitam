@@ -403,17 +403,7 @@ Dans le processus d'entrée, l'étape de vérification de la conformité de l'em
 Lorsque l'étape débute, pour chaque objet du groupe d'objet technique, une vérification d'empreinte doit être effectuée (celle de l'objet avec celle inscrite dans le manifeste SEDA). Cette étape est déjà existante actuellement.
 Le calcul d'empreinte en SHA-512 (CA 2) ne doit pas s'effectuer si l'empreinte renseigné dans le manifeste a été calculé en SHA-512. C'est cette empreinte qui sera indexée dans les bases Vitam.
 
-CA 1.1 : Vérification de la conformité de l'empreinte. (empreinte en SHA-512 dans le manifeste) - Started
-
-- Lorsque l'action débute, elle inscrit une ligne dans les journaux du cycle de vie des GOT :
-
-* eventType EN – FR : « Digest Check», « Vérification de l'empreinte des objets»
-* outcome : "Started"
-* outcomeDetailMessage FR : « Début de la vérification de l'empreinte »
-* eventDetailData FR : "Empreinte manifeste : <MessageDigest>, algorithme : <MessageDigest attribut algorithm>"
-* objectIdentifierIncome : MessageIdentifier du manifest
-
-CA 1.2 : Vérification de la conformité de l'empreinte. (empreinte en SHA-512 dans le manifeste) - OK
+CA 1.1 : Vérification de la conformité de l'empreinte. (empreinte en SHA-512 dans le manifeste) - OK
 
 - Lorsque l'action est OK, elle inscrit une ligne dans les journaux du cycle de vie des GOT :
 
@@ -427,7 +417,7 @@ Comportement du workflow décrit dans l'US #680
 
 - La collection ObjectGroup est aussi mis à jour, en particulier le champs : Message Digest : {  empreinte, algorithme utlisé }
 
-CA 1.3 : Vérification de la conformité de l'empreinte. (empreinte en SHA-512 dans le manifeste) - KO
+CA 1.2 : Vérification de la conformité de l'empreinte. (empreinte en SHA-512 dans le manifeste) - KO
 
 - Lorsque l'action est KO, elle inscrit une ligne dans les journaux du cycle de vie des GOT :
 
@@ -446,17 +436,7 @@ CA 2 : Vérification de la conformité de l'empreinte. (empreinte différent de 
 Si l'empreinte proposé dans le manifeste SEDA n'est pas en SHA-512, alors le système doit calculer l'empreinte en SHA-512. C'est cette empreinte qui sera indexée dans les bases Vitam.
 Lorsque l'action débute, pour chaque objet du groupe d'objet technique, un calcul d'empreinte au format SHA-512 doit être effectué. Cette action intervient juste apres le check de l'empreinte dans le manifeste (mais on est toujours dans l'étape du check conformité de l'empreinte).
 
-CA 2.1 : Vérification de la conformité de l'empreinte. (empreinte différent de SHA-512 dans le manifeste) - Started
-
-- Lorsque l'action débute, elle inscrit une ligne dans les journaux du cycle de vie des GOT :
-
-* eventType EN – FR : « Digest Check», « Vérification de l'empreinte des objets»
-* outcome : "Started"
-* outcomeDetailMessage FR : « Début de la vérification de l'empreinte »
-* eventDetailData FR : "Empreinte manifeste : <MessageDigest>, algorithme : <MessageDigest attribut algorithm>"
-* objectIdentifierIncome : MessageIdentifier du manifest
-
-CA 2.2 : Vérification de la conformité de l'empreinte. (empreinte différent de SHA-512 dans le manifeste) - OK
+CA 2.1 : Vérification de la conformité de l'empreinte. (empreinte différent de SHA-512 dans le manifeste) - OK
 
 - Lorsque l'action est OK, elle inscrit une ligne dans les journaux du cycle de vie des GOT :
 
@@ -1201,8 +1181,7 @@ Enfin, l'update final de la base de données sera exécuté, tel que ci-dessous 
 Le différentiel (résumant les champs modifiés, principalement les endDate des règles de gestion) sera enregistré également dans les cycles de vie de l'unité archivistique.
 
 .. code-block:: java 
-   archiveUnitUpdateUtils.logLifecycle(params, archiveUnitId, StatusCode.STARTED, null, logbookLifeCycleClient);
-      //do some things
+   //do some things
    archiveUnitUpdateUtils.logLifecycle(params, archiveUnitId, StatusCode.OK, diffMessage, logbookLifeCycleClient);  
 
 4.21 Détail du plugin : RunningIngestsUpdateActionPlugin

@@ -93,11 +93,18 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
                 // set type and object name
                 description.setType(StorageCollectionType.OBJECTS).setObjectName(objectGuid.getKey());
 
-                StoredInfoResult result = storeObject(description, itemStatus);
+                // create ItemStatus for subtask
+                ItemStatus subTaskItemStatus = new ItemStatus(STORING_OBJECT_TASK_ID);
+                
+                // store object
+                StoredInfoResult result = storeObject(description, subTaskItemStatus);
 
                 if (result != null) {
+                    // init status code to OK as storeObject set it only if it's KO or FATAL
+                    subTaskItemStatus.increment(StatusCode.OK);
+
                     // update sub task itemStatus
-                    itemStatus.setEvDetailData(detailsFromStorageInfo(result));
+                    subTaskItemStatus.setEvDetailData(detailsFromStorageInfo(result));
 
                     try {
                         storeStorageInfo((ObjectNode) mapOfObjects.objectJsonMap.get(objectGuid.getKey()), result,
@@ -108,8 +115,8 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
                 }
                 LOGGER.debug("Final OBJ: {}", mapOfObjects.objectJsonMap.get(objectGuid.getKey()));
 
-                // subtask
-                itemStatus.setSubTaskStatus(objectGuid.getKey(), itemStatus);
+                // increment itemStatus with subtask 
+                itemStatus.setSubTaskStatus(objectGuid.getKey(), subTaskItemStatus).increment(subTaskItemStatus.getGlobalStatus());
 
             }
             // store OG to workspace

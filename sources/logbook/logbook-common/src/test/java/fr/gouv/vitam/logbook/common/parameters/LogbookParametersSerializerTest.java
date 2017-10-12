@@ -60,8 +60,8 @@ public class LogbookParametersSerializerTest {
         logbookParametersSerializer.serialize(params, generator, serializerProvider);
         generator.flush();
         assertThat(stringJson.toString(),
-            is(equalTo("{\"eventIdentifier\":\"eventIdentifier\",\"eventType\":\"eventType\"," +
-                "\"eventDateTime\":\"eventDateTime\"," +
+            is(equalTo("{\"eventIdentifier\":\"eventIdentifier\",\"parentEventIdentifier\":\"parentEventIdentifier\"," +
+                "\"eventType\":\"eventType\",\"eventDateTime\":\"eventDateTime\"," +
                 "\"eventIdentifierProcess\":\"eventIdentifierProcess\",\"eventTypeProcess\":\"eventTypeProcess\"," +
                 "\"outcome\":\"outcome\",\"outcomeDetail\":\"outcomeDetail\",\"outcomeDetailMessage\":\"outcomeDetailMessage\"," +
                 "\"agentIdentifier\":\"agentIdentifier\",\"agentIdentifierApplication\":\"agentIdentifierApplication\"," +

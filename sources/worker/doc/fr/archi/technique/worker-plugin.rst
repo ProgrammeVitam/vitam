@@ -83,19 +83,14 @@ Alors le Worker va écrire ces événements ci-dessous dans LFC :
    {
        {
             "evType" : "LFC.CHECK_DIGEST ",
-            "outcome" : "STARTED",
-            "outDetail" : "LFC.CHECK_DIGEST.CALC_CHECK.OK",
-        }
-        {
-            "evType" : "LFC.CHECK_DIGEST.CALC_CHECK ",
-            "outcome" : "STARTED",
-            "outDetail" : "LFC.CHECK_DIGEST.CALC_CHECK.OK",
-        }
-       {
-            "evType" : "LFC.CHECK_DIGEST ",
             "outcome" : "OK",
             "outDetail" : "LFC.CHECK_DIGEST..OK",
-        }
+       }
+       {
+            "evType" : "LFC.CHECK_DIGEST.CALC_CHECK ",
+            "outcome" : "OK",
+            "outDetail" : "LFC.CHECK_DIGEST.CALC_CHECK.OK",
+       }
    }
 
 L’écriture des journaux des opérations garde son implémentation.

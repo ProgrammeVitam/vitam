@@ -148,24 +148,23 @@ public class CheckConformityActionPlugin extends ActionHandler {
 
             final String manifestDigestString = manifestDigest.digestHex();
             final String vitamDigestString = vitamDigest.digestHex();
-            LOGGER.debug(
-                "DEBUG: \n\t" + binaryObject.getAlgo().getName() + " " + binaryObject.getMessageDigest() + "\n\t" +
-                    manifestDigestString + "\n\t" + vitamDigestString);
-            // define eventDetailData
-            eventDetailData = "{\"MessageDigest\":\"" + binaryObject.getMessageDigest() +
-                "\",\"Algorithm\": \"" + binaryObject.getAlgo() +
-                "\", \"SystemMessageDigest\": \"" + vitamDigestString +
-                "\", \"SystemAlgorithm\": \"" + (String) handlerIO.getInput(ALGO_RANK) + "\"} ";
-
             String binaryObjectMessageDigest = binaryObject.getMessageDigest();
+            
+            LOGGER.debug(
+                "DEBUG: \n\t" + binaryObject.getAlgo().getName() + " " + binaryObjectMessageDigest + "\n\t" +
+                    manifestDigestString + "\n\t" + vitamDigestString);
             if (binaryObjectMessageDigest.isEmpty() || binaryObjectMessageDigest.equals(null)) {
                 itemStatus.setGlobalOutcomeDetailSubcode(EMPTY);
                 itemStatus.increment(StatusCode.KO);
                 return;
             }
             
+            // create ItemStatus for subtask
+            ItemStatus subTaskItemStatus = new ItemStatus(CALC_CHECK);
+
             // check digest
             if (manifestDigestString.equals(binaryObjectMessageDigest)) {
+                subTaskItemStatus.increment(StatusCode.OK);
                 itemStatus.increment(StatusCode.OK);
                 if (!isVitamDigest) {
                     // update objectGroup json
@@ -174,17 +173,25 @@ public class CheckConformityActionPlugin extends ActionHandler {
                     oneOrMoreMessagesDigestUpdated = true;
                 }
 
-            } else {
-                itemStatus.setGlobalOutcomeDetailSubcode(INVALID);
-                itemStatus.increment(StatusCode.KO);
+                // define eventDetailData
+                eventDetailData = "{\"MessageDigest\":\"" + binaryObjectMessageDigest +
+                    "\",\"Algorithm\": \"" + binaryObject.getAlgo() +
+                    "\", \"SystemMessageDigest\": \"" + vitamDigestString +
+                    "\", \"SystemAlgorithm\": \"" + (String) handlerIO.getInput(ALGO_RANK) + "\"} ";
+                subTaskItemStatus.setEvDetailData(eventDetailData);
 
+            } else {
+                subTaskItemStatus.increment(StatusCode.KO);
+                itemStatus.increment(StatusCode.KO);
+                itemStatus.setGlobalOutcomeDetailSubcode(INVALID);
                 // Set eventDetailData in KO case
                 eventDetailData = "{\"MessageDigest\":\"" + binaryObject.getMessageDigest() + "\",\"Algorithm\": \"" +
                     binaryObject.getAlgo() +
                     "\", \"ComputedMessageDigest\": \"" + manifestDigestString + "\"} ";
+                subTaskItemStatus.setEvDetailData(eventDetailData);
             }
-            itemStatus.setEvDetailData(eventDetailData);
-            itemStatus.setSubTaskStatus(binaryObject.getId(), itemStatus);
+            
+            itemStatus.setSubTaskStatus(binaryObject.getId(), subTaskItemStatus);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
             IOException e) {
             LOGGER.error(e);

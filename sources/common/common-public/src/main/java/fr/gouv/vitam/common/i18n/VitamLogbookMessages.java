@@ -105,6 +105,16 @@ public class VitamLogbookMessages {
     }
 
     /**
+     *
+     * @param stepOrHandler step or handler name or full name 
+     * @param subTaskName name of the sub task                     
+     * @return the final EventType code
+     */
+    public static final String getSubTaskEventTypeLfc(String stepOrHandler, String subTaskName) {
+        return LIFECYCLE + SEPARATOR + stepOrHandler + SEPARATOR + subTaskName;
+    }
+
+    /**
      * Operation Logbook context
      *
      * @param stepOrHandler step or handler name or full name (on Front Office Application)

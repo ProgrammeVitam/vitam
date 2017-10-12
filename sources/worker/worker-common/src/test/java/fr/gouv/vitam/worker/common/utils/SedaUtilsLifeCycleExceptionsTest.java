@@ -167,8 +167,8 @@ public class SedaUtilsLifeCycleExceptionsTest {
             .when(helper).updateDelegate(logbookLifecycleUnitParameters);
 
         params.setCurrentStep("TEST");
-        LogbookLifecycleWorkerHelper.updateLifeCycleStartStep(handlerIO.getHelper(), logbookLifecycleUnitParameters,
-            params, null, LogbookTypeProcess.INGEST);
+        LogbookLifecycleWorkerHelper.updateLifeCycleStep(handlerIO.getHelper(), logbookLifecycleUnitParameters,
+            params, null, LogbookTypeProcess.INGEST, StatusCode.OK);
         handlerIO.getLifecyclesClient().bulkUpdateUnit(OBJ, handlerIO.getHelper().removeUpdateDelegate(OBJ));
     }
 

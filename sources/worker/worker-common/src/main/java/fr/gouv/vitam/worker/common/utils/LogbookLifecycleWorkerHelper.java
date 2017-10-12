@@ -68,12 +68,13 @@ public class LogbookLifecycleWorkerHelper {
      * @param params the worker parameters
      * @param lfcEventType the event type of lfc
      * @param logbookTypeProcess the logbook type process
+     * @param statusCode the global status code                          
      * @param additionalParams the additional params
      * @throws ProcessingException if logbook lfc ressouce not found
      */
-    public static void updateLifeCycleStartStep(LogbookLifeCyclesClientHelper helper,
+    public static void updateLifeCycleStep(LogbookLifeCyclesClientHelper helper,
         LogbookLifeCycleParameters logbookLifecycleParameters, WorkerParameters params, String lfcEventType,
-        LogbookTypeProcess logbookTypeProcess, String... additionalParams)
+        LogbookTypeProcess logbookTypeProcess, StatusCode statusCode, String... additionalParams)
         throws ProcessingException {
 
         try {
@@ -94,9 +95,9 @@ public class LogbookLifecycleWorkerHelper {
                 logbookTypeProcess.name());
 
             if (lfcEventType == null) {
-                logbookLifecycleParameters.setFinalStatus(params.getCurrentStep(), null, StatusCode.STARTED, null);
+                logbookLifecycleParameters.setFinalStatus(params.getCurrentStep(), null, statusCode, null);
             } else {
-                logbookLifecycleParameters.setFinalStatus(lfcEventType, null, StatusCode.STARTED, null);
+                logbookLifecycleParameters.setFinalStatus(lfcEventType, null, statusCode, null);
             }
 
 
