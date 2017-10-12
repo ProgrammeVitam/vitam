@@ -518,7 +518,7 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
     + Contient CHECK_CONTRACT_INGEST (CheckIngestContractActionHandler.java) :
 
-      - Recherche l'identifiant du contrat d'entrée dans le SIP
+      - Recherche l'identifier du contrat d'entrée dans le SIP
 
       - Vérification de la validité du contrat par rapport au référentiel de contrats présent dans la solution logicielle VITAM
 

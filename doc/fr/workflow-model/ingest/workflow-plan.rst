@@ -59,7 +59,7 @@ Diagramme d'activité du workflow du plan de classement
 
     + Contient CHECK_CONTRACT_INGEST (CheckIngestContractActionHandler.java) :
 
-      - Recherche le nom de contrat d'entrée dans le SIP,
+      - Recherche l'identifier du contrat d'entrée dans le SIP,
 
       - Vérification de la validité de contrat par rapport au référentiel de contrats importée dans le système
 
