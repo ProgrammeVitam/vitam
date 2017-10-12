@@ -167,54 +167,90 @@ localhost
 ########### Global vars ###########
 
 [hosts:vars]
-ansible_become=true
-ansible_connection=local
+
+
+
+# VITAM
+# ===============================
+
+
+          #==== DO NOT TOUCH ====
+
 
 environnement=fulllocal
+ansible_connection=local
+ansible_become=true
 
-consul_domain=consul
-vitam_reverse_external_dns=localhost
-vitam_reverse_external_protocol=http
-package_version=*
-days_to_delete=365
-days_to_close=20
-days_to_delete_topbeat=20
-days_to_delete_local=30
+
+          #==== TO ADJUST ====
+
+
+		     ### dns ###
+ 
 dns_servers=["10.100.211.222", "8.8.8.8"]
+
+
+	     ### memory settings ###
 
 memory_opts="-Xms32m -Xmx256m"
 
-# Overrides
-vitam_folder_permission=0775
-vitam_conf_permission=0775
-log_level=WARN
 
-reverse_proxy_port=80
-
-days_to_close_metrics=7
-days_to_delete_metrics=30
-
-installation_clamav=true
-
-http_proxy_environnement=
-
-vitam_storageofferdefault_host_1=localhost
-# vitam_storageofferdefault_host_2=localhost
+	     ### tenants ###
 
 vitam_tenant_ids=[0,1,2,3,4,5,6,7,8,9]
+
+
+# EXTRA
+# ===============================
+
+          #==== DO NOT TOUCH ====
+
+	     ### reverse proxy ### 
+
+vitam_reverse_external_dns=localhost
+vitam_reverse_external_protocol=http
+
+
+	     ### git itest ### 
+
+vitam_tests_branch=master
 vitam_tests_gitrepo_protocol=https
 vitam_tests_gitrepo_baseurl=dev.programmevitam.fr
 vitam_tests_gitrepo_url={{vitam_tests_gitrepo_protocol}}://{{vitam_tests_gitrepo_baseurl}}/gitlab/vitam/vitam-itests.git
-vitam_tests_branch=master
 
-# Admin security profile
+
+          #==== TO ADJUST ====
+
+	     ### curator ### 
+
+# [JGO] : it is difficult to understand, the names of the variable must be understandable
+
+# curator metrics indexes
+days_to_close_metrics=7
+days_to_delete_metrics=30
+
+# [JGO] : add logstash in the name
+days_to_delete=365
+days_to_close=20
+
+	     ### Topbeat ###
+
+days_to_delete_topbeat=20
+
+
+	     ### logback ###
+
+# [JGO] : add "logback_logfiles" to the name 		
+days_to_delete_local=30
+
+
+ 	     ### reverse proxy ### 
+
+reverse_proxy_port=80
+http_proxy_environnement=
+
+            ### To be defined : place #####
+
 admin_security_profile="admin-security-profile"
 
-# Admin context name
-admin_context_name="admin-context"
-# Indicate certificates relative paths under {{inventory_dir}}/certs/client-external/clients
-admin_context_certs=[ "ihm-demo/ihm-demo.crt", "ihm-recette/ihm-recette.crt", "reverse/reverse.crt" ]
-admin_context_tenants={{vitam_tenant_ids}}
 
-# Trust X-SSL-CLIENT-CERT header for external api auth ? (true | false)
-vitam_ssl_user_header=true

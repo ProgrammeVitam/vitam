@@ -1,13 +1,115 @@
-
 ---
 
+# VITAM
+# ===============================
+
+          #==== DO NOT TOUCH ====
+
+
+     ### global ###
+
 vitam_folder_root: /vitam
-docker_registry_httponly: yes
-vitam_docker_tag: latest
+vitam_user: vitam
+vitamdb_user: "vitamdb"
+vitam_group: vitam
+log_level: WARN
+vitam_folder_permission: 0750
+vitam_conf_permission: 0640
+service_restart_timeout: 150
+service_stop_timeout: 3600
 port_http_timeout: 86400
+package_version: "*"
+
+
+     ### Trust X-SSL-CLIENT-CERT header for external api auth ? (true | false) ###
+
+vitam_ssl_user_header: true
+
+
+     ### consul ###
+
+consul_domain: consul
+consul_component: consul
+consul_folder_conf: "{{vitam_folder_root}}/conf/{{consul_component}}"
+
+
+     ### clamav ###	
+
+installation_clamav: "true"
+
+
+     ### Admin context name ### 
+
+admin_context_name: "admin-context"
+# Indicate certificates relative paths under {{inventory_dir}}/certs/client-external/clients
+admin_context_certs: [ "ihm-demo/ihm-demo.crt", "ihm-recette/ihm-recette.crt", "reverse/reverse.crt" ]
+admin_context_tenants: "{{vitam_tenant_ids}}"
+
+     ### Mongo ###
+
+mongo_base_path: "{{vitam_folder_root}}"
+mongos_port: 27017
+mongoc_port: 27018
+mongod_port: 27019
+mongo_authentication: "true"
+vitam_mongodb_host: "mongos.service.{{consul_domain}}"
+vitam_mongodb_port: "{{mongos_port}}"
+mongod_folder_database: "{{vitam_folder_root}}/data/mongod/db"
+mongoc_folder_database: "{{vitam_folder_root}}/data/mongoc/db"
+
+
+     ### logstash ###
+
+vitam_logstash_host: "{{ groups['hosts-logstash'][0] }}"
+vitam_logstash_port: 10514
+
+
+     ### kibana ###
+
+# FIXME : changing port doesn't work, yet (not taken into account in kibana configuration)
+kibana_log_port: 5601
+# KWA FIXME : changing port doesn't work, yet (not taken into account in kibana configuration)
+kibana_data_port: 5601
+
+
+     ### library ###
+
+vitam_library_port: 8090
+vitam_library_port_admin: 28090
+
+
+     ### siegfried ###
+
+vitam_siegfried_port: 19000
+
+
+     ### curator ###
+
+vitam_curator_host: "{{ (groups['hosts-log-server'] | length > 0) | ternary(groups['hosts-log-server'][0], '') }}"
+
+
+     ### syslog ###
+
 syslog_facility: local0
 
-# Composants colocalisés
+
+     ### clamav ###
+
+clamav_port: 3310
+
+
+     ### cerebro ###
+
+cerebro_port: 9000
+
+
+     ### docker ###
+
+docker_registry_httponly: yes
+vitam_docker_tag: latest
+
+
+     ### Composants colocalisés ###
 
 vitam_accessinternal_host: "access-internal.service.{{consul_domain}}"
 vitam_accessinternal_port: 8101
@@ -47,15 +149,6 @@ vitam_ihm_demo_port_admin: 28002
 vitam_ihm_demo_baseurl: /ihm-demo
 vitam_ihm_demo_static_content: "{{vitam_folder_root}}/app/ihm-demo"
 vitam_ihm_demo_baseuri: "/ihm-demo"
-
-vitam_ihm_recette_host: "{{groups['hosts-ihm-recette'][0]}}"
-vitam_ihm_recette_port: 8204
-vitam_ihm_recette_port_https: 8445
-vitam_ihm_recette_port_admin: 28204
-vitam_ihm_recette_baseurl: /ihm-recette
-vitam_ihm_recette_static_content: "{{vitam_folder_root}}/app/ihm-recette"
-vitam_ihm_recette_baseuri: "/ihm-recette"
-vitam_ihm_recette_secure_mode: authc
 
 # Internal components communication configuration
 vitam_logbook_host: "logbook.service.{{consul_domain}}"
@@ -111,50 +204,21 @@ elasticsearch_data_host: "elasticsearch-data.service.{{consul_domain}}"
 elasticsearch_data_http_port: "9200"
 elasticsearch_data_tcp_port: "9300"
 
-mongo_base_path: "{{vitam_folder_root}}"
-mongos_port: 27017
-mongoc_port: 27018
-mongod_port: 27019
-mongo_authentication: "true"
+          #====TO ADJUST ====
 
-vitam_mongodb_host: "mongos.service.{{consul_domain}}"
-vitam_mongodb_port: "{{mongos_port}}"
 
-vitam_logstash_host: "{{ groups['hosts-logstash'][0] }}"
-vitam_logstash_port: 10514
-vitam_logstash_rest_port: 20514
+# EXTRA
+# ===============================
 
-# FIXME : changing port doesn't work, yet (not taken into account in kibana configuration)
-kibana_log_port: 5601
+          #====DO NOT TOUCH ====
 
-# KWA FIXME : changing port doesn't work, yet (not taken into account in kibana configuration)
-kibana_data_port: 5601
+vitam_ihm_recette_host: "{{groups['hosts-ihm-recette'][0]}}"
+vitam_ihm_recette_port: 8204
+vitam_ihm_recette_port_admin: 28204
+vitam_ihm_recette_baseurl: /ihm-recette
+vitam_ihm_recette_static_content: "{{vitam_folder_root}}/app/ihm-recette"
+vitam_ihm_recette_baseuri: "/ihm-recette"
+vitam_ihm_recette_port_https: 8445
+vitam_ihm_recette_secure_mode: authc
 
-vitam_curator_host: "{{ (groups['hosts-log-server'] | length > 0) | ternary(groups['hosts-log-server'][0], '') }}"
-
-vitam_library_port: 8090
-vitam_library_port_admin: 28090
-
-vitam_siegfried_port: 19000
-
-vitam_user: vitam
-vitamdb_user: "vitamdb"
-vitam_group: vitam
-
-consul_domain: consul
-
-vitam_folder_permission: 0750
-
-vitam_conf_permission: 0640
-
-consul_component: consul
-consul_folder_conf: "{{vitam_folder_root}}/conf/{{consul_component}}"
-
-mongod_folder_database: "{{vitam_folder_root}}/data/mongod/db"
-mongoc_folder_database: "{{vitam_folder_root}}/data/mongoc/db"
-
-service_restart_timeout: 150
-service_stop_timeout: 3600
-clamav_port: 3310
-
-cerebro_port: 9000
+          #==== TO ADJUST ====
