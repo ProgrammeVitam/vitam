@@ -30,6 +30,9 @@ import static fr.gouv.vitam.common.VitamConfiguration.getDefaultLang;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+
+import javax.xml.datatype.DatatypeConfigurationException;
 
 import com.google.common.collect.Iterables;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
@@ -44,15 +47,21 @@ import fr.gouv.vitam.common.model.unit.TextByLang;
 public class DescriptiveMetadataMapper {
 
     /**
-     * element Mapper
+     * element Mapper.
      */
     private ElementMapper elementMapper;
+
+    /**
+     * agentType mapper.
+     */
+    private AgentTypeMapper agentTypeMapper;
 
     /**
      * constructor
      */
     public DescriptiveMetadataMapper() {
         this.elementMapper = new ElementMapper();
+        this.agentTypeMapper = new AgentTypeMapper();
     }
 
     /**
@@ -61,15 +70,28 @@ public class DescriptiveMetadataMapper {
      * @param metadataContentType
      * @return
      */
-    public DescriptiveMetadataModel map(DescriptiveMetadataContentType metadataContentType) {
+    public DescriptiveMetadataModel map(DescriptiveMetadataContentType metadataContentType)
+        throws DatatypeConfigurationException {
 
         DescriptiveMetadataModel descriptiveMetadataModel = new DescriptiveMetadataModel();
         descriptiveMetadataModel.setAcquiredDate(metadataContentType.getAcquiredDate());
-        descriptiveMetadataModel.setAddressee(metadataContentType.getAddressee());
+
+        descriptiveMetadataModel.getAddressee()
+            .addAll(metadataContentType.getAddressee().stream().map(item -> {
+                try {
+                    return agentTypeMapper.convert(item);
+                } catch (DatatypeConfigurationException e) {
+                    throw new RuntimeException(e);
+                }
+            }).collect(
+                Collectors.toList()));
+
         descriptiveMetadataModel.setAny(elementMapper.toMap(metadataContentType.getAny()));
         descriptiveMetadataModel
             .setArchivalAgencyArchiveUnitIdentifier(metadataContentType.getArchivalAgencyArchiveUnitIdentifier());
-        descriptiveMetadataModel.setAuthorizedAgent(metadataContentType.getAuthorizedAgent());
+
+        descriptiveMetadataModel.setAuthorizedAgent(agentTypeMapper.convert(metadataContentType.getAuthorizedAgent()));
+
         descriptiveMetadataModel.setCoverage(metadataContentType.getCoverage());
         descriptiveMetadataModel.setCreatedDate(metadataContentType.getCreatedDate());
         descriptiveMetadataModel.setCustodialHistory(metadataContentType.getCustodialHistory());
@@ -91,7 +113,17 @@ public class DescriptiveMetadataMapper {
             .setOriginatingAgencyArchiveUnitIdentifier(metadataContentType.getOriginatingAgencyArchiveUnitIdentifier());
         descriptiveMetadataModel.setOriginatingSystemId(metadataContentType.getOriginatingSystemId());
         descriptiveMetadataModel.setReceivedDate(metadataContentType.getReceivedDate());
-        descriptiveMetadataModel.setRecipient(metadataContentType.getRecipient());
+
+        descriptiveMetadataModel.getRecipient()
+            .addAll(metadataContentType.getRecipient().stream().map(item -> {
+                try {
+                    return agentTypeMapper.convert(item);
+                } catch (DatatypeConfigurationException e) {
+                    throw new RuntimeException(e);
+                }
+            }).collect(
+                Collectors.toList()));
+
         descriptiveMetadataModel.setRegisteredDate(metadataContentType.getRegisteredDate());
         descriptiveMetadataModel.setRelatedObjectReference(metadataContentType.getRelatedObjectReference());
         descriptiveMetadataModel.setRestrictionEndDate(metadataContentType.getRestrictionEndDate());

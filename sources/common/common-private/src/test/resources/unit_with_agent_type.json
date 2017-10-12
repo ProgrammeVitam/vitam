@@ -39,7 +39,8 @@
   "Addressee": [
     {
       "FirstName": "FirstName2",
-      "BirthName": "BirthName2"
+      "BirthName": "BirthName2",
+      "Nationality":["N1", "N2"]
     },
     {
       "FirstName": "FirstName3",

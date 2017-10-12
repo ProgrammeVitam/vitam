@@ -1,0 +1,35 @@
+
+<ArchiveUnit xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:pr="info:lc/xmlns/premis-v2" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 seda-2.0-main.xsd" id="ID3">
+    <Content>
+        <DescriptionLevel>RecordGrp</DescriptionLevel>
+        <Title>SIP_Djamel</Title>
+        <Recipient>
+            <FirstName>John</FirstName>
+            <BirthName>Doe</BirthName>
+            <GivenName>Martin</GivenName>
+            <Gender>Male</Gender>
+            <BirthDate>2000-01-01</BirthDate>
+            <BirthPlace>
+                <Geogname>Geogname</Geogname>
+                <Address>123 my Street</Address>
+                <PostalCode>CD255</PostalCode>
+                <City>Toronto</City>
+                <Region>Ontario</Region>
+                <Country>Canada</Country>
+            </BirthPlace>
+            <DeathDate>2000-01-01</DeathDate>
+            <DeathPlace>
+                <Geogname>Geogname</Geogname>
+                <Address>123 my Street</Address>
+                <PostalCode>CD255</PostalCode>
+                <City>Toronto</City>
+                <Region>Ontario</Region>
+                <Country>Canada</Country>
+            </DeathPlace>
+            <Nationality>Canadian</Nationality>
+            <Nationality>Algerian</Nationality>
+            <Identifier>ABC</Identifier>
+            <Identifier>EFG</Identifier>
+        </Recipient>
+    </Content>
+</ArchiveUnit>

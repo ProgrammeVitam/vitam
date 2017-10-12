@@ -26,21 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.mapping.dip;
 
-import com.google.common.base.Throwables;
-import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
-import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.mapping.dip.TransformJsonTreeToListOfXmlElement;
-import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+
+import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
+import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 
 /**
  * Map the object DescriptiveMetadataModel generated from Unit data base model
@@ -55,16 +46,29 @@ public class DescriptiveMetadataMapper {
      * @param metadataModel
      * @return
      */
-    public DescriptiveMetadataContentType map(DescriptiveMetadataModel metadataModel) {
+    public DescriptiveMetadataContentType map(DescriptiveMetadataModel metadataModel)
+        throws DatatypeConfigurationException {
+
         DescriptiveMetadataContentType dmc = new DescriptiveMetadataContentType();
         dmc.setAcquiredDate(metadataModel.getAcquiredDate());
-        dmc.getAddressee().addAll(metadataModel.getAddressee());
+
+        AgentTypeMapper agentTypeMapper = new AgentTypeMapper();
+
+        metadataModel.getAddressee().forEach(item -> {
+            try {
+                dmc.getAddressee().add(agentTypeMapper.convert(item));
+            } catch (DatatypeConfigurationException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
         //        mapMapToElement(dmc, metadataModel.getAny());
         dmc.getAny().addAll(
             TransformJsonTreeToListOfXmlElement.mapJsonToElement(Collections.singletonList(metadataModel.getAny())));
 
         dmc.setArchivalAgencyArchiveUnitIdentifier(metadataModel.getArchivalAgencyArchiveUnitIdentifier());
-        dmc.setAuthorizedAgent(metadataModel.getAuthorizedAgent());
+
+        dmc.setAuthorizedAgent(agentTypeMapper.convert(metadataModel.getAuthorizedAgent()));
         dmc.setCoverage(metadataModel.getCoverage());
         dmc.setCreatedDate(metadataModel.getCreatedDate());
         dmc.setCustodialHistory(metadataModel.getCustodialHistory());
@@ -88,7 +92,15 @@ public class DescriptiveMetadataMapper {
             .setOriginatingAgencyArchiveUnitIdentifier(metadataModel.getOriginatingAgencyArchiveUnitIdentifier());
         dmc.setOriginatingSystemId(metadataModel.getOriginatingSystemId());
         dmc.setReceivedDate(metadataModel.getReceivedDate());
-        dmc.getRecipient().addAll(metadataModel.getRecipient());
+
+        metadataModel.getRecipient().forEach(item -> {
+            try {
+                dmc.getRecipient().add(agentTypeMapper.convert(item));
+            } catch (DatatypeConfigurationException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
         dmc.setRegisteredDate(metadataModel.getRegisteredDate());
         dmc.setRelatedObjectReference(metadataModel.getRelatedObjectReference());
         dmc.setRestrictionEndDate(metadataModel.getRestrictionEndDate());

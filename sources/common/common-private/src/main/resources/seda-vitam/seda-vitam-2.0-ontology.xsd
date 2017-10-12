@@ -52,7 +52,7 @@
         <xsd:sequence>
             <xsd:element name="DescriptionLevel" type="LevelType" minOccurs="1">
                 <xsd:annotation>
-                    <xsd:documentation>Niveau de description au sens de la norme ISAD (G). Indique si l’ArchiveUnit correspond à un fonds, 
+                    <xsd:documentation>Niveau de description au sens de la norme ISAD (G). Indique si l’ArchiveUnit correspond à un fonds,
                         à un sous-fonds, à une classe, à une série organique, à une sous-série organique, à un dossier, à un sous-dossier ou à une pièce.</xsd:documentation>
                     <xsd:documentation>Référence : seda.DescriptionLevel</xsd:documentation>
                 </xsd:annotation>
@@ -88,7 +88,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:group>
-    
+
     <!-- Identification description -->
     <xsd:group name="IdentifierGroup">
         <xsd:sequence>
@@ -146,8 +146,8 @@
         <xsd:sequence>
             <xsd:element name="CustodialHistory" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:documentation>Énumère les changements successifs de propriété, de responsabilité et de conservation des ArchiveUnit avant 
-                        leur entrée dans le lieu de conservation. On peut notamment y indiquer comment s'est effectué le passage de l'application 
+                    <xsd:documentation>Énumère les changements successifs de propriété, de responsabilité et de conservation des ArchiveUnit avant
+                        leur entrée dans le lieu de conservation. On peut notamment y indiquer comment s'est effectué le passage de l'application
                         d'origine au fichier archivable. Correspond à l'historique de la conservation en ISAD(G).</xsd:documentation>
                     <xsd:documentation>Références : seda.CustodialHistory</xsd:documentation>
                 </xsd:annotation>
@@ -381,7 +381,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    
+
     <!-- OriginatingAgency description -->
     <xsd:group name="OriginatingAgencyGroup">
         <xsd:sequence>
@@ -405,7 +405,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:group>
-    
+
     <!-- Proxy description -->
     <xsd:group name="AuthorizedAgentGroup">
         <xsd:sequence>
@@ -440,7 +440,7 @@
             <xsd:group ref="BusinessGroup"/>
         </xsd:sequence>
     </xsd:group>
-    
+
 
     <!-- Audience description -->
     <xsd:group name="AudienceGroup">
@@ -786,7 +786,7 @@
                     <xsd:group ref="LocationGroup"/>
                 </xsd:complexType>
             </xsd:element>
-            <xsd:element name="Nationality" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="Nationality" type="NonEmptyTokenType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>Nationalité d'une personne.</xsd:documentation>
                 </xsd:annotation>

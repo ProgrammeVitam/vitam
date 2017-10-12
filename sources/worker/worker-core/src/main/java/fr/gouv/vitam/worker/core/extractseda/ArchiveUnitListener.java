@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -50,7 +51,6 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
-
 import fr.gouv.culture.archivesdefrance.seda.v2.AgentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
@@ -82,7 +82,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
@@ -265,7 +264,12 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
             unitIdToGuid.put(archiveUnitId, elementGUID);
 
-            ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, elementGUID, groupId);
+            ArchiveUnitRoot archiveUnitRoot = null;
+            try {
+                archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, elementGUID, groupId);
+            } catch (DatatypeConfigurationException e) {
+                throw new RuntimeException(e);
+            }
 
             // fill list rules to map
             fillListRulesToMap(archiveUnitId, archiveUnitRoot.getArchiveUnit().getManagement().getAccess());

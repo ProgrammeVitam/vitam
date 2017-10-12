@@ -93,7 +93,7 @@
 	"AnyOtherField": "AnyOtherValue",
 	"DescriptionLevel": "Item",
 	"Title": "My title",
-	"AuthorizedAgent": [
+	"AuthorizedAgent":
 		{
 			"FirstName": "Ludovic",
 			"GivenName": "BLANCHET",
@@ -102,4 +102,4 @@
 				"City": "Lagny sur Marne"
 			}
 		}
-	]}
+}
