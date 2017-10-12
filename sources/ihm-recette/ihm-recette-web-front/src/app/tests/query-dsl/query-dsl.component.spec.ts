@@ -144,7 +144,7 @@ describe('QueryDSLComponent', () => {
     let response: any = component.requestResponse;
     expect(response.ok).toBeTruthy();
 
-    component.selectedContract._id = null;
+    component.selectedContract.Name = null;
     component.sendRequest();
     response = component.requestResponse;
     expect(response.ok).toBeFalsy();
