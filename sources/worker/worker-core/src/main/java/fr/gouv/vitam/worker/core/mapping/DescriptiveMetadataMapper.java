@@ -37,6 +37,7 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import com.google.common.collect.Iterables;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.TextByLang;
 
@@ -56,12 +57,15 @@ public class DescriptiveMetadataMapper {
      */
     private AgentTypeMapper agentTypeMapper;
 
+    private CustodialHistoryMapper custodialHistoryMapper;
+
     /**
      * constructor
      */
     public DescriptiveMetadataMapper() {
         this.elementMapper = new ElementMapper();
         this.agentTypeMapper = new AgentTypeMapper();
+        custodialHistoryMapper = new CustodialHistoryMapper();
     }
 
     /**
@@ -94,7 +98,11 @@ public class DescriptiveMetadataMapper {
 
         descriptiveMetadataModel.setCoverage(metadataContentType.getCoverage());
         descriptiveMetadataModel.setCreatedDate(metadataContentType.getCreatedDate());
-        descriptiveMetadataModel.setCustodialHistory(metadataContentType.getCustodialHistory());
+        
+        CustodialHistoryModel custodialHistoryModel =
+            custodialHistoryMapper.map(metadataContentType.getCustodialHistory());
+        descriptiveMetadataModel.setCustodialHistory(custodialHistoryModel);
+
         descriptiveMetadataModel.setDescription(findTextTypeByLang(metadataContentType.getDescription()));
         descriptiveMetadataModel.setDescriptions(new TextByLang(metadataContentType.getDescription()));
         descriptiveMetadataModel.setDescriptionLanguage(metadataContentType.getDescriptionLanguage());

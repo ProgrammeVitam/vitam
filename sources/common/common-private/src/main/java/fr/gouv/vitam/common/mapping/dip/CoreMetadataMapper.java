@@ -73,7 +73,8 @@ public class CoreMetadataMapper {
             }
             if (video != null) {
                 final VideoTechnicalMetadataType videoTechnicalMetadataType = new VideoTechnicalMetadataType();
-                videoTechnicalMetadataType.getAny().add(mapToOpenType(video));
+                List<Element> e = mapToOpenType(video);
+                videoTechnicalMetadataType.getAny().addAll(e);
                 coreMetadataType.setVideo(videoTechnicalMetadataType);
             }
             if (image != null) {

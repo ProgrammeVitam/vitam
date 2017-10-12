@@ -242,5 +242,7 @@ public interface AccessInternalClient extends MockOrRestClient {
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
         InvalidParseOperationException;
 
-    RequestResponse<JsonNode> export(JsonNode queryJson) throws AccessInternalClientServerException;
+    RequestResponse<JsonNode> exportDIP(JsonNode queryJson) throws AccessInternalClientServerException;
+
+    Response findDIPByID(String id) throws AccessInternalClientServerException;
 }

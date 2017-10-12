@@ -70,8 +70,12 @@
 		"className": "fr.gouv.vitam.worker.core.plugin.dip.CreateManifest",
 		"propertiesFile": "create_unit_secure_file_plugin.properties"
 	},
+	"PUT_BINARY_ON_WORKSPACE": {
+		"className": "fr.gouv.vitam.worker.core.plugin.dip.PutBinaryOnWorkspace",
+		"propertiesFile": "create_unit_secure_file_plugin.properties"
+	},
 	"STORE_MANIFEST": {
-		"className": "fr.gouv.vitam.worker.core.plugin.dip.StoreManifest",
+		"className": "fr.gouv.vitam.worker.core.plugin.dip.StoreDIP",
 		"propertiesFile": "create_unit_secure_file_plugin.properties"
 	}
 }

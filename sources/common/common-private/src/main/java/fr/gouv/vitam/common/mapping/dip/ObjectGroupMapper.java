@@ -89,7 +89,6 @@ public class ObjectGroupMapper {
                     dataObjectPackageType.getBinaryDataObjectOrPhysicalDataObject().add(physicalDataObjectType);
                 } else {
                     final BinaryDataObjectType binaryDataObjectType = new BinaryDataObjectType();
-                    final BinaryObjectType binaryObjectType = new BinaryObjectType();
                     // FIXME : BinaryDataObjectType.Compressed not supported yet in SIP ingest
                     // final BinaryDataObjectType.Compressed compressed = new BinaryDataObjectType.Compressed();
                     // compressed.setAlgorithm(version.getAlgorithm());
@@ -108,9 +107,6 @@ public class ObjectGroupMapper {
                     final FileInfoType fileInfoType = new FileInfoType();
                     final FileInfoModel fileInfoModel = version != null ? version.getFileInfoModel() : null;
                     if (fileInfoModel != null) {
-                        binaryObjectType.setFilename(fileInfoModel.getFilename());
-                        binaryObjectType.setUri(version.getUri());
-                        binaryDataObjectType.setAttachment(binaryObjectType);
                         fileInfoType.setFilename(fileInfoModel.getFilename());
                         fileInfoType
                             .setCreatingApplicationName(fileInfoModel.getCreatingApplicationName());

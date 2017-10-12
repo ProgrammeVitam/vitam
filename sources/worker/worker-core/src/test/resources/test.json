@@ -1,0 +1,149 @@
+{
+  "FileInfo": {
+    "Filename": "1NUM_2.JPG"
+  },
+  "#id": "aebaaaaaaaggaqttaas3mak7gowuqiaaaaaq",
+  "#nbobjects": 0,
+  "#qualifiers": [
+    {
+      "qualifier": "PhysicalMaster",
+      "_nbc": 1,
+      "versions": [
+        {
+          "_id": "aeaaaaaaaaggaqttaas3mak7gowuqyaaaaaq",
+          "DataObjectGroupId": "aebaaaaaaaggaqttaas3mak7gowuqiaaaaaq",
+          "DataObjectVersion": "PhysicalMaster_1",
+          "PhysicalId": "1 Num 1/187-1",
+          "PhysicalDimensions": {
+            "Height": {
+              "unit": "centimetre",
+              "value": 10.5
+            },
+            "Length": {
+              "unit": "centimetre",
+              "value": 14.8
+            },
+            "Thickness": {
+              "unit": "micrometre",
+              "value": 350
+            },
+            "Weight": {
+              "unit": "gram",
+              "value": 3
+            }
+          },
+          "Extent": "1 carte imprimée",
+          "Dimensions": "10,5cm x 14,8cm",
+          "Color": "Noir et blanc",
+          "Framing": "Paysage",
+          "Technique": "Phototypie",
+          "_storage": {
+            "_nbc": 0,
+            "offerIds": [],
+            "strategyId": "default"
+          }
+        }
+      ]
+    },
+    {
+      "qualifier": "BinaryMaster",
+      "_nbc": 1,
+      "versions": [
+        {
+          "_id": "aeaaaaaaaaggaqttaas3mak7gowuqhaaaaaq",
+          "DataObjectGroupId": "aebaaaaaaaggaqttaas3mak7gowuqiaaaaaq",
+          "DataObjectVersion": "BinaryMaster_1",
+          "FormatIdentification": {
+            "FormatLitteral": "JPEG File Interchange Format",
+            "MimeType": "image/jpeg",
+            "FormatId": "fmt/43"
+          },
+          "FileInfo": {
+            "Filename": "1NUM_2.JPG"
+          },
+          "Metadata": {
+            "Document": {
+              "Dimensions": "143x93",
+              "Width": "143px",
+              "Height": "93px",
+              "VerticalResolution": "96ppp",
+              "HorizontalResolution": "96ppp",
+              "ColorDepth": 24
+            }
+          },
+          "Size": 8067,
+          "Uri": "Content/1NUM_2.JPG",
+          "MessageDigest": "3adb5ccfef14423678c2fb6a437ec104a6ee053f34b1c6a7755abc22eb54fb95133bef03fb142c6182377dbdadc9fa8ae8dd31dc3bb0fb038d93f51cafd90239",
+          "Algorithm": "SHA-512",
+          "_storage": {
+            "_nbc": 1,
+            "offerIds": [
+              "localhost"
+            ],
+            "strategyId": "default"
+          }
+        }
+      ]
+    },
+    {
+      "qualifier": "Dissemination",
+      "_nbc": 1,
+      "versions": [
+        {
+          "_id": "aeaaaaaaaaggaqttaas3mak7gowuqiqaaaaq",
+          "DataObjectGroupId": "aebaaaaaaaggaqttaas3mak7gowuqiaaaaaq",
+          "DataObjectVersion": "Dissemination_1",
+          "FormatIdentification": {
+            "FormatLitteral": "JPEG File Interchange Format",
+            "MimeType": "image/jpeg",
+            "FormatId": "fmt/43"
+          },
+          "FileInfo": {
+            "Filename": "1NUM_2.PNG"
+          },
+          "Metadata": {
+            "Video": {
+              "Dimensions": "117x76",
+              "Width": "117px",
+              "Height": "76px",
+              "ColorDepth": 24
+            }
+          },
+          "Size": 7702,
+          "Uri": "Content/1NUM_2.PNG",
+          "MessageDigest": "0e0cec05a1d72ee5610eaa5afbc904c012d190037cbc827d08272102cdecf0226efcad122b86e7699f767c661c9f3702379b8c2cb01c4f492f69deb200661bb9",
+          "Algorithm": "SHA-512",
+          "_storage": {
+            "_nbc": 1,
+            "offerIds": [
+              "localhost"
+            ],
+            "strategyId": "default"
+          }
+        }
+      ]
+    }
+  ],
+  "#type": "Document",
+  "#tenant": 0,
+  "#unitups": [
+    "aeaqaaaaaaggaqttaas3mak7gowuscyaaaaq"
+  ],
+  "#operations": [
+    "aedqaaaaachu2vdjaatqgak7gowtndiaaaaq"
+  ],
+  "#originating_agency": "Vitam",
+  "#originating_agencies": [
+    "Vitam"
+  ],
+  "#storage": {
+    "_nbc": [
+      1
+    ],
+    "offerIds": [
+      "localhost"
+    ],
+    "strategyId": "default"
+  },
+  "#version": 1
+}

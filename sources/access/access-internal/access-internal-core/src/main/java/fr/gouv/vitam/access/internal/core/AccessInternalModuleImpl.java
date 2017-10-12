@@ -1312,4 +1312,21 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
         return updatingRule;
     }
+
+    @Override
+    public Response findDIPByOperationId(String id) throws AccessInternalExecutionException {
+        final StorageClient storageClient =
+            storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
+        try {
+            final Response response = storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, id,
+                StorageCollectionType.DIP);
+            return new VitamAsyncInputStreamResponse(response, Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        } catch (final StorageServerClientException | StorageNotFoundException e) {
+            throw new AccessInternalExecutionException(e);
+        } finally {
+            if (storageClientMock == null && storageClient != null) {
+                storageClient.close();
+            }
+        }
+    }
 }

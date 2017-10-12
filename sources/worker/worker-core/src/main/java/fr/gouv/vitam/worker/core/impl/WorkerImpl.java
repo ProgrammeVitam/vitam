@@ -26,10 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.impl;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
+
 import com.google.common.base.Stopwatch;
-
 import fr.gouv.vitam.common.LocalDateUtil;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -92,13 +97,6 @@ import fr.gouv.vitam.worker.core.handler.VerifyTimeStampActionHandler;
 import fr.gouv.vitam.worker.core.plugin.PluginLoader;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.TimeUnit;
-
 
 /**
  * WorkerImpl class implements Worker interface
@@ -137,7 +135,7 @@ public class WorkerImpl implements Worker {
     /**
      * Add an actionhandler in the pool of action
      *
-     * @param actionName action name
+     * @param actionName    action name
      * @param actionHandler action handler
      * @return WorkerImpl
      */
@@ -260,7 +258,8 @@ public class WorkerImpl implements Worker {
                                 ((step.getDistribution().getKind().equals(DistributionKind.LIST) ||
                                     step.getDistribution().getKind().equals(DistributionKind.LIST_IN_FILE)) &&
                                     (!step.getDistribution().getElement().equals(UNIT_LIST_WITHOUT_LEVEL) &&
-                                        !step.getDistribution().getElement().equals(OG_LIST_WITHOUT_LEVEL)));
+                                        !step.getDistribution().getElement().equals(OG_LIST_WITHOUT_LEVEL)&&
+                                        !step.getDistribution().getElement().equals("data/binaries.json")));
                             if (shouldWriteLFC) {
                                 LogbookLifeCycleParameters lfcParam =
                                     createStartLogbookLfc(step, handlerName, workParams);
@@ -298,7 +297,7 @@ public class WorkerImpl implements Worker {
                         break;
                     }
                 }
-                
+
                 if (responses.getGlobalStatus().isGreaterOrEqualToFatal()) {
                     break;
                 }

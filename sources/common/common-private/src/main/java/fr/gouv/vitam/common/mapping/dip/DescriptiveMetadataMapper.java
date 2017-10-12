@@ -31,6 +31,7 @@ import java.util.Collections;
 import javax.xml.datatype.DatatypeConfigurationException;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType.CustodialHistory;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 
 /**
@@ -39,6 +40,8 @@ import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
  * This help convert DescriptiveMetadataModel to xml using jaxb
  */
 public class DescriptiveMetadataMapper {
+
+    private CustodialHistoryMapper custodialHistoryMapper = new CustodialHistoryMapper();
 
     /**
      * Map local DescriptiveMetadataModel to jaxb DescriptiveMetadataContentType
@@ -71,7 +74,10 @@ public class DescriptiveMetadataMapper {
         dmc.setAuthorizedAgent(agentTypeMapper.convert(metadataModel.getAuthorizedAgent()));
         dmc.setCoverage(metadataModel.getCoverage());
         dmc.setCreatedDate(metadataModel.getCreatedDate());
-        dmc.setCustodialHistory(metadataModel.getCustodialHistory());
+
+
+        CustodialHistory custodialHistory = custodialHistoryMapper.map(metadataModel.getCustodialHistory());
+        dmc.setCustodialHistory(custodialHistory);
 
         if (metadataModel.getDescriptions() != null) {
             dmc.getDescription().addAll(metadataModel.getDescriptions().getTextTypes());
@@ -106,7 +112,7 @@ public class DescriptiveMetadataMapper {
         dmc.setRestrictionEndDate(metadataModel.getRestrictionEndDate());
         dmc.setRestrictionRuleIdRef(metadataModel.getRestrictionRuleIdRef());
         dmc.setRestrictionValue(metadataModel.getRestrictionValue());
-        dmc.setRegisteredDate(metadataModel.getReceivedDate());
+        dmc.setRegisteredDate(metadataModel.getRegisteredDate());
         dmc.setSentDate(metadataModel.getSentDate());
         dmc.setSignature(metadataModel.getSignature());
         dmc.setSource(metadataModel.getSource());

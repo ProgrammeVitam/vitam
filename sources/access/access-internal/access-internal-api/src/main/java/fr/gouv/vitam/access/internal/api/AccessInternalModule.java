@@ -114,4 +114,6 @@ public interface AccessInternalModule {
         String qualifier, int version)
         throws MetaDataNotFoundException, StorageNotFoundException, InvalidParseOperationException,
         AccessInternalExecutionException;
+
+    Response findDIPByOperationId(String id) throws AccessInternalExecutionException;
 }

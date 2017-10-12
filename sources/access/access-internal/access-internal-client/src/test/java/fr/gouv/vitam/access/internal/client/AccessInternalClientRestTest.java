@@ -174,7 +174,13 @@ public class AccessInternalClientRestTest extends VitamJerseyTest {
             return expectedResponse.post();
         }
 
-        @Override public Response export(JsonNode queryDsl) {
+        @Override
+        public Response exportDIP(JsonNode queryDsl) {
+            return null;
+        }
+
+        @Override
+        public Response findDIPByID(String id) {
             return null;
         }
 

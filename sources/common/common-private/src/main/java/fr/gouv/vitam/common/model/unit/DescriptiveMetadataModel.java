@@ -69,7 +69,7 @@ public class DescriptiveMetadataModel {
 
     private TextByLang descriptions;
 
-    private DescriptiveMetadataContentType.CustodialHistory custodialHistory;
+    private CustodialHistoryModel custodialHistory;
 
     private TextType type;
 
@@ -228,12 +228,11 @@ public class DescriptiveMetadataModel {
         this.descriptions = descriptions;
     }
 
-    public DescriptiveMetadataContentType.CustodialHistory getCustodialHistory() {
+    public CustodialHistoryModel getCustodialHistory() {
         return custodialHistory;
     }
 
-    public void setCustodialHistory(
-        DescriptiveMetadataContentType.CustodialHistory custodialHistory) {
+    public void setCustodialHistory(CustodialHistoryModel custodialHistory) {
         this.custodialHistory = custodialHistory;
     }
 

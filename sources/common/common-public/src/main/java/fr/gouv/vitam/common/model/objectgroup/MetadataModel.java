@@ -26,9 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.objectgroup;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -47,6 +51,9 @@ public class MetadataModel {
     private Map<String, Object> audio;
     @JsonProperty("Video")
     private Map<String, Object> video;
+
+    @JsonIgnore
+    private Map<String, Object> any = new HashMap<>();
 
     public Map<String, Object> getDocument() {
         return document;
@@ -88,5 +95,17 @@ public class MetadataModel {
         this.image = image;
     }
 
+    @JsonAnyGetter
+    public Map<String, Object> getAny() {
+        return any;
+    }
+
+    @JsonAnySetter
+    public void setAny(String key, Object value) {
+        if (key != null && key.startsWith("#")) {
+            return;
+        }
+        this.any.put(key, value);
+    }
 
 }

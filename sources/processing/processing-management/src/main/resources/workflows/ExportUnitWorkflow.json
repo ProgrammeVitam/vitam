@@ -17,9 +17,57 @@
         {
           "action": {
             "actionKey": "CREATE_MANIFEST",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "manifest",
+                "uri": "WORKSPACE:manifest.xml"
+              },
+              {
+                "name": "guid_to_path",
+                "uri": "WORKSPACE:data/guid_to_path.json"
+              },
+              {
+                "name": "binaries",
+                "uri": "WORKSPACE:data/binaries.json"
+              }
+            ]
           }
-        },
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_PUT_BINARY_ON_WORKSPACE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_FILE",
+        "element": "data/binaries.json"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "PUT_BINARY_ON_WORKSPACE",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "guid_to_path",
+                "uri": "WORKSPACE:data/guid_to_path.json"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_STORE_MANIFEST",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": ""
+      },
+      "actions": [
         {
           "action": {
             "actionKey": "STORE_MANIFEST",

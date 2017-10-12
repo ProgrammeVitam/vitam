@@ -251,7 +251,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 try (final WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
                     // List from Workspace
                     Response response =
-                        workspaceClient.getObject(workParams.getContainerName(), AuditWorkflowConstants.AUDIT_FILE);
+                        workspaceClient.getObject(workParams.getContainerName(), step.getDistribution().getElement());
                     final JsonNode ogIdList;
                     try {
                         ogIdList = JsonHandler.getFromInputStream((InputStream) response.getEntity());
