@@ -108,6 +108,31 @@ public class CheckArchiveProfileRelationActionHandlerTest {
         when(handlerIO.getInput(0)).thenReturn("wrong_profile");
 
         response = handler.execute(params, handlerIO);
+        assertEquals(response.getGlobalOutcomeDetailSubcode(), "DIFF");
+        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+    }
+    
+    @Test
+    @RunWithCustomExecutor
+    public void givenProfilInactiveWhenTesthandlerWorkingThenReturnInvalideKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(handlerIO.getInput(0)).thenReturn(PROFILE_IDENTIFIER);
+        when(handlerIO.getInput(1)).thenReturn(CONTRACT_NAME);
+
+        when(adminClient.findIngestContracts(anyObject()))
+            .thenReturn(createIngestContract(ContractStatus.ACTIVE.toString()));
+        when(adminClient.findProfiles(anyObject()))
+            .thenReturn(createProfile(ProfileStatus.INACTIVE));
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
+                .setObjectNameList(Lists.newArrayList("objectName.json"))
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        handler = new CheckArchiveProfileRelationActionHandler();
+        assertEquals(CheckArchiveProfileRelationActionHandler.getId(), HANDLER_ID);
+
+        ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(response.getGlobalOutcomeDetailSubcode(), "INACTIVE");
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
     }
 

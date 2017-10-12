@@ -84,24 +84,28 @@ public class CheckIngestContractActionHandler extends ActionHandler {
         checkMandatoryParameters(params);
         handlerIO = ioParam;
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-        boolean contractValidity = false;
+        CheckIngestContractStatus status;
 
         try {
             checkMandatoryIOParameter(ioParam);
             final String contractIdentifier = (String) handlerIO.getInput(SEDA_PARAMETERS_RANK);
 
-            if (contractIdentifier != null) {
-                contractValidity = checkIngestContract(contractIdentifier);
-            } else {
-                contractValidity = true;
-                LOGGER.info("There is no contract in the SIP");
-            }
-
-            if (!contractValidity) {
-                itemStatus.increment(StatusCode.KO);
-                itemStatus.setData("error ingest contract validation", contractIdentifier);
-            } else {
-                itemStatus.increment(StatusCode.OK);
+            status = checkIngestContract(contractIdentifier);
+            switch (status) {
+                case INACTIVE:
+                    itemStatus.setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.INACTIVE.toString());
+                    itemStatus.increment(StatusCode.KO);
+                    break;
+                case UNKNOWN:
+                    itemStatus.setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.UNKNOWN.toString());
+                    itemStatus.increment(StatusCode.KO);
+                    break;
+                case KO:
+                    itemStatus.increment(StatusCode.KO);
+                    break;
+                case OK:
+                    itemStatus.increment(StatusCode.OK);
+                    break;
             }
         } catch (final ProcessingException e) {
             LOGGER.error(e);
@@ -116,7 +120,7 @@ public class CheckIngestContractActionHandler extends ActionHandler {
      * @param contractIdentifier name contract
      * @return true if contract ok
      */
-    private boolean checkIngestContract(String contractIdentifier) {
+    private CheckIngestContractStatus checkIngestContract(String contractIdentifier) {
         try (final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
 
             RequestResponse<IngestContractModel> referenceContracts = client.findIngestContractsByID(contractIdentifier);
@@ -127,22 +131,47 @@ public class CheckIngestContractActionHandler extends ActionHandler {
                         String status = result.getStatus();
                         if (status.equals(ContractStatus.ACTIVE.toString()) 
                             && result.getIdentifier().equals(contractIdentifier)) {
-                            return true;
+                            return CheckIngestContractStatus.OK;
+                        } else {
+                            return CheckIngestContractStatus.INACTIVE;
                         }
                     }
                 }
             }
         } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
-            LOGGER.error("Contract found but inactive: ", e);
+            LOGGER.error(e);
         } catch (ReferentialNotFoundException e) {
             LOGGER.error("Contract not found :", e);
+            return CheckIngestContractStatus.UNKNOWN;
         }
-        return false;
+        return CheckIngestContractStatus.KO;
     }
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // TODO Auto-generated method stub
 
+    }
+    
+    /**
+     * Check ingest contract status values
+     */
+    public enum CheckIngestContractStatus {
+        /**
+         * Missing contract
+         */
+        UNKNOWN,
+        /**
+         * Existing but inactive contract
+         */
+        INACTIVE,
+        /**
+         * OK contract
+         */
+        OK,
+        /**
+         * Other error situation
+         */
+        KO
     }
 }

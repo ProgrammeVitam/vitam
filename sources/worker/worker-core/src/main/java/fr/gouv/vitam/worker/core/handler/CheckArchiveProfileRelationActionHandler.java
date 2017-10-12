@@ -91,7 +91,7 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         final String profileIdentifier = (String) handlerIO.getInput(PROFILE_IDENTIFIER_RANK);
         final String contractName = (String) handlerIO.getInput(CONTRACT_NAME_RANK);
-        Boolean isValid = true;
+        CheckProfileStatus status;
 
         try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
             Select select = new Select();
@@ -102,29 +102,50 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
                 ((RequestResponseOK<IngestContractModel>) referenceContracts).getResults().size() > 0) {
                 IngestContractModel contract =
                     ((RequestResponseOK<IngestContractModel>) referenceContracts).getResults().get(0);
-                isValid = contract.getArchiveProfiles().contains(profileIdentifier);
+                if (contract.getArchiveProfiles().contains(profileIdentifier)) {
+                    status = CheckProfileStatus.OK;
+                } else {
+                    status = CheckProfileStatus.DIFF;
+                }
             } else {
-                isValid = false;
+                status = CheckProfileStatus.UNKNOWN;
             }
         } catch (InvalidCreateOperationException | InvalidParseOperationException |
             AdminManagementClientServerException e) {
             LOGGER.error(PROFILE_NOT_FOUND, e);
-            itemStatus.increment(StatusCode.KO);
-            itemStatus.setData(CAN_NOT_GET_THE_INGEST_CONTRACT, contractName);
-            return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+            status = CheckProfileStatus.KO;
         } catch (Exception e) {
             LOGGER.error(UNKNOWN_TECHNICAL_EXCEPTION, e);
             itemStatus.increment(StatusCode.FATAL);
             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
         }
 
-        isValid = checkProfilStatus(profileIdentifier);
-
-        if (isValid) {
-            itemStatus.increment(StatusCode.OK);
-        } else {
-            itemStatus.increment(StatusCode.KO);
+        if (status.equals(CheckProfileStatus.OK)) {
+            status = checkProfilStatus(profileIdentifier);
         }
+        
+        switch (status) {
+            case INACTIVE:
+                itemStatus.setGlobalOutcomeDetailSubcode(CheckProfileStatus.INACTIVE.toString());
+                itemStatus.increment(StatusCode.KO);
+                itemStatus.setData(CAN_NOT_GET_THE_INGEST_CONTRACT, contractName);
+                break;
+            case UNKNOWN:
+                itemStatus.setGlobalOutcomeDetailSubcode(CheckProfileStatus.UNKNOWN.toString());
+                itemStatus.increment(StatusCode.KO);
+                break;
+            case DIFF:
+                itemStatus.setGlobalOutcomeDetailSubcode(CheckProfileStatus.DIFF.toString());
+                itemStatus.increment(StatusCode.KO);
+                break;
+            case KO:
+                itemStatus.increment(StatusCode.KO);
+                break;
+            case OK:
+                itemStatus.increment(StatusCode.OK);
+                break;
+        }
+        
         ObjectNode infoNode = JsonHandler.createObjectNode();
         infoNode.put(SedaConstants.TAG_ARCHIVE_PROFILE, profileIdentifier);
         String evdev = JsonHandler.unprettyPrint(infoNode);
@@ -135,7 +156,7 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
 
     }
 
-    private boolean checkProfilStatus(String profileIdentifier) {
+    private CheckProfileStatus checkProfilStatus(String profileIdentifier) {
         try (final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
 
             Select select = new Select();
@@ -151,23 +172,49 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
                         String status = result.getStatus().toString();
                         if (status.equals(ContractStatus.ACTIVE.toString()) &&
                             result.getIdentifier().equals(profileIdentifier)) {
-                            return true;
+                            return CheckProfileStatus.OK;
+                        } else {
+                            return CheckProfileStatus.INACTIVE;
                         }
                     }
                 }
             }
-        } catch (InvalidCreateOperationException e) {
-            LOGGER.error("profil not found :", e);
-        } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
-            LOGGER.error("profil found but inactive: ", e);
+        } catch (InvalidCreateOperationException | AdminManagementClientServerException | InvalidParseOperationException e) {
+            LOGGER.error(e);
         }
 
-        return false;
+        return CheckProfileStatus.KO;
     }
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // TODO P0 Add Workspace:SIP/manifest.xml and check it
+    }
+    
+    /**
+     * Check profile status values
+     */
+    public enum CheckProfileStatus {
+        /**
+         * Missing profile
+         */
+        UNKNOWN,
+        /**
+         * Existing but inactive profile
+         */
+        INACTIVE,
+        /**
+         * The profile mentioned in the contract but not mentioned in the SIP
+         */
+        DIFF,
+        /**
+         * OK profile
+         */
+        OK,
+        /**
+         * Other error situation
+         */
+        KO
     }
 
 }
