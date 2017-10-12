@@ -9,7 +9,7 @@ actions:
   1:
     action: close
     description: >-
-      Close indices older than {{days_to_close}} days (based on index name), for metrics-vitam-
+      Close indices older than {{days_to_close_metrics}} days (based on index name), for metrics-vitam-
       prefixed indices.
     options:
       ignore_empty_list: True
@@ -33,7 +33,7 @@ actions:
   2:
     action: delete_indices
     description: >-
-      Delete indices older than {{days_to_delete}} days (based on index name), for metrics-vitam-
+      Delete indices older than {{days_to_delete_metrics}} days (based on index name), for metrics-vitam-
       prefixed indices.
     options:
       ignore_empty_list: True
