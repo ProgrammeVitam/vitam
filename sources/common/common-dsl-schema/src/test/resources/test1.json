@@ -1,0 +1,33 @@
+{
+  "$roots": [
+    "azdazdazdaz",
+    42
+  ],
+  "$query": [
+    {
+      "$and": [
+        {
+          "$match": {
+            "Title": "api"
+          }
+        }
+      ],
+      "$depth": 20
+    },
+    {
+      "$or": [
+      ],
+      "$depth": 0
+    },
+    {
+      "$match": {
+        "toto": 12
+      }
+    }
+  ],
+  "$filter": {
+    "$orderby": {
+      "TransactionDate": 1
+    }
+  }
+}

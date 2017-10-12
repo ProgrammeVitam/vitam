@@ -1,0 +1,22 @@
+{
+  "$roots": ["aeaqaaaaaagdmvr3abnwoak7fzjq75qaaaca"],
+  "$query": [
+    {
+      "$and": [
+        {
+          "$in": {
+            "#myKey": [
+              "Operation-Id"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "$projection": {
+    "$fields": {
+      "#id": 1,
+      "Title": 1
+    }
+  }
+}

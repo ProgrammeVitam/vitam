@@ -1,0 +1,18 @@
+{
+  "$roots": [
+    "aeaqaaaaaagdmvr3abnwoak7fzjq75qaaaca"
+  ],
+  "$query": [
+    {
+      "$search": {
+        "Description": "Faire cuire les courgettes"
+      },
+      "$depth": 0
+    }
+  ],
+  "$filter": {
+    "$orderby": {
+      "TransactionDate": 1
+    }
+  }
+}
