@@ -164,8 +164,7 @@ public class LogbookInternalResourceImplTest {
      *
      * @throws Exception
      */
-    //@Test
-    @Ignore // FIXME Test is not correct since no check is done on the timeout check => bad JUnit ?
+    @Test
     public void givenStartedServerWhenCheckTraceabilityThenOK() throws Exception {
         LOGGER.warn("Reset logbook");
         reset(logbookOperationClient);
@@ -181,6 +180,7 @@ public class LogbookInternalResourceImplTest {
             .thenReturn(ClientMockResultHelper.getLogbookOperation());
         when(processManagementClient.executeCheckTraceabilityWorkFlow(anyObject(), anyObject(), anyObject(),
             anyObject(), anyObject())).thenReturn(Response.ok().build());
+        when(processManagementClient.isOperationCompleted(anyObject())).thenReturn(true);       
         when(workspaceClient.isExistingContainer(anyObject())).thenReturn(true);
         Mockito.doNothing().when(workspaceClient).deleteContainer(anyObject(), anyBoolean());
         LOGGER.warn("Start Check");

@@ -66,6 +66,7 @@ import com.mongodb.MongoWriteException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.CountOptions;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 
@@ -142,8 +143,10 @@ public class DbRequestSingle {
         throws InvalidParseOperationException, DatabaseException, InvalidCreateOperationException {
         return execute(request, 0);
     }
+
     /**
      * execute all request
+     * 
      * @param request
      * @param version
      * @throws InvalidParseOperationException
@@ -180,14 +183,14 @@ public class DbRequestSingle {
     public static boolean checkInsertOrUpdate(Exception e) {
         if (e instanceof DatabaseException &&
             (((DatabaseException) e).getCause() instanceof MongoBulkWriteException |
-            ((DatabaseException) e).getCause() instanceof MongoWriteException)) {
+                ((DatabaseException) e).getCause() instanceof MongoWriteException)) {
             LOGGER.info("Document existed, updating ...");
             return true;
         }
         Throwable d = e.getCause();
         if (d instanceof DatabaseException &&
             (((DatabaseException) d).getCause() instanceof MongoBulkWriteException |
-            ((DatabaseException) d).getCause() instanceof MongoWriteException)) {
+                ((DatabaseException) d).getCause() instanceof MongoWriteException)) {
             LOGGER.info("Document existed, updating ...");
             return true;
         }
@@ -229,16 +232,18 @@ public class DbRequestSingle {
         insertToElasticsearch(vitamDocumentList);
         return new DbRequestResult().setCount(vitamDocumentList.size()).setTotal(vitamDocumentList.size());
     }
+
     /**
      * @param arrayNode
      * @throws InvalidParseOperationException
      * @throws DatabaseException
      */
     @SuppressWarnings("unchecked")
-    private DbRequestResult insertDocuments(ArrayNode arrayNode )
+    private DbRequestResult insertDocuments(ArrayNode arrayNode)
         throws InvalidParseOperationException, DatabaseException {
-        return  insertDocuments ( arrayNode, 0);
+        return insertDocuments(arrayNode, 0);
     }
+
     /**
      * Private Elasticsearch insert method
      *
@@ -423,8 +428,11 @@ public class DbRequestSingle {
         final Bson orderBy = selectToMongoDb.getFinalOrderBy();
         final int offset2 = selectToMongoDb.getFinalOffset();
         final int limit2 = selectToMongoDb.getFinalLimit();
+        MongoCollection collection = vitamCollection.getCollection();
         FindIterable<VitamDocument<?>> find =
-            (FindIterable<VitamDocument<?>>) vitamCollection.getCollection().find(condition).skip(offset2);
+            (FindIterable<VitamDocument<?>>) collection.find(condition).skip(offset2);
+        total = collection.count(condition);
+        
         if (projection != null) {
             find = find.projection(projection);
         }
@@ -440,6 +448,7 @@ public class DbRequestSingle {
         if (limit == 0) {
             limit = limit2;
         }
+
         return find.iterator();
     }
 
@@ -627,7 +636,7 @@ public class DbRequestSingle {
             max--;
             bulkRequest
                 .add(
-                client.prepareDelete(vitamCollection.getName().toLowerCase(), VitamCollection.getTypeunique(), id));
+                    client.prepareDelete(vitamCollection.getName().toLowerCase(), VitamCollection.getTypeunique(), id));
             if (max == 0) {
                 max = VitamConfiguration.getMaxElasticsearchBulk();
                 final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new

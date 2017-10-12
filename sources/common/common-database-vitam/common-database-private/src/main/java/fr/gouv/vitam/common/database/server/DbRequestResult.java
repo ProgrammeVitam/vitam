@@ -188,7 +188,7 @@ public class DbRequestResult implements VitamAutoCloseable {
                 cursor = null;
             }
         }
-        count = documents.size();
+        count = documents.size();        
         return (List<T>) new ArrayList<>(documents);
     }
 
