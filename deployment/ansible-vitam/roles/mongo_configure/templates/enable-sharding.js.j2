@@ -1,8 +1,9 @@
 
 // Add the shard to the configuration
-
 {% for host in groups['mongod'] %}
-    sh.addShard("shard{{ hostvars[host]['shard_id'] }}/{{ hostvars[host]['ip_service'] }}:{{mongod_port}}")
+    {% if hostvars[host]['mongo_rs_bootstrap'] is defined and hostvars[host]['mongo_rs_bootstrap']|lower == "true" %}
+        sh.addShard("shard{{ hostvars[host]['mongo_shard_id'] }}/{{ hostvars[host]['ip_service'] }}:{{mongod_port}}")
+    {% endif %}
 {% endfor %}
 
 // Enable sharding on Vitam databases

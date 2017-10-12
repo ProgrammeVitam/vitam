@@ -1,19 +1,10 @@
 
-{% for host in groups['mongod'] %}
-{% if hostvars[host]['shard_id'] == shard_id %}
-{% if hostvars[host]['rs_member_id'] == (hostvars[host]['replica_number'] - 1) %}
-
 rs.initiate(
     {
-        _id: "shard{{ hostvars[host]['shard_id'] }}",
+        _id: "shard{{ mongo_shard_id }}",
         members:
         [
-            {% for item in groups['mongod'] %}
-                {% if shard_id == hostvars[item]['shard_id'] %}
-                { _id: {{ hostvars[item]['rs_member_id'] }}, host: "{{ hostvars[item]['ip_service'] }}:{{mongod_port}}" }
-                {% if hostvars[item]['rs_member_id'] < (hostvars[item]['replica_number'] - 1) %},{% endif %}
-                {% endif %}
-            {% endfor %}
+                { _id: 0, host: "{{ ip_service }}:{{ mongod_port }}" }
         ],
         settings: {
     		    getLastErrorDefaults : { w: "majority" }
@@ -21,6 +12,10 @@ rs.initiate(
     }
 )
 
-{% endif %}
-{% endif %}
+{% for host in groups['mongod'] %}
+    {% if mongo_shard_id == hostvars[host]['mongo_shard_id'] %}
+        {% if hostvars[host]['mongo_rs_bootstrap'] is not defined or hostvars[host]['mongo_rs_bootstrap']|lower != "true" %}
+            rs.add("{{ hostvars[host]['ip_service'] }}")
+        {% endif %}
+    {% endif %}
 {% endfor %}
