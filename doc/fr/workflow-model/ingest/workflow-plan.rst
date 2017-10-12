@@ -92,7 +92,7 @@ Diagramme d'activité du workflow du plan de classement
 
     - Vérification du GUID de la structure de rattachement
 
-    - Vérification de la cohérence entre l'unité archivistique rattachée et l'unité archivistique de rattachement.
+    - Vérification de la cohérence entre l'unité archivistique rattachée et l'unité archivistique de rattachement. Pour un plan, l'unité de rattachement ne peut être qu'une unité de plan ou d'arbre
 
     - Vérification des problèmes d'encodage dans le manifeste
 
