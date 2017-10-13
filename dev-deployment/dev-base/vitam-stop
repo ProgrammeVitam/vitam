@@ -34,5 +34,5 @@ fi
 
 echo "Deploying VITAM for environment ${VITAM_ENVIRONMENT}..."
 pushd /code/deployment
-ansible-playbook ansible-vitam-exploitation/stop_vitam.yml -i environments/hosts.${VITAM_ENVIRONMENT} --vault-password-file vault_pass.txt -v
+ansible-playbook ansible-vitam-exploitation/stop_vitam.yml -i environments/hosts.${VITAM_ENVIRONMENT} --vault-password-file vault_pass.txt -v -e confirmation=yes
 popd
