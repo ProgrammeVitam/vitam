@@ -1,10 +1,9 @@
 # Authors of Vitam
 
-## Release 4 active development team (03/2017)
+## Release xx active development team (xx/2017)
 
 ### French government team
 
-* Frédéric Bregier (Architect/Technical Leader)
 * Edouard Vasseur (Archivist Leader)
 * Mehdi Afnaï
 * Pierre Ané
