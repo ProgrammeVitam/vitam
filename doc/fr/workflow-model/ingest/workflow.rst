@@ -288,7 +288,10 @@ Application des règles de gestion et calcul des dates d'échéances (UNITS_RULE
 
   - OK : les règles de gestion sont référencées dans le référentiel interne et ont été appliquées avec succès (UNITS_RULES_COMPUTE.OK = Succès du calcul des dates d'échéance)
 
-  - KO : au moins une règle de gestion déclarée dans le manifeste n'est pas référencée dans le référentiel interne (UNITS_RULES_COMPUTE.KO = Échec du calcul des dates d'échéance)
+  - KO : Une erreur s'est produite lors du calcul des échéances. Ceci peut-être causé par le fait que :
+      
+      * au moins une règle de gestion déclarée dans le manifeste n'est pas référencée dans le référentiel interne
+      * une balise RefnonRuleId a un ID d'une règle d'une autre catégorie que la sienne 
 
   - FATAL : une erreur technique est survenue lors du calcul des dates d'échéances (UNITS_RULES_COMPUTE.FATAL = Erreur fatale lors du calcul des dates d'échéance)
 
