@@ -2404,7 +2404,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                     new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()), 
                     profileMetadataId, updateRequest.getFinalUpdate());
             if (response != null && response instanceof RequestResponseOK) {
-                return Response.status(Status.OK).build();
+                return Response.status(Status.OK).entity(response).build();
             }
             if (response != null && response instanceof VitamError) {
                 LOGGER.error(response.toString());
