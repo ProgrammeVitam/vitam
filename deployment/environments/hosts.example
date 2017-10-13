@@ -164,7 +164,6 @@ mongod
 [mongoc]
 # TODO: Put here servers where this service will be deployed : mongoc cluster
 
-
 [mongod] # mongod declaration ; add host name after
 # TODO: Put here servers where this service will be deployed : mongod cluster
 # Each replica_set should have an odd number of members (2n + 1)
@@ -211,65 +210,61 @@ hosts-logstash
 ########### Global vars ###########
 
 [hosts:vars]
+
+# ===============================
+# VITAM
+# ===============================
+
 # Declare user for ansible on target machines
 ansible_ssh_user=
-
 # Can target user become as root ? ; true is required by VITAM (usage of a sudoer is mandatory)
 ansible_become=true
-
 # Environment (defines consul environment name ; in extra on homepage)
 environnement=
-
-# EXTRA : FQDN of the front reverse-proxy ; used when VITAM is behind a reverse proxy (provides configuration for reverse proxy && displayed in header page)
-vitam_reverse_external_dns=
-
-# Version that has to be deployed (defined in the release note)
-# Example: package_version=0.9.0-RC1*
-package_version=
-
-# Configuration for Curator
-#	Days before deletion on log management cluster; 365 for production environment
-days_to_delete=
-
-#	Days before closing "old" indexes on log management cluster; 30 for production environment
-days_to_close=
-
-#	Days before deletion for topbeat index only on log management cluster; 365 for production environment
-days_to_delete_topbeat=
 
 # Related to Consul ; apply in a table your DNS server(s)
 # Example : dns_servers=["8.8.8.8","8.8.4.4"]
 dns_servers=
 
-#	LOG level defined in logback files ; can be a value in "ERROR","WARN","INFO","DEBUG","TRACE". Recommended value is "WARN"
-log_level=
-
-# For reverse proxy use
-reverse_proxy_port=80
-
-# For metrics
-# curator job : days before closing
-days_to_close_metrics=7
-# curator job : days before deleting
-days_to_delete_metrics=30
-# Installation ClamAV ? true/false
-installation_clamav=true
-
-# cas de l'appel au webDAV pour récupérer les jeux de tests
-http_proxy_environnement=
-
+# Vitam tenants to create
 vitam_tenant_ids=[0,1,2]
 
-# ces paramètres peuvent être soit globaux, ici, soit ajoutés après chaque partition hébergeant une offre de stockage
+### Logback configuration ###
+# Days before deleting logback log files (java & access logs for vitam components)
+days_to_delete_logback_logfiles=
 
-# useless now as it is declared in [hosts-storage-offer-default]
-# vitam_provider_offer=openstack-swift
-# URL d'authentification si openstack-swift
-# vitam_keystone_auth_url=http://xxxxx.xxxx.xxx:8080/auth/1.0
-# subUser pour swift
-# vitam_swift_subuser=
-# Nom du tenant associé (concaténation tenant$user ; le mot de passe est renseigné dans vault.yml sous la directive vitam_keystone_passwd )
-# vitam_swift_uid=
+# Configuration for Curator
+#	Days before deletion on log management cluster; 365 for production environment
+days_to_delete_logstash_indexes=
+#	Days before closing "old" indexes on log management cluster; 30 for production environment
+days_to_close_logstash_indexes=
+#	Days before deletion for topbeat index only on log management cluster; 365 for production environment
 
-# Pour les Tests de Non-Regression (en git LFS), si URL et branche définies, récupération des jeux de tests
-vitam_swift_uid=
+
+# ===============================
+# EXTRA
+# ===============================
+
+
+# Configuration for Curator
+#	Days before deletion for packetbeat index only on log management cluster
+days_to_delete_packetbeat_indexes=5
+#	Days before deletion for metricbeat index only on log management cluster; 30 for production environment
+days_to_delete_metricbeat_indexes=30
+# Days before closing metrics elasticsearch indexes
+days_to_close_metrics_indexes=7
+# Days before deleting metrics elasticsearch indexes
+days_to_delete_metrics_indexes=30
+
+### vitam-itest repository ###
+vitam_tests_branch=master
+vitam_tests_gitrepo_protocol=https
+vitam_tests_gitrepo_baseurl=dev.programmevitam.fr
+vitam_tests_gitrepo_url={{vitam_tests_gitrepo_protocol}}://{{vitam_tests_gitrepo_baseurl}}/gitlab/vitam/vitam-itests.git
+
+# Used when VITAM is behind a reverse proxy (provides configuration for reverse proxy && displayed in header page)
+vitam_reverse_external_dns=
+# For reverse proxy use
+reverse_proxy_port=80
+# http_proxy env var to use
+http_proxy_environnement=

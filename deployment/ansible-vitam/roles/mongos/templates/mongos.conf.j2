@@ -13,12 +13,12 @@ systemLog:
 
 # network interfaces
 net:
-  port: {{mongos_port}}
+  port: {{ mongodb.mongos_port }}
 
 
 # operationProfiling:
 sharding:
-  configDB: configsvr/{% for item in groups['mongoc'] %}{{hostvars[item]['ip_service']}}:{{mongoc_port}}{% if not loop.last %},{% endif %}{% endfor %}
+  configDB: configsvr/{% for item in groups['mongoc'] %}{{hostvars[item]['ip_service']}}:{{ mongodb.mongoc_port }}{% if not loop.last %},{% endif %}{% endfor %}
 
 
 # ansible managed security conf

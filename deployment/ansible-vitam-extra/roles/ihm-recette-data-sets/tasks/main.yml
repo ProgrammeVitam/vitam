@@ -1,10 +1,10 @@
 - name: create file tree for test
   file:
-    path: "{{vitam_folder_root}}/data/ihm-recette/{{item}}"
+    path: "{{ vitam_defaults.folder.root_path }}/data/ihm-recette/{{ item }}"
     state: directory
-    owner: "{{ vitam_user}}"
-    group: "{{ vitam_group }}"
-    mode: "{{ vitam_folder_permission }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
   with_items:
     - report/performance
     - report/system

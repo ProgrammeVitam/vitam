@@ -1,13 +1,13 @@
 serverHost: {{ip_service}}
-port: {{vitam_ihm_recette_port_https}}
+port: {{vitam_struct.port_https}}
 
-baseUrl: "{{ vitam_ihm_recette_baseurl }}"
-staticContent: "{{ vitam_ihm_recette_static_content }}"
+baseUrl: "{{ vitam_struct.baseuri }}"
+staticContent: "{{ vitam_struct.static_content }}"
 
 jettyConfig: jetty-config.xml
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
 secure: true
-secureMode: {{vitam_ihm_recette_secure_mode}}
+secureMode: {{vitam_struct.secure_mode}}
 sipDirectory: {{vitam_folder_data}}/test-data
 performanceReportDirectory: {{vitam_folder_data}}/report/performance
 
@@ -18,7 +18,7 @@ testSystemReportDirectory: {{vitam_folder_data}}/report/system
 mongoDbNodes:
 {% for server in groups['mongos'] %}
 - dbHost: {{hostvars[server]['ip_service']}}
-  dbPort: {{vitam_mongodb_port}}
+  dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 # Actually need this field for compatibility
 dbName: admin
@@ -26,7 +26,7 @@ dbName: admin
 masterdataDbName: masterdata
 logbookDbName: logbook
 metadataDbName: metadata
-dbAuthentication: {{mongo_authentication}}
+dbAuthentication: {{ mongodb.mongo_authentication }}
 dbUserName: {{mongoAdminUser}}
 dbPassword: {{mongoAdminPassword}}
 
@@ -35,5 +35,5 @@ clusterName: {{cluster_name}}
 elasticsearchNodes:
 {% for server in groups['hosts-elasticsearch-data'] %}
 - hostName: {{hostvars[server]['ip_service']}}
-  tcpPort: {{elasticsearch_data_tcp_port}}
+  tcpPort: {{ elasticsearch.elasticsearch_data.tcp_port }}
 {% endfor %}

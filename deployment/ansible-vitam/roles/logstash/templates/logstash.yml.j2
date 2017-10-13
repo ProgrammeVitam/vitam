@@ -61,7 +61,7 @@ pipeline.workers: {{ ansible_processor_cores }}
 #
 # Where to fetch the pipeline configuration for the main pipeline
 #
-path.config: {{logstash_conf_dir}}
+path.config: {{ logstash_conf_dir }}
 #
 # Pipeline configuration string for the main pipeline
 #
@@ -93,7 +93,7 @@ path.config: {{logstash_conf_dir}}
 # ------------ Module Settings ---------------
 # Define modules here.  Modules definitions must be defined as an array.
 # The simple way to see this is to prepend each `name` with a `-`, and keep
-# all associated variables under the `name` they are associated with, and 
+# all associated variables under the `name` they are associated with, and
 # above the next, like this:
 #
 # modules:
@@ -103,7 +103,7 @@ path.config: {{logstash_conf_dir}}
 #     var.PLUGINTYPE2.PLUGINNAME1.KEY1: VALUE
 #     var.PLUGINTYPE3.PLUGINNAME3.KEY1: VALUE
 #
-# Module variable names must be in the format of 
+# Module variable names must be in the format of
 #
 # var.PLUGIN_TYPE.PLUGIN_NAME.KEY
 #
@@ -174,12 +174,12 @@ path.config: {{logstash_conf_dir}}
 #
 # Bind address for the metrics REST endpoint
 #
-http.host: "{{ip_admin}}"
+http.host: "{{ ip_admin }}"
 #
 # Bind port for the metrics REST endpoint, this option also accept a range
 # (9600-9700) and logstash will pick up the first available ports.
 #
-http.port: {{vitam_logstash_rest_port}}
+http.port: {{ logstash.rest_port }}
 # http.port: 9600-9700
 #
 # ------------ Debugging Settings --------------
@@ -193,7 +193,7 @@ http.port: {{vitam_logstash_rest_port}}
 #   * trace
 #
 # log.level: info
-path.logs: {{logstash_log_dir}}
+path.logs: {{ logstash_log_dir }}
 #
 # ------------ Other Settings --------------
 #

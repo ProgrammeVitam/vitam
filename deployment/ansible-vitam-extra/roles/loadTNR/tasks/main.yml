@@ -11,17 +11,20 @@
     body: '{"token":{"principal":"{{vitam_users[0].login}}","credentials": "{{vitam_users[0].password}}" }}'
     body_format: json
     status_code: 200
+    validate_certs: no
     headers:
       Content-Type: "application/json;charset=utf-8"
       accept: "application/json, text/plain, */*"
       Connection: "keep-alive"
       body_format: json
       Host: "{{ ip_service }}"
-    url: http://{{ip_service}}:{{vitam_ihm_recette_port}}/ihm-recette/v1/api/login
+    url: "{% if vitam.ihm_recette.https_enabled==true %}https{% else %}http{% endif %}://{{ ip_service }}:{% if vitam.ihm_recette.https_enabled==true %}{{ vitam.ihm_recette.port_https }}{% else %}{{ vitam.ihm_recette.port }}{% endif %}{{ vitam.ihm_recette.baseuri}}/v1/api/login"
   ignore_errors: true
   run_once: true
   register: login
-  no_log: true
+  #no_log: true
+
+# http://{{ ip_service }}:{{vitam.ihm_demo.port}}{{ vitam.ihm_demo.baseuri }}
 
 # - name: ihm-recette auth with curl
 #   shell: "curl -s -v -H 'Content-Type: application/json' --data '{\"token\":{\"principal\":\"aadmin\",\"credentials\":\"aadmin1234\"} }' http://{{vitam_ihm_recette_host}}:{{vitam_ihm_recette_port}}/ihm-recette/v1/api/login 2>&1 |grep Set-Cookie |awk -F \"Set-Cookie: \" '{print $2}' | tr '\\r\\n' '; '"
@@ -30,10 +33,11 @@
 - name: Purge database collections before launching TNR
   uri:
     method: DELETE
+    validate_certs: no
     headers:
-      X-Tenant-Id: "{{item}}"
+      X-Tenant-Id: "{{ item }}"
       Cookie: "{{login.set_cookie}}"
-    url: "http://{{ip_service}}:{{vitam_ihm_recette_port}}/ihm-recette/v1/api/delete/deleteTnr"
+    url: "{% if vitam.ihm_recette.https_enabled==true %}https{% else %}http{% endif %}://{{ ip_service }}:{% if vitam.ihm_recette.https_enabled==true %}{{ vitam.ihm_recette.port_https }}{% else %}{{ vitam.ihm_recette.port }}{% endif %}{{ vitam.ihm_recette.baseuri}}/v1/api/delete/deleteTnr"
   # TNR are used on tenant 0 & 1 only
   with_items:
     - "0"
@@ -46,7 +50,7 @@
 - name: launch TNR
 #  shell: java -Dlogback.configurationFile="{{TNR_conf}}/logback.xml" -DtnrBaseDirectory={{ TNR_dir }} -jar {{TNR_lib}}/functional-test-*-jar-with-dependencies.jar -g fr.gouv.vitam.functionaltest.cucumber -p junit:{{ TNR_output }} {{ TNR_dir }}
   shell: java -Dlogback.configurationFile="{{TNR_conf}}/logback.xml" -DtnrBaseDirectory={{ TNR_dir }} -jar {{TNR_lib}}/functional-test-*.jar -g fr.gouv.vitam.functionaltest.cucumber -p junit:{{ TNR_output }} -p fr.gouv.vitam.functionaltest.cucumber.report.VitamReporter:{{report_dir}}/report_{{ansible_date_time.year}}{{ansible_date_time.month}}{{ ansible_date_time.day}}_{{ ansible_date_time.hour}}{{ ansible_date_time.minute}}{{ ansible_date_time.second}}.json {{ TNR_dir }}
-  become_user: "{{ vitam_user }}"
+  become_user: "{{ vitam_defaults.users.vitam }}"
   ignore_errors: true
   args:
     chdir: "{{TNR_conf}}"

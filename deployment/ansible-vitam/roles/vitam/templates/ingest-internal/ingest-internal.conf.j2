@@ -1,4 +1,4 @@
-workspaceUrl: {{vitam_workspace_baseurl}}
-processingUrl: {{vitam_processing_baseurl}}
+workspaceUrl: {{vitam.workspace | client_url}}
+processingUrl: {{vitam.processing | client_url}}
 jettyConfig: jetty-config.xml
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]

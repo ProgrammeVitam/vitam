@@ -2,5 +2,5 @@ contextPath: /
 # Smile : TODO : remove storagePath from this file
 storagePath: {{vitam_folder_data}}
 jettyConfig: jetty-config.xml
-authentication : {{ test_tls_offer_enabled }}
+authentication : {{ vitam_struct.https_enabled }}
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]

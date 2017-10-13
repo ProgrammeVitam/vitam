@@ -27,10 +27,10 @@
 - name: aply custom configuration
   template:
     src: application.conf.j2
-    dest: /vitam/conf/cerebro/application.conf
-    owner: "{{ vitam_user}}"
-    group: "{{ vitam_group }}"
-    mode: "{{ vitam_folder_permission }}"
+    dest: "{{ vitam_defaults.folder.root_path }}/conf/cerebro/application.conf"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
   notify:
     - restart cerebro
 
@@ -43,18 +43,18 @@
 
 - name: Ensure consul config dir is OK
   file:
-    path: "{{consul_folder_conf}}"
+    path: "{{ consul_folder_conf }}"
     state: directory
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
 
 - name: Deploy consul agent service declaration for cerebro service
   template:
     src: "service-componentid.json.j2"
-    dest: "{{consul_folder_conf}}/service-cerebro.json"
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
+    dest: "{{ consul_folder_conf }}/service-cerebro.json"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   notify:
    - reload consul configuration
 

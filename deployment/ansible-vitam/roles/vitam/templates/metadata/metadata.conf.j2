@@ -3,10 +3,10 @@
 mongoDbNodes:
 {% for server in groups['mongos'] %}
 - dbHost: {{hostvars[server]['ip_service']}}
-  dbPort: {{vitam_mongodb_port}}
+  dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 dbName: metadata
-dbAuthentication: {{mongo_authentication}}
+dbAuthentication: {{ mongodb.mongo_authentication }}
 dbUserName: {{mongoMetadataUser}}
 dbPassword: {{mongoMetadataPassword}}
 
@@ -18,5 +18,5 @@ clusterName: {{cluster_name}}
 elasticsearchNodes:
 {% for server in groups['hosts-elasticsearch-data'] %}
 - hostName: {{hostvars[server]['ip_service']}}
-  tcpPort: {{elasticsearch_data_tcp_port}}
+  tcpPort: {{ elasticsearch.elasticsearch_data.tcp_port }}
 {% endfor %}

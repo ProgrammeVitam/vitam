@@ -4,10 +4,10 @@
 # Question : move the scan-clamav.sh in /app ?
 - name: change perms on scan-clamav.sh
   file:
-    path: "{{vitam_folder_root}}/conf/ingest-external/scan-clamav.sh"
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
-    mode: 0750
+    path: "{{ vitam_defaults.folder.root_path }}/conf/ingest-external/scan-clamav.sh"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
   tags:
     - update_vitam_configuration
 
@@ -24,10 +24,10 @@
     state: latest
   when: ansible_distribution == "Debian"
 
-- name: Adding {{ vitam_group }}  group to clamav so it can scan {{ vitam_group }}-based files
+- name: Adding {{ vitam_defaults.users.group }}  group to clamav so it can scan {{ vitam_defaults.users.group }}-based files
   user:
     name: clamav
-    groups: "{{ vitam_group }}"
+    groups: "{{ vitam_defaults.users.group }}"
     append: yes
 
 - name: ensure clam.d directory exists

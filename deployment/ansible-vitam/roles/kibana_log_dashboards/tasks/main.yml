@@ -6,13 +6,13 @@
 - name: Wait for the kibana port to be open
   wait_for:
     host: "{{ip_service}}"
-    port: "{{kibana_log_port}}"
-    timeout: "{{service_restart_timeout}}"
+    port: "{{kibana.log_port}}"
+    timeout: "{{ vitam_defaults.services.start_timeout }}"
   run_once: true
 
 - name: Wait until kibana service is OK
   uri:
-    url: 'http://{{ip_service}}:{{kibana_log_port}}/status'
+    url: 'http://{{ip_service}}:{{kibana.log_port}}/status'
     method: GET
   register: kibana_result
   until: kibana_result.status != 503
@@ -21,7 +21,7 @@
 
 - name: Wait until .kibana index exists
   uri:
-    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana'
+    url: 'http://{{elasticsearch.elasticsearch_log.host}}:{{ elasticsearch.elasticsearch_log.http_port }}/.kibana'
     method: HEAD
     status_code: 200
   register: kibana_result
@@ -34,38 +34,38 @@
   when: "{{ (groups['hosts-kibana-log'] | length) > 0 }}"
   run_once: true
   uri:
-    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/{{ item.split(".")[0] }}*'
+    url: 'http://{{elasticsearch.elasticsearch_log.host}}:{{ elasticsearch.elasticsearch_log.http_port }}/.kibana/{{ item.split(".")[0] }}*'
     method: PUT
-    body: "{{ lookup('file', '{{role_path}}/files/kibana-metrics-configuration/{{item}}') }}"
+    body: "{{ lookup('file', '{{ role_path }}/files/kibana-metrics-configuration/{{ item }}') }}"
     body_format: json
     status_code: 200, 201
   with_lines: find {{ index_pattern_dir }} -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
   vars:
-    index_pattern_dir: "{{role_path}}/files/kibana-metrics-configuration/index-pattern"
+    index_pattern_dir: "{{ role_path }}/files/kibana-metrics-configuration/index-pattern"
 
 - name: load dasboards into Elasticsearch log .kibana index
   when: "{{ (groups['hosts-kibana-log'] | length) > 0 }}"
   run_once: true
   uri:
-    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/{{ item.split(".")[0] }}'
+    url: 'http://{{elasticsearch.elasticsearch_log.host}}:{{ elasticsearch.elasticsearch_log.http_port }}/.kibana/{{ item.split(".")[0] }}'
     method: PUT
-    body: "{{ lookup('file', '{{role_path}}/files/kibana-metrics-configuration/{{item}}') }}"
+    body: "{{ lookup('file', '{{ role_path }}/files/kibana-metrics-configuration/{{ item }}') }}"
     body_format: json
     status_code: 200, 201
   with_lines: find {{ search_dir }} {{ dashboard_dir }} {{ visualization_dir }} -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
   vars:
-    search_dir: "{{role_path}}/files/kibana-metrics-configuration/search"
-    dashboard_dir: "{{role_path}}/files/kibana-metrics-configuration/dashboard"
-    visualization_dir: "{{role_path}}/files/kibana-metrics-configuration/visualization"
+    search_dir: "{{ role_path }}/files/kibana-metrics-configuration/search"
+    dashboard_dir: "{{ role_path }}/files/kibana-metrics-configuration/dashboard"
+    visualization_dir: "{{ role_path }}/files/kibana-metrics-configuration/visualization"
 
 ### elasticsearch log configuration and kibana configuration ###
 - name: load vitam metrics template in Elasticsearch Log
   when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
   run_once: true
   uri:
-    url: "http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/_template/metrics_template"
+    url: "http://{{elasticsearch.elasticsearch_log.host}}:{{ elasticsearch.elasticsearch_log.http_port }}/_template/metrics_template"
     method: PUT
-    body: "{{ lookup('file', '{{role_path}}/files/kibana-metrics-configuration/metrics.template.json') }}"
+    body: "{{ lookup('file', '{{ role_path }}/files/kibana-metrics-configuration/metrics.template.json') }}"
     body_format: json
     status_code: 200,201
 
@@ -74,7 +74,7 @@
   when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
   run_once: true
   uri:
-    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/config/5.6.1'
+    url: 'http://{{elasticsearch.elasticsearch_log.host}}:{{ elasticsearch.elasticsearch_log.http_port }}/.kibana/config/5.6.1'
     method: PUT
     body: '{"defaultIndex": "logstash-vitam*", "buildNum": 15533}'
     body_format: json

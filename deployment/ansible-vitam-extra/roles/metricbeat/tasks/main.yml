@@ -22,7 +22,7 @@
 # OMA: needs more testing ; when recreating, ...
 #- name: load metricbeat index pattern into Elasticsearch log
 #  uri:
-#    url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/_template/metricbeat'
+#    url: 'http://{{elasticsearch.elasticsearch_log.host}}:{{ elasticsearch.elasticsearch_log.http_port }}/_template/metricbeat'
 #    method: PUT
 #    body: "{{ lookup('file', '/etc/metricbeat/metricbeat.template.json') }}"
 #    body_format: json
@@ -42,7 +42,7 @@
     
 # OMA: needs more testing ; when recreating, ... Needs Internet access !!!
 - name: import metricbeat dashboard into kibana
-  shell: /usr/share/metricbeat/scripts/import_dashboards -file /tmp/beats-dashboards-5.6.1.zip -es http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}
+  shell: /usr/share/metricbeat/scripts/import_dashboards -file /tmp/beats-dashboards-5.6.1.zip -es http://{{elasticsearch.elasticsearch_log.host}}:{{ elasticsearch.elasticsearch_log.http_port }}
   run_once: true
   when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
   delegate_to: "{{groups['hosts-kibana-log'][0]}}"
@@ -50,11 +50,11 @@
     - restart kibana
   #OMA: not sure for run_once...
 
-# OMA Commented curl -XDELETE 'http://{{vitam_log_host}}:{{elasticsearch_log_http_port}}/topbeat-*';
+# OMA Commented curl -XDELETE 'http://{{vitam_log_host}}:{{ elasticsearch.elasticsearch_log.http_port }}/topbeat-*';
 # OMA added ignore_errors due to stange things sometimes when redeploying
 # - name: force use topbeat index
 #   when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
-#   command: curl -XPUT 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/_template/topbeat' -d@/etc/topbeat/topbeat.template.json
+#   command: curl -XPUT 'http://{{elasticsearch.elasticsearch_log.host}}:{{ elasticsearch.elasticsearch_log.http_port }}/_template/topbeat' -d@/etc/topbeat/topbeat.template.json
 #   notify:
 #     - restart kibana
 #   delegate_to: "{{groups['hosts-kibana-log'][0]}}"
@@ -64,16 +64,16 @@
 #   when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
 #   run_once: true
 #   uri:
-#     url: 'http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}/.kibana/{{ item.split(".")[0] }}'
+#     url: 'http://{{elasticsearch.elasticsearch_log.host}}:{{ elasticsearch.elasticsearch_log.http_port }}/.kibana/{{ item.split(".")[0] }}'
 #     method: PUT
-#     body: "{{ lookup('file', '{{role_path}}/files/kibana-metrics-configuration/{{item}}') }}"
+#     body: "{{ lookup('file', '{{ role_path }}/files/kibana-metrics-configuration/{{ item }}') }}"
 #     body_format: json
 #     status_code: 200, 201
 #   with_lines: find {{ search_dir }} {{ dashboard_dir }} {{ visualization_dir }} -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
 #   vars:
-#     search_dir: "{{role_path}}/files/kibana-metrics-configuration/search"
-#     dashboard_dir: "{{role_path}}/files/kibana-metrics-configuration/dashboard"
-#     visualization_dir: "{{role_path}}/files/kibana-metrics-configuration/visualization"
+#     search_dir: "{{ role_path }}/files/kibana-metrics-configuration/search"
+#     dashboard_dir: "{{ role_path }}/files/kibana-metrics-configuration/dashboard"
+#     visualization_dir: "{{ role_path }}/files/kibana-metrics-configuration/visualization"
 
 - name: restart metricbeat
   service:

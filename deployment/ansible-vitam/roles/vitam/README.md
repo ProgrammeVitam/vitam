@@ -11,22 +11,22 @@ Ce rôle ne doit pas être appelé directement mais pour être appelé via un in
 Variables
 ---------
 
-Les variables attendues pour ce rôle sont : 
-* Variables obligatoires 
+Les variables attendues pour ce rôle sont :
+* Variables obligatoires
 
   + {{ vitam_component }} : nom du composant à installer
 
-* Variables optionnelles : permet de surcharger une valeur par défaut (valeur par défaut) 
-  + {{ vitam_user }} : propriétaire unix des fichiers déployés (valeur par défaut : vitam)
-  + {{ vitam_group }} : groupe unix des fichiers déployés (valeur par défaut : vitam)
+* Variables optionnelles : permet de surcharger une valeur par défaut (valeur par défaut)
+  + {{ vitam_defaults.users.vitam }} : propriétaire unix des fichiers déployés (valeur par défaut : vitam)
+  + {{ vitam_defaults.users.group }} : groupe unix des fichiers déployés (valeur par défaut : vitam)
   + {{ package_name }} : nom du fichier rpm à déployer (valeur par défaut : vitam-{{ vitam_component }})
-  + {{ memory_opts }} : paramétres mémoire de la JVM (valeur par défaut : -Xms512m -Xmx512m) 
-  + {{ gc_opts }} : paramétrage du garbage collector (valeur par défaut : "" ) 
+  + {{ memory_opts }} : paramétres mémoire de la JVM (valeur par défaut : -Xms512m -Xmx512m)
+  + {{ gc_opts }} : paramétrage du garbage collector (valeur par défaut : "" )
   + {{ java_opts }} : autres variables à passer à la JVM (valeur par défaut : "")
   + {{ java_args }} : arguments à passer à la JVM (valeur par défaut : "")
   + {{ port_http }} : port d'écoute du service vitam (valeur par défaut : 8082)
   + {{ port_http_admin }} : port d'écoute du service admin vitam (valeur par défaut : 28082)  + {{ tls_active }} : activation du https
-  + {{ days_to_delete_local }} : nombre de jours par défaut pour le job Curator de purge des vieux index
+  + {{ days_to_delete_logback_logfiles }} : nombre de jours de conservation des fichiers de log logback (logs java des composants vitam)
   + {{ days_to_delete_access_local }} :
   + {{ vitam_worker_capacity }} : nombre de parallélisme des threads du composant vitam-worker
   + {{ vitam_provider_offer }}: type de fournisseur pour l'offre de stockage par défaut (filesystem/openstack-swift)

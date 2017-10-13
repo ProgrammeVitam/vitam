@@ -17,11 +17,11 @@
 
 - name: Check that the directories exists (must be removed when the RPM plugin will be patched)
   file:
-    path: "{{vitam_folder_root}}/{{ item }}/mongos"
+    path: "{{ vitam_defaults.folder.root_path }}/{{ item }}/mongos"
     state: directory
-    owner: "{{ vitamdb_user}}"
-    group: "{{ vitam_group }}"
-    mode: "{{ vitam_folder_permission }}"
+    owner: "{{ vitam_defaults.users.vitamdb }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
   with_items:
     - app
     - bin
@@ -38,8 +38,8 @@
   template:
     src: mongos.conf.j2
     dest: "{{mongo_config_path}}/mongos.conf"
-    owner: "{{ vitamdb_user}}"
-    mode: "{{vitam_conf_permission}}"
+    owner: "{{ vitam_defaults.users.vitamdb }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   notify:
     - restart mongos
 
@@ -47,18 +47,18 @@
 
 - name: Ensure consul config dir is OK
   file:
-    path: "{{consul_folder_conf}}"
+    path: "{{ consul_folder_conf }}"
     state: directory
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
 
 - name: Deploy consul agent service declaration
   template:
     src: "service-componentid.json.j2"
-    dest: "{{consul_folder_conf}}/service-mongos.json"
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
+    dest: "{{ consul_folder_conf }}/service-mongos.json"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   notify:
    - reload consul configuration
 
@@ -79,6 +79,6 @@
   template:
     src: "keyfile.j2"
     dest: "{{ mongo_config_path }}/keyfile"
-    owner: "{{ vitamdb_user}}"
-    group: "{{vitam_group}}"
+    owner: "{{ vitam_defaults.users.vitamdb }}"
+    group: "{{ vitam_defaults.users.group }}"
     mode: 0600

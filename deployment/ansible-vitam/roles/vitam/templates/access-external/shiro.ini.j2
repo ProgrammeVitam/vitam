@@ -2,7 +2,7 @@
 
 x509 = fr.gouv.vitam.common.auth.web.filter.X509AuthenticationFilter
 
-x509.useHeader = {{vitam_ssl_user_header}}
+x509.useHeader = {{vitam_struct.https_enabled}}
 
 x509credentialsMatcher = fr.gouv.vitam.common.auth.core.authc.X509CredentialsSha256Matcher
 

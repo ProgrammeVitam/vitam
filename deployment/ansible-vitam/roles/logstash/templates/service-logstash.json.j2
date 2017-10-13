@@ -1,14 +1,14 @@
 {
   "service": {
     "name": "logstash",
-    "port": {{ vitam_logstash_port }},
-    "address": "{{ip_admin}}",
+    "port": {{ logstash.port }},
+    "address": "{{ ip_admin }}",
     "enableTagOverride": false,
     "checks": [
       {
         "id": "syslog tcp check",
         "notes": "Syslog tcp port opened",
-        "tcp": "{{ ip_admin }}:{{ vitam_logstash_port }}",
+        "tcp": "{{ ip_admin }}:{{ logstash.port }}",
         "interval": "1s"
       }
     ]

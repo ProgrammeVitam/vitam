@@ -4,7 +4,7 @@ rs.initiate(
         _id: "shard{{ mongo_shard_id }}",
         members:
         [
-                { _id: 0, host: "{{ ip_service }}:{{ mongod_port }}" }
+                { _id: 0, host: "{{ ip_service }}:{{ mongodb.mongod_port }}" }
         ],
         settings: {
     		    getLastErrorDefaults : { w: "majority" }

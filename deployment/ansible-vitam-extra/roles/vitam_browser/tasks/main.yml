@@ -45,14 +45,14 @@
 - name: copy theme files
   copy:
     src: ".theme"
-    dest: "{{vitam_folder_root}}"
+    dest: "{{ vitam_defaults.folder.root_path }}"
     owner: "root"
     mode: 0644
 
 - name: add configuration file for mapping on Centos # + notify httpd restart
   template:
-    src: "{{item}}.j2"
-    dest: "/etc/httpd/conf.d/{{item}}"
+    src: "{{ item }}.j2"
+    dest: "/etc/httpd/conf.d/{{ item }}"
     mode: 0500
     owner: root
   when: (ansible_distribution == "CentOS" )
@@ -62,8 +62,8 @@
 
 - name: add configuration file for mapping on Debian # + notify httpd restart
   template:
-    src: "{{item}}.j2"
-    dest: "/etc/apache2/sites-available/{{item}}"
+    src: "{{ item }}.j2"
+    dest: "/etc/apache2/sites-available/{{ item }}"
     mode: 0500
     owner: root
   when: (ansible_distribution == "Debian" )
@@ -73,8 +73,8 @@
 
 - name: activate offer view in Debian only
   file:
-    src: '/etc/apache2/sites-available/{{item}}'
-    dest: '/etc/apache2/sites-enabled/{{item}}'
+    src: '/etc/apache2/sites-available/{{ item }}'
+    dest: '/etc/apache2/sites-enabled/{{ item }}'
     state: link
   when: (ansible_distribution == "Debian" )
   notify: restart apache2

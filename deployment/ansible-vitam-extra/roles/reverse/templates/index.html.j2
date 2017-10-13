@@ -52,12 +52,6 @@
 							<span class="pull-left m-l-10">Déployé : {{ansible_date_time.date}} {{ansible_date_time.time}} ({{ansible_date_time.tz}})</span>
 						</a>
 					</li>
-					<li>
-						<a href="#">
-							<i class="material-icons pull-left">search</i>
-							<span class="pull-left m-l-10">Version cible : {{package_version}}</span>
-						</a>
-					</li>
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
 					<li>
@@ -84,8 +78,8 @@
 
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">VITAM</div>
-						<div class="col-md-2"><a href="/ihm-demo" class="btn btn-primary btn-xs" target="_blank">IHM demo</a> </div>
-						<div class="col-md-2"><a href="/ihm-recette" class="btn btn-primary btn-xs" target="_blank">IHM recette</a> </div>
+						<div class="col-md-2"><a href="{{ vitam.ihm_demo.baseurl }}" class="btn btn-primary btn-xs" target="_blank">IHM demo</a> </div>
+						<div class="col-md-2"><a href="{{ vitam.ihm_recette.baseurl }}" class="btn btn-primary btn-xs" target="_blank">IHM recette</a> </div>
 					</p>
 {% if groups['hosts-kibana-data']|length >0 %}
 					<p class="row" style="vertical-align: middle">
@@ -139,7 +133,7 @@
 						<div class="col-md-3">Elasticsearch logs</div>
 						<div class="col-md-9">
 							<a href="/head" class="btn btn-primary btn-xs" target="_blank">Plugin Head</a>
-							<a href="/cerebro/#/overview?host=http://elasticsearch-log.service.consul:{{elasticsearch_log_http_port}}" class="btn btn-primary btn-xs" target="_blank">cerebro</a>
+							<a href="/cerebro/#/overview?host=http://elasticsearch-log.service.consul:{{ elasticsearch.elasticsearch_log.http_port }}" class="btn btn-primary btn-xs" target="_blank">cerebro</a>
 							<a href="/elasticsearch-log" class="btn btn-primary btn-xs" target="_blank">API</a>
 							<a href="/elasticsearch-log/_cluster/health?pretty" class="btn btn-primary btn-xs" target="_blank">Santé du cluster</a>
 						</div>
@@ -151,7 +145,7 @@
 						<div class="col-md-3">Elasticsearch data</div>
 						<div class="col-md-9">
 							<a href="/head" class="btn btn-primary btn-xs" target="_blank">Plugin Head</a>
-							<a href="/cerebro/#/overview?host=http://elasticsearch-data.service.consul:{{elasticsearch_data_http_port}}" class="btn btn-primary btn-xs" target="_blank">cerebro</a>
+							<a href="/cerebro/#/overview?host=http://elasticsearch-data.service.consul:{{ elasticsearch.elasticsearch_data.http_port }}" class="btn btn-primary btn-xs" target="_blank">cerebro</a>
 							<a href="/elasticsearch-data" class="btn btn-primary btn-xs" target="_blank">API</a>
 							<a href="/elasticsearch-data/_cluster/health?pretty" class="btn btn-primary btn-xs" target="_blank">Santé du cluster</a>
 						</div>
@@ -168,9 +162,9 @@
 			</a>
 			<div class="panel-body">
 				{% for item in groups['vitam'] %}
-				<p class="row" style="vertical-align: middle"><div class="col-md-3">{{item}}</div>
+				<p class="row" style="vertical-align: middle"><div class="col-md-3">{{ item }}</div>
 				<div class="col-md-2">
-					<a href="/nodes/{{item}}/browse" class="btn btn-primary btn-xs" target="_blank">/vitam browser</a>
+					<a href="/nodes/{{ item }}/browse" class="btn btn-primary btn-xs" target="_blank">/vitam browser</a>
 				</div></p>
 				{% endfor %}
 			</div>

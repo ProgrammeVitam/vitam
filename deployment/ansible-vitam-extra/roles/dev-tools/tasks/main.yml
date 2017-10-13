@@ -7,7 +7,7 @@
 
   - name: supprimer le package docker fourni de base (obsolète et incompatible avec le package docker-ce)
     package:
-      name: "{{item}}"
+      name: "{{ item }}"
       state: absent
     with_items:
     - docker
@@ -27,7 +27,7 @@
 
   - name: check docker repo are present
     apt_repository:
-      repo: "{{item}}"
+      repo: "{{ item }}"
       state: present
     with_items:
       - "deb [arch=amd64] https://download.docker.com/linux/debian  {{ansible_distribution_release}} stable"
@@ -38,7 +38,7 @@
 
   - name: installer le package docker
     apt:
-      name: "{{item}}"
+      name: "{{ item }}"
       state: latest
        # TODO: check if useful
       default_release: jessie-backports
@@ -54,7 +54,7 @@
 
   - name: installer le package docker
     package:
-      name: "{{item}}"
+      name: "{{ item }}"
       state: latest
     with_items:
     - docker
@@ -117,7 +117,7 @@
         host1:  "{{ip_service}}"
     env:
       ME_CONFIG_MONGODB_SERVER: "{{ groups['mongos'][0] }}"
-      ME_CONFIG_MONGODB_PORT: "{{ vitam_mongodb_port }}"
+      ME_CONFIG_MONGODB_PORT: "{{ mongodb.mongos_port }}"
       ME_CONFIG_SITE_BASEURL: "/mongo-express/"
       ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
       ME_CONFIG_MONGODB_ADMINUSERNAME: "{{mongoAdminUser}}"

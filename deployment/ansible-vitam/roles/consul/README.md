@@ -8,7 +8,7 @@ Variables
 
 Les variables attendues en entrée du rôle sont les suivantes :
 
-* {{vitam_folder_root}} : Racine du dossier où seront déposés les répertoires de log / données / autres
+* {{ vitam_defaults.folder.root_path }} : Racine du dossier où seront déposés les répertoires de log / données / autres
 * {{environnement}} : Environnement de déploiement
 
 Les variables possibles sont :

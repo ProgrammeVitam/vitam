@@ -1,20 +1,6 @@
 ---
 
 #### Curator ####
-
-# Disabled when docker detected (local deployement)
-# - name: remove PyYAML.x86_64 as incompatible with Curator
-#   package:
-#     name: PyYAML.x86_64
-#     state: absent
-#   when: "inventory_hostname != 'localhost'"
-
-# - name: install Curator package
-#   package:
-#     name: python-elasticsearch-curator
-#     state: latest
-#   when: "inventory_hostname != 'localhost'"
-
 - name: ensure old package "python-elasticsearch-curator" is absent
   package:
     name: python-elasticsearch-curator
@@ -28,11 +14,11 @@
 
 - name: ensure Curator directories exist
   file:
-    path: "{{vitam_folder_root}}/{{item}}/curator"
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
+    path: "{{ vitam_defaults.folder.root_path }}/{{item}}/curator"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
     state: directory
-    mode: 0755
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
   with_items:
     - data
     - log
@@ -42,11 +28,11 @@
 
 - name: apply configuration files for curator
   template:
-    src: "{{item}}.j2"
-    dest: "{{curator_conf_dir}}/{{item}}"
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
+    src: "{{ item }}.j2"
+    dest: "{{curator_conf_dir}}/{{ item }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   with_items:
     - "curator.yml"
     - "delete_index.yml"
@@ -56,26 +42,26 @@
 
 - name: copy the systemd unit & timer files for curator
   template:
-    src: "{{role_path}}/templates/systemd/{{item}}.j2"
-    dest: "/usr/lib/systemd/system/{{item}}"
-  with_items: "{{ lookup('pipe','find {{role_path}}/templates/systemd/ -type f  -exec basename {} .j2 \\; || true').split('\n') }}"
-  when: "ansible_distribution == 'CentOS' and {{ lookup('pipe', 'test -d {{role_path}}/templates/systemd || echo nofolder') == \"\" }}"
+    src: "{{ role_path }}/templates/systemd/{{ item }}.j2"
+    dest: "/usr/lib/systemd/system/{{ item }}"
+  with_items: "{{ lookup('pipe','find {{ role_path }}/templates/systemd/ -type f  -exec basename {} .j2 \\; || true').split('\n') }}"
+  when: "ansible_distribution == 'CentOS' and {{ lookup('pipe', 'test -d {{ role_path }}/templates/systemd || echo nofolder') == \"\" }}"
 
 - name: copy the systemd unit & timer files for curator
   template:
-    src: "{{role_path}}/templates/systemd/{{item}}.j2"
-    dest: "/lib/systemd/system/{{item}}"
-  with_items: "{{ lookup('pipe','find {{role_path}}/templates/systemd/ -type f  -exec basename {} .j2 \\; || true').split('\n') }}"
-  when: "ansible_distribution == 'Debian' and {{ lookup('pipe', 'test -d {{role_path}}/templates/systemd || echo nofolder') == \"\" }}"
+    src: "{{ role_path }}/templates/systemd/{{ item }}.j2"
+    dest: "/lib/systemd/system/{{ item }}"
+  with_items: "{{ lookup('pipe','find {{ role_path }}/templates/systemd/ -type f  -exec basename {} .j2 \\; || true').split('\n') }}"
+  when: "ansible_distribution == 'Debian' and {{ lookup('pipe', 'test -d {{ role_path }}/templates/systemd || echo nofolder') == \"\" }}"
 
 - name: Enable systemd timers
   systemd:
-    name: "{{item}}"
+    name: "{{ item }}"
     daemon_reload: "yes"
     enabled: "yes"
     state: "started"
-  with_items: "{{ lookup('pipe','find {{role_path}}/templates/systemd/ -type f -name *.timer.j2 -exec basename {} .j2 \\; || true').split('\n') }}"
-  when: "{{ lookup('pipe', 'test -d {{role_path}}/templates/systemd || echo nofolder') == \"\" }}"
+  with_items: "{{ lookup('pipe','find {{ role_path }}/templates/systemd/ -type f -name *.timer.j2 -exec basename {} .j2 \\; || true').split('\n') }}"
+  when: "{{ lookup('pipe', 'test -d {{ role_path }}/templates/systemd || echo nofolder') == \"\" }}"
 
 - name: Ensure consul service is started
   service:

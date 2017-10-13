@@ -38,7 +38,7 @@
     path: "/etc/tuned/no-thp"
     state: directory
     owner: root
-    mode: "{{vitam_folder_permission}}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
   when: status_tuned_present
 
 - name: add the tuned conf file
@@ -46,7 +46,7 @@
     src: tuned.conf
     dest: /etc/tuned/no-thp/tuned.conf
     owner: root
-    mode: "{{vitam_conf_permission}}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   when: status_tuned_present
 
 - name: enable the new tuned profile

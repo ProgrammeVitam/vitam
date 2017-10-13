@@ -1,11 +1,11 @@
 # Configuration processing
 # HERE MUST BE MY (WORKER) current configuration
 registerServerHost: {{ip_service}}
-registerServerPort: {{vitam_worker_port}}
+registerServerPort: {{vitam_struct.port}}
 # Configuration handler
-processingUrl: {{vitam_processing_baseurl}}
-urlMetadata: {{vitam_metadata_baseurl}}
-urlWorkspace: {{vitam_workspace_baseurl}}
+processingUrl: {{vitam.processing | client_url}}
+urlMetadata: {{vitam.metadata | client_url}}
+urlWorkspace: {{vitam.workspace | client_url}}
 # Configuration jetty
 jettyConfig: jetty-config.xml
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]

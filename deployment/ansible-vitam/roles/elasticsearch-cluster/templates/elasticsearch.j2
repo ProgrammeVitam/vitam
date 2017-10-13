@@ -6,13 +6,13 @@
 #ES_HOME=/usr/share/elasticsearch
 
 # Elasticsearch configuration directory
-CONF_DIR=/vitam/conf/elasticsearch-{{groupe}}
+CONF_DIR={{vitam_defaults.folder.root_path}}/conf/elasticsearch-{{groupe}}
 
 # Elasticsearch data directory
-#DATA_DIR=/vitam/data/elasticsearch-{{groupe}}
+#DATA_DIR={{vitam_defaults.folder.root_path}}/data/elasticsearch-{{groupe}}
 
 # Elasticsearch logs directory
-#LOG_DIR=/vitam/log/elasticsearch-{{groupe}}
+#LOG_DIR={{vitam_defaults.folder.root_path}}/log/elasticsearch-{{groupe}}
 
 # Elasticsearch PID directory
 #PID_DIR=/var/run/elasticsearch-{{groupe}}
@@ -34,7 +34,7 @@ ES_JAVA_OPTS="-Xms{{elasticsearch_memory}} -Xmx{{elasticsearch_memory}} -XX:+Use
 #RESTART_ON_UPGRADE=true
 
 # Path to the GC log file
-#ES_GC_LOG_FILE=/vitam/log/elasticsearch-{{groupe}}/gc.log
+#ES_GC_LOG_FILE={{vitam_defaults.folder.root_path}}/log/elasticsearch-{{groupe}}/gc.log
 
 ################################
 # Elasticsearch service
@@ -49,8 +49,8 @@ ES_JAVA_OPTS="-Xms{{elasticsearch_memory}} -Xmx{{elasticsearch_memory}} -XX:+Use
 # For systemd service, the user is usually configured in file /usr/lib/systemd/system/elasticsearch.service
 
 # Note: useless for VITAM, as the startup is managed by systemd
-ES_USER=vitamdb
-ES_GROUP=vitam
+ES_USER={{ vitam_defaults.users.vitamdb }}
+ES_GROUP={{ vitam_defaults.users.group }}
 
 # The number of seconds to wait before checking if Elasticsearch started successfully as a daemon process
 ES_STARTUP_SLEEP_TIME=5

@@ -50,18 +50,27 @@
 ### ELASTICSEARCH LOG INSTALLATION ###
 - hosts: hosts-elasticsearch-log
   roles:
-    - {role: elasticsearch-cluster, port_http: "{{elasticsearch_log_http_port}}", port_tcp: "{{elasticsearch_log_tcp_port}}", groupe: log }
-    - role: curator
+    - elasticsearch-cluster
+    - curator
+  vars:
+    port_http: "{{elasticsearch.elasticsearch_log.http_port}}"
+    port_tcp: "{{elasticsearch.elasticsearch_log.tcp_port}}"
+    groupe: log
 
 ### LOG SERVER INSTALLATION ###
 - hosts: hosts-logstash
   roles:
-    - role: logstash
+    - logstash
 
 - hosts: hosts-kibana-log
   roles:
-    - {role: kibana, groupe: log, elasticsearch_host: "{{elasticsearch_log_host}}", elasticsearch_port: "{{elasticsearch_log_http_port}}", kibana_port: "{{kibana_log_port}}"}
-    - role: kibana_log_dashboards
+    - kibana
+    - kibana_log_dashboards
+  vars:
+    groupe: log
+    elasticsearch_host: "{{elasticsearch.elasticsearch_log.host}}"
+    elasticsearch_port: "{{elasticsearch.elasticsearch_log.http_port}}"
+    kibana_port: "{{kibana.log_port}}"
 
 
 ### RSYSLOG INSTALLATION ###
@@ -74,7 +83,11 @@
 ### ELASTICSEARCH DATA INSTALLATION ###
 - hosts: hosts-elasticsearch-data
   roles:
-    - {role: elasticsearch-cluster, port_http: "{{elasticsearch_data_http_port}}", port_tcp: "{{elasticsearch_data_tcp_port}}", groupe: data }
+    - elasticsearch-cluster
+  vars:
+    port_http: "{{elasticsearch.elasticsearch_data.http_port}}"
+    port_tcp: "{{elasticsearch.elasticsearch_data.tcp_port}}"
+    groupe: data
 
 - hosts: hosts-cerebro
   roles:
@@ -84,7 +97,7 @@
 # OMA/ desactivated as long as ES 5 is not on data cluster
 - hosts: hosts-kibana-data
   roles:
-    - {role: kibana, groupe: data, elasticsearch_host: "{{elasticsearch_data_host}}", elasticsearch_port: "{{elasticsearch_data_http_port}}", kibana_port: "{{kibana_data_port}}"}
+    - {role: kibana, groupe: data, elasticsearch_host: "{{elasticsearch_data_host}}", elasticsearch_port: "{{ elasticsearch.elasticsearch_data.http_port }}", kibana_port: "{{kibana_data_port}}"}
     - kibana_data_dashboards
 
 ### MONGO DB INSTALLATION ###
@@ -92,94 +105,205 @@
 # mongodb commons (yum install, etc...)
 - hosts: mongo_common
   roles:
-  - role: mongo_common
+  - mongo_common
 
 # Mongoc replicas configuration
 - hosts: mongoc
   roles:
-    - {role: mongoc, mongo_bin: mongod}
+    - mongoc
+  vars:
+    mongo_bin: mongod
 
 # Mongod replicas configuration
 - hosts: mongod
   roles:
-    - {role: mongod, mongo_bin: mongod}
+    - mongod
+  vars:
+    mongo_bin: mongod
 
 # Mongos configuration
 - hosts: mongos
   roles:
-    - {role: mongos, mongo_bin: mongos}
+    - mongos
+  vars:
+    mongo_bin: mongos
 
 # Mongo cluster configuration, database & users declaration
 - hosts: mongos
   roles:
-    - {role: mongo_configure}
+    - mongo_configure
 
 
 
 ## VITAM ####################################################################
 
+
+
 - hosts: hosts-storage-offer-default
   roles:
-    - {role: vitam, vitam_component: offer, java_args: /vitam/conf/offer/default-offer.conf, port_http: "{{vitam_storageofferdefault_port}}", port_http_admin: "{{vitam_storageofferdefault_port_admin}}", secret_platform: "true", port_https: "{{vitam_storageofferdefault_port_https}}", tls_active: "{{ test_tls_offer_enabled }}", password_keystore: "{{keystores.server.offer}}", password_manager_keystore: "{{keystores.server.offer}}", password_truststore: "{{truststores.client_storage}}", password_grantedstore: "{{grantedstores.client_storage}}", vitam_certificate_client_type: "storage"}
+    - vitam
+  vars:
+    vitam_component: offer
+    vitam_struct: "{{ vitam.storageofferdefault }}"
+    secret_platform: "true"
+    password_keystore: "{{keystores.server.offer}}"
+    password_manager_keystore: "{{keystores.server.offer}}"
+    password_truststore: "{{truststores.client_storage}}"
+    password_grantedstore: "{{grantedstores.client_storage}}"
+    vitam_certificate_client_type: "storage"
+
+
 
 - hosts: hosts-storage-engine
   roles:
-    - {role: vitam, vitam_component: storage, java_args: /vitam/conf/storage/storage-engine.conf, port_http: "{{vitam_storageengine_port}}", port_http_admin: "{{vitam_storageengine_port_admin}}", secret_platform: "true", vitam_certificate_client_type: "storage" }
+    - vitam
     - storage
+  vars:
+    vitam_component: storage
+    vitam_struct: "{{ vitam.storageengine }}"
+    secret_platform: "true"
+    vitam_certificate_client_type: "storage"
+
+
 
 - hosts: hosts-metadata
   roles:
-    - {role: vitam, vitam_component: metadata, java_args: /vitam/conf/metadata/metadata.conf, port_http: "{{vitam_metadata_port}}", port_http_admin: "{{vitam_metadata_port_admin}}", cluster_name: elasticsearch-data, secret_platform: "true" }
+    - vitam
+  vars:
+    vitam_component: metadata
+    vitam_struct: "{{ vitam.metadata }}"
+    cluster_name: elasticsearch-data
+    secret_platform: "true"
+
+
 
 - hosts: hosts-logbook
   roles:
-    - {role: vitam, vitam_component: logbook, vitam_timestamp_usage: secure-logbook, java_args: /vitam/conf/logbook/logbook.conf, port_http: "{{vitam_logbook_port}}", port_http_admin: "{{vitam_logbook_port_admin}}", cluster_name: elasticsearch-data, secret_platform: "true" }
+    - vitam
     - logbook_secure_operations
     - logbook_secure_lifecycles
+  vars:
+    vitam_component: logbook
+    vitam_struct: "{{ vitam.logbook }}"
+    vitam_timestamp_usage: secure-logbook
+    cluster_name: elasticsearch-data
+    secret_platform: "true"
+
+
 
 - hosts: hosts-functional-administration
   roles:
-    - {role: vitam, vitam_component: functional-administration, java_args: /vitam/conf/functional-administration/functional-administration.conf, port_http: "{{vitam_functional_administration_port}}", port_http_admin: "{{vitam_functional_administration_port_admin}}", secret_platform: "true", cluster_name: elasticsearch-data }
+    - vitam
+  vars:
+    vitam_component: functional-administration
+    vitam_struct: "{{ vitam.functional_administration }}"
+    secret_platform: "true"
+    cluster_name: elasticsearch-data
+
+
 
 - hosts: hosts-security-internal
   roles:
-    - {role: vitam, vitam_component: security-internal, java_args: /vitam/conf/security-internal/security-internal.conf, port_http: "{{vitam_security_internal_port}}", port_http_admin: "{{vitam_security_internal_port_admin}}", secret_platform: "true" }
-    - init_security_profiles
-    - init_contexts
+    - vitam
+    - init_contexts_and_security_profiles
+  vars:
+    vitam_component: security-internal
+    vitam_struct: "{{ vitam.security_internal }}"
+    secret_platform: "true"
+
+
 
 - hosts: hosts-workspace
   roles:
-    - {role: vitam, vitam_component: workspace ,java_args: /vitam/conf/workspace/workspace.conf, port_http: "{{vitam_workspace_port}}", port_http_admin: "{{vitam_workspace_port_admin}}", secret_platform: "true" }
+    - vitam
+  vars:
+    vitam_component: workspace
+    vitam_struct: "{{ vitam.workspace }}"
+    secret_platform: "true"
+
+
 
 - hosts: hosts-processing
   roles:
-    - {role: vitam, vitam_component: processing,java_args: /vitam/conf/processing/processing.conf, port_http: "{{vitam_processing_port}}", port_http_admin: "{{vitam_processing_port_admin}}", secret_platform: "true" }
-    - {role: processing_create_workflows, vitam_component: processing}
+    - vitam
+    - processing_create_workflows
+  vars:
+    vitam_component: processing
+    vitam_struct: "{{ vitam.processing }}"
+    secret_platform: "true"
+
+
 
 - hosts: hosts-worker
   roles:
     - siegfried
-    - {role: vitam, vitam_component: worker, vitam_timestamp_usage: secure-logbook, java_args: /vitam/conf/worker/worker.conf, port_http: "{{vitam_worker_port}}", port_http_admin: "{{vitam_worker_port_admin}}", secret_platform: "true" }
+    - vitam
+  vars:
+    vitam_component: worker
+    vitam_struct: "{{ vitam.worker }}"
+    vitam_timestamp_usage: secure-logbook
+    secret_platform: "true"
+
+
 
 - hosts: hosts-access-internal
   roles:
-    - {role: vitam, vitam_component: access-internal, java_args: /vitam/conf/access-internal/access-internal.conf, port_http: "{{vitam_accessinternal_port}}", port_http_admin: "{{vitam_accessinternal_port_admin}}", secret_platform: "true" }
+    - vitam
+  vars:
+    vitam_component: access-internal
+    vitam_struct: "{{ vitam.accessinternal }}"
+    secret_platform: "true"
+
+
 
 - hosts: hosts-access-external
   roles:
-    - {role: vitam, vitam_component: access-external, java_args: /vitam/conf/access-external/access-external.conf, port_http: "{{vitam_accessexternal_port}}", port_http_admin: "{{vitam_accessexternal_port_admin}}", port_https: "{{vitam_accessexternal_port_https}}", tls_active: true, secret_platform: "false", password_keystore: "{{keystores.server.access_external}}", password_manager_keystore: "{{keystores.server.access_external}}", password_truststore: "{{truststores.client_external}}", password_grantedstore: "{{grantedstores.client_external}}", vitam_certificate_client_type: "external" }
+    - vitam
+  vars:
+    vitam_component: access-external
+    vitam_struct: "{{ vitam.accessexternal }}"
+    secret_platform: "false"
+    password_keystore: "{{keystores.server.access_external}}"
+    password_manager_keystore: "{{keystores.server.access_external}}"
+    password_truststore: "{{truststores.client_external}}"
+    password_grantedstore: "{{grantedstores.client_external}}"
+    vitam_certificate_client_type: "external"
+
+
 
 - hosts: hosts-ingest-internal
   roles:
-    - {role: vitam, vitam_component: ingest-internal, java_args: /vitam/conf/ingest-internal/ingest-internal.conf, port_http: "{{vitam_ingestinternal_port}}", port_http_admin: "{{vitam_ingestinternal_port_admin}}", secret_platform: "true" }
+    - vitam
+  vars:
+    vitam_component: ingest-internal
+    vitam_struct: "{{ vitam.ingestinternal }}"
+    secret_platform: "true"
+
+
 
 - hosts: hosts-ingest-external
   roles:
     - siegfried
-    - {role: vitam, vitam_component: ingest-external, java_args: /vitam/conf/ingest-external/ingest-external.conf, port_http: "{{vitam_ingestexternal_port}}", port_http_admin: "{{vitam_ingestexternal_port_admin}}", port_https: "{{vitam_ingestexternal_port_https}}", tls_active: true, secret_platform: "false", password_keystore: "{{keystores.server.ingest_external}}", password_manager_keystore: "{{keystores.server.ingest_external}}", password_truststore: "{{truststores.client_external}}", password_grantedstore: "{{grantedstores.client_external}}", vitam_certificate_client_type: "external" }
-    - {role: clamav, when: installation_clamav=="true"}
+    - vitam
+    - {role: clamav, when: vitam_defaults.installation_clamav=="true"}
+  vars:
+    vitam_component: ingest-external
+    vitam_struct: "{{ vitam.ingestexternal }}"
+    secret_platform: "false"
+    password_keystore: "{{keystores.server.ingest_external}}"
+    password_manager_keystore: "{{keystores.server.ingest_external}}"
+    password_truststore: "{{truststores.client_external}}"
+    password_grantedstore: "{{grantedstores.client_external}}"
+    vitam_certificate_client_type: "external"
+
+
 
 - hosts: hosts-ihm-demo
   roles:
-    - {role: vitam, vitam_component: ihm-demo, java_args: /vitam/conf/ihm-demo/ihm-demo.conf, port_http: "{{vitam_ihm_demo_port}}", port_http_admin: "{{vitam_ihm_demo_port_admin}}", secret_platform: "false", vitam_certificate_client_type: "external" }
+    - vitam
     - ihm-demo-front
+  vars:
+    vitam_component: ihm-demo
+    vitam_struct: "{{ vitam.ihm_demo }}"
+    secret_platform: "false"
+    vitam_certificate_client_type: "external"

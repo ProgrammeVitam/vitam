@@ -81,9 +81,9 @@
     <!--                     </Item>								-->
     <!--                 </Array>								-->
     <!--             </Arg>									-->
-    <!--             <Set name="port">{{port_http}}</Set>					-->
+    <!--             <Set name="port">{{vitam_struct.port}}</Set>					-->
     <!--             <Set name="idleTimeout">							-->
-    <!--                 <Property name="http.timeout" default="{{port_http_timeout}}"/>	-->
+    <!--                 <Property name="http.timeout" default="{{ vitam_defaults.services.port_http_timeout }}"/>	-->
     <!--             </Set>									-->
     <!--         </New>										-->
     <!--     </Arg>										-->
@@ -134,7 +134,7 @@
     <Set name="dumpAfterStart">false</Set>
     <Set name="dumpBeforeStop">false</Set>
 
-{% if tls_active==true %}
+{% if vitam_struct.https_enabled==true %}
    <New id="httpsConfig" class="org.eclipse.jetty.server.HttpConfiguration">
         <Call name="addCustomizer">
             <Arg>
@@ -202,7 +202,7 @@
         </Arg>
         <Set name="host">{{ip_service}}</Set>
         <Set name="port">
-            <SystemProperty name="jetty.port" default="{{ port_https }}"/>
+            <SystemProperty name="jetty.port" default="{{ vitam_struct.port_https }}"/>
         </Set>
 	<Set name="name">business</Set>
     </New>
@@ -226,10 +226,10 @@
             </Array>
         </Arg>
         <Set name="host">{{ip_service}}</Set>
-        <Set name="port">{{port_http}}</Set>
+        <Set name="port">{{vitam_struct.port}}</Set>
 	<Set name="name">business</Set>
         <Set name="idleTimeout">
-            <Property name="http.timeout" default="{{port_http_timeout}}"/>
+            <Property name="http.timeout" default="{{ vitam_defaults.services.port_http_timeout }}"/>
         </Set>
     </New>
 
@@ -252,10 +252,10 @@
             </Array>
         </Arg>
         <Set name="host">{{ip_admin}}</Set>
-        <Set name="port">{{port_http_admin}}</Set>
+        <Set name="port">{{vitam_struct.port_admin}}</Set>
 	<Set name="name">admin</Set>
         <Set name="idleTimeout">
-            <Property name="http.timeout" default="{{port_http_timeout}}"/>
+            <Property name="http.timeout" default="{{ vitam_defaults.services.port_http_timeout }}"/>
         </Set>
     </New>
 

@@ -168,89 +168,48 @@ localhost
 
 [hosts:vars]
 
-
-
+# ===============================
 # VITAM
 # ===============================
-
-
-          #==== DO NOT TOUCH ====
-
 
 environnement=fulllocal
 ansible_connection=local
 ansible_become=true
 
-
-          #==== TO ADJUST ====
-
-
-		     ### dns ###
- 
+### dns ###
 dns_servers=["10.100.211.222", "8.8.8.8"]
 
-
-	     ### memory settings ###
-
+### memory settings ###
 memory_opts="-Xms32m -Xmx256m"
 
-
-	     ### tenants ###
-
+### tenants ###
 vitam_tenant_ids=[0,1,2,3,4,5,6,7,8,9]
 
+### logback configuration
+days_to_delete_logback_logfiles=30
 
+# Curator
+days_to_delete_logstash_indexes=365
+days_to_close_logstash_indexes=20
+
+# ===============================
 # EXTRA
 # ===============================
 
-          #==== DO NOT TOUCH ====
-
-	     ### reverse proxy ### 
-
-vitam_reverse_external_dns=localhost
-vitam_reverse_external_protocol=http
-
-
-	     ### git itest ### 
-
+### vitam-itest repository ###
 vitam_tests_branch=master
 vitam_tests_gitrepo_protocol=https
 vitam_tests_gitrepo_baseurl=dev.programmevitam.fr
 vitam_tests_gitrepo_url={{vitam_tests_gitrepo_protocol}}://{{vitam_tests_gitrepo_baseurl}}/gitlab/vitam/vitam-itests.git
 
+# curator configuration
+days_to_close_metrics_indexes=7
+days_to_delete_metrics_indexes=30
+days_to_delete_packetbeat_indexes=20
+days_to_delete_metricbeat_indexes=20
 
-          #==== TO ADJUST ====
-
-	     ### curator ### 
-
-# [JGO] : it is difficult to understand, the names of the variable must be understandable
-
-# curator metrics indexes
-days_to_close_metrics=7
-days_to_delete_metrics=30
-
-# [JGO] : add logstash in the name
-days_to_delete=365
-days_to_close=20
-
-	     ### Topbeat ###
-
-days_to_delete_topbeat=20
-
-
-	     ### logback ###
-
-# [JGO] : add "logback_logfiles" to the name 		
-days_to_delete_local=30
-
-
- 	     ### reverse proxy ### 
-
+### proxy & reverse proxy configuration ###
+vitam_reverse_external_dns=localhost
+vitam_reverse_external_protocol=http
 reverse_proxy_port=80
 http_proxy_environnement=
-
-            ### To be defined : place #####
-
-admin_security_profile="admin-security-profile"
-
-

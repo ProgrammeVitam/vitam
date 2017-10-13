@@ -13,7 +13,7 @@
 # state: latest to handle snapshot versions
 - name: Install {{ package_name }} package
   package:
-    name: "{{ package_name }}{% if package_version != '*' %}-{{package_version}}{% endif %}"
+    name: "{{ package_name }}"
     state: latest
   tags:
     - update_package_vitam
@@ -32,11 +32,11 @@
 
 - name: Check that the directories exist (must be removed when the RPM plugin will be patched)
   file:
-    path: "{{vitam_folder_root}}/{{ item }}/{{ vitam_component }}"
+    path: "{{ vitam_defaults.folder.root_path }}/{{ item }}/{{ vitam_component }}"
     state: directory
-    owner: "{{ vitam_user}}"
-    group: "{{ vitam_group }}"
-    mode: "{{ vitam_folder_permission }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
   with_items:
     - app
     - bin
@@ -53,19 +53,19 @@
   file:
     path: "{{ vitam_folder_conf }}/sysconfig"
     state: directory
-    owner: "{{ vitam_user}}"
-    group: "{{ vitam_group }}"
-    mode: "{{ vitam_folder_permission }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
   notify:
     - restart service
 
 - name: Deploy common configuration files in sysconfig subdir
   template:
-    src: "{{item}}.j2"
-    dest: "{{vitam_folder_conf}}/sysconfig/{{item}}"
-    owner: "{{ vitam_user}}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
+    src: "{{ item }}.j2"
+    dest: "{{vitam_folder_conf}}/sysconfig/{{ item }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   with_items:
     - "java_opts"
   tags:
@@ -75,11 +75,11 @@
 
 - name: Deploy common configuration files
   template:
-    src: "{{item}}.j2"
-    dest: "{{vitam_folder_conf}}/{{item}}"
-    owner: "{{ vitam_user}}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
+    src: "{{ item }}.j2"
+    dest: "{{vitam_folder_conf}}/{{ item }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   with_items:
     - "java.security"
     - "logbook-client.conf"
@@ -99,13 +99,13 @@
 # Caution : commands in both lines (with_items and when) should always both return a success code (even if folder doesn't exist)
 - name: Deploy specific configuration files (can override the common configuration files)
   template:
-    src: "{{role_path}}/templates/{{ vitam_component }}/{{item}}.j2"
-    dest: "{{vitam_folder_conf}}/{{item }}"
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
-  when: "{{ lookup('pipe', 'test -d {{role_path}}/templates/{{ vitam_component }} || echo nofolder') == \"\"}}"
-  with_items: "{{ lookup('pipe','find {{role_path}}/templates/{{ vitam_component }}/ -type f  -exec basename {} .j2 \\; || true').split('\n') }}"
+    src: "{{ role_path }}/templates/{{ vitam_component }}/{{ item }}.j2"
+    dest: "{{vitam_folder_conf}}/{{ item }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+  when: "{{ lookup('pipe', 'test -d {{ role_path }}/templates/{{ vitam_component }} || echo nofolder') == \"\"}}"
+  with_items: "{{ lookup('pipe','find {{ role_path }}/templates/{{ vitam_component }}/ -type f  -exec basename {} .j2 \\; || true').split('\n') }}"
   no_log: false # OMA test as there may be secrets in verbose output
   tags:
     - update_vitam_configuration
@@ -114,25 +114,25 @@
 
 - name: copy files section for {{ package_name }} when applicable
   copy:
-    src: "{{role_path}}/files/{{ vitam_component }}/{{item}}"
-    dest: "{{vitam_folder_conf}}/{{item }}"
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
-  when: "{{ lookup('pipe', 'test -d {{role_path}}/files/{{ vitam_component }} || echo nofolder') == \"\"}}"
-  with_items: "{{ lookup('pipe','find {{role_path}}/files/{{ vitam_component }}/ -type f -exec basename {} \\; || true').split('\n') }}"
+    src: "{{ role_path }}/files/{{ vitam_component }}/{{ item }}"
+    dest: "{{vitam_folder_conf}}/{{ item }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+  when: "{{ lookup('pipe', 'test -d {{ role_path }}/files/{{ vitam_component }} || echo nofolder') == \"\"}}"
+  with_items: "{{ lookup('pipe','find {{ role_path }}/files/{{ vitam_component }}/ -type f -exec basename {} \\; || true').split('\n') }}"
   notify:
     - restart service
 
 - name: copy files section (symbolic links to sources) for {{ package_name }} when applicable
   copy:
-    src: "{{role_path}}/files/{{ vitam_component }}/{{item}}"
-    dest: "{{vitam_folder_conf}}/{{item }}"
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
-  when: "{{ lookup('pipe', 'test -d {{role_path}}/files/{{ vitam_component }} || echo nofolder') == \"\"}}"
-  with_items: "{{ lookup('pipe','find {{role_path}}/files/{{ vitam_component }}/ -type l -exec basename {} \\; || true').split('\n') }}"
+    src: "{{ role_path }}/files/{{ vitam_component }}/{{ item }}"
+    dest: "{{vitam_folder_conf}}/{{ item }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+  when: "{{ lookup('pipe', 'test -d {{ role_path }}/files/{{ vitam_component }} || echo nofolder') == \"\"}}"
+  with_items: "{{ lookup('pipe','find {{ role_path }}/files/{{ vitam_component }}/ -type l -exec basename {} \\; || true').split('\n') }}"
   notify:
     - restart service
 
@@ -149,9 +149,9 @@
   copy:
     src: "{{inventory_dir}}/keystores/server/{{inventory_hostname}}/keystore_{{vitam_component}}.jks"
     dest: "{{vitam_folder_conf}}/keystore_{{vitam_component}}.jks"
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   when: "{{ lookup('pipe', 'test -f {{inventory_dir}}/keystores/server/{{inventory_hostname}}/keystore_{{vitam_component}}.jks || echo nofile') == \"\" }}"
   tags:
     - update_vitam_certificates
@@ -162,9 +162,9 @@
   copy:
     src: "{{inventory_dir}}/keystores/client-{{vitam_certificate_client_type}}/truststore_{{vitam_certificate_client_type}}.jks"
     dest: "{{vitam_folder_conf}}/truststore_{{vitam_component}}.jks"
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   when: "( vitam_certificate_client_type is defined ) and ( {{ lookup('pipe', 'test -f {{inventory_dir}}/keystores/client-{{vitam_certificate_client_type}}/truststore_{{vitam_certificate_client_type}}.jks || echo nofile') == \"\"}} )"
   tags:
     - update_vitam_certificates
@@ -175,9 +175,9 @@
   copy:
     src: "{{inventory_dir}}/keystores/client-{{vitam_certificate_client_type}}/grantedstore_{{vitam_certificate_client_type}}.jks"
     dest: "{{vitam_folder_conf}}/grantedstore_{{vitam_component}}.jks"
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   when: "( vitam_certificate_client_type is defined ) and ( {{ lookup('pipe', 'test -f {{inventory_dir}}/keystores/server/{{inventory_hostname}}/keystore_{{vitam_component}}.jks || echo nofile') == \"\"}} ) and ( {{ lookup('pipe', 'test -f {{inventory_dir}}/keystores/client-{{vitam_certificate_client_type}}/grantedstore_{{vitam_certificate_client_type}}.jks || echo nofile') == \"\"}} )"
   tags:
     - update_vitam_certificates
@@ -188,9 +188,9 @@
   copy:
     src: "{{inventory_dir}}/keystores/client-{{vitam_certificate_client_type}}/keystore_{{vitam_component}}.p12"
     dest: "{{vitam_folder_conf}}/keystore_{{vitam_component}}.p12"
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   when: "( vitam_certificate_client_type is defined ) and ( {{ lookup('pipe', 'test -f {{inventory_dir}}/keystores/client-{{vitam_certificate_client_type}}/keystore_{{vitam_component}}.p12 || echo nofile') == \"\" }} )"
   tags:
     - update_vitam_certificates
@@ -201,9 +201,9 @@
   copy:
     src: "{{inventory_dir}}/keystores/timestamping/keystore_{{vitam_timestamp_usage}}.p12"
     dest: "/vitam/conf/{{vitam_component}}/keystore_{{vitam_timestamp_usage}}.p12"
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   when: "( vitam_timestamp_usage is defined ) and ( {{ lookup('pipe', 'test -f {{inventory_dir}}/keystores/timestamping/keystore_{{vitam_timestamp_usage}}.p12 || echo nofile') == \"\" }} )"
   tags:
     - update_vitam_certificates
@@ -214,18 +214,18 @@
 
 - name: Ensure consul config dir is OK
   file:
-    path: "{{consul_folder_conf}}"
+    path: "{{ consul_folder_conf }}"
     state: directory
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
 
 - name: Deploy consul agent service declaration for {{ package_name }} service
   template:
     src: "service-componentid.json.j2"
-    dest: "{{consul_folder_conf}}/service-{{ vitam_component }}.json"
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
+    dest: "{{ consul_folder_conf }}/service-{{ vitam_component }}.json"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   notify:
    - reload consul configuration
 

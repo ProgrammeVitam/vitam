@@ -2,29 +2,29 @@
   "service": {
     "name": "{{ vitam_component }}",
     "address": "{{ip_service}}",
-{% if tls_active==true %}
-    "port": {{ port_https }},
+{% if vitam_struct.https_enabled==true %}
+    "port": {{ vitam_struct.port_https }},
 {% else %}
-    "port": {{ port_http }},
+    "port": {{ vitam_struct.port }},
 {% endif %}
     "enableTagOverride": false,
     "checks": [
       {
-{% if tls_active==true %}
+{% if vitam_struct.https_enabled==true %}
         "id": "https tcp check",
         "notes": "HTTPS port opened",
-        "tcp": "{{ip_service}}:{{ port_https }}",
+        "tcp": "{{ip_service}}:{{ vitam_struct.port_https }}",
 {% else %}
         "id": "http tcp check",
         "notes": "HTTP port opened",
-        "tcp": "{{ip_service}}:{{ port_http }}",
+        "tcp": "{{ip_service}}:{{ vitam_struct.port }}",
 {% endif %}
         "interval": "1s"
       },
       {
         "id": "admin status",
         "notes": "Status admin : /admin/v1/status",
-        "http": "http://{{ip_admin}}:{{ port_http_admin }}/admin/v1/status",
+        "http": "http://{{ip_admin}}:{{ vitam_struct.port_admin }}/admin/v1/status",
         "interval": "1s"
       }
 {% if vitam_component == 'worker'  %}
@@ -32,7 +32,7 @@
       {
         "id": "siegfried check",
         "notes": "Is siegfried running ?",
-        "tcp": "localhost:{{ vitam_siegfried_port }}",
+        "tcp": "localhost:{{ siegfried.port }}",
         "interval": "1s"
       }
 {% elif vitam_component =='ingest-external' %}
@@ -40,15 +40,15 @@
       {
         "id": "siegfried check",
         "notes": "Is siegfried running ?",
-        "tcp": "localhost:{{ vitam_siegfried_port }}",
+        "tcp": "localhost:{{ siegfried.port }}",
         "interval": "1s"
       }
-{% if installation_clamav == "true" %}
+{% if vitam_defaults.installation_clamav == "true" %}
       ,
       {
         "id": "ClamAV check",
         "notes": "Is ClamAV daemon running ?",
-        "tcp": "localhost:{{ clamav_port }}",
+        "tcp": "localhost:{{ clamav.port }}",
         "interval": "1s"
       }
 {% endif %}

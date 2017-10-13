@@ -40,10 +40,10 @@ protocols:
     # send_request:  true
     # send_response: true
 
-  http:
+  # http:
     # Configure the ports where to listen for HTTP traffic. You can disable
     # the HTTP protocol by commenting out the list of ports.
-    ports: [80,8080,8000,5000,{{vitam_accessinternal_port}},{{vitam_accessexternal_port}},{{vitam_ingestinternal_port}},{{vitam_metadata_port}},{{vitam_ihm_demo_port}},{{vitam_ihm_recette_port}},{{vitam_ingestexternal_port}},{{vitam_logbook_port}},{{vitam_workspace_port}},{{vitam_processing_port}},{{vitam_worker_port}},{{vitam_storageengine_port}},{{vitam_storageofferdefault_port}},{{vitam_functional_administration_port}},{{elasticsearch_data_http_port}}]
+    # ports: []
 
     # Uncomment the following to hide certain parameters in URL or forms attached
     # to HTTP requests. The names of the parameters are case insensitive.
@@ -110,7 +110,7 @@ protocols:
   mongodb:
     # Configure the ports where to listen for MongoDB traffic. You can disable
     # the MongoDB protocol by commenting out the list of ports.
-    ports: [{{mongos_port}},{{mongoc_port}},{{mongod_port}}]
+    ports: [{{ mongodb.mongos_port }},{{ mongodb.mongoc_port }},{{ mongodb.mongod_port }}]
 
 ############################# Processes #######################################
 
@@ -153,7 +153,7 @@ output:
     # Scheme and port can be left out and will be set to the default (http and 9200)
     # In case you specify and additional path, the scheme is required: http://localhost:9200/path
     # IPv6 addresses should always be defined as: https://[2001:db8::1]:9200
-    # hosts: ["http://{{elasticsearch_log_host}}:{{elasticsearch_log_http_port}}"]
+    # hosts: ["http://{{elasticsearch.elasticsearch_log.host}}:{{ elasticsearch.elasticsearch_log.http_port }}"]
     # To be sure we point the admin service IP
     hosts: [{% for item in groups['hosts-elasticsearch-log'] %}"hostvars[item]['ip_admin']:elasticsearch_log_http_port"{% if not loop.last %},{% endif %}{% endfor %}]
 

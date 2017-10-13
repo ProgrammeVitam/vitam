@@ -1,0 +1,147 @@
+---
+
+### global ###
+
+# TODO MAYBE : permettre la surcharge avec une syntax du genre vitamopts.folder_root | default(vitam_default.folder_root) dans les templates ?
+
+vitam_defaults:
+    folder:
+        root_path: /vitam
+        folder_permission: "0750"
+        conf_permission: "0640"
+    users:
+        vitam: "vitam"
+        vitamdb: "vitamdb"
+        group: "vitam"
+    services:
+        log_level: WARN
+        start_timeout: 150
+        stop_timeout: 3600
+        port_http_timeout: 86400
+    # Filter for the vitam package version to install
+    # FIXME : commented as has to be removed becuase doesn't work under Debain
+    #package_version: "*"
+    ### Trust X-SSL-CLIENT-CERT header for external api auth ? (true | false) ###
+    vitam_ssl_user_header: true
+    ### clamav ###
+    # TODO : has it to be here ???
+    installation_clamav: "true"
+    # syslog_facility
+    syslog_facility: local0
+
+
+### consul ###
+# FIXME: Consul à la racine pour le moment à cause de problèmes de récursivité dans le parsing yaml
+# TODO : consul_domain should be in inventory as choosable by customer
+consul_domain: consul
+consul_component: consul
+consul_folder_conf: "{{vitam_defaults.folder.root_path}}/conf/{{consul_component}}"
+
+
+
+### Composants Vitam ###
+
+vitam:
+    accessinternal:
+        host: "access-internal.service.{{consul_domain}}"
+        port: 8101
+        port_admin: 28101
+        baseuri: "/access-internal"
+        https_enabled: false
+    accessexternal:
+        host: "access-external.service.{{consul_domain}}"
+        port: 8102
+        port_admin: 28102
+        port_https: 8444
+        baseuri: "/access-external"
+        https_enabled: true
+    ingestinternal:
+        host: "ingest-internal.service.{{consul_domain}}"
+        port: 8100
+        port_admin: 28100
+        baseuri: "/ingest-internal"
+        https_enabled: false
+    ingestexternal:
+        host: "ingest-external.service.{{consul_domain}}"
+        port: 8001
+        port_admin: 28001
+        port_https: 8443
+        baseuri: "/ingest-external"
+        https_enabled: true
+    metadata:
+        host: "metadata.service.{{consul_domain}}"
+        port: 8200
+        port_admin: 28200
+        baseuri: "/metadata"
+        https_enabled: false
+    ihm_demo:
+        host: "{{groups['hosts-ihm-demo'][0]}}"
+        port: 8002
+        port_admin: 28002
+        baseurl: /ihm-demo
+        static_content: "{{ vitam_defaults.folder.root_path }}/app/ihm-demo"
+        baseuri: "/ihm-demo"
+        https_enabled: false
+    ihm_recette:
+        host: "{{groups['hosts-ihm-recette'][0]}}"
+        port: 8204
+        port_https: 8445
+        port_admin: 28204
+        baseurl: /ihm-recette
+        static_content: "{{ vitam_defaults.folder.root_path }}/app/ihm-recette"
+        baseuri: "/ihm-recette"
+        vitam_ihm_recette_secure_mode: "authc"
+        https_enabled: true
+    logbook:
+        host: "logbook.service.{{consul_domain}}"
+        port: 9002
+        port_admin: 29002
+        baseuri: "/logbook"
+        https_enabled: false
+    workspace:
+        host: "workspace.service.{{consul_domain}}"
+        port: 8201
+        port_admin: 28201
+        baseuri: "/workspace"
+        https_enabled: false
+    processing:
+        host: "processing.service.{{consul_domain}}"
+        port: 8203
+        port_admin: 28203
+        baseuri: "/processing"
+        https_enabled: false
+    worker:
+        port: 9104
+        port_admin: 29104
+        baseuri: "/worker"
+        https_enabled: false
+    storageengine:
+        host: "storage.service.{{consul_domain}}"
+        port: 9102
+        port_admin: 29102
+        baseuri: "/storage-engine"
+        # FIXME: replace with https_enabled
+        test_tls_offer_enabled: false
+        https_enabled: false
+    storageofferdefault:
+        port: 9900
+        port_admin: 29900
+        port_https: 9901
+        baseuri: "/storage-offer-default"
+        https_enabled: false
+    functional_administration:
+        host: "functional-administration.service.{{consul_domain}}"
+        port: 8004
+        port_admin: 18004
+        baseuri: "/functional-administration"
+        https_enabled: false
+    security_internal:
+        port: 8005
+        port_admin: 28005
+        baseuri: "/security-internal"
+        https_enabled: false
+    library:
+        port: 8090
+        port_admin: 28090
+        baseuri: "/doc"
+        https_enabled: false
