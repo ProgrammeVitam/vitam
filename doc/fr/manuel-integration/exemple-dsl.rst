@@ -298,7 +298,8 @@ qui cherchera les Units qui contiennent exactement Napoléon suivi de n'importe 
 
   - Recherche du type moteur de recherche
   - **$search : { name : searchParameter }** où *name* est le nom du champ, *searchParameter* est une expression de recherche
-  - L'expression est formulée avec les opérateurs suivants :
+  - L'expression réalise un OR implicite entre les termes de la recherche.
+  - L'expression peut être formulée avec les opérateurs explicites suivants :
 
     - **+** signifie AND
     - **|** signifie OR
@@ -308,17 +309,18 @@ qui cherchera les Units qui contiennent exactement Napoléon suivi de n'importe 
     - **(** et **)** signifie une précédence dans les opérateurs (priorisation des recherches AND, OR)
     - **~N** après un mot est proche du **\*** mais en limitant le nombre de caractères dans la complétion (fuzziness)
     - **~N** après une phrase (encadré par **"**) autorise des "trous" dans la phrase
-    - **Attention** : pour les champs non analysés, il s'agit d'un $term multivalué (choix parmi plusieurs valeurs).
+  
+  - **Attention** : L'opérateur $search ne doit être utilisé que pour les champs analysés. Le comportement dans le cas d'un champ non analysé est indéterminé / non supporté.
   - Exemple :
 
 ::
 
-   { "$search" : { "Title" : "\"oeufs cuits\" +(tomate | patate) -frite" } }
+   { "$search" : { "Title" : "\"oeufs cuits\" +(tomate | patate) + -frite" } }
 
    static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
-   Query query = search("Title", "\"oeufs cuits\" +(tomate | patate) -frite");
+   Query query = search("Title", "\"oeufs cuits\" +(tomate | patate) + -frite");
 
-pour rechercher les Units qui ont dans le titre la phrase "oeufs cuits" et au moins un parmi tomate ou patate, mais pas frite
+pour rechercher les Units qui ont dans le titre la phrase "oeufs cuits" ET au moins un parmi tomate ou patate ET pas frite
 
 - $flt, $mlt
 

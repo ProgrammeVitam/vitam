@@ -373,7 +373,7 @@ public class QueryToElasticsearch {
     /**
      * $search : { name : searchParameter }
      *
-     * @param req QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the search Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -382,27 +382,7 @@ public class QueryToElasticsearch {
         throws InvalidParseOperationException {
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
         final String attribute = element.getKey();
-        if (ParserTokens.PROJECTIONARGS.isNotAnalyzed(attribute)) {
-            final Set<Object> set = new HashSet<>();
-            List<JsonNode> nodes = new ArrayList<>();
-            JsonNode node = element.getValue();
-            if (node instanceof ArrayNode) {
-                for (JsonNode jsonNode : node) {
-                    nodes.add(jsonNode);
-                }
-            } else {
-                nodes.add(node);
-            }
-            for (final JsonNode value : nodes) {
-                String[] sval = value.asText().split("[\\+\\|\\-\\\"\\*\\(\\)\\~]");
-                for (String string : sval) {
-                    set.add(string);
-                }
-            }
-            return QueryBuilders.termsQuery(attribute, set);
-        } else {
-            return QueryBuilders.simpleQueryStringQuery(element.getValue().toString()).field(attribute);
-        }
+        return QueryBuilders.simpleQueryStringQuery(element.getValue().asText()).field(attribute);
     }
 
     /**
