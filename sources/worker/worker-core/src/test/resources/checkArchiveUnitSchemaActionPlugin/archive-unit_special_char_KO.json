@@ -92,13 +92,13 @@
         "AnyOtherField": "AnyOtherValue",
         "DescriptionLevel": "Item",
         "Title": "My title &amp;apos;",
-        "AuthorizedAgent": [{
+        "AuthorizedAgent": {
             "FirstName": "Ludovic",
             "GivenName": "BLANCHET",
             "BirthName": "1990-10-01",
             "BirthPlace": {
 				"City":"Lagny sur Marne"
 			}
-        }]
+        }
     }
 }

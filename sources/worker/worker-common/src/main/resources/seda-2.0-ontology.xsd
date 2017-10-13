@@ -786,7 +786,7 @@
                     <xsd:group ref="LocationGroup"/>
                 </xsd:complexType>
             </xsd:element>
-            <xsd:element name="Nationality" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="Nationality" type="NonEmptyTokenType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>Nationalité d'une personne.</xsd:documentation>
                 </xsd:annotation>

@@ -92,7 +92,7 @@
 		"AnyOtherField": "AnyOtherValue",
 		"DescriptionLevel": "Item",
 		"Title": "2016",
-		"AuthorizedAgent": [
+		"AuthorizedAgent":
 			{
 				"FirstName": "John",
 				"GivenName": "Doe",
@@ -101,6 +101,5 @@
 					"City":"Lagny sur Marne"
 				}
 			}
-		]
 	}
 }

@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.google.common.collect.Iterables;
@@ -73,7 +74,8 @@ public class ArchiveUnitMapper {
      * @param groupId
      * @return ArchiveUnitRoot
      */
-    public ArchiveUnitRoot map(ArchiveUnitType archiveUnitType, String id, String groupId) {
+    public ArchiveUnitRoot map(ArchiveUnitType archiveUnitType, String id, String groupId)
+        throws DatatypeConfigurationException {
 
         ArchiveUnitRoot archiveUnitRoot = new ArchiveUnitRoot();
         ArchiveUnitModel archiveUnit = archiveUnitRoot.getArchiveUnit();
