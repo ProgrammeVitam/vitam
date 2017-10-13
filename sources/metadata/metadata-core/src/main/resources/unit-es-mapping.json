@@ -1,413 +1,433 @@
 {
-	"properties": {
-		"ArchivalAgencyArchiveUnitIdentifier": {
-			"type": "string",
-			"index": "not_analyzed"
-		},
-		"ArchiveUnitProfile": {
-			"type": "string",
-			"index": "not_analyzed"
-		},
-		"AcquiredDate": {
-			"type": "date",
-			"format": "strict_date_optional_time||epoch_millis"
-		},
-		"CreatedDate": {
-			"type": "date",
-			"format": "strict_date_optional_time||epoch_millis"
-		},
-		"Description": {
-			"type": "string"
-		},
-		"DescriptionLevel": {
-			"type": "string",
-			"index": "not_analyzed"
-		},
-		"DocumentType": {
-			"type": "string",
-			"index": "not_analyzed"
-		},
-		"EndDate": {
-			"type": "date",
-			"format": "strict_date_optional_time||epoch_millis"
-		},
-		"Event": {
-			"properties": {
-				"EventDateTime": {
-					"type": "date",
-					"format": "strict_date_optional_time||epoch_millis"
-				},
-				"EventType": {
-					"type": "string"
+	"typeunique": {
+		"dynamic_templates": [
+			{
+				"object": {
+					"match_mapping_type": "object",
+					"mapping": {
+						"type": "object"
+					}
+				}
+			},
+			{
+				"all_string": {
+					"match": "*",
+					"mapping": {
+						"type": "string"
+					}
 				}
 			}
-		},
-		"FilePlanPosition": {
-			"type": "string"
-		},
-		"Language": {
-			"type": "string"
-		},
-		"OriginatingAgency": {
-			"properties": {
-				"Identifier": {
-					"type": "string",
-					"index": "not_analyzed"
+		],
+		"properties": {
+			"ArchivalAgencyArchiveUnitIdentifier": {
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"ArchiveUnitProfile": {
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"AcquiredDate": {
+				"type": "date",
+				"format": "strict_date_optional_time||epoch_millis"
+			},
+			"CreatedDate": {
+				"type": "date",
+				"format": "strict_date_optional_time||epoch_millis"
+			},
+			"Description": {
+				"type": "string"
+			},
+			"DescriptionLevel": {
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"DocumentType": {
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"EndDate": {
+				"type": "date",
+				"format": "strict_date_optional_time||epoch_millis"
+			},
+			"Event": {
+				"properties": {
+					"EventDateTime": {
+						"type": "date",
+						"format": "strict_date_optional_time||epoch_millis"
+					},
+					"EventType": {
+						"type": "string"
+					}
 				}
-			}
-		},
-		"OriginatingAgencyArchiveUnitIdentifier": {
-			"type": "string",
-			"index": "not_analyzed"
-		},
-		"OriginatingSystemId": {
-			"type": "string",
-			"index": "not_analyzed"
-		},
-		"ReceivedDate": {
-			"type": "date",
-			"format": "strict_date_optional_time||epoch_millis"
-		},
-		"RegisteredDate": {
-			"type": "date",
-			"format": "strict_date_optional_time||epoch_millis"
-		},
-		"SentDate": {
-			"type": "date",
-			"format": "strict_date_optional_time||epoch_millis"
-		},
-		"Source": {
-			"type": "string"
-		},
-		"StartDate": {
-			"type": "date",
-			"format": "strict_date_optional_time||epoch_millis"
-		},
-		"SubmissionAgency": {
-			"properties": {
-				"Identifier": {
-					"type": "string",
-					"index": "not_analyzed"
+			},
+			"FilePlanPosition": {
+				"type": "string"
+			},
+			"Language": {
+				"type": "string"
+			},
+			"OriginatingAgency": {
+				"properties": {
+					"Identifier": {
+						"type": "string",
+						"index": "not_analyzed"
+					}
 				}
-			}
-		},
-		"SystemId": {
-			"type": "string",
-			"index": "not_analyzed"
-		},
-		"Tag": {
-			"type": "string",
-			"index": "not_analyzed"
-		},
-		"Title": {
-			"type": "string"
-		},
-		"TransactedDate": {
-			"type": "date",
-			"index": "analyzed",
-			"format": "strict_date_optional_time||epoch_millis"
-		},
-		"TransferringAgencyArchiveUnitIdentifier": {
-			"type": "string",
-			"index": "not_analyzed"
-		},
-		"Writer": {
-			"properties": {
-				"BirthName": {
-					"type": "string"
-				},
-				"FirstName": {
-					"type": "string"
+			},
+			"OriginatingAgencyArchiveUnitIdentifier": {
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"OriginatingSystemId": {
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"ReceivedDate": {
+				"type": "date",
+				"format": "strict_date_optional_time||epoch_millis"
+			},
+			"RegisteredDate": {
+				"type": "date",
+				"format": "strict_date_optional_time||epoch_millis"
+			},
+			"SentDate": {
+				"type": "date",
+				"format": "strict_date_optional_time||epoch_millis"
+			},
+			"Source": {
+				"type": "string"
+			},
+			"StartDate": {
+				"type": "date",
+				"format": "strict_date_optional_time||epoch_millis"
+			},
+			"SubmissionAgency": {
+				"properties": {
+					"Identifier": {
+						"type": "string",
+						"index": "not_analyzed"
+					}
 				}
-			}
-		},
-		"_mgt": {
-			"properties": {
-				"AccessRule": {
-					"properties": {
-						"Rules": {
-							"properties": {
-								"EndDate": {
-									"type": "date",
-									"format": "strict_date_optional_time||epoch_millis"
-								},
-								"Rule": {
-									"type": "string",
-									"index": "not_analyzed"
-								},
-								"StartDate": {
-									"type": "date",
-									"format": "strict_date_optional_time||epoch_millis"
+			},
+			"SystemId": {
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"Tag": {
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"Title": {
+				"type": "string"
+			},
+			"TransactedDate": {
+				"type": "date",
+				"index": "analyzed",
+				"format": "strict_date_optional_time||epoch_millis"
+			},
+			"TransferringAgencyArchiveUnitIdentifier": {
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"Writer": {
+				"properties": {
+					"BirthName": {
+						"type": "string"
+					},
+					"FirstName": {
+						"type": "string"
+					}
+				}
+			},
+			"_mgt": {
+				"properties": {
+					"AccessRule": {
+						"properties": {
+							"Rules": {
+								"properties": {
+									"EndDate": {
+										"type": "date",
+										"format": "strict_date_optional_time||epoch_millis"
+									},
+									"Rule": {
+										"type": "string",
+										"index": "not_analyzed"
+									},
+									"StartDate": {
+										"type": "date",
+										"format": "strict_date_optional_time||epoch_millis"
+									}
+								}
+							},
+							"Inheritance": {
+								"properties": {
+									"PreventInheritance": {
+										"type": "boolean",
+										"index": "not_analyzed"
+									},
+									"PreventRulesId": {
+										"type": "string",
+										"index": "not_analyzed"
+									}
 								}
 							}
-						},
-						"Inheritance": {
-							"properties": {
-								"PreventInheritance": {
-									"type": "boolean",
-									"index": "not_analyzed"
-								},
-								"PreventRulesId": {
-									"type": "string",
-									"index": "not_analyzed"
+						}
+					},
+					"AppraisalRule": {
+						"properties": {
+							"Rules": {
+								"properties": {
+									"EndDate": {
+										"type": "date",
+										"format": "strict_date_optional_time||epoch_millis"
+									},
+									"FinalAction": {
+										"type": "string",
+										"index": "not_analyzed"
+									},
+									"Rule": {
+										"type": "string",
+										"index": "not_analyzed"
+									},
+									"StartDate": {
+										"type": "date",
+										"format": "strict_date_optional_time||epoch_millis"
+									}
+								}
+							},
+							"Inheritance": {
+								"properties": {
+									"PreventInheritance": {
+										"type": "boolean",
+										"index": "not_analyzed"
+									},
+									"PreventRulesId": {
+										"type": "string",
+										"index": "not_analyzed"
+									}
+								}
+							}
+						}
+					},
+					"DisseminationRule": {
+						"properties": {
+							"Rules": {
+								"properties": {
+									"EndDate": {
+										"type": "date",
+										"format": "strict_date_optional_time||epoch_millis"
+									},
+									"Rule": {
+										"type": "string",
+										"index": "not_analyzed"
+									},
+									"StartDate": {
+										"type": "date",
+										"format": "strict_date_optional_time||epoch_millis"
+									}
+								}
+							},
+							"Inheritance": {
+								"properties": {
+									"PreventInheritance": {
+										"type": "boolean",
+										"index": "not_analyzed"
+									},
+									"PreventRulesId": {
+										"type": "string",
+										"index": "not_analyzed"
+									}
+								}
+							}
+						}
+					},
+					"ReuseRule": {
+						"properties": {
+							"Rules": {
+								"properties": {
+									"EndDate": {
+										"type": "date",
+										"format": "strict_date_optional_time||epoch_millis"
+									},
+									"Rule": {
+										"type": "string",
+										"index": "not_analyzed"
+									},
+									"StartDate": {
+										"type": "date",
+										"format": "strict_date_optional_time||epoch_millis"
+									}
+								}
+							},
+							"Inheritance": {
+								"properties": {
+									"PreventInheritance": {
+										"type": "boolean",
+										"index": "not_analyzed"
+									},
+									"PreventRulesId": {
+										"type": "string",
+										"index": "not_analyzed"
+									}
+								}
+							}
+						}
+					},
+					"StorageRule": {
+						"properties": {
+							"Rules": {
+								"properties": {
+									"EndDate": {
+										"type": "date",
+										"format": "strict_date_optional_time||epoch_millis"
+									},
+									"FinalAction": {
+										"type": "string",
+										"index": "not_analyzed"
+									},
+									"Rule": {
+										"type": "string",
+										"index": "not_analyzed"
+									},
+									"StartDate": {
+										"type": "date",
+										"format": "strict_date_optional_time||epoch_millis"
+									}
+								}
+							},
+							"Inheritance": {
+								"properties": {
+									"PreventInheritance": {
+										"type": "boolean",
+										"index": "not_analyzed"
+									},
+									"PreventRulesId": {
+										"type": "string",
+										"index": "not_analyzed"
+									}
+								}
+							}
+						}
+					},
+					"ClassificationRule": {
+						"properties": {
+							"Rules": {
+								"properties": {
+									"EndDate": {
+										"type": "date",
+										"format": "strict_date_optional_time||epoch_millis"
+									},
+									"ClassificationLevel": {
+										"type": "string",
+										"index": "not_analyzed"
+									},
+									"ClassificationOwner": {
+										"type": "string"
+									},
+									"ClassificationReassessingDate": {
+										"type": "date",
+										"format": "strict_date_optional_time||epoch_millis"
+									},
+									"NeedReassessingAuthorization": {
+										"type": "boolean"
+									},
+									"Rule": {
+										"type": "string",
+										"index": "not_analyzed"
+									},
+									"StartDate": {
+										"type": "date",
+										"format": "strict_date_optional_time||epoch_millis"
+									}
+								}
+							},
+							"Inheritance": {
+								"properties": {
+									"PreventInheritance": {
+										"type": "boolean",
+										"index": "not_analyzed"
+									},
+									"PreventRulesId": {
+										"type": "string",
+										"index": "not_analyzed"
+									}
 								}
 							}
 						}
 					}
-				},
-				"AppraisalRule": {
-					"properties": {
-						"Rules": {
-							"properties": {
-								"EndDate": {
-									"type": "date",
-									"format": "strict_date_optional_time||epoch_millis"
-								},
-								"FinalAction": {
-									"type": "string",
-									"index": "not_analyzed"
-								},
-								"Rule": {
-									"type": "string",
-									"index": "not_analyzed"
-								},
-								"StartDate": {
-									"type": "date",
-									"format": "strict_date_optional_time||epoch_millis"
-								}
-							}
-						},
-						"Inheritance": {
-							"properties": {
-								"PreventInheritance": {
-									"type": "boolean",
-									"index": "not_analyzed"
-								},
-								"PreventRulesId": {
-									"type": "string",
-									"index": "not_analyzed"
-								}
-							}
-						}
-					}
-				},
-				"DisseminationRule": {
-					"properties": {
-						"Rules": {
-							"properties": {
-								"EndDate": {
-									"type": "date",
-									"format": "strict_date_optional_time||epoch_millis"
-								},
-								"Rule": {
-									"type": "string",
-									"index": "not_analyzed"
-								},
-								"StartDate": {
-									"type": "date",
-									"format": "strict_date_optional_time||epoch_millis"
-								}
-							}
-						},
-						"Inheritance": {
-							"properties": {
-								"PreventInheritance": {
-									"type": "boolean",
-									"index": "not_analyzed"
-								},
-								"PreventRulesId": {
-									"type": "string",
-									"index": "not_analyzed"
-								}
-							}
-						}
-					}
-				},
-				"ReuseRule": {
-					"properties": {
-						"Rules": {
-							"properties": {
-								"EndDate": {
-									"type": "date",
-									"format": "strict_date_optional_time||epoch_millis"
-								},
-								"Rule": {
-									"type": "string",
-									"index": "not_analyzed"
-								},
-								"StartDate": {
-									"type": "date",
-									"format": "strict_date_optional_time||epoch_millis"
-								}
-							}
-						},
-						"Inheritance": {
-							"properties": {
-								"PreventInheritance": {
-									"type": "boolean",
-									"index": "not_analyzed"
-								},
-								"PreventRulesId": {
-									"type": "string",
-									"index": "not_analyzed"
-								}
-							}
-						}
-					}
-				},
-				"StorageRule": {
-					"properties": {
-						"Rules": {
-							"properties": {
-								"EndDate": {
-									"type": "date",
-									"format": "strict_date_optional_time||epoch_millis"
-								},
-								"FinalAction": {
-									"type": "string",
-									"index": "not_analyzed"
-								},
-								"Rule": {
-									"type": "string",
-									"index": "not_analyzed"
-								},
-								"StartDate": {
-									"type": "date",
-									"format": "strict_date_optional_time||epoch_millis"
-								}
-							}
-						},
-						"Inheritance": {
-							"properties": {
-								"PreventInheritance": {
-									"type": "boolean",
-									"index": "not_analyzed"
-								},
-								"PreventRulesId": {
-									"type": "string",
-									"index": "not_analyzed"
-								}
-							}
-						}
-					}
-				},
-				"ClassificationRule": {
-					"properties": {
-						"Rules": {
-							"properties": {
-								"EndDate": {
-									"type": "date",
-									"format": "strict_date_optional_time||epoch_millis"
-								},
-								"ClassificationLevel": {
-									"type": "string",
-									"index": "not_analyzed"
-								},
-								"ClassificationOwner": {
-									"type": "string"
-								},
-								"ClassificationReassessingDate": {
-									"type": "date",
-									"format": "strict_date_optional_time||epoch_millis"
-								},
-								"NeedReassessingAuthorization": {
-									"type": "boolean"
-								},
-								"Rule": {
-									"type": "string",
-									"index": "not_analyzed"
-								},
-								"StartDate": {
-									"type": "date",
-									"format": "strict_date_optional_time||epoch_millis"
-								}
-							}
-						},
-						"Inheritance": {
-							"properties": {
-								"PreventInheritance": {
-									"type": "boolean",
-									"index": "not_analyzed"
-								},
-								"PreventRulesId": {
-									"type": "string",
-									"index": "not_analyzed"
-								}
-							}
-						}
+				}
+			},
+			"_min": {
+				"type": "long"
+			},
+			"_max": {
+				"type": "long"
+			},
+			"_nbc": {
+				"type": "long"
+			},
+			"_og": {
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"_ops": {
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"_tenant": {
+				"type": "long"
+			},
+			"_sp": {
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"_sps": {
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"_uds": {
+				"type": "object",
+				"enabled": false
+			},
+			"_unused": {
+				"type": "object",
+				"enabled": false
+			},
+			"_score": {
+				"type": "object",
+				"enabled": false
+			},
+			"_up": {
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"_us": {
+				"type": "string",
+				"index": "not_analyzed"
+			},
+			"_v": {
+				"type": "long"
+			},
+			"_storage": {
+				"properties": {
+					"_nbc": {
+						"type": "long"
+					},
+					"offerIds": {
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"strategyId": {
+						"type": "string",
+						"index": "not_analyzed"
 					}
 				}
+			},
+			"_unitType": {
+				"type": "string",
+				"index": "not_analyzed"
 			}
-		},
-		"_min": {
-			"type": "long"
-		},
-		"_max": {
-			"type": "long"
-		},
-		"_nbc": {
-			"type": "long"
-		},
-		"_og": {
-			"type": "string",
-			"index": "not_analyzed"
-		},
-		"_ops": {
-			"type": "string",
-			"index": "not_analyzed"
-		},
-		"_tenant": {
-			"type": "long"
-		},
-		"_sp": {
-			"type": "string",
-			"index": "not_analyzed"
-		},
-		"_sps": {
-			"type": "string",
-			"index": "not_analyzed"
-		},
-		"_uds": {
-			"type": "object",
-			"enabled": false
-		},
-		"_unused": {
-			"type": "object",
-			"enabled": false
-		},
-		"_score": {
-			"type": "object",
-			"enabled": false
-		},
-		"_up": {
-			"type": "string",
-			"index": "not_analyzed"
-		},
-		"_us": {
-			"type": "string",
-			"index": "not_analyzed"
-		},
-		"_v": {
-			"type": "long"
-		},
-		"_storage": {
-			"properties": {
-				"_nbc": {
-					"type": "long"
-				},
-				"offerIds": {
-					"type": "string",
-					"index": "not_analyzed"
-				},
-				"strategyId": {
-					"type": "string",
-					"index": "not_analyzed"
-				}
-			}
-		},
-		"_unitType": {
-			"type": "string",
-			"index": "not_analyzed"
 		}
 	}
 }

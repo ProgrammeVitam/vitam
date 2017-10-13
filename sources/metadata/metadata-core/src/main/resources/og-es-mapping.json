@@ -1,5 +1,23 @@
 {
 	"typeunique": {
+		"dynamic_templates": [
+			{
+				"object": {
+					"match_mapping_type": "object",
+					"mapping": {
+						"type": "object"
+					}
+				}
+			},
+			{
+				"all_string": {
+					"match": "*",
+					"mapping": {
+						"type": "string"
+					}
+				}
+			}
+		],
 		"properties": {
 			"FileInfo": {
 				"properties": {
@@ -27,6 +45,12 @@
 						"format": "strict_date_optional_time||epoch_millis"
 					}
 				}
+			},
+			"Metadata": {
+				"type": "object"
+			},
+			"OtherMetadata": {
+				"type": "object"
 			},
 			"_profil": {
 				"type": "string",
