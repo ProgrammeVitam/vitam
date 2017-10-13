@@ -132,7 +132,7 @@ documentation:
          Update the given access contract
       is: [RegisterTraits.RegisterUpload]
 
-/entrycontracts:
+/ingestcontracts:
   displayName: Ingest contracts
   description: |
      API qui définit les requêtes pour accéder au contracts d'entrée
@@ -143,7 +143,7 @@ documentation:
     is: [RegisterTraits.RegisterListingResponse]
   post:
     description: |
-      Request that will return results composed of EntryContracts if the request is using POST with X-Http-Method-Override: GET.
+      Request that will return results composed of ingest contracts if the request is using POST with X-Http-Method-Override: GET.
       Importe un ensemble des contrats d'entrée qui sont sauvegardés et indexés en cas de succès
     is: [RegisterTraits.RegisterListingResponse, StandardTraits.OverrideGet, RegisterTraits.RegisterUpload]
     headers:

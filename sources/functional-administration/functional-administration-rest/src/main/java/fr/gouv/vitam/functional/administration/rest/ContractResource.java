@@ -68,10 +68,10 @@ import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 public class ContractResource {
 
     private static final String ADMIN_MODULE = "ADMIN_MODULE";
-    static final String INGEST_CONTRACTS_URI = "/entrycontracts";
+    static final String INGEST_CONTRACTS_URI = "/ingestcontracts";
     static final String ACCESS_CONTRACTS_URI = "/accesscontracts";
     static final String UPDATE_ACCESS_CONTRACT_URI = "/accesscontracts";
-    static final String UPDATE_INGEST_CONTRACTS_URI = "/entrycontracts";
+    static final String UPDATE_INGEST_CONTRACTS_URI = "/ingestcontracts";
 
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContractResource.class);

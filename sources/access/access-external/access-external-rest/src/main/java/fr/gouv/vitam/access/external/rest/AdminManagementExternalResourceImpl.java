@@ -365,11 +365,11 @@ public class AdminManagementExternalResourceImpl {
      * @param document inputStream representing the data to import
      * @return The jaxRs Response
      */
-    @Path("/entrycontracts")
+    @Path("/ingestcontracts")
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "entrycontracts:create:binary",
+    @Secured(permission = "ingestcontracts:create:binary",
         description = "Importer des contrats d'entrées dans le référentiel")
     public Response importIngestContracts(InputStream document) {
         Integer tenantId = ParameterHelper.getTenantParameter();
@@ -435,11 +435,11 @@ public class AdminManagementExternalResourceImpl {
      * @param select the select query to find document
      * @return Response
      */
-    @Path("/entrycontracts")
+    @Path("/ingestcontracts")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "entrycontracts:create:json",
+    @Secured(permission = "ingestcontracts:create:json",
         description = "Importer des contrats d'entrées dans le référentiel")
     public Response importIngestContracts(JsonNode select)
         throws DatabaseConflictException {
@@ -896,11 +896,11 @@ public class AdminManagementExternalResourceImpl {
      * @param select the select query to find document
      * @return Response
      */
-    @Path("/entrycontracts")
+    @Path("/ingestcontracts")
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "entrycontracts:read", description = "Lister le contenu du référentiel des contrats d'entrée")
+    @Secured(permission = "ingestcontracts:read", description = "Lister le contenu du référentiel des contrats d'entrée")
     public Response findIngestContracts(JsonNode select) {
 
         addRequestId();
@@ -1308,10 +1308,10 @@ public class AdminManagementExternalResourceImpl {
      * @param documentId the document id to find
      * @return Response
      */
-    @Path("/entrycontracts/{id_document:.+}")
+    @Path("/ingestcontracts/{id_document:.+}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "entrycontracts:id:read", description = "Lire un contrat d'entrée donné")
+    @Secured(permission = "ingestcontracts:id:read", description = "Lire un contrat d'entrée donné")
     public Response findIngestContractsByID(@PathParam("id_document") String documentId) {
         addRequestId();
         try {
@@ -1545,11 +1545,11 @@ public class AdminManagementExternalResourceImpl {
      * @throws AdminManagementClientServerException
      * @throws InvalidParseOperationException
      */
-    @Path("/entrycontracts/{id:.+}")
+    @Path("/ingestcontracts/{id:.+}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "entrycontracts:id:update", description = "Effectuer une mise à jour sur un contrat d'entrée")
+    @Secured(permission = "ingestcontracts:id:update", description = "Effectuer une mise à jour sur un contrat d'entrée")
     public Response updateIngestContract(@PathParam("id") String id, JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException {
         addRequestId();

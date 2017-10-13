@@ -25,17 +25,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
-import fr.gouv.vitam.common.security.rest.Secured;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
-import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Assert;
 import org.junit.Test;
@@ -368,7 +358,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         when(mock.post()).thenReturn(
             Response.status(Status.CREATED).entity(new RequestResponseOK<>().addAllResults(getContracts())).build());
         InputStream fileContracts = PropertiesUtils.getResourceAsStream("referential_contracts_ok.json");
-        RequestResponse resp = client.importContracts(new VitamContext(TENANT_ID), fileContracts, AdminCollections.ENTRY_CONTRACTS);
+        RequestResponse resp = client.importContracts(new VitamContext(TENANT_ID), fileContracts, AdminCollections.INGEST_CONTRACTS);
         Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
         Assert.assertTrue((((RequestResponseOK) resp).isOk()));
     }
@@ -388,7 +378,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
             .setMessage("invalid input").setDescription("Input file of contracts is malformed");
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(error).build());
         RequestResponse resp =
-            client.importContracts(new VitamContext(TENANT_ID), new FakeInputStream(0), AdminCollections.ENTRY_CONTRACTS);
+            client.importContracts(new VitamContext(TENANT_ID), new FakeInputStream(0), AdminCollections.INGEST_CONTRACTS);
         Assert.assertTrue(VitamError.class.isAssignableFrom(resp.getClass()));
         Assert.assertEquals(Status.BAD_REQUEST.getStatusCode(), (((VitamError) resp).getHttpCode()));
     }
@@ -396,7 +386,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     @Test(expected = IllegalArgumentException.class)
     public void importContractsWithNullStreamThrowIllegalArgException()
         throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
-        client.importContracts(new VitamContext(TENANT_ID), null, AdminCollections.ENTRY_CONTRACTS);
+        client.importContracts(new VitamContext(TENANT_ID), null, AdminCollections.INGEST_CONTRACTS);
     }
 
 
