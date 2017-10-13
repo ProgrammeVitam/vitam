@@ -198,7 +198,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         }
 
         @GET
-        @Path("/units/{id_object_group}/object")
+        @Path("/units/{id_object_group}/objects")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
         public Response getObjectStream(@Context HttpHeaders headers,
@@ -207,7 +207,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         }
 
         @POST
-        @Path("/units/{id_object_group}/object")
+        @Path("/units/{id_object_group}/objects")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
         public Response getObjectStreamPost(@Context HttpHeaders headers,
@@ -216,7 +216,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         }
 
         @GET
-        @Path("/units/{id_unit}/object")
+        @Path("/units/{id_unit}/objects")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response getObjectGroupMetadatas(@Context HttpHeaders headers,
@@ -225,7 +225,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         }
 
         @POST
-        @Path("/units/{id_unit}/object")
+        @Path("/units/{id_unit}/objects")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response getObjectGroupMetadatasPost(@Context HttpHeaders headers,
