@@ -62,6 +62,8 @@ public class CheckConformityActionPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckConformityActionPlugin.class);
 
     private static final String CALC_CHECK = "CALC_CHECK";
+    private static final String EMPTY = "EMPTY";
+    private static final String INVALID = "INVALID";
     private HandlerIO handlerIO;
     private boolean oneOrMoreMessagesDigestUpdated = false;
     private static final int ALGO_RANK = 0;
@@ -155,8 +157,15 @@ public class CheckConformityActionPlugin extends ActionHandler {
                 "\", \"SystemMessageDigest\": \"" + vitamDigestString +
                 "\", \"SystemAlgorithm\": \"" + (String) handlerIO.getInput(ALGO_RANK) + "\"} ";
 
+            String binaryObjectMessageDigest = binaryObject.getMessageDigest();
+            if (binaryObjectMessageDigest.isEmpty() || binaryObjectMessageDigest.equals(null)) {
+                itemStatus.setGlobalOutcomeDetailSubcode(EMPTY);
+                itemStatus.increment(StatusCode.KO);
+                return;
+            }
+            
             // check digest
-            if (manifestDigestString.equals(binaryObject.getMessageDigest())) {
+            if (manifestDigestString.equals(binaryObjectMessageDigest)) {
                 itemStatus.increment(StatusCode.OK);
                 if (!isVitamDigest) {
                     // update objectGroup json
@@ -166,6 +175,7 @@ public class CheckConformityActionPlugin extends ActionHandler {
                 }
 
             } else {
+                itemStatus.setGlobalOutcomeDetailSubcode(INVALID);
                 itemStatus.increment(StatusCode.KO);
 
                 // Set eventDetailData in KO case
