@@ -386,6 +386,30 @@ public class AccessStep {
     }
 
     /**
+     * replace in the loaded query the given parameter by the given value
+     * 
+     * @param parameter parameter name in the query
+     * @param value the valeur to replace the parameter
+     * @throws Throwable
+     */
+    @When("^j'utilise dans la requête le paramètre (.*) avec la valeur (.*)$")
+    public void i_use_the_following_parameter_query_with_values(String parameter, String value) throws Throwable {
+        this.query = this.query.replace(parameter, value);
+    }
+
+    /**
+     * replace in the loaded query the string {{guid}} by the guid of the first unit found for given title
+     * 
+     * @param title title of the unit
+     * @throws Throwable
+     */
+    @When("^j'utilise dans la requête le GUID de l'unité archivistique pour le titre (.*)$")
+    public void i_use_the_following_unit_guid_for_title(String title) throws Throwable {
+        String unitGuid = replaceTitleByGUID(title);
+        this.query = this.query.replace("{{guid}}", unitGuid);
+    }
+
+    /**
      * define a query to reuse it after
      *
      * @param query
