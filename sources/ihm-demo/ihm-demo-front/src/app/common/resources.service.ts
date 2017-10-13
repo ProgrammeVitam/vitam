@@ -9,7 +9,7 @@ import {VitamResponse} from "./utils/response";
 const TENANT_COOKIE = 'tenant';
 const CONTRACT_COOKIE = 'accessContract';
 const BASE_URL = '/ihm-demo/v1/api/';
-const TENANTS = 'tenants/';
+const TENANTS = 'tenants';
 
 export class RequestOptionsTenant implements RequestOptionsArgs {}
 
@@ -30,7 +30,7 @@ export class ResourcesService {
     }
 
     options.headers = header;
-    return this.http.get(`${BASE_URL}${url}/`, options);
+    return this.http.get(`${BASE_URL}${url}`, options);
   }
 
   post(url, header?: Headers, body?: any) {

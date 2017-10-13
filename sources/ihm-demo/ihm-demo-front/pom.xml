@@ -146,7 +146,7 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>rpm-maven-plugin</artifactId>
                 <configuration>
-                    <name>vitam-${unix.name}</name>
+                    <name>vitam-${unix.name}-v2</name>
                     <disabled>false</disabled>
                     <licence>CeCILL 2.1</licence>
                     <distribution>Vitam Project</distribution>
@@ -165,7 +165,7 @@
                     <defaultGroupname>${unix.group}</defaultGroupname>
                     <mappings>
                         <mapping>
-                            <directory>/vitam/app/${ihm-demo.name}</directory>
+                            <directory>/vitam/app/${ihm-demo.name}/v2</directory>
                             <sources>
                                 <source>
                                     <location>${project.basedir}/dist</location>
@@ -233,7 +233,7 @@
                                 <user>${unix.user}</user>
                                 <group>${unix.group}</group>
                                 <filemode>0644</filemode>
-                                <prefix>/vitam/app/${ihm-demo.name}</prefix>
+                                <prefix>/vitam/app/${ihm-demo.name}/v2</prefix>
                             </mapper>
                         </data>
 

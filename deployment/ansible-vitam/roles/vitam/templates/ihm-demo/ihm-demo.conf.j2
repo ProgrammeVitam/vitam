@@ -3,6 +3,9 @@ port: {{vitam_struct.port}}
 
 baseUrl: "/ihm-demo"
 staticContent: {{vitam_struct.static_content}}
+staticContentV2: {{vitam_struct.static_content_v2}}
+baseUri: {{vitam_struct.baseuri}}
+baseUriV2: {{vitam_struct.baseuri_v2}}
 
 jettyConfig: jetty-config.xml
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]

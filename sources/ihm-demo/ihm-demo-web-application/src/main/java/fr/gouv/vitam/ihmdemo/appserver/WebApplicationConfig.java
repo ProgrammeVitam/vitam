@@ -38,6 +38,9 @@ public class WebApplicationConfig extends DefaultVitamApplicationConfiguration {
     private String serverHost;
     private String baseUrl;
     private String staticContent;
+    private String staticContentV2;
+    private String baseUri;
+    private String baseUriV2;
     private boolean secure;
     private String sipDirectory;
 
@@ -106,6 +109,49 @@ public class WebApplicationConfig extends DefaultVitamApplicationConfiguration {
     public WebApplicationConfig setStaticContent(String staticContent) {
         ParametersChecker.checkParameter("staticContent is mandatory", staticContent);
         this.staticContent = staticContent;
+        return this;
+    }
+
+    /**
+     * @return staticContentV2
+     */
+    public String getStaticContentV2() {
+        return staticContentV2;
+    }
+
+    /**
+     * @return the ihm-demo V1 base URI
+     */
+    public String getBaseUri() {
+		return baseUri;
+	}
+
+	public WebApplicationConfig setBaseUri(String baseUri) {
+        ParametersChecker.checkParameter("baseUri is mandatory", baseUri);
+        this.baseUri = baseUri;
+        return this;
+	}
+
+    /**
+     * @return the ihm-demo V2 base URI
+     */
+	public String getBaseUriV2() {
+		return baseUriV2;
+	}
+
+	public WebApplicationConfig setBaseUriV2(String baseUriv2) {
+        ParametersChecker.checkParameter("baseUriv2 is mandatory", baseUriv2);
+        this.baseUriV2 = baseUriv2;
+        return this;
+	}
+
+	/**
+     * @param staticContentV2 static content from server
+     * @return WebApplicationConfig
+     */
+    public WebApplicationConfig setStaticContentV2(String staticContentV2) {
+        ParametersChecker.checkParameter("staticContentV2 is mandatory", staticContentV2);
+        this.staticContentV2 = staticContentV2;
         return this;
     }
 

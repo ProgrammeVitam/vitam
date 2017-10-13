@@ -149,11 +149,27 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
 
         final ServletContainer servletContainer = new ServletContainer(resourceConfig);
         final ServletHolder sh = new ServletHolder(servletContainer);
-        final ServletContextHandler context = new ServletContextHandler(getSession());
+        
+        // Set Handlers (Static content and REST API)
+        final HandlerList handlerList = new HandlerList();
+
+        LOGGER.warn("Configurations: " + getConfiguration().toString());
+
+        Handler[] handlers = new Handler[4];
+        handlers[0] = getResourceHandler(getConfiguration().getStaticContent(), getConfiguration().getBaseUri());
+        handlers[1] = getResourceHandler(getConfiguration().getStaticContentV2(), getConfiguration().getBaseUriV2());
+        handlers[2] = getContextHandler(sh, getConfiguration().getBaseUrl());
+        handlers[3] = new DefaultHandler();
+        
+        handlerList.setHandlers(handlers);
+        return handlerList;
+    }
+
+    protected Handler getContextHandler(ServletHolder sh, String baseUrl) throws VitamApplicationServerException {
+        LOGGER.warn("getContextHandler: " + baseUrl);
+    	final ServletContextHandler context = new ServletContextHandler(getSession());
         // Removed setContextPath to be set later on for IHM
         context.addServlet(sh, "/*");
-
-        // No Authorization Filter
 
         // Replace here setFilter by adapted one for IHM
         if (getConfiguration().isSecure()) {
@@ -171,25 +187,28 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
                 DispatcherType.INCLUDE, DispatcherType.REQUEST,
                 DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
         }
-        context.setContextPath(getConfiguration().getBaseUrl());
+        context.setContextPath(baseUrl);
         context.setVirtualHosts(new String[] {getConfiguration().getServerHost()});
-
+        
+        return context;
+    }
+    
+    protected Handler getResourceHandler(String staticContent, String baseUri) {
+        LOGGER.error("getResourceHandler: " + staticContent);
+        LOGGER.error("getResourceHandler: " + baseUri);
         // Static Content
         final ResourceHandler staticContentHandler = new ResourceHandler();
         staticContentHandler.setDirectoriesListed(true);
         staticContentHandler.setWelcomeFiles(new String[] {"index.html"});
-        staticContentHandler.setResourceBase(getConfiguration().getStaticContent());
+        staticContentHandler.setResourceBase(staticContent);
 
         // wrap to context handler
-        final ContextHandler staticContext = new ContextHandler("/ihm-demo"); /* the server uri path */
+        final ContextHandler staticContext = new ContextHandler(baseUri); /* the server uri path */
         staticContext.setHandler(staticContentHandler);
-
-        // Set Handlers (Static content and REST API)
-        final HandlerList handlerList = new HandlerList();
-        handlerList.setHandlers(new Handler[] {staticContext, context, new DefaultHandler()});
-        return handlerList;
+        
+        return staticContext;
     }
-
+    
     @Override
     protected void registerInResourceConfig(ResourceConfig resourceConfig) {
         Set<String> permissions =
