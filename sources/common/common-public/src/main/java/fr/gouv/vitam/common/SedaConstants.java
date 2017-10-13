@@ -504,6 +504,11 @@ public class SedaConstants {
      * tag of DataObjectSystemId
      */
     public static final String TAG_DATA_OBJECT_SYSTEM_ID = "DataObjectSystemId";
+    
+    /**
+     * tag of DataObjectGroupSystemId
+     */
+    public static final String TAG_DATA_OBJECT_GROUP_SYSTEM_ID = "DataObjectGroupSystemId";    
 
     /**
      * evDetTechData

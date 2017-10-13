@@ -27,17 +27,20 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URISyntaxException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.gouv.vitam.common.stream.StreamUtils;
-import org.apache.commons.io.IOUtils;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.events.XMLEvent;
+
 import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
@@ -64,6 +67,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
@@ -79,6 +83,8 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.utils.ValidationXsdUtils;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -100,9 +106,16 @@ public class TransferNotificationActionHandlerIteratorTest {
         "transferNotificationActionHandler/OBJECT_GROUP_ID_TO_GUID_MAPKO.json";
 
     private static final String HANDLER_ID = "ATR_NOTIFICATION";
-    private static final String LOGBOOK_OPERATION = "transferNotificationActionHandler/logbookOperationKO.json";
+    private static final String LOGBOOK_OPERATION_OK = "transferNotificationActionHandler/logbookOperationOK.json";
+    private static final String LOGBOOK_OPERATION_KO = "transferNotificationActionHandler/logbookOperationKO.json";
+    private static final String LOGBOOK_OPERATION_WARNING =
+        "transferNotificationActionHandler/logbookOperationWarning.json";
     private static final String LOGBOOK_LFC_AU = "transferNotificationActionHandler/logbookLifecycleAUKO.json";
+    private static final String LOGBOOK_LFC_AU_WARNING =
+        "transferNotificationActionHandler/logbookLifecycleAUWarning.json";
     private static final String LOGBOOK_LFC_GOT = "transferNotificationActionHandler/logbookLifecycleGOTKO.json";
+    private static final String LOGBOOK_LFC_GOT_WARNING =
+        "transferNotificationActionHandler/logbookLifecycleGOTWarning.json";
 
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
@@ -171,188 +184,281 @@ public class TransferNotificationActionHandlerIteratorTest {
     @Test
     public void givenXMLCreationWhenValidThenResponseOK()
         throws Exception {
-        final TransferNotificationActionHandler handler = new TransferNotificationActionHandler();
+        try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler();) {
 
-        final VitamRequestIterator iteratorLcGot = mock(VitamRequestIterator.class);
-        Mockito.when(iteratorLcGot.hasNext()).thenReturn(true).thenReturn(false);
-        Mockito.when(iteratorLcGot.next()).thenReturn(getLogbookLifecycleGOT());
+            final VitamRequestIterator iteratorLcGot = mock(VitamRequestIterator.class);
+            Mockito.when(iteratorLcGot.hasNext()).thenReturn(true).thenReturn(false);
+            Mockito.when(iteratorLcGot.next()).thenReturn(getLogbookLifecycleGOT());
 
-        final VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
-        Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
-        Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
+            final VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
+            Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
+            Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
 
-        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(anyObject(),
-            anyObject());
-        Mockito.doReturn(iteratorLcGot).when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
-            anyObject());
-        Mockito.doReturn(iteratorLcUnit).when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),
-            anyObject());
+            Mockito.doReturn(getLogbookOperationOK()).when(logbookOperationsClient).selectOperationById(anyObject(),
+                anyObject());
+            Mockito.doReturn(iteratorLcGot).when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
+                anyObject());
+            Mockito.doReturn(iteratorLcUnit).when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),
+                anyObject());
 
-        assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
-        action.reset();
-        action.addInIOParameters(in);
-        action.addOutIOParameters(out);
-        WorkerParameters parameters =
-            params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.OK.name())
-                .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
-        final ItemStatus response = handler
-            .execute(parameters, action);
-        assertEquals(StatusCode.OK, response.getGlobalStatus());
+            assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
+            action.reset();
+            action.addInIOParameters(in);
+            action.addOutIOParameters(out);
+            WorkerParameters parameters =
+                params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.OK.name())
+                    .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
+            final ItemStatus response = handler
+                .execute(parameters, action);
+            assertEquals(StatusCode.OK, response.getGlobalStatus());
+        }
+    }
+
+
+    @Test
+    public void givenXMLCreationWhenValidThenResponseWarningAUGOT()
+        throws Exception {
+        try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler();) {
+
+            final VitamRequestIterator iteratorLcGot = mock(VitamRequestIterator.class);
+            Mockito.when(iteratorLcGot.hasNext()).thenReturn(true).thenReturn(false);
+            Mockito.when(iteratorLcGot.next()).thenReturn(getLogbookLifecycleGOTWarning());
+
+            final VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
+            Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
+            Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAUWarning());
+
+            Mockito.doReturn(getLogbookOperationWarning()).when(logbookOperationsClient).selectOperationById(
+                anyObject(),
+                anyObject());
+            Mockito.doReturn(iteratorLcGot).when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
+                anyObject());
+            Mockito.doReturn(iteratorLcUnit).when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),
+                anyObject());
+
+            assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
+            action.reset();
+            action.addInIOParameters(in);
+            action.addOutIOParameters(out);
+            WorkerParameters parameters =
+                params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.WARNING.name())
+                    .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
+            final ItemStatus response = handler
+                .execute(parameters, action);
+            final InputStream xmlFile;
+            try {
+                xmlFile = action.getInputStreamFromWorkspace(out.get(0).getUri().getPath());
+            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+                throw new ProcessingException(e);
+            }
+            assertEquals(StatusCode.OK, response.getGlobalStatus());
+
+            final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+            XMLEventReader reader = xmlInputFactory.createXMLEventReader(xmlFile);
+            String archiveUnitId = null;
+            while (reader.hasNext()) {
+                String tempArchiveUnitId = null;
+                XMLEvent event = reader.nextEvent();
+                if (event.isStartElement() &&
+                    event.asStartElement().getName().getLocalPart().equals("ArchiveUnit")) {
+                    event = reader.nextEvent();
+                    if (event.isStartElement() &&
+                        event.asStartElement().getName().getLocalPart().equals("SystemId")) {
+                        tempArchiveUnitId = reader.getElementText();
+                    }
+                    event = reader.nextEvent();
+                    if (event.isStartElement() &&
+                        event.asStartElement().getName().getLocalPart().equals("Event")) {
+                        archiveUnitId = tempArchiveUnitId;
+                        break;
+                    }
+                }
+            }
+
+            JsonNode guidAU = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(ARCHIVE_ID_TO_GUID_MAP));
+            assertTrue(guidAU.toString().contains(archiveUnitId));
+
+        }
     }
 
     @Test
     public void givenXMLCreationWhenProcessKOThenResponseATROK()
         throws Exception {
-        final TransferNotificationActionHandler handler = new TransferNotificationActionHandler();
+        try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler();) {
 
-        final VitamRequestIterator iteratorLcGot = mock(VitamRequestIterator.class);
-        Mockito.when(iteratorLcGot.hasNext()).thenReturn(true).thenReturn(false);
-        Mockito.when(iteratorLcGot.next()).thenReturn(getLogbookLifecycleGOT());
+            final VitamRequestIterator iteratorLcGot = mock(VitamRequestIterator.class);
+            Mockito.when(iteratorLcGot.hasNext()).thenReturn(true).thenReturn(false);
+            Mockito.when(iteratorLcGot.next()).thenReturn(getLogbookLifecycleGOT());
 
-        final VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
-        Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
-        Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
+            final VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
+            Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
+            Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
 
-        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(anyObject(),
-            anyObject());
-        Mockito.doReturn(iteratorLcGot).when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
-            anyObject());
-        Mockito.doReturn(iteratorLcUnit).when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),
-            anyObject());
+            Mockito.doReturn(getLogbookOperationKO()).when(logbookOperationsClient).selectOperationById(anyObject(),
+                anyObject());
+            Mockito.doReturn(iteratorLcGot).when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
+                anyObject());
+            Mockito.doReturn(iteratorLcUnit).when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),
+                anyObject());
 
-        assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
-        action.reset();
-        action.addInIOParameters(in);
-        action.addOutIOParameters(out);
-        WorkerParameters parameters =
-            params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
-                .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
-        final ItemStatus response = handler
-            .execute(parameters.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name()), action);
-        assertEquals(StatusCode.OK, response.getGlobalStatus());
+            assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
+            action.reset();
+            action.addInIOParameters(in);
+            action.addOutIOParameters(out);
+            WorkerParameters parameters =
+                params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
+                    .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
+            final ItemStatus response = handler
+                .execute(parameters.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name()),
+                    action);
+            assertEquals(StatusCode.OK, response.getGlobalStatus());
+        }
     }
 
 
     @Test
     public void givenXMLCreationWhenProcessKOBeforeLifecycleThenResponseATRKO()
         throws Exception {
-        final TransferNotificationActionHandler handler = new TransferNotificationActionHandler();
+        try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler();) {
 
-        final VitamRequestIterator iteratorLcGot = mock(VitamRequestIterator.class);
-        Mockito.when(iteratorLcGot.hasNext()).thenReturn(false);
+            final VitamRequestIterator iteratorLcGot = mock(VitamRequestIterator.class);
+            Mockito.when(iteratorLcGot.hasNext()).thenReturn(false);
 
-        final VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
-        Mockito.when(iteratorLcUnit.hasNext()).thenReturn(false);
+            final VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
+            Mockito.when(iteratorLcUnit.hasNext()).thenReturn(false);
 
-        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(anyObject(),
-            anyObject());
-        Mockito.doReturn(iteratorLcGot).when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
-            anyObject());
-        Mockito.doReturn(iteratorLcUnit).when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),
-            anyObject());
+            Mockito.doReturn(getLogbookOperationKO()).when(logbookOperationsClient).selectOperationById(anyObject(),
+                anyObject());
+            Mockito.doReturn(iteratorLcGot).when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
+                anyObject());
+            Mockito.doReturn(iteratorLcUnit).when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),
+                anyObject());
 
-        assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
-        action.reset();
-        action.addInIOParameters(in);
-        action.addOutIOParameters(out);
-        WorkerParameters parameters =
-            params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
-                .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
-        final ItemStatus response = handler
-            .execute(parameters, action);
-        assertEquals(StatusCode.OK, response.getGlobalStatus());
+            assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
+            action.reset();
+            action.addInIOParameters(in);
+            action.addOutIOParameters(out);
+            WorkerParameters parameters =
+                params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
+                    .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
+            final ItemStatus response = handler
+                .execute(parameters, action);
+            assertEquals(StatusCode.OK, response.getGlobalStatus());
+        }
     }
 
 
     @Test
     public void givenExceptionLogbookWhenProcessKOBeforeLifecycleThenResponseKO()
         throws Exception {
-        final TransferNotificationActionHandler handler = new TransferNotificationActionHandler();
+        try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler();) {
 
-        Mockito.doThrow(new LogbookClientException("")).when(logbookOperationsClient).selectOperationById(anyObject(),
-            anyObject());
+            Mockito.doThrow(new LogbookClientException("")).when(logbookOperationsClient).selectOperationById(
+                anyObject(),
+                anyObject());
 
-        assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
-        action.reset();
-        action.addInIOParameters(in);
-        action.addOutIOParameters(out);
-        WorkerParameters parameters =
-            params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
-                .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
-        final ItemStatus response = handler
-            .execute(parameters, action);
-        assertEquals(StatusCode.KO, response.getGlobalStatus());
+            assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
+            action.reset();
+            action.addInIOParameters(in);
+            action.addOutIOParameters(out);
+            WorkerParameters parameters =
+                params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
+                    .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
+            final ItemStatus response = handler
+                .execute(parameters, action);
+            assertEquals(StatusCode.KO, response.getGlobalStatus());
+        }
     }
 
     @Test
     public void givenExceptionLogbookLCUnitWhenProcessOKThenResponseKO()
         throws Exception {
-        final TransferNotificationActionHandler handler = new TransferNotificationActionHandler();
+        try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler();) {
 
-        final VitamRequestIterator iteratorLcGot = mock(VitamRequestIterator.class);
-        Mockito.when(iteratorLcGot.hasNext()).thenReturn(true).thenReturn(false);
-        Mockito.when(iteratorLcGot.next()).thenReturn(getLogbookLifecycleGOT());
+            final VitamRequestIterator iteratorLcGot = mock(VitamRequestIterator.class);
+            Mockito.when(iteratorLcGot.hasNext()).thenReturn(true).thenReturn(false);
+            Mockito.when(iteratorLcGot.next()).thenReturn(getLogbookLifecycleGOT());
 
-        final VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
-        Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
-        Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
+            final VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
+            Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
+            Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
 
-        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(anyObject(),
-            anyObject());
-        Mockito.doReturn(iteratorLcGot).when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
-            anyObject());
-        Mockito.doThrow(new LogbookClientException("")).when(lifeCyclesClient)
-            .unitLifeCyclesByOperationIterator(anyObject(), anyObject());
+            Mockito.doReturn(getLogbookOperationKO()).when(logbookOperationsClient).selectOperationById(anyObject(),
+                anyObject());
+            Mockito.doReturn(iteratorLcGot).when(lifeCyclesClient).objectGroupLifeCyclesByOperationIterator(anyObject(),
+                anyObject());
+            Mockito.doThrow(new LogbookClientException("")).when(lifeCyclesClient)
+                .unitLifeCyclesByOperationIterator(anyObject(), anyObject());
 
-        assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
-        action.reset();
-        action.addInIOParameters(in);
-        action.addOutIOParameters(out);
-        WorkerParameters parameters =
-            params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
-                .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
-        final ItemStatus response = handler
-            .execute(parameters, action);
-        assertEquals(StatusCode.KO, response.getGlobalStatus());
+            assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
+            action.reset();
+            action.addInIOParameters(in);
+            action.addOutIOParameters(out);
+            WorkerParameters parameters =
+                params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
+                    .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
+            final ItemStatus response = handler
+                .execute(parameters, action);
+            assertEquals(StatusCode.KO, response.getGlobalStatus());
+        }
     }
 
     @Test
     public void givenExceptionLogbookLCObjectWhenProcessOKThenResponseKO()
         throws Exception {
-        final TransferNotificationActionHandler handler = new TransferNotificationActionHandler();
+        try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler();) {
 
-        final VitamRequestIterator iteratorLcGot = mock(VitamRequestIterator.class);
-        Mockito.when(iteratorLcGot.hasNext()).thenReturn(true).thenReturn(false);
-        Mockito.when(iteratorLcGot.next()).thenReturn(getLogbookLifecycleGOT());
+            final VitamRequestIterator iteratorLcGot = mock(VitamRequestIterator.class);
+            Mockito.when(iteratorLcGot.hasNext()).thenReturn(true).thenReturn(false);
+            Mockito.when(iteratorLcGot.next()).thenReturn(getLogbookLifecycleGOT());
 
-        final VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
-        Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
-        Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
+            final VitamRequestIterator iteratorLcUnit = mock(VitamRequestIterator.class);
+            Mockito.when(iteratorLcUnit.hasNext()).thenReturn(true).thenReturn(false);
+            Mockito.when(iteratorLcUnit.next()).thenReturn(getLogbookLifecycleAU());
 
-        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(anyObject(),
-            anyObject());
-        Mockito.doThrow(new LogbookClientException("")).when(lifeCyclesClient)
-            .objectGroupLifeCyclesByOperationIterator(anyObject(), anyObject());
-        Mockito.doReturn(iteratorLcUnit).when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),
-            anyObject());
+            Mockito.doReturn(getLogbookOperationKO()).when(logbookOperationsClient).selectOperationById(anyObject(),
+                anyObject());
+            Mockito.doThrow(new LogbookClientException("")).when(lifeCyclesClient)
+                .objectGroupLifeCyclesByOperationIterator(anyObject(), anyObject());
+            Mockito.doReturn(iteratorLcUnit).when(lifeCyclesClient).unitLifeCyclesByOperationIterator(anyObject(),
+                anyObject());
 
-        assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
-        action.reset();
-        action.addInIOParameters(in);
-        action.addOutIOParameters(out);
-        WorkerParameters parameters =
-            params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
-                .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
-        final ItemStatus response = handler
-            .execute(parameters, action);
-        assertEquals(StatusCode.KO, response.getGlobalStatus());
+            assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
+            action.reset();
+            action.addInIOParameters(in);
+            action.addOutIOParameters(out);
+            WorkerParameters parameters =
+                params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.KO.name())
+                    .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
+            final ItemStatus response = handler
+                .execute(parameters, action);
+            assertEquals(StatusCode.KO, response.getGlobalStatus());
+        }
     }
 
-    private static JsonNode getLogbookOperation()
+    private static JsonNode getLogbookOperationKO()
         throws IOException, InvalidParseOperationException {
         final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 1));
         final LogbookOperation lop =
-            new LogbookOperation(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_OPERATION)));
+            new LogbookOperation(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_OPERATION_KO)));
+        response.addResult(JsonHandler.getFromString(lop.toJson()));
+        return JsonHandler.toJsonNode(response);
+    }
+
+    private static JsonNode getLogbookOperationOK()
+        throws IOException, InvalidParseOperationException {
+        final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 1));
+        final LogbookOperation lop =
+            new LogbookOperation(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_OPERATION_OK)));
+        response.addResult(JsonHandler.getFromString(lop.toJson()));
+        return JsonHandler.toJsonNode(response);
+    }
+
+    private static JsonNode getLogbookOperationWarning()
+        throws IOException, InvalidParseOperationException {
+        final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 1));
+        final LogbookOperation lop =
+            new LogbookOperation(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_OPERATION_WARNING)));
         response.addResult(JsonHandler.getFromString(lop.toJson()));
         return JsonHandler.toJsonNode(response);
     }
@@ -367,7 +473,23 @@ public class TransferNotificationActionHandlerIteratorTest {
     private static JsonNode getLogbookLifecycleAU()
         throws FileNotFoundException, IOException, InvalidParseOperationException {
         return JsonHandler.getFromString(
-            new LogbookLifeCycleUnit(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_LFC_AU))).toJson());
+            new LogbookLifeCycleUnit(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_LFC_AU)))
+                .toJson());
+    }
+
+    private static JsonNode getLogbookLifecycleGOTWarning()
+        throws FileNotFoundException, IOException, InvalidParseOperationException {
+        return JsonHandler.getFromString(
+            new LogbookLifeCycleObjectGroup(
+                StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_LFC_GOT_WARNING)))
+                    .toJson());
+    }
+
+    private static JsonNode getLogbookLifecycleAUWarning()
+        throws FileNotFoundException, IOException, InvalidParseOperationException {
+        return JsonHandler.getFromString(
+            new LogbookLifeCycleUnit(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_LFC_AU_WARNING)))
+                .toJson());
     }
 
 }
