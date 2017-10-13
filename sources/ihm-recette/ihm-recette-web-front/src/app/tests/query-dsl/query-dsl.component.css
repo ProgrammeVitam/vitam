@@ -26,3 +26,10 @@
 .font-color-red {
   color: #cd0a0a;
 }
+
+/*Text areas*/
+.textarea-dsl {
+  width:90%;
+  resize: vertical;
+  font-size: 1em;
+}

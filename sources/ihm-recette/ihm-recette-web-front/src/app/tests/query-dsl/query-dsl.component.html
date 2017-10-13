@@ -7,7 +7,7 @@
   <div class="ui-g-4">
     <label for="identifier">Identifiant</label>
     <input id="identifier" class="fs-1-1em" size="35" pInputText [(ngModel)]="objectId"
-           placeholder="Identifiant de l'objet (facultatif)"/>
+           placeholder="Facultatif"/>
   </div>
 </div>
 
@@ -36,11 +36,11 @@
 
 <div class="ui-g-12">
   <div class="ui-g-6">
-    <textarea rows="30" style="width:90%; resize: vertical;" pInputTextarea [(ngModel)]="jsonRequest"></textarea>
+    <textarea class="textarea-dsl" rows="25" pInputTextarea [(ngModel)]="jsonRequest"></textarea>
   </div>
 
   <div class="ui-g-6">
-    <textarea rows="30" style="width:90%; resize: vertical;" pInputTextarea>{{requestResponse | json}}</textarea>
+    <textarea class="textarea-dsl" rows="25" pInputTextarea>{{requestResponse | json}}</textarea>
   </div>
 </div>
 

@@ -6,6 +6,7 @@ import { Contract } from '../../common/contract';
 import { BreadcrumbElement, BreadcrumbService } from '../../common/breadcrumb.service';
 import { ResourcesService } from '../../common/resources.service';
 import { PageComponent } from '../../common/page/page-component';
+import {TenantService} from "../../common/tenant.service";
 
 const defaultMethods = [
   {label: 'Rechercher', value: 'GET'},
@@ -61,12 +62,16 @@ export class QueryDSLComponent extends PageComponent {
   contractsList: Array<SelectItem>;
 
   constructor(public breadcrumbService: BreadcrumbService, private queryDslService: QueryDslService,
-              public titleService: Title, private resourcesService: ResourcesService) {
+              public titleService: Title, private resourcesService: ResourcesService,
+              public tenantService: TenantService) {
     super('Tests des requêtes DSL', breadcrumb, titleService, breadcrumbService)
   }
 
   pageOnInit() {
     this.getContracts();
+    this.tenantService.getState().subscribe(
+      () => this.getContracts()
+    );
   }
 
   getTenant() {
@@ -87,6 +92,7 @@ export class QueryDSLComponent extends PageComponent {
 
   checkJson() {
     if (this.queryDslService.checkJson(this.jsonRequest)) {
+      this.jsonRequest = JSON.stringify(JSON.parse(this.jsonRequest), null, 2);
       this.validRequest = {valid: 'valide', css: 'font-color-green'};
     } else {
       this.validRequest = {valid: 'non valide', css: 'font-color-red'};
@@ -103,7 +109,7 @@ export class QueryDSLComponent extends PageComponent {
         this.selectedMethod = 'PUT';
       }
     }
-    this.queryDslService.executeRequest(this.jsonRequest, this.getTenant(), this.selectedContract.Name,
+    this.queryDslService.executeRequest(this.jsonRequest, this.selectedContract.Name,
       this.selectedCollection, this.selectedMethod, this.selectedAction, this.objectId).subscribe(
       (response) => this.requestResponse = response.json(),
       (error) => this.requestResponse = error._body

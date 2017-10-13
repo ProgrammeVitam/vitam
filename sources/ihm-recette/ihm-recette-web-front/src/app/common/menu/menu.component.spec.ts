@@ -8,6 +8,7 @@ import {ResourcesService} from '../resources.service';
 import {Observable} from 'rxjs/Observable';
 
 import { AuthenticationService } from '../../authentication/authentication.service';
+import {TenantService} from "../tenant.service";
 
 const cookies = {};
 const ResourcesServiceStub = {
@@ -26,6 +27,9 @@ const AuthenticationServiceStub = {
   loggedOut: () => {},
   getState: () => Observable.of(true)
 };
+const TenantServiceStub = {
+  getState: () => Observable.of('0')
+};
 
 describe('MenuComponent', () => {
   let component: MenuComponent;
@@ -37,7 +41,8 @@ describe('MenuComponent', () => {
       imports: [ MenubarModule, ButtonModule, RouterTestingModule, GrowlModule, FormsModule ],
       providers: [
         { provide: ResourcesService, useValue: ResourcesServiceStub },
-        { provide: AuthenticationService, useValue: AuthenticationServiceStub }
+        { provide: AuthenticationService, useValue: AuthenticationServiceStub },
+        { provide: TenantService, useValue: TenantServiceStub }
       ]
     })
     .compileComponents();

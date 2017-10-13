@@ -32,6 +32,7 @@ import { LogbookService } from './traceability/logbook/logbook.service';
 import { PerfService } from './tests/perf/perf.service';
 import { AuthenticationComponent } from './authentication/authentication.component';
 import { AuthenticationService } from './authentication/authentication.service';
+import {TenantService} from "./common/tenant.service";
 
 const appRoutes: Routes = [
   {
@@ -105,7 +106,8 @@ const appRoutes: Routes = [
     FunctionalTestsService,
     LogbookService,
     PerfService,
-    AuthenticationService
+    AuthenticationService,
+    TenantService
   ],
   bootstrap: [AppComponent]
 })

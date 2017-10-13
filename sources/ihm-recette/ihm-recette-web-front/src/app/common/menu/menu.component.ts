@@ -3,6 +3,7 @@ import { Message } from 'primeng/primeng';
 import { ResourcesService } from '../resources.service';
 import { AuthenticationService } from '../../authentication/authentication.service';
 import {Router} from '@angular/router';
+import {TenantService} from "../tenant.service";
 
 
 @Component({
@@ -20,7 +21,7 @@ export class MenuComponent implements OnInit {
   items = [];
 
   constructor(private resourcesService: ResourcesService, private authenticationService: AuthenticationService,
-              private router: Router) {
+              private tenantService: TenantService, private router: Router) {
 
   }
 
@@ -73,6 +74,7 @@ export class MenuComponent implements OnInit {
     }
     this.tenantChosen = this.tenantId;
     this.resourcesService.setTenant(this.tenantId);
+    this.tenantService.changeState(this.tenantId);
 
     this.msgs = [];
     this.msgs.push({severity: 'info', summary: 'Modification du tenant', detail: `Nouveau tenant : ${this.tenantId}`});
