@@ -28,6 +28,7 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -99,6 +100,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
     private static final String ARCHIVE_UNIT_FINAL = "checkArchiveUnitSchemaActionPlugin/archive-unit_OK_final.json";
     private static final String ARCHIVE_UNIT_INVALID_DESC_LEVEL = "checkArchiveUnitSchemaActionPlugin/archive-unit_KO_DescriptionLevel.json";
     private static final String ARCHIVE_UNIT_STARTDATE_AFTER_ENDDATE = "checkArchiveUnitSchemaActionPlugin/archive-unit_KO_startDate.json";
+    private static final String CHECK_UNIT_SCHEMA_TASK_ID = "CHECK_UNIT_SCHEMA";
 
     private final InputStream archiveUnit;
     private final InputStream archiveUnitNumber;
@@ -220,7 +222,8 @@ public class CheckArchiveUnitSchemaActionPluginTest {
                 .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalid).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId(), "NOT_AU_JSON_VALID");
+        assertTrue(response.getItemsStatus().containsKey(CHECK_UNIT_SCHEMA_TASK_ID + "." + "EMPTY_REQUIRED_FIELD"));
+        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA.EMPTY_REQUIRED_FIELD").getItemId(), "CHECK_UNIT_SCHEMA.EMPTY_REQUIRED_FIELD");
     }
 
     @Test
@@ -230,6 +233,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
                 .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidChar).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
+        assertEquals(response.getGlobalOutcomeDetailSubcode(), "INVALID_UNIT");
         assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId(), "UNIT_SANITIZE");
     }
 
@@ -240,7 +244,8 @@ public class CheckArchiveUnitSchemaActionPluginTest {
                 .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidXml).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId(), "NOT_JSON_FILE");
+        assertTrue(response.getItemsStatus().containsKey(CHECK_UNIT_SCHEMA_TASK_ID + "." + "INVALID_UNIT"));
+        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA.INVALID_UNIT").getItemId(), "CHECK_UNIT_SCHEMA.INVALID_UNIT");
     }
 
 
@@ -252,7 +257,8 @@ public class CheckArchiveUnitSchemaActionPluginTest {
                 .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidDate).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId(), "NOT_AU_JSON_VALID");
+        assertTrue(response.getItemsStatus().containsKey(CHECK_UNIT_SCHEMA_TASK_ID + "." + "INVALID_UNIT"));
+        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA.INVALID_UNIT").getItemId(), "CHECK_UNIT_SCHEMA.INVALID_UNIT");
     }
 
 
@@ -263,7 +269,8 @@ public class CheckArchiveUnitSchemaActionPluginTest {
                 .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidContent).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId(), "NOT_AU_JSON_VALID");
+        assertTrue(response.getItemsStatus().containsKey(CHECK_UNIT_SCHEMA_TASK_ID + "." + "EMPTY_REQUIRED_FIELD"));
+        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA.EMPTY_REQUIRED_FIELD").getItemId(), "CHECK_UNIT_SCHEMA.EMPTY_REQUIRED_FIELD");
     }
 
     @Test
@@ -273,7 +280,8 @@ public class CheckArchiveUnitSchemaActionPluginTest {
                 .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidDescLevel).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId(), "NOT_AU_JSON_VALID");
+        assertTrue(response.getItemsStatus().containsKey(CHECK_UNIT_SCHEMA_TASK_ID + "." + "INVALID_UNIT"));
+        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA.INVALID_UNIT").getItemId(), "CHECK_UNIT_SCHEMA.INVALID_UNIT");
     }
 
     @Test
@@ -283,7 +291,8 @@ public class CheckArchiveUnitSchemaActionPluginTest {
             .thenReturn(Response.status(Status.OK).entity(archiveUnitStartDateAfterEndDate).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA").getItemId(), "NOT_AU_JSON_VALID");
+        assertTrue(response.getItemsStatus().containsKey(CHECK_UNIT_SCHEMA_TASK_ID + "." + "INVALID_UNIT"));
+        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA.INVALID_UNIT").getItemId(), "CHECK_UNIT_SCHEMA.INVALID_UNIT");
     }
 
 }

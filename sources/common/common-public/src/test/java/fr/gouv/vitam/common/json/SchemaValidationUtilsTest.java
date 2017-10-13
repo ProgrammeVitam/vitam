@@ -108,7 +108,7 @@ public class SchemaValidationUtilsTest {
         final SchemaValidationUtils schemaValidation = new SchemaValidationUtils();
         SchemaValidationStatus status = schemaValidation
             .validateUnit(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_INVALID_JSON_FILE)));
-        assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.NOT_AU_JSON_VALID));
+        assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.EMPTY_REQUIRED_FIELD));
     }
     
     @Test

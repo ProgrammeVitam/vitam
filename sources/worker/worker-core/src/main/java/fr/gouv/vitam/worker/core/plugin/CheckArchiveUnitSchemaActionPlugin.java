@@ -95,18 +95,24 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
                     return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(CHECK_UNIT_SCHEMA_TASK_ID,
                         itemStatus);
                 case NOT_AU_JSON_VALID:
-                    itemStatus.setItemId(NOT_AU_JSON_VALID);
+                    itemStatus.setItemId(CHECK_UNIT_SCHEMA_TASK_ID + "." + CheckUnitSchemaStatus.INVALID_UNIT.toString());
                     itemStatus.increment(StatusCode.KO);
                     itemStatus.setEvDetailData(schemaValidationStatus.getValidationMessage());
-                    return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(CHECK_UNIT_SCHEMA_TASK_ID,
+                    return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(itemStatus.getItemId(),
                         itemStatus);
                 case NOT_JSON_FILE:
-                    itemStatus.setItemId(NOT_JSON_FILE);
+                    itemStatus.setItemId(CHECK_UNIT_SCHEMA_TASK_ID + "." + CheckUnitSchemaStatus.INVALID_UNIT.toString());
                     itemStatus.increment(StatusCode.KO);
                     final ObjectNode object = JsonHandler.createObjectNode();
                     object.put( CHECK_UNIT_SCHEMA_TASK_ID, schemaValidationStatus.getValidationMessage() );
                     itemStatus.setEvDetailData( JsonHandler.unprettyPrint( object ) );
-                    return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(CHECK_UNIT_SCHEMA_TASK_ID,
+                    return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(itemStatus.getItemId(),
+                        itemStatus);
+                case EMPTY_REQUIRED_FIELD:
+                    itemStatus.setItemId(CHECK_UNIT_SCHEMA_TASK_ID + "." + CheckUnitSchemaStatus.EMPTY_REQUIRED_FIELD.toString());
+                    itemStatus.increment(StatusCode.KO);
+                    itemStatus.setEvDetailData(schemaValidationStatus.getValidationMessage());
+                    return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(itemStatus.getItemId(),
                         itemStatus);
             }
         } catch (final ArchiveUnitContainSpecialCharactersException e) {
@@ -121,7 +127,7 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }
-        return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(CHECK_UNIT_SCHEMA_TASK_ID, itemStatus);
+        return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(itemStatus.getItemId(), itemStatus);
     }
 
     @Override
@@ -146,6 +152,7 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
             try {
                 SanityChecker.checkJsonAll(archiveUnit);
             } catch (InvalidParseOperationException e) {
+                itemStatus.setGlobalOutcomeDetailSubcode(CheckUnitSchemaStatus.INVALID_UNIT.toString());
                 final String err = "Sanity Checker failed for Archive Unit: "+e.getMessage();
                 LOGGER.error(err);
                 throw new ArchiveUnitContainSpecialCharactersException(err);
@@ -165,5 +172,17 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
         }
     }
 
-
+    /**
+     * Check unit schema status values
+     */
+    public enum CheckUnitSchemaStatus {
+        /**
+         * Improper unit
+         */
+        INVALID_UNIT, 
+        /**
+         * Required field empty
+         */
+        EMPTY_REQUIRED_FIELD
+    }
 }
