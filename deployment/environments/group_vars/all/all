@@ -33,12 +33,12 @@ consul_component: consul
 consul_folder_conf: "{{vitam_folder_root}}/conf/{{consul_component}}"
 
 
-     ### clamav ###	
+     ### clamav ###
 
 installation_clamav: "true"
 
 
-     ### Admin context name ### 
+     ### Admin context name ###
 
 admin_context_name: "admin-context"
 # Indicate certificates relative paths under {{inventory_dir}}/certs/client-external/clients
@@ -62,6 +62,7 @@ mongoc_folder_database: "{{vitam_folder_root}}/data/mongoc/db"
 
 vitam_logstash_host: "{{ groups['hosts-logstash'][0] }}"
 vitam_logstash_port: 10514
+vitam_logstash_rest_port: 20514
 
 
      ### kibana ###
