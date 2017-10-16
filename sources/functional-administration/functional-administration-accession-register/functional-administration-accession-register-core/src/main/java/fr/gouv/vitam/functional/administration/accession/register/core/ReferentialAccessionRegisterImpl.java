@@ -108,7 +108,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
             mongoAccess.insertDocument(JsonHandler.toJsonNode(accessionRegister),
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
         } catch (ReferentialException e) {
-            if (! DbRequestSingle.checkInsertOrUpdate(e)) {
+            if (!DbRequestSingle.checkInsertOrUpdate(e)) {
                 throw e;
             }
         } catch (final InvalidParseOperationException e) {
@@ -136,7 +136,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
 
     private Map<String, Object> createMaptoUpdate(AccessionRegisterDetail registerDetail) {
         final Map<String, Object> updateMap = new HashMap<>();
-        
+
         updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.INGESTED,
             registerDetail.getTotalObjectGroups().getIngested());
         updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.DELETED,
@@ -149,7 +149,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
             registerDetail.getTotalObjectGroups().getAttached());
         updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.SYMBOLIC_REMAINED,
             registerDetail.getTotalObjectGroups().getSymbolicRemained());
-        
+
         updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.INGESTED,
             registerDetail.getTotalObjects().getIngested());
         updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.DELETED,
@@ -162,7 +162,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
             registerDetail.getTotalObjects().getAttached());
         updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.SYMBOLIC_REMAINED,
             registerDetail.getTotalObjects().getSymbolicRemained());
-        
+
         updateMap.put(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.INGESTED,
             registerDetail.getTotalUnits().getIngested());
         updateMap.put(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.DELETED,
@@ -175,7 +175,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
             registerDetail.getTotalUnits().getAttached());
         updateMap.put(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.SYMBOLIC_REMAINED,
             registerDetail.getTotalUnits().getSymbolicRemained());
-        
+
         updateMap.put(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.INGESTED,
             registerDetail.getTotalObjectSize().getIngested());
         updateMap.put(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.DELETED,
@@ -209,7 +209,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
             final RequestResponseOK<AccessionRegisterSummary> list =
                 result.getRequestResponseOK(select, AccessionRegisterSummary.class);
             if (list.isEmpty()) {
-                throw new ReferentialNotFoundException("Register Sumarry not found");
+                throw new ReferentialNotFoundException("Register Summary not found");
             }
             return list;
         } catch (final ReferentialException e) {

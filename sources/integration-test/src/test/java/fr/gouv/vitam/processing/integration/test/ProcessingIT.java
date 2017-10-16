@@ -284,6 +284,8 @@ public class ProcessingIT {
     private static String SIP_FILE_1791_CA1 = "integration-processing/SIP_FILE_1791_CA1.zip";
     private static String SIP_FILE_1791_CA2 = "integration-processing/SIP_FILE_1791_CA2.zip";
     private static String OK_SIP_2_GO = "integration-processing/OK_SIP_2_GO.zip";
+    
+    private static String OK_SIP_SIGNATURE = "integration-processing/Signature_OK.zip";
 
     private static String SIP_ARBRE_3062 = "integration-processing/3062_arbre.zip";
 
@@ -628,6 +630,13 @@ public class ProcessingIT {
             JsonNode agIdExt = JsonHandler.getFromString(logbookResult.get("$results").get(0).get("agIdExt").asText());
             assertEquals(agIdExt.get("originatingAgency").asText(), "producteur1");
 
+            // lets check the accession register  
+            Select query = new Select();
+            query.setLimitFilter(0, 1);
+            RequestResponse resp = functionalClient.getAccessionRegister(query.getFinalSelect());
+            assertThat(resp).isInstanceOf(RequestResponseOK.class);
+            assertThat(((RequestResponseOK) resp).getHits().getTotal()).isEqualTo(2);
+            assertThat(((RequestResponseOK) resp).getHits().getSize()).isEqualTo(1);
         } catch (final Exception e) {
             LOGGER.error(e);
             fail("should not raized an exception" + e);
@@ -2802,8 +2811,58 @@ public class ProcessingIT {
             fail("should not raized an exception");
         }
     }
+    
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowOkSIPSignature() throws Exception {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            tryImportFile();
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+            final String containerName = objectGuid.getId();
+            createLogbookOperation(operationGuid, objectGuid);
+
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(OK_SIP_SIGNATURE);
+            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            workspaceClient.createContainer(containerName);
+            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
+
+            // call processing
+            RestAssured.port = PORT_SERVICE_PROCESSING;
+            RestAssured.basePath = PROCESSING_PATH;
+
+            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
+
+            final RequestResponse<JsonNode> ret =
+                processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+                    Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+
+            assertNotNull(ret);
+            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+            wait(containerName);
+            ProcessWorkflow processWorkflow =
+                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.OK, processWorkflow.getStatus());
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+    }
 
 
+    
+    
 
     @RunWithCustomExecutor
     @Test
