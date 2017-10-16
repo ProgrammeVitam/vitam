@@ -114,6 +114,7 @@ import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleUnitModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCyclesClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -173,7 +174,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String SUBTASK_ATTACHEMENT = "CHECK_MANIFEST_WRONG_ATTACHMENT";
     private static final String LFC_INITIAL_CREATION_EVENT_TYPE = "LFC_CREATION";
     private static final String LFC_CREATION_SUB_TASK_ID = "LFC_CREATION";
-    private static final String LFC_CREATION_SUB_TASK_FULL_ID = HANDLER_ID + "." + LFC_CREATION_SUB_TASK_ID;
     private static final String ATTACHMENT_IDS = "_up";
     private static final String OBJECT_GROUP_ID = "_og";
     private static final String TRANSFER_AGENCY = "TransferringAgency";
@@ -1260,13 +1260,22 @@ public class ExtractSedaActionHandler extends ActionHandler {
             }
 
             final LogbookLifeCycleParameters llcp = guidToLifeCycleParameters.get(unitGuid);
-            llcp.setBeginningLog(HANDLER_ID, null, null);
-            handlerIO.getHelper().updateDelegate(llcp);
+            String eventId = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString();
+            LogbookLifeCycleParameters subLlcp = null;
             // TODO : add else case
             if (!existingUnitGuids.contains(unitGuid)) {
-                llcp.setFinalStatus(LFC_CREATION_SUB_TASK_FULL_ID, null, StatusCode.OK, null);
-                handlerIO.getHelper().updateDelegate(llcp);
+                subLlcp = LogbookLifeCyclesClientHelper.copy(llcp);
+                // generate new eventId for task
+                subLlcp.putParameterValue(LogbookParameterName.eventIdentifier, 
+                        GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString());
+                // set parentEventId
+                subLlcp.putParameterValue(LogbookParameterName.parentEventIdentifier, eventId);
+                // set status for sub task
+                subLlcp.setFinalStatus(HANDLER_ID, LFC_CREATION_SUB_TASK_ID, StatusCode.OK, null);
             }
+            // generate new eventId for task
+            llcp.putParameterValue(LogbookParameterName.eventIdentifier, eventId);
+            // set status for task
             llcp.setFinalStatus(HANDLER_ID, null, StatusCode.OK, null);
 
             List<String> parentAttachments = existAttachmentUnitAsParentOnTree(unitId);
@@ -1290,9 +1299,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 LOGGER.error("unable to generate evDetData, incomplete journal generation", e);
             }
 
+            // update delegate
             handlerIO.getHelper().updateDelegate(llcp);
-
-
+            if (!existingUnitGuids.contains(unitGuid)) {
+                handlerIO.getHelper().updateDelegate(subLlcp);
+            }
+            
             // FIXME: use bulk
             // logbookLifeCycleClient.bulkUpdateUnit(containerId, handlerIO.getHelper().removeUpdateDelegate(unitGuid));
         }
@@ -1303,7 +1315,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         final LogbookLifeCycleUnitParameters logbookLifecycleUnitParameters =
             (LogbookLifeCycleUnitParameters) initLogbookLifeCycleParameters(unitGuid, true, false);
 
-        logbookLifecycleUnitParameters.setBeginningLog(LFC_INITIAL_CREATION_EVENT_TYPE, null, null);
+        logbookLifecycleUnitParameters.setFinalStatus(LFC_INITIAL_CREATION_EVENT_TYPE, null, StatusCode.OK, null);
 
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, containerId);
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifier,
@@ -1785,7 +1797,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
             (LogbookLifeCycleObjectGroupParameters) initLogbookLifeCycleParameters(
                 groupGuid, false, true);
-        logbookLifecycleObjectGroupParameters.setBeginningLog(LFC_INITIAL_CREATION_EVENT_TYPE, null, null);
+        logbookLifecycleObjectGroupParameters.setFinalStatus(LFC_INITIAL_CREATION_EVENT_TYPE, null, StatusCode.OK, null);
 
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
             containerId);
@@ -1987,23 +1999,18 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 createObjectGroupLifeCycle(objectGroupGuid, containerId, typeProcess);
 
                 // Update Object Group lifeCycle creation event
-                handlerIO.getHelper()
-                    .updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
-                        .get(objectGroupGuid).setBeginningLog(HANDLER_ID, null, null));
-
-                // Add creation sub task event
-                handlerIO.getHelper()
-                    .updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
-                        .get(objectGroupGuid).setFinalStatus(LFC_CREATION_SUB_TASK_FULL_ID,
-                            null,
-                            StatusCode.OK,
-                            null));
-
-                handlerIO.getHelper()
-                    .updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
-                        .get(objectGroupGuid).setFinalStatus(HANDLER_ID, null, StatusCode.OK,
-                            null));
-
+                // Set new eventId for task and set status then update delegate
+                String eventId = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString();
+                handlerIO.getHelper().updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
+                        .get(objectGroupGuid).setFinalStatus(HANDLER_ID, null, StatusCode.OK, 
+                                    null).putParameterValue(LogbookParameterName.eventIdentifier, eventId));
+                // Add creation sub task event (add new eventId and set status for subtask before update delegate)
+                handlerIO.getHelper().updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
+                        .get(objectGroupGuid).setFinalStatus(HANDLER_ID, LFC_CREATION_SUB_TASK_ID, StatusCode.OK,
+                                null).putParameterValue(LogbookParameterName.eventIdentifier,
+                                GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString())
+                        .putParameterValue(LogbookParameterName.parentEventIdentifier, eventId));
+                
                 if (uuids.size() == BATCH_SIZE) {
                     bulkLifeCycleObjectGroup(containerId, logbookLifeCycleClient, uuids);
                     uuids.clear();
@@ -2225,7 +2232,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         final LogbookLifeCycleParameters lfcParameters =
             (LogbookLifeCycleParameters) initLogbookLifeCycleParameters(guid, isArchive, isObjectGroup);
-        lfcParameters.setBeginningLog(LFC_INITIAL_CREATION_EVENT_TYPE, null, null);
+        lfcParameters.setFinalStatus(LFC_INITIAL_CREATION_EVENT_TYPE, null, StatusCode.KO, null);
         lfcParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, containerId);
         lfcParameters.putParameterValue(LogbookParameterName.eventIdentifier,
             GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString());

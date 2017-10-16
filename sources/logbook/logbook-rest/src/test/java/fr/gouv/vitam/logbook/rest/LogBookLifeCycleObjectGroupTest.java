@@ -184,7 +184,7 @@ public class LogBookLifeCycleObjectGroupTest {
 
         logbookLifeCyclesObjectGroupParametersStart =
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
-        logbookLifeCyclesObjectGroupParametersStart.setStatus(StatusCode.STARTED);
+        logbookLifeCyclesObjectGroupParametersStart.setStatus(StatusCode.OK);
         logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventIdentifier,
             eip.toString());
         logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventIdentifierProcess,
@@ -211,7 +211,7 @@ public class LogBookLifeCycleObjectGroupTest {
         final GUID ioL2 = GUIDFactory.newUnitGUID(0);
         logbookLifeCyclesObjectGroupParametersUpdate =
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
-        logbookLifeCyclesObjectGroupParametersUpdate.setStatus(StatusCode.STARTED);
+        logbookLifeCyclesObjectGroupParametersUpdate.setStatus(StatusCode.OK);
         logbookLifeCyclesObjectGroupParametersUpdate.putParameterValue(LogbookParameterName.eventIdentifier,
             eip2.toString());
         logbookLifeCyclesObjectGroupParametersUpdate.putParameterValue(LogbookParameterName.eventIdentifierProcess,

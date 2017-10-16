@@ -266,9 +266,6 @@ public class WorkerImpl implements Worker {
                                     createStartLogbookLfc(step, handlerName, workParams);
                                 pluginResponse = actionPlugin.execute(workParams, handlerIO);
                                 if (!StatusCode.ALREADY_EXECUTED.equals(pluginResponse.getGlobalStatus())) {
-                                    // LFC STARTED
-                                    logbookLfcClient.update(lfcParam);
-                                    // LFC AFTER
                                     writeLogBookLfcFromResponse(handlerName, logbookLfcClient, pluginResponse,
                                         lfcParam);
                                 }
@@ -390,24 +387,30 @@ public class WorkerImpl implements Worker {
             finalLogbookLfcParam.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 outcomeDetailMessage);
         }
-        logbookParamList.add(finalLogbookLfcParam);
         for (final Entry<String, ItemStatus> entry : actionResponse.getItemsStatus().entrySet()) {
             for (final Entry<String, ItemStatus> subTaskEntry : entry.getValue().getSubTaskStatus().entrySet()) {
                 LogbookLifeCycleParameters subLogbookLfcParam = LogbookLifeCyclesClientHelper.copy(logbookParam);
+                // set a new eventId for every subTask
+                subLogbookLfcParam.putParameterValue(LogbookParameterName.eventIdentifier, 
+                        GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).getId());
+                // set parent eventId
+                subLogbookLfcParam.putParameterValue(LogbookParameterName.parentEventIdentifier, 
+                        logbookParam.getParameterValue(LogbookParameterName.eventIdentifier));
+                // set status
                 ItemStatus subItemStatus = subTaskEntry.getValue();
                 subLogbookLfcParam.setFinalStatus(handlerName,
                     entry.getKey(), subItemStatus.getGlobalStatus(), subItemStatus.getMessage());
+                // set evDetailData
                 if (!subItemStatus.getEvDetailData().isEmpty()) {
                     subLogbookLfcParam.putParameterValue(LogbookParameterName.eventDetailData,
                         subItemStatus.getEvDetailData());
                 }
+                // add to list
                 logbookParamList.add(subLogbookLfcParam);
             }
             entry.getValue().getSubTaskStatus().clear();
         }
-        // FIXME : If one step has more than one action that is executed by a plugin, the output of the LFC will be
-        // incorrect
-        // That is because at the first plugin execution end we write the end event for all the setp
+        logbookParamList.add(finalLogbookLfcParam);
         for (int i = logbookParamList.size() - 1; i >= 0; i--) {
             logbookLfcClient.update(logbookParamList.get(i));
         }

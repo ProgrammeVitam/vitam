@@ -126,15 +126,21 @@ abstract class AbstractParameters implements LogbookParameters {
         if (this instanceof LogbookOperationParameters) {
             setFinalStatusOp(handlerId, subTaskId, StatusCode.STARTED, additionnalMessage, params);
         } else {
-            setFinalStatusLfc(handlerId, subTaskId, StatusCode.STARTED, additionnalMessage, params);
+            // should call setFinalStatus instead, as STARTED event is no longer used for LFC  
+            setFinalStatusLfc(handlerId, subTaskId, StatusCode.OK, additionnalMessage, params);
         }
         return this;
     }
 
     private LogbookParameters setFinalStatusLfc(String handlerId, String subTaskId,
         StatusCode code, String additionnalMessage, String... params) {
-        putParameterValue(LogbookParameterName.eventType,
-            VitamLogbookMessages.getEventTypeLfc(handlerId));
+        if(subTaskId != null){
+            putParameterValue(LogbookParameterName.eventType,
+                    VitamLogbookMessages.getSubTaskEventTypeLfc(handlerId, subTaskId));
+        } else {
+            putParameterValue(LogbookParameterName.eventType,
+                    VitamLogbookMessages.getEventTypeLfc(handlerId));
+        }
         putParameterValue(LogbookParameterName.outcome, code.name());
         if (subTaskId != null) {
             putParameterValue(LogbookParameterName.outcomeDetail,
@@ -169,6 +175,7 @@ abstract class AbstractParameters implements LogbookParameters {
 
     private LogbookParameters setFinalStatusOp(String handlerId, String subTaskId,
         StatusCode code, String additionnalMessage, String... params) {
+        // TODO eventType for subTasks should be different that the main task's one (already done in setFinalStatusLfc)
         putParameterValue(LogbookParameterName.eventType, handlerId);
         putParameterValue(LogbookParameterName.outcome, code.name());
         if (subTaskId != null) {

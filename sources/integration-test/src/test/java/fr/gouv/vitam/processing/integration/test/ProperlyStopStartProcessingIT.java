@@ -164,11 +164,14 @@ public class ProperlyStopStartProcessingIT {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        // set bulk size to 1 for tests
+        VitamConfiguration.setWorkerBulkSize(1);
+        
         VitamConfiguration.getConfiguration()
             .setData(PropertiesUtils.getResourcePath("integration-processing/").toString());
         CONFIG_WORKSPACE_PATH = PropertiesUtils.getResourcePath("integration-processing/workspace.conf").toString();
         CONFIG_PROCESSING_PATH = PropertiesUtils.getResourcePath("integration-processing/processing.conf").toString();
-
+        
         // launch workspace
         SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_WORKSPACE));
@@ -190,6 +193,8 @@ public class ProperlyStopStartProcessingIT {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+        VitamConfiguration.setWorkerBulkSize(10);
+        
         WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.deleteContainer("process", true);
 

@@ -463,6 +463,12 @@ Détail des champs du JSON stocké en base
     * Cardinalité : 1-1 
     *Ce champ existe pour les structures incluantes et incluses*
 
+**"evParentId" (event Parent Identifier):** identifiant de l'événement parent.
+    * Il est constitué d'une chaîne de 36 caractères correspondant à un GUID. 
+    * Il identifie l'événement parent.
+
+    *Ce champ existe pour les structures incluantes et incluses*
+
 **"evType" (event Type):** nom de l'événement.
 
     * Il s'agit d'une chaîne de caractères.
@@ -621,6 +627,7 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
     "events": [
         {
             "evId": "aedqaaaaacaam7mxaap44akyf7hurgaaaabq",
+            "evParentId": null,
             "evType": "CHECK_CONSISTENCY",
             "evDateTime": "2016-11-04T14:47:43.515",
             "evIdProc": "aedqaaaaacaam7mxaau56akyf7hr45qaaaaq",
@@ -634,6 +641,7 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
         },
         {
             "evId": "\"aeaaaaaaaaaam7mxaap44akyf7hurgaaaaba\"",
+            "evParentId": null,
             "evType": "CHECK_DIGEST",
             "evDateTime": "2016-11-04T14:47:45.132",
             "evIdProc": "aedqaaaaacaam7mxaau56akyf7hr45qaaaaq",
@@ -669,12 +677,19 @@ Détail des champs du JSON stocké en base
     * Ce champ existe uniquement pour la structure incluante.*
 
 **"evId" (event Identifier):** identifiant de l'événement.
-
     * Il est constitué d'une chaîne de 36 caractères correspondant à un GUID.
     * Il identifie l'événement de manière unique dans la base.
     * Cardinalité : 1-1 
     * Ce champ existe pour les structures incluantes et incluses*
 
+    *Ce champ existe pour les structures incluantes et incluses*
+
+**"evParentId" (event Parent Identifier):** identifiant de l'événement parent.
+    * Il est constitué d'une chaîne de 36 caractères correspondant à un GUID. 
+    * Il identifie l'événement parent.
+
+    *Ce champ existe pour les structures incluantes et incluses*
+    
 **"evType"** (event Type): nom de l'événement.
 
     * Il s'agit d'une chaîne de caractères.

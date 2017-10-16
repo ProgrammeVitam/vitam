@@ -61,57 +61,57 @@ public class LogbookLifeCyclesImplTest {
     final static GUID ioL = GUIDFactory.newUnitGUID(0);
 
     private static final LogbookLifeCycleUnitParameters getCompleteLifeCycleUnitParameters() {
-        LogbookLifeCycleUnitParameters logbookLifeCyclesUnitParametersStart;
+        LogbookLifeCycleUnitParameters logbookLifeCyclesUnitParameters;
 
 
-        logbookLifeCyclesUnitParametersStart = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
-        logbookLifeCyclesUnitParametersStart.setStatus(StatusCode.STARTED);
-        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventIdentifier,
+        logbookLifeCyclesUnitParameters = LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
+        logbookLifeCyclesUnitParameters.setStatus(StatusCode.OK);
+        logbookLifeCyclesUnitParameters.putParameterValue(LogbookParameterName.eventIdentifier,
             eip.toString());
-        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventIdentifierProcess,
+        logbookLifeCyclesUnitParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
             iop.toString());
-        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.objectIdentifier,
+        logbookLifeCyclesUnitParameters.putParameterValue(LogbookParameterName.objectIdentifier,
             ioL.toString());
 
-        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventType, "event");
-        logbookLifeCyclesUnitParametersStart.setTypeProcess(LogbookTypeProcess.INGEST);
-        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.outcomeDetail, "outcomeDetail");
-        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+        logbookLifeCyclesUnitParameters.putParameterValue(LogbookParameterName.eventType, "event");
+        logbookLifeCyclesUnitParameters.setTypeProcess(LogbookTypeProcess.INGEST);
+        logbookLifeCyclesUnitParameters.putParameterValue(LogbookParameterName.outcomeDetail, "outcomeDetail");
+        logbookLifeCyclesUnitParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
             "outcomeDetailMessage");
-        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.eventDateTime,
+        logbookLifeCyclesUnitParameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
-        logbookLifeCyclesUnitParametersStart.putParameterValue(LogbookParameterName.agentIdentifier,
+        logbookLifeCyclesUnitParameters.putParameterValue(LogbookParameterName.agentIdentifier,
             ServerIdentity.getInstance().getJsonIdentity());
-        return logbookLifeCyclesUnitParametersStart;
+        return logbookLifeCyclesUnitParameters;
 
     }
 
     private static final LogbookLifeCycleObjectGroupParameters getCompleteLifeCycleObjectGroupParameters() {
 
-        LogbookLifeCycleObjectGroupParameters logbookLifeCycleObjectGroupParametersStart;
+        LogbookLifeCycleObjectGroupParameters logbookLifeCycleObjectGroupParameters;
 
 
-        logbookLifeCycleObjectGroupParametersStart =
+        logbookLifeCycleObjectGroupParameters =
             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
-        logbookLifeCycleObjectGroupParametersStart.setStatus(StatusCode.STARTED);
-        logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventIdentifier,
+        logbookLifeCycleObjectGroupParameters.setStatus(StatusCode.OK);
+        logbookLifeCycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifier,
             eip.toString());
-        logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventIdentifierProcess,
+        logbookLifeCycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
             iop.toString());// op
-        logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.objectIdentifier,
+        logbookLifeCycleObjectGroupParameters.putParameterValue(LogbookParameterName.objectIdentifier,
             ioL.toString());// lcid
 
-        logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventType, "event");
-        logbookLifeCycleObjectGroupParametersStart.setTypeProcess(LogbookTypeProcess.INGEST);
-        logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.outcomeDetail,
+        logbookLifeCycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventType, "event");
+        logbookLifeCycleObjectGroupParameters.setTypeProcess(LogbookTypeProcess.INGEST);
+        logbookLifeCycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetail,
             "outcomeDetail");
-        logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+        logbookLifeCycleObjectGroupParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
             "outcomeDetailMessage");
-        logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventDateTime,
+        logbookLifeCycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
-        logbookLifeCycleObjectGroupParametersStart.putParameterValue(LogbookParameterName.agentIdentifier,
+        logbookLifeCycleObjectGroupParameters.putParameterValue(LogbookParameterName.agentIdentifier,
             ServerIdentity.getInstance().getJsonIdentity());
-        return logbookLifeCycleObjectGroupParametersStart;
+        return logbookLifeCycleObjectGroupParameters;
 
     }
 

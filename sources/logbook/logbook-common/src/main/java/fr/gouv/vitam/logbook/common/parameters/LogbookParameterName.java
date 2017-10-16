@@ -39,6 +39,14 @@ public enum LogbookParameterName {
      * It is the identifier of one action/step within one process (workflow).
      */
     eventIdentifier,
+
+    /**
+     * Parent event identifier: created for every child event to link it to the parent event/opration/task
+     * <br>
+     * It is the identifier of the parent event if exists
+     */
+    parentEventIdentifier,
+    
     /**
      * Event type: should use one global Enum ActionType <br>
      * <br>
