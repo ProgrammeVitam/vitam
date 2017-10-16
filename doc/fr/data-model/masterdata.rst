@@ -332,7 +332,8 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
       "ArchiveProfiles": [
           "ArchiveProfile8"
       ],
-      "FilingParentId": "aeaqaaaaaagbcaacaax56ak35rpo6zqaaaaq",
+      "LinkParentId":
+        "aeaqaaaaaagbcaacaax56ak35rpo6zqaaaaq",
       "_v": 0
     }
 
@@ -357,7 +358,7 @@ Les contrats d'entrée sont importés dans la solution logicielle Vitam sous la 
             "ArchiveProfiles": [
               "ArchiveProfile8"
             ],
-            "FilingParentId" : "aeaqaaaaaahkwxukabcg2ak4u2qq7eaaaaaq"
+            "LinkParentId" : "aeaqaaaaaahkwxukabcg2ak4u2qq7eaaaaaq"
         }
     ]
 
@@ -423,13 +424,12 @@ Détail des champs
   * Tableau de chaînes de caractères correspondant à la valeur du champ Identifier de la collection Profile.
   * Cardinalité : 0-1
 
-**"FilingParentId":** point de rattachement automatique des SIP en application de ce contrat correspondant à l'id d’une unité archivistique dans le plan de classement
+**"LinkParentId":** point de rattachement automatique des SIP en application de ce contrat correspondant à l'id d’une unité archivistique dans le plan de classement
   
   * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID dans le champ _id de la collection Unit.
   * Cardinalité : 0-1
 
-
-**L'unité archivistique concernée doit être de type FILING_UNIT afin que l'opération aboutisse**
+**L'unité archivistique concernée doit être de type FILING_UNIT ou HOLDING afin que l'opération aboutisse**
 
 **"_v": Champs obligatoire peuplé par Vitam** version de l'objet décrit
 
