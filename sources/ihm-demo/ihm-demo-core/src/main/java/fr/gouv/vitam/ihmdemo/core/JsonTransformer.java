@@ -86,14 +86,16 @@ public final class JsonTransformer {
         final ObjectNode resultNode = JsonHandler.createObjectNode();
         long nbObjects = 0;
         final JsonNode result = searchResult.get("$results").get(0);
-        final JsonNode qualifiers = result.get("#qualifiers");
-        final List<JsonNode> versions = qualifiers.findValues("versions");
-        final Map<String, Integer> usages = new HashMap<>();
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
-        for (final JsonNode version : versions) {
-            for (final JsonNode object : version) {
-                arrayNode.add(getDataObject(usages, object));
-                nbObjects++;
+        if (result != null) {
+            final JsonNode qualifiers = result.get("#qualifiers");
+            final List<JsonNode> versions = qualifiers.findValues("versions");
+            final Map<String, Integer> usages = new HashMap<>();
+            for (final JsonNode version : versions) {
+                for (final JsonNode object : version) {
+                    arrayNode.add(getDataObject(usages, object));
+                    nbObjects++;
+                }
             }
         }
         resultNode.put("nbObjects", nbObjects);
