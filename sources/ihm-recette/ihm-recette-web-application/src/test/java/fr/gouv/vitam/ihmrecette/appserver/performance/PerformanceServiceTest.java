@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -64,6 +65,9 @@ public class PerformanceServiceTest {
 
     @Mock
     private IngestExternalClientFactory ingestClientFactory;
+    
+    @Mock
+    private AdminExternalClientFactory adminClientFactory;
 
     @Test
     public void should_list_file_in_sip_directory() throws IOException {
@@ -71,7 +75,7 @@ public class PerformanceServiceTest {
         Path sipDirectory = generateThreeZipFileSipWithSubDirectory();
         Path reportDirectory = temporaryFolder.newFolder().toPath();
         PerformanceService performanceService =
-            new PerformanceService(ingestClientFactory, sipDirectory, reportDirectory);
+            new PerformanceService(ingestClientFactory, adminClientFactory, sipDirectory, reportDirectory);
 
         // When
         List<Path> files = performanceService.listSipDirectory();
@@ -84,7 +88,7 @@ public class PerformanceServiceTest {
     public void should_list_file_in_report_directory() throws IOException {
         // Given
         Path reportDirectory = generateFileReport();
-        PerformanceService performanceService = new PerformanceService(ingestClientFactory, null, reportDirectory);
+        PerformanceService performanceService = new PerformanceService(ingestClientFactory, adminClientFactory, null, reportDirectory);
 
         // When
         List<Path> files = performanceService.listReportDirectory();
@@ -99,7 +103,7 @@ public class PerformanceServiceTest {
         Path reportDirectory = temporaryFolder.newFolder().toPath();
         String reportName = "1.txt";
         Files.write(reportDirectory.resolve(reportName), "test".getBytes());
-        PerformanceService performanceService = new PerformanceService(ingestClientFactory, null, reportDirectory);
+        PerformanceService performanceService = new PerformanceService(ingestClientFactory, adminClientFactory, null, reportDirectory);
 
         // When
         InputStream inputStream = performanceService.readReport(reportName);
@@ -118,7 +122,7 @@ public class PerformanceServiceTest {
         Path file = sipDirectory.resolve(fileName);
         Files.write(file, "test".getBytes());
         PerformanceService performanceService =
-            new PerformanceService(ingestClientFactory, sipDirectory, reportDirectory);
+            new PerformanceService(ingestClientFactory, adminClientFactory, sipDirectory, reportDirectory);
         IngestExternalClient mock = mock(IngestExternalClient.class);
         given(ingestClientFactory.getClient()).willReturn(mock);
         RequestResponseOK<Void> requestResponseOK = new RequestResponseOK<>();

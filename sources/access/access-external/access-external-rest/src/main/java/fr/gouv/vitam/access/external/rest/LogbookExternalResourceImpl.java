@@ -91,7 +91,7 @@ public class LogbookExternalResourceImpl {
     @Path("/operations")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "operations:read", description = "Lister toutes les opérations")
+    @Secured(permission = "logbookoperations:read", description = "Lister toutes les opérations")
     public Response selectOperation(JsonNode query) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
@@ -139,7 +139,7 @@ public class LogbookExternalResourceImpl {
     @Path("/operations/{id_op}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "operations:id:read", description = "Récupérer le journal d'une opération donnée")
+    @Secured(permission = "logbookoperations:id:read", description = "Récupérer le journal d'une opération donnée")
     public Response getOperationById(@PathParam("id_op") String operationId, JsonNode queryDsl) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));

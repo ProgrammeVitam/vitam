@@ -26,24 +26,21 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
+import java.io.InputStream;
+
+import javax.ws.rs.core.Response;
+
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.IngestCollection;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.processing.ProcessDetail;
-import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
-
-import javax.ws.rs.core.Response;
-import java.io.InputStream;
 
 /**
  * Ingest external interface
  */
-public interface IngestExternalClient extends MockOrRestClient, OperationStatusClient {
+public interface IngestExternalClient extends MockOrRestClient {
     /**
      * ingest upload file in local
      *
@@ -78,64 +75,5 @@ public interface IngestExternalClient extends MockOrRestClient, OperationStatusC
         IngestCollection type)
         throws VitamClientException;
 
-    /**
-     * Update the oprration according to the action
-     * 
-     *
-     * @param vitamContext the vitam context
-     * @param actionId
-     * @param operationId
-     * @return the status
-     * @throws VitamClientException
-     */
-    RequestResponse<ItemStatus> updateOperationActionProcess(VitamContext vitamContext,
-        String actionId, String operationId)
-        throws VitamClientException;
-    /**
-     * 
-     *
-     * @param vitamContext the vitam context
-     * @param id
-     * @return the details of the operation
-     * @throws VitamClientException
-     */
-    RequestResponse<ItemStatus> getOperationProcessExecutionDetails(
-        VitamContext vitamContext, String id)
-        throws VitamClientException;
 
-    /**
-     * Cancel the operation
-     * 
-     *
-     * @param vitamContext the vitam context
-     * @param id
-     * @return the status
-     * @throws VitamClientException
-     * @throws IllegalArgumentException
-     */
-    RequestResponse<ItemStatus> cancelOperationProcessExecution(VitamContext vitamContext,
-        String id)
-        throws VitamClientException, IllegalArgumentException;
-
-    /**
-     * Get the list of operations details
-     * 
-     *
-     * @param vitamContext the vitam context
-     * @param query filter query
-     * @return list of operations details
-     * @throws VitamClientException
-     */
-    RequestResponse<ProcessDetail> listOperationsDetails(VitamContext vitamContext,
-        ProcessQuery query)
-        throws VitamClientException;
-
-    // FIXME P1 : is tenant really necessary ?
-    /**
-     * 
-     *
-     * @param vitamContext the vitam context@return the Workflow definitions
-     * @throws VitamClientException
-     */
-    RequestResponse<WorkFlow> getWorkflowDefinitions(VitamContext vitamContext) throws VitamClientException;
 }

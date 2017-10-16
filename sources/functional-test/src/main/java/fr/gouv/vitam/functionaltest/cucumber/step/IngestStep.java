@@ -55,6 +55,7 @@ import cucumber.api.java.After;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
+import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -73,7 +74,6 @@ import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
-import fr.gouv.vitam.ingest.external.client.VitamPoolingClient;
 import fr.gouv.vitam.tools.SipTool;
 
 public class IngestStep {
@@ -115,7 +115,7 @@ public class IngestStep {
                     inputStream, DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
             world.setOperationId(operationId);
-            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getIngestClient());
+            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
             boolean process_timeout = vitamPoolingClient
                 .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
             if (!process_timeout) {
@@ -144,7 +144,7 @@ public class IngestStep {
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
             world.setOperationId(operationId);
-            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getIngestClient());
+            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
             boolean process_timeout = vitamPoolingClient
                 .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 200, 1_000L, TimeUnit.MILLISECONDS);
             if (!process_timeout) {
@@ -174,7 +174,7 @@ public class IngestStep {
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
             world.setOperationId(operationId);
-            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getIngestClient());
+            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
             boolean process_timeout = vitamPoolingClient
                 .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
             if (!process_timeout) {
