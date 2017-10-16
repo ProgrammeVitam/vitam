@@ -690,8 +690,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                                 criteria, objectID);
                                             if (result != null) {
                                                 return Response.status(Status.OK)
-                                                    .entity(JsonTransformer.transformResultObjects(result.toJsonNode()))
-                                                    .build();
+                                                    .entity(result.toJsonNode()).build();
                                             }
                                         }
                                         break;
