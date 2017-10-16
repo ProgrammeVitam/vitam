@@ -506,6 +506,7 @@ La page "Détail d'un contrat d'accès" contient les informations suivantes :
 * Date de mise à jour
 * Date de désactivation
 * Profils d'archivage
+* Noeud de rattachement
 
 .. image:: images/CONTRACTS_ingest_contract_detail.png
 
@@ -521,7 +522,7 @@ L'administrateur a la possibilité d'activer / désactiver un contrat. Un bouton
 
 Noeud de rattachement
 
-Il est possible d'ajouter dans ce champ l'idenfiant (GUID) d'une unité archivistique classique, de plan de classement ou d'arbre de positionnement. Une fois validé avec le bouton enregistrer, les SIP qui utiliseront ce contrat d'entrée seront automatiquement rattaché à l'unité archivistique déclarée dans le noeud de rattachement.
+Il est possible d'ajouter dans ce champ l'idenfiant (GUID) d'une unité archivistique de plan de classement ou d'arbre de positionnement. Une fois validé avec le bouton enregistrer, les SIP qui utiliseront ce contrat d'entrée seront automatiquement rattaché à l'unité archivistique déclarée dans le noeud de rattachement.
 
 ** Utilisation des contrats d'entrée **
 
