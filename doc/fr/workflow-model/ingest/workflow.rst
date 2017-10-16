@@ -132,6 +132,17 @@ La tâche contient les traitements suivants
 
       - FATAL : une erreur technique est survenue lors de la vérification de la relation (CHECK_HEADER.CHECK_IC_AP_RELATION.FATAL = Erreur fatale lors de la vérification de la relation entre le contrat et le profil SEDA)
 
+* Vérification de la présence et contrôle des services agents (CHECK_AGENT)
+
+  + **Règle** : verification du service producteur ainsi que du service versant déclarés dans le SIP par rapport au référentiel des services agents présent dans la solution logicielle VITAM
+    
+  + **Statuts** :
+    
+      - OK : le service producteur et/ou le service versant déclaré dans le SIP est valide (service agent existant dans le référentiel des services agents)
+        
+      - KO : le service producteur et/ou le service versant déclaré dans le SIP est invalide (service agent non trouvé dans le référentiel des services agents)  
+
+      - FATAL : une erreur technique est survenue lors de la vérification de la présence et du contrôle des services agents
 
 * Vérification de la présence et contrôle du contrat d'entrée (CHECK_CONTRACT_INGEST)
 
@@ -516,6 +527,12 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
     + Test de l'existence du service producteur dans le bordereau
 
+    + Contient CHECK_AGENT (CheckOriginatingAgencyHandler.java) :
+
+      - Recherche l'identifiant du service producteur et du service versant dans le SIP
+
+      - Vérification de la validité des services agents par rapport au référentiel des services agents présent dans la solution logicielle VITAM
+     
     + Contient CHECK_CONTRACT_INGEST (CheckIngestContractActionHandler.java) :
 
       - Recherche l'identifiant du contrat d'entrée dans le SIP

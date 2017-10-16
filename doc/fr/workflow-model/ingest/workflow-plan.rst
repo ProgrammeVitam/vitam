@@ -57,6 +57,12 @@ Diagramme d'activité du workflow du plan de classement
 
     + Test de l'existence du service producteur dans le bordereau
 
+    + Contient CHECK_AGENT (CheckOriginatingAgencyHandler.java) :
+
+      - Recherche l'identifiant du service producteur et du service versant dans le SIP
+
+      - Vérification de la validité des services agents par rapport au référentiel des services agents présent dans la solution logicielle VITAM
+  
     + Contient CHECK_CONTRACT_INGEST (CheckIngestContractActionHandler.java) :
 
       - Recherche le nom de contrat d'entrée dans le SIP,
