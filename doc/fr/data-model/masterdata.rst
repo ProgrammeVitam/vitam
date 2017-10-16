@@ -852,30 +852,42 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
 
 ::
 
-  {
-      "_id": "aefaaaaaaahkkoiuabp4sak3mmoj5vaaaaaq",
-      "_tenant": 0,
-      "OriginatingAgency": "Vitam",
-      "TotalObjects": {
-          "total": 27,
-          "deleted": 0,
-          "remained": 27
-      },
-      "TotalObjectGroups": {
-          "total": 27,
-          "deleted": 0,
-          "remained": 27
-      },
-      "TotalUnits": {
-          "total": 57,
-          "deleted": 0,
-          "remained": 57
-      },
-      "ObjectSize": {
-          "total": 18292981,
-          "deleted": 0,
-          "remained": 18292981
-      },
+{
+    "_id": "aefaaaaaaaed4nrpaas4uak7cxykxiaaaaaq",
+    "_tenant": 0,
+    "OriginatingAgency": "Vitam",
+    "TotalObjects": {
+        "ingested": 292,
+        "deleted": 0,
+        "remained": 292,
+        "attached": 12,
+        "detached": 0,
+        "symbolicRemained": 12
+    },
+    "TotalObjectGroups": {
+        "ingested": 138,
+        "deleted": 0,
+        "remained": 138,
+        "attached": 14,
+        "detached": 0,
+        "symbolicRemained": 14
+    },
+    "TotalUnits": {
+        "ingested": 201,
+        "deleted": 0,
+        "remained": 201,
+        "attached": 37,
+        "detached": 0,
+        "symbolicRemained": 37
+    },
+    "ObjectSize": {
+        "ingested": 35401855,
+        "deleted": 0,
+        "remained": 35401855,
+        "attached": 917440,
+        "detached": 0,
+        "symbolicRemained": 917440
+    },
       "creationDate": "2017-04-12T17:01:11.764",
       "_v": 1
   }
@@ -919,11 +931,14 @@ Par exemple pour
 On récupère la valeur FRAN_NP_051314.
 
 **"TotalObjectGroups": Champs obligatoire peuplé par Vitam** Contient la répartition du nombre de groupes d'objets du service producteur par état
-    (total, deleted et remained)
+    (ingested, deleted, remained, attached, detached et symbolicRemained)
 
-    - "total": Nombre total de groupes d'objets pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
+    - "ingested": Nombre total de groupes d'objets pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
     - "deleted": Nombre de groupes d'objets supprimés ou sortis du système. La valeur contenue dans ce champ est un entier.
     - "remained": Nombre actualisé de groupes d'objets conservés dans le système. La valeur contenue dans ce champ est un entier.
+    - "attached": Nombre total de groupes d'objets attachés symboliquement à ce service producteur. La valeur contenue dans le champ est un entier.
+    - "detached": Nombre de groupes d'objets dont le lien symbolique vers ce service producteur a été rompu. La valeur contenue dans ce champ est un entier.
+    - "symbolicRemained": Nombre actualisé de groupes d'objets attachés symboliquement à ce service producteur. La valeur contenue dans ce champ est un entier.
       
   * Il s'agit d'un Json
   * Cardinalité : 1-1 
@@ -931,30 +946,39 @@ On récupère la valeur FRAN_NP_051314.
 **"TotalObjects": Champs obligatoire peuplé par Vitam** Contient la répartition du nombre d'objets du service producteur par état
     (total, deleted et remained)
 
-    - "total": Nombre total d'objets pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
+    - "ingested": Nombre total d'objets pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
     - "deleted": Nombre d'objets supprimés ou sortis du système. La valeur contenue dans ce champ est un entier.
     - "remained": Nombre actualisé d'objets conservés dans le système. La valeur contenue dans ce champ est un entier.
-      
+    - "attached": Nombre total d'objets attachés symboliquement à ce service producteur. La valeur contenue dans le champ est un entier.
+    - "detached": Nombre d'objets dont le lien symbolique vers ce service producteur a été rompu. La valeur contenue dans ce champ est un entier.
+    - "symbolicRemained": Nombre actualisé d'objets attachés symboliquement à ce service producteur. La valeur contenue dans ce champ est un entier.
+            
   * Il s'agit d'un Json
   * Cardinalité : 1-1 
 
 **"TotalUnits": Champs obligatoire peuplé par Vitam** Contient la répartition du nombre d'unités archivistiques du service producteur par état
     (total, deleted et remained)
 
-    - "total": Nombre total d'unités archivistiques pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
+    - "ingested": Nombre total d'unités archivistiques pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
     - "deleted": Nombre d'unités archivistiques supprimées ou sorties du système. La valeur contenue dans ce champ est un entier.
     - "remained": Nombre actualisé d'unités archivistiques conservées. La valeur contenue dans ce champ est un entier.
-      
+    - "attached": Nombre total d'unités archivistiques attachés symboliquement à ce service producteur. La valeur contenue dans le champ est un entier.
+    - "detached": Nombre d'unités archivistiques dont le lien symbolique vers ce service producteur a été rompu. La valeur contenue dans ce champ est un entier.
+    - "symbolicRemained": Nombre actualisé d'unités archivistiques attachés symboliquement à ce service producteur. La valeur contenue dans ce champ est un entier.
+            
   * Il s'agit d'un Json
   * Cardinalité : 1-1 
   
 **"ObjectSize": Champs obligatoire peuplé par Vitam** Contient la répartition du volume total des fichiers du service producteur par état
     (total, deleted et remained)
 
-    - "total": Volume total en octets des fichiers pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
+    - "ingested": Volume total en octets des fichiers pris en charge dans le système pour ce service producteur. La valeur contenue dans le champ est un entier.
     - "deleted": Volume total en octets des fichiers supprimés ou sortis du système. La valeur contenue dans ce champ est un entier.
     - "remained": Volume actualisé en octets des fichiers conservés dans le système. La valeur contenue dans ce champ est un entier.
-      
+    - "attached": Volume total en octets des fichiers attachés symboliquement à ce service producteur. La valeur contenue dans le champ est un entier.
+    - "detached": Volume total en octets des fichiers dont le lien symbolique vers ce service producteur a été rompu. La valeur contenue dans ce champ est un entier.
+    - "symbolicRemained": Volume actualisé en octets des fichiers attachés symboliquement à ce service producteur. La valeur contenue dans ce champ est un entier.
+            
   * Il s'agit d'un Json
   * Cardinalité : 1-1 
     
@@ -989,27 +1013,40 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
       "ArchivalAgreement": "ArchivalAgreement0",
       "EndDate": "2017-05-19T12:36:52.572+02:00",
       "StartDate": "2017-05-19T12:36:52.572+02:00",
+      "Symbolic": true,
       "Status": "STORED_AND_COMPLETED",
       "LastUpdate": "2017-05-19T12:36:52.572+02:00",
       "TotalObjectGroups": {
           "total": 0,
           "deleted": 0,
           "remained": 0
+          "attached": 0,
+          "detached": 0,
+          "symbolicRemained": 0
       },
       "TotalUnits": {
           "total": 11,
           "deleted": 0,
           "remained": 11
+          "attached": 0,
+          "detached": 0,
+          "symbolicRemained": 0
       },
       "TotalObjects": {
           "total": 0,
           "deleted": 0,
           "remained": 0
+          "attached": 0,
+          "detached": 0,
+          "symbolicRemained": 0
       },
       "ObjectSize": {
           "total": 0,
           "deleted": 0,
           "remained": 0
+          "attached": 0,
+          "detached": 0,
+          "symbolicRemained": 0
       },
       "OperationIds": [
           "aedqaaaaakhpuaosabkcgak4ebd7deiaaaaq"
@@ -1080,49 +1117,66 @@ Par exemple pour
 On récupère la valeur ArchivalAgreement0.
 La valeur est une chaîne de caractères.
 
-**"StartDate": Champs obligatoire peuplé par Vitam** date de la première opération d'entrée correspondant à l'enregistrement concerné. 
-
-  * La date est au format ISO 8601
-  * Cardinalité : 1-1
-  
 **"EndDate": Champs obligatoire peuplé par Vitam** date de la dernière opération d'entrée correspondant à l'enregistrement concerné. 
 
   * La date est au format ISO 8601
   * Cardinalité : 1-1
-  
+
+**"StartDate": Champs obligatoire peuplé par Vitam** date de la première opération d'entrée correspondant à l'enregistrement concerné. 
+
+  * La date est au format ISO 8601
+  * Cardinalité : 1-1
+ 
+**Symbolic**: Indique si le détail de registre des fonds concerné concerne des éléments rattachés au service producteur ou des éléments dont il est propriétaire. Si le champs et à true, il s'agit de liens symboliques.
+
+  * Il s'agit d'un booléen
+  * Cardinalité : 1-1
+
 **"Status": Champs obligatoire peuplé par Vitam** indication sur l'état des archives concernées par l'enregistrement.
 
   * Il s'agit d'une chaîne de caractères
   * Cardinalité : 1-1
     
-**"TotalObjectGroups": Champs obligatoire peuplé par Vitam** Contient la répartition du nombre de groupes d'objets du fonds par état pour l'opération journalisée (total, deleted et remained) :
-    - "total": Nombre total de groupes d'objets pris en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
+**"TotalObjectGroups": Champs obligatoire peuplé par Vitam** Contient la répartition du nombre de groupes d'objets du fonds par état pour l'opération journalisée (ingested, deleted,remained, attached, detached et symbolicRemained) :
+    - "ingested": Nombre total de groupes d'objets pris en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
     - "deleted": Nombre de groupes d'objets supprimés ou sortis du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
     - "remained": Nombre de groupes d'objets conservés dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
+    - "attached": Nombre total de groupes d'objets attachés symboliquement à ce service producteur pour l'enregistrement concerné. La valeur contenue dans le champ est un entier.
+    - "detached": Nombre de groupes d'objets dont le lien symbolique vers ce service producteur a été rompu pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
+    - "symbolicRemained": Nombre actualisé de groupes d'objets attachés symboliquement à ce service producteur pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
       
   * Il s'agit d'un Json
   * Cardinalité : 1-1
 
 **"TotalUnits": Champs obligatoire peuplé par Vitam** Contient la répartition du nombre d'unités archivistiques du fonds par état pour l'opération journalisée (total, deleted et remained) :
-    - "total": Nombre total d'unités archivistiques pris en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
+    - "ingested": Nombre total d'unités archivistiques pris en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
     - "deleted": Nombre d'unités archivistiques supprimées ou sortis du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
     - "remained": Nombre d'unités archivistiques conservées dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
+    - "attached": Nombre total d'unités archivistiques attachés symboliquement à ce service producteur pour l'enregistrement concerné. La valeur contenue dans le champ est un entier.
+    - "detached": Nombre d'unités archivistiques dont le lien symbolique vers ce service producteur a été rompu pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
+    - "symbolicRemained": Nombre actualisé d'unités archivistiques attachés symboliquement à ce service producteur pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
       
   * Il s'agit d'un Json
   * Cardinalité : 1-1
 
 **"TotalObjects": Champs obligatoire peuplé par Vitam** Contient la répartition du nombre d'objets du fonds par état pour l'opération journalisée (total, deleted et remained) :
-    - "total": Nombre total d'objets pris en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
+    - "ingested": Nombre total d'objets pris en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
     - "deleted": Nombre d'objets supprimés ou sortis du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
     - "remained": Nombre d'objets conservés dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
+    - "attached": Nombre total d'objets attachés symboliquement à ce service producteur pour l'enregistrement concerné. La valeur contenue dans le champ est un entier.
+    - "detached": Nombre d'objets dont le lien symbolique vers ce service producteur a été rompu pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
+    - "symbolicRemained": Nombre actualisé d'objets attachés symboliquement à ce service producteur pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
       
   * Il s'agit d'un Json
   * Cardinalité : 1-1
 
 **"ObjectSize": Champs obligatoire peuplé par Vitam** Contient la répartition du volume total des fichiers du fonds par état pour l'opération journalisée (total, deleted et remained) :
-    - "total": Volume total en octet des fichiers pris en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
+    - "ingested": Volume total en octet des fichiers pris en charge dans le cadre de l'enregistrement concerné. La valeur contenue dans le champ est un entier.
     - "deleted": Volume total en octets des fichiers supprimés ou sortis du système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
     - "remained": Volume total en octets des fichiers conservés dans le système pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
+    - "attached": Volume total en octets des fichiers attachés symboliquement à ce service producteur pour l'enregistrement concerné. La valeur contenue dans le champ est un entier.
+    - "detached": Volume total en octets des fichiers dont le lien symbolique vers ce service producteur a été rompu pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
+    - "symbolicRemained": Volume actualisé en octets des fichiers attachés symboliquement à ce service producteur pour l'enregistrement concerné. La valeur contenue dans ce champ est un entier.
     
   * Il s'agit d'un Json
   * Cardinalité : 1-1
