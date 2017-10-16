@@ -191,6 +191,7 @@ public class FormatIdentificationActionPluginTest {
         final WorkerParameters params = getDefaultWorkerParameters();
 
         final ItemStatus response = plugin.execute(params, handlerIO);
+        assertEquals(response.getGlobalOutcomeDetailSubcode(), "UNCHARTED");
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
@@ -284,6 +285,7 @@ public class FormatIdentificationActionPluginTest {
         final WorkerParameters params = getDefaultWorkerParameters();
 
         final ItemStatus response = plugin.execute(params, handlerIO);
+        assertEquals(response.getGlobalOutcomeDetailSubcode(), "UNKNOWN");
         assertEquals(StatusCode.KO, response.getGlobalStatus());
         assertTrue(response.getItemsStatus().get(FormatIdentificationActionPlugin.FILE_FORMAT)
             .getEvDetailData().equals( "{}" ));
@@ -309,6 +311,7 @@ public class FormatIdentificationActionPluginTest {
         final WorkerParameters params = getDefaultWorkerParameters();
 
         final ItemStatus response = plugin.execute(params, handlerIO);
+        assertEquals(response.getGlobalOutcomeDetailSubcode(), "UNCHARTED");
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 

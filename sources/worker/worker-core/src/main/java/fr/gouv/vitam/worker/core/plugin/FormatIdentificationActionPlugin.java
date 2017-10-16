@@ -100,9 +100,13 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
     private static final String FILE_FORMAT_UPDATED_FORMAT = "UPDATED_FORMAT";
     private static final String FILE_FORMAT_PUID_NOT_FOUND = "PUID_NOT_FOUND";
     private static final String FILE_FORMAT_NOT_FOUND_REFERENTIAL_ERROR = "NOT_FOUND_REFERENTIAL";
+    private static final String FILE_FORMAT_REFERENTIAL_TECHNIQUE_ERROR = "FILE_FORMAT_REFERENTIAL_TECHNIQUE_ERROR";
 
     private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
     private static final int OG_INPUT_RANK = 0;
+    
+    private static final String SUBSTATUS_UNKNOWN = "UNKNOWN";
+    private static final String SUBSTATUS_UNCHARTED = "UNCHARTED";
 
     private HandlerIO handlerIO;
     private FormatIdentifier formatIdentifier;
@@ -171,6 +175,18 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
 
                                     itemStatus.increment(result.getStatus());
                                     itemStatus.setSubTaskStatus(objectId, itemStatus);
+                                    
+                                    switch (result.getSubStatus()) {
+                                        case FILE_FORMAT_NOT_FOUND:
+                                            itemStatus.setGlobalOutcomeDetailSubcode(SUBSTATUS_UNKNOWN);
+                                            break;
+                                        case FILE_FORMAT_NOT_FOUND_REFERENTIAL_ERROR:
+                                            itemStatus.setGlobalOutcomeDetailSubcode(SUBSTATUS_UNCHARTED);
+                                            break;
+                                        case FILE_FORMAT_PUID_NOT_FOUND:
+                                            itemStatus.setGlobalOutcomeDetailSubcode(SUBSTATUS_UNCHARTED);
+                                            break;
+                                    }
 
                                     if (StatusCode.FATAL.equals(itemStatus.getGlobalStatus())) {
                                         return new ItemStatus(FILE_FORMAT).setItemsStatus(FILE_FORMAT, itemStatus);
@@ -271,7 +287,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
             IOException e) {
             LOGGER.error(e);
             objectCheckFormatResult.setStatus(StatusCode.FATAL);
-            objectCheckFormatResult.setSubStatus(null);
+            objectCheckFormatResult.setSubStatus(FILE_FORMAT_REFERENTIAL_TECHNIQUE_ERROR);
         } catch (final ReferentialException e) {
             LOGGER.error(e);
             objectCheckFormatResult.setStatus(StatusCode.KO);
