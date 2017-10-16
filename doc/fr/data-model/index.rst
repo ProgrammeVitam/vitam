@@ -7,6 +7,7 @@
    :numbered:
 
    introduction.rst
+   identity.rst
    logbook.rst
    metadata.rst
    masterdata.rst
