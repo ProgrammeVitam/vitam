@@ -63,6 +63,7 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -88,6 +89,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -358,7 +360,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 }
             } else {
                 if (isStartMode) {
-                    parameters = logbookInitialisation(containerGUID, containerGUID, LogbookTypeProcess.INGEST);
+                    parameters = logbookInitialisation(GUIDFactory.newEventGUID(containerGUID), containerGUID, LogbookTypeProcess.INGEST);
                     if (contentType == null) {
                         throw new IngestInternalException("mimeType null");
                     }
@@ -915,15 +917,21 @@ public class IngestInternalResource extends ApplicationStatusResource {
         ContentAddressableStorageServerException {
 
         LOGGER.debug("Starting up the save file sip");
+        LogbookOperationParameters startedParameters = LogbookOperationsClientHelper.copy(parameters);
+        String eventTypeStarted = VitamLogbookMessages.getEventTypeStarted(INGEST_INT_UPLOAD);
+        startedParameters.putParameterValue(LogbookParameterName.eventType, eventTypeStarted);
+        callLogbookUpdate(logbookOperationsClient, startedParameters, StatusCode.OK,
+            VitamLogbookMessages.getCodeOp(eventTypeStarted, StatusCode.OK));
+        
+        // set eventType and new eventId
+        parameters.putParameterValue(LogbookParameterName.eventIdentifier, GUIDFactory.newEventGUID(containerGUID).getId());
         parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT_UPLOAD);
-        callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.STARTED,
-            VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.STARTED));
 
         // start method
         // push uploaded sip as stream
-        pushSipStreamToWorkspace(containerGUID.getId(), archiveMimeType,
-            uploadedInputStream,
-            parameters);
+        pushSipStreamToWorkspace(containerGUID.getId(), archiveMimeType, uploadedInputStream, parameters);
+        
+        // logbook update
         final String uploadSIPMsg = VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.OK);
         callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.OK, uploadSIPMsg);
     }

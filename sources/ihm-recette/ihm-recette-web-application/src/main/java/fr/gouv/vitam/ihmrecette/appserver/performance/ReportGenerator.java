@@ -34,6 +34,7 @@ import java.nio.file.StandardOpenOption;
 import java.text.ParseException;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -53,6 +54,8 @@ import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 public class ReportGenerator implements AutoCloseable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReportGenerator.class);
+    
+    private static final String STARTED_SUFFIX = ".STARTED";
 
     private BufferedWriter writer;
 
@@ -77,7 +80,7 @@ public class ReportGenerator implements AutoCloseable {
         headers.add(logbookOperation.getEvType());
 
         List<LogbookEventOperation> events = logbookOperation.getEvents();
-        events.iterator().forEachRemaining(event -> headers.add(event.getEvType()));
+        events.iterator().forEachRemaining(event -> headers.add(event.getEvType().replace(STARTED_SUFFIX, "")));
 
         writer.write(headers.stream().collect(Collectors.joining(",")));
         writer.newLine();
@@ -86,23 +89,42 @@ public class ReportGenerator implements AutoCloseable {
 
     private void generateReportLine(String operationId, LogbookOperation logbookOperation)
         throws ParseException, IOException {
-        String startOperation = logbookOperation.getEvDateTime();
+        String referenceDate = logbookOperation.getEvDateTime();
         String firstEventType = logbookOperation.getEvType();
 
         List<LogbookEventOperation> events = logbookOperation.getEvents();
-
+        
         Map<String, Interval> map = new LinkedHashMap<>();
-        map.put(firstEventType, new Interval(startOperation));
+        map.put(firstEventType, new Interval(referenceDate));
 
-        events.iterator().forEachRemaining(event -> {
+        Iterator<LogbookEventOperation> iterator = events.iterator();
+        while (iterator.hasNext()){
+            LogbookEventOperation event = iterator.next();
             String evType = event.getEvType();
-            if (map.containsKey(evType)) {
-                String lastDate = event.getEvDateTime();
-                map.get(evType).setEndDate(lastDate);
+            String evDateTime = event.getEvDateTime();
+                    
+            // if step (step start event is logged with eventType.STARTED)
+            if(evType.endsWith(STARTED_SUFFIX)){
+                evType = evType.replace(STARTED_SUFFIX, "");
+                map.put(evType, new Interval(evDateTime));
+                
+                // update date reference
+                referenceDate = evDateTime;
             } else {
-                map.put(evType, new Interval(event.getEvDateTime()));
+                // if map containse key then it's a step end event
+                if (map.containsKey(evType)) {
+                    map.get(evType).setEndDate(evDateTime);
+                } else {
+                    // otherwise it's an action (only one event for actions)
+                    Interval anInterval = new Interval(referenceDate);
+                    anInterval.setEndDate(evDateTime);
+                    map.put(evType, anInterval);
+
+                    // update date reference
+                    referenceDate = evDateTime;
+                }
             }
-        });
+        }
 
         writer.write(String.format("%s,%s", operationId, map.entrySet().stream()
             .map(entry -> entry.getValue().total())

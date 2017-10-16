@@ -39,6 +39,7 @@ public class VitamLogbookMessages {
     private static final VitamLogbookMessages VITAM_MESSAGES = new VitamLogbookMessages();
     private static final String SEPARATOR = ".";
     private static final String LIFECYCLE = "LFC";
+    private static final String STARTED = "STARTED";
 
     final Messages messages;
 
@@ -93,6 +94,15 @@ public class VitamLogbookMessages {
      */
     public static final String getLabelLfc(String stepOrHandler) {
         return VITAM_MESSAGES.messages.getStringNotEmpty(getEventTypeLfc(stepOrHandler));
+    }
+
+    /**
+     *
+     * @param stepOrHandler step or handler name or full name 
+     * @return the final EventType code
+     */
+    public static final String getEventTypeStarted(String stepOrHandler) {
+        return stepOrHandler + SEPARATOR + STARTED;
     }
 
     /**

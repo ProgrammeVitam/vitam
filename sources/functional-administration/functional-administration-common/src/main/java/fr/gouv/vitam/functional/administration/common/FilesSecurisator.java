@@ -120,7 +120,6 @@ public class FilesSecurisator {
         throws LogbookClientServerException, StorageException, LogbookClientBadRequestException,
         LogbookClientAlreadyExistsException {
 
-
         evDetData.put(DIGEST, digest);
         String name = getName(version, extension, prefix_name, ParameterHelper.getTenantParameter());
 
@@ -148,12 +147,6 @@ public class FilesSecurisator {
             final String eventCode = logbook_event + "_" + extension.toUpperCase();
             final String uri = String.format("%s/%s", prefix_name, fileName);
             final ObjectDescription description = new ObjectDescription();
-
-            final LogbookOperationParameters logbookParametersStart =
-                newLogbookOperationParameters(eip, eventCode, eipMaster, process,
-                    StatusCode.STARTED, getCodeOp(eventCode, StatusCode.STARTED), eip);
-
-            updateLogBookEntry(logbookParametersStart);
 
             try {
 

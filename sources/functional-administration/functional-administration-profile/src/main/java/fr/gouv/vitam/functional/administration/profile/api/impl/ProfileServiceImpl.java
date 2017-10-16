@@ -352,8 +352,6 @@ public class ProfileServiceImpl implements ProfileService {
         // Final path in the workspace : tenant_profiles/format(xsd|rng)/tenant_profile_id.format(xsd|rng)
 
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            manager.logInProgress(OP_PROFILE_STORAGE, profileMetadata.getId(), StatusCode.STARTED);
-
             workspaceClient.createContainer(containerName);
             workspaceClient.putObject(containerName, uri, profileFile);
 

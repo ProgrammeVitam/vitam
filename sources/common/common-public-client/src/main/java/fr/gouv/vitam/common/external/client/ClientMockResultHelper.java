@@ -194,19 +194,19 @@ public class ClientMockResultHelper {
     }
 
     private static LogbookLifecycle getLogbookLifecycleItem() {
-        LogbookLifecycle logbookOperation = new LogbookLifecycle();
-        logbookOperation.setId("aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq");
-        logbookOperation.setEvId("aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq");
-        logbookOperation.setEvType("Process_SIP_unitary");
-        logbookOperation.setEvDateTime("2016-06-10T11:56:35.914");
-        logbookOperation.setEvIdProc("aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq");
-        logbookOperation.setEvTypeProc("INGEST");
-        logbookOperation.setOutcome("STARTED");
-        logbookOperation.setOutDetail(null);
-        logbookOperation.setOutMessg("\"SIP entry : SIP.zip");
-        logbookOperation.setAgId(
+        LogbookLifecycle logbookLifecycle = new LogbookLifecycle();
+        logbookLifecycle.setId("aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq");
+        logbookLifecycle.setEvId("aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq");
+        logbookLifecycle.setEvType("LFC.LFC_CREATION");
+        logbookLifecycle.setEvDateTime("2016-06-10T11:56:35.914");
+        logbookLifecycle.setEvIdProc("aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq");
+        logbookLifecycle.setEvTypeProc("INGEST");
+        logbookLifecycle.setOutcome("OK");
+        logbookLifecycle.setOutDetail(null);
+        logbookLifecycle.setOutMessg("Création du journal du cycle de vie");
+        logbookLifecycle.setAgId(
             "\"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"");
-        return logbookOperation;
+        return logbookLifecycle;
     }
 
     private static LogbookOperation getLogbookOperationItem() {

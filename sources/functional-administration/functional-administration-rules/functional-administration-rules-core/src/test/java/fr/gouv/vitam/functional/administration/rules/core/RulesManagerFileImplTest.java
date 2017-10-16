@@ -127,6 +127,7 @@ public class RulesManagerFileImplTest {
     private static final String FILE_TO_COMPARE = "jeu_donnees_OK_regles_CSV.csv";
     private static final String FILE_UPDATE_RULE_TYPE = "jeu_donnees_OK_regles_CSV_update_ruleType.csv";
     private static final Integer TENANT_ID = 0;
+    private static final String STP_IMPORT_RULES = "STP_IMPORT_RULES";
     private static final String INVALID_CSV_FILE = "Invalid CSV File :";
 
     @Rule
@@ -231,7 +232,7 @@ public class RulesManagerFileImplTest {
         LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
         when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
-            .thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
+            .thenReturn(getJsonResult(STP_IMPORT_RULES, TENANT_ID));
 
         WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
@@ -306,21 +307,7 @@ public class RulesManagerFileImplTest {
         LogbookOperationsClient client = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(client);
 
-        when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(StatusCode.OK.name(), tenantId));
-        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
-
-        VitamThreadUtils.getVitamSession().setTenantId(++tenantId);
-        when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(StatusCode.KO.name(), tenantId));
-        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
-
-        VitamThreadUtils.getVitamSession().setTenantId(++tenantId);
-        when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(StatusCode.WARNING
-            .name(), tenantId));
-        rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
-
-        VitamThreadUtils.getVitamSession().setTenantId(++tenantId);
-        when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(StatusCode.FATAL
-            .name(), tenantId));
+        when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -339,11 +326,11 @@ public class RulesManagerFileImplTest {
         LogbookOperationsClient client = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(client);
         when(client.selectOperation(Matchers.anyObject())).thenReturn(
-            getJsonResult(StatusCode.STARTED.name(), 60));
+            getJsonResult("COMMIT_RULES", 60));
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
     }
 
-    private JsonNode getJsonResult(String outcome, int tenantId) throws Exception {
+    private JsonNode getJsonResult(String evType, int tenantId) throws Exception {
         return JsonHandler.getFromString(String.format("{\n" +
             "     \"httpCode\": 200,\n" +
             "     \"$hits\": {\n" +
@@ -357,7 +344,7 @@ public class RulesManagerFileImplTest {
             "               \"_id\": \"aecaaaaaacgbcaacaa76eak44s3of6iaaaaq\",\n" +
             "               \"events\": [\n" +
             "                    {\n" +
-            "                         \"outcome\": \"%s\"\n" +
+            "                         \"evType\": \"%s\"\n" +
             "                    }\n" +
             "               ],\n" +
             "               \"_v\": 0,\n" +
@@ -379,11 +366,11 @@ public class RulesManagerFileImplTest {
             "          \"$projection\": {\n" +
             "               \"$fields\": {\n" +
             "                    \"#id\": 1,\n" +
-            "                    \"events.outcome\": 1\n" +
+            "                    \"events.evType\": 1\n" +
             "               }\n" +
             "          }\n" +
             "     }\n" +
-            "}", outcome, tenantId));
+            "}", evType, tenantId));
     }
 
     private JsonNode getEmptyJsonResponse() throws Exception {
@@ -460,8 +447,7 @@ public class RulesManagerFileImplTest {
 
         LogbookOperationsClient client = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(client);
-        when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(StatusCode.OK.name(),
-            TENANT_ID));
+        when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(STP_IMPORT_RULES, TENANT_ID));
 
         try {
             List<FileRules> fileRules = new ArrayList<FileRules>();
@@ -499,7 +485,7 @@ public class RulesManagerFileImplTest {
             LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
             when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
             when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
-                .thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
+                .thenReturn(getJsonResult(STP_IMPORT_RULES, TENANT_ID));
 
             WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
             when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
@@ -612,7 +598,7 @@ public class RulesManagerFileImplTest {
 
         LogbookOperationsClient client = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(client);
-        when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
+        when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(STP_IMPORT_RULES, TENANT_ID));
 
         try {
             select.setQuery(eq("#tenant", TENANT_ID));

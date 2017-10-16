@@ -132,17 +132,17 @@ public class LogbookOperationParametersTest {
         final GUID aa = GUIDFactory.newEventGUID(0);
         final GUID cc = GUIDFactory.newEventGUID(0);
         LogbookParametersFactory.newLogbookOperationParameters(aa, "aa", aa,
-            LogbookTypeProcess.AUDIT, StatusCode.STARTED, "Informative Message", cc);
+            LogbookTypeProcess.AUDIT, StatusCode.OK, "Informative Message", cc);
         try {
             LogbookParametersFactory.newLogbookOperationParameters(aa, "", aa,
-                LogbookTypeProcess.AUDIT, StatusCode.STARTED, "Informative Message", cc);
+                LogbookTypeProcess.AUDIT, StatusCode.OK, "Informative Message", cc);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
             LogbookParametersFactory.newLogbookOperationParameters(aa, "aa", null,
-                LogbookTypeProcess.AUDIT, StatusCode.STARTED, "Informative Message", cc);
+                LogbookTypeProcess.AUDIT, StatusCode.OK, "Informative Message", cc);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
@@ -156,7 +156,7 @@ public class LogbookOperationParametersTest {
         }
         try {
             LogbookParametersFactory.newLogbookOperationParameters(aa, "aa", aa,
-                null, StatusCode.STARTED, "Informative Message", cc);
+                null, StatusCode.OK, "Informative Message", cc);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore

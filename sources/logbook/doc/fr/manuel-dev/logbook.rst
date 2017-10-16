@@ -134,11 +134,8 @@ Exemple d'usage générique
     // Event Type
     subParameters.putParameterValue(LogbookParameterName.eventType,
         "UNZIP");
-    subParameters.setStatus(LogbookOutcome.STARTED);
     // Et autres paramètres
     ...
-    // Start sous opération
-    client.update(subParameters);
     // Unsip
     subParameters.setStatus(LogbookOutcome.OK);
     // Sous opération OK
@@ -192,7 +189,7 @@ Exemple Ingest
     GUIDFactory.newOperationIdGUID(tenantId).getId());
     // Event Type
     parameters.putParameterValue(LogbookParameterName.eventType,
-    "UNZIP");
+    "UNZIP.STARTED");
     // Event Identifier Process
     parameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
     guidSip);
@@ -209,7 +206,7 @@ Exemple Ingest
 
     // Lancement de l'opération
     // Outcome: status
-    parameters.setStatus(LogbookOutcome.STARTED);
+    parameters.setStatus(LogbookOutcome.OK);
     // Outcome detail message
     parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
     "One infotmation to set before starting the operation");
@@ -230,6 +227,9 @@ Exemple Ingest
 
 
     // Finalisation de l'opération, selon le statut
+    // Set Event Type
+    parameters.putParameterValue(LogbookParameterName.eventType,
+    "UNZIP");
     // 1) Si OK
     parameters.setStatus(LogbookOutcome.OK);
     // 2) Si non OK

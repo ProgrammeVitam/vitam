@@ -305,7 +305,6 @@ public class LogbookAdministration {
         try (InputStream inputStream = new BufferedInputStream(new FileInputStream(zipFile));
             WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
 
-            createLogbookOperationEvent(eip, tenantId, OP_SECURISATION_STORAGE, STARTED, null);
             workspaceClient.createContainer(fileName);
 
             workspaceClient.putObject(fileName, uri, inputStream);
@@ -383,8 +382,6 @@ public class LogbookAdministration {
 
         try {
             final String hash = joiner.join(rootHash, hash1, hash2, hash3);
-            createLogbookOperationEvent(eip, tenantId, TIMESTAMP, STARTED, null);
-
             final DigestType digestType = VitamConfiguration.getDefaultTimestampDigestType();
 
             final Digest digest = new Digest(digestType);

@@ -107,17 +107,14 @@ angular.module('lifecycle')
           var lastStartedEvent = '';
           for(var i=0; i < response.data.$results[0].events.length; i++){
             var currentEvent = response.data.$results[0].events[i];
-            var isCurrentAStartEvent = currentEvent.outcome == 'STARTED';
+            var isCurrentAStartEvent = currentEvent.evParentId == null;
             var currentEventType = currentEvent.evType;
             var isStepLevelEvent = false;
 
             if(isCurrentAStartEvent){
               lastStartedEvent = currentEventType;
 
-              // Set step level class
-              isStepLevelEvent = true;
-            } else if(currentEventType == lastStartedEvent){
-              // Set step level class
+              // Set step level class 
               isStepLevelEvent = true;
             }
 

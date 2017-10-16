@@ -29,20 +29,6 @@
         {
             "evId": "aeaaaaaaaaaam7mxaaijcakyj2tcvdyaaaaq",
             "evType": "CHECK_DIGEST",
-            "evDateTime": "2016-11-10T14:31:04.437",
-            "evIdProc": "aedqaaaaacaam7mxabkxoakyj2sqiwqaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": "CHECK_DIGEST.LFC.STARTED",
-            "outMessg": "Début de la vérification de lempreinte.",
-            "agId": "{\"Name\":\"vitam-iaas-worker-01\",\"Role\":\"worker\",\"PlatformId\":425367}",
-            "obId": "aeaaaaaaaaaam7mxaaijcakyj2tcveaaaaaq",
-            "evDetData": "{\"MessageDigest\":\"f5d6880f323e5aa73a95cece09a66fed2ca462c60690acdbf438216981d5c7f0c6f16e879c07199bb2a45a64f73fa6466d43296e18bb3e68123a7df9a6ad97b0\",\"Algorithm\": \"SHA512\"} ",
-            "_tenant": 0
-        },
-        {
-            "evId": "aeaaaaaaaaaam7mxaaijcakyj2tcvdyaaaaq",
-            "evType": "CHECK_DIGEST",
             "evDateTime": "2016-11-10T14:31:04.457",
             "evIdProc": "aedqaaaaacaam7mxabkxoakyj2sqiwqaaaaq",
             "evTypeProc": "INGEST",

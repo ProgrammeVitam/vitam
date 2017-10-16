@@ -202,11 +202,11 @@ public class SedaUtilsLifeCycleExceptionsTest {
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventType,
             UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE);
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcome,
-            StatusCode.STARTED.toString());
+            StatusCode.OK.toString());
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-            StatusCode.STARTED.toString());
+            StatusCode.OK.toString());
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            StatusCode.STARTED.toString());
+            StatusCode.OK.toString());
 
         return logbookLifecycleUnitParameters;
     }

@@ -440,8 +440,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     public JsonNode updateUnitbyId(JsonNode queryJson, String idUnit, String requestId)
         throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException,
         AccessInternalRuleExecutionException {
-        LogbookOperationParameters logbookOpParamStart, logbookOpParamEnd, logbookOpStpParamStart, logbookOpStpParamEnd;
-        LogbookLifeCycleUnitParameters logbookLCParamStart, logbookLCParamEnd;
+        LogbookOperationParameters logbookOpParamEnd, logbookOpStpParamStart, logbookOpStpParamEnd;
+        LogbookLifeCycleUnitParameters logbookLCParamEnd;
         ParametersChecker.checkParameter(ID_CHECK_FAILED, idUnit);
         JsonNode jsonNode = JsonHandler.createObjectNode();
         Integer tenant = ParameterHelper.getTenantParameter();
@@ -450,8 +450,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         boolean stepMetadataUpdate = true;
         boolean stepStorageUpdate = true;
         final GUID idGUID;
+        final GUID idRequest;
         try {
             idGUID = GUIDReader.getGUID(idUnit);
+            idRequest = GUIDReader.getGUID(requestId);
             tenant = idGUID.getTenantId();
         } catch (final InvalidGuidOperationException e) {
             throw new IllegalArgumentException("idUnit is not a valid GUID", e);
@@ -477,21 +479,14 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             
             /** Update: Check Rules task **/
             logbookOpStpParamStart = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
-                    StatusCode.STARTED, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.STARTED), idGUID,
+                    StatusCode.STARTED, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.STARTED), idRequest,
                     STP_UPDATE_UNIT, true);
+            logbookOpStpParamStart.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
             logbookOpStpParamStart.putParameterValue(LogbookParameterName.outcomeDetail, STP_UPDATE_UNIT + "." +
                     StatusCode.STARTED);
 
             logbookOperationClient.create(logbookOpStpParamStart);
             globalStep = false;
-
-            // Update logbook operation TASK INDEXATION
-            logbookOpParamStart =
-                getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
-                    StatusCode.STARTED, VitamLogbookMessages.getCodeOp(UNIT_CHECK_RULES, StatusCode.STARTED),
-                    idGUID,
-                    UNIT_CHECK_RULES, false);
-            logbookOperationClient.update(logbookOpParamStart);
             
             // Call method
             stepCheckRules = false;
@@ -510,20 +505,14 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
             // Update Logbook Check Rules End
             logbookOpParamEnd =
-                getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
-                    StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_CHECK_RULES, StatusCode.OK), idGUID,
+                getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(tenant), updateOpGuidStart,
+                    StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_CHECK_RULES, StatusCode.OK), idRequest,
                     UNIT_CHECK_RULES, false);
+            logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
             logbookOperationClient.update(logbookOpParamEnd);
             stepCheckRules = true;
 
             /** Update: Indexation task **/         
-            // Update logbook operation TASK INDEXATION
-            logbookOpParamStart =
-                getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
-                    StatusCode.STARTED, VitamLogbookMessages.getCodeOp(UNIT_METADATA_UPDATE, StatusCode.STARTED),
-                    idGUID,
-                    UNIT_METADATA_UPDATE, false);
-            logbookOperationClient.update(logbookOpParamStart);
             stepMetadataUpdate = false;
 
             // call update
@@ -531,37 +520,31 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
             // update logbook TASK INDEXATION
             logbookOpParamEnd =
-                getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
-                    StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_METADATA_UPDATE, StatusCode.OK), idGUID,
+                getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(tenant), updateOpGuidStart,
+                    StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_METADATA_UPDATE, StatusCode.OK), idRequest,
                     UNIT_METADATA_UPDATE, false);
+            logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
             logbookOperationClient.update(logbookOpParamEnd);
             stepMetadataUpdate = true;
 
             // update global logbook lifecycle TASK INDEXATION
             logbookLCParamEnd = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.OK,
-                idGUID, UNIT_METADATA_UPDATE);
+                    idGUID, UNIT_METADATA_UPDATE);
             logbookLCParamEnd.putParameterValue(LogbookParameterName.eventDetailData,
                 getDiffMessageFor(jsonNode, idUnit));
             logbookLifeCycleClient.update(logbookLCParamEnd);
 
             /** Update: Storage task **/
-            // update logbook operation TASK STORAGE
-            logbookOpParamStart = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
-                StatusCode.STARTED,
-                VitamLogbookMessages.getCodeOp(UNIT_METADATA_STORAGE, StatusCode.STARTED),
-                idGUID, UNIT_METADATA_STORAGE, false);
-            logbookOperationClient.update(logbookOpParamStart);
-
-            // update logbook lifecycle TASK STORAGE
             stepStorageUpdate = false;
 
             // update stored Metadata
             StoredInfoResult storedInfoResult = replaceStoredUnitMetadata(idUnit, requestId);
 
             // update logbook operation TASK STORAGE
-            logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
-                StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_METADATA_STORAGE, StatusCode.OK), idGUID,
+            logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(tenant), updateOpGuidStart,
+                StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_METADATA_STORAGE, StatusCode.OK), idRequest,
                 UNIT_METADATA_STORAGE, false);
+            logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
             logbookOperationClient.update(logbookOpParamEnd);
             stepStorageUpdate = true;
 
@@ -579,9 +562,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             logbookLifeCycleClient.update(logbookLCParamEnd);
 
             // update logbook operation STP
-            logbookOpStpParamEnd = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
-                StatusCode.OK, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.OK), idGUID,
+            logbookOpStpParamEnd = getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(tenant), updateOpGuidStart,
+                StatusCode.OK, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.OK), idRequest,
                 STP_UPDATE_UNIT, false);
+            logbookOpStpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
             logbookOpStpParamEnd.putParameterValue(LogbookParameterName.outcomeDetail, STP_UPDATE_UNIT + "." +
                 StatusCode.OK);
             logbookOperationClient.update(logbookOpStpParamEnd);

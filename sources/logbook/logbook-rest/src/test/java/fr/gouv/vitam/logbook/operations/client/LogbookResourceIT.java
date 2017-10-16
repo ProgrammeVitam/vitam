@@ -245,19 +245,11 @@ public class LogbookResourceIT {
             LogbookParametersFactory.newLogbookOperationParameters(
                 GUIDFactory.newEventGUID(0), "STP_OP_SECURISATION", eip1, LogbookTypeProcess.TRACEABILITY,
                 StatusCode.STARTED, "Début du processus de sécurisation des journaux", eip1);
-        LogbookOperationParameters traceabilityParametersStpAct1Start =
-            LogbookParametersFactory.newLogbookOperationParameters(
-                GUIDFactory.newEventGUID(0), "OP_SECURISATION_TIMESTAMP", eip1, LogbookTypeProcess.TRACEABILITY,
-                StatusCode.STARTED, "Début de la création du tampon d'horodatage de l'ensemble des journaux", eip1);
         LogbookOperationParameters traceabilityParametersStpAct1End =
             LogbookParametersFactory.newLogbookOperationParameters(
                 GUIDFactory.newEventGUID(0), "OP_SECURISATION_TIMESTAMP", eip1, LogbookTypeProcess.TRACEABILITY,
                 StatusCode.OK, "Succès de création du tampon d'horodatage de l'ensemble des journaux", eip1);
-        LogbookOperationParameters traceabilityParametersStpAct2Start =
-            LogbookParametersFactory.newLogbookOperationParameters(
-                GUIDFactory.newEventGUID(0), "OP_SECURISATION_STORAGE", eip1, LogbookTypeProcess.TRACEABILITY,
-                StatusCode.STARTED, "Début du stockage des journaux", eip1);
-        LogbookOperationParameters traceabilityParametersStpAct2End =
+       LogbookOperationParameters traceabilityParametersStpAct2End =
             LogbookParametersFactory.newLogbookOperationParameters(
                 GUIDFactory.newEventGUID(0), "OP_SECURISATION_STORAGE", eip1, LogbookTypeProcess.TRACEABILITY,
                 StatusCode.OK, "Succès du stockage des journaux", eip1);
@@ -285,9 +277,7 @@ public class LogbookResourceIT {
             client.checkStatus();
             client.create(traceabilityParametersStart);
             client.update(traceabilityParametersStpStart);
-            client.update(traceabilityParametersStpAct1Start);
             client.update(traceabilityParametersStpAct1End);
-            client.update(traceabilityParametersStpAct2Start);
             client.update(traceabilityParametersStpAct2End);
             client.update(traceabilityParametersStpEnd);
             client.create(traceabilityParameters2Start);
