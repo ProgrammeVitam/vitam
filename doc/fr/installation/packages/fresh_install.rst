@@ -260,6 +260,9 @@ Une fois l'étape de la génération des hosts a été effectuée avec succès, 
 
    ansible-playbook ansible-vitam/vitam.yml -i environments/<ficher d'inventaire> --ask-vault-pass
 
+
+.. note:: Une confirmation est demandée pour lancer ce script.
+
 Extra
 ------
 
