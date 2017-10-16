@@ -23,7 +23,7 @@ Rest API
 | https://vitam/access-external/v1/units
 | https://vitam/access-external/v1/units/unit_id
 | https://vitam/access-external/v1/objects
-| https://vitam/access-external/v1/units/unit_id/object
+| https://vitam/access-external/v1/units/unit_id/objects
 | https://vitam/access-external/v1/accession-registers
 | https://vitam/access-external/v1/accession-registers/document_id
 | https://vitam/access-external/v1/accession-registers/document_id/accession-register-detail
@@ -189,7 +189,7 @@ La classe contient actuellement 9 méthodes :
 .. code-block:: java
 
  	@GET
-    @Path("/units/{ido}/object")
+    @Path("/units/{ido}/objects")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObject(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,
@@ -206,7 +206,7 @@ La classe contient actuellement 9 méthodes :
 .. code-block:: java
 
  	@POST
-    @Path("/units/{ido}/object")
+    @Path("/units/{ido}/objects")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public void getObjectPost(@Context HttpHeaders headers, @PathParam("ido") String idObjectGroup,

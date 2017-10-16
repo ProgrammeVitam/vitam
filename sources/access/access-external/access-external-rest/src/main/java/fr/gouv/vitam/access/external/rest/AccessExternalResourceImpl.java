@@ -428,10 +428,10 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * @return Response
      */
     @GET
-    @Path("/units/{idu}/object")
+    @Path("/units/{idu}/objects")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "units:id:object:read",
+    @Secured(permission = "units:id:objects:read:json",
         description = "Télécharger le groupe d'objet technique de l'unité archivistique donnée")
     public Response getObjectGroupMetadataByUnitId(@Context HttpHeaders headers, @PathParam("idu") String unitId,
         JsonNode queryJson) {
@@ -485,10 +485,10 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * @return response
      */
     @GET
-    @Path("/units/{idu}/object")
+    @Path("/units/{idu}/objects")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "units:id:object:read:binary", description = "Télecharger un objet")
+    @Secured(permission = "units:id:objects:read:binary", description = "Télecharger un objet")
     public Response getDataObjectByUnitId(@Context HttpHeaders headers, @PathParam("idu") String unitId,
         JsonNode query) {
 
@@ -539,10 +539,10 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     }
 
     @GET
-    @Path("/units/{idu}/object")
+    @Path("/units/{idu}/objects")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_XML)
-    @Secured(permission = "units:id:object:read:xml", description = "Obtenir le détail d'un objet groupe au format xml")
+    @Secured(permission = "units:id:objects:read:xml", description = "Obtenir le détail d'un objet groupe au format xml")
     public Response getObjectWithXmlFormat(JsonNode queryJson, @PathParam("idu") String idUnit) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));

@@ -101,7 +101,7 @@ documentation:
       description: Request that will update a set of Units according to the query and the filter parts. The actions to be applied on the set of Units are specified in the action part of the request. In this case this update is to be applied for only one Unit (the one specified in the URI).
       is: [AccessTraits.AccessUpdateUnitResponse]
 
-    /object:
+    /objects:
       displayName: Object of 1 ArchiveUnit
       description: |
        API qui définit les requêtes pour accéder à l'Objet d'archives associé à l'Unité  d'archives s'il existe.
@@ -126,61 +126,6 @@ documentation:
         is: [AccessTraits.AccessUniqueObjectQualifierHeadResponse, StandardTraits.StandardHeadHeader,
         StandardTraits.StandardHeader204,
         StandardTraits.StandardHeader417]
-
-/objects:
-  displayName: Objects
-  description: |
-   **DEPRECATED** : ne sera plus supporté en V1.
-
-   API qui définit les requêtes pour accéder aux Objets d'archives.
-   La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste d'Objets d'archives selon le DSL Vitam en cas de succès.
-  get:
-    description: |
-     **UNSUPPORTED** Request that will return results composed of Objects
-    is: [AccessTraits.AccessObjectResponse]
-  post:
-    description: |
-      **UNSUPPORTED** Request that will return results composed of Objects. The request is using POST with X-Http-Method-Override: GET
-    is: [AccessTraits.AccessObjectResponse, StandardTraits.OverrideGet]
-    headers:
-      X-Http-Method-Override:
-        required: true
-
-  /{ido}:
-    displayName: Object
-    description: |
-     **DEPRECATED** : ne sera plus supporté en V1.
-
-     API qui définit les requêtes pour accéder aux Objets d'archives à partir d'un Objet d'archives donné (racine).
-     La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste d'Objets d'archives selon le DSL Vitam en cas de succès.
-
-    get:
-      description: |
-        **DEPRECATED** : ne sera plus supporté en V1.
-
-        Request that will return results composed of Objects (generally 1) (**UNSUPPORTED**).
-        **SUPPORTED** 'Accept' header is 'application/json' or  'application/octet-stream', other values are **UNSUPPORTED**.
-      is: [AccessTraits.AccessUniqueObjectQualifierResponse, AccessTraits.AccessObjectResponse]
-    post:
-      description: |
-        **DEPRECATED** : ne sera plus supporté en V1.
-
-        Request that will return results composed of Objects (generally 1) (**UNSUPPORTED**).
-        **SUPPORTED** 'Accept' header is 'application/json' or  'application/octet-stream', other values are **UNSUPPORTED**.
-        The request is using POST with X-Http-Method-Override: GET.
-      is: [AccessTraits.AccessUniqueObjectQualifierResponse, AccessTraits.AccessObjectResponse, StandardTraits.OverrideGet]
-      headers:
-        X-Http-Method-Override:
-          required: true
-    head:
-      description: |
-        **DEPRECATED** : ne sera plus supporté en V1.
-
-        **UNSUPPORTED** Test the existence of this Object
-      is: [AccessTraits.AccessUniqueObjectQualifierHeadResponse, StandardTraits.StandardHeadHeader,
-      StandardTraits.StandardHeader204,
-      StandardTraits.StandardHeader417]
-
 
 /accession-registers:
   displayName: AccessionRegisters

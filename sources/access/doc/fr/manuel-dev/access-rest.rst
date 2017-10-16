@@ -38,10 +38,10 @@ Rest API
 | POST https://vitam/access-external/v1/units/unit_id  (avec X-HTTP-METHOD-OVERRIDE GET)
 	récupérer l'units avec la filtre (le contenu de la requête)
 
-| GET https://vitam/access-external/v1/units/unit_id/object
+| GET https://vitam/access-external/v1/units/unit_id/objects
 	récupérer le group d'objet par un unit (le contenu de la requête)
 
-| POST https://vitam/access-external/v1/units/unit_id/object (avec X-HTTP-METHOD-OVERRIDE GET)
+| POST https://vitam/access-external/v1/units/unit_id/objects (avec X-HTTP-METHOD-OVERRIDE GET)
 	récupérer le group d'objet par un unit (le contenu de la requête)
 
 
