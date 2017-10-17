@@ -25,3 +25,4 @@ local.json
 .metadata
 report.json
 **/package-lock.json
+proxy.conf.json
