@@ -396,6 +396,16 @@ public class ProcessEngineImpl implements ProcessEngine {
                         itemStatus.getGlobalStatus(),
                         itemId, " Detail= " + itemStatus.computeStatusMeterMessage(),
                         GUIDReader.getGUID(workParams.getContainerName()));
+                if (itemStatus.getGlobalOutcomeDetailSubcode() != null) {
+                    sublogbook.putParameterValue(LogbookParameterName.outcomeDetail,
+                        messageLogbookEngineHelper.getOutcomeDetail(
+                            handlerId + "." + itemStatus.getGlobalOutcomeDetailSubcode(),
+                            itemStatus.getGlobalStatus()));
+                    sublogbook.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        messageLogbookEngineHelper.getLabelOp(
+                            handlerId + "." + itemStatus.getGlobalOutcomeDetailSubcode(),
+                            itemStatus.getGlobalStatus()) + " Detail= " + itemStatus.computeStatusMeterMessage());
+                }
                 if (itemStatus.getMasterData() != null) {
                     JsonNode value = JsonHandler.toJsonNode(itemStatus.getMasterData());
                     sublogbook.putParameterValue(LogbookParameterName.masterData, JsonHandler.writeAsString(value));

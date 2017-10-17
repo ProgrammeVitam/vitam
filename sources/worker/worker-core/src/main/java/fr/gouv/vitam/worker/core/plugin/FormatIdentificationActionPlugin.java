@@ -175,17 +175,19 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
 
                                     itemStatus.increment(result.getStatus());
                                     itemStatus.setSubTaskStatus(objectId, itemStatus);
-                                    
-                                    switch (result.getSubStatus()) {
-                                        case FILE_FORMAT_NOT_FOUND:
-                                            itemStatus.setGlobalOutcomeDetailSubcode(SUBSTATUS_UNKNOWN);
-                                            break;
-                                        case FILE_FORMAT_NOT_FOUND_REFERENTIAL_ERROR:
-                                            itemStatus.setGlobalOutcomeDetailSubcode(SUBSTATUS_UNCHARTED);
-                                            break;
-                                        case FILE_FORMAT_PUID_NOT_FOUND:
-                                            itemStatus.setGlobalOutcomeDetailSubcode(SUBSTATUS_UNCHARTED);
-                                            break;
+                                    if (result.getStatus().equals(StatusCode.KO)) {
+                                        switch (result.getSubStatus()) {
+                                            case FILE_FORMAT_NOT_FOUND:
+                                                itemStatus.setGlobalOutcomeDetailSubcode(SUBSTATUS_UNKNOWN);
+                                                break;
+                                            case FILE_FORMAT_NOT_FOUND_REFERENTIAL_ERROR:
+                                                itemStatus.setGlobalOutcomeDetailSubcode(SUBSTATUS_UNCHARTED);
+                                                break;
+                                            case FILE_FORMAT_PUID_NOT_FOUND:
+                                                itemStatus.setGlobalOutcomeDetailSubcode(SUBSTATUS_UNCHARTED);
+                                                break;
+                                        }
+
                                     }
 
                                     if (StatusCode.FATAL.equals(itemStatus.getGlobalStatus())) {

@@ -219,6 +219,11 @@ public class ItemStatus {
         itemStatus1.setGlobalStatus(
             itemStatus1.getGlobalStatus().compareTo(itemStatus2.getGlobalStatus()) >= 1 ? itemStatus1.getGlobalStatus()
                 : itemStatus2.getGlobalStatus());
+        
+
+        if (itemStatus2.getGlobalOutcomeDetailSubcode() != null && itemStatus1.getGlobalOutcomeDetailSubcode() == null) {
+            itemStatus1.setGlobalOutcomeDetailSubcode(itemStatus2.getGlobalOutcomeDetailSubcode());
+        }
 
         return itemStatus1;
     }
