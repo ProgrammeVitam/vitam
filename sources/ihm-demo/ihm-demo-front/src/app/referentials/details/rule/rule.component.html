@@ -1,0 +1,10 @@
+<p-panel [header]="'Détail du règle de gestion'">
+  <div class="ui-g">
+    <div class="ui-g-12 ui-md-9" *ngIf="arrayOfKeys">
+      <div class="ui-g-offset-2" *ngFor=" let key of arrayOfKeys">
+        <vitam-metadata-field [title]="getKeyName(key)" [value]="getValue(key)" [labelSize]="3"
+                              class="ui-g-12 textAlignLeft" [updateMode]="false" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+      </div>
+    </div>
+  </div>
+</p-panel>

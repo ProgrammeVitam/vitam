@@ -1,0 +1,31 @@
+<p-panel *ngIf="objects" [toggleable]="true" [collapsed]="false">
+    <p-header>
+        <div class="ui-g-5"></div>
+        <span class="ui-g-2" style="padding: 0">Groupe d'Objets</span>
+        <div class="ui-g-4" style="padding: 0; text-align: right">
+            <button pButton class="ui-button secondaryButton" (click)="console.log('Test LFC')" label="Journal de Cycle de vie du groupe d'objet"
+                    icon="fa-chrome" iconPos="left"></button>
+        </div>
+    </p-header>
+    <ng-template ngFor let-object [ngForOf]="objects.versions">
+        <div class="ui-g" [ngClass]="isDownloadable(object.DataObjectVersion) ? 'downloadableOg' : 'noDownload'">
+            <span class="ui-g-2">{{object.DataObjectVersion}}</span>
+            <span class="ui-g-1">{{object.Size | bytes}}</span>
+            <span class="ui-g-5">{{object.FormatLitteral}}</span>
+            <span class="ui-g-2">{{object.LastModified | date:'dd/MM/yyyy'}}</span>
+            <div class="ui-g-1">
+                <i class="fa fa-download clickableDiv" (click)="downloadObject(object['#id'])" *ngIf="isDownloadable(object.DataObjectVersion)"></i>
+            </div>
+            <div class="ui-g-1">
+                <i class="fa fa-toggle-down clickableDiv" (click)="toogleDetails(object['#id'])" *ngIf="!displayObject[object['#id']]"></i>
+                <i class="fa fa-toggle-up clickableDiv" (click)="toogleDetails(object['#id'])" *ngIf="displayObject[object['#id']]"></i>
+            </div>
+        </div>
+        <div class="ui-g" *ngIf="displayObject[object['#id']]">
+            <ng-template ngFor let-field [ngForOf]="object.metadatas | keys">
+                <vitam-metadata-field [title]="translate(field)" [originalTitle]="field" [value]="object.metadatas[field]"
+                                     class="ui-g-12 pullLeft" [translate]="translate" [collapse]="false"></vitam-metadata-field>
+            </ng-template>
+        </div>
+    </ng-template>
+</p-panel>

@@ -1,0 +1,10 @@
+.root {
+    text-align: left;
+    position: relative;
+    left: 25%;
+    width: 75%;
+}
+
+.rootLabel {
+    font-weight: bold;
+}

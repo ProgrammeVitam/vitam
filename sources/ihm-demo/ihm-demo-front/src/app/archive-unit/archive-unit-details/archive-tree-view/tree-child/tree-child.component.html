@@ -1,0 +1,53 @@
+<div #panelTarget style="position: absolute; left: -900px; top: -150px"></div>
+
+<ng-template [ngIf]="node">
+<div *ngFor="let child of node.children" class="child">
+  <ng-template [ngIf]="!child.leaf">
+    <span *ngIf="!child.expended" class="fa fa-fw fa-plus" (click)="switchChild(child)"></span>
+    <span *ngIf="child.expended" class="fa fa-fw fa-minus" (click)="switchChild(child)"></span>
+  </ng-template>
+  <span *ngIf="child.leaf" class="fa fa-fw"></span>
+  <span *ngIf="child.data.type=='HOLDING_UNIT'" class="fa fa-fw fa-tree"></span>
+  <span *ngIf="child.data.type=='FILING_UNIT'" class="fa fa-fw fa-square-o"></span>
+  <span *ngIf="child.data.type=='INGEST'" class="fa fa-fw fa-archive"></span>
+  <a [routerLink]="'/search/archiveUnit/' + child.id"><span>{{child.label}}</span></a>
+
+  <ng-template [ngIf]="child.expended">
+    <vitam-tree-child [node]="child" [level]="1+level"></vitam-tree-child>
+  </ng-template>
+</div>
+
+<div *ngIf="node.data.haveMore" class="child" (click)="childSearchPanel.show($event, panelTarget)">
+  <span class="fa fa-fw fa-ellipsis-h"></span>
+  <span class="fa fa-fw"></span>
+  <span>Plus d'enfants ({{node.label}})</span>
+</div>
+</ng-template>
+
+<p-overlayPanel #childSearchPanel [style]="{'width': '125%'}" [dismissable]="false" [showCloseIcon]="true">
+  <p-panel header="Recherche d'enfants">
+
+    <form class="w-100" [formGroup]="searchForm" (ngSubmit)="onSubmit()">
+      <div class="ui-g">
+        <div class="ui-g-4">
+          <label style="font-weigth: bold" class="ui-g-12" >Titre et Description</label>
+          <input pInputText class="ui-g-12" formControlName="titleAndDescription" name="titleAndDescription">
+        </div>
+        <div class="ui-g-4">
+          <label style="font-weigth: bold" class="ui-g-12" >Date de début</label>
+          <p-calendar class="ui-g-12 ui-g-nopad" formControlName="startDate" type="date"></p-calendar>
+        </div>
+        <div class="ui-g-4">
+          <label style="font-weigth: bold" class="ui-g-12" >Date de fin</label>
+          <p-calendar class="ui-g-12 ui-g-nopad" formControlName="endDate" type="date" ></p-calendar>
+        </div>
+
+        <div class="ui-g-12">
+          <button pButton type="button" class="secondaryButton" icon="fa-times" label="Effacer" (click)="clearFields()"></button>
+          <button pButton icon="fa-search" label="Rechercher"></button>
+        </div>
+      </div>
+    </form>
+  </p-panel>
+
+</p-overlayPanel>

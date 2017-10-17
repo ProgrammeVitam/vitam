@@ -52,6 +52,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 public class WebApplicationResourceAuthTest {
     private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-demo";
     private static final String DEFAULT_STATIC_CONTENT = "webapp";
+    private static final String DEFAULT_WEB_APP_CONTEXT_V2 = "/ihm-demo-v2";
+    private static final String DEFAULT_STATIC_CONTENT_V2 = "webapp/v2";
     private static final String OPTIONS = "{\"name\": \"myName\"}";
     private static final String CREDENTIALS = "{\"token\": {\"principal\": \"user\", \"credentials\": \"user\"}}";
     private static final String CREDENTIALS_NO_VALID =
@@ -77,6 +79,8 @@ public class WebApplicationResourceAuthTest {
         application = new ServerApplication(
             (WebApplicationConfig) new WebApplicationConfig().setPort(port).setBaseUrl(DEFAULT_WEB_APP_CONTEXT)
                 .setServerHost(DEFAULT_HOST).setStaticContent(DEFAULT_STATIC_CONTENT)
+                .setBaseUri(DEFAULT_WEB_APP_CONTEXT).setStaticContentV2(DEFAULT_STATIC_CONTENT_V2)
+                .setBaseUriV2(DEFAULT_WEB_APP_CONTEXT_V2)
                 .setSecure(true).setJettyConfig(JETTY_CONFIG));
         application.start();
         RestAssured.port = port;

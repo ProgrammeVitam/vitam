@@ -1,0 +1,12 @@
+.fieldLabel {
+    font-size:14px;
+    font-weight: 700;
+}
+
+.overflow-break-words {
+    word-wrap: break-word;
+}
+
+.allDiv {
+    width: 100%;
+}

@@ -95,6 +95,8 @@ public final class DslQueryHelper {
     private static final String EVENTTYPE = "EventType";
     private static final String RULES = "RULES";
     private static final String ACCESSION_REGISTER = "ACCESSIONREGISTER";
+    private static final String UNITUPS = "UNITUPS";
+    private static final String ROOTS = "ROOTS";
     private static final String RULETYPE = "RuleType";
     private static final String ORDER_BY = "orderby";
     private static final String TITLE_AND_DESCRIPTION = "titleAndDescription";
@@ -438,6 +440,20 @@ public final class DslQueryHelper {
                 continue;
             }
 
+            // Look for a child of this node
+            if (searchKeys.equalsIgnoreCase(UNITUPS)) {
+                andQuery.add(in(UiConstants.UNITUPS.getResultCriteria(), (String) searchValue));
+                continue;
+            }
+
+            // ADD_ROOT
+            if (searchKeys.equalsIgnoreCase(ROOTS)) {
+                List<String> list = (List)searchValue;
+                String[] roots = list.toArray(new String[list.size()]);
+                select.addRoots(roots);
+                continue;
+            }
+
             if (searchKeys.equals(TITLE_AND_DESCRIPTION)) {
                 booleanQueries.add(match(TITLE, (String) searchValue));
                 booleanQueries.add(match(DESCRIPTION, (String) searchValue));
@@ -472,7 +488,7 @@ public final class DslQueryHelper {
         }
         // US 509:start AND end date must be filled.
         if (!Strings.isNullOrEmpty(endDate) && !Strings.isNullOrEmpty(startDate)) {
-            andQuery.add(createSearchUntisQueryByDate(startDate, endDate));
+        	andQuery.add(createSearchUntisQueryByDate(startDate, endDate));
         }
 
         if (advancedSearchFlag.equalsIgnoreCase(YES)) {
@@ -486,6 +502,7 @@ public final class DslQueryHelper {
                 select.addQueries(booleanQueries);
             }
         }
+
         return select.getFinalSelect();
     }
 
@@ -496,25 +513,27 @@ public final class DslQueryHelper {
      * @throws InvalidParseOperationException thrown when an error occurred during parsing
      * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
-    public static JsonNode createUpdateDSLQuery(Map<String, String> searchCriteriaMap, Map<String, JsonNode> updateRules)
+    public static JsonNode createUpdateDSLQuery(Map<String, JsonNode> searchCriteriaMap, Map<String, JsonNode> updateRules)
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
         final UpdateMultiQuery update = new UpdateMultiQuery();
 
-        for (final Entry<String, String> entry : searchCriteriaMap.entrySet()) {
+        for (final Entry<String, JsonNode> entry : searchCriteriaMap.entrySet()) {
             final String searchKeys = entry.getKey();
-            final String searchValue = entry.getValue();
+            final JsonNode searchValue = entry.getValue();
 
             if (searchKeys.isEmpty()) {
                 throw new InvalidParseOperationException("Parameters should not be empty or null");
             }
             // Add root
             if (searchKeys.equals(UiConstants.SELECT_BY_ID.toString())) {
-                update.addRoots(searchValue);
+                update.addRoots(searchValue.textValue());
                 continue;
             }
             // Add Actions
-            update.addActions(new SetAction(searchKeys, searchValue));
+            Map<String, JsonNode> action = new HashMap<>();
+            action.put(searchKeys, searchValue);
+            update.addActions(new SetAction(action));
         }
 
         for (final Entry<String, JsonNode> categoryRule: updateRules.entrySet()) {

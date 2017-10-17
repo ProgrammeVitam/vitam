@@ -1,0 +1,25 @@
+<p-panel [header]="'Description Complémentaire'" [toggleable]="true" [collapsed]="true" *ngIf="archiveUnit">
+  <div class="ui-g">
+    <div class="ui-g-8"></div>
+    <div class="ui-g-2" *ngIf="!update"></div>
+    <div class="ui-g-2" *ngIf="!update">
+      <button pButton class="ui-button" (click)="switchUpdateMode()" label="Modifier"
+              icon="fa-edit" iconPos="left"></button>
+    </div>
+    <div class="ui-g-2" *ngIf="update">
+      <button pButton class="ui-button secondaryButton" (click)="switchUpdateMode()" label="Annuler"
+              icon="fa-close" iconPos="left"></button>
+    </div>
+    <div class="ui-g-2" *ngIf="update">
+      <button pButton class="ui-button" (click)="saveUpdate()" label="Sauvegarder"
+              icon="fa-save" iconPos="left"></button>
+    </div>
+  </div>
+  <div class="ui-g">
+    <ng-template ngFor let-field [ngForOf]="fields">
+      <vitam-metadata-field [title]="field.title" [originalTitle]="field.value" [value]="archiveUnit[field.value]"
+                           class="ui-g-12" style="text-align: left" [translate]="translate" [(updatedFields)]="updatedFields"
+                           [updateMode]="update"></vitam-metadata-field>
+    </ng-template>
+  </div>
+</p-panel>

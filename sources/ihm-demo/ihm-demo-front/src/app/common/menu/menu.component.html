@@ -1,0 +1,22 @@
+<p-growl [(value)]="msgs" life="2000"></p-growl>
+<p-menubar [model]="items">
+  <div class="fixed" >
+    <a routerLink="/admin/collection">
+      <!-- FIXME may be missed in dev build -->
+      <img src="../../../assets/images/logoIHMRelease4.png"
+           class="logo" alt="Vitam Beta" title="Vitam"/>
+      <span class="title">vitam</span>
+    </a>
+  </div>
+  <div class="userInfo" *ngIf="isAuthenticated" >
+    Tenant: <b>{{tenantChosen ? tenantChosen : '-'}}</b>
+    <i class="fa fa-power-off logout-icon" (click)="logOut()">
+      <a id="logout-text">Déconnexion</a>
+    </i>
+  </div>
+  <div id="accessContract" *ngIf="isAuthenticated" >
+    <p-dropdown [style]="{'width':'240px'}" placeholder="Sélectionner un contrat" [options]="accessContracts"
+                [(ngModel)]="accessContract" (onChange)="updateContract()"></p-dropdown>
+  </div>
+
+</p-menubar>

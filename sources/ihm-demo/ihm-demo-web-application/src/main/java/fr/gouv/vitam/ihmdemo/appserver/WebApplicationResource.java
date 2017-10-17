@@ -83,6 +83,7 @@ import org.apache.shiro.util.ThreadContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.collect.Iterables;
 
 import fr.gouv.vitam.access.external.api.AdminCollections;
@@ -771,7 +772,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try {
             // Parse updateSet
-            final Map<String, String> updateUnitIdMap = new HashMap<>();
+            final Map<String, JsonNode> updateUnitIdMap = new HashMap<>();
             final Map<String, JsonNode> updateRules = new HashMap<>();
             final JsonNode modifiedFields = JsonHandler.getFromString(updateSet);
             if (modifiedFields != null && modifiedFields.isArray()) {
@@ -788,13 +789,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
                         }
                     } else {
                         updateUnitIdMap.put(modifiedField.get(FIELD_ID_KEY).textValue(),
-                            modifiedField.get(NEW_FIELD_VALUE_KEY).textValue());
+                            modifiedField.get(NEW_FIELD_VALUE_KEY));
                     }
                 }
             }
 
             // Add ID to set root part
-            updateUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), unitId);
+            updateUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), new TextNode(unitId));
             final JsonNode preparedQueryDsl = DslQueryHelper.createUpdateDSLQuery(updateUnitIdMap, updateRules);
             final RequestResponse<JsonNode> archiveDetails =
                 UserInterfaceTransactionManager.updateUnits(preparedQueryDsl, unitId,

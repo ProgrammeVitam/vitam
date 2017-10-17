@@ -145,7 +145,7 @@
                     <defaultGroupname>${unix.group}</defaultGroupname>
                     <mappings>
                         <mapping>
-                            <directory>/vitam/app/${ihm-demo.name}</directory>
+                            <directory>/vitam/app/${ihm-demo.name}/v1</directory>
                             <sources>
                                 <source>
                                     <location>${project.basedir}/dist</location>
@@ -211,7 +211,7 @@
                                 <user>${unix.user}</user>
                                 <group>${unix.group}</group>
                                 <filemode>0644</filemode>
-                                <prefix>/vitam/app/${ihm-demo.name}</prefix>
+                                <prefix>/vitam/app/${ihm-demo.name}/v1</prefix>
                             </mapper>
                         </data>
 

@@ -1,0 +1,76 @@
+.logbookDetails {
+    background-color: white;
+    margin-top: 10px;
+    text-align: left;
+    font-size: 14px;
+    word-wrap: break-word;
+}
+.white-bg {
+    background-color: white;
+}
+
+.bold-text {
+    font-weight: bold;
+}
+
+.logbookRowBorder {
+    border-radius: 10px;
+}
+.okRow {
+    background-color: #F2F2F2;
+}
+.errorRow {
+    background-color: #FF8080;
+}
+.warningRow {
+    color: #FF6600;
+    background-color: #F2F2F2;
+}
+
+.outMessage {
+    font-size: 12px;
+    padding: 5px 0 0 0;
+}
+
+.stepStatusIcon {
+    transform: translateY(30%);
+}
+.fa.fa-check {
+    color: #9ecc7d;
+}
+.fa.fa-times {
+    color: #FF8080;
+}
+.fa.fa-exclamation {
+    color: #FF6600;
+}
+.fa.fa-circle-o-notch {
+    color: #9E9E9E;
+}
+
+.toggleIcon {
+    float: right;
+    color: black;
+}
+.toggleEvDetData {
+    float: right;
+    font-style: italic;
+}
+.toggleIcon:hover,
+.toggleEvDetData:hover {
+    cursor: pointer;
+}
+
+.no-padding {
+    padding: 0;
+}
+
+.evDetDataDisplay {
+    border: 1px dashed black;
+    border-top: none;
+    border-radius: 0 0 5px 5px;
+    font-size: 14px;
+    color: black;
+    background-color: white;
+    padding: 10px 5px 5px 5px;
+}

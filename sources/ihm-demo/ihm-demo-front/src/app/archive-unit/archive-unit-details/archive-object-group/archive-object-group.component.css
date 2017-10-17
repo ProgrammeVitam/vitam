@@ -1,0 +1,20 @@
+.downloadableOg {
+    background-color: lavender;
+    border-bottom: 1px solid #6f4dff;
+    margin-bottom: 5px;
+}
+
+.noDownload {
+    background-color: lightgrey;
+    border-bottom: 1px solid black;
+    margin-bottom: 5px;
+}
+
+.fieldLabel {
+    font-size:14px;
+    font-weight: 700;
+}
+
+.pullLeft {
+    text-align: left;
+}

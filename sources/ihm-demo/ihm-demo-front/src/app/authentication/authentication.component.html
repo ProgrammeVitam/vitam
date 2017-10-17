@@ -1,0 +1,28 @@
+<div class="loginForm">
+  <p-panel [header]="'Authentification'">
+    <form class="ui-g ui-fluid" [formGroup]="loginForm" (ngSubmit)="login()">
+      <div class="ui-g-12 ui-md-12 login-error-message">
+        {{errorMessages}}
+      </div>
+      <div class="ui-g-12 ui-md-4">
+        <label>Identifiant</label><br/>
+        <input type="text" pInputText  formControlName="username">
+      </div>
+      <div class="ui-g-12 ui-md-4">
+        <label>Mot de passe</label><br/>
+        <input pInputText type="password" formControlName="password"/>
+      </div>
+      <div class="ui-g-12 ui-md-2">
+        <label>Tenant de la session</label><br/>
+        <select formControlName="tenant" style="display: inline; margin: 0 0 0 10px" >
+          <option *ngFor='let tenant of tenants' value="{{tenant}}">{{tenant}}</option>
+        </select>
+      </div>
+
+      <div class="ui-g-12 ui-md-5"></div>
+      <div class="ui-g-12 ui-md-2">
+        <button pButton (click)="login()" label="Connexion"></button>
+      </div>
+    </form>
+  </p-panel>
+</div>

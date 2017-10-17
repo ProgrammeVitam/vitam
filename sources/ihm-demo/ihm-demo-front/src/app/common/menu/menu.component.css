@@ -1,0 +1,42 @@
+.float {
+  float: left;
+}
+
+.fixed {
+  position: absolute;
+  left: 10px;
+  top: 2px
+}
+
+.logo {
+  max-height: 60px;
+  margin-top: -10px;
+}
+
+.title {
+  position: relative;
+  top: -15px;
+  font-size: 45px;
+  font-family: Verdana,sans-serif;
+}
+
+a {
+    color: black;
+}
+
+.logout-icon {
+    color: #AD9FFF;
+    margin-left: 40px;
+    cursor: pointer;
+}
+
+#accessContract {
+    float: right;
+    max-width: 200px;
+}
+
+.userInfo {
+    float: right;
+    width: 180px;
+    padding-bottom: 10px;
+}

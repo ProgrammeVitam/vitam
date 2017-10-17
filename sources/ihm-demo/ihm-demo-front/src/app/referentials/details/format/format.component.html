@@ -1,0 +1,35 @@
+<p-panel [header]="'Détail du format'">
+  <div class="ui-g">
+    <div class="ui-g-8 ui-g-offset-2 textAlignLeft" *ngIf="format">
+      <vitam-metadata-field [title]="'PUID'" [originalTitle]="'PUID'"  [value]="format.PUID" [labelSize]="4"
+                            class="ui-g-12 " [updateMode]="false"></vitam-metadata-field>
+      <vitam-metadata-field [title]="'Nom du fomat'" [originalTitle]="'Name'"  [value]="format.Name" [labelSize]="4"
+                            class="ui-g-12 " [updateMode]="false" ></vitam-metadata-field>
+      <vitam-metadata-field [title]="'MIME types'" [originalTitle]="'MIMEType'"  [value]="format.MIMEType" [labelSize]="4"
+                            class="ui-g-12 " [updateMode]="false"></vitam-metadata-field>
+      <div class="ui-g-12">
+        <div class="ui-g-nopad ui-g-4">
+          <label class="label fieldLabel">Priorité sur les versions précédentes</label>
+        </div>
+        <div class="ui-g-nopad ui-g-8">
+          <a class="overflow-break-words" *ngFor="let puid of format.HasPriorityOverFileFormatID" href="{{'/#/admin/format/' + encode(puid)}}">{{puid}}</a>
+        </div>
+      </div>
+      <vitam-metadata-field [title]="'Extensions'" [originalTitle]="'Extension'"  [value]="format.Extension" [labelSize]="4"
+                            class="ui-g-12 " [updateMode]="false"></vitam-metadata-field>
+      <vitam-metadata-field [title]="'Date de création'" [originalTitle]="'CreatedDate'"  [value]="format.CreatedDate" [labelSize]="4"
+                            class="ui-g-12 " [updateMode]="false"></vitam-metadata-field>
+      <div class="ui-g-12">
+        <div class="ui-g-nopad ui-g-4">
+          <label class="label fieldLabel">Version de Pronom</label>
+        </div>
+        <div class="ui-g-nopad ui-g-8">
+          <a class="overflow-break-words" (click)="goToPronomLink()">{{pronomLink}}</a>
+        </div>
+      </div>
+      <vitam-metadata-field *ngIf="format.Comment" [title]="'Commentaire'" [originalTitle]="'Comment'"  [value]="format.Comment" [labelSize]="4"
+                            class="ui-g-12 " [updateMode]="false" ></vitam-metadata-field>
+
+    </div>
+  </div>
+</p-panel>

@@ -1,0 +1,18 @@
+<p-panel header="Résultats ({{hits.total}})" *ngIf="data && hits && items">
+    <div style="float: left; padding: 5px;" *ngIf="!!extraCols && extraCols.length > 0">
+        <button pButton class="secondaryButton" [icon]="displayOptions ? 'fa-chevron-up' : 'fa-chevron-down'" iconPos="right"
+                (click)="displayOptions=!displayOptions" [label]="'Informations Supplémentaires'"></button>
+    </div>
+    <div style="float: left" *ngIf="displayOptions">
+        <p-listbox [options]="extraColsSelection" [(ngModel)]="extraSelectedCols"
+                   [style]="{'text-align': 'left', 'z-index': 5000, 'position': 'absolute', 'background-color': 'white', 'width': '250px'}"
+                   (onChange)="onRowSelect($event)"
+                   multiple="multiple" checkbox="checkbox" filter="filter"></p-listbox>
+    </div>
+    <div style="clear: both"></div>
+    <p-paginator [(rows)]="nbRows" [rowsPerPageOptions]="[5, 25, 125]" (onPageChange)="paginate($event)" [totalRecords]="hits.total" [(first)]="firstItem"></p-paginator>
+    <vitam-generic-table [items]="displayedItems" [selectedCols]="selectedCols" [path]="path" [getClass]="getClass" [identifier]="identifier"></vitam-generic-table>
+</p-panel>
+<p-panel header="Résultats" *ngIf="errorOnResults">
+    <vitam-generic-table [items]="[]" [selectedCols]="selectedCols"></vitam-generic-table>
+</p-panel>

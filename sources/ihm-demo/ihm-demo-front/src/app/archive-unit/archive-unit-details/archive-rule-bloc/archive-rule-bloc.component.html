@@ -1,0 +1,135 @@
+<p-panel [header]="'Règles de gestion'" [toggleable]="true" [collapsed]="true">
+  <p-confirmDialog header="Confirmation de modification de règles" icon="fa fa-question-circle" width="425"
+                   acceptLabel="Modifier" rejectLabel="Annuler">
+
+  </p-confirmDialog>
+
+  <div class="ui-g">
+    <div class="ui-g-8"></div>
+    <div class="ui-g-2" *ngIf="!update"></div>
+    <div class="ui-g-2" *ngIf="!update">
+      <button pButton class="ui-button" (click)="switchUpdateMode()" label="Modifier"
+              icon="fa-edit" iconPos="left"></button>
+    </div>
+    <div class="ui-g-2" *ngIf="update">
+      <button pButton class="ui-button secondaryButton" (click)="switchUpdateMode()" label="Annuler"
+              icon="fa-close" iconPos="left"></button>
+    </div>
+    <div class="ui-g-2" *ngIf="update">
+      <button pButton class="ui-button" (click)="saveUpdate()" label="Sauvegarder"
+              icon="fa-save" iconPos="left"></button>
+    </div>
+  </div>
+
+  <div class="ui-g" *ngIf="management && inheritedRules">
+    <ng-template ngFor let-category [ngForOf]="rulesCategories">
+      <p-fieldset [legend]="category.label" class="ui-g-6" [toggleable]="true" [collapsed]="false"
+                  *ngIf="!!management[category.rule] || !!inheritedRules[category.rule] || update">
+
+        <ng-template [ngIf]="inheritedRules[category.rule] || update || hasFinalActionEmptyRule(category.rule)">
+          <div class="ui-g">
+            <div class="ui-g-3">Identifiant</div>
+            <div class="ui-g-3">Début</div>
+            <div class="ui-g-2">Fin</div>
+            <div class="ui-g-1" *ngIf="!update">Hérit.</div>
+            <div class="ui-g-2" *ngIf="category.rule === 'StorageRule' || category.rule === 'AppraisalRule'">Sort final</div>
+            <div class="ui-g-1" *ngIf="!update">Détail</div>
+            <div class="ui-g-1" *ngIf="update">Actions</div>
+          </div>
+
+          <div *ngIf="!update">
+            <ng-template ngFor let-rule [ngForOf]="inheritedRules[category.rule] | keys">
+              <ng-template ngFor let-id [ngForOf]="inheritedRules[category.rule][rule] | keys">
+                <div *ngIf="inheritedRules[category.rule][rule][id] as details">
+                  <div class="ui-g">
+                    <div class="ui-g-3">{{rule}}</div>
+                    <div class="ui-g-3">{{details.StartDate | date:'dd/MM/yyyy'}}</div>
+                    <div class="ui-g-2">{{details.EndDate | date:'dd/MM/yyyy'}}</div>
+                    <div class="ui-g-1">{{isInherited(id)}}</div>
+                    <div class="ui-g-2" *ngIf="category.rule === 'StorageRule' || category.rule === 'AppraisalRule'">{{finalActions[category.rule][details.FinalAction].label}}</div>
+                    <div class="ui-g-1" (click)="toogleDetails(category.rule, rule, id)">
+                      <i class="fa fa-chevron-up clickableDiv" *ngIf="displayDetails[rule + '.' + id]"></i>
+                      <i class="fa fa-chevron-down clickableDiv" *ngIf="!displayDetails[rule + '.' + id]"></i>
+                    </div>
+                  </div>
+                  <div *ngIf="displayDetails[rule + '.' + id]">
+                    <!-- TODO (?) Update Bloc for details -->
+                    <div class="form-group col-md-12" *ngIf="details.ClassificationLevel">
+                      <label style="display: inline">Niveau de la classification : </label>
+                      <span>{{details.ClassificationLevel}}</span>
+                    </div>
+                    <div class="form-group col-md-12" *ngIf="details.ClassificationOwner">
+                      <label style="display: inline">Propriétaire de la classification : </label>
+                      <span>{{details.ClassificationOwner}}</span>
+                    </div>
+                    <div class="form-group col-md-12" *ngIf="details.ClassificationReassessingDate">
+                      <label style="display: inline">Date de réévaluation de la classification : </label>
+                      <span>{{details.ClassificationReassessingDate}}</span>
+                    </div>
+                    <div class="form-group col-md-12" *ngIf="details.NeedReassessingAuthorization">
+                      <label style="display: inline">Besoin d'autorisation de réévaluation : </label>
+                      <span>{{details.NeedReassessingAuthorization}}</span>
+                    </div>
+                    <div class="ui-g" *ngIf="details.path.length === 1">
+                      <label class="ruleLabel ui-g-4">Hérité de: </label>
+                      <a class="ui-g-8" [routerLink]="'/search/archiveUnit/' + id"><span>{{titles[rule + '.' + id]}}</span></a>
+                    </div>
+                    <span *ngIf="details.path.length > 1" style="font-style: italic; font-size: 0.9em;"> - Cette règle est héritée au travers de {{details.path.length}} chemins</span>
+                  </div>
+                </div>
+              </ng-template>
+            </ng-template>
+            <ng-template ngFor let-rule [ngForOf]="getFinalActionRules(category.rule)">
+              <div>
+                <div class="ui-g">
+                  <div class="ui-g-3">--</div>
+                  <div class="ui-g-3">--</div>
+                  <div class="ui-g-2">--</div>
+                  <div class="ui-g-1">--</div>
+                  <div class="ui-g-2" >{{finalActions[category.rule][rule.FinalAction].label}}</div>
+                  <div class="ui-g-1">--</div>
+                </div>
+              </div>
+            </ng-template>
+          </div>
+
+          <div *ngIf="update ">
+            <ng-template ngFor let-rule [ngForOf]="updatedFields[category.rule].Rules" let-i="index">
+              <div class="ui-g">
+                <div class="ui-g-3">
+                  <input pInputText *ngIf="!updatedFields[category.rule].Rules[i].oldRule" [(ngModel)]="rule.Rule" style="width: 100%"/>
+                  <span *ngIf="updatedFields[category.rule].Rules[i].oldRule" class="deletedRule">{{rule.Rule}}</span>
+                </div>
+                <div class="ui-g-3">
+                  <p-calendar *ngIf="!updatedFields[category.rule].Rules[i].oldRule" [(ngModel)]="rule.StartDate"
+                              [inputStyle]="{'width':'100%'}"></p-calendar>
+                  <span *ngIf="updatedFields[category.rule].Rules[i].oldRule" class="deletedRule">{{rule.StartDate | date:'dd/MM/yyyy'}}</span>
+                </div>
+                <div class="ui-g-2" [ngClass]="updatedFields[category.rule].Rules[i].oldRule ? 'deletedRule' : ''">Calculée</div>
+                <div class="ui-g-2" *ngIf="category.rule === 'StorageRule' || category.rule === 'AppraisalRule'">
+                  <select [(ngModel)]="updatedFields[category.rule].Rules.FinalAction" style="width: 100%">
+                    <option *ngFor="let action of finalActions[category.rule] | keys" value="{{finalActions[category.rule][action].id}}">{{finalActions[category.rule][action].label}}</option>
+                  </select>
+                </div>
+                <div class="ui-g-1" (click)="removeRule(category.rule, i)" *ngIf="update">
+                  <i class="fa fa-trash clickableDiv" *ngIf="!updatedFields[category.rule].Rules[i].oldRule"></i>
+                  <i class="fa fa-plus clickableDiv" *ngIf="updatedFields[category.rule].Rules[i].oldRule"></i>
+                </div>
+              </div>
+            </ng-template>
+            <div class="ui-g-6">
+              <button pButton class="ui-button" (click)="addRule(category.rule)" label="Ajouter une règle" icon="fa-plus"></button></div>
+          </div>
+        </ng-template>
+
+        <div *ngIf="!update && management[category.rule] && management[category.rule].Inheritance && management[category.rule].Inheritance.PreventRulesId.length > 0">
+          Règle désactivée
+          <li *ngFor="let nonRefId of management[category.rule].Inheritance.PreventRulesId">{{nonRefId}}</li>
+        </div>
+
+        <span *ngIf="!update && management[category.rule] && management[category.rule].Inheritance && management[category.rule].Inheritance.PreventInheritance"
+              class="preventInheritance">Cette unité archivistique n'hérite d'aucune règle</span>
+      </p-fieldset>
+    </ng-template>
+  </div>
+</p-panel>

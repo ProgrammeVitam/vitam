@@ -73,6 +73,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.http.ContentType;
@@ -127,6 +128,8 @@ public class WebApplicationResourceTest {
 
     private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-demo";
     private static final String DEFAULT_STATIC_CONTENT = "webapp";
+    private static final String DEFAULT_WEB_APP_CONTEXT_V2 = "/ihm-demo-v2";
+    private static final String DEFAULT_STATIC_CONTENT_V2 = "webapp/v2";
     private static final String OPTIONS = "{name: \"myName\"}";
     private static final String AUDIT_OPTION = "{serviceProducteur: \"Service Producteur 1\"}";
     private static final Cookie COOKIE = new Cookie.Builder("JSESSIONID", "testId").build();
@@ -170,7 +173,8 @@ public class WebApplicationResourceTest {
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
         final WebApplicationConfig webApplicationConfig =
             (WebApplicationConfig) new WebApplicationConfig().setPort(port).setBaseUrl(DEFAULT_WEB_APP_CONTEXT)
-                .setServerHost(DEFAULT_HOST).setStaticContent(DEFAULT_STATIC_CONTENT)
+                .setServerHost(DEFAULT_HOST).setStaticContent(DEFAULT_STATIC_CONTENT).setBaseUri(DEFAULT_WEB_APP_CONTEXT)
+                .setStaticContentV2(DEFAULT_STATIC_CONTENT_V2).setBaseUriV2(DEFAULT_WEB_APP_CONTEXT_V2)
                 .setSecure(false)
                 .setSipDirectory(Thread.currentThread().getContextClassLoader().getResource(SIP_DIRECTORY).getPath())
                 .setJettyConfig(JETTY_CONFIG).setTenants(tenants);
@@ -559,9 +563,9 @@ public class WebApplicationResourceTest {
     @Test
     public void testUpdateArchiveUnitDetailsDsl()
         throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, String> updateCriteriaMap = new HashMap<>();
-        updateCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
-        updateCriteriaMap.put("title", "archive1");
+        final Map<String, JsonNode> updateCriteriaMap = new HashMap<>();
+        updateCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), new TextNode("1"));
+        updateCriteriaMap.put("title", new TextNode("archive1"));
 
         // DslqQueryHelper Exceptions : InvalidParseOperationException,
         // InvalidCreateOperationException
