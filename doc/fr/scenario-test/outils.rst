@@ -48,9 +48,15 @@ Requêtes DSL
 
 Il est possible de lancer des requêtes DSL via l'IHM de recette depuis le menu "Requêtes DSL", sans besoin de certificat. Cela permet de tester de manière simple et rapide des requêtes DSL.
 
-Il s'agit d'un formulaire permettant de gérer plusieurs variables, telles que le tenant, le contrat d'accès, la collection, l'action testée et un identifiant. La requête est ensuite placée dans un champ texte.
+Il s'agit d'un formulaire permettant de gérer plusieurs variables. Un tenant doit être sélectionné au niveau du menu.
+Au niveau du formulaire, il faut choisir :
 
-Il est possible de vérifier sa validité avant de la lancer. Les résultats sont ensuite retournés sous format JSON.
+- contrat d'accès sur lequel lancer le test
+- la collection relative à la requête
+- l'action à tester
+- un identifiant (facultatif)
+
+La requête est ensuite écrite dans le champ texte de gauche. Le bouton "Valider JSON" permet de vérifier sa validité avant de l'envoyer. Un clic sur le bouton "Envoyer requête" affiche les résultats sous format JSON dans le champ texte de droite.
 
 .. image:: images/RECETTE_requetesdsl_ecran_principal.png
 
