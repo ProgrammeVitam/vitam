@@ -41,7 +41,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * Used to create admin external client : if configuration file does not exist 'access-external-client.conf',<br>
  * mock access client will be returned
  */
-public final class AdminExternalClientFactory extends VitamClientFactory<AdminExternalClient> {
+public class AdminExternalClientFactory extends VitamClientFactory<AdminExternalClient> {
 
     // Using same client config with access external client
     private static final String CONFIGURATION_FILENAME = "access-external-client.conf";

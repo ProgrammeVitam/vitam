@@ -26,29 +26,25 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.client;
 
+import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
+
+import java.io.InputStream;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.external.client.IngestCollection;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.processing.ProcessDetail;
-import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.InputStream;
-
-import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 
 /**
  * Mock client implementation for IngestExternal
@@ -83,53 +79,5 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
         IngestCollection type)
         throws VitamClientException {
         return ClientMockResultHelper.getObjectStream();
-    }
-
-    @Override
-    public RequestResponse<ItemStatus> getOperationProcessStatus(VitamContext vitamContext,
-        String id)
-        throws VitamClientException {
-        ItemStatus pwork = null;
-        try {
-            pwork = ClientMockResultHelper.getItemStatus(id);
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error(e);
-            throw new VitamClientException(e.getMessage(), e);
-        }
-        return new RequestResponseOK<ItemStatus>().addResult(pwork).setHttpCode(Status.OK.getStatusCode());
-    }
-
-    @Override
-    public RequestResponse<ItemStatus> getOperationProcessExecutionDetails(
-        VitamContext vitamContext, String id)
-        throws VitamClientException {
-        return new RequestResponseOK<ItemStatus>().addResult(new ItemStatus(ID)).setHttpCode(Status.OK.getStatusCode());
-    }
-
-    @Override
-    public RequestResponse<ItemStatus> cancelOperationProcessExecution(
-        VitamContext vitamContext, String id)
-        throws VitamClientException {
-        return new RequestResponseOK<ItemStatus>().addResult(new ItemStatus(ID)).setHttpCode(Status.OK.getStatusCode());
-    }
-
-    @Override
-    public RequestResponse<ItemStatus> updateOperationActionProcess(
-        VitamContext vitamContext, String actionId, String id)
-        throws VitamClientException {
-        return new RequestResponseOK<ItemStatus>().addResult(new ItemStatus(ID)).setHttpCode(Status.OK.getStatusCode());
-    }
-
-    @Override
-    public RequestResponse<ProcessDetail> listOperationsDetails(VitamContext vitamContext,
-        ProcessQuery query)
-        throws VitamClientException {
-        return new RequestResponseOK<ProcessDetail>().addResult(new ProcessDetail())
-            .setHttpCode(Status.OK.getStatusCode());
-    }
-
-    @Override
-    public RequestResponse<WorkFlow> getWorkflowDefinitions(VitamContext vitamContext) throws VitamClientException {
-        return new RequestResponseOK<WorkFlow>().addResult(new WorkFlow()).setHttpCode(Status.OK.getStatusCode());
     }
 }

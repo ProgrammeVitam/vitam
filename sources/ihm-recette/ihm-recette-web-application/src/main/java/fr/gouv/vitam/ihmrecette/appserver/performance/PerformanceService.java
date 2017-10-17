@@ -26,6 +26,9 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.performance;
 
+import fr.gouv.vitam.access.external.client.AdminExternalClient;
+import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
+import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -38,7 +41,6 @@ import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
-import fr.gouv.vitam.ingest.external.client.VitamPoolingClient;
 import io.reactivex.Flowable;
 import io.reactivex.schedulers.Schedulers;
 
@@ -73,6 +75,7 @@ public class PerformanceService {
     public static final String DEFAULT_CONTRACT_NAME = "test_perf";
     public static final int NUMBER_OF_RETRY = 100;
     private final IngestExternalClientFactory ingestClientFactory;
+    private final AdminExternalClientFactory adminClientFactory;     
 
     private AtomicBoolean performanceTestInProgress = new AtomicBoolean(false);
 
@@ -91,13 +94,14 @@ public class PerformanceService {
      * @param performanceReportDirectory base report directory
      */
     public PerformanceService(Path sipDirectory, Path performanceReportDirectory) {
-        this(IngestExternalClientFactory.getInstance(), sipDirectory, performanceReportDirectory);
+        this(IngestExternalClientFactory.getInstance(), AdminExternalClientFactory.getInstance(), sipDirectory, performanceReportDirectory);
     }
 
-    public PerformanceService(IngestExternalClientFactory ingestClientFactory, Path sipDirectory,
+    public PerformanceService(IngestExternalClientFactory ingestClientFactory, AdminExternalClientFactory adminClientFactory, Path sipDirectory,
         Path performanceReportDirectory) {
         this.sipDirectory = sipDirectory;
         this.ingestClientFactory = ingestClientFactory;
+        this.adminClientFactory = adminClientFactory;
         this.performanceReportDirectory = performanceReportDirectory;
     }
 
@@ -211,9 +215,10 @@ public class PerformanceService {
 
     private String uploadSIP(PerformanceModel model, Integer tenantId) {
         // TODO: client is it thread safe ?
-        LOGGER.debug("launch unitary test");
-        IngestExternalClient client = ingestClientFactory.getClient();
-        try (InputStream sipInputStream = Files.newInputStream(sipDirectory.resolve(model.getFileName()),
+        LOGGER.debug("launch unitary test");                
+        try (IngestExternalClient client = ingestClientFactory.getClient();
+            AdminExternalClient adminClient = adminClientFactory.getClient();
+            InputStream sipInputStream = Files.newInputStream(sipDirectory.resolve(model.getFileName()),
             StandardOpenOption.READ)) {
 
             RequestResponse<Void> response =
@@ -222,7 +227,7 @@ public class PerformanceService {
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
             int numberOfRetry = model.getNumberOfRetry() == null ? NUMBER_OF_RETRY : model.getNumberOfRetry();
-            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(client);
+            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(adminClient);
             vitamPoolingClient
                 .wait(tenantId, operationId, ProcessState.COMPLETED, numberOfRetry, 1000L, TimeUnit.MILLISECONDS);
 
@@ -231,15 +236,13 @@ public class PerformanceService {
         } catch (final Exception e) {
             LOGGER.error("unable to upload sip", e);
             return null;
-        } finally {
-            client.close();
         }
     }
 
     private String waitEndOfIngest(int tenantId, int numberOfRetry, String operationId) {
         LOGGER.debug("wait end of ingest");
-        try (IngestExternalClient client = ingestClientFactory.getClient()) {
-            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(client);
+        try (AdminExternalClient adminClient = adminClientFactory.getClient();) {
+            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(adminClient);
             vitamPoolingClient.wait(tenantId, operationId, ProcessState.COMPLETED, numberOfRetry, 1000L,
                 TimeUnit.MILLISECONDS);
             LOGGER.debug("finish unitary test");

@@ -43,6 +43,8 @@ import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.BasicClient;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
@@ -53,11 +55,13 @@ import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
+import fr.gouv.vitam.common.model.processing.ProcessDetail;
+import fr.gouv.vitam.common.model.processing.WorkFlow;
 
 /**
  * Admin External Client Interface
  */
-public interface AdminExternalClient extends BasicClient {
+public interface AdminExternalClient extends BasicClient, OperationStatusClient {
 
     /**
      * checkDocuments
@@ -220,6 +224,7 @@ public interface AdminExternalClient extends BasicClient {
     RequestResponse importContracts(VitamContext vitamContext, InputStream contracts,
         AdminCollections collection)
         throws InvalidParseOperationException, AccessExternalClientException;
+
     /**
      * Update the given access contract by query dsl
      * 
@@ -365,8 +370,8 @@ public interface AdminExternalClient extends BasicClient {
      */
     RequestResponse launchAudit(VitamContext vitamContext, JsonNode auditOption)
         throws AccessExternalClientServerException;
-    
-    
+
+
     /**
      * Find a format by its id.
      * 
@@ -463,7 +468,7 @@ public interface AdminExternalClient extends BasicClient {
      * Find an entry contract by its id.
      *
      * @param vitamContext the vitam context
-     * @param query        select query
+     * @param query select query
      * @return an ingest contract
      * @throws VitamClientException
      */
@@ -473,7 +478,7 @@ public interface AdminExternalClient extends BasicClient {
      * Find an accession register by its id.
      *
      * @param vitamContext the vitam context
-     * @param agencyById   the agency id
+     * @param agencyById the agency id
      * @return an accession register
      * @throws VitamClientException
      */
@@ -491,8 +496,8 @@ public interface AdminExternalClient extends BasicClient {
      * @throws VitamClientException
      */
     RequestResponse updateSecurityProfile(VitamContext vitamContext, String identifier,
-                                          JsonNode queryDsl)
-            throws VitamClientException;
+        JsonNode queryDsl)
+        throws VitamClientException;
 
     /**
      * Find security profiles by query dsl.
@@ -503,8 +508,8 @@ public interface AdminExternalClient extends BasicClient {
      * @throws VitamClientException
      */
     RequestResponse<SecurityProfileModel> findSecurityProfiles(VitamContext vitamContext,
-                                                               JsonNode select)
-            throws VitamClientException;
+        JsonNode select)
+        throws VitamClientException;
 
     /**
      * Find a security profile by its identifier.
@@ -516,9 +521,9 @@ public interface AdminExternalClient extends BasicClient {
      * @throws VitamClientException
      */
     RequestResponse<SecurityProfileModel> findSecurityProfileById(VitamContext vitamContext,
-                                                                  String identifier)
-            throws VitamClientException;
-    
+        String identifier)
+        throws VitamClientException;
+
     /**
      * Update the detail of the profile
      * 
@@ -528,6 +533,69 @@ public interface AdminExternalClient extends BasicClient {
      * @return a profile
      * @throws AccessExternalClientException
      */
-    RequestResponse updateProfile(VitamContext vitamContext, String profileMetadataId, JsonNode queryDsl) 
+    RequestResponse updateProfile(VitamContext vitamContext, String profileMetadataId, JsonNode queryDsl)
         throws AccessExternalClientException;
+
+    /**
+     * Get the list of operations details
+     * 
+     *
+     * @param vitamContext the vitam context
+     * @param query filter query
+     * @return list of operations details
+     * @throws VitamClientException
+     */
+    RequestResponse<ProcessDetail> listOperationsDetails(VitamContext vitamContext,
+        ProcessQuery query)
+        throws VitamClientException;
+
+    /**
+     * Update the oprration according to the action
+     * 
+     *
+     * @param vitamContext the vitam context
+     * @param actionId
+     * @param operationId
+     * @return the status
+     * @throws VitamClientException
+     */
+    RequestResponse<ItemStatus> updateOperationActionProcess(VitamContext vitamContext,
+        String actionId, String operationId)
+        throws VitamClientException;
+
+    /**
+     * 
+     *
+     * @param vitamContext the vitam context
+     * @param id
+     * @return the details of the operation
+     * @throws VitamClientException
+     */
+    RequestResponse<ItemStatus> getOperationProcessExecutionDetails(
+        VitamContext vitamContext, String id)
+        throws VitamClientException;
+
+    /**
+     * Cancel the operation
+     * 
+     *
+     * @param vitamContext the vitam context
+     * @param id
+     * @return the status
+     * @throws VitamClientException
+     * @throws IllegalArgumentException
+     */
+    RequestResponse<ItemStatus> cancelOperationProcessExecution(VitamContext vitamContext,
+        String id)
+        throws VitamClientException, IllegalArgumentException;
+
+
+    // FIXME P1 : is tenant really necessary ?
+    /**
+     * 
+     *
+     * @param vitamContext the vitam context@return the Workflow definitions
+     * @throws VitamClientException
+     */
+    RequestResponse<WorkFlow> getWorkflowDefinitions(VitamContext vitamContext) throws VitamClientException;
 }

@@ -52,6 +52,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ProcessAction;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
@@ -1117,5 +1119,85 @@ public class AdminManagementExternalResourceImplTest {
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().put(PROFILE_URI + "/" +  GOOD_ID)
             .then().statusCode(Status.OK.getStatusCode());
+    }
+    
+    @Test
+    public void listOperations()
+        throws Exception {
+
+        RestAssured.given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(new ProcessQuery())
+            .when().get("operations")
+            .then().statusCode(Status.OK.getStatusCode());
+    }
+    
+    @Test
+    public void cancelOperationTest()
+        throws Exception {
+        RestAssured.given()
+            .accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().delete("operations/1")
+            .then().statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void getWorkFlowExecutionStatusTest()
+        throws Exception {
+        RestAssured.given()
+            .accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().head("operations/1")
+            .then().statusCode(Status.ACCEPTED.getStatusCode());
+    }
+
+    @Test
+    public void getWorkFlowStatusTest()
+        throws Exception {
+        RestAssured.given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(new ProcessQuery())
+            .when().get("operations/1")
+            .then().statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void getWorkflowDefinitionsTest()
+        throws Exception {
+        RestAssured.given()
+            .accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get("workflows/")
+            .then().statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void updateWorkFlowStatusTest()
+        throws Exception {
+        RestAssured.given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_ACTION, ProcessAction.PAUSE.getValue())
+            .body(new ProcessQuery())
+            .when().put("operations/1")
+            .then().statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void updateWorkFlowStatusWithoutHeadersTest()
+        throws Exception {
+        RestAssured.given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(new ProcessQuery())
+            .when().put("operations/1")
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 }

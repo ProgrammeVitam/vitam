@@ -21,6 +21,10 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
@@ -32,12 +36,18 @@ import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
+import fr.gouv.vitam.common.model.processing.ProcessDetail;
+import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.stream.StreamUtils;
 
 /**
  * Mock client implementation for Admin External
  */
 public class AdminExternalClientMock extends AbstractMockClient implements AdminExternalClient {
+
+
+    public static final String ID = "identifier1";
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminExternalClientMock.class);
 
     @Override
     public Response checkDocuments(VitamContext vitamContext, AdminCollections documentType,
@@ -292,4 +302,53 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         throws AccessExternalClientException {
         return ClientMockResultHelper.getProfiles(200);
     }
+
+    @Override
+    public RequestResponse<ProcessDetail> listOperationsDetails(VitamContext vitamContext,
+        ProcessQuery query)
+        throws VitamClientException {
+        return new RequestResponseOK<ProcessDetail>().addResult(new ProcessDetail())
+            .setHttpCode(Status.OK.getStatusCode());
+    }
+
+    @Override
+    public RequestResponse<ItemStatus> getOperationProcessStatus(VitamContext vitamContext,
+        String id)
+        throws VitamClientException {
+        ItemStatus pwork = null;
+        try {
+            pwork = ClientMockResultHelper.getItemStatus(id);
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            throw new VitamClientException(e.getMessage(), e);
+        }
+        return new RequestResponseOK<ItemStatus>().addResult(pwork).setHttpCode(Status.OK.getStatusCode());
+    }
+
+    @Override
+    public RequestResponse<ItemStatus> getOperationProcessExecutionDetails(
+        VitamContext vitamContext, String id)
+        throws VitamClientException {
+        return new RequestResponseOK<ItemStatus>().addResult(new ItemStatus(ID)).setHttpCode(Status.OK.getStatusCode());
+    }
+
+    @Override
+    public RequestResponse<ItemStatus> cancelOperationProcessExecution(
+        VitamContext vitamContext, String id)
+        throws VitamClientException {
+        return new RequestResponseOK<ItemStatus>().addResult(new ItemStatus(ID)).setHttpCode(Status.OK.getStatusCode());
+    }
+
+    @Override
+    public RequestResponse<ItemStatus> updateOperationActionProcess(
+        VitamContext vitamContext, String actionId, String id)
+        throws VitamClientException {
+        return new RequestResponseOK<ItemStatus>().addResult(new ItemStatus(ID)).setHttpCode(Status.OK.getStatusCode());
+    }
+
+    @Override
+    public RequestResponse<WorkFlow> getWorkflowDefinitions(VitamContext vitamContext) throws VitamClientException {
+        return new RequestResponseOK<WorkFlow>().addResult(new WorkFlow()).setHttpCode(Status.OK.getStatusCode());
+    }
+
 }

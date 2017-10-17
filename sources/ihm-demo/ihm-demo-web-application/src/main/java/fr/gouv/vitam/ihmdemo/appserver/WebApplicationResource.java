@@ -73,7 +73,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -92,6 +91,7 @@ import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
+import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
@@ -128,6 +128,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
@@ -159,7 +160,6 @@ import fr.gouv.vitam.ingest.external.api.exception.IngestExternalClientServerExc
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
-import fr.gouv.vitam.ingest.external.client.VitamPoolingClient;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
 /**
@@ -630,7 +630,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         String contractName = headers.getHeaderString(GlobalDataRest.X_ACCESS_CONTRAT_ID);
 
         if (responseDetails != null) {
-            try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
+            try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
                 String id = responseDetails.get(GUID_INDEX).toString();
 
                 final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(client);
@@ -1715,6 +1715,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Get the workflow operations list for step by step ingest
      *
      * @param headers request headers
+     * @param query the query
      * @return the operations list
      */
     @POST
@@ -1722,7 +1723,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("operations:read")
     public Response listOperationsDetails(@Context HttpHeaders headers, ProcessQuery query) {
-        try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
+        try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
             String tenantIdHeader = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
             System.out.println("query: " + query.toString());
             RequestResponse<ProcessDetail> response =
@@ -1755,7 +1756,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         String tenantIdHeader = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
         String contractName = headers.getHeaderString(GlobalDataRest.X_ACCESS_CONTRAT_ID);
         final int tenantId = Integer.parseInt(tenantIdHeader);
-        try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
+        try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse<ItemStatus> response = client.updateOperationActionProcess(
                 new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()),
                 xAction, id);
@@ -1829,9 +1830,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response cancelProcess(@Context HttpHeaders headers, @PathParam("id") String id) {
         String tenantIdHeader = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
 
-        try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
+        try (AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse<ItemStatus> resp =
-                ingestExternalClient.cancelOperationProcessExecution(
+                adminClient.cancelOperationProcessExecution(
                     new VitamContext(Integer.parseInt(tenantIdHeader)).setApplicationSessionId(getAppSessionId()),
                     id);
             if (resp.isOk()) {
@@ -2376,7 +2377,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
+
     /**
      * Update the detail of the profile
      * 
@@ -2399,10 +2400,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 throw new InvalidCreateOperationException("Query not valid");
             }
             updateRequest.addActions(UpdateActionHelper.set((ObjectNode) updateOptions));
-            
+
             RequestResponse response =
                 adminClient.updateProfile(
-                    new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()), 
+                    new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()),
                     profileMetadataId, updateRequest.getFinalUpdate());
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).entity(response).build();
@@ -2412,7 +2413,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
             }
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            
+
         } catch (final Exception e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -2740,8 +2741,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getWorkflowDefinitions(@Context HttpHeaders headers) {
 
-        try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
-            RequestResponse<WorkFlow> result = ingestExternalClient.getWorkflowDefinitions(
+        try (AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            RequestResponse<WorkFlow> result = adminClient.getWorkflowDefinitions(
                 new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()));
             return Response.status(Status.OK).entity(result).build();
         } catch (VitamClientException e) {
@@ -2787,7 +2788,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             Status status =
                 adminClient.createDocuments(
-                    new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()), AdminCollections.AGENCIES,
+                    new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()),
+                    AdminCollections.AGENCIES,
                     input, headers.getHeaderString(GlobalDataRest.X_FILENAME));
             return Response.status(status).build();
         } catch (final AccessExternalClientException e) {
@@ -2805,7 +2807,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Find Service Agencies by DSL
      *
      * @param headers HTTP Headers
-     * @param  select the query to find Service Agency
+     * @param select the query to find Service Agency
      * @return Response
      */
     @POST

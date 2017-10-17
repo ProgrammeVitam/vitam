@@ -64,5 +64,11 @@ public class AccessExtAPI {
     public static final String AUDITS = "audits";
     public static final String AUDITS_API = "/" + AUDITS;
 
+    public static final String OPERATIONS = "operations";
+    public static final String OPERATIONS_API = "/" + OPERATIONS;
+    
+    public static final String WORKFLOWS = "workflows";
+    public static final String WORKFLOWS_API = "/" + WORKFLOWS;
+    
     public static final String SECURITY_PROFILES = "securityprofiles";
 }

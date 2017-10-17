@@ -52,7 +52,7 @@ Actuellement ce référentiel pour le contrôle d'accès aux API.
 
 Il est possible de gérer les processus en mode administrateur (CANCEL, PAUSE, NEXT).
 
-**NOTE IMPORTANTE** : Ce service sera déplacé dans la partie administration fonctionnelle. Il est pour le moment dans l'Entrée.
+**NOTE IMPORTANTE** : Ce service sera déplacé dans la partie administration fonctionnelle. Il est pour le moment dans l'Accès.
 
 
 # Sécurisation des journaux
