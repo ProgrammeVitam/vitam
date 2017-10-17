@@ -6,10 +6,10 @@ Liste des suites cryptographiques & protocoles supportés par Vitam
 
 Il est possible de consulter les ciphers supportés par Vitam dans deux fichiers disponibles sur ce chemin: `ansible-vitam/roles/vitam/templates/`
 
-* Le fichier jetty-config.xml.j2
+* Le fichier ``jetty-config.xml.j2``
     - La balise contenant l'attribut name="IncludeCipherSuites" référence les ciphers supportés
     - La balise contenant l'attribut name="ExcludeCipherSuites" référence les ciphers non supportés
-* Le fichier java.security.j2
+* Le fichier ``java.security.j2``
     - La ligne jdk.tls.disabledAlgorithms renseigne les ciphers désactivés au niveau java
 
 .. warning:: Les 2 balises concernant les ciphers sur le fichier jetty-config.xml.j2 sont complémentaires car elles comportent des wildcards (*) ; en cas de conflit, l'exclusion est prioritaire.

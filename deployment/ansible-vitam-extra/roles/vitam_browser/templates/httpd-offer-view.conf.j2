@@ -1,9 +1,9 @@
-<Directory "{{vitam_folder_root}}">
+<Directory "{{ vitam_defaults.folder.root_path }}">
     Options Indexes FollowSymLinks
 	Require all granted
 </Directory>
 
-Alias /browse "{{vitam_folder_root}}"
+Alias /browse "{{ vitam_defaults.folder.root_path }}"
 
 # mod_autoindex configuration : https://httpd.apache.org/docs/2.2/mod/mod_autoindex.html
 

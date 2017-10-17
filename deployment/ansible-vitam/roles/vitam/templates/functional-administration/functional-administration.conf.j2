@@ -3,24 +3,24 @@
 mongoDbNodes:
 {% for host in groups['mongos'] %}
 - dbHost: {{hostvars[host]['ip_service']}}
-  dbPort: {{vitam_mongodb_port}}
+  dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 dbName: masterdata
-dbAuthentication: {{mongo_authentication}}
+dbAuthentication: {{ mongodb.mongo_authentication }}
 dbUserName: {{mongoFunctionalAdminUser}}
 dbPassword: {{mongoFunctionalAdminPassword}}
 
 jettyConfig: jetty-config.xml
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
-workspaceUrl: {{vitam_workspace_baseurl}}
-processingUrl: {{vitam_processing_baseurl}}
+workspaceUrl: {{vitam.workspace | client_url}}
+processingUrl: {{vitam.processing | client_url}}
 
 # ElasticSearch
 clusterName: {{cluster_name}}
 elasticsearchNodes:
 {% for host in groups['hosts-elasticsearch-data'] %}
 - hostName: {{hostvars[host]['ip_service']}}
-  tcpPort: {{elasticsearch_data_tcp_port}}
+  tcpPort: {{ elasticsearch.elasticsearch_data.tcp_port }}
 {% endfor %}
 
 

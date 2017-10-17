@@ -50,9 +50,19 @@ metricbeat.modules:
   period: 10s
   processes: ['.*']
 
+{% if inventory_hostname in groups['mongoc'] %}
+- module: mongodb
+  hosts: ["{{ip_service}}:{{ mongodb.mongod_port }}"]
+  metricsets: ["dbstats", "status"]
+  username: {{mongoLocalAdminUser}}
+  password: {{mongoLocalAdminPassword}}
+  db: ["admin"]
+  period: 10s
+{% endif %}
+
 {% if inventory_hostname in groups['mongod'] %}
 - module: mongodb
-  hosts: ["{{ip_service}}:{{ mongod_port }}"]
+  hosts: ["{{ip_service}}:{{ mongodb.mongod_port }}"]
   metricsets: ["dbstats", "status"]
   username: {{mongoLocalAdminUser}}
   password: {{mongoLocalAdminPassword}}
@@ -62,7 +72,7 @@ metricbeat.modules:
 
 {% if inventory_hostname in groups['mongos'] %}
 - module: mongodb
-  hosts: ["{{ip_service}}:{{ mongos_port }}"]
+  hosts: ["{{ip_service}}:{{ mongodb.mongos_port }}"]
   metricsets: ["dbstats", "status"]
   username: {{mongoAdminUser}}
   password: {{mongoAdminPassword}}
@@ -76,7 +86,7 @@ metricbeat.modules:
 # - module: elasticsearch
 #   metricsets: ["node", "node_stats"]
 #   period: 10s
-#   hosts: ["{{ip_service}}:{{elasticsearch_data_http_port}}"]
+#   hosts: ["{{ip_service}}:{{ elasticsearch.elasticsearch_data.http_port }}"]
 # {% endif %}
 
 #================================ General =====================================
@@ -102,7 +112,7 @@ metricbeat.modules:
 #-------------------------- Elasticsearch output ------------------------------
 output.elasticsearch:
   # Array of hosts to connect to.
-  hosts: [{% for item in groups['hosts-elasticsearch-log'] %}"{{hostvars[item]['ip_admin']}}:{{elasticsearch_log_http_port}}"{% if not loop.last %},{% endif %}{% endfor %}]
+  hosts: [{% for item in groups['hosts-elasticsearch-log'] %}"{{hostvars[item]['ip_admin']}}:{{ elasticsearch.elasticsearch_log.http_port }}"{% if not loop.last %},{% endif %}{% endfor %}]
   # Added to automatically load index template
   template.name: "metricbeat"
   template.path: "metricbeat.template.json"

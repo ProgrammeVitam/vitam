@@ -9,17 +9,19 @@
   fail: msg="selinux detected and looks like to be set to enforcing mode, please set selinux to permissive or disabled."
   when: (selinux.stdout == "Enforcing" )
 
+# FIXME : put it in group_vars (root/root/555)
 - name: Ensure parent dir is OK ith correct permissions
   file:
-    path: "{{vitam_folder_root}}"
+    path: "{{vitam_defaults.folder.root_path}}"
     state: directory
     owner: root
     group: root
     mode: 0555
 
-- name: Ensure {{vitam_folder_root}} sub-directories exist
+# FIXME : put it in group_vars (root/root/555)
+- name: Ensure {{vitam_defaults.folder.root_path}} sub-directories exist
   file:
-    path: "{{vitam_folder_root}}/{{item}}"
+    path: "{{vitam_defaults.folder.root_path}}/{{ item }}"
     owner: root
     group: root
     state: directory
@@ -44,25 +46,16 @@
     shell: "yum clean all && yum --disablerepo='*' --enablerepo='local, vitam-*' makecache" 
     tags:
       - update_package_vitam
-  
   when: ansible_distribution == "CentOS"
-  # KWA review : Vérifier la présence des backports Jessie ?
-
- 
 
 - block:
   - name: check jessie-backports repo are present
     apt_repository:
-      repo: "{{item}}"
+      repo: "{{ item }}"
       state: present
     with_items:
       - "deb http://ftp.debian.org/debian {{ ansible_distribution_release }}-backports main"
       - "deb-src http://ftp.debian.org/debian {{ ansible_distribution_release }}-backports main"
-
-  # - name: Update apt cache
-  #   shell: "apt-get clean && apt-get update"
-  #   tags:
-  #     - update_package_vitam
   
   - name: run apt-update
     apt:

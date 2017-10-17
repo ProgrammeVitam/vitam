@@ -4,19 +4,19 @@
   template:
     src: "fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl"
     dest: "{{vitam_folder_data}}/fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl"
-    owner: "{{vitam_user}}"
-    group: "{{vitam_group}}"
-    mode: "{{vitam_conf_permission}}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   notify:
     - restart service
 
 - name: Check that storage_archives directory exists for storage component
   file:
-    path: "{{vitam_folder_root}}/data/{{ vitam_component }}/storage_archives"
+    path: "{{ vitam_defaults.folder.root_path }}/data/{{ vitam_component }}/storage_archives"
     state: directory
-    owner: "{{ vitam_user}}"
-    group: "{{ vitam_group }}"
-    mode: "{{ vitam_folder_permission }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
   notify:
     - restart service
 

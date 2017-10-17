@@ -30,8 +30,8 @@
 # TODO: We could use apache2_module of ansible but it is currently flagged as preview
 - name: Enable mod_ssl & mod_proxy (Debian)
   file:
-    src: "/etc/{{apache_service}}/mods-available/{{item}}"
-    dest: "/etc/{{apache_service}}/mods-enabled/{{item}}"
+    src: "/etc/{{apache_service}}/mods-available/{{ item }}"
+    dest: "/etc/{{apache_service}}/mods-enabled/{{ item }}"
     owner: "root"
     state: link
   when:  ansible_distribution == "Debian"
@@ -81,7 +81,7 @@
 
 - name: copy index resources
   copy:
-    src: "{{item}}"
+    src: "{{ item }}"
     dest: "/var/www/html-{{environnement}}/"
     owner: "root"
     mode: 0644
@@ -116,8 +116,8 @@
 
 - name: Copy the CA
   copy:
-    src: "{{inventory_dir}}/certs/client-external/ca/{{item}}"
-    dest: "/etc/{{apache_service}}/ca/{{environnement}}/{{item}}"
+    src: "{{inventory_dir}}/certs/client-external/ca/{{ item }}"
+    dest: "/etc/{{apache_service}}/ca/{{environnement}}/{{ item }}"
     owner: "root"
     mode: 0400
   when: "{{ lookup('pipe', 'test -d {{inventory_dir}}/certs/client-external/ca/ || echo nofolder') == \"\"}}"

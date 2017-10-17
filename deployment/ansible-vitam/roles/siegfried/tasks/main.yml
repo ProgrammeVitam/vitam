@@ -11,10 +11,6 @@
   service:
     name: vitam-siegfried
     enabled: true
+    state: started
   notify:
     - restart siegfried
-
-- name: Ensure service is started
-  service:
-    name: "vitam-siegfried"
-    state: started

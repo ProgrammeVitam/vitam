@@ -1,0 +1,16 @@
+---
+
+vitam:
+    ihm_recette:
+        host: "{{groups['hosts-ihm-recette'][0]}}"
+        port: 8204
+        port_admin: 28204
+        baseurl: /ihm-recette
+        static_content: "{{ vitam_defaults.folder.root_path }}/app/ihm-recette"
+        baseuri: "/ihm-recette"
+        port_https: 8445
+        secure_mode: authc
+
+docker_opts:
+    registry_httponly: yes
+    vitam_docker_tag: latest

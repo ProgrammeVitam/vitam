@@ -3,23 +3,23 @@
 mongoDbNodes:
 {% for server in groups['mongos'] %}
 - dbHost: {{hostvars[server]['ip_service']}}
-  dbPort: {{vitam_mongodb_port}}
+  dbPort: {{ mongodb.mongos_port }}
 {% endfor %}
 dbName: logbook
-dbAuthentication: {{mongo_authentication}}
+dbAuthentication: {{ mongodb.mongo_authentication }}
 dbUserName: {{mongoLogbookUser}}
 dbPassword: {{mongoLogbookPassword}}
 jettyConfig: jetty-config.xml
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
 p12LogbookPassword: {{keystores.timestamping.secure_logbook}}
 p12LogbookFile: keystore_secure-logbook.p12
-workspaceUrl: {{vitam_workspace_baseurl}}
-processingUrl: {{vitam_processing_baseurl}}
+workspaceUrl: {{ vitam.workspace | client_url }}
+processingUrl: {{ vitam.processing | client_url }}
 
 # ElasticSearch
 clusterName: {{cluster_name}}
 elasticsearchNodes:
 {% for server in groups['hosts-elasticsearch-data'] %}
 - hostName: {{hostvars[server]['ip_service']}}
-  tcpPort: {{elasticsearch_data_tcp_port}}
+  tcpPort: {{ elasticsearch.elasticsearch_data.tcp_port }}
 {% endfor %}

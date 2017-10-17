@@ -1,4 +1,4 @@
 ---
 
-mongo_config_path:  '{{vitam_folder_root}}/conf/mongos'
-mongo_db_path:      '{{vitam_folder_root}}/data/mongos/db'
+mongo_config_path:  '{{ vitam_defaults.folder.root_path }}/conf/mongos'
+mongo_db_path:      '{{ vitam_defaults.folder.root_path }}/data/mongos/db'

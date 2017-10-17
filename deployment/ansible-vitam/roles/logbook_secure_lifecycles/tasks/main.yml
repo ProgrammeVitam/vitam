@@ -21,8 +21,8 @@
 - name: ensure script belongs to vitam
   file:
     path: "/vitam/script/logbook/launchTraceabilityLFC.sh"
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
     mode: 0750
 
 - name: create cron entry for secure logbook lifecycles
@@ -30,7 +30,7 @@
     name: "Secure logbook lifecycles"
     minute: "10"
     hour: "0-23"
-    user: "{{ vitam_user }}"
+    user: "{{ vitam_defaults.users.vitam }}"
     job: "/vitam/script/logbook/launchTraceabilityLFC.sh >> /vitam/log/logbook/secure_logbook_lfc.log 2>&1"
   run_once: yes
   delegate_to: "{{ groups['hosts-logbook'] | last }}"

@@ -49,15 +49,15 @@
 
 - name: ensure subdir exist
   file:
-    path: "{{vitam_folder_root}}/data/ihm-recette/test-data/system"
+    path: "{{ vitam_defaults.folder.root_path }}/data/ihm-recette/test-data/system"
     state: directory
-    owner: "{{ vitam_user}}"
-    group: "{{ vitam_group }}"
-    mode: "{{ vitam_folder_permission }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
 
 - name: create git repo
   shell: git clone --no-checkout {{vitam_tests_gitrepo_url}} .
-  become_user: "{{vitam_user}}"
+  become_user: "{{ vitam_defaults.users.vitam }}"
   environment:
     http_proxy: "{{ http_proxy_environnement }}"
   args:
@@ -66,7 +66,7 @@
 
 - name: store auth
   shell: git config credential.helper 'store --file=/vitam/data/ihm-recette/test-data/system/.git/.git-credentials'
-  become_user: "{{vitam_user}}"
+  become_user: "{{ vitam_defaults.users.vitam }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
 
@@ -74,9 +74,9 @@
   template:
     src: git-credentials.j2
     dest: /vitam/data/ihm-recette/test-data/system/.git/.git-credentials
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
-    mode: "{{ vitam_conf_permission }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   when: vitam_gitlab_itest_login is defined
 
 
@@ -84,19 +84,19 @@
 # and https://git-scm.com/docs/git-credential-cache
 # - name: init cache for git
 #   shell: git config credential.helper 'store --timeout=3600 --socket=/vitam/data/ihm-recette/test-data/system/.git-credential-cache/socket'
-#   become_user: "{{vitam_user}}"
+#   become_user: "{{ vitam_defaults.users.vitam }}"
 #   args:
 #     chdir: /vitam/data/ihm-recette/test-data/system/
 
 # - name: init cache for git
 #   shell: git config credential.helper 'cache --timeout=3600 --socket=/vitam/data/ihm-recette/test-data/system/.git-credential-cache/socket'
-#   become_user: "{{vitam_user}}"
+#   become_user: "{{ vitam_defaults.users.vitam }}"
 #   args:
 #     chdir: /vitam/data/ihm-recette/test-data/system/
 
 - name: ensure git repo is clean on current branch
   shell: git clean -fd
-  become_user: "{{vitam_user}}"
+  become_user: "{{ vitam_defaults.users.vitam }}"
   environment:
     http_proxy: "{{ http_proxy_environnement }}"
   args:
@@ -109,7 +109,7 @@
 
 - name: get all branches from git repo
   shell: git fetch
-  become_user: "{{vitam_user}}"
+  become_user: "{{ vitam_defaults.users.vitam }}"
   environment:
     http_proxy: "{{ http_proxy_environnement }}"
   args:
@@ -118,7 +118,7 @@
 # KWA introduce branch variable
 - name: checkout branch
   shell: git checkout {{ vitam_tests_branch }}
-  become_user: "{{vitam_user}}"
+  become_user: "{{ vitam_defaults.users.vitam }}"
   environment:
     http_proxy: "{{ http_proxy_environnement }}"
   args:
@@ -128,7 +128,7 @@
 
 - name: rebase documents under git lfs
   shell: git rebase
-  become_user: "{{vitam_user}}"
+  become_user: "{{ vitam_defaults.users.vitam }}"
   environment:
     http_proxy: "{{ http_proxy_environnement }}"
   args:

@@ -33,10 +33,10 @@
 
 - name: Ensure logstash directories exist
   file:
-    path: "{{vitam_folder_root}}/{{item}}/logstash"
-    owner: logstash
+    path: "{{ vitam_defaults.folder.root_path }}/{{ item }}/logstash"
+    owner: "{{ logstash.user }}"
     state: directory
-    mode: "{{vitam_folder_permission}}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
   with_items:
     - data
     - log
@@ -48,16 +48,16 @@
 - name: ensure json conf extra  directory exists
   file:
     path: "{{logstash_confextra_dir}}"
-    owner: logstash
+    owner: "{{ logstash.user }}"
     state: directory
-    mode: "{{vitam_folder_permission}}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
   notify:
     - restart logstash
 
 - name: apply configuration files
   template:
-    src: "{{item}}.j2"
-    dest: "/etc/logstash/{{item}}"
+    src: "{{ item }}.j2"
+    dest: "/etc/logstash/{{ item }}"
     owner: root
     mode: 0644
   with_items:
@@ -70,10 +70,10 @@
 
 - name: configure logstash parser
   template:
-    src: "{{item}}.j2"
-    dest: "{{logstash_conf_dir}}/{{item}}"
-    owner: logstash
-    mode: "{{ vitam_conf_permission }}"
+    src: "{{ item }}.j2"
+    dest: "{{logstash_conf_dir}}/{{ item }}"
+    owner: "{{ logstash.user }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   with_items:
     - "01-logstash-vitam-input.conf"
     - "02-logstash-vitam-filter.conf"
@@ -85,17 +85,17 @@
   template:
     src: "vitam-patterns.j2"
     dest: "/usr/share/logstash/vendor/bundle/jruby/1.9/gems/logstash-patterns-core-4.1.2/patterns/vitam"
-    owner: logstash
+    owner: "{{ logstash.user }}"
   notify:
     - restart logstash
 
 
 # - name: configure extra parser configuration
 #   template:
-#     src: "{{item}}.j2"
-#     dest: "{{logstash_conf_dir}}/extra/{{item}}"
+#     src: "{{ item }}.j2"
+#     dest: "{{logstash_conf_dir}}/extra/{{ item }}"
 #     owner: logstash
-#     mode: "{{ vitam_conf_permission }}"
+#     mode: "{{ vitam_defaults.folder.conf_permission }}"
 #   with_items:
 #     - "elasticsearch-template.json"
 #   notify:
@@ -105,18 +105,18 @@
 
 - name: Ensure consul config dir is OK
   file:
-    path: "{{consul_folder_conf}}"
+    path: "{{ consul_folder_conf }}"
     state: directory
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
 
 - name: Deploy consul agent service declaration
   template:
     src: "service-{{ item }}.json.j2"
-    dest: "{{consul_folder_conf}}/service-{{ item }}.json"
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
+    dest: "{{ consul_folder_conf }}/service-{{ item }}.json"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   with_items:
     - logstash
   notify:

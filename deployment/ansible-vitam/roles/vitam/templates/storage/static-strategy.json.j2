@@ -4,7 +4,7 @@
         "copy" : {{ groups['hosts-storage-offer-default']|length }},
         "offers" : [
             {% for item in groups['hosts-storage-offer-default'] %}
-            {"id" : "{{item}}"}{% if not loop.last %},{% endif %}
+            {"id" : "{{ item }}"}{% if not loop.last %},{% endif %}
             {% endfor %}
         ]
     }

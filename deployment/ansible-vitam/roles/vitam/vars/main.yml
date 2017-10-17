@@ -1,10 +1,12 @@
 ---
 # vars file for common
-vitam_folder_bin: "{{vitam_folder_root}}/bin/{{vitam_component}}"
-vitam_folder_conf: "{{vitam_folder_root}}/conf/{{vitam_component}}"
-vitam_folder_data: "{{vitam_folder_root}}/data/{{vitam_component}}"
-vitam_folder_lib: "{{vitam_folder_root}}/lib/{{vitam_component}}"
-vitam_folder_log: "{{vitam_folder_root}}/log/{{vitam_component}}"
-vitam_folder_scripts: "{{vitam_folder_root}}/script/{{vitam_component}}"
-vitam_folder_tmp: "{{vitam_folder_root}}/tmp/{{vitam_component}}"
-vitam_folder_app: "{{vitam_folder_root}}/app/{{vitam_component}}"
+vitam_folder_bin: "{{ vitam_defaults.folder.root_path }}/bin/{{vitam_component}}"
+vitam_folder_conf: "{{ vitam_defaults.folder.root_path }}/conf/{{vitam_component}}"
+vitam_folder_data: "{{ vitam_defaults.folder.root_path }}/data/{{vitam_component}}"
+vitam_folder_lib: "{{ vitam_defaults.folder.root_path }}/lib/{{vitam_component}}"
+vitam_folder_log: "{{ vitam_defaults.folder.root_path }}/log/{{vitam_component}}"
+vitam_folder_scripts: "{{ vitam_defaults.folder.root_path }}/script/{{vitam_component}}"
+vitam_folder_tmp: "{{ vitam_defaults.folder.root_path }}/tmp/{{vitam_component}}"
+vitam_folder_app: "{{ vitam_defaults.folder.root_path }}/app/{{vitam_component}}"
+
+base_url: "{{ vitam_struct|client_url }}"

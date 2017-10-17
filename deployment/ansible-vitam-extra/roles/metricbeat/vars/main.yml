@@ -1,5 +1,5 @@
 ---
 # vars file for topbeat
-curator_conf_dir: "{{ vitam_folder_root }}/conf/curator"
-curator_log_dir: "{{ vitam_folder_root }}/log/curator"
+curator_conf_dir: "{{ vitam_defaults.folder.root_path }}/conf/curator"
+curator_log_dir: "{{ vitam_defaults.folder.root_path }}/log/curator"
 topbeat_processes: "java|node|mongod|mongos|sf|consul"

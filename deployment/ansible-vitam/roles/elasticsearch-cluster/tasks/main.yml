@@ -10,9 +10,9 @@
 
 # - name: Ensure elasticsearch directories do not exist
 #   file:
-#     path: "{{vitam_folder_root}}/{{item}}/{{cluster_name}}"
+#     path: "{{ vitam_defaults.folder.root_path }}/{{ item }}/{{cluster_name}}"
 #     state: absent
-#     mode: "{{vitam_folder_permission}}"
+#     mode: "{{ vitam_defaults.folder.folder_permission }}"
 #   with_items:
 #     - conf
 #     - data
@@ -83,10 +83,10 @@
 - name: ensure /var/run/{{cluster_name}} exists
   file:
     path: "/var/run/{{cluster_name}}"
-    owner: "{{ vitamdb_user }}"
-    group: "{{ vitam_group }}"
+    owner: "{{ vitam_defaults.users.vitamdb }}"
+    group: "{{ vitam_defaults.users.group }}"
     state: directory
-    mode: "{{vitam_folder_permission}}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
 
 - name: Disable standard Easticsearch service
   service:
@@ -106,11 +106,11 @@
 
 - name: Ensure elasticsearch directories exist
   file:
-    path: "{{vitam_folder_root}}/{{item}}/{{cluster_name}}"
-    owner: "{{ vitamdb_user }}"
-    group: "{{ vitam_group }}"
+    path: "{{ vitam_defaults.folder.root_path }}/{{ item }}/{{ cluster_name }}"
+    owner: "{{ vitam_defaults.users.vitamdb }}"
+    group: "{{ vitam_defaults.users.group }}"
     state: directory
-    mode: "{{vitam_folder_permission}}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
   with_items:
     - conf
     - data
@@ -121,11 +121,11 @@
 
 - name: Ensure elasticsearch sysconfig directory exist
   file:
-    path: "{{vitam_folder_root}}/conf/{{cluster_name}}/sysconfig"
-    owner: "{{ vitamdb_user }}"
-    group: "{{ vitam_group }}"
+    path: "{{ elasticsearch_conf_dir }}/sysconfig"
+    owner: "{{ vitam_defaults.users.vitamdb }}"
+    group: "{{ vitam_defaults.users.group }}"
     state: directory
-    mode: "{{vitam_folder_permission}}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
   notify:
     - restart elasticsearch
 
@@ -133,9 +133,9 @@
 - name: Configure limits max_open_files for Elasticsearch
   lineinfile:
     dest: /etc/security/limits.conf
-    regexp: '^{{ vitamdb_user }}     -    nofile    {{ elasticsearch_max_open_files }}'
+    regexp: '^{{ vitam_defaults.users.vitamdb }}     -    nofile    {{ elasticsearch_max_open_files }}'
     insertafter: EOF
-    line: '{{ vitamdb_user }}     -    nofile    {{ elasticsearch_max_open_files }}'
+    line: '{{ vitam_defaults.users.vitamdb }}     -    nofile    {{ elasticsearch_max_open_files }}'
   when: elasticsearch_max_open_files is defined
   notify:
     - restart elasticsearch
@@ -143,10 +143,10 @@
 - name: apply elasticsearch configuration yml
   template:
     src: "elasticsearch.{{groupe}}.yml.j2"
-    dest: "{{elasticsearch_conf_dir}}/elasticsearch.yml"
-    owner: "{{ vitamdb_user }}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
+    dest: "{{ elasticsearch_conf_dir }}/elasticsearch.yml"
+    owner: "{{ vitam_defaults.users.vitamdb }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   notify:
     - restart elasticsearch
 
@@ -154,9 +154,9 @@
   template:
     src: "{{item}}.j2"
     dest: "{{elasticsearch_conf_dir}}/{{item}}"
-    owner: "{{ vitamdb_user }}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
+    owner: "{{ vitam_defaults.users.vitamdb }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   with_items:
     - "log4j2.properties"
   notify:
@@ -167,9 +167,9 @@
   template:
     src: "elasticsearch.j2"
     dest: "{{elasticsearch_conf_dir}}/sysconfig/elasticsearch"
-    owner: "{{ vitamdb_user }}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
+    owner: "{{ vitam_defaults.users.vitamdb }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   notify:
     - restart elasticsearch
 
@@ -177,6 +177,7 @@
 
 # Cf. https://serverfault.com/questions/546966/whats-removing-stuff-from-var-run-at-reboots-from-a-fedora-machine
 # Cf. https://www.freedesktop.org/software/systemd/man/tmpfiles.d.html
+# FIXME : special owner/group/mode has to be variables !
 - name: add {{cluster_name}}.conf in tempfile.d
   template:
     src: "tempfile.d-elasticsearch.conf.j2"
@@ -199,16 +200,16 @@
   file:
     path: "{{consul_folder_conf}}"
     state: directory
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
 
 - name: Deploy consul agent service declaration
   template:
     src: "service-componentid.json.j2"
     dest: "{{ consul_folder_conf }}/service-{{ cluster_name }}.json"
-    owner: "{{ vitam_user }}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   notify:
    - reload consul configuration
 

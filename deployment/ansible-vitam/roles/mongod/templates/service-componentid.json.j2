@@ -1,13 +1,13 @@
 {
   "service": {
     "name": "mongod",
-    "port": {{ mongod_port }},
+    "port": {{ mongodb.mongod_port }},
     "enableTagOverride": false,
     "checks": [
       {
         "id": "app-status",
         "notes": "Status mongod",
-        "tcp": "localhost:{{ mongod_port }}",
+        "tcp": "localhost:{{ mongodb.mongod_port }}",
         "interval": "1s"
       }
     ]

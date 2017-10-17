@@ -25,5 +25,5 @@
 # accept its terms.
 #*******************************************************************************
 JAVA_OPTS="{{ gc_opts }} {{ memory_opts }} {{ java_opts }} -Dorg.owasp.esapi.resources={{ vitam_folder_conf }} -Dlogback.configurationFile={{vitam_folder_conf}}/logback.xml -Dvitam.config.folder={{ vitam_folder_conf }} -Dvitam.data.folder={{ vitam_folder_data }} -Dvitam.tmp.folder={{ vitam_folder_tmp }} -Dvitam.log.folder={{ vitam_folder_log}} -Djava.security.properties={{vitam_folder_conf}}/java.security"
-JAVA_ARGS="{{ java_args }}"
+JAVA_ARGS="/vitam/conf/{{vitam_component}}/{{vitam_component}}.conf"
 

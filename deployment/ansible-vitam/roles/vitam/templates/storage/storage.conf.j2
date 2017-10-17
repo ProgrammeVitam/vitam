@@ -1,4 +1,4 @@
-urlWorkspace: {{vitam_workspace_baseurl}}
+urlWorkspace: {{ vitam.workspace | client_url }}
 timeoutMsPerKB: 100
 jettyConfig: jetty-config.xml
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]

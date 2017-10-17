@@ -1,5 +1,5 @@
-urlMetadata: {{vitam_metadata_baseurl}}
-urlWorkspace: {{vitam_workspace_baseurl}}
+urlMetadata: {{ vitam_struct | client_url }}
+urlWorkspace: {{ vitam.workspace | client_url }}
 jettyConfig: jetty-config.xml
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
 workflowRefreshPeriod: 1

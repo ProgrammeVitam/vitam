@@ -18,11 +18,11 @@
 
 - name: Check that the directories exists (must be removed when the RPM plugin will be patched)
   file:
-    path: "{{vitam_folder_root}}/{{ item }}/mongod"
+    path: "{{ vitam_defaults.folder.root_path }}/{{ item }}/mongod"
     state: directory
-    owner: "{{ vitamdb_user }}"
-    group: "{{vitam_group}}"
-    mode: "{{vitam_folder_permission}}"
+    owner: "{{ vitam_defaults.users.vitamdb }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
   with_items:
     - app
     - bin
@@ -37,20 +37,21 @@
 
 - name: Create db directory
   file:
-    path: "{{mongod_folder_database}}"
-    owner: "{{vitamdb_user}}"
-    group: "{{vitam_group}}"
+    path: "{{ mongo_db_path }}"
+    owner: "{{ vitam_defaults.users.vitamdb }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
     state: directory
-    mode: "{{vitam_folder_permission}}"
   notify:
     - restart mongod
 
 - name: Create the mongod configuration server file
   template:
     src: "mongod.conf.j2"
-    dest: "{{mongo_config_path}}/mongod.conf"
-    owner: "{{ vitamdb_user }}"
-    mode: "{{vitam_conf_permission}}"
+    dest: "{{ mongo_config_path }}/mongod.conf"
+    owner: "{{ vitam_defaults.users.vitamdb }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   notify:
     - restart mongod
 
@@ -58,18 +59,19 @@
 
 - name: Ensure consul config dir is OK
   file:
-    path: "{{consul_folder_conf}}"
+    path: "{{ consul_folder_conf }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
     state: directory
-    owner: "{{vitam_user}}"
-    group: "{{vitam_group}}"
 
 - name: Deploy consul agent service declaration
   template:
     src: "service-componentid.json.j2"
-    dest: "{{consul_folder_conf}}/service-mongod.json"
-    owner: "{{vitam_user}}"
-    group: "{{vitam_group}}"
-    mode: "{{vitam_conf_permission}}"
+    dest: "{{ consul_folder_conf }}/service-mongod.json"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   notify:
    - reload consul configuration
 
@@ -91,8 +93,8 @@
   template:
     src: "keyfile.j2"
     dest: "{{ mongo_config_path }}/keyfile"
-    owner: "{{ vitamdb_user}}"
-    group: "{{vitam_group}}"
+    owner: "{{ vitam_defaults.users.vitamdb }}"
+    group: "{{ vitam_defaults.users.group }}"
     mode: 0600
 
 # Now lest's initiate the replica set
@@ -104,33 +106,33 @@
     - name: Wait for the service port to be open on all members of the replica
       wait_for:
         host: "{{ item }}"
-        port: "{{mongod_port}}"
-        timeout: "{{service_restart_timeout}}"
+        port: "{{ mongodb.mongod_port }}"
+        timeout: "{{ vitam_defaults.services.start_timeout }}"
       when: "hostvars[item]['mongo_shard_id'] == mongo_shard_id"
       with_items: "{{ groups['mongod'] }}"
 
     - name: Copy the script which initiate the replica set
       template:
         src: "init-replica.js.j2"
-        dest: "{{vitam_folder_root}}/app/mongod/init-replica.js"
-        owner: "{{vitamdb_user}}"
-        group: "{{vitam_group}}"
-        mode: "{{vitam_conf_permission}}"
+        dest: "{{ vitam_defaults.folder.root_path }}/app/mongod/init-replica.js"
+        owner: "{{ vitam_defaults.users.vitamdb }}"
+        group: "{{ vitam_defaults.users.group }}"
+        mode: "{{ vitam_defaults.folder.conf_permission }}"
 
     - name: Initiate the replica set
-      command: mongo --port {{mongod_port}} {{vitam_folder_root}}/app/mongod/init-replica.js
+      command: mongo --port {{ mongodb.mongod_port }} {{ vitam_defaults.folder.root_path }}/app/mongod/init-replica.js
 
     # Create the local shard admin user
 
     - name: Copy the script which create the local users
       template:
         src: "local-user.js.j2"
-        dest: "{{vitam_folder_root}}/app/mongod/local-user.js"
-        owner: "{{vitamdb_user}}"
-        group: "{{vitam_group}}"
-        mode: "{{vitam_conf_permission}}"
+        dest: "{{ vitam_defaults.folder.root_path }}/app/mongod/local-user.js"
+        owner: "{{ vitam_defaults.users.vitamdb }}"
+        group: "{{ vitam_defaults.users.group }}"
+        mode: "{{ vitam_defaults.folder.conf_permission }}"
 
     - name: Create the local shard user
-      command: "mongo --host shard{{mongo_shard_id}}/localhost:27019 {{vitam_folder_root}}/app/mongod/local-user.js"
+      command: "mongo --host shard{{ mongo_shard_id }}/localhost:27019 {{ vitam_defaults.folder.root_path }}/app/mongod/local-user.js"
 
   when: mongo_rs_bootstrap is defined and mongo_rs_bootstrap|lower == "true"

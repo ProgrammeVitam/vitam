@@ -65,12 +65,19 @@ Ensuite, dans la section ``hosts:vars``, renseigner les valeurs comme décrit :
    "vitam_tests_branch","Branche à récupérer sur le git lfs","master"
 
 
-A titre informatif, le positionnement des variables ainsi que des dérivations des déclarations de variables sont effectuées sous |repertoire_inventory| ``/group_vars/all/all``, comme suit :
+A titre informatif, le positionnement des variables ainsi que des dérivations des déclarations de variables sont effectuées dans les fichiers suivants :
 
-.. literalinclude:: ../../../../deployment/environments/group_vars/all/all
-   :language: yaml
-   :linenos:
+* |repertoire_inventory| ``/group_vars/all/vitam_vars.yml``, comme suit :
 
+  .. literalinclude:: ../../../../deployment/environments/group_vars/all/vitam_vars.yml
+     :language: yaml
+     :linenos:
+
+** |repertoire_inventory| ``/group_vars/all/cots_vars.yml``, comme suit :
+
+  .. literalinclude:: ../../../../deployment/environments/group_vars/all/cots_vars.yml
+     :language: yaml
+     :linenos:
 
 Le fichier ``vault-vitam.yml`` est également présent sous |repertoire_inventory| ``/group_vars/all/all`` et contient les secrets ; ce fichier est encrypté par ``ansible-vault`` et doit être paramétré avant le lancement de l'orchestration de déploiement.
 

@@ -1,8 +1,8 @@
-http.port={{cerebro_port}}
-http.address= {{ip_service}}
+http.port={{ cerebro.port }}
+http.address= {{ ip_service }}
 # Secret will be used to sign session cookies, CSRF tokens and for other encryption utilities.
 # It is highly recommended to change this value before running cerebro in production.
-secret = "{{cerebro_secret_key}}"
+secret = "{{ cerebro_secret_key }}"
 
 # Application base path
 basePath = "/cerebro/"
@@ -15,7 +15,7 @@ pidfile.path = "/dev/null"
 rest.history.size = 50 // defaults to 50 if not specified
 
 # Path of local database file
-data.path = "/vitam/data/cerebro/cerebro.db"
+data.path = "{{vitam_defaults.folder.root_path}}/data/cerebro/cerebro.db"
 
 # Authentication
 auth = {

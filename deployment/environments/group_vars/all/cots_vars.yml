@@ -1,0 +1,38 @@
+---
+
+elasticsearch:
+    elasticsearch_log:
+        host: "elasticsearch-log.service.{{ consul_domain }}"
+        http_port: "9201"
+        tcp_port: "9301"
+    elasticsearch_data:
+        host: "elasticsearch-data.service.{{ consul_domain }}"
+        http_port: "9200"
+        tcp_port: "9300"
+
+mongodb:
+    mongos_port: 27017
+    mongoc_port: 27018
+    mongod_port: 27019
+    mongo_authentication: "true"
+    host: "mongos.service.{{ consul_domain }}"
+
+logstash:
+    user: logstash
+    port: 10514
+    rest_port: 20514
+
+kibana:
+    # FIXME : changing port doesn't work, yet (not taken into account in kibana configuration)
+    log_port: 5601
+    # KWA FIXME : changing port doesn't work, yet (not taken into account in kibana configuration)
+    data_port: 5601
+
+cerebro:
+    port: 9000
+
+siegfried:
+    port: 19000
+
+clamav:
+    port: 3310

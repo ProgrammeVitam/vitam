@@ -3,13 +3,13 @@
 
 # TODO: put the timeout in global variable (timeout to wait for mongo to be open)
 - name: Wait for the service port to be open
-  wait_for: port={{mongos_port}} timeout="{{service_restart_timeout}}"
+  wait_for: port={{ mongodb.mongos_port }} timeout="{{ vitam_defaults.services.start_timeout }}"
   run_once: true
 
 # Detect if authentication is enabled
 
 - name: Check if authent is enabled
-  command: "mongo localhost:{{mongos_port}}/admin -u {{mongoAdminUser}} -p {{mongoAdminPassword}} --quiet --eval 'db.help()'"
+  command: "mongo localhost:{{ mongodb.mongos_port }}/admin -u {{mongoAdminUser}} -p {{mongoAdminPassword}} --quiet --eval 'db.help()'"
   run_once: true
   register: mongo_authent_enabled
   failed_when: false
@@ -41,18 +41,18 @@
 
 - name: Copy the database scripts files
   template:
-    src: "{{item}}.j2"
-    dest: "{{vitam_folder_root}}/app/mongos/{{item}}"
-    owner: "{{vitamdb_user}}"
-    group: "{{vitam_group}}"
-    mode: "{{vitam_conf_permission}}"
-  with_items: "{{ lookup('pipe','find {{role_path}}/templates/ -type f  -exec basename {} .j2 \\;').split('\n') }}"
+    src: "{{ item }}.j2"
+    dest: "{{ vitam_defaults.folder.root_path }}/app/mongos/{{ item }}"
+    owner: "{{ vitam_defaults.users.vitamdb }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+  with_items: "{{ lookup('pipe','find {{ role_path }}/templates/ -type f  -exec basename {} .j2 \\;').split('\n') }}"
   run_once: true
 
 # Enable sharding for specific databases and collections
 
 - name: Enable the sharding
-  command: mongo localhost:{{mongos_port}}/admin {{mongo_credentials}} {{vitam_folder_root}}/app/mongos/enable-sharding.js
+  command: mongo localhost:{{ mongodb.mongos_port }}/admin {{mongo_credentials}} {{ vitam_defaults.folder.root_path }}/app/mongos/enable-sharding.js
   run_once: true
   no_log: true
 
@@ -60,7 +60,7 @@
 # FIXME: use mongodb_user module which is curently in extras modules -> need to install pymongo on mongodb servers
 
 - name: Create the users
-  command: "mongo localhost:{{mongos_port}}/admin {{mongo_credentials}} {{vitam_folder_root}}/app/mongos/users-{{item}}.js"
+  command: "mongo localhost:{{ mongodb.mongos_port }}/admin {{mongo_credentials}} {{ vitam_defaults.folder.root_path }}/app/mongos/users-{{ item }}.js"
   run_once: true
   with_items:
     - admin
@@ -76,39 +76,39 @@
 #  (caution : it seems that we can only create one user while being anonymous after security enabling)
 - name: Activate security on mongos instances
   blockinfile:
-    dest: "{{mongos_config_path}}/mongos.conf"
+    dest: "{{ mongos_config_path }}/mongos.conf"
     insertafter: "# ansible managed security conf"
     block: |
       security:
         clusterAuthMode: keyFile
-        keyFile: "{{mongos_config_path}}/keyfile"
-  delegate_to: "{{item}}"
+        keyFile: "{{ mongos_config_path }}/keyfile"
+  delegate_to: "{{ item }}"
   with_items: "{{groups['mongos']}}"
   run_once: true
 
 - name: Activate security on mongod instances
   blockinfile:
-    dest: "{{mongod_config_path}}/mongod.conf"
+    dest: "{{ mongod_config_path }}/mongod.conf"
     insertafter: "# ansible managed security conf"
     block: |
       security:
         authorization: enabled
         clusterAuthMode: keyFile
-        keyFile: "{{mongod_config_path}}/keyfile"
-  delegate_to: "{{item}}"
+        keyFile: "{{ mongod_config_path }}/keyfile"
+  delegate_to: "{{ item }}"
   with_items: "{{groups['mongod']}}"
   run_once: true
 
 - name: Activate security on mongoc instances
   blockinfile:
-    dest: "{{mongoc_config_path}}/mongoc.conf"
+    dest: "{{ mongoc_config_path }}/mongoc.conf"
     insertafter: "# ansible managed security conf"
     block: |
       security:
         authorization: enabled
         clusterAuthMode: keyFile
-        keyFile: "{{mongoc_config_path}}/keyfile"
-  delegate_to: "{{item}}"
+        keyFile: "{{ mongoc_config_path }}/keyfile"
+  delegate_to: "{{ item }}"
   with_items: "{{groups['mongoc']}}"
   run_once: true
 
@@ -119,7 +119,7 @@
      name: vitam-mongod
      enabled: true
      state: restarted
-  delegate_to: "{{item}}"
+  delegate_to: "{{ item }}"
   with_items: "{{groups['mongod']}}"
   run_once: true
 
@@ -128,7 +128,7 @@
      name: vitam-mongoc
      enabled: true
      state: restarted
-  delegate_to: "{{item}}"
+  delegate_to: "{{ item }}"
   with_items: "{{groups['mongoc']}}"
   run_once: true
 
@@ -137,20 +137,20 @@
      name: vitam-mongos
      enabled: true
      state: restarted
-  delegate_to: "{{item}}"
+  delegate_to: "{{ item }}"
   with_items: "{{groups['mongos']}}"
   run_once: true
 
 # Make sure the service is open (mongos listening on 27017)
 
 - name: Wait for the service port to be open
-  wait_for: port={{mongos_port}} timeout="{{service_restart_timeout}}"
+  wait_for: port={{ mongodb.mongos_port }} timeout="{{ vitam_defaults.services.start_timeout }}"
   run_once: true
 
 # Initiate the databases (now we know that authentication is enabled)
 
 - name: Initiate the databases
-  command: "mongo localhost:{{mongos_port}}/admin -u {{mongoAdminUser}} -p {{mongoAdminPassword}} --quiet {{vitam_folder_root}}/app/mongos/init-{{item}}-database.js"
+  command: "mongo localhost:{{ mongodb.mongos_port }}/admin -u {{mongoAdminUser}} -p {{mongoAdminPassword}} --quiet {{ vitam_defaults.folder.root_path }}/app/mongos/init-{{ item }}-database.js"
   run_once: true
   with_items:
     - admin

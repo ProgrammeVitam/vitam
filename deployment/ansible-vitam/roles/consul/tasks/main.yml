@@ -17,11 +17,11 @@
 
 - name: Check that the consul directories exist
   file:
-    path: "{{vitam_folder_root}}/{{ item }}/{{consul_component}}"
+    path: "{{vitam_defaults.folder.root_path}}/{{ item }}/{{consul_component}}"
     state: directory
-    owner: "{{ vitam_user}}"
-    group: "{{ vitam_group }}"
-    mode: "0750"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
   with_items:
     - app
     - bin
@@ -35,11 +35,11 @@
   
 - name: Deploy consul common configuration files
   template:
-    src: "{{item}}.j2"
-    dest: "{{consul_folder_conf}}/{{item}}"
-    owner: "{{ vitam_user}}"
-    group: "{{ vitam_group }}"
-    mode: "{{vitam_conf_permission}}"
+    src: "{{ item }}.j2"
+    dest: "{{ consul_folder_conf }}/{{ item }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   with_items:
     - "consul.json"
   notify:
@@ -99,7 +99,7 @@
 
     - name: Start the vitam-resolvconf service
       systemd:
-        name: "{{item}}"
+        name: "{{ item }}"
         enabled: yes
         state: started
       with_items:
