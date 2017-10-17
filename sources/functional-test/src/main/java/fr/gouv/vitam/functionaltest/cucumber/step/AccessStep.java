@@ -52,6 +52,7 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Then;
@@ -541,7 +542,57 @@ public class AccessStep {
 
     }
 
-
+    /**
+     * Search an archive unit and retrieve object groups according to the query define before. Step 1 : request search
+     * unit with #object in projection. Step 2 : on each unit search object group.
+     *
+     * @throws Throwable
+     */
+    @When("^je recherche les groupes d'objets des unités archivistiques$")
+    public void search_archive_unit_object_group() throws Throwable {
+        ObjectNode queryJSON = (ObjectNode) JsonHandler.getFromString(query);
+        // update projection to unsure object id is in projection
+        if (queryJSON.get("$projection") == null) {
+            queryJSON.set("$projection", JsonHandler.createObjectNode());
+        }
+        if (queryJSON.get("$projection").get("$fields") == null) {
+            ((ObjectNode) queryJSON.get("$projection")).set("$fields", JsonHandler.createObjectNode());
+        }
+        if (queryJSON.get("$projection").get("$fields").get("#object") == null) {
+            ((ObjectNode) queryJSON.get("$projection").get("$fields")).put("#object", 1);
+        }
+ 
+        // Search units
+        RequestResponse<JsonNode> requestResponseUnit = world.getAccessClient().selectUnits(
+            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+            .setApplicationSessionId(world.getApplicationSessionId()),queryJSON);
+        if (requestResponseUnit.isOk()) {
+            RequestResponseOK<JsonNode> responseOK = (RequestResponseOK<JsonNode>) requestResponseUnit;
+            List<JsonNode> unitResults = responseOK.getResults();
+            RequestResponseOK<JsonNode> objectGroupsResponseOK = new RequestResponseOK<>();
+            for (JsonNode unitResult : unitResults) {
+                // search object group on unit
+                RequestResponse responseObjectGroup =
+                    world.getAccessClient().selectObjectMetadatasByUnitId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                        .setApplicationSessionId(world.getApplicationSessionId()),new SelectMultiQuery().getFinalSelect(),
+                        unitResult.get("#id").asText());
+                if (responseObjectGroup.isOk()) {
+                    List<JsonNode> objectGroupResults =
+                        ((RequestResponseOK<JsonNode>) responseObjectGroup).getResults();
+                    if (objectGroupResults != null && !objectGroupResults.isEmpty()) {
+                        objectGroupsResponseOK.addAllResults(objectGroupResults);
+                    }
+                } else {
+                    VitamError vitamError = (VitamError) responseObjectGroup;
+                    Fail.fail("request selectObject return an error: " + vitamError.getCode());
+                }
+            }
+            results = objectGroupsResponseOK.getResults();
+        } else {
+            VitamError vitamError = (VitamError) requestResponseUnit;
+            Fail.fail("request selectUnit for GOT return an error: " + vitamError.getCode());
+        }
+    }
 
     /**
      * Search an archive unit and retrieve object groups according to the query define before. Search object group with
