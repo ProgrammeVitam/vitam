@@ -82,7 +82,6 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
@@ -375,50 +374,6 @@ public class AdminManagementExternalResourceImpl {
         }
     }
 
-    /**
-     * Import an entry contract
-     *
-     * @param document inputStream representing the data to import
-     * @return The jaxRs Response
-     */
-    @Path("/ingestcontracts")
-    @POST
-    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "ingestcontracts:create:binary",
-        description = "Importer des contrats d'entrées dans le référentiel")
-    public Response importIngestContracts(InputStream document) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        try {
-            ParametersChecker.checkParameter("document is a mandatory parameter", document);
-            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                JsonNode json = JsonHandler.getFromInputStream(document);
-                SanityChecker.checkJsonAll(json);
-                Status status =
-                    client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(json.toString(),
-                        new TypeReference<List<IngestContractModel>>() {}));
-                // Send the http response with no entity and the status got from internalService;
-                ResponseBuilder ResponseBuilder = Response.status(status);
-                return ResponseBuilder.build();
-            } catch (final ReferentialException e) {
-                LOGGER.error(e);
-                return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
-            } catch (InvalidParseOperationException e) {
-                LOGGER.error(e);
-                return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
-            }
-        } catch (final IllegalArgumentException e) {
-            LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
-        } finally {
-            StreamUtils.closeSilently(document);
-        }
-    }
-
     private Response downloadTraceabilityOperationFile(String operationId) {
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             final Response response = client.downloadTraceabilityFile(operationId);
@@ -482,49 +437,6 @@ public class AdminManagementExternalResourceImpl {
     }
 
     /**
-     * Import an access contract document
-     *
-     * @param document inputStream representing the data to import
-     * @return The jaxRs Response
-     */
-    @Path("/accesscontracts")
-    @POST
-    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "accesscontracts:create:binary",
-        description = "Importer des contrats d'accès dans le référentiel")
-    public Response importAccessContracts(InputStream document) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        try {
-            ParametersChecker.checkParameter("document is a mandatory parameter", document);
-            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-
-                JsonNode json = JsonHandler.getFromInputStream(document);
-                SanityChecker.checkJsonAll(json);
-                Status status = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(json.toString(),
-                    new TypeReference<List<AccessContractModel>>() {}));
-                // Send the http response with no entity and the status got from internalService;
-                ResponseBuilder ResponseBuilder = Response.status(status);
-                return ResponseBuilder.build();
-            } catch (final ReferentialException e) {
-                LOGGER.error(e);
-                return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
-            } catch (InvalidParseOperationException e) {
-                return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
-            }
-        } catch (final IllegalArgumentException e) {
-            LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
-        } finally {
-            StreamUtils.closeSilently(document);
-        }
-    }
-
-    /**
      * Import a set of access contracts.
      *
      * @param select the select query to find document
@@ -557,54 +469,6 @@ public class AdminManagementExternalResourceImpl {
         } catch (InvalidParseOperationException e) {
             return Response.status(Status.BAD_REQUEST)
                 .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
-        }
-    }
-
-    /**
-     * Import contexts
-     *
-     * @param document inputStream representing the data to import
-     * @return The jaxRs Response
-     */
-    @Path("/contexts")
-    @POST
-    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "contexts:create:binary", description = "Importer des contextes dans le référentiel")
-    public Response importContexts(InputStream document) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        try {
-            ParametersChecker.checkParameter("document is a mandatory parameter", document);
-            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-
-                JsonNode json = JsonHandler.getFromInputStream(document);
-                SanityChecker.checkJsonAll(json);
-                Status status = client.importContexts(JsonHandler.getFromStringAsTypeRefence(json.toString(),
-                    new TypeReference<List<ContextModel>>() {}));
-
-
-                // Send the http response with no entity and the status got from internalService;
-                ResponseBuilder ResponseBuilder = Response.status(status);
-                return ResponseBuilder.build();
-            } catch (final FileRulesImportInProgressException e) {
-                LOGGER.warn(e);
-                return Response.status(Status.FORBIDDEN)
-                    .entity(getErrorEntity(Status.FORBIDDEN, e.getMessage(), null)).build();
-            } catch (final ReferentialException e) {
-                LOGGER.error(e);
-                return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
-            } catch (InvalidParseOperationException e) {
-                return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
-            }
-        } catch (final IllegalArgumentException e) {
-            LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
-        } finally {
-            StreamUtils.closeSilently(document);
         }
     }
 
@@ -916,7 +780,8 @@ public class AdminManagementExternalResourceImpl {
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "ingestcontracts:read", description = "Lister le contenu du référentiel des contrats d'entrée")
+    @Secured(permission = "ingestcontracts:read",
+        description = "Lister le contenu du référentiel des contrats d'entrée")
     public Response findIngestContracts(JsonNode select) {
 
         addRequestId();
@@ -1205,44 +1070,6 @@ public class AdminManagementExternalResourceImpl {
             LOGGER.error(e);
             final Status status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
-        }
-    }
-
-    /**
-     * Create or update an accession register
-     *
-     * @param select the select query to find document
-     * @return Response
-     * @throws DatabaseConflictException
-     */
-    @Path("/accession-registers")
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "accession-registers:create",
-        description = "Permet de créer ou de modifier le registre des fonds.")
-    // FIXME : EST-CE VRAIMENT UNE BONNE IDEE d'exposer une API external pour modifier le registre des fonds?!!!
-    public Response createOrUpdateAccessionRegister(JsonNode select)
-        throws DatabaseConflictException {
-
-        addRequestId();
-        ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-
-            SanityChecker.checkJsonAll(select);
-            RequestResponse requestResponse =
-                client.createorUpdateAccessionRegister(JsonHandler.getFromStringAsTypeRefence(select.toString(),
-                    new TypeReference<AccessionRegisterDetailModel>() {}));
-
-            return Response.status(requestResponse.getStatus())
-                .entity(requestResponse).build();
-        } catch (final ReferentialException e) {
-            LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
-        } catch (InvalidParseOperationException e) {
-            return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
         }
     }
 
@@ -1565,7 +1392,8 @@ public class AdminManagementExternalResourceImpl {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "ingestcontracts:id:update", description = "Effectuer une mise à jour sur un contrat d'entrée")
+    @Secured(permission = "ingestcontracts:id:update",
+        description = "Effectuer une mise à jour sur un contrat d'entrée")
     public Response updateIngestContract(@PathParam("id") String id, JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException {
         addRequestId();
@@ -1715,50 +1543,7 @@ public class AdminManagementExternalResourceImpl {
                 .setDescription(e.getMessage())).build();
         }
     }
-
-    /**
-     * Import security profile documents
-     *
-     * @param document inputStream representing the security profiles to import
-     * @return The Response
-     */
-    @Path("/securityprofiles")
-    @POST
-    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "securityprofiles:create:binary",
-        description = "Importer des profiles de sécurité dans le référentiel")
-    public Response importSecurityProfiles(InputStream document) {
-
-        addRequestId();
-        try {
-            ParametersChecker.checkParameter("document is a mandatory parameter", document);
-            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-
-                JsonNode json = JsonHandler.getFromInputStream(document);
-                SanityChecker.checkJsonAll(json);
-                Status status = client.importSecurityProfiles(JsonHandler.getFromStringAsTypeRefence(json.toString(),
-                    new TypeReference<List<SecurityProfileModel>>() {}));
-                // Send the http response with no entity and the status got from internalService;
-                ResponseBuilder ResponseBuilder = Response.status(status);
-                return ResponseBuilder.build();
-            } catch (final ReferentialException e) {
-                LOGGER.error(e);
-                return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
-            } catch (InvalidParseOperationException e) {
-                return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
-            }
-        } catch (final IllegalArgumentException e) {
-            LOGGER.error(e);
-            final Status status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
-        } finally {
-            StreamUtils.closeSilently(document);
-        }
-    }
-
+  
     /**
      * Import security profile documents
      *
@@ -2072,7 +1857,7 @@ public class AdminManagementExternalResourceImpl {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "operations:id:update #1", description = "Changer le statut d'une opération donnée")
+    @Secured(permission = "operations:id:update", description = "Changer le statut d'une opération donnée")
     public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id) {
         ParametersChecker.checkParameter("ACTION Request must not be null",
             headers.getRequestHeader(GlobalDataRest.X_ACTION));

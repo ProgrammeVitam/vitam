@@ -38,8 +38,6 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.external.client.IngestCollection;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -50,7 +48,6 @@ import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
  * Mock client implementation for IngestExternal
  */
 class IngestExternalClientMock extends AbstractMockClient implements IngestExternalClient {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalClientMock.class);
     private static final String FAKE_X_REQUEST_ID = "aedqaaaaacaam7mxaaaamakvhiv4rsiaaa0";
     public static final String MOCK_INGEST_EXTERNAL_RESPONSE_STREAM = "VITAM-Ingest External Client Mock Response";
     final int TENANT_ID = 0;

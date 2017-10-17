@@ -567,7 +567,9 @@ public class TransferNotificationActionHandler extends ActionHandler {
                                 dotr.setDataObjectGroupId(dataOGID);
                                 usedDataObjectGroup.add(dataOGID);
                             }
-                            dotr.setDataObjectVersion(dataObjectDetail.getVersion());
+                            if (dataObjectDetail != null) {
+                                dotr.setDataObjectVersion(dataObjectDetail.getVersion());
+                            }
                             dotr.setDataObjectGroupSystemId(objectGroupSystemGuid.get(dataOGID).toString());
                             writeXMLFragment(dotr, xmlsw);
                             if (dataObjectSystemGuid.get(idObj) != null) {
@@ -598,11 +600,9 @@ public class TransferNotificationActionHandler extends ActionHandler {
         Map<String, String> systemGuidArchiveUnitId = null;
 
         if (archiveUnitSystemGuid != null) {
-            if (archiveUnitSystemGuid != null) {
-                systemGuidArchiveUnitId = new HashMap<>();
-                for (final Map.Entry<String, Object> entry : archiveUnitSystemGuid.entrySet()) {
-                    systemGuidArchiveUnitId.put(entry.getValue().toString(), entry.getKey());
-                }
+            systemGuidArchiveUnitId = new HashMap<>();
+            for (final Map.Entry<String, Object> entry : archiveUnitSystemGuid.entrySet()) {
+                systemGuidArchiveUnitId.put(entry.getValue().toString(), entry.getKey());
             }
         }
 
@@ -644,12 +644,13 @@ public class TransferNotificationActionHandler extends ActionHandler {
             }
         }
 
-
-        for (final Map.Entry<String, String> entry : systemGuidArchiveUnitId.entrySet()) {
-            final ArchiveUnitReplyTypeRoot au = new ArchiveUnitReplyTypeRoot();
-            au.setId(entry.getValue());
-            au.setSystemId(entry.getKey());
-            writeXMLFragment(au, xmlsw);
+        if (systemGuidArchiveUnitId != null) {
+            for (final Map.Entry<String, String> entry : systemGuidArchiveUnitId.entrySet()) {
+                final ArchiveUnitReplyTypeRoot au = new ArchiveUnitReplyTypeRoot();
+                au.setId(entry.getValue());
+                au.setSystemId(entry.getKey());
+                writeXMLFragment(au, xmlsw);
+            }
         }
 
     }

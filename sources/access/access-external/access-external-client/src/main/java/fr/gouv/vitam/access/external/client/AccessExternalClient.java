@@ -202,35 +202,6 @@ public interface AccessExternalClient extends BasicClient {
     RequestResponse<LogbookLifecycle> selectObjectGroupLifeCycleById(
         VitamContext vitamContext, String idObject, JsonNode select)
         throws VitamClientException;
-
-
-    /**
-     * DIP export of the unit (xml representation with SEDA schema)
-     * 
-     *
-     * @param vitamContext the vitam context
-     * @param queryDsl
-     * @param idUnit
-     * @return unit with a xml representation
-     * @throws AccessExternalClientServerException
-     */
-    Response getUnitByIdWithXMLFormat(VitamContext vitamContext, JsonNode queryDsl, String idUnit)
-        throws AccessExternalClientServerException;
-
-    /**
-     * DIP export of the Object Group (xml representation with SEDA schema) Be careful in the external you cannot access
-     * directly to the Object group
-     *
-     *
-     * @param vitamContext the vitam context
-     * @param queryDsl the given query dsl
-     * @param idUnit the given unit
-     * @return object group with a xml representation
-     * @throws AccessExternalClientServerException
-     */
-    Response getObjectGroupByIdWithXMLFormat(VitamContext vitamContext, JsonNode queryDsl,
-        String idUnit)
-        throws AccessExternalClientServerException;
 }
 
 

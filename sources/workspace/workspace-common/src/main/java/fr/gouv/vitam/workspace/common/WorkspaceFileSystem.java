@@ -491,12 +491,12 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
     /**
      * Extract compressed SIP and push the objects on the SIP folder
      *
-     * @param containerName     GUID
-     * @param folderName        folder Name
-     * @param archiverType      archive type zip, tar tar.gz
+     * @param containerName GUID
+     * @param folderName folder Name
+     * @param archiverType archive type zip, tar tar.gz
      * @param inputStreamObject :compressed SIP stream
      * @throws ContentAddressableStorageCompressedFileException if the file is not a zip or an empty zip
-     * @throws ContentAddressableStorageException               if an IOException occurs when extracting the file
+     * @throws ContentAddressableStorageException if an IOException occurs when extracting the file
      */
     private void extractArchiveInputStreamOnContainer(final String containerName, final String folderName,
         final MediaType archiverType, final InputStream inputStreamObject)

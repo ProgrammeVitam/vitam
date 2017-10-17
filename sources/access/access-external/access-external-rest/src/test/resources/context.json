@@ -1,0 +1,36 @@
+[
+  {
+    "Name": "My_Context_1",
+    "Status": true,
+    "SecurityProfile" : "SEC_PROFILE-000001",
+    "Permissions": [
+      {
+        "_tenant": 0,
+        "AccessContracts": ["AccessContract0", "AccessContract1"],
+        "IngestContracts": ["ArchivalAgreement0"]
+      },
+      {
+        "_tenant": 1,
+        "AccessContracts": ["AccessContract1"],
+        "IngestContracts": ["ArchivalAgreement1"]
+      }
+    ]
+  },
+  {
+    "Name": "My_Context_2",
+    "Status": false,
+    "SecurityProfile" : "SEC_PROFILE-000001",
+    "Permissions": [
+      {
+        "_tenant": 0,
+        "AccessContracts": ["AccessContract0"],
+        "IngestContracts": ["ArchivalAgreement0"]
+      },
+      {
+        "_tenant": 1,
+        "AccessContracts": ["AccessContract1"],
+        "IngestContracts": ["ArchivalAgreement1"]
+      }
+    ]
+  }
+]

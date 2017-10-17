@@ -32,26 +32,19 @@ import java.io.InputStream;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
 import javax.ws.rs.HeaderParam;
+import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.ProcessingException;
 import javax.ws.rs.Produces;
-import javax.ws.rs.OPTIONS;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.IngestCollection;
@@ -59,25 +52,15 @@ import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.InternalServerException;
-import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.EndpointInfo;
 import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
 import fr.gouv.vitam.common.security.rest.Secured;
@@ -110,12 +93,11 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * Constructor IngestExternalResource
      *
      * @param ingestExternalConfiguration the configuration of server resource
-     * @param secureEndpointRegistry 
+     * @param secureEndpointRegistry
      */
     public IngestExternalResource(
-            IngestExternalConfiguration ingestExternalConfiguration,
-            SecureEndpointRegistry secureEndpointRegistry
-            ) {
+        IngestExternalConfiguration ingestExternalConfiguration,
+        SecureEndpointRegistry secureEndpointRegistry) {
         this.ingestExternalConfiguration = ingestExternalConfiguration;
         this.secureEndpointRegistry = secureEndpointRegistry;
         LOGGER.info("init Ingest External Resource server");
@@ -124,6 +106,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
 
     /**
      * List secured resource end points
+     * 
      * @return response
      */
     @Path("/")
@@ -142,10 +125,10 @@ public class IngestExternalResource extends ApplicationStatusResource {
     /**
      * upload the file in local
      *
-     * @param contextId           the context id of upload
-     * @param action              in workflow
+     * @param contextId the context id of upload
+     * @param action in workflow
      * @param uploadedInputStream data input stream
-     * @param asyncResponse       the asynchronized response
+     * @param asyncResponse the asynchronized response
      */
     @Path("ingests")
     @POST
@@ -208,7 +191,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @GET
     @Path("/ingests/{objectId}/reports")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "ingests:id:reports:read", description = "Récupérer l'accusé de récéption pour une opération d'entrée donnée")
+    @Secured(permission = "ingests:id:reports:read",
+        description = "Récupérer l'accusé de récéption pour une opération d'entrée donnée")
     public Response downloadIngestReportsAsStream(@PathParam("objectId") String objectId) {
         return downloadObjectAsync(objectId, IngestCollection.REPORTS);
     }
@@ -228,7 +212,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @GET
     @Path("/ingests/{objectId}/manifests")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "ingests:id:manifests:read", description = "Récupérer le bordereau de versement pour une opération d'entrée donnée")
+    @Secured(permission = "ingests:id:manifests:read",
+        description = "Récupérer le bordereau de versement pour une opération d'entrée donnée")
     public Response downloadIngestManifestsAsStream(@PathParam("objectId") String objectId) {
         return downloadObjectAsync(objectId, IngestCollection.MANIFESTS);
     }
@@ -246,7 +231,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
     @GET
     @Path("/ingests/{objectId}/rules")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "ingests:id:report:read", description = "Récupérer le rapport pour une opération d'administration donnée")
+    @Secured(permission = "ingests:id:report:read",
+        description = "Récupérer le rapport pour une opération d'administration donnée")
     public Response downloadIngestReportAsStream(@PathParam("objectId") String objectId) {
         return downloadObjectAsync(objectId, IngestCollection.RULES);
     }
@@ -258,97 +244,30 @@ public class IngestExternalResource extends ApplicationStatusResource {
         } catch (IllegalArgumentException e) {
             LOGGER.error("IllegalArgumentException was thrown : ", e);
             return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorStream(
-                        VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_BAD_REQUEST, e.getLocalizedMessage())))
-                    .build();
+                .entity(getErrorStream(
+                    VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_BAD_REQUEST, e.getLocalizedMessage())))
+                .build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Predicates Failed Exception", e);
             return Response.status(Status.PRECONDITION_FAILED)
-                    .entity(getErrorStream(
-                        VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_PRECONDITION_FAILED,
-                            e.getLocalizedMessage())))
-                    .build();
+                .entity(getErrorStream(
+                    VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_PRECONDITION_FAILED,
+                        e.getLocalizedMessage())))
+                .build();
         } catch (final IngestInternalClientServerException e) {
             LOGGER.error("Internal Server Exception ", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                    .entity(getErrorStream(
-                        VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_SERVER_ERROR,
-                            e.getLocalizedMessage())))
-                    .build();
+                .entity(getErrorStream(
+                    VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_SERVER_ERROR,
+                        e.getLocalizedMessage())))
+                .build();
         } catch (final IngestInternalClientNotFoundException e) {
             LOGGER.error("Request resources does not exits", e);
             return Response.status(Status.NOT_FOUND)
-                    .entity(getErrorStream(
-                        VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_NOT_FOUND, e.getLocalizedMessage())))
-                    .build();
-        }
-    }    
-
-    // FIXME: 4/18/17 why uploadedInputStream ? should we remove this parameter? ItemStatus resp also is not used ?!!
-
-    /**
-     * Execute the process of an operation related to the id.
-     *
-     * @param headers             contain X-Action and X-Context-ID
-     * @param id                  operation identifier
-     * @param uploadedInputStream input stream to upload
-     * @return http response
-     * @throws InternalServerException       if request resources server exception
-     * @throws VitamClientException          if the server is unreachable
-     * @throws InvalidGuidOperationException if error when create guid
-     * @throws ProcessingException           if error in workflow execution
-     * @deprecated use PUT method /operation/id
-     */
-    @Path("/operations/{id}")
-    @POST
-    @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR,
-        CommonMediaType.BZIP2})
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "operations:id:update #2", description = "Gérer le cycle de vie d'un workflow donné")
-    @Deprecated // FIXME see 2745 to decide if we need the method or not
-    public Response executeWorkFlow(@Context HttpHeaders headers, @PathParam("id") String id,
-        InputStream uploadedInputStream) {
-        Status status;
-        ItemStatus resp = null;
-        ParametersChecker.checkParameter("content Type Request must not be null",
-            headers.getRequestHeader(HttpHeaders.CONTENT_TYPE));
-        ParametersChecker.checkParameter("context Id Request must not be null",
-            headers.getRequestHeader(GlobalDataRest.X_CONTEXT_ID));
-
-        final String xContextId = headers.getRequestHeader(GlobalDataRest.X_CONTEXT_ID).get(0);
-        try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
-            SanityChecker.checkParameter(id);
-            ingestInternalClient.executeOperationProcess(id, null, xContextId, null);
-
-        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
-            // if the entry argument if illegal
-            LOGGER.error(e);
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status)
-                .entity(getErrorStream(status, e.getLocalizedMessage()))
-                .build();
-        } catch (VitamClientException e) {
-            LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(getErrorStream(status, e.getLocalizedMessage()))
-                .build();
-        } catch (InternalServerException e) {
-            LOGGER.error(e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(getErrorStream(status, e.getLocalizedMessage()))
-                .build();
-        } catch (BadRequestException e) {
-            LOGGER.error(e);
-            status = Status.BAD_REQUEST;
-            return Response.status(status)
-                .entity(getErrorStream(status, e.getLocalizedMessage()))
+                .entity(getErrorStream(
+                    VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_NOT_FOUND, e.getLocalizedMessage())))
                 .build();
         }
-
-        return Response.status(Status.OK).entity(resp).build();
-
     }
 
     private InputStream getErrorStream(VitamError vitamError) {
@@ -358,19 +277,4 @@ public class IngestExternalResource extends ApplicationStatusResource {
             return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
         }
     }
-
-    @Deprecated
-    private InputStream getErrorStream(Status status, String message) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
-        try {
-            return JsonHandler.writeToInpustream(new VitamError(status.name())
-                .setHttpCode(status.getStatusCode()).setContext(ServiceName.EXTERNAL_INGEST.getName())
-                .setState("code_vitam").setMessage(status.getReasonPhrase()).setDescription(aMessage));
-        } catch (InvalidParseOperationException e) {
-            return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
-        }
-    }
-    
 }

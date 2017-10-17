@@ -139,8 +139,6 @@ public class AgenciesService implements VitamAutoCloseable {
 
     public static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AgenciesService.class);
 
-    private static final String AGENCIES_IS_MANDATORY_PATAMETER = "agency parameter is mandatory";
-    private static final String UPDATE_AGENCIES_MANDATORY_PATAMETER = "agency is mandatory";
     private static final String TMP = "tmpAgencies";
     private static final String CSV = "csv";
     private static final String JSON = "json";
@@ -156,8 +154,6 @@ public class AgenciesService implements VitamAutoCloseable {
     private final LogbookOperationsClient logBookclient;
     private final VitamCounterService vitamCounterService;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
-    private final StorageClientFactory storageClientFactory;
-    private final WorkspaceClientFactory workspaceClientFactory;
 
     private AgenciesManager manager;
     private Map<Integer, List<ErrorReportAgencies>> errorsMap;
@@ -178,7 +174,7 @@ public class AgenciesService implements VitamAutoCloseable {
     /**
      * Constructor
      *
-     * @param mongoAccess         MongoDB client
+     * @param mongoAccess MongoDB client
      * @param vitamCounterService
      * @param securisator
      */
@@ -196,8 +192,6 @@ public class AgenciesService implements VitamAutoCloseable {
         agenciesToUpdate = new ArrayList<>();
         agenciesToDelete = new ArrayList<>();
         agenciesInDb = new ArrayList<>();
-        this.storageClientFactory = StorageClientFactory.getInstance();
-        this.workspaceClientFactory = WorkspaceClientFactory.getInstance();
         finder = new ContractsFinder(mongoAccess, vitamCounterService);
     }
 
@@ -218,8 +212,6 @@ public class AgenciesService implements VitamAutoCloseable {
         agenciesToUpdate = new ArrayList<>();
         agenciesToDelete = new ArrayList<>();
         agenciesInDb = new ArrayList<>();
-        this.storageClientFactory = storageClientFactory;
-        this.workspaceClientFactory = workspaceClientFactory;
         finder = new ContractsFinder(mongoAccess, vitamCounterService);
 
     }
@@ -311,7 +303,8 @@ public class AgenciesService implements VitamAutoCloseable {
                 if (unitsResultNode != null && unitsResultNode.get("$results").size() > 0) {
                     usedAgenciesByAU.add(agency);
                 }
-            } catch (InvalidCreateOperationException | InvalidParseOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
+            } catch (InvalidCreateOperationException | InvalidParseOperationException | MetaDataExecutionException |
+                MetaDataDocumentSizeException | MetaDataClientServerException e) {
                 LOGGER.error("Query construction not valid ", e);
             }
         }
@@ -398,8 +391,7 @@ public class AgenciesService implements VitamAutoCloseable {
      * @throws InvalidParseOperationException
      */
     public void checkFile(InputStream stream)
-        throws
-        ReferentialException,
+        throws ReferentialException,
         IOException,
         InvalidCreateOperationException,
         InvalidParseOperationException {
@@ -478,13 +470,9 @@ public class AgenciesService implements VitamAutoCloseable {
         for (AgenciesModel agencyToImport : agenciesToImport) {
             for (AgenciesModel agencyInDb : agenciesInDb) {
 
-                if (
-                    agencyInDb.getIdentifier().equals(agencyToImport.getIdentifier())
-                        &&
-                        (!agencyInDb.getName().equals(agencyToImport.getName()) ||
-                            !agencyInDb.getDescription().equals(agencyToImport.getDescription())
-                        )
-                    ) {
+                if (agencyInDb.getIdentifier().equals(agencyToImport.getIdentifier()) &&
+                    (!agencyInDb.getName().equals(agencyToImport.getName()) ||
+                        !agencyInDb.getDescription().equals(agencyToImport.getDescription()))) {
 
                     agenciesToUpdate.add(agencyToImport);
                 }
@@ -578,7 +566,7 @@ public class AgenciesService implements VitamAutoCloseable {
             errorStream.close();
             return generateVitamError(MESSAGE_ERROR + exp.getMessage());
         } finally {
-            //  StreamUtils.closeSilently(stream);
+            // StreamUtils.closeSilently(stream);
         }
 
         return new RequestResponseOK<AgenciesModel>().setHttpCode(Response.Status.CREATED.getStatusCode());

@@ -124,46 +124,48 @@ public class CreateManifest extends ActionHandler {
 
             try {
                 File manifestFile = handlerIO.getNewLocalFile(SEDA_FILE);
-                OutputStream outputStream = new FileOutputStream(manifestFile);
 
-                ListMultimap<String, String> multimap = ArrayListMultimap.create();
-                Map<String, String> ogs = new HashMap<>();
+                try (OutputStream outputStream = new FileOutputStream(manifestFile)) {
 
-                for (JsonNode result : results) {
-                    String id = result.get(id()).asText();
-                    ArrayNode nodes = (ArrayNode) result.get(VitamFieldsHelper.allunitups());
-                    for (JsonNode node : nodes) {
-                        multimap.put(node.asText(), id);
+                    ListMultimap<String, String> multimap = ArrayListMultimap.create();
+                    Map<String, String> ogs = new HashMap<>();
+
+                    for (JsonNode result : results) {
+                        String id = result.get(id()).asText();
+                        ArrayNode nodes = (ArrayNode) result.get(VitamFieldsHelper.allunitups());
+                        for (JsonNode node : nodes) {
+                            multimap.put(node.asText(), id);
+                        }
+                        originatingAgencies.add(result.get(VitamFieldsHelper.originatingAgency()).asText());
+                        JsonNode jsonNode1 = result.get(VitamFieldsHelper.object());
+                        if (jsonNode1 != null) {
+                            ogs.put(id, jsonNode1.asText());
+                        }
                     }
-                    originatingAgencies.add(result.get(VitamFieldsHelper.originatingAgency()).asText());
-                    JsonNode jsonNode1 = result.get(VitamFieldsHelper.object());
-                    if (jsonNode1 != null) {
-                        ogs.put(id, jsonNode1.asText());
+
+                    if (originatingAgencies.size() > 1) {
+                        itemStatus.increment(StatusCode.KO);
+                        ObjectNode infoNode = JsonHandler.createObjectNode();
+                        infoNode.put("Reason",
+                            "Too many originating agencies (dip must have only units of one originating agencies)");
+                        String evdev = JsonHandler.unprettyPrint(infoNode);
+                        itemStatus.setEvDetailData(evdev);
+                        return new ItemStatus(CREATE_MANIFEST).setItemsStatus(CREATE_MANIFEST, itemStatus);
                     }
+
+                    Select select = new Select();
+                    InQuery in = QueryHelper.in(id(), ogs.values().toArray(new String[ogs.size()]));
+                    select.setQuery(in);
+                    JsonNode node = client.selectObjectGroups(select.getFinalSelect());
+                    ArrayNode objects = (ArrayNode) node.get("$results");
+
+                    buildManifest(results, outputStream, multimap, Iterables.getOnlyElement(originatingAgencies),
+                        objects,
+                        ogs);
+                    handlerIO.transferFileToWorkspace(SEDA_FILE, manifestFile, true, false);
                 }
-
-                if (originatingAgencies.size() > 1) {
-                    itemStatus.increment(StatusCode.KO);
-                    ObjectNode infoNode = JsonHandler.createObjectNode();
-                    infoNode.put("Reason",
-                        "Too many originating agencies (dip must have only units of one originating agencies)");
-                    String evdev = JsonHandler.unprettyPrint(infoNode);
-                    itemStatus.setEvDetailData(evdev);
-                    return new ItemStatus(CREATE_MANIFEST).setItemsStatus(CREATE_MANIFEST, itemStatus);
-                }
-
-                Select select = new Select();
-                InQuery in = QueryHelper.in(id(), ogs.values().toArray(new String[ogs.size()]));
-                select.setQuery(in);
-                JsonNode node = client.selectObjectGroups(select.getFinalSelect());
-                ArrayNode objects = (ArrayNode) node.get("$results");
-
-                buildManifest(results, outputStream, multimap, Iterables.getOnlyElement(originatingAgencies), objects,
-                    ogs);
-                outputStream.close();
-                handlerIO.transferFileToWorkspace(SEDA_FILE, manifestFile, true, false);
-
-            } catch (XMLStreamException | JAXBException | DatatypeConfigurationException | InvalidCreateOperationException e) {
+            } catch (XMLStreamException | JAXBException | DatatypeConfigurationException |
+                InvalidCreateOperationException e) {
                 throw new ProcessingException(e);
             }
 
@@ -261,7 +263,8 @@ public class CreateManifest extends ActionHandler {
         originatingAgencyType.setIdentifier(identifierType);
         marshaller.marshal(
             new JAXBElement<>(new QName(NAMESPACE_URI, TAG_ORIGINATINGAGENCY),
-                OrganizationWithIdType.class, originatingAgencyType), writer);
+                OrganizationWithIdType.class, originatingAgencyType),
+            writer);
 
         writer.writeEndElement();
 

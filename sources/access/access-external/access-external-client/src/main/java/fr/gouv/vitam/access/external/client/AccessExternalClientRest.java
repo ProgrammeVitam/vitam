@@ -340,48 +340,4 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             throw new VitamClientException(e);
         }
     }
-
-    @Override
-    public Response getUnitByIdWithXMLFormat(VitamContext vitamContext, JsonNode queryDsl,
-        String idUnit)
-        throws AccessExternalClientServerException {
-
-        ParametersChecker.checkParameter(BLANK_DSL, queryDsl);
-        ParametersChecker.checkParameter(BLANK_UNIT_ID, idUnit);
-
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
-
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.GET, "units/" + idUnit, headers, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_XML_TYPE);
-            return response;
-        } catch (VitamClientInternalException e) {
-            consumeAnyEntityAndClose(response);
-            LOGGER.error("Error while getUnitByIdWithXMLFormat ", e);
-            throw new AccessExternalClientServerException(e);
-        }
-    }
-
-    @Override
-    @Deprecated
-    public Response getObjectGroupByIdWithXMLFormat(VitamContext vitamContext,
-        JsonNode queryDsl, String idUnit)
-        throws AccessExternalClientServerException {
-        ParametersChecker.checkParameter(BLANK_DSL, queryDsl);
-        ParametersChecker.checkParameter(BLANK_UNIT_ID, idUnit);
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.GET, "units/" + idUnit + "/objects", headers, queryDsl,
-                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_XML_TYPE);
-            return response;
-        } catch (VitamClientInternalException e) {
-            consumeAnyEntityAndClose(response);
-            LOGGER.error("Error while getObjectGroupByIdWithXMLFormat ", e);
-            throw new AccessExternalClientServerException(e);
-        }
-    }
 }

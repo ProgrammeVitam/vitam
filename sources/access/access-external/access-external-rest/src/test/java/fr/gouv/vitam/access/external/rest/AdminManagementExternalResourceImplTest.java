@@ -552,21 +552,6 @@ public class AdminManagementExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
-            .body(select.getFinalSelect())
-            .when().post(AccessExtAPI.ACCESSION_REGISTERS_API)
-            .then().statusCode(Status.CREATED.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
-            .body(select.getFinalSelect())
-            .when().post(AccessExtAPI.ACCESSION_REGISTERS_API)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(select.getFinalSelect())
             .when().post(AccessExtAPI.ACCESSION_REGISTERS_API + "/" + GOOD_ID)
             .then().statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
@@ -735,8 +720,8 @@ public class AdminManagementExternalResourceImplTest {
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
         doReturn(Status.BAD_REQUEST).when(adminCLient).importIngestContracts(anyObject());
-        stream = PropertiesUtils.getResourceAsStream("vitam.conf");
-        given().contentType(ContentType.BINARY).body(stream)
+
+        given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(AccessExtAPI.INGEST_CONTRACT_API)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json");
@@ -752,8 +737,9 @@ public class AdminManagementExternalResourceImplTest {
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
         doReturn(Status.CREATED).when(adminCLient).importIngestContracts(anyObject());
-        stream = PropertiesUtils.getResourceAsStream("referential_contracts_ok.json");
-        given().contentType(ContentType.BINARY).body(stream)
+        File contractFile = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
+        JsonNode json = JsonHandler.getFromFile(contractFile);
+        given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(AccessExtAPI.INGEST_CONTRACT_API)
             .then().statusCode(Status.CREATED.getStatusCode());
@@ -784,14 +770,13 @@ public class AdminManagementExternalResourceImplTest {
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
         doReturn(Status.BAD_REQUEST).when(adminCLient).importAccessContracts(anyObject());
-        stream = PropertiesUtils.getResourceAsStream("vitam.conf");
-        given().contentType(ContentType.BINARY).body(stream)
+
+        given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(AccessExtAPI.ACCESS_CONTRACT_API)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json");
 
     }
-
 
     @Test
     public void testimportValidAccessContractsFileReturnCreated() throws Exception {
@@ -801,9 +786,10 @@ public class AdminManagementExternalResourceImplTest {
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
         doReturn(Status.CREATED).when(adminCLient).importAccessContracts(anyObject());
-        stream = PropertiesUtils.getResourceAsStream("contracts_access_ok.json");
+        File contractFile = PropertiesUtils.getResourceFile("contracts_access_ok.json");
+        JsonNode json = JsonHandler.getFromFile(contractFile);
 
-        given().contentType(ContentType.BINARY).body(stream)
+        given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(AccessExtAPI.ACCESS_CONTRACT_API)
             .then().statusCode(Status.CREATED.getStatusCode());
@@ -923,6 +909,14 @@ public class AdminManagementExternalResourceImplTest {
     private List<Object> getIngestContracts() throws FileNotFoundException, InvalidParseOperationException {
         InputStream fileContracts = PropertiesUtils.getResourceAsStream("referential_contracts_ok.json");
         ArrayNode array = (ArrayNode) JsonHandler.getFromInputStream(fileContracts);
+        List<Object> res = new ArrayList<>();
+        array.forEach(e -> res.add(e));
+        return res;
+    }
+    
+    private List<Object> getContexts() throws FileNotFoundException, InvalidParseOperationException {
+        InputStream fileContexts = PropertiesUtils.getResourceAsStream("context.json");
+        ArrayNode array = (ArrayNode) JsonHandler.getFromInputStream(fileContexts);
         List<Object> res = new ArrayList<>();
         array.forEach(e -> res.add(e));
         return res;
@@ -1200,4 +1194,62 @@ public class AdminManagementExternalResourceImplTest {
             .when().put("operations/1")
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
+    
+    @Test
+    public void testimportValidContextFileReturnCreated() throws Exception {
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        doReturn(Status.CREATED).when(adminCLient).importContexts(anyObject());
+        File contextFile = PropertiesUtils.getResourceFile("context.json");
+        JsonNode json = JsonHandler.getFromFile(contextFile);
+        given().contentType(ContentType.JSON).body(json)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(AccessExtAPI.CONTEXTS_API)
+            .then().statusCode(Status.CREATED.getStatusCode());
+    }
+
+    @Test
+    public void testfindContextFile() throws Exception {
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+
+        doReturn(new RequestResponseOK<>().addAllResults(getContexts())).when(adminCLient)
+            .findContexts(anyObject());
+        given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(AccessExtAPI.CONTEXTS_API)
+            .then().statusCode(Status.OK.getStatusCode());
+    }
+
+
+    @Test
+    public void testImportContextsWithInvalidFileBadRequest() throws Exception {
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        doReturn(Status.BAD_REQUEST).when(adminCLient).importContexts(anyObject());
+
+        given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(AccessExtAPI.CONTEXTS_API)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json");
+        
+        doThrow(new ReferentialException("ReferentialException"))
+            .when(adminCLient).importContexts(anyObject());
+
+        given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(AccessExtAPI.CONTEXTS_API)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json");
+
+    }
+    
 }

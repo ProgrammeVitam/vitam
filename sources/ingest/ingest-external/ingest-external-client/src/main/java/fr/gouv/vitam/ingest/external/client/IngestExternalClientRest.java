@@ -61,7 +61,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalClientRest.class);
     private static final String INGEST_URL = "/ingests";
     private static final String BLANK_OBJECT_ID = "object identifier should be filled";
-    private static final String BLANK_TYPE = "Type should be filled";    
+    private static final String BLANK_TYPE = "Type should be filled";
 
     IngestExternalClientRest(IngestExternalClientFactory factory) {
         super(factory);

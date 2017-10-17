@@ -87,8 +87,6 @@ import com.google.common.collect.Iterables;
 
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.api.ErrorMessage;
-import fr.gouv.vitam.access.external.client.AccessExternalClient;
-import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
@@ -1017,89 +1015,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
         threadPoolExecutor
             .execute(() -> asyncGetObjectStream(asyncResponse, unitId, usage, filename, tenantId,
                 contractId));
-    }
-
-
-    /**
-     * Get unit as xml format
-     *
-     * @param headers
-     * @param queryJson
-     * @param idUnit
-     * @return ArchiveUnit xml format
-     */
-    @GET
-    @Path("/archiveunit/{idu}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces({MediaType.APPLICATION_XML})
-    public Response selectUnitByIdOnXML(@Context HttpHeaders headers, JsonNode queryJson,
-        @PathParam("idu") String idUnit) {
-
-
-        Status status;
-        // Prepare required map
-        final Map<String, String> selectUnitIdMap = new HashMap<>();
-        selectUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), idUnit);
-        selectUnitIdMap.put(DslQueryHelper.PROJECTION_DSL, BuilderToken.GLOBAL.RULES.exactToken());
-
-
-        Response xmlFormat = null;
-
-        ParametersChecker.checkParameter("unit id is required", idUnit);
-        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            final JsonNode preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(selectUnitIdMap);
-
-            xmlFormat =
-                client.getUnitByIdWithXMLFormat(
-                    new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers))
-                        .setApplicationSessionId(getAppSessionId()),
-                    preparedQueryDsl, idUnit);
-            return xmlFormat;
-        } catch (final AccessExternalClientServerException | InvalidParseOperationException |
-            InvalidCreateOperationException e) {
-            LOGGER.error("Error selectUnitByIdOnXML :", e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            final VitamError errorEntity = getErrorEntity(status, e.getLocalizedMessage());
-            return Response.status(status).entity(JsonHandler.unprettyPrint(errorEntity)).build();
-        } catch (Exception e) {
-            status = Status.INTERNAL_SERVER_ERROR;
-            final VitamError errorEntity = getErrorEntity(status, e.getLocalizedMessage());
-            return Response.status(status).entity(JsonHandler.unprettyPrint(errorEntity)).build();
-        }
-    }
-
-
-    /**
-     * Retrieve Object Group as xml format (DIP) with unit id because in External you cannot access directly with the
-     * object group id
-     *
-     * @param headers the given header
-     * @param idUnit the given unit id
-     * @return Object group in xml format
-     */
-    @GET
-    @Path("/archiveunit/{id_unit}/object")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_XML)
-    public Response selectObjectGroupByIdOnXMLFormat(@Context HttpHeaders headers,
-        @PathParam("id_unit") String idUnit) {
-        Status status;
-        Response xmlFormat = null;
-        ParametersChecker.checkParameter("object group id is required", idUnit);
-        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            final HashMap<String, String> emptyMap = new HashMap<>();
-            final JsonNode preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(emptyMap);
-            xmlFormat = client.getObjectGroupByIdWithXMLFormat(
-                new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers))
-                    .setApplicationSessionId(getAppSessionId()),
-                preparedQueryDsl, idUnit);
-            return xmlFormat;
-        } catch (final AccessExternalClientServerException | InvalidParseOperationException |
-            InvalidCreateOperationException e) {
-            LOGGER.error("Error selectUnitByIdOnXML :", e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
-        }
     }
 
     /**

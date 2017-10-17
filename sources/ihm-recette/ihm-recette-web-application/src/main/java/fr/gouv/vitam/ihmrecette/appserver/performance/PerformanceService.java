@@ -75,7 +75,7 @@ public class PerformanceService {
     public static final String DEFAULT_CONTRACT_NAME = "test_perf";
     public static final int NUMBER_OF_RETRY = 100;
     private final IngestExternalClientFactory ingestClientFactory;
-    private final AdminExternalClientFactory adminClientFactory;     
+    private final AdminExternalClientFactory adminClientFactory;
 
     private AtomicBoolean performanceTestInProgress = new AtomicBoolean(false);
 
@@ -90,14 +90,16 @@ public class PerformanceService {
     private final Path performanceReportDirectory;
 
     /**
-     * @param sipDirectory               base sip directory
+     * @param sipDirectory base sip directory
      * @param performanceReportDirectory base report directory
      */
     public PerformanceService(Path sipDirectory, Path performanceReportDirectory) {
-        this(IngestExternalClientFactory.getInstance(), AdminExternalClientFactory.getInstance(), sipDirectory, performanceReportDirectory);
+        this(IngestExternalClientFactory.getInstance(), AdminExternalClientFactory.getInstance(), sipDirectory,
+            performanceReportDirectory);
     }
 
-    public PerformanceService(IngestExternalClientFactory ingestClientFactory, AdminExternalClientFactory adminClientFactory, Path sipDirectory,
+    public PerformanceService(IngestExternalClientFactory ingestClientFactory,
+        AdminExternalClientFactory adminClientFactory, Path sipDirectory,
         Path performanceReportDirectory) {
         this.sipDirectory = sipDirectory;
         this.ingestClientFactory = ingestClientFactory;
@@ -132,31 +134,32 @@ public class PerformanceService {
     }
 
     private void launchTestInSequence(PerformanceModel model, String fileName, int tenantId) throws IOException {
-        ReportGenerator reportGenerator = new ReportGenerator(performanceReportDirectory.resolve(fileName));
-        int numberOfRetry = model.getNumberOfRetry() == null ? NUMBER_OF_RETRY : model.getNumberOfRetry();
+        try (ReportGenerator reportGenerator = new ReportGenerator(performanceReportDirectory.resolve(fileName));) {
+            int numberOfRetry = model.getNumberOfRetry() == null ? NUMBER_OF_RETRY : model.getNumberOfRetry();
 
-        performanceTestInProgress.set(true);
+            performanceTestInProgress.set(true);
 
-        Flowable.interval(0, model.getDelay(), TimeUnit.MILLISECONDS)
-            .take(model.getNumberOfIngest())
-            .map(i -> upload(model, tenantId))
-            .flatMap(
-                operationId -> Flowable.just(operationId)
-                    .observeOn(Schedulers.io())
-                    .map(id -> waitEndOfIngest(tenantId, numberOfRetry, id)))
-            .subscribe(operationId -> generateReport(reportGenerator, operationId, tenantId),
-                throwable -> {
-                    LOGGER.error("end performance test with error", throwable);
-                    performanceTestInProgress.set(false);
-                }, () -> {
-                    try {
-                        reportGenerator.close();
+            Flowable.interval(0, model.getDelay(), TimeUnit.MILLISECONDS)
+                .take(model.getNumberOfIngest())
+                .map(i -> upload(model, tenantId))
+                .flatMap(
+                    operationId -> Flowable.just(operationId)
+                        .observeOn(Schedulers.io())
+                        .map(id -> waitEndOfIngest(tenantId, numberOfRetry, id)))
+                .subscribe(operationId -> generateReport(reportGenerator, operationId, tenantId),
+                    throwable -> {
+                        LOGGER.error("end performance test with error", throwable);
                         performanceTestInProgress.set(false);
-                        LOGGER.info("end performance test");
-                    } catch (IOException e) {
-                        LOGGER.error("unable to close report", e);
-                    }
-                });
+                    }, () -> {
+                        try {
+                            reportGenerator.close();
+                            performanceTestInProgress.set(false);
+                            LOGGER.info("end performance test");
+                        } catch (IOException e) {
+                            LOGGER.error("unable to close report", e);
+                        }
+                    });
+        }
     }
 
     private void launchTestInParallel(PerformanceModel model, String fileName, int tenantId) throws IOException {
@@ -165,33 +168,36 @@ public class PerformanceService {
 
         LOGGER.info("start performance test");
 
-        ReportGenerator reportGenerator = new ReportGenerator(performanceReportDirectory.resolve(fileName));
+        try (ReportGenerator reportGenerator = new ReportGenerator(performanceReportDirectory.resolve(fileName));) {
 
-        performanceTestInProgress.set(true);
+            performanceTestInProgress.set(true);
 
-        List<CompletableFuture<Void>> collect = IntStream.range(0, model.getNumberOfIngest())
-            .mapToObj(i -> CompletableFuture.supplyAsync(() -> uploadSIP(model, tenantId), launcherPerformanceExecutor))
-            .map(
-                future -> future.thenAcceptAsync((id) -> generateReport(reportGenerator, id, tenantId), reportExecutor))
-            .collect(Collectors.toList());
+            List<CompletableFuture<Void>> collect = IntStream.range(0, model.getNumberOfIngest())
+                .mapToObj(
+                    i -> CompletableFuture.supplyAsync(() -> uploadSIP(model, tenantId), launcherPerformanceExecutor))
+                .map(
+                    future -> future.thenAcceptAsync((id) -> generateReport(reportGenerator, id, tenantId),
+                        reportExecutor))
+                .collect(Collectors.toList());
 
-        CompletableFuture<List<Void>> allDone = sequence(collect);
+            CompletableFuture<List<Void>> allDone = sequence(collect);
 
-        allDone.thenRun(() -> {
-            try {
-                reportGenerator.close();
-                launcherPerformanceExecutor.shutdown();
-                reportExecutor.shutdown();
+            allDone.thenRun(() -> {
+                try {
+                    reportGenerator.close();
+                    launcherPerformanceExecutor.shutdown();
+                    reportExecutor.shutdown();
+                    performanceTestInProgress.set(false);
+                    LOGGER.info("end performance test");
+                } catch (IOException e) {
+                    LOGGER.error("unable to close report", e);
+                }
+            }).exceptionally((e) -> {
+                LOGGER.error("end performance test with error", e);
                 performanceTestInProgress.set(false);
-                LOGGER.info("end performance test");
-            } catch (IOException e) {
-                LOGGER.error("unable to close report", e);
-            }
-        }).exceptionally((e) -> {
-            LOGGER.error("end performance test with error", e);
-            performanceTestInProgress.set(false);
-            return null;
-        });
+                return null;
+            });
+        }
     }
 
     private void generateReport(ReportGenerator reportGenerator, String operationId, int tenantId) {
@@ -215,11 +221,11 @@ public class PerformanceService {
 
     private String uploadSIP(PerformanceModel model, Integer tenantId) {
         // TODO: client is it thread safe ?
-        LOGGER.debug("launch unitary test");                
+        LOGGER.debug("launch unitary test");
         try (IngestExternalClient client = ingestClientFactory.getClient();
             AdminExternalClient adminClient = adminClientFactory.getClient();
             InputStream sipInputStream = Files.newInputStream(sipDirectory.resolve(model.getFileName()),
-            StandardOpenOption.READ)) {
+                StandardOpenOption.READ)) {
 
             RequestResponse<Void> response =
                 client.upload(new VitamContext(tenantId), sipInputStream, DEFAULT_WORKFLOW.name(), RESUME.name());

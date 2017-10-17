@@ -11,6 +11,7 @@ uses:
   AccessTypes: libraries/AccessTypes.raml
   AccessTraits: libraries/AccessTraits.raml
   RegisterTraits: libraries/RegisterTraits.raml
+  DslTypes: libraries/DslTypes.raml
 
 mediaType: application/json
 
@@ -71,10 +72,6 @@ documentation:
     headers:
       X-Http-Method-Override:
         required: true
-  put:
-    description: |
-      **UNSUPPORTED** Request that will update a set of Units according to the query and the filter parts. The actions to be applied on the set of Units are specified in the action part of the request.
-    is: [AccessTraits.AccessUpdateUnitResponse]
 
   /{idu}:
     displayName: ArchiveUnit

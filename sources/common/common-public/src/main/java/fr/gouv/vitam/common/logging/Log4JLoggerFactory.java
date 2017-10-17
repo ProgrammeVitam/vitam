@@ -80,15 +80,15 @@ public final class Log4JLoggerFactory extends VitamLoggerFactory {
 
     static VitamLogLevel loggerGetLevel(final Logger logger) {
         final Level level = logger.getLevel();
-        if (level == Level.TRACE || level == Level.ALL) {
+        if (Level.TRACE.equals(level) || Level.ALL.equals(level)) {
             return VitamLogLevel.TRACE;
-        } else if (level == Level.DEBUG) {
+        } else if (Level.DEBUG.equals(level)) {
             return VitamLogLevel.DEBUG;
-        } else if (level == Level.INFO) {
+        } else if (Level.INFO.equals(level)) {
             return VitamLogLevel.INFO;
-        } else if (level == Level.WARN) {
+        } else if (Level.WARN.equals(level)) {
             return VitamLogLevel.WARN;
-        } else if (level == Level.ERROR || level == Level.FATAL) {
+        } else if (Level.ERROR.equals(level) || Level.FATAL.equals(level)) {
             return VitamLogLevel.ERROR;
         }
         return null;

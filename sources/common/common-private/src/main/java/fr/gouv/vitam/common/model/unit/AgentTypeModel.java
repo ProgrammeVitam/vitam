@@ -42,8 +42,8 @@ public class AgentTypeModel {
     public static final String GIVEN_NAME = "GivenName";
     public static final String BIRTH_NAME = "BirthName";
     public static final String FIRST_NAME = "FirstName";
-    public static final String GENDER = "Gender";
-    public static final String CORPNAME = "Corpname";
+    public static final String TAG_GENDER = "Gender";
+    public static final String TAG_CORPNAME = "Corpname";
     public static final String NATIONALITY = "Nationality";
     public static final String DEATH_DATE = "DeathDate";
     public static final String IDENTIFIER = "Identifier";
@@ -66,10 +66,10 @@ public class AgentTypeModel {
     @JsonProperty(FIRST_NAME)
     private String firstName;
 
-    @JsonProperty(GENDER)
+    @JsonProperty(TAG_GENDER)
     private String gender;
 
-    @JsonProperty(CORPNAME)
+    @JsonProperty(TAG_CORPNAME)
     private String corpname;
 
     @JsonProperty(NATIONALITY)

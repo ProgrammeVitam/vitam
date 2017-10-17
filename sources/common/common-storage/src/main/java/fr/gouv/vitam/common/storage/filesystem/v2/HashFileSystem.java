@@ -199,7 +199,8 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
                 objectName + " in container " + containerName + " not found");
         }
         try {
-            return new AbstractMockClient.FakeInboundResponse(Status.OK, Files.newInputStream(filePath),
+            InputStream inputStream = Files.newInputStream(filePath);
+            return new AbstractMockClient.FakeInboundResponse(Status.OK, inputStream,
                 MediaType.APPLICATION_OCTET_STREAM_TYPE,
                 getXContentLengthHeader(filePath));
         } catch (IOException e) {
