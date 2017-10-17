@@ -21,7 +21,7 @@ Ces opérations sont :
 - Entrée (implémentée dans la release en cours)
 - Mise à jour (implémentée dans la release en cours)
 - Données de référence (implémentée dans la release en cours)
-- Audit (non implémentée dans la release en cours)
+- Audit (implémentée dans la release en cours)
 - Elimination (non implémentée dans la release en cours)
 - Préservation (non implémentée dans la release en cours)
 - Vérification (implémentée dans la release en cours)
@@ -400,6 +400,7 @@ Extrait d'un JSON correspondant à un journal de cycle de vie d'une unité archi
   {
     "_id": "aeaqaaaaaehbl62nabqkwak3k7qg5tiaaaaq",
     "evId": "aedqaaaaaghbl62nabqkwak3k7qg5tiaaabq",
+    "evParentId": null,
     "evType": "LFC.LFC_CREATION",
     "evDateTime": "2017-04-10T12:39:37.933",
     "evIdProc": "aedqaaaaaghe45hwabliwak3k7qg7kaaaaaq",
@@ -413,6 +414,7 @@ Extrait d'un JSON correspondant à un journal de cycle de vie d'une unité archi
     "events": [
         {
             "evId": "aedqaaaaaghbl62nabqkwak3k7qg5tiaaabq",
+            "evParentId": null,
             "evType": "LFC.CHECK_MANIFEST",
             "evDateTime": "2017-04-10T12:39:37.953",
             "evIdProc": "aedqaaaaaghe45hwabliwak3k7qg7kaaaaaq",
@@ -425,7 +427,8 @@ Extrait d'un JSON correspondant à un journal de cycle de vie d'une unité archi
             "evDetData": null,
         },
         {
-            "evId": "aedqaaaaaghbl62nabqkwak3k7qg5tiaaabq",
+            "evId": "aedqaaaaaghbl62n5g8ftak3k7qg5tiaaabq",
+            "evParentId": "aedqaaaaaghbl62nabqkwak3k7qg5tiaaabq",
             "evType": "LFC.CHECK_MANIFEST.LFC_CREATION",
             "evDateTime": "2017-04-10T12:39:37.953",
             "evIdProc": "aedqaaaaaghe45hwabliwak3k7qg7kaaaaaq",
@@ -461,11 +464,14 @@ Détail des champs du JSON stocké en base
     * Il est constitué d'une chaîne de 36 caractères correspondant à un GUID. 
     * Il identifie l'événement de manière unique dans la base.
     * Cardinalité : 1-1 
-    *Ce champ existe pour les structures incluantes et incluses*
+    * Ce champ existe pour les structures incluantes et incluses*
 
 **"evParentId" (event Parent Identifier):** identifiant de l'événement parent.
+
     * Il est constitué d'une chaîne de 36 caractères correspondant à un GUID. 
     * Il identifie l'événement parent.
+    * Ce champ est toujours à null pour la structure incluante et les tâches principales
+    * Cardinalité : 1-1 
 
     *Ce champ existe pour les structures incluantes et incluses*
 
@@ -614,6 +620,7 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
   {
     "_id": "aeaaaaaaaaaam7mxaap44akyf7hurgaaaaba",
     "evId": "aedqaaaaacaam7mxaap44akyf7hurgaaaabq",
+    "evParentId": null,
     "evType": "CHECK_CONSISTENCY",
     "evDateTime": "2016-11-04T14:47:43.512",
     "evIdProc": "aedqaaaaacaam7mxaau56akyf7hr45qaaaaq",
@@ -687,6 +694,8 @@ Détail des champs du JSON stocké en base
 **"evParentId" (event Parent Identifier):** identifiant de l'événement parent.
     * Il est constitué d'une chaîne de 36 caractères correspondant à un GUID. 
     * Il identifie l'événement parent.
+    * Ce champ est toujours à null pour la structure incluante et les tâches principales
+    * Cardinalité : 1-1 
 
     *Ce champ existe pour les structures incluantes et incluses*
     
