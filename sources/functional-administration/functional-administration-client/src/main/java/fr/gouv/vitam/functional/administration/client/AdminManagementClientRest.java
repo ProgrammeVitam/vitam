@@ -103,10 +103,10 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String ACCESSION_REGISTER_CREATE_URI = "/accession-register";
     private static final String ACCESSION_REGISTER_GET_DOCUMENT_URL = "/accession-register/document";
     private static final String ACCESSION_REGISTER_GET_DETAIL_URL = "/accession-register/detail";
-    private static final String INGEST_CONTRACTS_URI = "/entrycontracts";
+    private static final String INGEST_CONTRACTS_URI = "/ingestcontracts";
     private static final String ACCESS_CONTRACTS_URI = "/accesscontracts";
     private static final String UPDATE_ACCESS_CONTRACT_URI = "/accesscontracts/";
-    private static final String UPDATE_INGEST_CONTRACT_URI = "/entrycontracts/";
+    private static final String UPDATE_INGEST_CONTRACT_URI = "/ingestcontracts/";
     private static final String PROFILE_URI = "/profiles";
     private static final String CONTEXT_URI = "/contexts";
     private static final String AUDIT_URI = "/audit";

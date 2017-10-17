@@ -736,7 +736,7 @@ public class AdminManagementExternalResourceImplTest {
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(AccessExtAPI.ENTRY_CONTRACT_API)
+            .when().post(AccessExtAPI.INGEST_CONTRACT_API)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json");
 
     }
@@ -753,7 +753,7 @@ public class AdminManagementExternalResourceImplTest {
         stream = PropertiesUtils.getResourceAsStream("referential_contracts_ok.json");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(AccessExtAPI.ENTRY_CONTRACT_API)
+            .when().post(AccessExtAPI.INGEST_CONTRACT_API)
             .then().statusCode(Status.CREATED.getStatusCode());
     }
 
@@ -769,7 +769,7 @@ public class AdminManagementExternalResourceImplTest {
             .findIngestContracts(anyObject());
         given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().get(AccessExtAPI.ENTRY_CONTRACT_API)
+            .when().get(AccessExtAPI.INGEST_CONTRACT_API)
             .then().statusCode(Status.OK.getStatusCode());
     }
 

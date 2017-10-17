@@ -54,7 +54,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
 
     private static final String URI_NOT_FOUND = "URI not found";
     private static final String UPDATE_ACCESS_CONTRACT = AccessExtAPI.ACCESS_CONTRACT_API_UPDATE + "/";
-    private static final String UPDATE_INGEST_CONTRACT = AccessExtAPI.ENTRY_CONTRACT_API_UPDATE + "/";
+    private static final String UPDATE_INGEST_CONTRACT = AccessExtAPI.INGEST_CONTRACT_API_UPDATE + "/";
     private static final String UPDATE_CONTEXT = AccessExtAPI.CONTEXTS_API_UPDATE + "/";
     private static final String UPDATE_PROFILE = AccessExtAPI.PROFILES_API_UPDATE + "/";
     private static final String UPDATE_SECURITY_PROFILE = AccessExtAPI.SECURITY_PROFILES+ "/";
@@ -128,7 +128,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     public RequestResponse<IngestContractModel> findIngestContracts(
         VitamContext vitamContext, JsonNode select)
         throws VitamClientException {
-        return internalFindDocuments(vitamContext, AdminCollections.ENTRY_CONTRACTS, select, IngestContractModel.class);
+        return internalFindDocuments(vitamContext, AdminCollections.INGEST_CONTRACTS, select, IngestContractModel.class);
     }
 
     @Override
@@ -613,7 +613,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     @Override
     public RequestResponse<IngestContractModel> findIngestContractById(
         VitamContext vitamContext, String contractId) throws VitamClientException {
-        return internalFindDocumentById(vitamContext, AdminCollections.ENTRY_CONTRACTS, contractId,
+        return internalFindDocumentById(vitamContext, AdminCollections.INGEST_CONTRACTS, contractId,
             IngestContractModel.class);
     }
 

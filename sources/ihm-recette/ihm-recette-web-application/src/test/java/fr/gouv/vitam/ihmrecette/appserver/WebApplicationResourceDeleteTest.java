@@ -426,8 +426,8 @@ public class WebApplicationResourceDeleteTest {
             assertTrue(existsData(FunctionalAdminCollections.PROFILE, idProfile.getId()));
             final GUID idAccessContract = addData(FunctionalAdminCollections.ACCESS_CONTRACT);
             assertTrue(existsData(FunctionalAdminCollections.ACCESS_CONTRACT, idAccessContract.getId()));
-            final GUID idEntryContract = addData(FunctionalAdminCollections.INGEST_CONTRACT);
-            assertTrue(existsData(FunctionalAdminCollections.INGEST_CONTRACT, idEntryContract.getId()));
+            final GUID idIngestContract = addData(FunctionalAdminCollections.INGEST_CONTRACT);
+            assertTrue(existsData(FunctionalAdminCollections.INGEST_CONTRACT, idIngestContract.getId()));
             final GUID idRegisterSummary = addData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
             final GUID idRegisterDetail = addData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
@@ -440,7 +440,7 @@ public class WebApplicationResourceDeleteTest {
             assertFalse(existsData(FunctionalAdminCollections.AGENCIES, idAgency.getId()));
             assertFalse(existsData(FunctionalAdminCollections.PROFILE, idProfile.getId()));
             assertFalse(existsData(FunctionalAdminCollections.ACCESS_CONTRACT, idAccessContract.getId()));
-            assertFalse(existsData(FunctionalAdminCollections.INGEST_CONTRACT, idEntryContract.getId()));
+            assertFalse(existsData(FunctionalAdminCollections.INGEST_CONTRACT, idIngestContract.getId()));
             assertFalse(existsData(FunctionalAdminCollections.RULES, idRule.getId()));
             assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
             assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));
@@ -503,8 +503,8 @@ public class WebApplicationResourceDeleteTest {
             assertTrue(existsData(FunctionalAdminCollections.PROFILE, idProfile.getId()));
             final GUID idAccessContract = addData(FunctionalAdminCollections.ACCESS_CONTRACT);
             assertTrue(existsData(FunctionalAdminCollections.ACCESS_CONTRACT, idAccessContract.getId()));
-            final GUID idEntryContract = addData(FunctionalAdminCollections.INGEST_CONTRACT);
-            assertTrue(existsData(FunctionalAdminCollections.INGEST_CONTRACT, idEntryContract.getId()));
+            final GUID idIngestContract = addData(FunctionalAdminCollections.INGEST_CONTRACT);
+            assertTrue(existsData(FunctionalAdminCollections.INGEST_CONTRACT, idIngestContract.getId()));
             final GUID idRegisterSummary = addData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
             final GUID idRegisterDetail = addData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
             assertTrue(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
@@ -522,7 +522,7 @@ public class WebApplicationResourceDeleteTest {
             // check deleted
             assertFalse(existsData(FunctionalAdminCollections.PROFILE, idProfile.getId()));
             assertFalse(existsData(FunctionalAdminCollections.ACCESS_CONTRACT, idAccessContract.getId()));
-            assertFalse(existsData(FunctionalAdminCollections.INGEST_CONTRACT, idEntryContract.getId()));
+            assertFalse(existsData(FunctionalAdminCollections.INGEST_CONTRACT, idIngestContract.getId()));
             assertFalse(existsData(FunctionalAdminCollections.RULES, idRule.getId()));
             assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
             assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));

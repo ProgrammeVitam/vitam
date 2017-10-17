@@ -815,7 +815,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                                 adminExternalClient.findAccessContracts(
                                                     new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()), criteria);
                                             break;
-                                        case ENTRY_CONTRACTS:
+                                        case INGEST_CONTRACTS:
                                             result =
                                                 adminExternalClient.findIngestContracts(
                                                     new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()), criteria);
@@ -858,7 +858,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                                     adminExternalClient.findAccessContractById(
                                                         new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()), objectID);
                                                 break;
-                                            case ENTRY_CONTRACTS:
+                                            case INGEST_CONTRACTS:
                                                 result =
                                                     adminExternalClient.findIngestContractById(
                                                         new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(getAppSessionId()), objectID);
@@ -885,7 +885,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                     } else if (AdminCollections.ACCESS_CONTRACTS.equals(requestedAdminCollection)) {
                                         result = adminExternalClient.updateAccessContract(new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()),
                                             objectID, criteria);
-                                    } else if (AdminCollections.ENTRY_CONTRACTS.equals(requestedAdminCollection)) {
+                                    } else if (AdminCollections.INGEST_CONTRACTS.equals(requestedAdminCollection)) {
                                         result = adminExternalClient.updateIngestContract(new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()),
                                             objectID, criteria);
                                     } else {

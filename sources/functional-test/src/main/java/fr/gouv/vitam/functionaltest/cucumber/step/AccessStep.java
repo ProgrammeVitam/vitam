@@ -209,7 +209,7 @@ public class AccessStep {
             world.getAdminClient().importContracts(
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                 new ByteArrayInputStream(newContract.getBytes()),
-                AdminCollections.ENTRY_CONTRACTS);
+                AdminCollections.INGEST_CONTRACTS);
         } catch (AccessExternalClientException | IllegalStateException | InvalidParseOperationException e) {
             // Do Nothing
             LOGGER.warn("Contrat d'entrée est déjà importé");
@@ -726,7 +726,7 @@ public class AccessStep {
                         .setApplicationSessionId(world.getApplicationSessionId())
                     , queryJSON);
                 break;
-            case ENTRY_CONTRACTS:
+            case INGEST_CONTRACTS:
                 requestResponse = world.getAdminClient().findIngestContracts(
                     new VitamContext(world.getTenantId()).setAccessContract(null)
                         .setApplicationSessionId(world.getApplicationSessionId()),

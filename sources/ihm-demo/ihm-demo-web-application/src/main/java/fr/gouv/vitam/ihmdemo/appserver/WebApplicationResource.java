@@ -1866,7 +1866,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             RequestResponse response =
                 adminClient
                     .importContracts(new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()),
-                        input, AdminCollections.ENTRY_CONTRACTS);
+                        input, AdminCollections.INGEST_CONTRACTS);
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).build();
             }
@@ -1966,7 +1966,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @RequiresPermissions("contracts:update")
-    public Response updateEntryContracts(@Context HttpHeaders headers, @PathParam("id") String contractId,
+    public Response updateIngestContracts(@Context HttpHeaders headers, @PathParam("id") String contractId,
         JsonNode updateOptions) {
         try {
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, contractId);

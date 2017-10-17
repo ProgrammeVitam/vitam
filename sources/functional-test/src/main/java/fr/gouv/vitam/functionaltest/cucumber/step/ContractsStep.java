@@ -200,7 +200,7 @@ public class ContractsStep {
                         ((RequestResponseOK<AccessContractModel>) accessResponse).getResultsAsJsonNodes().get(0));
                 }
                 break;
-            case ENTRY_CONTRACTS:
+            case INGEST_CONTRACTS:
                 RequestResponse<IngestContractModel> ingestResponse =
                     world.getAdminClient().findIngestContracts(
                         new VitamContext(world.getTenantId()).setAccessContract(null)

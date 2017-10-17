@@ -132,7 +132,7 @@ Rest API
 
 -Contrat d'entrée
 
-|PUT https://vitam/admin-external/v1/entrycontracts
+|PUT https://vitam/admin-external/v1/ingestcontracts
 Mise à jour du contrat d'entrès
 
 - Profiles

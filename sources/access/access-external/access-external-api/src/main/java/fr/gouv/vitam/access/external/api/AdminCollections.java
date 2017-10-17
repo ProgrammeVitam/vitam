@@ -43,7 +43,7 @@ public enum AdminCollections {
     /**
      * Ingest contracts collection
      */
-    ENTRY_CONTRACTS(AccessExtAPI.ENTRY_CONTRACT),
+    INGEST_CONTRACTS(AccessExtAPI.INGEST_CONTRACT),
 
     /**
      * Access contracts collection
