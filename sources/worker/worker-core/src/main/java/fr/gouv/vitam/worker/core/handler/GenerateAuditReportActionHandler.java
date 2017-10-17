@@ -72,7 +72,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
 
     private static final String USAGE = "Usage";
 
-    private static final String _TENANT = "_tenant";
+    private static final String _TENANT = "#tenant";
 
     private static final String AUDIT = "AUDIT";
 

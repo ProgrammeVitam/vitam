@@ -35,7 +35,11 @@ import java.util.List;
  * Data Transfer Object Model of Context
  */
 public class ContextModel {
-    public static final String TAG_ID = "_id";
+
+    public static final String TAG_ID = "id";
+    public static final String HASH = "#";
+    public static final String UNDERSCORE = "_";
+
 
     public static final String TAG_SECURITY_PROFILE = "SecurityProfile";
 
@@ -61,7 +65,6 @@ public class ContextModel {
     /**
      * unique identifier
      */
-    @JsonProperty(TAG_ID)
     private String id;
 
     @JsonProperty(TAG_NAME)
@@ -94,38 +97,6 @@ public class ContextModel {
     @JsonProperty(TAG_DEACTIVATION_DATE)
     private String deactivationdate;
 
-    /**
-     * Constructor of ContextModel
-     *
-     * @param id
-     * @param name
-     * @param status
-     * @param enablecontrol 
-     * @param permissions
-     * @param creationdate 
-     * @param lastupdate 
-     * @param activationdate 
-     * @param deactivationdate 
-     * @param securityProfileIdentifier 
-     */
-    public ContextModel(@JsonProperty(TAG_ID) String id, @JsonProperty(TAG_NAME) String name,
-        @JsonProperty(TAG_STATUS) boolean status, @JsonProperty(TAG_ENABLE_CONTROL) boolean enablecontrol,
-        @JsonProperty(TAG_PERMISSIONS) List<PermissionModel> permissions,
-        @JsonProperty(TAG_CREATION_DATE) String creationdate, @JsonProperty(TAG_LAST_UPDATE) String lastupdate,
-        @JsonProperty(TAG_ACTIVATION_DATE) String activationdate,
-        @JsonProperty(TAG_DEACTIVATION_DATE) String deactivationdate,
-        @JsonProperty(TAG_SECURITY_PROFILE) String securityProfileIdentifier) {
-        this.id = id;
-        this.name = name;
-        this.status = status;
-        this.enablecontrol = enablecontrol;
-        this.permissions = permissions;
-        this.creationdate = creationdate;
-        this.lastupdate = lastupdate;
-        this.deactivationdate = deactivationdate;
-        this.activationdate = activationdate;
-        this.securityProfileIdentifier = securityProfileIdentifier;
-    }
 
     /**
      * empty constructor
@@ -136,6 +107,7 @@ public class ContextModel {
     /**
      * @return id
      */
+    @JsonProperty(HASH + TAG_ID)
     public String getId() {
         return id;
     }
@@ -144,10 +116,19 @@ public class ContextModel {
      * @param id
      * @return ContextModel
      */
+    @JsonProperty(UNDERSCORE + TAG_ID)
     public ContextModel setId(String id) {
         this.id = id;
         return this;
     }
+
+    @JsonProperty(HASH + TAG_ID)
+    public ContextModel setIdExt(String id) {
+        this.id = id;
+        return this;
+    }
+
+
 
     /**
      * @return name

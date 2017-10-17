@@ -294,13 +294,13 @@ public class MongoDbAccessAdminImplTest {
         final DbRequestResult fileList =
             mongoAccess.findDocuments(select.getFinalSelect(), formatCollection);
         final FileFormat f1 = (FileFormat) fileList.getDocuments(FileFormat.class).get(0);
-        final String id = f1.getString("_id");
+        final String id = f1.getString("#id");
         final FileFormat f2 = (FileFormat) mongoAccess.getDocumentById(id, formatCollection);
 
-        assertEquals(f2, f1);
+        assertEquals(f2.get("#id"), f1.getId());
         final String puid = f1.getString(FileFormat.PUID);
         final FileFormat f3 = (FileFormat) mongoAccess.getDocumentByUniqueId(puid, formatCollection, FileFormat.PUID);
-        assertEquals(f3, f1);
+        assertEquals(f3.get("#id"), f1.getId());
         formatCollection.getEsClient().refreshIndex(formatCollection);
         assertEquals(1, fileList.getCount());
         fileList.close();

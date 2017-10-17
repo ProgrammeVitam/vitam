@@ -533,8 +533,11 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 default:
                     break;
             }
-            return JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
-                AccessionRegisterSummaryModel.class);
+            String value = response.readEntity(String.class);
+            RequestResponseOK fromString =
+                JsonHandler.getFromString(value, RequestResponseOK.class,
+                    AccessionRegisterSummaryModel.class);
+            return fromString;
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);

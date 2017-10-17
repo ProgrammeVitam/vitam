@@ -41,6 +41,8 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.model.administration.ContextModel;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -530,7 +532,7 @@ public class WebApplicationResourceDeleteTest {
             assertFalse(existsData(FunctionalAdminCollections.CONTEXT, idContext2.getId()));
             //Admin context must still exist
             assertTrue(existsData(FunctionalAdminCollections.CONTEXT, adminContext.getId()));
-        } catch (final ReferentialException e) {
+        } catch (final ReferentialException | InvalidParseOperationException e) {
             LOGGER.error(e);
             fail("Exception using mongoDbAccess");
         }
@@ -580,13 +582,14 @@ public class WebApplicationResourceDeleteTest {
     }
 
     public GUID addAdminContextData(FunctionalAdminCollections collection)
-        throws ReferentialException, InvalidCreateOperationException, InvalidGuidOperationException {
+        throws ReferentialException, InvalidCreateOperationException, InvalidGuidOperationException,
+        InvalidParseOperationException {
         final Query query = QueryHelper.or().add(QueryHelper.eq(CONTEXT_NAME, ADMIN_CONTEXT));
         JsonNode select = query.getCurrentObject();
         DbRequestResult result = mongoDbAccessAdmin.findDocuments(select, FunctionalAdminCollections.CONTEXT);
         GUID adminContext = null;
         if (result.getCount() > 0) {
-            adminContext = GUIDReader.getGUID(result.getDocuments(Context.class).get(0).getId());
+            adminContext = GUIDReader.getGUID(result.getDocuments(Context.class, ContextModel.class).get(0).getId());
         } else {
             adminContext = GUIDFactory.newGUID();
             final ObjectNode data1 = JsonHandler.createObjectNode().put("_id", adminContext.getId());

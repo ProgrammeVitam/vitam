@@ -35,17 +35,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * POJO java use for mapping @{@link fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail}
  */
 public class AccessionRegisterDetailModel {
+    public static final String TAG_ID = "id";
+    public static final String TAG_TENANT = "tenant";
+    public static final String HASH = "#";
+    public static final String UNDERSCORE = "_";
 
     /**
      * unique identifier
      */
-    @JsonProperty("_id")
     private String id;
 
     /**
      * tenant id
      */
-    @JsonProperty("_tenant")
     private int tenant;
 
     /**
@@ -134,18 +136,41 @@ public class AccessionRegisterDetailModel {
         return id;
     }
 
+
     /**
      * @param id value to set
      * @return this
      */
+    @JsonProperty(UNDERSCORE + TAG_ID)
     public AccessionRegisterDetailModel setId(String id) {
         this.id = id;
         return this;
     }
 
     /**
+     * @param id value to set
+     * @return this
+     */
+    @JsonProperty(HASH + TAG_ID)
+    public AccessionRegisterDetailModel setIdExt(String id) {
+        this.id = id;
+        return this;
+    }
+
+    /**
+     * @param tenant the working tenant to set
+     * @return this
+     */
+    @JsonProperty(HASH + TAG_TENANT)
+    public AccessionRegisterDetailModel setTenantExt(int tenant) {
+        this.tenant = tenant;
+        return this;
+    }
+
+    /**
      * @return tenant
      */
+    @JsonProperty(HASH + TAG_TENANT)
     public int getTenant() {
         return tenant;
     }
@@ -200,7 +225,7 @@ public class AccessionRegisterDetailModel {
 
     /**
      * Set the archivalAgreement identifier
-     * 
+     *
      * @param archivalAgreement
      */
     public AccessionRegisterDetailModel setArchivalAgreement(String archivalAgreement) {
@@ -342,7 +367,7 @@ public class AccessionRegisterDetailModel {
 
     /**
      * Set operationIds in the model and return the updated AccessionRegisterDetailModel
-     * 
+     *
      * @param operationsIds id of linked ingest operations
      * @return this
      */

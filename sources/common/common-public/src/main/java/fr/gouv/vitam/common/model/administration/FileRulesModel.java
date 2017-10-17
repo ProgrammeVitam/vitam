@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * POJO java use for mapping @{@link fr.gouv.vitam.functional.administration.common.FileRules}
  */
 public class FileRulesModel {
-
     @JsonProperty("_id")
     private String id;
 

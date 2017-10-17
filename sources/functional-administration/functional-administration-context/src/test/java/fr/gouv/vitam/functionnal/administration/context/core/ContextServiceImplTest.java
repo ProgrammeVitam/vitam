@@ -17,6 +17,9 @@
  */
 package fr.gouv.vitam.functionnal.administration.context.core;
 
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -130,6 +133,7 @@ public class ContextServiceImplTest {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         junitHelper = JunitHelper.getInstance();
         mongoPort = junitHelper.findAvailablePort();
+        mongoPort = 12346;
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .withLaunchArgument("--enableMajorityReadConcern")
             .version(Version.Main.PRODUCTION)
@@ -218,15 +222,17 @@ public class ContextServiceImplTest {
         permissionsNode.set("Permissions", JsonHandler.createArrayNode().add(permissionNode));
         final SetAction setPermission = UpdateActionHelper.set(permissionsNode);
         final Select select = new Select();
-        select.setQuery(QueryHelper.eq("Name", "My_Context_1"));
+        select.setQuery(eq("Name", "My_Context_1"));
         final ContextModel context =
-            contextService.findContexts(select.getFinalSelect()).getDocuments(Context.class, ContextModel.class).get(0);
+            contextService
+                .findContexts(select.getFinalSelect())
+                .getDocuments(Context.class, ContextModel.class).get(0);
 
 
         final Update update = new Update();
         update.addActions(setPermission);
-        update.setQuery(QueryHelper.and().add(QueryHelper.eq("Permissions._tenant", 0))
-            .add(QueryHelper.eq("#id", context.getId())));
+        update.setQuery(and().add(eq("Permissions._tenant", 0))
+            .add(eq("#id", context.getId())));
 
         JsonNode queryDslForUpdate = update.getFinalUpdate();
         final RequestResponse<ContextModel> updateResponse =

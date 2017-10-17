@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
@@ -103,7 +104,7 @@ public class SecurityProfileService implements VitamAutoCloseable {
     private final LogbookOperationsClient logbookClient;
     private final VitamCounterService vitamCounterService;
     private final SecurityProfileLogbookManager manager;
-
+    private static final String _ID = "_id";
     /**
      * Constructor
      *
@@ -159,7 +160,13 @@ public class SecurityProfileService implements VitamAutoCloseable {
 
             ArrayNode securityProfilesToPersist = JsonHandler.createArrayNode();
             for (SecurityProfileModel securityProfile : securityProfileList) {
-                JsonNode securityProfileNode = JsonHandler.toJsonNode(securityProfile);
+
+                ObjectNode securityProfileNode = (ObjectNode) JsonHandler.toJsonNode(securityProfile);
+
+                JsonNode jsonNode = securityProfileNode.remove(VitamFieldsHelper.id());
+                if (jsonNode != null) {
+                    securityProfileNode.set(_ID, jsonNode);
+                }
                 securityProfilesToPersist.add(securityProfileNode);
             }
             mongoAccess.insertDocuments(securityProfilesToPersist, FunctionalAdminCollections.SECURITY_PROFILE).close();

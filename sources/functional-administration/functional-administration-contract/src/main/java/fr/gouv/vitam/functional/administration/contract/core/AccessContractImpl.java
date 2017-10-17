@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConfiguration;
 import fr.gouv.vitam.common.SedaVersion;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
@@ -121,6 +122,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     private static final String CONTRACTS_IMPORT_EVENT = "STP_IMPORT_ACCESS_CONTRACT";
     private static final String CONTRACT_UPDATE_EVENT = "STP_UPDATE_ACCESS_CONTRACT";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessContractImpl.class);
+    private static final String _TENANT = "_tenant";
+    private static final String _ID = "_id";
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logBookclient;
     private final VitamCounterService vitamCounterService;
@@ -225,14 +228,17 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             contractsToPersist = JsonHandler.createArrayNode();
             for (final AccessContractModel acm : contractModelList) {
 
-                if (!slaveMode) {
-                    final String code =
-                        vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(),
-                            SequenceType.ACCESS_CONTRACT_SEQUENCE.getName());
-                    acm.setIdentifier(code);
-                }
+                setIdentifier(slaveMode, acm);
 
-                final JsonNode accessContractNode = JsonHandler.toJsonNode(acm);
+                final ObjectNode accessContractNode = (ObjectNode) JsonHandler.toJsonNode(acm);
+                JsonNode hashId = accessContractNode.remove(VitamFieldsHelper.id());
+                if (hashId != null) {
+                    accessContractNode.set(_ID, hashId);
+                }
+                JsonNode hashTenant = accessContractNode.remove(VitamFieldsHelper.tenant());
+                if (hashTenant != null) {
+                    accessContractNode.set(_TENANT, hashTenant);
+                }
 
                 /* contract is valid, add it to the list to persist */
                 contractsToPersist.add(accessContractNode);
@@ -257,6 +263,16 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
         return new RequestResponseOK<AccessContractModel>().addAllResults(contractModelList)
             .setHttpCode(Response.Status.CREATED.getStatusCode());
+    }
+
+    private void setIdentifier(boolean slaveMode, AccessContractModel acm)
+        throws InvalidCreateOperationException, InvalidParseOperationException, ReferentialException {
+        if (!slaveMode) {
+            final String code =
+                vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(),
+                    SequenceType.ACCESS_CONTRACT_SEQUENCE.getName());
+            acm.setIdentifier(code);
+        }
     }
 
     @Override

@@ -108,21 +108,19 @@ public class FileFormatModel {
 
     /**
      * Constructor without fields
-     * 
+     *
      */
     public FileFormatModel() {
     }
 
     /**
-     * 
      * @return id
      */
     public String getId() {
         return id;
     }
-    
+
     /**
-     * 
      * @param id value to set
      * @return this
      */
@@ -130,17 +128,17 @@ public class FileFormatModel {
         this.id = id;
         return this;
     }
-    
+
     /**
-     * 
+     *
      * @return createdDate
      */
     public String getCreatedDate() {
         return createdDate;
     }
-    
+
     /**
-     * 
+     *
      * @param createdDate value to set
      * @return this
      */
@@ -148,17 +146,17 @@ public class FileFormatModel {
         this.createdDate = createdDate;
         return this;
     }
-    
+
     /**
-     * 
+     *
      * @return versionPronom
      */
     public String getVersionPronom() {
         return versionPronom;
     }
-    
+
     /**
-     * 
+     *
      * @param versionPronom value to set
      * @return this
      */
@@ -166,17 +164,17 @@ public class FileFormatModel {
         this.versionPronom = versionPronom;
         return this;
     }
-    
+
     /**
-     * 
+     *
      * @return version
      */
     public String getVersion() {
         return version;
     }
-    
+
     /**
-     * 
+     *
      * @param version value to set
      * @return this
      */
@@ -184,17 +182,17 @@ public class FileFormatModel {
         this.version = version;
         return this;
     }
-    
+
     /**
-     * 
+     *
      * @return hasPriorityOverFileFormatIDs
      */
     public List<String> getHasPriorityOverFileFormatIDs() {
         return hasPriorityOverFileFormatIDs;
     }
-    
+
     /**
-     * 
+     *
      * @param hasPriorityOverFileFormatIDs value to set
      * @return this
      */
@@ -202,17 +200,17 @@ public class FileFormatModel {
         this.hasPriorityOverFileFormatIDs = hasPriorityOverFileFormatIDs;
         return this;
     }
-    
+
     /**
-     * 
+     *
      * @return mimeType
      */
     public String getMimeType() {
         return mimeType;
     }
-    
+
     /**
-     * 
+     *
      * @param mimeType value to set
      * @return this
      */
@@ -220,17 +218,16 @@ public class FileFormatModel {
         this.mimeType = mimeType;
         return this;
     }
-    
+
     /**
-     * 
      * @return name
      */
     public String getName() {
         return name;
     }
-    
+
     /**
-     * 
+     *
      * @param name value to set
      * @return this
      */
@@ -238,17 +235,17 @@ public class FileFormatModel {
         this.name = name;
         return this;
     }
-    
+
     /**
-     * 
+     *
      * @return group
      */
     public String getGroup() {
         return group;
     }
-    
+
     /**
-     * 
+     *
      * @param group value to set
      * @return this
      */
@@ -256,17 +253,17 @@ public class FileFormatModel {
         this.group = group;
         return this;
     }
-    
+
     /**
-     * 
+     *
      * @return alert
      */
     public boolean isAlert() {
         return alert;
     }
-    
+
     /**
-     * 
+     *
      * @param alert value to set
      * @return this
      */
@@ -274,17 +271,17 @@ public class FileFormatModel {
         this.alert = alert;
         return this;
     }
-    
+
     /**
-     * 
+     *
      * @return String
      */
     public String getComment() {
         return comment;
     }
-    
+
     /**
-     * 
+     *
      * @param comment value to set
      * @return this
      */
@@ -292,17 +289,17 @@ public class FileFormatModel {
         this.comment = comment;
         return this;
     }
-    
+
     /**
-     * 
+     *
      * @return List of String
      */
     public List<String> getExtensions() {
         return extensions;
     }
-    
+
     /**
-     * 
+     *
      * @param extensions value to set
      * @return this
      */
@@ -310,17 +307,17 @@ public class FileFormatModel {
         this.extensions = extensions;
         return this;
     }
-    
+
     /**
-     * 
+     *
      * @return puid
      */
     public String getPuid() {
         return puid;
     }
-    
+
     /**
-     * 
+     *
      * @param puid value to set
      * @return this
      */

@@ -48,6 +48,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -112,7 +113,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     private final VitamCounterService vitamCounterService;
     private final MetaDataClient metaDataClient;
     private final EntryContractManager manager;
-
+    private static final String _TENANT = "_tenant";
+    private static final String _ID = "_id";
     /**
      * Constructor
      *
@@ -222,16 +224,20 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             }
             contractsToPersist = JsonHandler.createArrayNode();
             for (final IngestContractModel acm : contractModelList) {
-                if (!slaveMode) {
-                    final String code = vitamCounterService
-                        .getNextSequenceAsString(ParameterHelper.getTenantParameter(),
-                            SequenceType.INGEST_CONTRACT_SEQUENCE.getName());
-                    acm.setIdentifier(code);
-                }
-                final JsonNode accessContractNode = JsonHandler.toJsonNode(acm);
 
+                setIdentifier(slaveMode, acm);
+                final ObjectNode ingestContractNode = (ObjectNode) JsonHandler.toJsonNode(acm);
+                JsonNode hashId = ingestContractNode.remove(VitamFieldsHelper.id());
+                if (hashId != null) {
+                    ingestContractNode.set(_ID, hashId);
+                }
+
+                JsonNode hashTenant = ingestContractNode.remove(VitamFieldsHelper.tenant());
+                if (hashTenant != null) {
+                    ingestContractNode.set(_TENANT, hashTenant);
+                }
                 /* contract is valid, add it to the list to persist */
-                contractsToPersist.add(accessContractNode);
+                contractsToPersist.add(ingestContractNode);
             }
 
             // at this point no exception occurred and no validation error detected
@@ -256,6 +262,16 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             .setHttpCode(Response.Status.CREATED.getStatusCode());
     }
 
+    private void setIdentifier(boolean slaveMode, IngestContractModel acm)
+        throws InvalidCreateOperationException, InvalidParseOperationException, ReferentialException {
+        if (!slaveMode) {
+            final String code = vitamCounterService
+                .getNextSequenceAsString(ParameterHelper.getTenantParameter(),
+                    SequenceType.INGEST_CONTRACT_SEQUENCE.getName());
+            acm.setIdentifier(code);
+        }
+    }
+    
     @Override
     public IngestContractModel findOne(String id)
         throws ReferentialException, InvalidParseOperationException {
@@ -304,6 +320,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
         private final LogbookOperationsClient logBookclient;
         private final MetaDataClient metaDataClient;
+
         public EntryContractManager(LogbookOperationsClient logBookclient, MetaDataClient metaDataClient) {
             this.logBookclient = logBookclient;
             this.metaDataClient = metaDataClient;

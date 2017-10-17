@@ -635,7 +635,6 @@ public class IngestContractImplTest {
         final IngestContractModel acmFound = IngestContractModelListFound.getResults().iterator().next();
         assertThat(acmFound).isNotNull();
 
-
         assertThat(acmFound.getId()).isEqualTo(id1);
         assertThat(acmFound.getName()).isEqualTo(name);
 
