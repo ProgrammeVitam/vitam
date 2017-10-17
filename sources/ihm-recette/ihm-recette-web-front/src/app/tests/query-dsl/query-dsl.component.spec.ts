@@ -9,7 +9,8 @@ import {ResourcesService} from '../../common/resources.service';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/observable/of';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {Response, ResponseOptions} from '@angular/http';
+import {Response, ResponseOptions, Headers} from '@angular/http';
+import {TenantService} from "../../common/tenant.service";
 
 
 const cookies = {};
@@ -57,7 +58,7 @@ const QueryDslServiceStub = {
   checkJson: (jsonRequest: string) => {
       return !!jsonRequest;
   },
-  executeRequest: (query, tenantId: string, contractId: string, requestedCollection: string,
+  executeRequest: (query, contractId: string, requestedCollection: string,
                    requestMethod: string, xAction: string, objectId: string) => {
     if (contractId) {
       return Observable.of(
@@ -76,6 +77,9 @@ const QueryDslServiceStub = {
     }
   }
 };
+const TenantServiceStub = {
+  getState: () => Observable.of('0')
+};
 
 describe('QueryDSLComponent', () => {
   let component: QueryDSLComponent;
@@ -88,7 +92,8 @@ describe('QueryDSLComponent', () => {
         QueryDslService,
         BreadcrumbService,
         {provide: ResourcesService, useValue: ResourcesServiceStub},
-        {provide: QueryDslService, useValue: QueryDslServiceStub}
+        {provide: QueryDslService, useValue: QueryDslServiceStub},
+        {provide: TenantService, useValue: TenantServiceStub}
       ],
       imports: [
         InputTextModule,

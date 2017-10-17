@@ -15,8 +15,7 @@ export class QueryDslService {
   constructor(private resourceService: ResourcesService) { }
 
   public getContracts(): Observable<Array<Contract>> {
-    const headers = new Headers({'X-Tenant-Id': '0'});
-    headers.append('Content-Type', 'application/json');
+    const headers = new Headers({'Content-Type': 'application/json'});
 
     return this.resourceService.post(`${this.accessContracts}`,
       headers,
@@ -34,9 +33,9 @@ export class QueryDslService {
     }
   }
 
-  private getRequestHeader(tenantId: string, contractId: string, requestedCollection: string,
+  private getRequestHeader(contractId: string, requestedCollection: string,
                            requestMethod: string, xAction: string, objectId: string) {
-    const headers = new Headers({'X-Tenant-Id': tenantId});
+    const headers = new Headers();
     headers.append('Content-Type', 'application/json'); // Useless soon
     headers.append('X-Access-Contract-Id', contractId);
     headers.append('X-Requested-Collection', requestedCollection);
@@ -46,11 +45,11 @@ export class QueryDslService {
     return headers;
   }
 
-  public executeRequest(query, tenantId: string, contractId: string, requestedCollection: string,
+  public executeRequest(query, contractId: string, requestedCollection: string,
                         requestMethod: string, xAction: string, objectId: string) {
 
     return this.resourceService.post(`${this.dslQueryTestUrl}`,
-      this.getRequestHeader(tenantId, contractId, requestedCollection, requestMethod, xAction, objectId),
+      this.getRequestHeader(contractId, requestedCollection, requestMethod, xAction, objectId),
       query);
   }
 }
