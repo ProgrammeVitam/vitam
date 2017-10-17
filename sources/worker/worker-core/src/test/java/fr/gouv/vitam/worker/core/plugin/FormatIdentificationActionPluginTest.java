@@ -93,6 +93,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class FormatIdentificationActionPluginTest {
     FormatIdentificationActionPlugin plugin;
     private static final String HANDLER_ID = "OG_OBJECTS_FORMAT_CHECK";
+    private static final String FILE_FORMAT = "FILE_FORMAT";
 
     private static final String OBJECT_GROUP = "storeObjectGroupHandler/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json";
     private static final String OBJECT_GROUP_2 = "storeObjectGroupHandler/afaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json";
@@ -191,7 +192,7 @@ public class FormatIdentificationActionPluginTest {
         final WorkerParameters params = getDefaultWorkerParameters();
 
         final ItemStatus response = plugin.execute(params, handlerIO);
-        assertEquals(response.getGlobalOutcomeDetailSubcode(), "UNCHARTED");
+        assertTrue(response.getItemsStatus().containsKey(FILE_FORMAT + "." + "UNCHARTED"));
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
@@ -285,9 +286,9 @@ public class FormatIdentificationActionPluginTest {
         final WorkerParameters params = getDefaultWorkerParameters();
 
         final ItemStatus response = plugin.execute(params, handlerIO);
-        assertEquals(response.getGlobalOutcomeDetailSubcode(), "UNKNOWN");
+        assertTrue(response.getItemsStatus().containsKey(FILE_FORMAT + "." + "UNKNOWN"));
         assertEquals(StatusCode.KO, response.getGlobalStatus());
-        assertTrue(response.getItemsStatus().get(FormatIdentificationActionPlugin.FILE_FORMAT)
+        assertTrue(response.getItemsStatus().get(FormatIdentificationActionPlugin.FILE_FORMAT + "." + "UNKNOWN")
             .getEvDetailData().equals( "{}" ));
     }
 
@@ -311,7 +312,7 @@ public class FormatIdentificationActionPluginTest {
         final WorkerParameters params = getDefaultWorkerParameters();
 
         final ItemStatus response = plugin.execute(params, handlerIO);
-        assertEquals(response.getGlobalOutcomeDetailSubcode(), "UNCHARTED");
+        assertTrue(response.getItemsStatus().containsKey(FILE_FORMAT + "." + "UNCHARTED"));
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
