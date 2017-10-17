@@ -40,8 +40,11 @@ import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Collection;
 import java.util.Enumeration;
+import java.util.Iterator;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
@@ -49,8 +52,10 @@ import org.bouncycastle.asn1.cms.AttributeTable;
 import org.bouncycastle.asn1.ess.SigningCertificateV2;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cms.SignerInformationVerifier;
 import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.DigestCalculatorProvider;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -77,6 +82,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.bouncycastle.util.Store;
 
 /**
  * 
@@ -95,10 +101,6 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
 
     private static final String HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP = "COMPARE_TOKEN_TIMESTAMP";
     private static final String HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP = "VALIDATE_TOKEN_TIMESTAMP";
-
-    private static final String VERIFY_TIMESTAMP_CONF_FILE = "verify-timestamp.conf";
-
-    private static String confPathForTest = null;
 
     /**
      * @return HANDLER_ID
@@ -168,20 +170,12 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
         if (!timeStampToken.equals(traceabilityTimeStamp)) {
             throw new ProcessingException("TimeStamp tokens are different");
         }
-    }    
+    }
 
     private void validateTimestamp(String encodedTimeStampToken) throws ProcessingException {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
         VerifyTimeStampActionConfiguration configuration = null;
         try {
-            configuration =
-                PropertiesUtils.readYaml(PropertiesUtils.findFile(VERIFY_TIMESTAMP_CONF_FILE),
-                    VerifyTimeStampActionConfiguration.class);
-
-            if (confPathForTest != null) {
-                configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(confPathForTest),
-                    VerifyTimeStampActionConfiguration.class);
-            }
 
             ASN1InputStream bIn = new ASN1InputStream(new ByteArrayInputStream(
                 org.bouncycastle.util.encoders.Base64.decode(encodedTimeStampToken.getBytes())));
@@ -191,8 +185,7 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
 
             AttributeTable table = tsToken.getSignedAttributes();
             SigningCertificateV2 sigCertV2 = SigningCertificateV2
-                .getInstance(table.get(PKCSObjectIdentifiers.id_aa_signingCertificateV2).getAttributeValues()[0]);
-
+                .getInstance(table.get(PKCSObjectIdentifiers.id_aa_signingCertificate).getAttributeValues()[0]);
 
             // nonce should be null for now
             // TODO maybe nonce could be different than null ? If so, check what is set in LogbookAdministration >
@@ -202,14 +195,13 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
                 throw new ProcessingException("Nonce couldnt be not null");
             }
 
-            final File file = PropertiesUtils.findFile(configuration.getP12LogbookFile());
-            try (FileInputStream fileInputStream = new FileInputStream(file)) {
-                final KeyStore keyStore = KeyStore.getInstance("PKCS12");
-                final String alias =
-                    loadKeystoreAndfindUniqueAlias(configuration.getP12LogbookPassword().toCharArray(), keyStore,
-                        fileInputStream);
-                Certificate[] certificateChain = keyStore.getCertificateChain(alias);
-                X509Certificate x509Certificate = (X509Certificate) certificateChain[0];
+            try {
+
+                Store storeTt = tsToken.getCertificates();
+                Collection collTt = storeTt.getMatches(tsToken.getSID());
+                Iterator certIt2 = collTt.iterator();
+                X509CertificateHolder x509Certificate = (X509CertificateHolder)certIt2.next();
+
                 SignerInformationVerifier sigVerifier =
                     new JcaSimpleSignerInfoVerifierBuilder().setProvider("BC").build(x509Certificate);
                 if (tsToken.isSignatureValid(sigVerifier)) {
@@ -235,7 +227,7 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
             } catch (TSPValidationException e) {
                 LOGGER.error(e);
                 throw new ProcessingException("TimeStampToken fails to validate", e);
-            } catch (TSPException | KeyStoreException | NoSuchAlgorithmException | IllegalArgumentException e) {
+            } catch (TSPException | IllegalArgumentException e) {
                 LOGGER.error(e);
                 throw new ProcessingException("Error while getting keystore", e);
             }
@@ -246,27 +238,9 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
     }
 
 
-    private String loadKeystoreAndfindUniqueAlias(char[] keystorePassword, KeyStore keyStore,
-        FileInputStream fileInputStream)
-        throws IOException, NoSuchAlgorithmException, CertificateException, KeyStoreException {
-        keyStore.load(fileInputStream, keystorePassword);
-
-        final Enumeration<String> aliases = keyStore.aliases();
-        final String alias = aliases.nextElement();
-        if (aliases.hasMoreElements()) {
-            throw new IllegalArgumentException("Keystore has many key");
-        }
-        return alias;
-    }
-
-
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // TODO Auto-generated method stub
     }
 
-    @VisibleForTesting
-    void setConfPathForTest(String confPath) {
-        confPathForTest = confPath;
-    }
 }

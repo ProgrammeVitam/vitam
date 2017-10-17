@@ -29,16 +29,20 @@ package fr.gouv.vitam.common.timestamp;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
+import java.util.Base64;
 
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.tsp.TSPAlgorithms;
@@ -49,6 +53,7 @@ import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
 import org.junit.Before;
 import org.junit.Test;
+import sun.misc.IOUtils;
 
 public class TimeStampSignatureWithKeystoreTest {
 
@@ -81,6 +86,7 @@ public class TimeStampSignatureWithKeystoreTest {
         throws TSPException, CertificateEncodingException, OperatorCreationException, IOException {
         // Given
         final TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
+        reqGen.setCertReq(true);
         final byte[] hash = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
         final BigInteger nonce = BigInteger.TEN;
         final TimeStampRequest request = reqGen.generate(TSPAlgorithms.SHA1, hash, nonce);
@@ -90,10 +96,11 @@ public class TimeStampSignatureWithKeystoreTest {
         final TimeStampToken timeStampToken = timeStampResponse.getTimeStampToken();
 
         // Then
-        assertThat(timeStampToken.getTimeStampInfo().getNonce()).isEqualTo(nonce);
         assertThat(timeStampResponse.getStatus()).isEqualTo(0);
-        assertThat(timeStampToken.getTimeStampInfo().getMessageImprintDigest()).isEqualTo(hash);
         assertThat(timeStampResponse.getEncoded()).isNotNull();
+        assertThat(timeStampToken.getTimeStampInfo().getNonce()).isEqualTo(nonce);
+        assertThat(timeStampToken.getTimeStampInfo().getMessageImprintDigest()).isEqualTo(hash);
+        assertThat(timeStampToken.getCertificates().getMatches(null)).hasSize(2);
     }
 
 }

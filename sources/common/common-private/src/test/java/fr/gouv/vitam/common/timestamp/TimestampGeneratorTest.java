@@ -63,18 +63,19 @@ public class TimestampGeneratorTest {
     public void should_generate_a_time_stamp_request()
         throws TimeStampException, TSPException, CertificateEncodingException, OperatorCreationException {
         // Given
+        byte[] hash = new byte[20];
         final TimeStampResponse timeStampResponse = mock(TimeStampResponse.class);
         final ArgumentCaptor<TimeStampRequest> timeStampRequestArgumentCaptor =
             ArgumentCaptor.forClass(TimeStampRequest.class);
         given(timeStampSignature.sign(timeStampRequestArgumentCaptor.capture())).willReturn(timeStampResponse);
 
         // When
-        timestampGenerator.generateToken(new byte[20], DigestType.SHA1, BigInteger.TEN);
+        timestampGenerator.generateToken(hash, DigestType.SHA1, BigInteger.TEN);
 
         // Then
         final TimeStampRequest capture = timeStampRequestArgumentCaptor.getValue();
         assertThat(capture.getNonce()).isEqualTo(BigInteger.TEN);
-        assertThat(capture.getMessageImprintDigest()).isEqualTo(new byte[20]);
+        assertThat(capture.getMessageImprintDigest()).isEqualTo(hash);
     }
 
 }

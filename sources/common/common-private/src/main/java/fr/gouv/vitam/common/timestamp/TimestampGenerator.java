@@ -70,19 +70,17 @@ public class TimestampGenerator {
         throws TimeStampException {
 
         final TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
+        reqGen.setCertReq(true);
         final TimeStampRequest request = reqGen.generate(digestToOid(digestType), hash, nonce);
 
-        TimeStampResponse timeStampResponse = null;
         try {
-            timeStampResponse = timeStampSignature.sign(request);
-            //lets validate de the timestamp
+            TimeStampResponse timeStampResponse = timeStampSignature.sign(request);
+            // lets validate de the timestamp
             timeStampResponse.validate(request);
             return timeStampResponse.getEncoded();
         } catch (OperatorCreationException | TSPException | CertificateEncodingException | IOException e) {
             throw new TimeStampException("unable to generate timestamp token", e);
         }
-
-
     }
 
     private ASN1ObjectIdentifier digestToOid(DigestType digestType) {

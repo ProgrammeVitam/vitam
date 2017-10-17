@@ -45,6 +45,7 @@ import java.util.Enumeration;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.cert.jcajce.JcaCertStore;
 import org.bouncycastle.cms.SignerInfoGenerator;
 import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoGeneratorBuilder;
 import org.bouncycastle.operator.DigestCalculator;
@@ -135,7 +136,7 @@ public class TimeStampSignatureWithKeystore implements TimeStampSignature {
         final TimeStampTokenGenerator tokenGen =
             new TimeStampTokenGenerator(signerInfoGen, digestCalculator, tsaPolicy);
 
-        tokenGen.addCertificates(new CollectionStore<>(Arrays.asList(certificateChain)));
+        tokenGen.addCertificates(new JcaCertStore(Arrays.asList(certificateChain)));
 
         final TimeStampResponseGenerator timeStampResponseGenerator =
             new TimeStampResponseGenerator(tokenGen, TSPAlgorithms.ALLOWED);
