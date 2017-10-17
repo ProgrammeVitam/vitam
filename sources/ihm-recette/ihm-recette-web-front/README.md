@@ -7,6 +7,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 Run `npm run start` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
 
 A proxy is added on that script in order to redirect /ihm-recette requests to the backend server in proxy.conf.json.
+You can copy the proxy.conf.json.sample to proxy.conf.json in order to make the build work.
 Update target with folowing properties:
 -For http backend:
 "host": ${your_host},
@@ -48,3 +49,4 @@ In order to update the global css (theme) you should process as:
 - Update theme in 'ihm-recette-front/themes/vitam-red/theme.scss'
 - Generate css with the command line 'sass themes/vitam-red/theme.scss:src/styles.css'
 - Copy generated styles.css in 'ihm-recette-front/front/src' folder (Or remove styles.css.map if auto link to src folder with sass)
+

@@ -1,7 +1,7 @@
 {
   "/ihm-recette": {
     "target":  {
-      "host": "143.126.93.135",
+      "host": "localhost",
       "protocol": "http:",
       "port": 80
     },
