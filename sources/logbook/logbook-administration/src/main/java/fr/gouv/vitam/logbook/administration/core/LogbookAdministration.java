@@ -122,6 +122,7 @@ public class LogbookAdministration {
     private static final String EVENT_DETAIL_DATA = eventDetailData.getDbname();
 
     private static final String STRATEGY_ID = "default";
+    private static final LocalDateTime INITIAL_START_DATE = LocalDateTime.of(1970, 1, 1, 0, 0);
 
     private final LogbookOperations logbookOperations;
     private final TimestampGenerator timestampGenerator;
@@ -181,7 +182,7 @@ public class LogbookAdministration {
         LocalDateTime startDate;
 
         if (lastTraceabilityOperation == null) {
-            startDate = LocalDateTime.of(1970, 1, 1, 0, 0);
+            startDate = INITIAL_START_DATE;
         } else {
             Date date;
             try {
@@ -219,7 +220,7 @@ public class LogbookAdministration {
                 traceabilityFile.storeOperationLog(logbookOperation);
                 merkleTreeAlgo.addLeaf(logbookOperationStr);
 
-                if (LocalDateTime.MIN.equals(startDate) &&
+                if (INITIAL_START_DATE.equals(startDate) &&
                     logbookOperation.getString(EVENT_DATE_TIME) != null) {
                     startDate = LocalDateTime.parse(logbookOperation.getString(EVENT_DATE_TIME));
                 }
