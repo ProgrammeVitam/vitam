@@ -34,36 +34,16 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.apache.commons.io.IOUtils;
-import org.bouncycastle.asn1.ASN1InputStream;
-import org.bouncycastle.asn1.ASN1Primitive;
-import org.bouncycastle.asn1.cms.AttributeTable;
-import org.bouncycastle.asn1.ess.SigningCertificateV2;
-import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.cms.SignerId;
-import org.bouncycastle.tsp.TimeStampResponse;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -77,17 +57,20 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({WorkspaceClientFactory.class})
 public class VerifyTimeStampActionHandlerTest {
+
     VerifyTimeStampActionHandler verifyTimeStampActionHandler;
+
     private static final String DETAIL_EVENT_TRACEABILITY = "VerifyTimeStamp/EVENT_DETAIL_DATA.json";
 
     private static final String TOKEN = "VerifyTimeStamp/token.tsp";
@@ -100,11 +83,13 @@ public class VerifyTimeStampActionHandlerTest {
     private WorkerParameters params;
     private static final Integer TENANT_ID = 0;
     private WorkspaceClient workspaceClient;
-    private WorkspaceClientFactory workspaceClientFactory;
     private List<IOParameter> in;
 
     private static final String HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP = "COMPARE_TOKEN_TIMESTAMP";
     private static final String HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP = "VALIDATE_TOKEN_TIMESTAMP";
+
+    @ClassRule
+    public static TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -112,17 +97,18 @@ public class VerifyTimeStampActionHandlerTest {
 
     @Before
     public void setUp() throws Exception {
+
+        File tempFolder = temporaryFolder.newFolder();
+        System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
+
+        SystemPropertyUtil.refresh();
+        workspaceClient = mock(WorkspaceClient.class);
+
         guid = GUIDFactory.newGUID();
         params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
-        workspaceClient = mock(WorkspaceClient.class);
-        PowerMockito.mockStatic(WorkspaceClientFactory.class);
-        PowerMockito.mockStatic(StorageClientFactory.class);
-        workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
-        PowerMockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        action = new HandlerIOImpl(guid.getId(), "workerId");
+        action = new HandlerIOImpl(workspaceClient, guid.getId(), "workerId");
     }
 
     @After
@@ -144,10 +130,8 @@ public class VerifyTimeStampActionHandlerTest {
         action.addInIOParameters(in);
 
         verifyTimeStampActionHandler = new VerifyTimeStampActionHandler();
-        verifyTimeStampActionHandler.setConfPathForTest("verify-timestamp.conf");
-        
-        final InputStream tokenFile =
-            PropertiesUtils.getResourceAsStream(TOKEN);
+
+        final InputStream tokenFile = PropertiesUtils.getResourceAsStream(TOKEN);
 
 
         when(workspaceClient.getObject(anyObject(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
@@ -176,111 +160,12 @@ public class VerifyTimeStampActionHandlerTest {
         action.addInIOParameters(in);
 
         verifyTimeStampActionHandler = new VerifyTimeStampActionHandler();
-        verifyTimeStampActionHandler.setConfPathForTest("verify-timestamp.conf");
 
         when(workspaceClient.getObject(anyObject(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             "token.tsp"))).thenThrow(new ContentAddressableStorageNotFoundException("Token is not existing"));
 
         final ItemStatus response = verifyTimeStampActionHandler.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
-    }
-
-
-    @Test
-    @RunWithCustomExecutor
-    public void testVerifyTimeStampWithFakeKeystoreThenKO()
-        throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        in = new ArrayList<>();
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.MEMORY, "TraceabilityOperationDetails/EVENT_DETAIL_DATA.json")));
-        action.addOutIOParameters(in);
-        action.addOuputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY), false);
-        action.reset();
-        action.addInIOParameters(in);
-
-        verifyTimeStampActionHandler = new VerifyTimeStampActionHandler();
-
-        verifyTimeStampActionHandler.setConfPathForTest("verify-timestamp-fake.conf");
-        final InputStream tokenFile =
-            PropertiesUtils.getResourceAsStream(TOKEN);
-
-
-        when(workspaceClient.getObject(anyObject(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
-            "token.tsp")))
-                .thenReturn(Response.status(Status.OK).entity(tokenFile).build());
-
-        final ItemStatus response = verifyTimeStampActionHandler.execute(params, action);
-        assertEquals(StatusCode.KO, response.getGlobalStatus());
-        assertEquals(StatusCode.OK, response.getItemsStatus().get(verifyTimeStampActionHandler.getId())
-            .getItemsStatus().get(HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP).getGlobalStatus());
-        assertEquals(StatusCode.KO, response.getItemsStatus().get(verifyTimeStampActionHandler.getId())
-            .getItemsStatus().get(HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP).getGlobalStatus());
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void testVerifyTimeStampWithUnexistingKeystoreThenKO()
-        throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        in = new ArrayList<>();
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.MEMORY, "TraceabilityOperationDetails/EVENT_DETAIL_DATA.json")));
-        action.addOutIOParameters(in);
-        action.addOuputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY), false);
-        action.reset();
-        action.addInIOParameters(in);
-
-        verifyTimeStampActionHandler = new VerifyTimeStampActionHandler();
-
-        verifyTimeStampActionHandler.setConfPathForTest("verify-timestamp-fake-unexisting.conf");
-        final InputStream tokenFile =
-            PropertiesUtils.getResourceAsStream(TOKEN);
-
-
-        when(workspaceClient.getObject(anyObject(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
-            "token.tsp")))
-                .thenReturn(Response.status(Status.OK).entity(tokenFile).build());
-
-        final ItemStatus response = verifyTimeStampActionHandler.execute(params, action);
-        assertEquals(StatusCode.KO, response.getGlobalStatus());
-        assertEquals(StatusCode.OK, response.getItemsStatus().get(verifyTimeStampActionHandler.getId())
-            .getItemsStatus().get(HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP).getGlobalStatus());
-        assertEquals(StatusCode.KO, response.getItemsStatus().get(verifyTimeStampActionHandler.getId())
-            .getItemsStatus().get(HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP).getGlobalStatus());
-    }
-
-
-    @Test
-    @RunWithCustomExecutor
-    public void testVerifyTimeStampWithMultipleKeysInKeystoreThenKO()
-        throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        in = new ArrayList<>();
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.MEMORY, "TraceabilityOperationDetails/EVENT_DETAIL_DATA.json")));
-        action.addOutIOParameters(in);
-        action.addOuputResult(0, PropertiesUtils.getResourceFile(DETAIL_EVENT_TRACEABILITY), false);
-        action.reset();
-        action.addInIOParameters(in);
-
-        verifyTimeStampActionHandler = new VerifyTimeStampActionHandler();
-
-        verifyTimeStampActionHandler.setConfPathForTest("verify-timestamp-mulitple-keys.conf");
-        final InputStream tokenFile =
-            PropertiesUtils.getResourceAsStream(TOKEN);
-
-
-        when(workspaceClient.getObject(anyObject(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
-            "token.tsp")))
-                .thenReturn(Response.status(Status.OK).entity(tokenFile).build());
-
-        final ItemStatus response = verifyTimeStampActionHandler.execute(params, action);
-        assertEquals(StatusCode.KO, response.getGlobalStatus());
-        assertEquals(StatusCode.OK, response.getItemsStatus().get(verifyTimeStampActionHandler.getId())
-            .getItemsStatus().get(HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP).getGlobalStatus());
-        assertEquals(StatusCode.KO, response.getItemsStatus().get(verifyTimeStampActionHandler.getId())
-            .getItemsStatus().get(HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP).getGlobalStatus());
     }
 
     @Test
@@ -297,7 +182,6 @@ public class VerifyTimeStampActionHandlerTest {
         action.addInIOParameters(in);
 
         verifyTimeStampActionHandler = new VerifyTimeStampActionHandler();
-        verifyTimeStampActionHandler.setConfPathForTest("verify-timestamp.conf");
         final InputStream tokenFile =
             PropertiesUtils.getResourceAsStream(TOKEN_FAKE);
 
