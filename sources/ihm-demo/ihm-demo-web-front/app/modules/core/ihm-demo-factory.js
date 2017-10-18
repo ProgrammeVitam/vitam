@@ -62,12 +62,12 @@ angular.module('core')
 
   // Get the tenant lists Http Request (GET Method)
   dataFactory.getTenants = function (){
-    return ihmDemoCLient.getClient(IHM_URLS.TENANTS).one('').get();
+    return ihmDemoCLient.getClient('').one(IHM_URLS.TENANTS).get();
   };
 
   dataFactory.getAccessContracts = function (criteria, headers){
     return ihmDemoCLient.getClient(IHM_URLS.ACCESS_CONTRACT).all('').customPOST(criteria, null, null, headers);
-  }
+  };
 
   // Search Archive Units Http Request (POST method)
   dataFactory.searchArchiveUnits = function (criteria, headers) {
