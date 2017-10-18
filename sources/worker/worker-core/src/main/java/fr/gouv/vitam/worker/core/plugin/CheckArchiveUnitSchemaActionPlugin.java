@@ -98,7 +98,7 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
                     itemStatus.setItemId(CHECK_UNIT_SCHEMA_TASK_ID + "." + CheckUnitSchemaStatus.INVALID_UNIT.toString());
                     itemStatus.increment(StatusCode.KO);
                     itemStatus.setEvDetailData(schemaValidationStatus.getValidationMessage());
-                    return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(itemStatus.getItemId(),
+                    return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(),
                         itemStatus);
                 case NOT_JSON_FILE:
                     itemStatus.setItemId(CHECK_UNIT_SCHEMA_TASK_ID + "." + CheckUnitSchemaStatus.INVALID_UNIT.toString());
@@ -106,13 +106,13 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
                     final ObjectNode object = JsonHandler.createObjectNode();
                     object.put( CHECK_UNIT_SCHEMA_TASK_ID, schemaValidationStatus.getValidationMessage() );
                     itemStatus.setEvDetailData( JsonHandler.unprettyPrint( object ) );
-                    return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(itemStatus.getItemId(),
+                    return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(),
                         itemStatus);
                 case EMPTY_REQUIRED_FIELD:
                     itemStatus.setItemId(CHECK_UNIT_SCHEMA_TASK_ID + "." + CheckUnitSchemaStatus.EMPTY_REQUIRED_FIELD.toString());
                     itemStatus.increment(StatusCode.KO);
                     itemStatus.setEvDetailData(schemaValidationStatus.getValidationMessage());
-                    return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(itemStatus.getItemId(),
+                    return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(),
                         itemStatus);
             }
         } catch (final ArchiveUnitContainSpecialCharactersException e) {

@@ -139,10 +139,12 @@ public class UnitsRulesComputePlugin extends ActionHandler {
                     itemStatus.setItemId(CHECK_RULES_TASK_ID + "." + UnitRulesComputeStatus.DATE_THRESHOLD.toString());
                     break;
             }
+        } else {
+            itemStatus.setItemId(CHECK_RULES_TASK_ID);
         }
 
         LOGGER.debug("[exit] execute... /Elapsed Time:" + (System.currentTimeMillis() - time) / 1000 + "s");
-        return new ItemStatus(CHECK_RULES_TASK_ID).setItemsStatus(itemStatus.getItemId(), itemStatus);
+        return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(), itemStatus);
     }
 
     @Override
