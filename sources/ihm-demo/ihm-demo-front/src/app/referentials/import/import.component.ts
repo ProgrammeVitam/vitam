@@ -20,7 +20,8 @@ export class ImportComponent  extends PageComponent {
     {label:"Formats", value:'format'},
     {label:"Règles de gestion", value:'rule'},
     {label:"Profils", value:'profil'},
-    {label:"Contextes", value:'context'}
+    {label:"Contextes", value:'context'},
+    {label:"Service Agent", value:'agencies'}
   ];
   extensions : string[];
   uploadAPI : string;

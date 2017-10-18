@@ -13,6 +13,8 @@ export class ArchiveUnitService {
   UNIT = 'unit';
   OBJECTS = 'objects';
 
+  static inputRequest : any;
+
   constructor(private resourceService: ResourcesService) { }
 
   getDetails(id): Observable<VitamResponse> {
@@ -39,4 +41,11 @@ export class ArchiveUnitService {
     return this.resourceService.post(`${this.ARCHIVE_UPDATE_API}/${this.UNITS}/${id}`, undefined, updateRequest);
   }
 
+  static setInputRequest(request) {
+    this.inputRequest = request ;
+  }
+
+  static getInputRequest() {
+    return this.inputRequest;
+  }
 }

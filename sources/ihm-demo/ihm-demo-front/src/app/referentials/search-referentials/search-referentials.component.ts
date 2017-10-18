@@ -25,6 +25,7 @@ export class SearchReferentialsComponent  extends PageComponent {
   referentialIdentifier : string;
   public response: VitamResponse;
   public searchForm: any = {};
+  searchButtonLabel : string;
 
   referentialData  = [];
   public columns = [];
@@ -239,6 +240,9 @@ export class SearchReferentialsComponent  extends PageComponent {
         default:
           this.router.navigate(['ingest/sip']);
       }
+      if (this.referentialType != "accession-register") {
+        this.searchButtonLabel =  'Accèder à l\'import des référentiels';
+      }
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
         {label: this.breadcrumbName, routerLink: 'admin/search/' + this.referentialType}
@@ -249,7 +253,8 @@ export class SearchReferentialsComponent  extends PageComponent {
 
       this.searchReferentialsService.getResults(this.searchForm).subscribe(
           data => {this.response = data;},
-          error => console.log('Error - ', this.response));
+          error => console.log('Error - ', this.response)
+      );
     });
   }
 
@@ -282,7 +287,7 @@ export class SearchReferentialsComponent  extends PageComponent {
       (response) => {
         responseEvent.emit({response: response, form: form});
       },
-      (error) => console.log('Error: ', error)
+      (error) => responseEvent.emit({response: null, form: form})
     );
   }
 
@@ -312,7 +317,7 @@ export class SearchReferentialsComponent  extends PageComponent {
     return 'X';
   }
 
-  onNotifyPanelButton(event) {
+  onNotifyPanelButton() {
     this.router.navigate(['admin/import/' + this.referentialType]);
   }
 }

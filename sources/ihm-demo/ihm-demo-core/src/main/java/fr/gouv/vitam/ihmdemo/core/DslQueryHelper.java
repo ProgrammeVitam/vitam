@@ -47,6 +47,7 @@ import com.fasterxml.jackson.databind.ser.DefaultSerializerProvider;
 import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -110,6 +111,7 @@ public final class DslQueryHelper {
     private static final String ADVANCED_SEARCH_FLAG = "isAdvancedSearchFlag";
     private static final String YES = "yes";
     private static final String ORIGINATING_AGENCY = "OriginatingAgency";
+    private static final String ORIGINATING_AGENCIES = "OriginatingAgencies";
     private static final String DATEOPERATION = "EvDateTime";
     private static final String TRACEABILITY_OK = "TraceabilityOk";
     private static final String TRACEABILITY_ID = "TraceabilityId";
@@ -469,6 +471,14 @@ public final class DslQueryHelper {
             }
             if (searchKeys.equalsIgnoreCase(DESCRIPTION)) {
                 andQuery.add(match(DESCRIPTION, (String) searchValue));
+                continue;
+            }
+            if (searchKeys.equalsIgnoreCase(ORIGINATING_AGENCY)) {
+                andQuery.add(eq(VitamFieldsHelper.originatingAgency(), (String) searchValue));
+                continue;
+            }
+            if (searchKeys.equalsIgnoreCase(ORIGINATING_AGENCIES)) {
+                andQuery.add(eq(VitamFieldsHelper.originatingAgencies(), (String) searchValue));
                 continue;
             }
             if (searchKeys.startsWith(START_PREFIX)) {

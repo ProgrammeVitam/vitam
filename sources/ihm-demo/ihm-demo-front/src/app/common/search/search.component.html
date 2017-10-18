@@ -34,7 +34,7 @@
     </div>
   </form>
 
-  <p-tabView *ngIf="advancedData">
+  <p-tabView *ngIf="advancedData" [activeIndex]="advancedMode ? 1 : 0">
     <p-tabPanel header="Recherche globale" [selected]="true" (click)="switchMode(false)">
       <form class="w-100" [formGroup]="searchForm" (ngSubmit)="onSubmit()">
         <div class="ui-g">

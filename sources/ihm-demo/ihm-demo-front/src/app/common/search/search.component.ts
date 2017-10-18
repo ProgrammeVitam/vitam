@@ -15,10 +15,9 @@ import {AccessContractService} from "../access-contract.service";
 export class SearchComponent implements OnInit {
   searchForm: FormGroup;
   advancedSearchForm: FormGroup;
-  advancedMode = false;
+  @Input() advancedMode = false;
   preSearchReturn = new Preresult();
   allowAdvanced = false;
-  item = {};
   @Input() public label: string;
   @Input() public data: FieldDefinition[] = [];
   @Input() public panelButtonlabel: string;
@@ -73,17 +72,16 @@ export class SearchComponent implements OnInit {
   ngOnChanges(changes: SimpleChanges) {
     if (changes.data) {
       let data = changes.data.currentValue;
-      this.item = {};
+      const item = {};
       for (let i = 0; i < data.length; i++) {
         if (data[i].required) {
-          this.item[data[i].name] = new FormControl('', Validators.required);
+          item[data[i].name] = new FormControl('', Validators.required);
         } else {
-          this.item[data[i].name] = new FormControl('');
+          item[data[i].name] = new FormControl('');
         }
       }
-      this.searchForm = new FormGroup(this.item);
+      this.searchForm = new FormGroup(item);
     }
-
   }
 
   onSubmit() {
@@ -143,6 +141,6 @@ export class SearchComponent implements OnInit {
   }
 
   clickPanelButton() {
-    this.panelButtonEvent.emit({action : 'clicked'});
+    this.panelButtonEvent.emit();
   }
 }

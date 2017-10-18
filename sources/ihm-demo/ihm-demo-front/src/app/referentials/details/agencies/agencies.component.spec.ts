@@ -9,8 +9,8 @@ import { ReferentialsService } from "../../referentials.service";
 import { VitamResponse } from "../../../common/utils/response";
 
 const ReferentialsServiceStub = {
-  getAgenciesById: (id) => Observable.of({'$results': [{}]}
-  )
+  getAgenciesById: (id) => Observable.of({'$results': [{}]}),
+  getFundRegisterById : (id) => Observable.of({"$hits":{"total":1,"offset":0,"limit":125,"size":10000}})
 };
 
 describe('AgenciesComponent', () => {

@@ -43,7 +43,7 @@ export class MenuComponent implements OnInit {
             icon: 'fa-search',
             items: [
               {label: 'Recherche d\'archives', routerLink: ['search/archiveUnit']},
-              {label: 'Registre des fonds', routerLink: ['search/accessionRegister']}
+              {label: 'Registre des fonds', routerLink: ['admin/search/accession-register']}
             ]
           },
           {
@@ -56,7 +56,7 @@ export class MenuComponent implements OnInit {
               {label: 'Contrats d\'entrée', routerLink: ['admin/search/ingestContract']},
               {label: 'Contrats d\'accès', routerLink: ['admin/search/accessContract']},
               {label: 'Contextes applicatifs', routerLink: ['admin/search/context']},
-              {label: 'Service d\'agent', routerLink: ['admin/search/agencies']},
+              {label: 'Service agent', routerLink: ['admin/search/agencies']},
               {separator: true},
               {label: 'Journal des opérations', routerLink: ['admin/logbookOperation']},
               {label: 'Gestion des opérations', routerLink: ['admin/workflow']},
@@ -69,13 +69,15 @@ export class MenuComponent implements OnInit {
               {label: 'Import des contrats d\'accès', routerLink: ['admin/import/accessContract']},
               {label: 'Import des profils', routerLink: ['admin/import/profil']},
               {label: 'Import des contextes', routerLink: ['admin/import/context']},
-              {label: 'Import des service d\'agent', routerLink: ['admin/import/agencies']}
+              {label: 'Import des service agent', routerLink: ['admin/import/agencies']}
             ]
           },
           {
             label: 'Gestion des archives',
             icon: 'fa-area-chart',
-            routerLink: ['management/archiveUnit']
+            items: [
+              {label: 'Audit', routerLink: ['admin/audits']}
+            ]
           }
 
         ];

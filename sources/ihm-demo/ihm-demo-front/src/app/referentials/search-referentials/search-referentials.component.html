@@ -1,5 +1,5 @@
 <vitam-search [label]="breadcrumbName" [service]="searchReferentialsService" [(data)]="referentialData" [preSearch]="preSearchFunction"
-              [submitFunction]="initialSearch" (responseEvent)="onNotify($event)" [panelButtonlabel]="'Accèder à l\'import des référentiels'"
+              [submitFunction]="initialSearch" (responseEvent)="onNotify($event)" [panelButtonlabel]="searchButtonLabel"
               (panelButtonEvent)="onNotifyPanelButton($event)"></vitam-search>
 
 <vitam-results [data]="response" [cols]="columns" [extraCols]="extraColumns" [service]="logbookService"

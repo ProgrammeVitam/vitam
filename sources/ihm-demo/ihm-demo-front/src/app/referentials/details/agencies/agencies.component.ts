@@ -6,6 +6,9 @@ import { Title } from '@angular/platform-browser';
 import { BreadcrumbService, BreadcrumbElement } from "../../../common/breadcrumb.service";
 import { ReferentialsService } from "../../referentials.service";
 import { DateService } from '../../../common/utils/date.service';
+
+import { ArchiveUnitService } from '../../../archive-unit/archive-unit.service';
+
 import { PageComponent } from "../../../common/page/page-component";
 import { Agency } from './agency';
 
@@ -17,6 +20,7 @@ import { Agency } from './agency';
 export class AgenciesComponent extends PageComponent {
 
   agency : Agency;
+  hasUnit : boolean;
   id: string;
   constructor(private activatedRoute: ActivatedRoute, private router : Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
@@ -42,8 +46,17 @@ export class AgenciesComponent extends PageComponent {
   getDetail() {
     this.searchReferentialsService.getAgenciesById(this.id).subscribe((value) => {
       this.agency = plainToClass(Agency, value.$results)[0];
-      let keys = Object.keys(this.agency);
+      this.searchReferentialsService.getFundRegisterById(this.agency.Identifier).subscribe((value) => {
+        if (value.$hits.total == 1) {
+          this.hasUnit = true;
+        }
+      }, error => this.hasUnit = false)
     });
+  }
+
+  goToSearchUnitPage() {
+    ArchiveUnitService.setInputRequest({originatingagencies : this.id});
+    this.router.navigate(['search/archiveUnit']);
   }
 
 }
