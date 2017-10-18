@@ -6,6 +6,7 @@ import { Title } from '@angular/platform-browser';
 import { BreadcrumbService, BreadcrumbElement } from "../../../common/breadcrumb.service";
 import { ReferentialsService } from "../../referentials.service";
 import { DateService } from '../../../common/utils/date.service';
+import { ObjectsService } from '../../../common/utils/objects.service';
 import { PageComponent } from "../../../common/page/page-component";
 import { Context } from "./context";
 
@@ -30,28 +31,29 @@ const CONTEXT_KEY_TRANSLATION = {
 export class ContextComponent extends PageComponent {
 
   context : Context;
+  modifiedContext : Context;
   arrayOfKeys : string[];
+  tenants : number[];
+  selectedTenant : string;
   id: string;
   update : boolean;
   updatedFields = {};
   constructor(private activatedRoute: ActivatedRoute, private router : Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
-              private searchReferentialsService : ReferentialsService) {
+              private referentialsService : ReferentialsService) {
     super('Détail du contexte', [], titleService, breadcrumbService);
 
   }
 
   pageOnInit() {
+    this.referentialsService.getTenants()
+      .subscribe((tenants: Array<number>) => {
+        this.tenants = tenants;
+      });
+
     this.activatedRoute.params.subscribe( params => {
       this.id = params['id'];
-      this.searchReferentialsService.getContextById(this.id).subscribe((value) => {
-        this.context = plainToClass(Context, value.$results)[0];
-        let keys = Object.keys(this.context);
-        let context = this.context;
-        this.arrayOfKeys = keys.filter(function(key) {
-          return key != '_id' && !!context[key] && context[key].length > 0;
-        });
-      });
+      this.getDetail();
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
         {label: 'Contextes', routerLink: 'admin/search/context'},
@@ -92,21 +94,70 @@ export class ContextComponent extends PageComponent {
     }
   }
 
+  valueChange(key : string) {
+    this.updatedFields[key] = this.modifiedContext[key];
+  }
+
   switchUpdateMode() {
     this.update = !this.update;
+    this.updatedFields = {};
     if (!this.update) {
+      this.modifiedContext = ObjectsService.clone(this.context);
     }
   }
 
+  getDetail() {
+    this.referentialsService.getContextById(this.id).subscribe((value) => {
+      this.context = plainToClass(Context, value.$results)[0];
+      this.modifiedContext = ObjectsService.clone(this.context);
 
+      for (let permission of this.modifiedContext.Permissions) {
+        this.tenants.splice(this.tenants.indexOf(permission._tenant), 1);
+      }
+    });
+  }
 
   saveUpdate() {
-    console.log(this.updatedFields);
     this.updatedFields['LastUpdate'] = new Date();
-    this.searchReferentialsService.updateDocumentById('contexts', this.id, this.updatedFields)
+
+    if (JSON.stringify(this.modifiedContext.Permissions) != JSON.stringify(this.context.Permissions.toString)) {
+      this.updatedFields['Permissions'] = this.modifiedContext.Permissions;
+    }
+    this.referentialsService.updateDocumentById('contexts', this.id, this.updatedFields)
       .subscribe((data) => {
-        console.log(data);
-        return data;
+        this.getDetail();
+        this.switchUpdateMode();
       });
   }
+
+  removeTenant(tenantId) {
+    if (!this.modifiedContext.Permissions) {
+      this.modifiedContext.Permissions = [];
+    }
+    let modifiedContext = this.modifiedContext;
+    this.modifiedContext.Permissions.forEach(function(value, index) {
+      if (tenantId == value._tenant) {
+        modifiedContext.Permissions.splice(index, 1);
+      }
+    });
+    this.tenants.push(tenantId);
+    this.tenants.sort();
+  }
+
+  addTenant() {
+    if (!this.modifiedContext.Permissions) {
+      this.modifiedContext.Permissions = [];
+    }
+    let newTenant = parseInt(this.selectedTenant);
+    let newPermission = {
+      _tenant : newTenant,
+      AccessContracts: [],
+      IngestContracts : []
+    };
+    this.modifiedContext.Permissions.push(newPermission);
+    let position = this.tenants.indexOf(newTenant);
+    this.tenants.splice(position, 1);
+    this.selectedTenant = this.tenants[0].toString();
+  }
+
 }

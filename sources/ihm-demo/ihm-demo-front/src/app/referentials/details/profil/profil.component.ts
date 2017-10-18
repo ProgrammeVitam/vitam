@@ -6,6 +6,7 @@ import { Title } from '@angular/platform-browser';
 import { BreadcrumbService, BreadcrumbElement } from "../../../common/breadcrumb.service";
 import { ReferentialsService } from "../../referentials.service";
 import { DateService } from '../../../common/utils/date.service';
+import { ObjectsService } from '../../../common/utils/objects.service';
 import { PageComponent } from "../../../common/page/page-component";
 import { Profil } from "./profil";
 
@@ -29,8 +30,11 @@ const PROFIL_KEY_TRANSLATION = {
 export class ProfilComponent extends PageComponent {
 
   profil : Profil;
+  file : File;
+  modifiedProfil : Profil;
   arrayOfKeys : string[];
   id: string;
+  isActif : boolean;
   update: boolean;
   updatedFields = {};
 
@@ -44,14 +48,7 @@ export class ProfilComponent extends PageComponent {
   pageOnInit() {
     this.activatedRoute.params.subscribe( params => {
       this.id = params['id'];
-      this.searchReferentialsService.getProfileById(this.id).subscribe((value) => {
-        this.profil = plainToClass(Profil, value.$results)[0];
-        let keys = Object.keys(this.profil);
-        let profil = this.profil;
-        this.arrayOfKeys = keys.filter(function(key) {
-          return key != '_id' && !!profil[key] && profil[key].length > 0;
-        });
-      });
+      this.getDetail();
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
         {label: ' Profils', routerLink: 'admin/search/profil'},
@@ -73,17 +70,59 @@ export class ProfilComponent extends PageComponent {
 
   switchUpdateMode() {
     this.update = !this.update;
+    this.updatedFields = {};
     if (!this.update) {
+      this.modifiedProfil =  ObjectsService.clone(this.profil);
     }
   }
 
-  uploadProfile() {
-    console.log(this.updatedFields);
+  saveUpdate() {
+    if (Object.keys(this.updatedFields).length == 0 && this.file == null) {
+      this.switchUpdateMode();
+      return;
+    }
+
     this.updatedFields['LastUpdate'] = new Date();
-    this.searchReferentialsService.updateDocumentById('contracts', this.id, this.updatedFields)
-      .subscribe((data) => {
-        console.log(data);
-        return data;
-      });
+    if (this.file != null) {
+      let updatedFields = this.updatedFields;
+      this.searchReferentialsService.uploadProfile(this.id, this.file)
+        .subscribe((data) => {
+          this.searchReferentialsService.updateProfilById(this.id, updatedFields)
+            .subscribe((data) => {
+              this.getDetail();
+            });
+        });
+    } else {
+      this.searchReferentialsService.updateProfilById(this.id, this.updatedFields)
+        .subscribe((data) => {
+          this.getDetail();
+        });
+    }
+
+    this.switchUpdateMode();
+  }
+
+  getDetail() {
+    this.searchReferentialsService.getProfileById(this.id).subscribe((value) => {
+      this.profil = plainToClass(Profil, value.$results)[0];
+      this.modifiedProfil =  ObjectsService.clone(this.profil);
+      if (this.modifiedProfil.Status === 'ACTIVE') {
+        this.isActif = true;
+      } else {
+        this.isActif = false;
+      }
+    });
+  }
+
+  changeStatus() {
+    if (this.isActif) {
+      this.updatedFields['Status'] = 'ACTIVE';
+    } else {
+      this.updatedFields['Status'] = 'INACTIVE';
+    }
+  }
+
+  onChange(file) {
+    this.file = file[0];
   }
 }

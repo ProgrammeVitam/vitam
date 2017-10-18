@@ -3,30 +3,19 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { NO_ERRORS_SCHEMA } from "@angular/core";
 import { Observable } from "rxjs/Rx";
 
-import { ContextComponent } from './context.component';
+import { AgenciesComponent } from './agencies.component';
 import { BreadcrumbService } from "../../../common/breadcrumb.service";
 import { ReferentialsService } from "../../referentials.service";
 import { VitamResponse } from "../../../common/utils/response";
 
 const ReferentialsServiceStub = {
-  getContextById: (id) => Observable.of({'$results': [{
-    "_id":"aegqaaaaaahuuzbeabzqqak7aco5r5aaaaaq",
-    "Name":"admin-context",
-    "Status":true,"EnableControl":false,
-    "Permissions":[
-      {"_tenant":0,"AccessContracts":[],"IngestContracts":[]}],
-    "CreationDate":"2017-10-09T10:11:05.588",
-    "LastUpdate":"2017-10-09T10:11:05.589",
-    "ActivationDate":null,
-    "DeactivationDate":null,
-    "SecurityProfile":"admin-security-profile",
-    "Identifier":"CT-000001"}]}),
-  getTenants : () => Observable.of([0])
+  getAgenciesById: (id) => Observable.of({'$results': [{}]}
+  )
 };
 
-describe('ContextComponent', () => {
-  let component: ContextComponent;
-  let fixture: ComponentFixture<ContextComponent>;
+describe('AgenciesComponent', () => {
+  let component: AgenciesComponent;
+  let fixture: ComponentFixture<AgenciesComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
@@ -35,14 +24,14 @@ describe('ContextComponent', () => {
         BreadcrumbService,
         { provide: ReferentialsService, useValue: ReferentialsServiceStub }
       ],
-      declarations: [ ContextComponent ],
+      declarations: [ AgenciesComponent ],
       schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ContextComponent);
+    fixture = TestBed.createComponent(AgenciesComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

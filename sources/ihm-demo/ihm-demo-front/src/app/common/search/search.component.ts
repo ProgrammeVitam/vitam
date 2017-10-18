@@ -21,11 +21,13 @@ export class SearchComponent implements OnInit {
   item = {};
   @Input() public label: string;
   @Input() public data: FieldDefinition[] = [];
+  @Input() public panelButtonlabel: string;
   @Input() public advancedData: FieldDefinition[];
   @Input() public submitFunction: (service: any, emitter: EventEmitter<any>, request: any) => void;
   @Input() preSearch: (request: any, advancedMode?: boolean) => Preresult = (x) => x;
   @Input() service: any;
   @Output() responseEvent: EventEmitter<any> = new EventEmitter<any>();
+  @Output() panelButtonEvent: EventEmitter<any> = new EventEmitter<any>();
 
   constructor(private accessContractService: AccessContractService) {
     this.accessContractService.getUpdate().subscribe(
@@ -138,5 +140,9 @@ export class SearchComponent implements OnInit {
 
   switchMode(isAdvanced: boolean) {
     this.advancedMode = isAdvanced;
+  }
+
+  clickPanelButton() {
+    this.panelButtonEvent.emit({action : 'clicked'});
   }
 }

@@ -54,6 +54,58 @@
         <vitam-metadata-field [title]="'Date de désactivation'"  [originalTitle]="'DeactivationDate'" [value]="modifiedContract.DeactivationDate" [labelSize]="5"
                               class="ui-g-4 " [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
       </div>
+
+      <div class="ui-g-12">
+        <div class="ui-g-4">
+          <div class="ui-g-nopad ui-g-4">
+            <label class="label fieldLabel">Tous les services producteurs</label>
+          </div>
+          <div class="ui-g-nopad ui-g-8" *ngIf="!update">
+            <span class="overflow-break-words" >{{modifiedContract.EveryOriginatingAgency ? 'Oui' : 'Non'}}</span>
+          </div>
+          <div class="ui-g-nopad ui-g-8" *ngIf="update">
+            <p-toggleButton onLabel="Oui" offLabel="Non" [(ngModel)]="modifiedContract.EveryOriginatingAgency" (onChange)="changeBooleanValue('EveryOriginatingAgency')"></p-toggleButton>
+          </div>
+        </div>
+
+        <div class="ui-g-4">
+          <div class="ui-g-nopad ui-g-4">
+            <label class="label fieldLabel">Tous les usages</label>
+          </div>
+          <div class="ui-g-nopad ui-g-8" *ngIf="!update">
+            <span class="overflow-break-words" >{{modifiedContract.EveryDataObjectVersion ? 'Oui' : 'Non'}}</span>
+          </div>
+          <div class="ui-g-nopad ui-g-8" *ngIf="update">
+            <p-toggleButton onLabel="Oui" offLabel="Non" [(ngModel)]="modifiedContract.EveryDataObjectVersion" (onChange)="changeBooleanValue('EveryDataObjectVersion')"></p-toggleButton>
+          </div>
+        </div>
+
+        <div class="ui-g-4">
+          <div class="ui-g-nopad ui-g-4">
+            <label class="label fieldLabel">Droit d'écriture</label>
+          </div>
+          <div class="ui-g-nopad ui-g-8" *ngIf="!update">
+            <span class="overflow-break-words" >{{modifiedContract.WritingPermission ? 'Oui' : 'Non'}}</span>
+          </div>
+          <div class="ui-g-nopad ui-g-8" *ngIf="update">
+            <p-toggleButton onLabel="Oui" offLabel="Non" [(ngModel)]="modifiedContract.WritingPermission" (onChange)="changeBooleanValue('WritingPermission')"></p-toggleButton>
+          </div>
+        </div>
+      </div>
+      <div class="ui-g-12">
+        <vitam-metadata-field *ngIf="!modifiedContract.EveryOriginatingAgency" [title]="'Liste blanche des services producteurs'"
+                              [originalTitle]="'OriginatingAgencies'"  [value]="modifiedContract.OriginatingAgencies" [labelSize]="4"
+                              class="ui-g-4 " [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+        <div class="ui-g-4" *ngIf="modifiedContract.EveryOriginatingAgency"  >
+        </div>
+        <vitam-metadata-field *ngIf="!modifiedContract.EveryDataObjectVersion" [title]="'Liste blanche des usages'"
+                              [originalTitle]="'DataObjectVersion'"  [value]="modifiedContract.DataObjectVersion" [labelSize]="4"
+                              class="ui-g-4 " [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+        <div class="ui-g-4" *ngIf="modifiedContract.EveryDataObjectVersion"  >
+        </div>
+        <vitam-metadata-field [title]="'Noeuds de consultation'"  [originalTitle]="'RootUnits'" [value]="modifiedContract.RootUnits" [labelSize]="5"
+                              class="ui-g-4 " [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+      </div>
     </div>
   </div>
 </p-panel>

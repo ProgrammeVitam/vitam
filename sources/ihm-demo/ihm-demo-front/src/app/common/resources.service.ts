@@ -46,6 +46,19 @@ export class ResourcesService {
     return this.http.post(`${BASE_URL}${url}`, body, options);
   }
 
+  put(url, header?: Headers, body?: any) {
+    const options: RequestOptionsArgs = new RequestOptionsTenant;
+    if (!header) {
+      header = new Headers();
+    }
+    if (this.getTenant()) {
+      header.append('X-Tenant-Id', this.getTenant());
+      header.append('X-Access-Contract-Id', this.getAccessContract());
+    }
+    options.headers = header;
+    return this.http.put(`${BASE_URL}${url}`, body, options);
+  }
+
   delete(url) {
     const options: RequestOptionsArgs = new RequestOptionsTenant;
     const headers: Headers = new Headers();

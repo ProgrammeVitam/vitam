@@ -47,6 +47,7 @@ import { ArchiveObjectGroupComponent } from './archive-unit/archive-unit-details
 import { ArchiveTreeViewComponent } from './archive-unit/archive-unit-details/archive-tree-view/archive-tree-view.component';
 import { KeysPipe, BytesPipe } from './common/utils/pipes';
 import { DateService } from './common/utils/date.service';
+import { ObjectsService } from './common/utils/objects.service';
 import {ArchiveUnitService} from "./archive-unit/archive-unit.service";
 import { ImportComponent } from './referentials/import/import.component';
 import { SearchReferentialsComponent } from './referentials/search-referentials/search-referentials.component';
@@ -63,6 +64,7 @@ import { ContextComponent } from './referentials/details/context/context.compone
 import { TreeParentComponent } from './archive-unit/archive-unit-details/archive-tree-view/tree-parent/tree-parent.component';
 import { TreeChildComponent } from './archive-unit/archive-unit-details/archive-tree-view/tree-child/tree-child.component';
 import { TreeSearchComponent } from './archive-unit/archive-unit-details/archive-tree-view/tree-search/tree-search.component';
+import { AgenciesComponent } from './referentials/details/agencies/agencies.component';
 
 const appRoutes: Routes = [
   {
@@ -112,6 +114,9 @@ const appRoutes: Routes = [
   },
   {
     path: 'admin/context/:id', component: ContextComponent
+  },
+  {
+    path: 'admin/agencies/:id', component: AgenciesComponent
   },
   {
     path: 'admin/search/:referentialType', component: SearchReferentialsComponent
@@ -164,7 +169,8 @@ const appRoutes: Routes = [
     MetadataFieldComponent,
     TreeParentComponent,
     TreeChildComponent,
-    TreeSearchComponent
+    TreeSearchComponent,
+    AgenciesComponent
   ],
   imports: [
     RouterModule.forRoot(appRoutes, {useHash: true}),
@@ -215,7 +221,8 @@ const appRoutes: Routes = [
     ReferentialsService,
     DateService,
     AccessContractService,
-    ConfirmationService
+    ConfirmationService,
+    ObjectsService
   ],
   bootstrap: [AppComponent]
 })

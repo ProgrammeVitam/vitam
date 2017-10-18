@@ -4,6 +4,7 @@ export class IngestContract {
   Name: string;
   Identifier: string;
   Description: string;
+  LinkParentId: string;
   Status: string;
   isActive : boolean;
   CreationDate: string;
@@ -11,5 +12,4 @@ export class IngestContract {
   ActivationDate: string;
   DeactivationDate: string;
   ArchiveProfiles: string[];
-  FilingParentId : string;
 }

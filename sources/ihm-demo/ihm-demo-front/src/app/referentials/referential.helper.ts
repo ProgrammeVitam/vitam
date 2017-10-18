@@ -8,28 +8,28 @@ export class ReferentialHelper {
   constructor() { }
 
   useSwitchButton(key : string) {
-    if (['Statut','Tous les services producteurs', 'Droit d\'écriture', 'Tous les usages'].indexOf(key) > -1) {
+    if (['Status','EveryDataObjectVersion', 'WritingPermission', 'EveryOriginatingAgency'].indexOf(key) > -1) {
       return true;
     }
     return false;
   }
 
   useChips(key : string) {
-    if (['Service Producteur'].indexOf(key) > -1) {
+    if (['OriginatingAgencies', 'ArchiveProfiles', 'RootUnits'].indexOf(key) > -1) {
       return true;
     }
     return false;
   }
 
   useMultiSelect(key : string) {
-    if (['Usage'].indexOf(key) > -1) {
+    if (['DataObjectVersion'].indexOf(key) > -1) {
       return true;
     }
     return false;
   }
 
   public selectionOptions = {
-    'Usage': [
+    'DataObjectVersion': [
       {label: 'BinaryMaster', value: 'BinaryMaster'},
       {label: 'Dissemination', value: 'Dissemination'},
       {label: 'Thumbnail', value: 'Thumbnail'},

@@ -14,5 +14,5 @@ export class AccessContract {
   WritingPermission: boolean;
   EveryOriginatingAgency: boolean;
   EveryDataObjectVersion: boolean;
-  RootUnits: string;
+  RootUnits: string[];
 }
