@@ -52,7 +52,7 @@ export class MenuComponent implements OnInit {
             items: [
               {label: 'Référentiel des règles de gestion', routerLink: ['admin/search/rule']},
               {label: 'Référentiel des formats', routerLink: ['admin/search/format']},
-              {label: 'Référentiel des profiles', routerLink: ['admin/search/profil']},
+              {label: 'Référentiel des profils', routerLink: ['admin/search/profil']},
               {label: 'Contrats d\'entrée', routerLink: ['admin/search/ingestContract']},
               {label: 'Contrats d\'accès', routerLink: ['admin/search/accessContract']},
               {label: 'Contextes applicatifs', routerLink: ['admin/search/context']},

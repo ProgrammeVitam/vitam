@@ -8,6 +8,7 @@ import {VitamResponse} from "../common/utils/response";
 @Injectable()
 export class LogbookService {
   LOGBOOK_API = 'logbook/operations';
+  REPORT_DOWNLOAD_API = 'rules/report/download';
 
   constructor(private resourceService: ResourcesService) { }
 
@@ -19,6 +20,23 @@ export class LogbookService {
 
     return this.resourceService.post(this.LOGBOOK_API, headers, body)
         .map((res: Response) => res.json());
+  }
+
+  downloadReport(objectId) {
+    this.resourceService.get(`${this.REPORT_DOWNLOAD_API}/${objectId}`)
+        .subscribe(
+            (response) => {
+              const a = document.createElement('a');
+              document.body.appendChild(a);
+
+              a.href = URL.createObjectURL(new Blob([response.text()], {type: 'application/xml'}));
+
+              if (response.headers.get('content-disposition') !== undefined && response.headers.get('content-disposition') !== null) {
+                a.download = response.headers.get('content-disposition').split('filename=')[1];
+                a.click();
+              }
+            }
+        );
   }
 
 }

@@ -1,6 +1,16 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { LogbookOperationComponent } from './logbook-operation.component';
+import { NO_ERRORS_SCHEMA } from "@angular/core";
+import { BreadcrumbService } from "../../common/breadcrumb.service";
+import { ArchiveUnitHelper } from "../../archive-unit/archive-unit.helper";
+import { LogbookService } from "../../ingest/logbook.service";
+import { VitamResponse } from "../../common/utils/response";
+import { Observable } from "rxjs";
+
+const LogbookServiceStub = {
+  getResults: () => Observable.of(new VitamResponse())
+};
 
 describe('LogbookOperationComponent', () => {
   let component: LogbookOperationComponent;
@@ -8,7 +18,13 @@ describe('LogbookOperationComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ LogbookOperationComponent ]
+      declarations: [ LogbookOperationComponent ],
+      providers: [
+        BreadcrumbService,
+        ArchiveUnitHelper,
+        { provide: LogbookService, useValue: LogbookServiceStub }
+      ],
+      schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();
   }));
