@@ -97,7 +97,7 @@ public class LogbookAdministrationTest {
     private static ElasticsearchTestConfiguration config = null;
 
     private static final Integer tenantId = 0;
-    static final List<Integer> tenantList = Arrays.asList(0);
+    private static final List<Integer> tenantList = Arrays.asList(0);
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
