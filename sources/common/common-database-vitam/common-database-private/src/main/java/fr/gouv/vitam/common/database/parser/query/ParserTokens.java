@@ -504,6 +504,8 @@ public class ParserTokens extends BuilderToken {
             case "RuleValue":
             case "RuleDescription":
             case "RuleDuration":
+                // Ingest contracts
+            case "LinkParentId":
                 // Access contracts
             case "Identifier":
             case "CreationDate":
