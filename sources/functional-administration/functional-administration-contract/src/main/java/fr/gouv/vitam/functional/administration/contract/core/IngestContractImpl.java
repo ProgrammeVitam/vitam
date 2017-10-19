@@ -194,10 +194,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
                 // validate contract
                 if (manager.validateContract(acm, acm.getName(), error)) {
-
                     acm.setId(GUIDFactory.newIngestContractGUID(ParameterHelper.getTenantParameter()).getId());
-                    final JsonNode ingestContractModel = JsonHandler.toJsonNode(acm);
-
                 }
                 if (acm.getTenant() == null) {
                     acm.setTenant(ParameterHelper.getTenantParameter());
@@ -593,10 +590,10 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
          * @return
          */
         private EntryContractValidator checkDuplicateInIdentifierSlaveModeValidator() {
-            return (contract, contractName) -> {
-                if (contractName == null || contractName.isEmpty()) {
+            return (contract, contractIdentifier) -> {
+                if (contractIdentifier == null || contractIdentifier.isEmpty()) {
                     return Optional
-                        .of(EntryContractValidator.GenericRejectionCause.rejectMandatoryMissing(contractName));
+                        .of(EntryContractValidator.GenericRejectionCause.rejectMandatoryMissing(contractIdentifier));
                 }
                 EntryContractValidator.GenericRejectionCause rejection = null;
                 final int tenant = ParameterHelper.getTenantParameter();
@@ -604,7 +601,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     and(eq(VitamDocument.TENANT_ID, tenant), eq(AccessContract.IDENTIFIER, contract.getIdentifier()));
                 final boolean exist = FunctionalAdminCollections.INGEST_CONTRACT.getCollection().count(clause) > 0;
                 if (exist) {
-                    rejection = EntryContractValidator.GenericRejectionCause.rejectDuplicatedInDatabase(contractName);
+                    rejection = EntryContractValidator.GenericRejectionCause.rejectDuplicatedInDatabase(contractIdentifier);
                 }
                 return rejection == null ? Optional.empty() : Optional.of(rejection);
             };

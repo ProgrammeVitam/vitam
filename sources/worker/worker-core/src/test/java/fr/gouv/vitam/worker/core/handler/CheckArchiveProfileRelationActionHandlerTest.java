@@ -136,6 +136,125 @@ public class CheckArchiveProfileRelationActionHandlerTest {
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void givenProfilNotFoundWhenTesthandlerWorkingThenReturnInvalideKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(handlerIO.getInput(0)).thenReturn(PROFILE_IDENTIFIER);
+        when(handlerIO.getInput(1)).thenReturn(CONTRACT_NAME);
+
+        when(adminClient.findProfiles(anyObject()))
+            .thenReturn(ClientMockResultHelper.createEmptyReponse());
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
+                .setObjectNameList(Lists.newArrayList("objectName.json"))
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        handler = new CheckArchiveProfileRelationActionHandler();
+        assertEquals(CheckArchiveProfileRelationActionHandler.getId(), HANDLER_ID);
+
+        ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(response.getGlobalOutcomeDetailSubcode(), "UNKNOWN");
+        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenProfilGetVitamErrorWhenTesthandlerWorkingThenReturnInvalideKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(handlerIO.getInput(0)).thenReturn(PROFILE_IDENTIFIER);
+        when(handlerIO.getInput(1)).thenReturn(CONTRACT_NAME);
+
+        when(adminClient.findProfiles(anyObject()))
+            .thenReturn(ClientMockResultHelper.createVitamError());
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
+                .setObjectNameList(Lists.newArrayList("objectName.json"))
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        handler = new CheckArchiveProfileRelationActionHandler();
+        assertEquals(CheckArchiveProfileRelationActionHandler.getId(), HANDLER_ID);
+
+        ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(response.getGlobalOutcomeDetailSubcode(), "UNKNOWN");
+        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenProfilOKAndNotFoundIngestContractWhenTesthandlerWorkingThenReturnInvalideKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(handlerIO.getInput(0)).thenReturn(PROFILE_IDENTIFIER);
+        when(handlerIO.getInput(1)).thenReturn(CONTRACT_NAME);
+
+        when(adminClient.findIngestContracts(anyObject()))
+            .thenReturn(ClientMockResultHelper.createEmptyReponse());
+        when(adminClient.findProfiles(anyObject()))
+            .thenReturn(createProfile(ProfileStatus.ACTIVE));
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
+                .setObjectNameList(Lists.newArrayList("objectName.json"))
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        handler = new CheckArchiveProfileRelationActionHandler();
+        assertEquals(CheckArchiveProfileRelationActionHandler.getId(), HANDLER_ID);
+
+        ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(response.getGlobalOutcomeDetailSubcode(), "UNKNOWN");
+        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenProfilOKAndIngestContractGetVitamErrorWhenTesthandlerWorkingThenReturnInvalideKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(handlerIO.getInput(0)).thenReturn(PROFILE_IDENTIFIER);
+        when(handlerIO.getInput(1)).thenReturn(CONTRACT_NAME);
+
+        when(adminClient.findIngestContracts(anyObject()))
+            .thenReturn(ClientMockResultHelper.createVitamError());
+        when(adminClient.findProfiles(anyObject()))
+            .thenReturn(createProfile(ProfileStatus.ACTIVE));
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
+                .setObjectNameList(Lists.newArrayList("objectName.json"))
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        handler = new CheckArchiveProfileRelationActionHandler();
+        assertEquals(CheckArchiveProfileRelationActionHandler.getId(), HANDLER_ID);
+
+        ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(response.getGlobalOutcomeDetailSubcode(), "UNKNOWN");
+        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenProfilOKNotInIngestContractWhenTesthandlerWorkingThenReturnInvalideKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(handlerIO.getInput(0)).thenReturn(PROFILE_IDENTIFIER);
+        when(handlerIO.getInput(1)).thenReturn(CONTRACT_NAME);
+
+        when(adminClient.findIngestContracts(anyObject()))
+            .thenReturn(createIngestContract(ContractStatus.ACTIVE.toString(), null));
+        when(adminClient.findProfiles(anyObject()))
+            .thenReturn(createProfile(ProfileStatus.ACTIVE));
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
+                .setObjectNameList(Lists.newArrayList("objectName.json"))
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        handler = new CheckArchiveProfileRelationActionHandler();
+        assertEquals(CheckArchiveProfileRelationActionHandler.getId(), HANDLER_ID);
+
+        ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(response.getGlobalOutcomeDetailSubcode(), "DIFF");
+        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+    }
+
+
+
     private static RequestResponse createIngestContract(String status) throws InvalidParseOperationException {
         IngestContractModel contract = new IngestContractModel();
         contract.setName("ArchivalAgreement0");
@@ -143,6 +262,18 @@ public class CheckArchiveProfileRelationActionHandlerTest {
         Set<String> profiles = new HashSet<>();
         profiles.add(PROFILE_IDENTIFIER);
         contract.setArchiveProfiles(profiles);
+        return ClientMockResultHelper.createReponse(contract);
+    }
+
+    private static RequestResponse createIngestContract(String status, String profileIdentifier) throws InvalidParseOperationException {
+        IngestContractModel contract = new IngestContractModel();
+        contract.setName("ArchivalAgreement0");
+        contract.setStatus(status);
+        if (null != profileIdentifier) {
+            Set<String> profiles = new HashSet<>();
+            profiles.add(profileIdentifier);
+            contract.setArchiveProfiles(profiles);
+        }
         return ClientMockResultHelper.createReponse(contract);
     }
     
