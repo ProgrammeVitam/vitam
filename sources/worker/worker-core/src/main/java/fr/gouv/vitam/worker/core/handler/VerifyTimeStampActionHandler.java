@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -28,48 +28,16 @@ package fr.gouv.vitam.worker.core.handler;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
 import java.security.Security;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.Iterator;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.IOUtils;
-import org.bouncycastle.asn1.ASN1InputStream;
-import org.bouncycastle.asn1.ASN1Primitive;
-import org.bouncycastle.asn1.cms.AttributeTable;
-import org.bouncycastle.asn1.ess.SigningCertificateV2;
-import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
-import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cms.SignerInformationVerifier;
-import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.operator.DigestCalculator;
-import org.bouncycastle.operator.DigestCalculatorProvider;
-import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.operator.bc.BcDigestCalculatorProvider;
-import org.bouncycastle.tsp.TSPException;
-import org.bouncycastle.tsp.TSPValidationException;
-import org.bouncycastle.tsp.TimeStampResponse;
-import org.bouncycastle.tsp.TimeStampToken;
-import org.bouncycastle.util.Arrays;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.annotations.VisibleForTesting;
-
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -82,10 +50,30 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.io.IOUtils;
+import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.cms.Attribute;
+import org.bouncycastle.asn1.cms.AttributeTable;
+import org.bouncycastle.asn1.ess.SigningCertificateV2;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cms.SignerInformationVerifier;
+import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
+import org.bouncycastle.operator.DigestCalculator;
+import org.bouncycastle.operator.DigestCalculatorProvider;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.bc.BcDigestCalculatorProvider;
+import org.bouncycastle.tsp.TSPException;
+import org.bouncycastle.tsp.TSPValidationException;
+import org.bouncycastle.tsp.TimeStampResponse;
+import org.bouncycastle.tsp.TimeStampToken;
+import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Store;
 
 /**
- * 
+ *
  */
 public class VerifyTimeStampActionHandler extends ActionHandler {
 
@@ -129,7 +117,8 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
             final ItemStatus subItemStatusTokenComparison = new ItemStatus(HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP);
             try {
                 compareTimeStamps(encodedTimeStampToken);
-                itemStatus.setItemsStatus(HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP, subItemStatusTokenComparison.increment(StatusCode.OK));
+                itemStatus.setItemsStatus(HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP,
+                    subItemStatusTokenComparison.increment(StatusCode.OK));
             } catch (ProcessingException e) {
                 LOGGER.error("Timestamps are not equal", e);
                 // lets stop the process and return an error
@@ -141,11 +130,13 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
             final ItemStatus subItemStatusTokenValidation = new ItemStatus(HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP);
             try {
                 validateTimestamp(encodedTimeStampToken);
-                itemStatus.setItemsStatus(HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP, subItemStatusTokenValidation.increment(StatusCode.OK));
+                itemStatus.setItemsStatus(HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP,
+                    subItemStatusTokenValidation.increment(StatusCode.OK));
             } catch (ProcessingException e) {
                 LOGGER.error("Timestamps is not valid", e);
                 // lets stop the process and return an error
-                itemStatus.setItemsStatus(HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP, subItemStatusTokenValidation.increment(StatusCode.KO));
+                itemStatus.setItemsStatus(HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP,
+                    subItemStatusTokenValidation.increment(StatusCode.KO));
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             }
 
@@ -184,8 +175,11 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
             TimeStampToken tsToken = tsResp.getTimeStampToken();
 
             AttributeTable table = tsToken.getSignedAttributes();
-            SigningCertificateV2 sigCertV2 = SigningCertificateV2
-                .getInstance(table.get(PKCSObjectIdentifiers.id_aa_signingCertificate).getAttributeValues()[0]);
+            Attribute attribute = table.get(PKCSObjectIdentifiers.id_aa_signingCertificate);
+            if (attribute == null) {
+                attribute = table.get(PKCSObjectIdentifiers.id_aa_signingCertificateV2);
+            }
+            SigningCertificateV2 sigCertV2 = SigningCertificateV2.getInstance(attribute.getAttributeValues()[0]);
 
             // nonce should be null for now
             // TODO maybe nonce could be different than null ? If so, check what is set in LogbookAdministration >
@@ -200,7 +194,7 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
                 Store storeTt = tsToken.getCertificates();
                 Collection collTt = storeTt.getMatches(tsToken.getSID());
                 Iterator certIt2 = collTt.iterator();
-                X509CertificateHolder x509Certificate = (X509CertificateHolder)certIt2.next();
+                X509CertificateHolder x509Certificate = (X509CertificateHolder) certIt2.next();
 
                 SignerInformationVerifier sigVerifier =
                     new JcaSimpleSignerInfoVerifierBuilder().setProvider("BC").build(x509Certificate);
