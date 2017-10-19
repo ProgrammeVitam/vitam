@@ -1,2 +1,4 @@
-<!--FIXME: replace /test with logbook ID -->
-<button pButton label="Go to details" type="button" routerLink="/admin/logbookOperation/test"></button>
+<vitam-search label="Journal des opérations" [service]="logbookService" [data]="logbookData" [preSearch]="preSearchFunction"
+              [submitFunction]="initialSearch" (responseEvent)="onNotify($event)"></vitam-search>
+<vitam-results [data]="response" [cols]="columns" [extraCols]="extraColumns" [service]="logbookService"
+               [searchFunction]="paginationSearch" [searchForm]="searchForm" [path]="'/admin/logbookOperation'" [identifier]="'evIdProc'"></vitam-results>

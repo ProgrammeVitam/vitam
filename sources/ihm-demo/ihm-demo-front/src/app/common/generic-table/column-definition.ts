@@ -47,10 +47,16 @@ export class ColumnDefinition {
     return col;
   }
 
-  static makeSpecialIconColumn(label: string, getIcons: (item, icons: string[]) => string[], computeCss?: () => any) {
+  static makeSpecialIconColumn(label: string, getIcons: (item, icons: string[]) => string[], computeCss?: () => any, onClick?: (item, httpService?, index?) => void, httpService?) {
     const col = new ColumnDefinition('', label, []);
     if (computeCss !== undefined) {
       col.computeCss = computeCss;
+    }
+    if (httpService !== undefined) {
+      col.httpService = httpService;
+      col.onClick = (item, index) => { onClick(item, col.httpService, index) };
+    } else {
+      col.onClick = onClick;
     }
     col.getIcons = getIcons;
     col.forceIcon = true;

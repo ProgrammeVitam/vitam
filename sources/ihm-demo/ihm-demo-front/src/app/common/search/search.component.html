@@ -5,13 +5,13 @@
       <div *ngFor="let field of data" class="ui-g-{{field.totalSize}}">
         <div class="ui-g-{{field.blankSize}}" *ngIf="field.blankSize > 0"></div>
         <div class="ui-g-{{field.inputSize}}">
-          <label stle="font-weigth: bold" class="ui-g-12" >{{field.placeholder}} </label>
+          <label stle="font-weigth: bold" class="ui-g-12" >{{field.label ? field.label : field.placeholder}} </label>
           <input pInputText class="ui-g-12"  formControlName="{{field.name}}" name="{{field.name}}"
                  *ngIf="field.type === 'text'" (keyup)="disableOthers(field)">
           <p-calendar class="ui-g-12 ui-g-nopad" formControlName="{{field.name}}" type="date" placeholder="jj/mm/aaaa"
                       *ngIf="field.type === 'date'"></p-calendar>
-          <p-dropdown class="ui-g-12" formControlName="{{field.name}}" id="{{field.name}}" placeholder="{{field.placeholder}}"
-                      [options]="field.options" *ngIf="field.type === 'select'"></p-dropdown>
+          <p-dropdown class="ui-g-12 ui-g-nopad ui-fluid" formControlName="{{field.name}}" id="{{field.name}}" [(ngModel)]="field.placeholder"
+                      [options]="field.options" [autoWidth]="false" *ngIf="field.type === 'select'"></p-dropdown>
           <p-listbox  class="ui-g-12" [style]="{'width':'100%', 'text-align':'left'}" *ngIf="field.type === 'selectMultiple'" [options]="field.options" formControlName="{{field.name}}" id="{{field.name}}"
                       multiple="multiple" ></p-listbox>
         </div>
@@ -35,13 +35,13 @@
           <div *ngFor="let field of data" class="ui-g-{{field.totalSize}}">
             <div class="ui-g-{{field.blankSize}}" *ngIf="field.blankSize > 0"></div>
             <div class="ui-g-{{field.inputSize}}">
-              <label stle="font-weigth: bold" class="ui-g-12" >{{field.placeholder}} </label>
+              <label stle="font-weigth: bold" class="ui-g-12" >{{field.label ? field.label : field.placeholder}} </label>
               <input pInputText class="ui-g-12"  formControlName="{{field.name}}" name="{{field.name}}"
                      *ngIf="field.type === 'text'" (keyup)="disableOthers(field)">
               <p-calendar class="ui-g-12" formControlName="{{field.name}}" type="date" placeholder="jj/mm/aaaa"
                           *ngIf="field.type === 'date'"></p-calendar>
-              <p-dropdown class="ui-g-12" formControlName="{{field.name}}" id="{{field.name}}" placeholder="{{field.placeholder}}"
-                          [options]="field.options" *ngIf="field.type === 'select'"></p-dropdown>
+              <p-dropdown class="ui-g-12 ui-g-nopad ui-fluid" formControlName="{{field.name}}" id="{{field.name}}" [(ngModel)]="field.placeholder"
+                          [options]="field.options" [autoWidth]="false" *ngIf="field.type === 'select'"></p-dropdown>
               <p-listbox  class="ui-g-12" [style]="{'width':'100%', 'text-align':'left'}" *ngIf="field.type === 'selectMultiple'" [options]="field.options" formControlName="{{field.name}}" id="{{field.name}}"
                           multiple="multiple" ></p-listbox>
             </div>
