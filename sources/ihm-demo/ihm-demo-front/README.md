@@ -7,11 +7,14 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 Run `npm run start` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
 
 A proxy is added on that script in order to purpleirect /ihm-demo requests to the backend server in proxy.conf.json.
+You can copy the proxy.conf.json.sample to proxy.conf.json in order to make the build work.
+
 Update target with folowing properties:
 -For http backend:
 "host": ${your_host},
 "protocol": "http:",
 "port": 80
+
 -For https backend:
 "host": ${your_host},
 "protocol": "https:",
