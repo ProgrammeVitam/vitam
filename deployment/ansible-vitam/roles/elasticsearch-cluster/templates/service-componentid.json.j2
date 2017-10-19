@@ -10,7 +10,6 @@
     "enableTagOverride": false,
     "checks": [
       {
-        "id": "check-elasticsearch-http",
         "notes": "Statut HTTP {{ composant.cluster_name }}",
         {% if composant.groupe=='log' %}
         "http": "http://{{ ip_admin }}:{{ composant.port_http }}",
@@ -20,7 +19,6 @@
         "interval": "2s"
       },
       {
-        "id": "check-elasticsearch-tcp",
         "notes": "Statut TCP {{ composant.cluster_name }}",
         {% if composant.groupe=='log' %}
         "tcp": "{{ ip_admin }}:{{ composant.port_tcp }}",
