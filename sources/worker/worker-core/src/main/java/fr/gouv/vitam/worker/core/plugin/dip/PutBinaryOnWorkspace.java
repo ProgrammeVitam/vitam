@@ -47,8 +47,10 @@ import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
+/**
+ * move a binary file from storage to workspace
+ */
 public class PutBinaryOnWorkspace extends ActionHandler {
 
     private static final String PUT_BINARY_ON_WORKSPACE = "PUT_BINARY_ON_WORKSPACE";
@@ -56,13 +58,26 @@ public class PutBinaryOnWorkspace extends ActionHandler {
 
     private static final int GUID_TO_PATH_RANK = 0;
 
-
+    /**
+     * factory of a storage client
+     */
     private StorageClientFactory storageClientFactory;
 
+    /**
+     * empty constructor
+     */
     public PutBinaryOnWorkspace() {
         this.storageClientFactory = StorageClientFactory.getInstance();
     }
 
+    /**
+     *
+     * @param param {@link WorkerParameters}
+     * @param handler
+     * @return
+     * @throws ProcessingException
+     * @throws ContentAddressableStorageServerException
+     */
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler)
         throws ProcessingException, ContentAddressableStorageServerException {

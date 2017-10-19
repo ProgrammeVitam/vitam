@@ -44,6 +44,9 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FILE;
 
+/**
+ * ZIP the dip and move it from workspace to storage
+ */
 public class StoreDIP extends ActionHandler {
 
     private static final String STORE_DIP = "STORE_DIP";
@@ -51,12 +54,26 @@ public class StoreDIP extends ActionHandler {
     public static final String ARCHIVE_ZIP = "archive.zip";
     public static final String CONTENT = "Content";
 
+    /**
+     * factory of a storage client
+     */
     private final StorageClientFactory storageClientFactory;
 
+    /**
+     * default constructor
+     */
     public StoreDIP() {
         storageClientFactory = StorageClientFactory.getInstance();
     }
 
+    /**
+     *
+     * @param params
+     * @param handler
+     * @return
+     * @throws ProcessingException
+     * @throws ContentAddressableStorageServerException
+     */
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handler)
         throws ProcessingException, ContentAddressableStorageServerException {
