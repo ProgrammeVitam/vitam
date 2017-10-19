@@ -16,7 +16,7 @@
     <url>http://maven.apache.org</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <unix.name>ihm-demo-front</unix.name>
+        <unix.name>ihm-demo-front-v2</unix.name>
         <ihm-demo.name>ihm-demo</ihm-demo.name>
         <unix.user>vitam</unix.user>
         <unix.group>vitam</unix.group>
