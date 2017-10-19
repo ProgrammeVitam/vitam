@@ -6,6 +6,7 @@ import { Title } from '@angular/platform-browser';
 import { BreadcrumbService, BreadcrumbElement } from "../../../common/breadcrumb.service";
 import { ReferentialsService } from "../../referentials.service";
 import { DateService } from '../../../common/utils/date.service';
+import { ObjectsService } from '../../../common/utils/objects.service';
 import { PageComponent } from "../../../common/page/page-component";
 import { AccessContract } from "./access-contract";
 
@@ -38,10 +39,9 @@ export class AccessContractComponent  extends PageComponent {
 
   contract : AccessContract;
   modifiedContract : AccessContract;
-  arrayOfKeys : string[];
   id: string;
   update : boolean;
-  isActif : boolean
+  isActif : boolean;
   updatedFields = {};
 
   constructor(private activatedRoute: ActivatedRoute, private router : Router,
@@ -54,20 +54,7 @@ export class AccessContractComponent  extends PageComponent {
   pageOnInit() {
     this.activatedRoute.params.subscribe( params => {
       this.id = params['id'];
-      this.searchReferentialsService.getAccessContractById(this.id).subscribe((value) => {
-        this.contract =  plainToClass(AccessContract, value.$results)[0];
-        let keys = Object.keys(this.contract);
-        let contract = this.contract;
-        this.modifiedContract =  Object.assign({}, this.contract);
-        if (this.contract.Status === 'ACTIVE') {
-          this.isActif = true;
-        } else {
-          this.isActif = false;
-        }
-        this.arrayOfKeys = keys.filter(function(key) {
-          return key != '_id';
-        });
-      });
+      this.getDetail();
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
         {label: 'Contrats d\'accès', routerLink: 'admin/search/accessContract'},
@@ -89,18 +76,11 @@ export class AccessContractComponent  extends PageComponent {
 
   switchUpdateMode() {
     this.update = !this.update;
+    this.updatedFields = {};
     if (!this.update) {
+      this.modifiedContract =  ObjectsService.clone(this.contract);
     }
   }
-
-  isUpdatable(key : string) {
-    if (['CreationDate', 'LastUpdate', 'Identifier', '_tenant', '_id'].indexOf(key) > -1) {
-      return false;
-    } else {
-      return this.update;
-    }
-  }
-
 
   changeStatus() {
     if (this.isActif) {
@@ -110,13 +90,33 @@ export class AccessContractComponent  extends PageComponent {
     }
   }
 
+  changeBooleanValue(key : string) {
+    this.updatedFields[key] = this.modifiedContract[key];
+  }
+
   saveUpdate() {
+    if (Object.keys(this.updatedFields).length == 0) {
+      this.switchUpdateMode();
+      return;
+    }
+
     this.updatedFields['LastUpdate'] = new Date();
-    console.log(this.updatedFields);
     this.searchReferentialsService.updateDocumentById('accesscontracts', this.id, this.updatedFields)
       .subscribe((data) => {
-        console.log(data);
-        return data;
+        this.getDetail();
+        this.switchUpdateMode();
       });
+  }
+
+  getDetail() {
+    this.searchReferentialsService.getAccessContractById(this.id).subscribe((value) => {
+      this.contract = plainToClass(AccessContract, value.$results)[0];
+      this.modifiedContract =  ObjectsService.clone(this.contract);
+      if (this.modifiedContract.Status === 'ACTIVE') {
+        this.isActif = true;
+      } else {
+        this.isActif = false;
+      }
+    });
   }
 }

@@ -1,3 +1,7 @@
 .minHeight45 {
     min-height: 45px;
 }
+
+.overflow-break-words {
+    word-wrap: break-word;
+}

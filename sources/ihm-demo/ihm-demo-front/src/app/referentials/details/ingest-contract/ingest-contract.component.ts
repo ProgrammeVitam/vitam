@@ -6,6 +6,7 @@ import { Title } from '@angular/platform-browser';
 import { BreadcrumbService, BreadcrumbElement } from "../../../common/breadcrumb.service";
 import { ReferentialsService } from "../../referentials.service";
 import { DateService } from '../../../common/utils/date.service';
+import { ObjectsService } from '../../../common/utils/objects.service';
 import { PageComponent } from "../../../common/page/page-component";
 import { IngestContract } from './ingest-contract';
 
@@ -71,6 +72,9 @@ export class IngestContractComponent extends PageComponent {
   switchUpdateMode() {
     this.update = !this.update;
     this.updatedFields = {};
+    if (!this.update) {
+      this.modifiedContract =  ObjectsService.clone(this.contract);
+    }
   }
 
   changeStatus() {
@@ -81,16 +85,19 @@ export class IngestContractComponent extends PageComponent {
     }
   }
 
+  valueChange(key : string) {
+    this.updatedFields[key] = this.modifiedContract[key];
+  }
 
   saveUpdate() {
-    console.log(this.updatedFields);
-    if (!!this.updatedFields['isActive']) {
-
+    if (Object.keys(this.updatedFields).length == 0) {
+      this.switchUpdateMode();
+      return;
     }
+
     this.updatedFields['LastUpdate'] = new Date();
     this.searchReferentialsService.updateDocumentById('contracts', this.id, this.updatedFields)
       .subscribe((data) => {
-        console.log(data);
         this.getDetail();
         this.switchUpdateMode();
       });
@@ -99,9 +106,7 @@ export class IngestContractComponent extends PageComponent {
   getDetail() {
     this.searchReferentialsService.getIngestContractById(this.id).subscribe((value) => {
       this.contract = plainToClass(IngestContract, value.$results)[0];
-      let keys = Object.keys(this.contract);
-      this.modifiedContract =  Object.assign({}, this.contract);
-      let contract = this.contract;
+      this.modifiedContract =  ObjectsService.clone(this.contract);
       if (this.modifiedContract.Status === 'ACTIVE') {
         this.isActif = true;
       } else {

@@ -1,8 +1,8 @@
 <vitam-search [label]="breadcrumbName" [service]="searchReferentialsService" [(data)]="referentialData" [preSearch]="preSearchFunction"
-              [submitFunction]="initialSearch" (responseEvent)="onNotify($event)"></vitam-search>
+              [submitFunction]="initialSearch" (responseEvent)="onNotify($event)" [panelButtonlabel]="searchButtonLabel"
+              (panelButtonEvent)="onNotifyPanelButton($event)"></vitam-search>
 
 <vitam-results [data]="response" [cols]="columns" [extraCols]="extraColumns" [service]="logbookService"
                [searchFunction]="paginationSearch" [searchForm]="searchForm" [path]="referentialPath" [identifier]="referentialIdentifier"></vitam-results>
 
-<button  class="ui-grid-col-3 ui-g-offset-6" pButton type="button" (click)="navigateToImport()" label="Accèder à l'import des référentiels" ></button>
 

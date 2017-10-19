@@ -15,10 +15,82 @@
               icon="fa-save" iconPos="left"></button>
     </div>
 
-    <div class="ui-g-12 ui-md-9" *ngIf="arrayOfKeys">
-      <div class="ui-g-offset-2" *ngFor="let key of arrayOfKeys">
-        <vitam-metadata-field [title]="getKeyName(key)" [value]="getValue(key)" [labelSize]="4" [translate]="translate"
-                              class="ui-g-12 textAlignLeft" [updateMode]="isUpdatable(key)" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+    <div class="ui-g-12 textAlignLeft" *ngIf="context">
+      <div class="ui-g-12">
+        <vitam-metadata-field [title]="'Identifiant'" [originalTitle]="'Identifier'" [value]="modifiedContext.Identifier" [labelSize]="4"
+                              class="ui-g-4" [updateMode]="false" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+
+        <div class="ui-g-4 ui-g-offset-4"  *ngIf="update">
+          <div class="ui-g-nopad ui-g-2 ui-g-offset-4">
+            <label class="label fieldLabel">Tenant</label>
+          </div>
+          <div class="ui-g-nopad ui-g-2">
+            <select [(ngModel)]="selectedTenant">
+              <option *ngFor='let tenant of tenants' value="{{tenant}}">{{tenant}}</option>
+            </select>
+          </div>
+          <div class="ui-g-nopad ui-g-4">
+            <button pButton class="ui-button" (click)="addTenant()" label="Ajouter" iconPos="left"></button>
+          </div>
+        </div>
+      </div>
+      <div class="ui-g-12">
+        <vitam-metadata-field [title]="'Nom'" [originalTitle]="'Name'"  [value]="modifiedContext.Name" [labelSize]="4"
+                              class="ui-g-4 " [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+
+        <vitam-metadata-field [title]="'Date de création'"  [originalTitle]="'CreationDate'" [value]="modifiedContext.CreationDate" [labelSize]="4"
+                              class="ui-g-4" [updateMode]="false" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+
+        <vitam-metadata-field [title]="'Date de mise à jour'"  [originalTitle]="'LastUpdate'" [value]="modifiedContext.LastUpdate" [labelSize]="5"
+                              class="ui-g-4 " [updateMode]="false" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+      </div>
+      <div class="ui-g-12">
+        <div class="ui-g-4">
+          <div class="ui-g-nopad ui-g-4">
+            <label class="label fieldLabel">Statut</label>
+          </div>
+          <div class="ui-g-nopad ui-g-8" *ngIf="!update">
+            <span class="overflow-break-words" >{{modifiedContext.Status ? 'Actif' : 'Inactif'}}</span>
+          </div>
+          <div class="ui-g-nopad ui-g-8" *ngIf="update">
+            <p-toggleButton onLabel="Actif" offLabel="Inactif" [(ngModel)]="modifiedContext.Status" (onChange)="valueChange('Status')"></p-toggleButton>
+          </div>
+        </div>
+
+
+
+        <vitam-metadata-field [title]="'Date d\'activation'"  [originalTitle]="'ActivationDate'"  [value]="modifiedContext.ActivationDate" [labelSize]="4"
+                              class="ui-g-4 " [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+
+        <vitam-metadata-field [title]="'Date de désactivation'"  [originalTitle]="'DeactivationDate'" [value]="modifiedContext.DeactivationDate" [labelSize]="5"
+                              class="ui-g-4 " [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+      </div>
+
+      <div class="ui-g-12">
+        <div class="ui-g-4">
+          <label class="label fieldLabel">Permissions</label>
+        </div>
+      </div>
+      <div *ngFor=" let permission of modifiedContext.Permissions">
+        <div class="ui-g-4" style="background-color: #F5F5F5; border-color: #FFFFFF; border-style: solid; border-width: 10px;">
+          <button pButton class="ui-button pull-right" (click)="removeTenant(permission._tenant)" [disabled]="!update" label="Supprimer" iconPos="roght">
+          </button>
+
+          <div class="ui-g-12">
+            <label class="label fieldLabel">Tenant {{permission._tenant}}</label>
+          </div>
+
+          <div class="ui-g-12">
+            <label class="label fieldLabel">Liste contrats d'accès:</label>
+            <p-chips [disabled]="!update"  [(ngModel)]="permission.AccessContracts"></p-chips>
+          </div>
+
+          <div class="ui-g-12">
+            <label class="label fieldLabel">Liste contrats d'entrée:</label>
+            <p-chips [disabled]="!update" [(ngModel)]="permission.IngestContracts"></p-chips>
+          </div>
+
+        </div>
       </div>
     </div>
 

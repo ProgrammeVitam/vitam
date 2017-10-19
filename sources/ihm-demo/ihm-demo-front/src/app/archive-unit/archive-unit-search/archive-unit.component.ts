@@ -24,6 +24,7 @@ export class ArchiveUnitComponent extends PageComponent {
 
   public response: VitamResponse;
   public searchForm: any = {};
+  advancedMode = false;
   public archiveUnitFields = [
     new FieldDefinition('titleCriteria', 'Titre et Description', 12, 4)
   ];
@@ -32,7 +33,8 @@ export class ArchiveUnitComponent extends PageComponent {
     new FieldDefinition('description', 'Description', 4, 12),
     FieldDefinition.createIdField('id', 'ID', 4, 12),
     FieldDefinition.createDateField('startDate', 'Date de début', 4, 12),
-    FieldDefinition.createDateField('endDate', 'Date de fin', 4, 12)
+    FieldDefinition.createDateField('endDate', 'Date de fin', 4, 12),
+    new FieldDefinition('originatingagencies', 'Service producteur', 4, 12)
   ];
 
   public columns = [
@@ -55,7 +57,21 @@ export class ArchiveUnitComponent extends PageComponent {
   }
 
   pageOnInit() {
-
+    if (ArchiveUnitService.getInputRequest() && ArchiveUnitService.getInputRequest().originatingagencies) {
+      let form = ArchiveUnitComponent.addCriteriaProjection({});
+      let agencies = ArchiveUnitService.getInputRequest().originatingagencies;
+      form.originatingagencies = agencies;
+      form.isAdvancedSearchFlag = 'Yes';
+      this.service.getResults(form, 0).subscribe(
+        (response) => {
+          this.response = response;
+          this.advancedMode = true;
+          //FIXME add 'originatingagencies' value in search form
+        },
+        (error) => console.log('Error: ', error)
+      );
+      delete ArchiveUnitService.getInputRequest().originatingagencies;
+    }
   }
 
   routeToLFC() {
@@ -75,6 +91,7 @@ export class ArchiveUnitComponent extends PageComponent {
       } else {
         if (request.title) criteriaSearch.Title = request.title;
         if (request.description) criteriaSearch.Description = request.description;
+        if (request.originatingagencies) criteriaSearch.originatingagencies = request.originatingagencies;
 
         const isStartDate = request.startDate;
         const isEndDate = request.endDate;
@@ -91,7 +108,8 @@ export class ArchiveUnitComponent extends PageComponent {
         }
       }
 
-      if (criteriaSearch.id || criteriaSearch.Title || criteriaSearch.Description || criteriaSearch.StartDate || criteriaSearch.EndDate) {
+      if (criteriaSearch.id || criteriaSearch.Title || criteriaSearch.Description || criteriaSearch.StartDate
+        || criteriaSearch.EndDate || criteriaSearch.originatingagencies) {
         ArchiveUnitComponent.addCriteriaProjection(criteriaSearch);
         criteriaSearch.isAdvancedSearchFlag = "Yes";
         preResult.request = criteriaSearch;
@@ -128,7 +146,7 @@ export class ArchiveUnitComponent extends PageComponent {
     criteriaSearch.projection_registereddate = 'RegisteredDate';
     criteriaSearch.projection_transactdate = 'TransactedDate';
     criteriaSearch.projection_descriptionlevel = 'DescriptionLevel';
-    criteriaSearch.projection_originatingagency = '#originating_agency';
+    criteriaSearch.projection_originatingagencies = '#originating_agency';
     criteriaSearch.projection_id = '#id';
     criteriaSearch.projection_unitType = '#unittype';
     criteriaSearch.projection_title = 'Title';

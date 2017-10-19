@@ -47,6 +47,16 @@ export class ReferentialsService {
       body.orderby = {"field":"Name","sortType":"ASC"};
     }
 
+    if (this.searchAPI === 'agencies') {
+      if (!body.AgencyID) {
+        body.AgencyID = 'all';
+      }
+      if (!body.AgencyName) {
+        body.AgencyName = 'all';
+      }
+      body.orderby = {"field":"Name","sortType":"ASC"};
+    }
+
     if (this.searchAPI === 'admin/rules') {
       body.RULES = 'all';
       if (!body.RuleType) {
@@ -102,6 +112,12 @@ export class ReferentialsService {
     );
   }
 
+  uploadProfile(id : string, file : File) {
+    let header = new Headers();
+    header.append('Content-Type', 'application/octet-stream');
+    return this.resourceService.put('profiles/' + id, header, file);
+  }
+
   getFormatById(id : string) : Observable<VitamResponse> {
     return this.resourceService.post('admin/formats/' + id, null, {})
       .map((res: Response) => res.json())
@@ -124,13 +140,34 @@ export class ReferentialsService {
       .map((res: Response) => res.json())
   }
 
+  getFundRegisterById(id : string) : Observable<VitamResponse> {
+    let searchForm = {"OriginatingAgency":id};
+    return this.resourceService.post('admin/accession-register', null, searchForm)
+      .map((res: Response) => res.json())
+  }
+
   getContextById(id : string) : Observable<VitamResponse> {
     return this.resourceService.get('contexts/' + id)
       .map((res: Response) => res.json())
   }
-
+  getAgenciesById(id : string) : Observable<VitamResponse> {
+    return this.resourceService.get('agencies/' + id)
+      .map((res: Response) => res.json())
+  }
   updateDocumentById(collection : string,id : string, body : any) : Observable<VitamResponse> {
     return this.resourceService.post(collection + '/' + id, null, body)
       .map((res: Response) => res.json())
+  }
+
+  updateProfilById(id : string, body : any) {
+    return this.resourceService.put('profiles/' + id, null, body);
+  }
+
+  getTenants() {
+    return this.resourceService.getTenants();
+  }
+
+  getTenantCurrent() {
+    return this.resourceService.getTenant();
   }
 }

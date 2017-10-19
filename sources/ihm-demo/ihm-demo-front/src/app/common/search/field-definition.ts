@@ -14,6 +14,7 @@ export class FieldDefinition {
   public required = false;
   public disableOtherFields = false;
   public options: SelectItem[];
+  public value : string;
 
   static createIdField(name: string, placeholder: string, totalSize?: number, inputSize?: number) {
     let newFieldDefinition = new FieldDefinition(name, placeholder);
@@ -73,7 +74,7 @@ export class FieldDefinition {
   constructor(
     public name: string,
     public placeholder: string,
-    totalSize?: number, inputSize?: number) {
+    totalSize?: number, inputSize?: number, value? : string) {
 
     if (totalSize) {
       this.totalSize = totalSize;
@@ -82,6 +83,13 @@ export class FieldDefinition {
       this.inputSize = inputSize;
       this.blankSize = (12 - inputSize) / 2;
     }
+    if (value) {
+      this.value = value;
+    }
+  }
+
+  setValue(value : string) {
+    this.value = value;
   }
 
 }

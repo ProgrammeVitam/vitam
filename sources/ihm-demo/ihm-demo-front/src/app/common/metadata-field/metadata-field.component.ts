@@ -1,4 +1,4 @@
-import {Component, OnInit, Input, Output, EventEmitter} from '@angular/core';
+import {Component, OnInit, Input, Output, EventEmitter, SimpleChanges} from '@angular/core';
 import {ArchiveUnitHelper} from "../../archive-unit/archive-unit.helper";
 import {ReferentialHelper} from "../../referentials/referential.helper";
 import { SelectItem } from 'primeng/primeng';
@@ -21,6 +21,7 @@ export class MetadataFieldComponent implements OnInit {
 
   @Input() updateMode = false;
   @Input() canUpdate = true;
+  @Input() disabled : boolean;
   @Input() updatedFields: {};
 
   typeOfField: string;
@@ -82,20 +83,19 @@ export class MetadataFieldComponent implements OnInit {
     } else if (this.archiveUnitHelper.isSelection(this.originalTitle)) {
       this.displayMode = 'DropDown';
       this.options = this.archiveUnitHelper.getOptions(this.originalTitle);
-    } else if (this.referentialHelper.useSwitchButton(this.title)) {
+    } else if (this.referentialHelper.useSwitchButton(this.originalTitle)) {
       this.displayMode = 'SwitchButton';
-    } else if (this.referentialHelper.useMultiSelect(this.title)) {
-      this.options = this.referentialHelper.getOptions(this.title);
+    } else if (this.referentialHelper.useMultiSelect(this.originalTitle)) {
+      this.options = this.referentialHelper.getOptions(this.originalTitle);
       this.displayMode = 'MultiSelect';
       this.typeOfField = 'other';
-    } else if (this.referentialHelper.useChips(this.title)) {
+    } else if (this.referentialHelper.useChips(this.originalTitle)) {
       this.displayMode = 'Chips';
+      this.typeOfField = 'other';
     } else {
       this.displayMode = 'TextInput';
     }
 
-
-    console.log(this.title + ' display ' + this.displayMode);
     // Handle Specific field size
     if (this.noTitle) {
       this.inputClass = 'ui-g-12';
@@ -107,6 +107,10 @@ export class MetadataFieldComponent implements OnInit {
   }
 
   valueChange() {
+    if (this.displayMode === 'Date' && !this.dateValue) {
+      this.dateValue = new Date(this.value);
+      return;
+    }
     if (this.dateValue) {
       this.updatedFields[this.fieldCode] = this.dateValue;
     } else {

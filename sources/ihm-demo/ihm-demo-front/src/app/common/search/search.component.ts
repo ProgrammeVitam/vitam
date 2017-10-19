@@ -15,17 +15,18 @@ import {AccessContractService} from "../access-contract.service";
 export class SearchComponent implements OnInit {
   searchForm: FormGroup;
   advancedSearchForm: FormGroup;
-  advancedMode = false;
+  @Input() advancedMode = false;
   preSearchReturn = new Preresult();
   allowAdvanced = false;
-  item = {};
   @Input() public label: string;
   @Input() public data: FieldDefinition[] = [];
+  @Input() public panelButtonlabel: string;
   @Input() public advancedData: FieldDefinition[];
   @Input() public submitFunction: (service: any, emitter: EventEmitter<any>, request: any) => void;
   @Input() preSearch: (request: any, advancedMode?: boolean) => Preresult = (x) => x;
   @Input() service: any;
   @Output() responseEvent: EventEmitter<any> = new EventEmitter<any>();
+  @Output() panelButtonEvent: EventEmitter<any> = new EventEmitter<any>();
 
   constructor(private accessContractService: AccessContractService) {
     this.accessContractService.getUpdate().subscribe(
@@ -71,17 +72,16 @@ export class SearchComponent implements OnInit {
   ngOnChanges(changes: SimpleChanges) {
     if (changes.data) {
       let data = changes.data.currentValue;
-      this.item = {};
+      const item = {};
       for (let i = 0; i < data.length; i++) {
         if (data[i].required) {
-          this.item[data[i].name] = new FormControl('', Validators.required);
+          item[data[i].name] = new FormControl('', Validators.required);
         } else {
-          this.item[data[i].name] = new FormControl('');
+          item[data[i].name] = new FormControl('');
         }
       }
-      this.searchForm = new FormGroup(this.item);
+      this.searchForm = new FormGroup(item);
     }
-
   }
 
   onSubmit() {
@@ -138,5 +138,9 @@ export class SearchComponent implements OnInit {
 
   switchMode(isAdvanced: boolean) {
     this.advancedMode = isAdvanced;
+  }
+
+  clickPanelButton() {
+    this.panelButtonEvent.emit();
   }
 }

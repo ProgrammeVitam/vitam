@@ -25,6 +25,7 @@ export class SearchReferentialsComponent  extends PageComponent {
   referentialIdentifier : string;
   public response: VitamResponse;
   public searchForm: any = {};
+  searchButtonLabel : string;
 
   referentialData  = [];
   public columns = [];
@@ -51,7 +52,7 @@ export class SearchReferentialsComponent  extends PageComponent {
             ColumnDefinition.makeStaticColumn('Name', 'Nom', undefined,
               () => ({'width': '325px'})),
             ColumnDefinition.makeStaticColumn('Identifier', 'Identifiant', undefined,
-              () => ({'width': '125px'})),
+              () => ({'width': '225px'})),
             ColumnDefinition.makeStaticColumn('_tenant', 'Tenant', undefined,
               () => ({'width': '125px'})),
             ColumnDefinition.makeStaticColumn('Status', 'Statut', SearchReferentialsComponent.handleStatus,
@@ -75,7 +76,7 @@ export class SearchReferentialsComponent  extends PageComponent {
             ColumnDefinition.makeStaticColumn('Name', 'Nom', undefined,
               () => ({'width': '325px'})),
             ColumnDefinition.makeStaticColumn('Identifier', 'Identifiant', undefined,
-              () => ({'width': '125px'})),
+              () => ({'width': '225px'})),
             ColumnDefinition.makeStaticColumn('_tenant', 'Tenant', undefined,
               () => ({'width': '125px'})),
             ColumnDefinition.makeStaticColumn('Status', 'Statut', SearchReferentialsComponent.handleStatus,
@@ -216,8 +217,31 @@ export class SearchReferentialsComponent  extends PageComponent {
           this.referentialIdentifier = 'Identifier';
           break;
 
+        case "agencies":
+          this.searchReferentialsService.setSearchAPI('agencies');
+          this.breadcrumbName = "Service agent";
+          this.referentialData = [
+            new FieldDefinition('AgencyName', "Nom du service agent", 6, 8),
+            FieldDefinition.createIdField('AgencyID', "Identifiant", 6, 8)
+          ];
+          this.searchForm = {"AgencyID":"all","AgencyName":"all","orderby":{"field":"Name","sortType":"ASC"}};
+          this.columns = [
+            ColumnDefinition.makeStaticColumn('Name', 'Nom', undefined,
+              () => ({'width': '125px'})),
+            ColumnDefinition.makeStaticColumn('Identifier', 'Identifiant', undefined,
+              () => ({'width': '125px'})),
+            ColumnDefinition.makeStaticColumn('Description', 'Description', undefined,
+              () => ({'width': '225px'}))
+          ];
+          this.referentialPath = 'admin/agencies';
+          this.referentialIdentifier = 'Identifier';
+          break;
+
         default:
           this.router.navigate(['ingest/sip']);
+      }
+      if (this.referentialType != "accession-register") {
+        this.searchButtonLabel =  'Accèder à l\'import des référentiels';
       }
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
@@ -229,7 +253,8 @@ export class SearchReferentialsComponent  extends PageComponent {
 
       this.searchReferentialsService.getResults(this.searchForm).subscribe(
           data => {this.response = data;},
-          error => console.log('Error - ', this.response));
+          error => console.log('Error - ', this.response)
+      );
     });
   }
 
@@ -262,7 +287,7 @@ export class SearchReferentialsComponent  extends PageComponent {
       (response) => {
         responseEvent.emit({response: response, form: form});
       },
-      (error) => console.log('Error: ', error)
+      (error) => responseEvent.emit({response: null, form: form})
     );
   }
 
@@ -292,7 +317,7 @@ export class SearchReferentialsComponent  extends PageComponent {
     return 'X';
   }
 
-  navigateToImport() {
+  onNotifyPanelButton() {
     this.router.navigate(['admin/import/' + this.referentialType]);
   }
 }

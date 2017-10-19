@@ -7,7 +7,8 @@ import {CookieService} from 'angular2-cookie/core';
 import { ButtonModule, CalendarModule, MenubarModule, BreadcrumbModule, DropdownModule,
   ProgressBarModule, PaginatorModule, PanelModule, ListboxModule, GrowlModule, RadioButtonModule, TabViewModule,
   InputTextModule, DataTableModule, SharedModule, DialogModule, FieldsetModule, ToggleButtonModule,
-  ConfirmDialogModule, ConfirmationService, OverlayPanelModule, InputSwitchModule, ChipsModule, MultiSelectModule } from 'primeng/primeng';
+  ConfirmDialogModule, ConfirmationService, OverlayPanelModule, InputSwitchModule, ChipsModule, MultiSelectModule,
+  CheckboxModule} from 'primeng/primeng';
 
 import { AppComponent } from './app.component';
 import {MenuComponent} from './common/menu/menu.component';
@@ -47,6 +48,7 @@ import { ArchiveObjectGroupComponent } from './archive-unit/archive-unit-details
 import { ArchiveTreeViewComponent } from './archive-unit/archive-unit-details/archive-tree-view/archive-tree-view.component';
 import { KeysPipe, BytesPipe } from './common/utils/pipes';
 import { DateService } from './common/utils/date.service';
+import { ObjectsService } from './common/utils/objects.service';
 import {ArchiveUnitService} from "./archive-unit/archive-unit.service";
 import { ImportComponent } from './referentials/import/import.component';
 import { SearchReferentialsComponent } from './referentials/search-referentials/search-referentials.component';
@@ -63,6 +65,9 @@ import { ContextComponent } from './referentials/details/context/context.compone
 import { TreeParentComponent } from './archive-unit/archive-unit-details/archive-tree-view/tree-parent/tree-parent.component';
 import { TreeChildComponent } from './archive-unit/archive-unit-details/archive-tree-view/tree-child/tree-child.component';
 import { TreeSearchComponent } from './archive-unit/archive-unit-details/archive-tree-view/tree-search/tree-search.component';
+import { AgenciesComponent } from './referentials/details/agencies/agencies.component';
+import { AuditComponent } from './admin/audit/audit.component';
+import { AuditService } from './admin/audit/audit.service';
 
 const appRoutes: Routes = [
   {
@@ -114,7 +119,13 @@ const appRoutes: Routes = [
     path: 'admin/context/:id', component: ContextComponent
   },
   {
+    path: 'admin/agencies/:id', component: AgenciesComponent
+  },
+  {
     path: 'admin/search/:referentialType', component: SearchReferentialsComponent
+  },
+  {
+    path: 'admin/audits', component: AuditComponent
   },
   {
     path: '**', redirectTo: 'ingest/sip', pathMatch: 'full'
@@ -164,7 +175,9 @@ const appRoutes: Routes = [
     MetadataFieldComponent,
     TreeParentComponent,
     TreeChildComponent,
-    TreeSearchComponent
+    TreeSearchComponent,
+    AgenciesComponent,
+    AuditComponent
   ],
   imports: [
     RouterModule.forRoot(appRoutes, {useHash: true}),
@@ -198,7 +211,8 @@ const appRoutes: Routes = [
     InputSwitchModule,
     ChipsModule,
     OverlayPanelModule,
-    MultiSelectModule
+    MultiSelectModule,
+    CheckboxModule
   ],
   providers: [
     ResourcesService,
@@ -215,7 +229,9 @@ const appRoutes: Routes = [
     ReferentialsService,
     DateService,
     AccessContractService,
-    ConfirmationService
+    ConfirmationService,
+    ObjectsService,
+    AuditService
   ],
   bootstrap: [AppComponent]
 })

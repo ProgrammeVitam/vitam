@@ -1,0 +1,50 @@
+<p-panel [header]="'Audit'">
+  <div class="ui-g">
+    <div class="ui-g-12 textAlignLeft">
+      <div class="ui-g-4">
+        <label class="label labelAudit">
+          Sélectionner le type
+        </label>
+      </div>
+      <div class="ui-g-4" *ngIf="auditType != 'tenant'">
+        <label class="label labelAudit">
+          Sélectionner l'identifiant
+        </label>
+      </div>
+      <div class="ui-g-4" *ngIf="auditType === 'tenant'">
+        <label class="label labelAudit">
+          Tenant en cours
+        </label>
+      </div>
+    </div>
+    <div class="ui-g-12 textAlignLeft">
+      <div class="ui-g-3">
+        <p-dropdown [styleClass]="'dropdown100'" placeholder="Sélectionner la collection"
+                    [options]="auditTypes" [(ngModel)]="auditType">
+        </p-dropdown>
+      </div>
+      <div class="ui-g-3 ui-g-offset-1"  *ngIf="auditType != 'tenant'">
+        <p-dropdown [styleClass]="'dropdown100'" placeholder="Sélectionner la collection"
+                    [options]="registers" [(ngModel)]="objectId">
+        </p-dropdown>
+      </div>
+      <div class="ui-g-4"  *ngIf="auditType === 'tenant'">
+        {{tenantCurrent}}
+      </div>
+    </div>
+    <div class="ui-g-12 textAlignLeft">
+      <label class="label labelAudit">
+        Audit
+      </label>
+    </div>
+    <div class="ui-g-12 textAlignLeft">
+      <p-checkbox [disabled]="disableAuditExistence" name="groupname"  binary="true" label="Audit de l'existence des objets" [(ngModel)]="auditExistence" (onChange)="validAuditAction()"></p-checkbox>
+    </div>
+    <div class="ui-g-12 textAlignLeft">
+      <p-checkbox name="groupname"  binary="true" label="Audit de l'integrité des objets" [(ngModel)]="auditIntegrity" (onChange)="validAuditAction()"></p-checkbox>
+    </div>
+    <div class="ui-g-12">
+      <button  pButton type="button" (click)="launchAudit()" label="Lancer audit" [disabled]="!auditAction"></button>
+    </div>
+  </div>
+</p-panel>

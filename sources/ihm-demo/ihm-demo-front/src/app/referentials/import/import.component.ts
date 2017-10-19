@@ -20,7 +20,8 @@ export class ImportComponent  extends PageComponent {
     {label:"Formats", value:'format'},
     {label:"Règles de gestion", value:'rule'},
     {label:"Profils", value:'profil'},
-    {label:"Contextes", value:'context'}
+    {label:"Contextes", value:'context'},
+    {label:"Service Agent", value:'agencies'}
   ];
   extensions : string[];
   uploadAPI : string;
@@ -31,7 +32,6 @@ export class ImportComponent  extends PageComponent {
   constructor(private activatedRoute: ActivatedRoute, private router : Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService) {
     super('Import du référentiel', [], titleService, breadcrumbService);
-
     this.activatedRoute.params.subscribe( params => {
       this.referentialType = params['referentialType'];
       switch (this.referentialType)
@@ -78,7 +78,13 @@ export class ImportComponent  extends PageComponent {
           this.importErrorMsg = "Echec de l'import du fichier.";
           this.breadcrumbName = "Import des contextes";
           break;
-
+        case "agencies":
+          this.extensions = ["csv"];
+          this.uploadAPI = 'agencies';
+          this.importSucessMsg = 'Les services agents ont bien été importés';
+          this.importErrorMsg = "Echec de l'import du fichier.";
+          this.breadcrumbName = "Import des services agents";
+          break;
         default:
           this.router.navigate(['ingest/sip']);
       }
@@ -87,9 +93,10 @@ export class ImportComponent  extends PageComponent {
         {label: 'Administration', routerLink: ''},
         {label: this.breadcrumbName, routerLink: 'import/' + this.referentialType}
       ];
-
       this.setBreadcrumb(newBreadcrumb);
+
     });
+
   }
 
   navigateToPage(action : string) {

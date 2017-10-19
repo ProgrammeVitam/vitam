@@ -10,5 +10,11 @@ export class Context {
   Description : string;
   _tenant : string;
   EnableControl : boolean;
-  Permissions : any[];
+  Permissions : Permission[];
+}
+
+export class Permission {
+  _tenant : number;
+  AccessContracts: string[];
+  IngestContracts : string[];
 }

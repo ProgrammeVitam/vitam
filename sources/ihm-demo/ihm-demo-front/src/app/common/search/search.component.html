@@ -1,5 +1,11 @@
-<p-panel header="{{label}}" *ngIf="label">
-
+<p-panel *ngIf="label">
+  <p-header>
+    <span class="ui-g-4 ui-g-offset-4" style="padding: 0">{{label}}</span>
+    <div class="ui-g-4" style="padding: 0; text-align: right" *ngIf="panelButtonlabel">
+      <button pButton class="ui-button secondaryButton" (click)="clickPanelButton()" label="{{panelButtonlabel}}"
+              icon="fa-upload" iconPos="left"></button>
+    </div>
+  </p-header>
   <form class="w-100" [formGroup]="searchForm" (ngSubmit)="onSubmit()"  *ngIf="!advancedData">
     <div class="ui-g">
       <div *ngFor="let field of data" class="ui-g-{{field.totalSize}}">
@@ -28,7 +34,7 @@
     </div>
   </form>
 
-  <p-tabView *ngIf="advancedData">
+  <p-tabView *ngIf="advancedData" [activeIndex]="advancedMode ? 1 : 0">
     <p-tabPanel header="Recherche globale" [selected]="true" (click)="switchMode(false)">
       <form class="w-100" [formGroup]="searchForm" (ngSubmit)="onSubmit()">
         <div class="ui-g">
