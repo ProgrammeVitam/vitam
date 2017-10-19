@@ -106,7 +106,7 @@ public class ObjectGroupMapper {
                         }
                     }
                     final FileInfoType fileInfoType = new FileInfoType();
-                    final FileInfoModel fileInfoModel = version.getFileInfoModel();
+                    final FileInfoModel fileInfoModel = version != null ? version.getFileInfoModel() : null;
                     if (fileInfoModel != null) {
                         binaryObjectType.setFilename(fileInfoModel.getFilename());
                         binaryObjectType.setUri(version.getUri());

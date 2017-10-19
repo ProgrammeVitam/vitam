@@ -211,7 +211,7 @@ public class SedaUtils {
                     if (element.getName().equals(profilName)) {
                         madatoryValueMap.put(SedaConstants.TAG_ARCHIVE_PROFILE, reader.getElementText());
                     }
-                    
+
                     if (element.getName().equals(submissionAgencyName)) {
                         madatoryValueMap.put(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER, reader.getElementText());
                     }
@@ -284,7 +284,7 @@ public class SedaUtils {
             if (e.getCause() == null) {
                 LOGGER.error("Manifest.xml is not valid with the XSD", e);
                 JsonNode errorNode = JsonHandler.createObjectNode().put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
-                itemStatus.setEvDetailData( errorNode.toString() );
+                itemStatus.setEvDetailData(errorNode.toString());
                 return CheckSedaValidationStatus.NOT_XSD_VALID;
             }
             LOGGER.error("Manifest.xml is not a correct xml file", e);
@@ -487,7 +487,7 @@ public class SedaUtils {
                 final StartElement startElement = event.asStartElement();
 
                 // If we have an Tag Uri element equal Uri into SEDA
-                if (startElement.getName().getLocalPart() == SedaConstants.TAG_URI) {
+                if (SedaConstants.TAG_URI.equals(startElement.getName().getLocalPart())) {
                     event = evenReader.nextEvent();
                     final String uri = event.asCharacters().getData();
                     // Check element is duplicate

@@ -154,6 +154,14 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         public Response importDocument(@PathParam("collections") String collection, InputStream document) {
             return expectedResponse.post();
         }
+        
+        @POST
+        @Path("{collections}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response importDocumentAsJson(@PathParam("collections") String collection, JsonNode document) {
+            return expectedResponse.post();
+        }
 
         @DELETE
         @Path("{collections}")

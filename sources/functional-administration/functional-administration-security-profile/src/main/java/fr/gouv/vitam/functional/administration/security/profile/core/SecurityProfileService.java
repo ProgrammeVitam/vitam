@@ -92,7 +92,7 @@ public class SecurityProfileService implements VitamAutoCloseable {
         "One or many security profiles in the imported list have the same identifier : %s";
 
     public static String ERR_MISSING_SECURITY_PROFILE_NAME = "Security profile name is mandatory (%s)";
-    public static String ERR_DUPLICATE_NAME_IN_CREATE =
+    public static final String ERR_DUPLICATE_NAME_IN_CREATE =
         "One or many security profiles in the imported list have the same name : %s";
 
     public static String ERR_UNEXPECTED_PERMISSION_SET_WITH_FULL_ACCESS = "Permission set cannot be set with full access mode : %s";

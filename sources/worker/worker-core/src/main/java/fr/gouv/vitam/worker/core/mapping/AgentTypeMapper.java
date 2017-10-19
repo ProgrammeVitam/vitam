@@ -29,11 +29,11 @@ package fr.gouv.vitam.worker.core.mapping;
 import static fr.gouv.vitam.common.model.unit.AgentTypeModel.BIRTH_DATE;
 import static fr.gouv.vitam.common.model.unit.AgentTypeModel.BIRTH_NAME;
 import static fr.gouv.vitam.common.model.unit.AgentTypeModel.BIRTH_PLACE;
-import static fr.gouv.vitam.common.model.unit.AgentTypeModel.CORPNAME;
+import static fr.gouv.vitam.common.model.unit.AgentTypeModel.TAG_CORPNAME;
 import static fr.gouv.vitam.common.model.unit.AgentTypeModel.DEATH_DATE;
 import static fr.gouv.vitam.common.model.unit.AgentTypeModel.DEATH_PLACE;
 import static fr.gouv.vitam.common.model.unit.AgentTypeModel.FIRST_NAME;
-import static fr.gouv.vitam.common.model.unit.AgentTypeModel.GENDER;
+import static fr.gouv.vitam.common.model.unit.AgentTypeModel.TAG_GENDER;
 import static fr.gouv.vitam.common.model.unit.AgentTypeModel.GIVEN_NAME;
 import static fr.gouv.vitam.common.model.unit.AgentTypeModel.IDENTIFIER;
 import static fr.gouv.vitam.common.model.unit.AgentTypeModel.NATIONALITY;
@@ -98,10 +98,10 @@ public class AgentTypeMapper {
                 case FIRST_NAME:
                     agentTypeModel.setFirstName((String) value);
                     break;
-                case GENDER:
+                case TAG_GENDER:
                     agentTypeModel.setGender((String) value);
                     break;
-                case CORPNAME:
+                case TAG_CORPNAME:
                     agentTypeModel.setCorpname((String) value);
                     break;
                 case NATIONALITY:

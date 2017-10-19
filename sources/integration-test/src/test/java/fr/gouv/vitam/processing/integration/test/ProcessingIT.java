@@ -26,6 +26,46 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.integration.test;
 
+import static com.jayway.restassured.RestAssured.get;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENT_DETAILS;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.bson.Document;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -37,6 +77,7 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.Filters;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -124,44 +165,6 @@ import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
-import org.bson.Document;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import static com.jayway.restassured.RestAssured.get;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENT_DETAILS;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  * Processing integration test
@@ -243,7 +246,7 @@ public class ProcessingIT {
     private static String UPD8_AU_WORKFLOW = "UPDATE_RULES_ARCHIVE_UNITS";
     private static String LFC_TRACEABILITY_WORKFLOW = "LOGBOOK_LC_SECURISATION";
     private static String SIP_FILE_OK_NAME = "integration-processing/SIP-test.zip";
-    private static String  SIP_FILE_OK_BIRTH_PLACE = "integration-processing/unit_schema_validation_ko.zip";
+    private static String SIP_FILE_OK_BIRTH_PLACE = "integration-processing/unit_schema_validation_ko.zip";
     private static String SIP_PROFIL_OK = "integration-processing/SIP_ok_profil.zip";
     private static String SIP_INGEST_CONTRACT_UNKNOW = "integration-processing/SIP_INGEST_CONTRACT_UNKNOW.zip";
     private static String SIP_FILE_OK_WITH_SYSTEMID = "integration-processing/SIP_with_systemID.zip";
@@ -284,7 +287,7 @@ public class ProcessingIT {
     private static String SIP_FILE_1791_CA1 = "integration-processing/SIP_FILE_1791_CA1.zip";
     private static String SIP_FILE_1791_CA2 = "integration-processing/SIP_FILE_1791_CA2.zip";
     private static String OK_SIP_2_GO = "integration-processing/OK_SIP_2_GO.zip";
-    
+
     private static String OK_SIP_SIGNATURE = "integration-processing/Signature_OK.zip";
 
     private static String SIP_ARBRE_3062 = "integration-processing/3062_arbre.zip";
@@ -630,7 +633,7 @@ public class ProcessingIT {
             JsonNode agIdExt = JsonHandler.getFromString(logbookResult.get("$results").get(0).get("agIdExt").asText());
             assertEquals(agIdExt.get("originatingAgency").asText(), "producteur1");
 
-            // lets check the accession register  
+            // lets check the accession register
             Select query = new Select();
             query.setLimitFilter(0, 1);
             RequestResponse resp = functionalClient.getAccessionRegister(query.getFinalSelect());
@@ -744,7 +747,7 @@ public class ProcessingIT {
             final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
             final String containerName = objectGuid.getId();
             createLogbookOperation(operationGuid, objectGuid);
-        
+
             // workspace client dezip SIP in workspace
             RestAssured.port = PORT_SERVICE_WORKSPACE;
             RestAssured.basePath = WORKSPACE_PATH;
@@ -779,14 +782,15 @@ public class ProcessingIT {
                 new fr.gouv.vitam.common.database.builder.request.single.Select();
             JsonNode logbookResult = logbookClient.selectOperationById(containerName, selectQuery.getFinalSelect());
             JsonNode logbookNode = logbookResult.get("$results").get(0);
-            assertEquals(logbookNode.get("events").get(7).get("outDetail").asText(), "CHECK_HEADER.CHECK_CONTRACT_INGEST.UNKNOWN.KO");
-        
+            assertEquals(logbookNode.get("events").get(7).get("outDetail").asText(),
+                "CHECK_HEADER.CHECK_CONTRACT_INGEST.UNKNOWN.KO");
+
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
         }
     }
-    
+
     @RunWithCustomExecutor
     @Test
     public void testWorkflowProfil() throws Exception {
@@ -826,10 +830,11 @@ public class ProcessingIT {
             ProcessWorkflow processWorkflow =
                 processMonitoring.findOneProcessWorkflow(containerName, tenantId);
             assertNotNull(processWorkflow);
-            // FIXME : the status is FATAL (STP_ACCESSION_REGISTRATION : IllegalArgumentException: Tenant id should be filled) 
+            // FIXME : the status is FATAL (STP_ACCESSION_REGISTRATION : IllegalArgumentException: Tenant id should be
+            // filled)
             // Should check that state is COMPLETE and status is OK, Actually state is set to PAUSE (#3176)
-            //assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            //assertEquals(StatusCode.OK, processWorkflow.getStatus());
+            // assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            // assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
             fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
@@ -2811,7 +2816,7 @@ public class ProcessingIT {
             fail("should not raized an exception");
         }
     }
-    
+
     @RunWithCustomExecutor
     @Test
     public void testWorkflowOkSIPSignature() throws Exception {
@@ -2861,12 +2866,10 @@ public class ProcessingIT {
     }
 
 
-    
-    
 
     @RunWithCustomExecutor
     @Test
-    public void testWorkflowRulesUpdate() throws Exception {        
+    public void testWorkflowRulesUpdate() throws Exception {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             tryImportFile();

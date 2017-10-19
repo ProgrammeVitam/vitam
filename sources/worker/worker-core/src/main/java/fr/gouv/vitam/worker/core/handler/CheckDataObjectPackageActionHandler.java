@@ -78,77 +78,66 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
         }
         try {
             if (Boolean.valueOf((String) handlerIO.getInput(CHECK_NO_OBJECT_INPUT_RANK))) {
-                CheckNoObjectsActionHandler checkNoObjectsActionHandler = new CheckNoObjectsActionHandler();
-                ItemStatus checkNoObjectStatus = checkNoObjectsActionHandler.execute(params, handlerIO);
-                itemStatus.setItemsStatus(CheckNoObjectsActionHandler.getId(), checkNoObjectStatus);
+                try (CheckNoObjectsActionHandler checkNoObjectsActionHandler = new CheckNoObjectsActionHandler();
+                    CheckObjectsNumberActionHandler checkObjectsNumberActionHandler =
+                        new CheckObjectsNumberActionHandler();
+                    ExtractSedaActionHandler extractSedaActionHandler = new ExtractSedaActionHandler();) {
+                    ItemStatus checkNoObjectStatus = checkNoObjectsActionHandler.execute(params, handlerIO);
+                    itemStatus.setItemsStatus(CheckNoObjectsActionHandler.getId(), checkNoObjectStatus);
 
-                CheckObjectsNumberActionHandler checkObjectsNumberActionHandler = new CheckObjectsNumberActionHandler();
-                ItemStatus checkObjectNumberStatus = checkObjectsNumberActionHandler.execute(params, handlerIO);
-                itemStatus.setItemsStatus(CheckObjectsNumberActionHandler.getId(), checkObjectNumberStatus);
+                    ItemStatus checkObjectNumberStatus = checkObjectsNumberActionHandler.execute(params, handlerIO);
+                    itemStatus.setItemsStatus(CheckObjectsNumberActionHandler.getId(), checkObjectNumberStatus);
 
-                handlerIO.getInput().clear();
+                    handlerIO.getInput().clear();
+                    extractSedaActionHandler.setWorkflowUnitTYpe(unitType);
+                    ItemStatus extractSedaStatus = extractSedaActionHandler.execute(params, handlerIO);
+                    itemStatus.setItemsStatus(ExtractSedaActionHandler.getId(), extractSedaStatus);
 
-                ExtractSedaActionHandler extractSedaActionHandler = new ExtractSedaActionHandler();
-                extractSedaActionHandler.setWorkflowUnitTYpe(unitType);
-                ItemStatus extractSedaStatus = extractSedaActionHandler.execute(params, handlerIO);
-                itemStatus.setItemsStatus(ExtractSedaActionHandler.getId(), extractSedaStatus);
-
-                if (extractSedaStatus.shallStop(true)) {
-                    checkNoObjectsActionHandler.close();
-                    checkObjectsNumberActionHandler.close();
-                    extractSedaActionHandler.close();
-                    return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                    if (extractSedaStatus.shallStop(true)) {
+                        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                    }
                 }
 
-                checkNoObjectsActionHandler.close();
-                checkObjectsNumberActionHandler.close();
-                extractSedaActionHandler.close();
             } else {
-                CheckVersionActionHandler checkVersionActionHandler = new CheckVersionActionHandler();
-                ItemStatus checkVersionStatus = checkVersionActionHandler.execute(params, handlerIO);
-                itemStatus.setItemsStatus(CheckVersionActionHandler.getId(), checkVersionStatus);
+                try (CheckVersionActionHandler checkVersionActionHandler = new CheckVersionActionHandler();
+                    CheckObjectsNumberActionHandler checkObjectsNumberActionHandler =
+                        new CheckObjectsNumberActionHandler();
+                    ExtractSedaActionHandler extractSedaActionHandler = new ExtractSedaActionHandler();
+                    CheckObjectUnitConsistencyActionHandler checkObjectUnitConsistencyActionHandler =
+                        new CheckObjectUnitConsistencyActionHandler();) {
+                    ItemStatus checkVersionStatus = checkVersionActionHandler.execute(params, handlerIO);
+                    itemStatus.setItemsStatus(CheckVersionActionHandler.getId(), checkVersionStatus);
 
-                if (checkVersionStatus.shallStop(true)) {
-                    checkVersionActionHandler.close();
-                    return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                    if (checkVersionStatus.shallStop(true)) {
+                        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                    }
+                    ItemStatus checkObjectNumberStatus = checkObjectsNumberActionHandler.execute(params, handlerIO);
+                    itemStatus.setItemsStatus(CheckObjectsNumberActionHandler.getId(), checkObjectNumberStatus);
+
+                    handlerIO.getInput().clear();
+                    extractSedaActionHandler.setWorkflowUnitTYpe(unitType);
+                    ItemStatus extractSedaStatus = extractSedaActionHandler.execute(params, handlerIO);
+                    itemStatus.setItemsStatus(ExtractSedaActionHandler.getId(), extractSedaStatus);
+
+                    if (extractSedaStatus.shallStop(true)) {
+                        return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+                    }
+                    List<IOParameter> inputList = new ArrayList<>();
+                    inputList.add(
+                        new IOParameter()
+                            .setUri(handlerIO.getOutput(ExtractSedaActionHandler.OG_ID_TO_UNID_ID_IO_RANK)));
+                    inputList.add(new IOParameter()
+                        .setUri(handlerIO.getOutput(ExtractSedaActionHandler.OG_ID_TO_GUID_IO_MEMORY_RANK)));
+                    handlerIO.addInIOParameters(inputList);
+                    handlerIO.getOutput().clear();
+                    ItemStatus checkObjectUnitConsistencyStatus =
+                        checkObjectUnitConsistencyActionHandler.execute(params, handlerIO);
+                    itemStatus.setItemsStatus(CheckObjectUnitConsistencyActionHandler.getId(),
+                        checkObjectUnitConsistencyStatus);
+
                 }
 
-                CheckObjectsNumberActionHandler checkObjectsNumberActionHandler = new CheckObjectsNumberActionHandler();
-                ItemStatus checkObjectNumberStatus = checkObjectsNumberActionHandler.execute(params, handlerIO);
-                itemStatus.setItemsStatus(CheckObjectsNumberActionHandler.getId(), checkObjectNumberStatus);
 
-                handlerIO.getInput().clear();
-
-                ExtractSedaActionHandler extractSedaActionHandler = new ExtractSedaActionHandler();
-                extractSedaActionHandler.setWorkflowUnitTYpe(unitType);
-                ItemStatus extractSedaStatus = extractSedaActionHandler.execute(params, handlerIO);
-                itemStatus.setItemsStatus(ExtractSedaActionHandler.getId(), extractSedaStatus);
-
-                if (extractSedaStatus.shallStop(true)) {
-                    checkVersionActionHandler.close();
-                    checkObjectsNumberActionHandler.close();
-                    extractSedaActionHandler.close();
-                    return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-                }
-
-                List<IOParameter> inputList = new ArrayList<>();
-                inputList.add(
-                    new IOParameter().setUri(handlerIO.getOutput(ExtractSedaActionHandler.OG_ID_TO_UNID_ID_IO_RANK)));
-                inputList.add(new IOParameter()
-                    .setUri(handlerIO.getOutput(ExtractSedaActionHandler.OG_ID_TO_GUID_IO_MEMORY_RANK)));
-                handlerIO.addInIOParameters(inputList);
-                handlerIO.getOutput().clear();
-                CheckObjectUnitConsistencyActionHandler checkObjectUnitConsistencyActionHandler =
-                    new CheckObjectUnitConsistencyActionHandler();
-                ItemStatus checkObjectUnitConsistencyStatus =
-                    checkObjectUnitConsistencyActionHandler.execute(params, handlerIO);
-                itemStatus.setItemsStatus(CheckObjectUnitConsistencyActionHandler.getId(),
-                    checkObjectUnitConsistencyStatus);
-
-                checkVersionActionHandler.close();
-                checkObjectsNumberActionHandler.close();
-                extractSedaActionHandler.close();
-                checkObjectUnitConsistencyActionHandler.close();
             }
         } catch (ProcessingException e) {
             LOGGER.error(e);

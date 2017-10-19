@@ -276,7 +276,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         headers.putAll(vitamContext.getHeaders());
         try {
             response = performRequest(HttpMethod.POST, collection.getName(), headers,
-                contracts, MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                contracts, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
 
 
@@ -344,7 +344,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         headers.putAll(vitamContext.getHeaders());
         try {
             response = performRequest(HttpMethod.POST, AdminCollections.PROFILE.getName(), headers,
-                profiles, MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                profiles, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
@@ -367,7 +367,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         try {
             response =
                 performRequest(HttpMethod.PUT, AdminCollections.PROFILE.getName() + "/" + profileMetadataId, headers,
-                    profile, MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                    profile, MediaType.APPLICATION_JSON_TYPE,
                     MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
@@ -426,7 +426,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         headers.putAll(vitamContext.getHeaders());
         try {
             response = performRequest(HttpMethod.POST, AdminCollections.CONTEXTS.getName(), headers,
-                contexts, MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                contexts, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Response.Status.OK.getStatusCode() ||

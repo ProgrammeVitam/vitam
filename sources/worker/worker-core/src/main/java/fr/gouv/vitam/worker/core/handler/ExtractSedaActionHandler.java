@@ -218,8 +218,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String MANIFEST_NOT_FOUND = "Manifest.xml Not Found";
     private static final String ARCHIVE_UNIT_TMP_FILE_PREFIX = "AU_TMP_";
     private static final String GLOBAL_MGT_RULE_TAG = "GLOBAL_MGT_RULE";
-    private static final String CONTRACT_NAME = "Name";
-    private static final String FILING_UNIT = "FILING_UNIT";
     private static final String DEFAULT_STRATEGY = "default";
 
     private final Map<String, String> dataObjectIdToGuid;
@@ -282,7 +280,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         this(MetaDataClientFactory.getInstance());
     }
 
-    @VisibleForTesting ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory) {
+    @VisibleForTesting
+    ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory) {
         dataObjectIdToGuid = new HashMap<>();
         dataObjectIdWithoutObjectGroupId = new HashMap<>();
         objectGroupIdToGuid = new HashMap<>();
@@ -518,7 +517,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Split Element from InputStream and write it to workspace
      *
      * @param logbookLifeCycleClient
-     * @param params                    parameters of workspace server
+     * @param params parameters of workspace server
      * @param globalCompositeItemStatus the global status
      * @throws ProcessingException throw when can't read or extract element from SEDA
      * @throws CycleFoundException when a cycle is found in data extract
@@ -1123,7 +1122,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * Merge global rules to specific archive rules and clean management node
      *
-     * @param archiveUnit      archiveUnit
+     * @param archiveUnit archiveUnit
      * @param globalMgtIdExtra list of global management rule ids
      * @throws InvalidParseOperationException
      */
@@ -1166,9 +1165,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * Merge global management rule in root units management rules.
      *
-     * @param globalMgtRuleNode          global management node
+     * @param globalMgtRuleNode global management node
      * @param archiveUnitManagementModel rule management model
-     * @param ruleType                   category of rule
+     * @param ruleType category of rule
      * @throws InvalidParseOperationException
      */
     private void mergeRule(JsonNode globalMgtRuleNode, ManagementModel archiveUnitManagementModel, String ruleType)
@@ -1266,8 +1265,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
             if (!existingUnitGuids.contains(unitGuid)) {
                 subLlcp = LogbookLifeCyclesClientHelper.copy(llcp);
                 // generate new eventId for task
-                subLlcp.putParameterValue(LogbookParameterName.eventIdentifier, 
-                        GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString());
+                subLlcp.putParameterValue(LogbookParameterName.eventIdentifier,
+                    GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString());
                 // set parentEventId
                 subLlcp.putParameterValue(LogbookParameterName.parentEventIdentifier, eventId);
                 // set status for sub task
@@ -1304,7 +1303,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             if (!existingUnitGuids.contains(unitGuid)) {
                 handlerIO.getHelper().updateDelegate(subLlcp);
             }
-            
+
             // FIXME: use bulk
             // logbookLifeCycleClient.bulkUpdateUnit(containerId, handlerIO.getHelper().removeUpdateDelegate(unitGuid));
         }
@@ -1797,7 +1796,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
             (LogbookLifeCycleObjectGroupParameters) initLogbookLifeCycleParameters(
                 groupGuid, false, true);
-        logbookLifecycleObjectGroupParameters.setFinalStatus(LFC_INITIAL_CREATION_EVENT_TYPE, null, StatusCode.OK, null);
+        logbookLifecycleObjectGroupParameters.setFinalStatus(LFC_INITIAL_CREATION_EVENT_TYPE, null, StatusCode.OK,
+            null);
 
         logbookLifecycleObjectGroupParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
             containerId);
@@ -1867,7 +1867,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         if (logbookLifeCycleParameters == null) {
             logbookLifeCycleParameters = isArchive ? LogbookParametersFactory.newLogbookLifeCycleUnitParameters()
                 : isObjectGroup ? LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters()
-                : LogbookParametersFactory.newLogbookOperationParameters();
+                    : LogbookParametersFactory.newLogbookOperationParameters();
 
 
             logbookLifeCycleParameters.putParameterValue(LogbookParameterName.objectIdentifier, guid);
@@ -2002,15 +2002,17 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 // Set new eventId for task and set status then update delegate
                 String eventId = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString();
                 handlerIO.getHelper().updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
-                        .get(objectGroupGuid).setFinalStatus(HANDLER_ID, null, StatusCode.OK, 
-                                    null).putParameterValue(LogbookParameterName.eventIdentifier, eventId));
+                    .get(objectGroupGuid).setFinalStatus(HANDLER_ID, null, StatusCode.OK,
+                        null)
+                    .putParameterValue(LogbookParameterName.eventIdentifier, eventId));
                 // Add creation sub task event (add new eventId and set status for subtask before update delegate)
                 handlerIO.getHelper().updateDelegate((LogbookLifeCycleObjectGroupParameters) guidToLifeCycleParameters
-                        .get(objectGroupGuid).setFinalStatus(HANDLER_ID, LFC_CREATION_SUB_TASK_ID, StatusCode.OK,
-                                null).putParameterValue(LogbookParameterName.eventIdentifier,
-                                GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString())
-                        .putParameterValue(LogbookParameterName.parentEventIdentifier, eventId));
-                
+                    .get(objectGroupGuid).setFinalStatus(HANDLER_ID, LFC_CREATION_SUB_TASK_ID, StatusCode.OK,
+                        null)
+                    .putParameterValue(LogbookParameterName.eventIdentifier,
+                        GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString())
+                    .putParameterValue(LogbookParameterName.parentEventIdentifier, eventId));
+
                 if (uuids.size() == BATCH_SIZE) {
                     bulkLifeCycleObjectGroup(containerId, logbookLifeCycleClient, uuids);
                     uuids.clear();
@@ -2099,7 +2101,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Update data object json node with data from maps
      *
      * @param objectNode data object json node
-     * @param guid       guid of data object
+     * @param guid guid of data object
      * @param isPhysical is this object a physical object
      */
 
@@ -2161,7 +2163,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
             final MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
 
             if (contractName != null) {
-                RequestResponse<IngestContractModel> referenceContracts = adminClient.findIngestContractsByID(contractName);
+                RequestResponse<IngestContractModel> referenceContracts =
+                    adminClient.findIngestContractsByID(contractName);
                 if (referenceContracts.isOk()) {
                     List<IngestContractModel> results = ((RequestResponseOK) referenceContracts).getResults();
                     if (!results.isEmpty()) {

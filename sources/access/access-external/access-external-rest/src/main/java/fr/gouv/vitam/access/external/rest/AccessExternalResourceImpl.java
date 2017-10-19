@@ -208,24 +208,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         }
     }
 
-    /**
-     * update units list by query
-     *
-     * @param queryDsl the query to update
-     * @return Response
-     */
-    @PUT
-    @Path("/units")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "units:update",
-        description = "Réaliser des mises à jour de masse sur les unités archivistiques")
-    public Response updateUnits(JsonNode queryDsl) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status, NOT_YET_SUPPORTED)).build();
-    }
 
     /**
      * get units list by query based on identifier
@@ -278,63 +260,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                 .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR,
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
-        }
-    }
-
-    /**
-     * Get unit int xml format
-     *
-     * @param queryJson
-     * @param idUnit
-     * @return ArchiveUnit in xml format
-     */
-    @GET
-    @Path("/units/{idu}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_XML)
-    @Secured(permission = "units:id:read:xml",
-        description = "Obtenir le détail d'une unité archivistique au format xml")
-    public Response selectUnitByIdOnXML(JsonNode queryJson, @PathParam("idu") String idUnit) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        Status status;
-        ParametersChecker.checkParameter("unit id is required", idUnit);
-        Response xmlFormat = null;
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            xmlFormat = client.getUnitByIdWithXMLFormat(queryJson, idUnit);
-            return xmlFormat;
-            // xmlFormat.getStatus();
-            // Response.status().entity().build();
-        } catch (final InvalidParseOperationException e) {
-            DefaultClient.staticConsumeAnyEntityAndClose(xmlFormat);
-            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status)
-                .entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getLocalizedMessage()))).build();
-        } catch (final AccessInternalClientServerException e) {
-            DefaultClient.staticConsumeAnyEntityAndClose(xmlFormat);
-            LOGGER.error("Unauthorized request Exception ", e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getLocalizedMessage()))).build();
-        } catch (final AccessInternalClientNotFoundException e) {
-            DefaultClient.staticConsumeAnyEntityAndClose(xmlFormat);
-            LOGGER.error("Request resources does not exits", e);
-            status = Status.NOT_FOUND;
-            return Response.status(status)
-                .entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getLocalizedMessage()))).build();
-        } catch (AccessUnauthorizedException e) {
-            DefaultClient.staticConsumeAnyEntityAndClose(xmlFormat);
-            LOGGER.error("Contract access does not allow ", e);
-            status = Status.UNAUTHORIZED;
-            final VitamError errorEntity = getErrorEntity(status, e.getLocalizedMessage());
-            return Response.status(status).entity(JsonHandler.unprettyPrint(errorEntity)).build();
-        } catch (Exception e) {
-            DefaultClient.staticConsumeAnyEntityAndClose(xmlFormat);
-            LOGGER.error("Unauthorized request Exception ", e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            final VitamError errorEntity = getErrorEntity(status, e.getLocalizedMessage());
-            return Response.status(status).entity(JsonHandler.unprettyPrint(errorEntity)).build();
         }
     }
 
@@ -535,48 +460,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                     VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_DATA_OBJECT_BY_UNIT_ID_ERROR,
                         e.getLocalizedMessage()).setHttpCode(status.getStatusCode())))
                 .build();
-        }
-    }
-
-    @GET
-    @Path("/units/{idu}/objects")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_XML)
-    @Secured(permission = "units:id:objects:read:xml", description = "Obtenir le détail d'un objet groupe au format xml")
-    public Response getObjectWithXmlFormat(JsonNode queryJson, @PathParam("idu") String idUnit) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        Status status;
-        ParametersChecker.checkParameter("unit id is required", idUnit);
-        Response xmlFormat = null;
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            String idObjectGroup = idObjectGroup(idUnit);
-            xmlFormat = client.getObjectByUnitIdWithXMLFormat(queryJson, idObjectGroup);
-            return xmlFormat;
-        } catch (final InvalidParseOperationException e) {
-            DefaultClient.staticConsumeAnyEntityAndClose(xmlFormat);
-            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status)
-                .entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getLocalizedMessage()))).build();
-        } catch (final AccessInternalClientServerException e) {
-            DefaultClient.staticConsumeAnyEntityAndClose(xmlFormat);
-            LOGGER.error("Internal server error request Exception ", e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getLocalizedMessage()))).build();
-        } catch (final AccessInternalClientNotFoundException e) {
-            DefaultClient.staticConsumeAnyEntityAndClose(xmlFormat);
-            LOGGER.error("Request resources does not exits", e);
-            status = Status.NOT_FOUND;
-            return Response.status(status)
-                .entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getLocalizedMessage()))).build();
-        } catch (AccessUnauthorizedException e) {
-            DefaultClient.staticConsumeAnyEntityAndClose(xmlFormat);
-            LOGGER.error("Contract access does not allow ", e);
-            status = Status.UNAUTHORIZED;
-            return Response.status(status)
-                .entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getLocalizedMessage()))).build();
         }
     }
 
