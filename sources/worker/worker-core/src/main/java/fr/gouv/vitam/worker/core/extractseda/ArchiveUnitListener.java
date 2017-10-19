@@ -223,7 +223,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
                     }
 
 
-                    String type = existingData.get("$results").get(0).get("_unitType").asText();
+                    String type = existingData.get("$results").get(0).get("#unitType").asText();
                     UnitType dataUnitType = UnitType.valueOf(type);
 
                     if (dataUnitType.ordinal() < workflowUnitType.ordinal()) {

@@ -103,7 +103,7 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
                         nbObjectOK += 1;
                     }
                     ObjectNode objectError = JsonHandler.createObjectNode();
-                    
+
                     objectError.put("IdObj", version.get("_id").textValue());
                     objectError.put("Usage", version.get("DataObjectVersion").textValue());
                     errors.add(objectError);

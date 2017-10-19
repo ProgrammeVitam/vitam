@@ -57,6 +57,8 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.USAGE;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.VERSION;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.SCORE;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.PARENTS;
+
 
 
 /**
@@ -203,6 +205,12 @@ public class VitamFieldsHelper {
     }
 
     /**
+     * @return #max
+     */
+    public static final String uds() {
+        return PARENTS.exactToken();
+    }
+    /**
      *
      * @return #management
      */
@@ -218,7 +226,7 @@ public class VitamFieldsHelper {
     }
 
     /**
-     * @return #unittype
+     * @return #unitType
      */
     public static final String unitType() {
         return UNITTYPE.exactToken();
