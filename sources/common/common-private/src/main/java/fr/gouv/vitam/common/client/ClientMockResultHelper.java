@@ -36,6 +36,7 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -373,6 +374,15 @@ public class ClientMockResultHelper {
         return new RequestResponseOK()
             .addResult(s);
     }
+    public static RequestResponse createEmptyReponse() {
+        return new RequestResponseOK();
+    }
+
+    public static RequestResponse createVitamError() {
+        return new VitamError("Fake");
+    }
+
+
 
     /**
      * @param s the original object to be included in response

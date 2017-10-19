@@ -30,7 +30,6 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -46,6 +45,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.ContractStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.model.administration.ProfileStatus;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
@@ -62,17 +62,18 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
 
     private static final String UNKNOWN_TECHNICAL_EXCEPTION = "Unknown technical exception";
-    private static final String CAN_NOT_GET_THE_INGEST_CONTRACT = "Can not get the ingest contract";
+    private static final String CAN_NOT_GET_THE_INGEST_CONTRACT = "Can_not_get_the_ingest_contract";
+    private static final String CAN_NOT_GET_THE_PROFILE = "Can_not_get_the_profile";
+    private static final String THE_PROFILE_NOT_FOUND = "Profile_Not_Found";
     private static final String PROFILE_NOT_FOUND = "Profile not found";
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(CheckArchiveProfileRelationActionHandler.class);
     private static final String HANDLER_ID = "CHECK_IC_AP_RELATION";
     private static final int PROFILE_IDENTIFIER_RANK = 0;
-    private static final int CONTRACT_NAME_RANK = 1;
+    private static final int CONTRACT_IDENTIFIER_RANK = 1;
 
     /**
      * Constructor with parameter SedaUtilsFactory
-     *
      */
     public CheckArchiveProfileRelationActionHandler() {
         // empty constructor
@@ -90,25 +91,62 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
         checkMandatoryParameters(params);
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         final String profileIdentifier = (String) handlerIO.getInput(PROFILE_IDENTIFIER_RANK);
-        final String contractName = (String) handlerIO.getInput(CONTRACT_NAME_RANK);
-        CheckProfileStatus status;
+        final String ingestContractIdentifier = (String) handlerIO.getInput(CONTRACT_IDENTIFIER_RANK);
+        CheckProfileStatus status = null;
 
+        String dataKey = null;
+        String dataValue = null;
         try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
+
+            // Check that profile exists and not inactive
             Select select = new Select();
-            select.setQuery(QueryHelper.eq(IngestContract.NAME, contractName));
-            JsonNode queryDsl = select.getFinalSelect();
-            RequestResponse<IngestContractModel> referenceContracts = adminClient.findIngestContracts(queryDsl);
-            if (referenceContracts.isOk() &&
-                ((RequestResponseOK<IngestContractModel>) referenceContracts).getResults().size() > 0) {
-                IngestContractModel contract =
-                    ((RequestResponseOK<IngestContractModel>) referenceContracts).getResults().get(0);
-                if (contract.getArchiveProfiles().contains(profileIdentifier)) {
-                    status = CheckProfileStatus.OK;
+            select.setQuery(QueryHelper.eq(Profile.IDENTIFIER, profileIdentifier));
+            RequestResponse<ProfileModel> response = adminClient.findProfiles(select.getFinalSelect());
+            if (response.isOk()) {
+                List<ProfileModel> results = ((RequestResponseOK<ProfileModel>) response).getResults();
+                if (null != results & results.size() > 0) {
+                    final ProfileModel profile = results.iterator().next();
+                    if (!ProfileStatus.ACTIVE.equals(profile.getStatus())) {
+                        status = CheckProfileStatus.INACTIVE;
+                    }
                 } else {
-                    status = CheckProfileStatus.DIFF;
+                    dataKey = THE_PROFILE_NOT_FOUND;
+                    dataValue = profileIdentifier;
+                    status = CheckProfileStatus.UNKNOWN;
                 }
             } else {
+                dataKey = CAN_NOT_GET_THE_PROFILE;
+                dataValue = profileIdentifier;
                 status = CheckProfileStatus.UNKNOWN;
+            }
+
+            // Validate profile according to contract
+            if (null == status) {
+                select = new Select();
+                select.setQuery(QueryHelper.eq(IngestContract.IDENTIFIER, ingestContractIdentifier));
+                JsonNode queryDsl = select.getFinalSelect();
+                RequestResponse<IngestContractModel> referenceContracts = adminClient.findIngestContracts(queryDsl);
+                if (referenceContracts.isOk()) {
+                    List<IngestContractModel> results =
+                        ((RequestResponseOK<IngestContractModel>) referenceContracts).getResults();
+                    if (null != results && results.size() > 0) {
+                        IngestContractModel contract = results.iterator().next();
+                        if (contract.getArchiveProfiles().contains(profileIdentifier)) {
+                            status = CheckProfileStatus.OK;
+                        } else {
+                            status = CheckProfileStatus.DIFF;
+                        }
+                    } else {
+                        dataKey = CAN_NOT_GET_THE_INGEST_CONTRACT;
+                        dataValue = ingestContractIdentifier;
+                        status = CheckProfileStatus.UNKNOWN;
+                    }
+                } else {
+
+                    dataKey = CAN_NOT_GET_THE_INGEST_CONTRACT;
+                    dataValue = ingestContractIdentifier;
+                    status = CheckProfileStatus.UNKNOWN;
+                }
             }
         } catch (InvalidCreateOperationException | InvalidParseOperationException |
             AdminManagementClientServerException e) {
@@ -123,20 +161,24 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
         if (status.equals(CheckProfileStatus.OK)) {
             status = checkProfilStatus(profileIdentifier);
         }
-        
+
         switch (status) {
             case INACTIVE:
                 itemStatus.setGlobalOutcomeDetailSubcode(CheckProfileStatus.INACTIVE.toString());
+                itemStatus.setData("The_profile_" + profileIdentifier, "In has not the status ACTIVE");
                 itemStatus.increment(StatusCode.KO);
-                itemStatus.setData(CAN_NOT_GET_THE_INGEST_CONTRACT, contractName);
                 break;
             case UNKNOWN:
                 itemStatus.setGlobalOutcomeDetailSubcode(CheckProfileStatus.UNKNOWN.toString());
                 itemStatus.increment(StatusCode.KO);
+                itemStatus.setData(dataKey, dataValue);
                 break;
             case DIFF:
                 itemStatus.setGlobalOutcomeDetailSubcode(CheckProfileStatus.DIFF.toString());
                 itemStatus.increment(StatusCode.KO);
+                itemStatus.setData("The_profile_" + profileIdentifier,
+                    "Not found in the ingest contract " + ingestContractIdentifier);
+
                 break;
             case KO:
                 itemStatus.increment(StatusCode.KO);
@@ -145,7 +187,7 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
                 itemStatus.increment(StatusCode.OK);
                 break;
         }
-        
+
         ObjectNode infoNode = JsonHandler.createObjectNode();
         infoNode.put(SedaConstants.TAG_ARCHIVE_PROFILE, profileIdentifier);
         String evdev = JsonHandler.unprettyPrint(infoNode);
@@ -190,7 +232,7 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // TODO P0 Add Workspace:SIP/manifest.xml and check it
     }
-    
+
     /**
      * Check profile status values
      */
