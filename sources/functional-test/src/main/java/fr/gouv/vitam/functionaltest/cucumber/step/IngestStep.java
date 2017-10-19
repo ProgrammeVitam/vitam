@@ -263,6 +263,37 @@ public class IngestStep {
             Fail.fail("cannot find logbook with id: " + world.getOperationId());
         }
     }
+    
+    @Then("^l'outcome détail de l'événement (.*) est (.*)$")
+    public void the_outcome_detail_is(String eventName, String eventOutDetail) throws Throwable {
+        RequestResponse<LogbookOperation> requestResponse =
+            world.getAccessClient()
+                .selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                    world.getOperationId(), new Select().getFinalSelect());
+
+        if (requestResponse.isOk()) {
+            RequestResponseOK<LogbookOperation> requestResponseOK =
+                (RequestResponseOK<LogbookOperation>) requestResponse;
+
+            List<LogbookEventOperation> actual = requestResponseOK.getFirstResult().getEvents();
+            
+            try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
+                List<LogbookEventOperation> events =
+                    actual.stream().filter(event -> eventName.equals(event.getEvType()))
+                        .filter(event -> !"STARTED".equals(event.getOutcome()))
+                        .collect(Collectors.toList());
+                
+                softly.assertThat(events).as("event %s is not present or finish.", eventName).hasSize(1);
+                LogbookEventOperation onlyElement = Iterables.getOnlyElement(events);
+                
+                String currentOutDetail = onlyElement.getOutDetail();
+                softly.assertThat(currentOutDetail)
+                    .as("event %s has status %s but excepted status is %s.", eventName, currentOutDetail, eventOutDetail)
+                    .isEqualTo(eventOutDetail);
+            }
+        }
+    }
 
 
     /**
