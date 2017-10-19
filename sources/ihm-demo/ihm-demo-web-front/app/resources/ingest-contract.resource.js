@@ -25,12 +25,20 @@
  * accept its terms.
  */
 
-'use strict';
+// Define resources in order to call WebApp http endpoints for accession-register
+angular.module('core')
+    .factory('ingestContractResource', function(ihmDemoCLient) {
+        var ingestContractResource = {};
+        ingestContractResource.getDetails = function (id, callback) {
+            ihmDemoCLient.getClient('contracts').one(id).get().then(function (response) {
+                callback(response);
+            }, function (error) {
+                console.log('Error while read contract with id: ' + id, error);
+            });
+        }
 
-// Register `entryContractsComponent` component, along with its associated controller and template
-angular.
-  module('entryContracts').
-  component('entryContractsComponent', {
-    templateUrl: 'modules/entry-contracts/entry-contracts.template.html',
-    controller: 'entryContractsController as logctrl'
-  });
+        ingestContractResource.update = function (id, data) {
+            return ihmDemoCLient.getClient('contracts').all(id).post(data);
+        };
+        return ingestContractResource;
+    });

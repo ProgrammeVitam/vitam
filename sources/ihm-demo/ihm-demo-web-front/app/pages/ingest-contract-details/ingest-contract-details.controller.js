@@ -27,10 +27,11 @@
 
 'use strict';
 
-angular.module('entryContracts')
-.controller('entryContractsDetailsController', function ($scope, $routeParams, entryContractResource, $mdDialog, authVitamService) {
+angular.module('ingestContracts')
+.controller('ingestContractsDetailsController', function ($scope, $routeParams, ingestContractResource, $mdDialog,
+authVitamService) {
     var id = $routeParams.id;
-    var ENTRY_CONTRACTS_UPDATE_PERMISSION = 'contracts:update';
+    var INGEST_CONTRACTS_UPDATE_PERMISSION = 'contracts:update';
 
     var self = this;
 
@@ -40,7 +41,7 @@ angular.module('entryContracts')
     };
     
     var getDetails = function (id) {
-        entryContractResource.getDetails(id, function (response) {
+        ingestContractResource.getDetails(id, function (response) {
             if (response.data.length !== 0) {
                 $scope.contract = response.data.$results[0];
 
@@ -93,7 +94,7 @@ angular.module('entryContracts')
         }
       }
 
-      entryContractResource.update(id, updateData).then(function(response) {
+      ingestContractResource.update(id, updateData).then(function(response) {
         if (response.data.httpCode >= 300) {
           displayMessage('Erreur de modification. Aucune modification effectuée');
         } else {
@@ -108,6 +109,6 @@ angular.module('entryContracts')
     getDetails(id);
 
     $scope.checkPermission = function() {
-      return !authVitamService.hasPermission(ENTRY_CONTRACTS_UPDATE_PERMISSION);
+      return !authVitamService.hasPermission(INGEST_CONTRACTS_UPDATE_PERMISSION);
     }
 });

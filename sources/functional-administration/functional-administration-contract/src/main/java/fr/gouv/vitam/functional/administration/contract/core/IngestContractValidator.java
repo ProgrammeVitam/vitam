@@ -58,16 +58,16 @@ import java.util.Optional;
  *
  */
 @FunctionalInterface
-public interface EntryContractValidator extends GenericContractValidator<IngestContractModel> {
+public interface IngestContractValidator extends GenericContractValidator<IngestContractModel> {
 
 
 
     /**
      * Validate a contract object
      *
-     * @param entryContract to validate
+     * @param ingestContract to validate
      * @param contractName
      * @return empty optional if OK, Else return the rejection cause
      */
-    Optional<GenericRejectionCause> validate(IngestContractModel entryContract, String contractName);
+    Optional<GenericRejectionCause> validate(IngestContractModel ingestContract, String contractName);
 }

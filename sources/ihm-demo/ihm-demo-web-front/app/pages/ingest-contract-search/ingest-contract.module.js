@@ -25,20 +25,7 @@
  * accept its terms.
  */
 
-// Define resources in order to call WebApp http endpoints for accession-register
-angular.module('core')
-    .factory('entryContractResource', function(ihmDemoCLient) {
-        var entryContractResource = {};
-        entryContractResource.getDetails = function (id, callback) {
-            ihmDemoCLient.getClient('contracts').one(id).get().then(function (response) {
-                callback(response);
-            }, function (error) {
-                console.log('Error while read contract with id: ' + id, error);
-            });
-        }
+'use strict';
 
-        entryContractResource.update = function (id, data) {
-            return ihmDemoCLient.getClient('contracts').all(id).post(data);
-        };
-        return entryContractResource;
-    });
+// Define the `ingestContracts` module
+angular.module('ingestContracts', ['core']);

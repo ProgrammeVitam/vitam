@@ -27,8 +27,9 @@
 
 'use strict';
 
-angular.module('entryContracts')
-    .controller('entryContractsController', function ($http, $scope, $mdDialog, $filter, $window, ihmDemoCLient, ihmDemoFactory, ITEM_PER_PAGE, loadStaticValues, $translate, processSearchService, resultStartService) {
+angular.module('ingestContracts')
+    .controller('ingestContractsController', function ($http, $scope, $mdDialog, $filter, $window, ihmDemoCLient,
+    ihmDemoFactory, ITEM_PER_PAGE, loadStaticValues, $translate, processSearchService, resultStartService) {
 
         $scope.startFormat = resultStartService.startFormat;
 
@@ -56,7 +57,7 @@ angular.module('entryContracts')
         };
 
         $scope.goToDetails = function (id) {
-            $window.open('#!/admin/entryContracts/' + id)
+            $window.open('#!/admin/ingestContracts/' + id)
         };
 
         function initFields(fields) {
