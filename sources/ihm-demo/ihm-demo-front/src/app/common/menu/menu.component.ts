@@ -83,19 +83,20 @@ export class MenuComponent implements OnInit {
         ];
         this.isAuthenticated = true;
         this.tenantChosen = this.resourcesService.getTenant();
-        this.resourcesService.getAccessContrats().subscribe((data) => {
-          let accessContracts = this.accessContracts;
-          data.$results.forEach(function(value) {
-            accessContracts.push({label:value.Name, value:value.Name});
-          });
-          if (this.resourcesService.getAccessContract()) {
-            let contractName = this.resourcesService.getAccessContract();
-            this.accessContract = contractName;
-          } else {
-            this.accessContract = this.accessContracts[0].value;
-          }
-          this.updateContract();
-        }, (error: HttpErrorResponse) => {
+        if (this.accessContracts.length == 0) {
+          this.resourcesService.getAccessContrats().subscribe((data) => {
+            let accessContracts = this.accessContracts;
+            data.$results.forEach(function(value) {
+              accessContracts.push({label:value.Name, value:value.Name});
+            });
+            if (this.resourcesService.getAccessContract()) {
+              let contractName = this.resourcesService.getAccessContract();
+              this.accessContract = contractName;
+            } else {
+              this.accessContract = this.accessContracts[0].value;
+            }
+            this.updateContract();
+          }, (error: HttpErrorResponse) => {
 
             if (error.error instanceof Error) {
               // A client-side or network error occurred. Handle it accordingly.
@@ -104,13 +105,23 @@ export class MenuComponent implements OnInit {
               // The response body may contain clues as to what went wrong,
             }
 
-          // Logout when cookie expired
-          if (error.status == 0) {
-            this.isAuthenticated = false;
-            this.logOut();
-            this.router.navigate(['login']);
+            // Logout when cookie expired
+            if (error.status == 0) {
+              this.isAuthenticated = false;
+              this.logOut();
+              this.router.navigate(['login']);
+            }
+          });
+        } else {
+          if (this.resourcesService.getAccessContract()) {
+            let contractName = this.resourcesService.getAccessContract();
+            this.accessContract = contractName;
+          } else {
+            this.accessContract = this.accessContracts[0].value;
           }
-        });
+          this.updateContract();
+        }
+
       } else {
         this.items = [];
         this.isAuthenticated = false;

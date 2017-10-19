@@ -8,7 +8,7 @@ import { ButtonModule, CalendarModule, MenubarModule, BreadcrumbModule, Dropdown
   ProgressBarModule, PaginatorModule, PanelModule, ListboxModule, GrowlModule, RadioButtonModule, TabViewModule,
   InputTextModule, DataTableModule, SharedModule, DialogModule, FieldsetModule, ToggleButtonModule,
   ConfirmDialogModule, ConfirmationService, OverlayPanelModule, InputSwitchModule, ChipsModule, MultiSelectModule,
-  CheckboxModule} from 'primeng/primeng';
+  CheckboxModule, DataGridModule} from 'primeng/primeng';
 
 import { AppComponent } from './app.component';
 import {MenuComponent} from './common/menu/menu.component';
@@ -68,6 +68,7 @@ import { TreeSearchComponent } from './archive-unit/archive-unit-details/archive
 import { AgenciesComponent } from './referentials/details/agencies/agencies.component';
 import { AuditComponent } from './admin/audit/audit.component';
 import { AuditService } from './admin/audit/audit.service';
+import { AccessionRegisterComponent } from './referentials/details/accession-register/accession-register.component';
 
 const appRoutes: Routes = [
   {
@@ -120,6 +121,9 @@ const appRoutes: Routes = [
   },
   {
     path: 'admin/agencies/:id', component: AgenciesComponent
+  },
+  {
+    path: 'admin/accessionRegister/:id', component: AccessionRegisterComponent
   },
   {
     path: 'admin/search/:referentialType', component: SearchReferentialsComponent
@@ -177,7 +181,8 @@ const appRoutes: Routes = [
     TreeChildComponent,
     TreeSearchComponent,
     AgenciesComponent,
-    AuditComponent
+    AuditComponent,
+    AccessionRegisterComponent
   ],
   imports: [
     RouterModule.forRoot(appRoutes, {useHash: true}),
@@ -212,7 +217,8 @@ const appRoutes: Routes = [
     ChipsModule,
     OverlayPanelModule,
     MultiSelectModule,
-    CheckboxModule
+    CheckboxModule,
+    DataGridModule
   ],
   providers: [
     ResourcesService,

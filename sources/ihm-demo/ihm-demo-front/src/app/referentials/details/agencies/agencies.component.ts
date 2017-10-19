@@ -54,9 +54,8 @@ export class AgenciesComponent extends PageComponent {
     });
   }
 
-  goToSearchUnitPage() {
-    ArchiveUnitService.setInputRequest({originatingagencies : this.id});
-    this.router.navigate(['search/archiveUnit']);
+  goToSummaryRegisterPage() {
+    this.router.navigate(['admin/accessionRegister/' + this.id]);
   }
 
 }

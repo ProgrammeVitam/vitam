@@ -57,9 +57,6 @@ export class AuditComponent extends PageComponent {
   }
 
   launchAudit() {
-    console.log(this.auditAction);
-    console.log(this.auditType);
-    console.log(this.objectId);
     this.auditService.launchAudit({
       auditActions : this.auditAction,
       auditType : this.auditType,

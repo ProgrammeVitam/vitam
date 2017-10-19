@@ -1034,4 +1034,7 @@ a:hover {
 .dropdown100 {
   width: 100% !important; }
 
+.overflow-wrap-content {
+  overflow-wrap: break-word; }
+
 /*# sourceMappingURL=styles.css.map */
