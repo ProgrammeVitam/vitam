@@ -10,6 +10,7 @@ import { CalendarModule, OverlayPanelModule, PanelModule } from 'primeng/primeng
 import { TreeSearchComponent } from './tree-search.component';
 
 import { ArchiveUnitService } from "../../../archive-unit.service";
+import { ArchiveUnitHelper } from "../../../archive-unit.helper";
 import { VitamResponse } from "../../../../common/utils/response";
 
 let ArchiveUnitServiceStub = {
@@ -26,10 +27,12 @@ describe('TreeSearchComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       providers: [
+        ArchiveUnitHelper,
         { provide: ArchiveUnitService, useValue: ArchiveUnitServiceStub }
       ],
       imports: [ BrowserAnimationsModule, CalendarModule, OverlayPanelModule, PanelModule, RouterTestingModule, ReactiveFormsModule ],
-      declarations: [ TreeSearchComponent ]
+      declarations: [ TreeSearchComponent ],
+      schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();
   }));

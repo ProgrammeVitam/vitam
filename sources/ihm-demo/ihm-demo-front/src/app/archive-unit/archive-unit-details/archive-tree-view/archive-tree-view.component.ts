@@ -44,50 +44,47 @@ export class ArchiveTreeViewComponent implements OnInit, OnChanges {
       return;
     }
 
-    // TODO Criteria: ADD_ROOT: ['id1', 'id2', ...] => Add multiple roots (Need add ADD_ROOT in queryDslHelper)
-    // That would avoid loop over unitups Ids
-    // That would avoid manual limit
-    let iteration = 0;
-   /* for(let unitId of node.data.unitups) {
-      if (iteration < LIMIT) {
-        iteration++;
-      } else {
-        node.data.haveMore = true;
-        break;
-      }*/
+    let unitups = [];
 
-      let criteria = {
-        'ADD_ROOT': node.data.unitups,
-        isAdvancedSearchFlag: "Yes",
-        projection_title: 'Title',
-        projection_id: '#id',
-        projection_unitups: '#unitups',
-        projection_unitType: '#unittype'
-      };
-      archiveUnitService.getResults(criteria).subscribe(
-          (response) => {
-            let data: NodeData = new NodeData(response.$results[0]['_unitType'], response.$results[0]['#unitups']);
-            let parent = new TreeNode(response.$results[0].Title, response.$results[0]['#id'], data);
-            node.parents.push(parent);
+    if (node.data.unitups.length <= LIMIT) {
+      unitups = node.data.unitups;
+    } else {
+      unitups = node.data.unitups.slice(0, LIMIT);
+      node.data.haveMoreParents = true;
+    }
+
+    let criteria = {
+      ROOTS: unitups,
+      isAdvancedSearchFlag: "Yes",
+      projection_title: 'Title',
+      projection_id: '#id',
+      projection_unitups: '#unitups',
+      projection_unitType: '#unittype'
+    };
+
+    archiveUnitService.getResults(criteria).subscribe(
+        (response) => {
+
+          let parents = [];
+          for (let result of response.$results) {
+            let data: NodeData = new NodeData(result._unitType, result['#unitups']);
+            let parent = new TreeNode(result.Title, result['#id'], data);
+            parents.push(parent);
           }
-      );
-  /*  }*/
+
+          node.parents = parents;
+        }
+    );
   }
 
   static getChildren(archiveUnitService, node) {
-
 
     if (node.children.length > 0) {
       return;
     }
 
-    // TODO Check if node have more child ? HTD ?
-
-    // TODO Criteria: Find a direct child of a node ? depth works ?
-    // TODO How to add a limit ?
     let criteria = {
-      'id': node.id,
-      'UNITUPS': node.id,
+      UNITUPS: node.id,
       isAdvancedSearchFlag: "Yes",
       projection_title: 'Title',
       projection_id: '#id',
@@ -98,10 +95,20 @@ export class ArchiveTreeViewComponent implements OnInit, OnChanges {
         (response) => {
 
           let children = [];
+          let number = 0;
+          if (response.$results.length === 0) {
+            node.leaf = true;
+          }
+
           for (let result of response.$results) {
+            if (number == LIMIT) {
+              node.data.haveMoreChildren = true;
+              break;
+            }
             let data: NodeData = new NodeData(result['_unitType'], result['#unitups']);
             let child = new TreeNode(result.Title, result['#id'], data);
             children.push(child);
+            number++;
           }
 
           node.children = children;

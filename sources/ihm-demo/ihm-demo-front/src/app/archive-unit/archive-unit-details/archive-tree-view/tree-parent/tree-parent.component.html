@@ -1,7 +1,7 @@
 <div #panelTarget style="position: absolute; left: -900px; top: -150px"></div>
 
 <ng-template [ngIf]="node">
-  <div *ngIf="node.data.haveMore" style="position: relative; left: -10px;" (click)="parentSearchPanel.show($event, panelTarget)">
+  <div *ngIf="node.data.haveMoreParents" style="position: relative; left: -10px;" (click)="parentSearchPanel.show($event, panelTarget)">
     <span class="fa fa-fw fa-ellipsis-h"></span>
     <span class="fa fa-fw"></span>
     <span>Plus de parents ({{node.label}})</span>
@@ -25,5 +25,5 @@
 </ng-template>
 
 <p-overlayPanel #parentSearchPanel [style]="{'width': '125%'}" [dismissable]="false" [showCloseIcon]="true">
-  <vitam-tree-search></vitam-tree-search>
+  <vitam-tree-search [node]="node" [searchParents]="true" [label]="'Recherche de parents'" [panel]="parentSearchPanel"></vitam-tree-search>
 </p-overlayPanel>
