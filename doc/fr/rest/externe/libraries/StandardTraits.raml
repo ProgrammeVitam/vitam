@@ -28,6 +28,14 @@ traits:
         required: true
         description: Unique Tenant Identifier
         example: 0
+      X-Personal-Certificate:
+        type: string
+        required: false
+        description: |
+            Personal certificate (in PEM format), required  only if this resource need personal authentification.
+            if not provided and the resouce required one The server will generating a 401 |403 response
+        example: MIIGfzCCBGegAwIBAgICAPcwDQYJK...
+
 
   StandardHeadHeader:
     headers:
