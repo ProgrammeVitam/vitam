@@ -34,6 +34,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
 import javax.ws.rs.OPTIONS;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -188,19 +189,45 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * @param queryJson the query to get units
      * @return Response
      */
-    @GET
-    @Path("/export")
+    @POST
+    @Path("/dipexport")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "units:export:read", description = "Récupérer le DIP")
-    public Response export(JsonNode queryJson) {
+    @Secured(permission = "dipexport:create", description = "Générer le DIP à partir d'un DSL")
+    public Response exportDIP(JsonNode queryJson) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
 
-            client.export(queryJson);
+            client.exportDIP(queryJson);
             return Response.status(Status.ACCEPTED.getStatusCode()).build();
+        } catch (final AccessInternalClientServerException e) {
+            LOGGER.error("Predicate Failed Exception ", e);
+            status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+        }
+    }
+
+    /**
+     * get units list by query
+     *
+     * @param id operationId correponding to the current dip
+     * @return Response
+     */
+    @GET
+    @Path("/dipexport/{id}/dip")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Secured(permission = "dipexport:read", description = "Récupérer le DIP")
+    public Response findDIPByID(@PathParam("id") String id) {
+
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        Status status;
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+
+            Response response = client.findDIPByID(id);
+            return new VitamAsyncInputStreamResponse(response, Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error("Predicate Failed Exception ", e);
             status = Status.PRECONDITION_FAILED;

@@ -29,6 +29,7 @@ package fr.gouv.vitam.access.internal.rest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -68,7 +69,20 @@ public class AccessResourceMock implements AccessInternalResource {
         return Response.status(200).entity("{\"unit\" = \"OK_MockUnits\"}").build();
     }
 
-    @Override public Response export(JsonNode queryDsl) {
+    @Override
+    @POST
+    @Path("/dipexport")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response exportDIP(JsonNode queryDsl) {
+        return null;
+    }
+
+    @Override
+    @GET
+    @Path("/dipexport/{id}/dip")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    public Response findDIPByID(@PathParam("id") String id) {
         return null;
     }
 

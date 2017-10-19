@@ -37,6 +37,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -337,17 +338,16 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
             try {
                 client.putObject(containerName, workspacePath, inputStream);
             } catch (final ContentAddressableStorageServerException e) {
-                throw new ProcessingException("Cannot write to workspace: " + containerName + "/" + workspacePath,
-                    e);
+                throw new ProcessingException("Cannot write to workspace: " + containerName + "/" + workspacePath, e);
             } finally {
                 try {
-                    if (null != filePath) {
+                    if (filePath != null) {
                         Files.delete(filePath);
                     }
                 } catch (IOException e) {
                     LOGGER.warn("File could not be deleted: " + filePath.toAbsolutePath());
                 }
-                if (null != inputStream) {
+                if (inputStream != null) {
                     try {
                         inputStream.close();
                     } catch (IOException e) {
@@ -506,7 +506,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         throws ProcessingException {
         String path = collectionName + File.separator + objectName;
         try {
-            if(toDelete){
+            if (toDelete) {
                 InputStream inputStream = JsonHandler.writeToInpustream(jsonNode);
                 transferInputStreamToWorkspace(path, inputStream, null, asyncIO);
             } else {
@@ -555,7 +555,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     }
 
     @Override
-    public void zipWorkspace(String outputFile, String inputFiles)
+    public void zipWorkspace(String outputFile, String... inputFiles)
         throws ContentAddressableStorageException {
 
         LOGGER.debug("Try to push stream to workspace...");
@@ -563,7 +563,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         // call workspace
         if (client.isExistingContainer(containerName)) {
             CompressInformation compressInformation = new CompressInformation();
-            compressInformation.getFiles().add(inputFiles);
+            Collections.addAll(compressInformation.getFiles(), inputFiles);
             compressInformation.setOutputFile(outputFile);
             client.compress(containerName, compressInformation);
         } else {

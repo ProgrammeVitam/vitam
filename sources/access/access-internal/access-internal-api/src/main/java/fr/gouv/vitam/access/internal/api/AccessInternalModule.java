@@ -114,4 +114,12 @@ public interface AccessInternalModule {
         String qualifier, int version)
         throws MetaDataNotFoundException, StorageNotFoundException, InvalidParseOperationException,
         AccessInternalExecutionException;
+
+    /**
+     * retrieve a DIP file according to an operationId
+     * @param id operation id
+     * @return zip file containing a DIP
+     * @throws AccessInternalExecutionException
+     */
+    Response findDIPByOperationId(String id) throws AccessInternalExecutionException;
 }

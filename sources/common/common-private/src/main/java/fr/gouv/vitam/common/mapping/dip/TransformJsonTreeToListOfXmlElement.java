@@ -89,13 +89,26 @@ public class TransformJsonTreeToListOfXmlElement {
                     document.createElementNS(SedaConstants.NAMESPACE_URI, key.toString());
                 childElement.appendChild(document.createTextNode(str));
                 consumer.accept(childElement);
+            } else if (value instanceof Number) {
+                final Number number = (Number) value;
+                Element childElement =
+                    document.createElementNS(SedaConstants.NAMESPACE_URI, key.toString());
+                childElement.appendChild(document.createTextNode(number.toString()));
+                consumer.accept(childElement);
             } else if (value instanceof List) {
-                List<String> list = (List<String>) value;
+                List<Object> list = (List<Object>) value;
                 list.forEach(s -> {
-                        Element childElement =
-                            document.createElementNS(SedaConstants.NAMESPACE_URI, key.toString());
-                        childElement.appendChild(document.createTextNode(s));
-                        consumer.accept(childElement);
+                        if (s instanceof String) {
+                            Element childElement =
+                                document.createElementNS(SedaConstants.NAMESPACE_URI, key.toString());
+                            childElement.appendChild(document.createTextNode((String) s));
+                            consumer.accept(childElement);
+                        } else if (s instanceof Map) {
+                            Element childElement =
+                                document.createElementNS(SedaConstants.NAMESPACE_URI, key.toString());
+                            transformMapToElement(childElement::appendChild, document, (Map) s);
+                            consumer.accept(childElement);
+                        }
                     }
                 );
             } else if (value instanceof Map) {

@@ -32,4 +32,24 @@ public class CompressInformation {
     public void setOutputFile(String outputFile) {
         this.outputFile = outputFile;
     }
+
+    @Override public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+
+        CompressInformation that = (CompressInformation) o;
+
+        if (files != null ? !files.equals(that.files) : that.files != null)
+            return false;
+        return outputFile != null ? outputFile.equals(that.outputFile) : that.outputFile == null;
+    }
+
+    @Override public int hashCode() {
+        int result = files != null ? files.hashCode() : 0;
+        result = 31 * result + (outputFile != null ? outputFile.hashCode() : 0);
+        return result;
+    }
+
 }

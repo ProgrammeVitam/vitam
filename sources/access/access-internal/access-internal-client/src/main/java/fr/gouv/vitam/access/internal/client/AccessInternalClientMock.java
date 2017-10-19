@@ -183,8 +183,13 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
-    public RequestResponse<JsonNode> export(JsonNode queryJson) {
+    public RequestResponse<JsonNode> exportDIP(JsonNode queryJson) {
         return new RequestResponseOK<>();
+    }
+
+    @Override
+    public Response findDIPByID(String id) throws AccessInternalClientServerException {
+        return Response.ok().build();
     }
 
 }

@@ -242,5 +242,19 @@ public interface AccessInternalClient extends MockOrRestClient {
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
         InvalidParseOperationException;
 
-    RequestResponse<JsonNode> export(JsonNode queryJson) throws AccessInternalClientServerException;
+    /**
+     * launch a DIP operation by a DSL query
+     * @param queryJson query for the DIP creation
+     * @return
+     * @throws AccessInternalClientServerException
+     */
+    RequestResponse<JsonNode> exportDIP(JsonNode queryJson) throws AccessInternalClientServerException;
+
+    /**
+     * get a zip file containing a DIP by an operation id
+     * @param id operationId
+     * @return stream containing zip file
+     * @throws AccessInternalClientServerException
+     */
+    Response findDIPByID(String id) throws AccessInternalClientServerException;
 }

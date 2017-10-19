@@ -36,6 +36,7 @@ import java.util.Set;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -136,8 +137,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     public static final String EXPORT_DIP = "EXPORT_DIP";
 
     // DIP
-    private static DipService unitDipService;
-    private static DipService objectDipService;
+    private DipService unitDipService;
+    private DipService objectDipService;
 
 
     private static final String END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS = "End of execution of DSL Vitam from Access";
@@ -239,11 +240,11 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
      * @return an archive unit result list
      */
     @Override
-    @GET
-    @Path("/export")
+    @POST
+    @Path("/dipexport")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response export(JsonNode queryDsl) {
+    public Response exportDIP(JsonNode queryDsl) {
 
         Status status;
         LOGGER.debug("DEBUG: start selectUnits {}", queryDsl);
@@ -294,6 +295,20 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         }  catch (BadRequestException e) {
             LOGGER.error("Empty query is impossible", e);
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
+        }
+    }
+
+    @Override
+    @GET
+    @Path("/dipexport/{id}/dip")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    public Response findDIPByID(@PathParam("id") String id) {
+        try {
+            return accessModule.findDIPByOperationId(id);
+        } catch (AccessInternalExecutionException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
+            Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
 

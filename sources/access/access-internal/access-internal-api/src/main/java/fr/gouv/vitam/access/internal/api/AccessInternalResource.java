@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.server.application.resources.VitamResource;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -53,11 +54,9 @@ public interface AccessInternalResource extends VitamResource {
      */
     Response getUnits(JsonNode dslQuery);
 
-    @GET
-    @Path("/export")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    Response export(JsonNode queryDsl);
+    Response exportDIP(JsonNode queryDsl);
+
+    Response findDIPByID(String id);
 
     /**
      * gets archive units by Id with Json query
