@@ -36,6 +36,7 @@ import static org.assertj.core.api.Assertions.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -45,7 +46,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
 
+import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.assertj.core.api.Fail;
 
@@ -85,6 +90,7 @@ public class IngestStep {
     private World world;
     private static boolean deleteSip = false;
     private static boolean attachMode = false;
+    private static String OUTCOME_DETAIL = "OutcomeDetail";
 
     public IngestStep(World world) {
         this.world = world;
@@ -364,6 +370,25 @@ public class IngestStep {
         assertThat(inputStream).isNotNull();
         StreamUtils.closeSilently(inputStream);
         world.getIngestClient().consumeAnyEntityAndClose(response);
+    }
+    
+    /**
+     * check if the atr contains the outcome detail
+     * 
+     * @param message
+     * @throws VitamClientException
+     * @throws XMLStreamException
+     * @throws IOException 
+     */
+    @Then("^fichier ATR contient (.*)$")
+    public void check_atr(String message) throws VitamClientException, XMLStreamException, IOException {
+        Response response = world.getIngestClient()
+            .downloadObjectAsync(
+                new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                world.getOperationId(), IngestCollection.REPORTS);
+        InputStream inputStream = response.readEntity(InputStream.class);
+        String result = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+        assertThat(result).contains(message);        
     }
 
     @After
