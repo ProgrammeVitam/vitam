@@ -374,8 +374,13 @@ public class WorkerImpl implements Worker {
         logbookParam.putParameterValue(LogbookParameterName.eventDateTime, null);
         List<LogbookLifeCycleParameters> logbookParamList = new ArrayList<>();
         LogbookLifeCycleParameters finalLogbookLfcParam = LogbookLifeCyclesClientHelper.copy(logbookParam);
-        finalLogbookLfcParam.setFinalStatus(handlerName, null, actionResponse.getGlobalStatus(),
-            actionResponse.getMessage());
+        if (actionResponse.getItemId().equals(handlerName)) {
+            finalLogbookLfcParam.setFinalStatus(handlerName, null, actionResponse.getGlobalStatus(),
+                actionResponse.getMessage());
+        } else {
+            finalLogbookLfcParam.setFinalStatus(actionResponse.getItemId(), null, actionResponse.getGlobalStatus(),
+                actionResponse.getMessage());
+        }
         if (!actionResponse.getEvDetailData().isEmpty()) {
             finalLogbookLfcParam.putParameterValue(LogbookParameterName.eventDetailData,
                 actionResponse.getEvDetailData());

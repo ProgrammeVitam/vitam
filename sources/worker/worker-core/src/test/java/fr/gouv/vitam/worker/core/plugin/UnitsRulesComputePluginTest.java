@@ -30,12 +30,12 @@ package fr.gouv.vitam.worker.core.plugin;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doAnswer;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,12 +45,7 @@ import java.util.List;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.xml.stream.XMLStreamException;
 
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
@@ -69,7 +64,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -77,11 +71,14 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.RuleMeasurementEnum;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
@@ -113,6 +110,7 @@ public class UnitsRulesComputePluginTest {
     private static final String ARBO_MD_NON_EXISTING_RULE = "unitsRulesComputePlugin/ARBO_MD_NON_EXISTING_RULE.json";
     private static final String AU_SIP_MGT_MD_OK1 = "unitsRulesComputePlugin/AU_SIP_MGT_MD_OK1.json";
     private final static String FAKE_URL = "http://localhost:1111";
+    private static final String CHECK_RULES_TASK_ID = "UNITS_RULES_COMPUTE";
     private InputStream input;
     private JsonNode archiveUnit;
     private List<IOParameter> in;
@@ -306,6 +304,7 @@ public class UnitsRulesComputePluginTest {
                 .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
 
         final ItemStatus response = plugin.execute(params, action);
+        assertTrue(response.getItemsStatus().containsKey(CHECK_RULES_TASK_ID + "." + "UNKNOWN"));
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
 
     }
@@ -334,6 +333,7 @@ public class UnitsRulesComputePluginTest {
                 .setObjectName("objectName").setCurrentStep("currentStep").setContainerName("containerName");
 
         final ItemStatus response = plugin.execute(params, action);
+        assertTrue(response.getItemsStatus().containsKey(CHECK_RULES_TASK_ID + "." + "REF_INCONSISTENCY"));
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
     }
 

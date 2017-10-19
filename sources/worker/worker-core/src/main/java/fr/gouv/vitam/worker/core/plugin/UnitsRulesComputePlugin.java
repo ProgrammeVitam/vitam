@@ -94,12 +94,14 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     private static final String CHECKS_RULES = "Rules checks problem: missing parameters";
     private static final String UNLIMITED_RULE_DURATION = "unlimited";
     private static final String NON_EXISTING_RULE = "Rule %s does not exist";
+    private static final String MESSAGE_ERROR_DATE_THRESHOLD = "Date can not be managed";
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_FORMAT_PATTERN);
 
     private static final int UNIT_INPUT_RANK = 0;
     private HandlerIO handlerIO;
     private boolean asyncIO = false;
+    private UnitRulesComputeStatus unitRulesComputeStatus;
 
     /**
      * Empty constructor UnitsRulesComputePlugin
@@ -125,9 +127,24 @@ public class UnitsRulesComputePlugin extends ActionHandler {
             itemStatus.increment(StatusCode.KO);
         }
 
+        if (itemStatus.getGlobalStatus().equals(StatusCode.KO)) {
+            switch (unitRulesComputeStatus) {
+                case UNKNOWN:
+                    itemStatus.setItemId(CHECK_RULES_TASK_ID + "." + UnitRulesComputeStatus.UNKNOWN.toString());
+                    break;
+                case REF_INCONSISTENCY:
+                    itemStatus.setItemId(CHECK_RULES_TASK_ID + "." + UnitRulesComputeStatus.REF_INCONSISTENCY.toString());
+                    break;
+                case DATE_THRESHOLD:
+                    itemStatus.setItemId(CHECK_RULES_TASK_ID + "." + UnitRulesComputeStatus.DATE_THRESHOLD.toString());
+                    break;
+            }
+        } else {
+            itemStatus.setItemId(CHECK_RULES_TASK_ID);
+        }
 
         LOGGER.debug("[exit] execute... /Elapsed Time:" + (System.currentTimeMillis() - time) / 1000 + "s");
-        return new ItemStatus(CHECK_RULES_TASK_ID).setItemsStatus(CHECK_RULES_TASK_ID, itemStatus);
+        return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(), itemStatus);
     }
 
     @Override
@@ -356,6 +373,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
 
         final String errors = report.toString();
         if (ParametersChecker.isNotEmpty(errors)) {
+            unitRulesComputeStatus = UnitRulesComputeStatus.REF_INCONSISTENCY;
             throw new ProcessingException(errors);
         }
     }
@@ -422,8 +440,9 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         String startDate = "";
 
         if (getRuleNodeByID(ruleId, ruleType, rulesResults) == null) {
+            unitRulesComputeStatus = UnitRulesComputeStatus.UNKNOWN;
             String errorMessage = String.format(NON_EXISTING_RULE, ruleId);
-            throw new ProcessingException(errorMessage);
+            throw new ProcessingException(errorMessage);            
         }
 
         if (ruleNode.get(SedaConstants.TAG_RULE_START_DATE) != null) {
@@ -431,6 +450,10 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         }
         LocalDate endDate = getEndDate(startDate, ruleId, rulesResults, ruleType);
         if (endDate != null) {
+            if (endDate.getYear() > 9000) {
+                unitRulesComputeStatus = UnitRulesComputeStatus.DATE_THRESHOLD;
+                throw new ProcessingException(MESSAGE_ERROR_DATE_THRESHOLD); 
+            }
             ruleNode.put(SedaConstants.TAG_RULE_END_DATE, endDate.format(DATE_TIME_FORMATTER));
         }
     }
@@ -487,4 +510,21 @@ public class UnitsRulesComputePlugin extends ActionHandler {
             ruleNode.get(FileRules.RULEMEASUREMENT) != null;
     }
 
+    /**
+     * Unit rules compute status values
+     */
+    public enum UnitRulesComputeStatus {
+        /**
+         * Unknow management rules
+         */
+        UNKNOWN, 
+        /**
+         * Inconsistency rules
+         */
+        REF_INCONSISTENCY,
+        /**
+         * Date later than 9000
+         */
+        DATE_THRESHOLD
+    }
 }
