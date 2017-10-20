@@ -29,6 +29,16 @@ public class ProfileModel {
     public static final String TAG_TENANT = "tenant";
     public static final String HASH = "#";
     public static final String UNDERSCORE = "_";
+    public static final String IDENTIFIER = "Identifier";
+    public static final String NAME = "Name";
+    public static final String DESCRIPTION = "Description";
+    public static final String STATUS = "Status";
+    public static final String FORMAT = "Format";
+    public static final String PATH = "Path";
+    public static final String CREATION_DATE = "CreationDate";
+    public static final String LAST_UPDATE = "LastUpdate";
+    public static final String ACTIVATION_DATE = "ActivationDate";
+    public static final String DEACTIVATION_DATE = "DeactivationDate";
 
     /**
      * unique identifier
@@ -40,36 +50,36 @@ public class ProfileModel {
      */
     private Integer tenant;
 
-    @JsonProperty("Identifier")
+    @JsonProperty(IDENTIFIER)
     private String identifier;
 
-    @JsonProperty("Name")
+    @JsonProperty(NAME)
     private String name;
 
-    @JsonProperty("Description")
+    @JsonProperty(DESCRIPTION)
     private String description;
 
-    @JsonProperty("Status")
+    @JsonProperty(STATUS)
     private ProfileStatus status;
 
 
-    @JsonProperty("Format")
+    @JsonProperty(FORMAT)
     private ProfileFormat format;
 
-    @JsonProperty("Path")
+    @JsonProperty(PATH)
     private String path;
 
 
-    @JsonProperty("CreationDate")
+    @JsonProperty(CREATION_DATE)
     private String creationdate;
 
-    @JsonProperty("LastUpdate")
+    @JsonProperty(LAST_UPDATE)
     private String lastupdate;
 
-    @JsonProperty("ActivationDate")
+    @JsonProperty(ACTIVATION_DATE)
     private String activationdate;
 
-    @JsonProperty("DeactivationDate")
+    @JsonProperty(DEACTIVATION_DATE)
     private String deactivationdate;
 
 

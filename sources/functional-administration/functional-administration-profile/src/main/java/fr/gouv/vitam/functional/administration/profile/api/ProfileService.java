@@ -22,11 +22,9 @@ package fr.gouv.vitam.functional.administration.profile.api;
 import java.io.InputStream;
 import java.util.List;
 
-import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -92,12 +90,21 @@ public interface ProfileService extends VitamAutoCloseable {
      * <li>- DesactivationDate</li>
      * <li>- LastUpdate</li>
      * <li>- Status</li>
-     *
+     *@param identifier identifier of the profile to update
      * @param jsonDsl the given profile dsl for update
      * @return RequestResponseOK if success or VitamError
      * @throws VitamException if in error occurs while validating contracts
      */
-    RequestResponse<ProfileModel> updateProfiles(JsonNode jsonDsl) throws VitamException;
+    RequestResponse<ProfileModel> updateProfile(String identifier,  JsonNode jsonDsl) throws VitamException;
+
+    /**
+     * Update profile
+     * @param profileModel
+     * @param jsonDsl
+     * @return
+     * @throws VitamException
+     */
+    RequestResponse<ProfileModel> updateProfile(ProfileModel profileModel,  JsonNode jsonDsl) throws VitamException;
 
     /**
      * Find profile by identifier

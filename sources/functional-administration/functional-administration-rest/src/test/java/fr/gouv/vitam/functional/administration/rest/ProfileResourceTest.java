@@ -17,8 +17,28 @@
  */
 package fr.gouv.vitam.functional.administration.rest;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.jayway.restassured.RestAssured.given;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assume.assumeTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.jayway.restassured.RestAssured;
@@ -39,9 +59,6 @@ import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
-import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
-import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
-import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -72,26 +89,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static com.jayway.restassured.RestAssured.given;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assume.assumeTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 
 /**
@@ -314,8 +311,6 @@ public class ProfileResourceTest {
         assertThat(identifiers.get(0)).contains("PR-0000");
         assertThat(identifiers.get(1)).contains("PR-0000");
 
-        List<String> ids = result.get("$results._id");
-
         String identifierProfile = identifiers.iterator().next();
 
 
@@ -361,9 +356,9 @@ public class ProfileResourceTest {
         assertThat(identifiers).hasSize(2);
         assertThat(identifiers.get(0)).contains("PR-0000");
         assertThat(identifiers.get(1)).contains("PR-0000");
-        List<String> ids = result.get("$results._id");
 
-        String identifierProfile = identifiers.get(1);
+        String identifierProfile0 = identifiers.get(0);
+        String identifierProfile1 = identifiers.get(1);
 
 
 
@@ -379,18 +374,30 @@ public class ProfileResourceTest {
         // transform to json
         given().contentType(ContentType.BINARY).body(xsdProfile)
             .header(GlobalDataRest.X_TENANT_ID, 0)
-            .when().put(ProfileResource.PROFILE_URI + "/" + identifierProfile)
+            .when().put(ProfileResource.PROFILE_URI + "/" + identifierProfile1)
             .then().statusCode(Status.CREATED.getStatusCode());
-        
-        // update profile
+
+        // update identifier with existing one should fail
         Update update = new Update();
-        SetAction setDescription = UpdateActionHelper.set("Description", "New Description of the profile");
+        SetAction setDescription = UpdateActionHelper.set("Identifier", identifierProfile0);
+        update.addActions(setDescription);
+        update.setQuery(QueryHelper.eq("Identifier", identifierProfile1));
+
+        given().contentType(ContentType.JSON).body(update.getFinalUpdate()).header(GlobalDataRest.X_TENANT_ID, 0)
+            .when().put(ProfileResource.UPDATE_PROFIL_URI + "/" + identifierProfile1).then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
+
+        // update profile
+        update = new Update();
+        setDescription = UpdateActionHelper.set("Description", "New Description of the profile");
         update.addActions(setDescription);
         update.setQuery(QueryHelper.eq("Name", "aName"));
         
         given().contentType(ContentType.JSON).body(update.getFinalUpdate()).header(GlobalDataRest.X_TENANT_ID, 0)
-        .when().put(ProfileResource.UPDATE_PROFIL_URI + "/" + ids.get(0)).then()
+        .when().put(ProfileResource.UPDATE_PROFIL_URI + "/" + identifierProfile1).then()
         .statusCode(Status.OK.getStatusCode());
+
+
 
     }
 }

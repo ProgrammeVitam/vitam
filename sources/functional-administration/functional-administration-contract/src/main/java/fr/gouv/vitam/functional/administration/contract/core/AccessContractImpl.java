@@ -26,6 +26,21 @@
  */
 package fr.gouv.vitam.functional.administration.contract.core;
 
+import static com.mongodb.client.model.Filters.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
@@ -89,20 +104,6 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import org.assertj.core.util.VisibleForTesting;
 import org.bson.conversions.Bson;
-
-import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.mongodb.client.model.Filters.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
 public class AccessContractImpl implements ContractService<AccessContractModel> {
 
@@ -276,12 +277,12 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     }
 
     @Override
-    public AccessContractModel findOne(String id) throws ReferentialException, InvalidParseOperationException {
-        SanityChecker.checkParameter(id);
+    public AccessContractModel findByIdentifier(String identifier) throws ReferentialException, InvalidParseOperationException {
+        SanityChecker.checkParameter(identifier);
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         parser.parse(new Select().getFinalSelect());
         try {
-            parser.addCondition(eq("Identifier", id));
+            parser.addCondition(eq("Identifier", identifier));
         } catch (InvalidCreateOperationException e) {
             throw new ReferentialException(e);
         }
@@ -731,17 +732,17 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
 
     @Override
-    public RequestResponse<AccessContractModel> updateContract(String id, JsonNode queryDsl)
+    public RequestResponse<AccessContractModel> updateContract(String identifier, JsonNode queryDsl)
         throws VitamException {
         ParametersChecker.checkParameter(UPDATE_ACCESS_CONTRACT_MANDATORY_PATAMETER, queryDsl);
         final VitamError error = new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem())
             .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
-        final AccessContractModel accContractModel = findOne(id);
+        final AccessContractModel accContractModel = findByIdentifier(identifier);
         Map<String, List<String>> updateDiffs;
         if (accContractModel == null) {
             return error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
-                ACCESS_CONTRACT_NOT_FIND + id));
+                ACCESS_CONTRACT_NOT_FIND + identifier));
         }
         manager.logUpdateStarted(accContractModel.getId());
         if (queryDsl == null || !queryDsl.isObject()) {

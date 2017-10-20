@@ -407,7 +407,7 @@ public class FunctionalAdminIT {
         ingestContract.updateContract(contractToUpdate, updateQuery.getFinalUpdate());
 
         // check update
-        IngestContractModel updatedContractModel = ingestContract.findOne(contractToUpdate);
+        IngestContractModel updatedContractModel = ingestContract.findByIdentifier(contractToUpdate);
         assertThat(updatedContractModel).isNotNull();
         assertThat(updatedContractModel.getStatus().equals("INACTIVE")).isTrue();
 

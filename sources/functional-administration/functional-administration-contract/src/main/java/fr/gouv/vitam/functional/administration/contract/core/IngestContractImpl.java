@@ -103,7 +103,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
     private static final String THE_INGEST_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT =
         "The Ingest contract status must be ACTIVE or INACTIVE but not ";
-    private static final String INGEST_CONTRACT_NOT_FIND = "Ingest contract not find";
+    private static final String INGEST_CONTRACT_NOT_FOUND = "Ingest contract not found";
     private static final String CONTRACT_IS_MANDATORY_PATAMETER = "The collection of ingest contracts is mandatory";
     private static final String CONTRACTS_IMPORT_EVENT = "STP_IMPORT_INGEST_CONTRACT";
     private static final String CONTRACT_UPDATE_EVENT = "STP_UPDATE_INGEST_CONTRACT";
@@ -270,13 +270,13 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     }
     
     @Override
-    public IngestContractModel findOne(String id)
+    public IngestContractModel findByIdentifier(String identifier)
         throws ReferentialException, InvalidParseOperationException {
-        SanityChecker.checkParameter(id);
+        SanityChecker.checkParameter(identifier);
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         parser.parse(new Select().getFinalSelect());
         try {
-            parser.addCondition(QueryHelper.eq("Identifier", id));
+            parser.addCondition(QueryHelper.eq("Identifier", identifier));
         } catch (InvalidCreateOperationException e) {
             throw new ReferentialException(e);
         }
@@ -658,7 +658,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
 
     @Override
-    public RequestResponse<IngestContractModel> updateContract(String id, JsonNode queryDsl)
+    public RequestResponse<IngestContractModel> updateContract(String identifier, JsonNode queryDsl)
         throws VitamException {
         final VitamError error =
             new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setHttpCode(Response.Status.BAD_REQUEST
@@ -668,10 +668,10 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             return error;
         }
 
-        final IngestContractModel ingestContractModel = findOne(id);
+        final IngestContractModel ingestContractModel = findByIdentifier(identifier);
         if (ingestContractModel == null) {
             return error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
-                INGEST_CONTRACT_NOT_FIND + id));
+                INGEST_CONTRACT_NOT_FOUND + identifier));
         }
         manager.logUpdateStarted(ingestContractModel.getId());
 

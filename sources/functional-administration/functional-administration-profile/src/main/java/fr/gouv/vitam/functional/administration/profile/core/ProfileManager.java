@@ -27,6 +27,19 @@
 
 package fr.gouv.vitam.functional.administration.profile.core;
 
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
@@ -59,19 +72,6 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import org.bson.conversions.Bson;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.or;
 
 /**
  * This class manage validation and log operation of profile service
@@ -331,7 +331,7 @@ public class ProfileManager {
      *
      * @return
      */
-    private ProfileValidator createMandatoryParamsValidator() {
+    public ProfileValidator createMandatoryParamsValidator() {
         return (profile) -> {
             RejectionCause rejection = null;
 
@@ -349,7 +349,7 @@ public class ProfileManager {
      *
      * @return
      */
-    private ProfileValidator createWrongFieldFormatValidator() {
+    public ProfileValidator createWrongFieldFormatValidator() {
         return (profile) -> {
             RejectionCause rejection = null;
 
@@ -439,12 +439,11 @@ public class ProfileManager {
      *
      * @return
      */
-    private ProfileValidator createCheckDuplicateInDatabaseValidator() {
+    public ProfileValidator createCheckDuplicateInDatabaseValidator() {
         return (profile) -> {
             RejectionCause rejection = null;
             int tenant = ParameterHelper.getTenantParameter();
-            Bson clause = or(and(eq(VitamDocument.TENANT_ID, tenant), eq(Profile.IDENTIFIER, profile.getIdentifier())),
-                and(eq(VitamDocument.TENANT_ID, tenant), eq(Profile.NAME, profile.getName())));
+            Bson clause = and(eq(VitamDocument.TENANT_ID, tenant), eq(Profile.IDENTIFIER, profile.getIdentifier()));
             boolean exist = FunctionalAdminCollections.PROFILE.getCollection().count(clause) > 0;
             if (exist) {
                 rejection = RejectionCause.rejectDuplicatedInDatabase(profile.getName());
