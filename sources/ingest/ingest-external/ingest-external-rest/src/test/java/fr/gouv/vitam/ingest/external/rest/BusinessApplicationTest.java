@@ -1,6 +1,7 @@
 package fr.gouv.vitam.ingest.external.rest;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.dsl.schema.DslDynamicFeature;
 import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
 import fr.gouv.vitam.common.security.rest.SecureEndpointScanner;
 import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
@@ -39,6 +40,7 @@ public class BusinessApplicationTest extends Application {
             singletons.add(new SanityCheckerCommonFilter());
             singletons.add(new SanityDynamicFeature());
             singletons.add(secureEndpointScanner);
+            singletons.add(new DslDynamicFeature());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

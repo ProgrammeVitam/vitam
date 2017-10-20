@@ -1,7 +1,9 @@
 package fr.gouv.vitam.access.external.rest;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
+import com.jayway.restassured.response.Response;
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
@@ -13,7 +15,6 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.server.BasicVitamServer;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import org.junit.AfterClass;
@@ -29,6 +30,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import javax.ws.rs.core.Response.Status;
 
 import static com.jayway.restassured.RestAssured.given;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyObject;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -87,10 +89,14 @@ public class LogbookExternalResourceImplTest {
     private static final String BODY_TEST = "{$query: {$eq: {\"aa\" : \"vv\" }}, $projection: {}, $filter: {}}";
     private static final String BODY_TEST_WITH_ID =
         "{$query: {$eq: {\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\" }}, $projection: {}, $filter: {}}";
-    static String request = "{ $query: {} , $projection: {}, $filter: {} }";
-    static String bad_request = "{ $query: \"bad_request\" , $projection: {}, $filter: {} }";
-    static String good_id = "goodId";
-    static String bad_id = "badId";
+    private static String request = "{ $query: {} , $projection: {}, $filter: {} }";
+    private static String bad_request = "{ $query: \"bad_request\" , $projection: {}, $filter: {} }";
+    private static String good_request =
+        "{ $query: {\"$match\": {\"Description\": \"Zimbabwe\" }} , $projection: {}, $filter: {} }";
+    private static String wrong_request_format =
+        "{ $query: {\"$match\": {\"Description\": \"ragnar\",\"Title\": \"lockbrok\"}} , $projection: {}, $filter: {} }";
+    private static String good_id = "goodId";
+    private static String bad_id = "badId";
 
     public static String X_HTTP_METHOD_OVERRIDE = "X-HTTP-Method-Override";
 
@@ -151,7 +157,7 @@ public class LogbookExternalResourceImplTest {
         LOGGER.debug("Ending tests");
         try {
             if (vitamServer != null) {
-                ((BasicVitamServer) vitamServer).stop();
+                vitamServer.stop();
             }
             junitHelper.releasePort(port);
         } catch (final VitamApplicationServerException e) {
@@ -262,7 +268,8 @@ public class LogbookExternalResourceImplTest {
 
     @Test
     public void testSelectLifecycleOGById_PreconditionFailed() throws Exception {
-        when(accessInternalClient.selectObjectGroupLifeCycleById(bad_id, JsonHandler.getFromString(request)))
+        when(accessInternalClient.selectObjectGroupLifeCycleById(bad_id, JsonHandler.getFromString(
+            request)))
             .thenThrow(new LogbookClientException(""));
         given()
             .contentType(ContentType.JSON)
@@ -302,7 +309,7 @@ public class LogbookExternalResourceImplTest {
             .when()
             .get(OPERATIONS_URI)
             .then()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -324,7 +331,8 @@ public class LogbookExternalResourceImplTest {
 
     @Test
     public void testSelectOperationById_InternalServerError() throws Exception {
-        when(accessInternalClient.selectOperationById(bad_id, JsonHandler.getFromString(request)))
+        when(
+            accessInternalClient.selectOperationById(bad_id, JsonHandler.getFromString(request)))
             .thenThrow(new LogbookClientException(""));
 
         given()
@@ -359,6 +367,15 @@ public class LogbookExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
+            .body(JsonHandler.getFromString(good_request))
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .get(OPERATIONS_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
             .body(JsonHandler.getFromString(request))
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
@@ -381,6 +398,30 @@ public class LogbookExternalResourceImplTest {
             .when()
             .get(OPERATIONS_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(JsonHandler.getFromString(request)).when()
+            .get(OPERATIONS_URI).then().statusCode(Status.OK.getStatusCode());
+
+        //Test DSL query Validation code
+        final Response response = given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(JsonHandler.getFromString(wrong_request_format)).when()
+            .get(OPERATIONS_URI);
+
+
+        final JsonNode responseNode = JsonHandler.getFromString(response.getBody().prettyPrint());
+        assertEquals(601, responseNode.get("code").asInt());
+        assertEquals(400, responseNode.get("httpCode").asInt());
+        assertEquals("Dsl query is not valid.", responseNode.get("message").asText());
 
         given()
             .contentType(ContentType.JSON)
@@ -419,6 +460,15 @@ public class LogbookExternalResourceImplTest {
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(JsonHandler.getFromString(good_request))
+            .when()
+            .get(OPERATIONS_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(request))
             .when()
             .get(OPERATIONS_URI)
@@ -440,16 +490,6 @@ public class LogbookExternalResourceImplTest {
             .when()
             .get(OPERATIONS_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .accept(ContentType.JSON)
-            .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(JsonHandler.getFromString(request))
-            .when()
-            .post(OPERATIONS_URI)
-            .then().statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)

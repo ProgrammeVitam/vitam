@@ -30,7 +30,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.junit.Test;
 
@@ -51,14 +53,16 @@ public class ValidatorUpdateByIdQueryTest {
 
     private Validator loadSchema(ObjectMapper objectMapper, File dslSource)
         throws IOException, InvalidParseOperationException {
-        final Schema schema = Schema.load(objectMapper, dslSource);
-        TypeDef dslType = schema.getDefinitions().get("DSL");
-        System.out.println(dslType.toString());
-        TypeDef projectionType = schema.getDefinitions().get("PROJECTION");
-        System.out.println(projectionType.toString());
-        TypeDef actionType = schema.getDefinitions().get("ACTION");
-        System.out.println(actionType.toString());
-        return new Validator(schema);
+        try (InputStream inputStream = new FileInputStream(dslSource)) {
+            final Schema schema = Schema.load(objectMapper, inputStream);
+            TypeDef dslType = schema.getDefinitions().get("DSL");
+            System.out.println(dslType.toString());
+            TypeDef projectionType = schema.getDefinitions().get("PROJECTION");
+            System.out.println(projectionType.toString());
+            TypeDef actionType = schema.getDefinitions().get("ACTION");
+            System.out.println(actionType.toString());
+            return new Validator(schema);
+        }
     }
 
     @Test
@@ -148,7 +152,7 @@ public class ValidatorUpdateByIdQueryTest {
             e.printStackTrace();
             fail();
         }
-    }   
+    }
 
     @Test
     public void should_retrieve_errors_when_update_by_id_query_dsl()

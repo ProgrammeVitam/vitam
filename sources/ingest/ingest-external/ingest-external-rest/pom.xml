@@ -75,7 +75,12 @@
 			<artifactId>powermock-api-mockito</artifactId>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>common-dsl-schema</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 
 	<build>
 		<plugins>

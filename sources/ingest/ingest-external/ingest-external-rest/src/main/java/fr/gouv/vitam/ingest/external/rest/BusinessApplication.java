@@ -1,17 +1,7 @@
 package fr.gouv.vitam.ingest.external.rest;
 
-import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
-
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.dsl.schema.DslDynamicFeature;
 import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
 import fr.gouv.vitam.common.security.rest.SecureEndpointScanner;
 import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
@@ -20,6 +10,16 @@ import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
 import fr.gouv.vitam.security.internal.filter.AuthorizationFilter;
 import fr.gouv.vitam.security.internal.filter.InternalSecurityFilter;
+
+import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
+
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
 public class BusinessApplication extends Application {
 
@@ -45,7 +45,7 @@ public class BusinessApplication extends Application {
             singletons.add(new SanityCheckerCommonFilter());
             singletons.add(new SanityDynamicFeature());
             singletons.add(secureEndpointScanner);
-
+            singletons.add(new DslDynamicFeature());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

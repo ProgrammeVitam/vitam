@@ -24,37 +24,51 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.dsl.schema.meta;
+package fr.gouv.vitam.common.dsl.schema;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.json.JsonHandler;
+import org.junit.Test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.ws.rs.container.ContainerRequestContext;
 
-public class Schema {
-    private Map<String, TypeDef> definitions;
-    private String root;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
-    public Map<String, TypeDef> getDefinitions() {
-        return definitions;
-    }
+/**
+ * DslScannerFilterTest
+ */
+public class DslScannerFilterTest {
 
-    public void setDefinitions(Map<String, TypeDef> definitions) {
-        this.definitions = definitions;
-    }
+    @Test
+    public void should_retrieve_exception_when_bad_dsl_request_for_select_single()
+        throws Exception {
 
-    public String getRoot() {
-        return root;
-    }
+        JsonNode fromString = JsonHandler.getFromString("{\n" +
+            "  \"$roots\": [],\n" +
+            "  \"$query\": [\n" +
+            "    {\n" +
+            "      \"exists\": {\n" +
+            "        \"Title\": \"assemblée\"\n" +
+            "      },\n" +
+            "      \"$depth\": 20\n" +
+            "    },\n" +
+            "    {\n" +
+            "      \"exists\": {\n" +
+            "      },\n" +
+            "      \"$depth\": 20\n" +
+            "    }\n" +
+            "  ],\n" +
+            "  \"$filter\": {\n" +
+            "    \"$orderby\": {\n" +
+            "      \"TransactedDate\": 1\n" +
+            "    }\n" +
+            "  }\n" +
+            "}");
 
-    public void setRoot(String root) {
-        this.root = root;
-    }
-
-    public static Schema load(ObjectMapper mapper, InputStream dslSource) throws IOException {
-        return mapper.readValue(dslSource, Schema.class);
+        ContainerRequestContext containerRequestContext = spy(ContainerRequestContext.class);
+        when(containerRequestContext.getEntityStream()).thenReturn(JsonHandler.writeToInpustream(fromString));
+        final DslScannerFilter dslScannerFilter = new DslScannerFilter(DslSchema.SELECT_SINGLE);
+        dslScannerFilter.filter(containerRequestContext);
     }
 }
-
-

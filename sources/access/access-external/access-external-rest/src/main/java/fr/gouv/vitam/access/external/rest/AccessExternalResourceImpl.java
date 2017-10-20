@@ -55,6 +55,8 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.dsl.schema.Dsl;
+import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
@@ -136,7 +138,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "units:read", description = "Récupérer la liste des unités archivistiques")
-    public Response getUnits(JsonNode queryJson) {
+    public Response getUnits(@Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode queryJson) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
@@ -240,7 +242,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * get units list by query based on identifier
      *
      * @param queryJson query as String
-     * @param idUnit the id of archive unit to get
+     * @param idUnit    the id of archive unit to get
      * @return Archive Unit
      */
     @GET
@@ -294,7 +296,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * update archive units by Id with Json query
      *
      * @param queryJson the update query (null not allowed)
-     * @param idUnit units identifier
+     * @param idUnit    units identifier
      * @return a archive unit result list
      */
     @PUT
@@ -374,8 +376,8 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * Retrieve Object group list by query based on identifier of the unit
      *
-     * @param headers the http header defined parameters of request
-     * @param unitId the id of archive unit
+     * @param headers   the http header defined parameters of request
+     * @param unitId    the id of archive unit
      * @param queryJson the query to get object
      * @return Response
      */
@@ -432,8 +434,8 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
      * @param headers the http header defined parameters of request
-     * @param unitId the id of archive unit
-     * @param query the query to get object
+     * @param unitId  the id of archive unit
+     * @param query   the query to get object
      * @return response
      */
     @GET

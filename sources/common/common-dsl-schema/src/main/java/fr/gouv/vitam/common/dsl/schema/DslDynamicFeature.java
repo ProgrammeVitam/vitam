@@ -24,37 +24,47 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.dsl.schema.meta;
+package fr.gouv.vitam.common.dsl.schema;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
+import javax.ws.rs.container.DynamicFeature;
+import javax.ws.rs.container.ResourceInfo;
+import javax.ws.rs.core.FeatureContext;
+import javax.ws.rs.ext.Provider;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
+import java.lang.reflect.Parameter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+/**
+ * Dynamic Feature for JsonNode resource
+ */
+@Provider
+public class DslDynamicFeature implements DynamicFeature {
 
-public class Schema {
-    private Map<String, TypeDef> definitions;
-    private String root;
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DslDynamicFeature.class);
 
-    public Map<String, TypeDef> getDefinitions() {
-        return definitions;
-    }
-
-    public void setDefinitions(Map<String, TypeDef> definitions) {
-        this.definitions = definitions;
-    }
-
-    public String getRoot() {
-        return root;
-    }
-
-    public void setRoot(String root) {
-        this.root = root;
-    }
-
-    public static Schema load(ObjectMapper mapper, InputStream dslSource) throws IOException {
-        return mapper.readValue(dslSource, Schema.class);
+    @Override
+    public void configure(ResourceInfo resourceInfo, FeatureContext context) {
+        Class<?> parametersClass[] = resourceInfo.getResourceMethod().getParameterTypes();
+        for (int i = 0; i < parametersClass.length; i++) {
+            Class<?> parameterClass = parametersClass[i];
+            if (parameterClass.isAssignableFrom(JsonNode.class)) {
+                Parameter[] parameters = resourceInfo.getResourceMethod().getParameters();
+                final Parameter parameter = parameters[i];
+                if (parameter != null) {
+                    final Dsl dslAnnotation = parameter.getAnnotation(Dsl.class);
+                    try {
+                        if (dslAnnotation != null) {
+                            context.register(new DslScannerFilter(dslAnnotation.value()));
+                        }
+                    } catch (IOException e) {
+                        LOGGER.error(e);
+                        throw new IllegalStateException("Can not initialize DslScannerFilter");
+                    }
+                }
+            }
+        }
     }
 }
-
-

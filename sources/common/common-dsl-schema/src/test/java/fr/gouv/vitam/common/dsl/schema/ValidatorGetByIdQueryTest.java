@@ -30,7 +30,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.junit.Test;
 
@@ -50,12 +52,14 @@ public class ValidatorGetByIdQueryTest {
     private static final String GET_BY_ID_QUERY_DSL_SCHEMA_JSON = "get-by-id-query-dsl-schema.json";
 
     private Validator loadSchema(ObjectMapper objectMapper, File dslSource) throws IOException {
-        final Schema schema = Schema.load(objectMapper, dslSource);
-        TypeDef dslType = schema.getDefinitions().get("DSL");
-        System.out.println(dslType.toString());
-        TypeDef projectionType = schema.getDefinitions().get("PROJECTION");
-        System.out.println(projectionType.toString());
-        return new Validator(schema);
+        try (InputStream inputStream = new FileInputStream(dslSource)) {
+            final Schema schema = Schema.load(objectMapper, inputStream);
+            TypeDef dslType = schema.getDefinitions().get("DSL");
+            System.out.println(dslType.toString());
+            TypeDef projectionType = schema.getDefinitions().get("PROJECTION");
+            System.out.println(projectionType.toString());
+            return new Validator(schema);
+        }
     }
 
     @Test

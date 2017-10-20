@@ -30,7 +30,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.junit.Test;
 
@@ -59,14 +61,15 @@ public class ValidatorTest {
     }
 
     private Validator loadSchema(ObjectMapper objectMapper, File dslSource) throws IOException {
-        final Schema schema = Schema.load(objectMapper, dslSource);
-        TypeDef dslType = schema.getDefinitions().get("DSL");
-        // System.out.println(dslType.toString());
-        TypeDef queryType = schema.getDefinitions().get("QUERY");
-        // System.out.println(queryType.toString());
-        return new Validator(schema);
+        try (InputStream inputStream = new FileInputStream(dslSource)) {
+            final Schema schema = Schema.load(objectMapper, inputStream);
+            TypeDef dslType = schema.getDefinitions().get("DSL");
+            // System.out.println(dslType.toString());
+            TypeDef queryType = schema.getDefinitions().get("QUERY");
+            // System.out.println(queryType.toString());
+            return new Validator(schema);
+        }
     }
-
 
     @Test
     public void should_retrieve_errors_when_validate_null() throws IOException, InvalidParseOperationException {
@@ -203,6 +206,14 @@ public class ValidatorTest {
             .hasMessageContaining(
                 "Validating $query: ROOT_QUERY[] ~ INVALID_JSON_FIELD: exists ~ hint: Query or list of query ~ found json: {} ~ path: [$query]");
 
+    }
+
+    @Test
+    public void should_not_retrieve_errors_when_send_exists() throws Exception {
+        JsonNode test1Json =
+            mapper.readTree(PropertiesUtils.getResourceFile("operator_exists_request.json"));
+        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
+        validator.validate(test1Json);
     }
 
     @Test

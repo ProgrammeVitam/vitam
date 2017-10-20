@@ -2,6 +2,7 @@ package fr.gouv.vitam.access.external.rest;
 
 import com.google.common.base.Throwables;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.dsl.schema.DslDynamicFeature;
 import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
 import fr.gouv.vitam.common.security.rest.SecureEndpointScanner;
 import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
@@ -35,9 +36,11 @@ public class BusinessApplication extends Application {
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
             commonBusinessApplication = new CommonBusinessApplication(true);
 
-            final AccessExternalResourceImpl accessExternalResource = new AccessExternalResourceImpl(secureEndpointRegistry);
+            final AccessExternalResourceImpl accessExternalResource =
+                new AccessExternalResourceImpl(secureEndpointRegistry);
             final LogbookExternalResourceImpl logbookExternalResource = new LogbookExternalResourceImpl();
-            final AdminManagementExternalResourceImpl adminManagementExternalResource = new AdminManagementExternalResourceImpl(secureEndpointRegistry);
+            final AdminManagementExternalResourceImpl adminManagementExternalResource =
+                new AdminManagementExternalResourceImpl(secureEndpointRegistry);
 
             singletons = new HashSet<>();
             singletons.add(new InternalSecurityFilter());
@@ -50,7 +53,7 @@ public class BusinessApplication extends Application {
             singletons.add(new SanityDynamicFeature());
             singletons.add(new HttpMethodOverrideFilter());
             singletons.add(secureEndpointScanner);
-
+            singletons.add(new DslDynamicFeature());
         } catch (IOException e) {
             throw Throwables.propagate(e);
         }
