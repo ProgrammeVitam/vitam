@@ -42,6 +42,7 @@ public final class VitamContext {
     private Integer tenantId;
     private String accessContract;
     private String applicationSessionId;
+    private String personalCertificate;
 
     /**
      * @param tenantId the tenant id
@@ -111,6 +112,26 @@ public final class VitamContext {
     }
 
     /**
+     * Gets the personnal certificate.
+     *
+     * @return
+     */
+    public String getPersonalCertificate() {
+        return personalCertificate;
+    }
+
+    /**
+     * Sets personalCertificate
+     *
+     * @param personalCertificate the personalCertificate to set
+     * @return "this" instance. May be used for fluent instance creation.
+     */
+    public VitamContext setPersonalCertificate(String personalCertificate) {
+        this.personalCertificate = personalCertificate;
+        return this;
+    }
+
+    /**
      * Returns a vitam context parameters as headers
      *
      * @return header-name/value map of vitam context parameters
@@ -128,6 +149,9 @@ public final class VitamContext {
         if (this.applicationSessionId != null) {
             result.put(GlobalDataRest.X_APPLICATION_ID, Collections.singletonList(this.applicationSessionId));
         }
+        if (this.personalCertificate != null) {
+            result.put(GlobalDataRest.X_PERSONAL_CERTIFICATE, Collections.singletonList(this.personalCertificate));
+        }
 
         return result;
     }
@@ -138,6 +162,7 @@ public final class VitamContext {
             "tenantId=" + tenantId +
             ", accessContract='" + accessContract + '\'' +
             ", applicationSessionId='" + applicationSessionId + '\'' +
+            ", personalCertificate='" + personalCertificate + '\'' +
             '}';
     }
 
@@ -150,11 +175,12 @@ public final class VitamContext {
         VitamContext that = (VitamContext) o;
         return Objects.equals(tenantId, that.tenantId) &&
             Objects.equals(accessContract, that.accessContract) &&
-            Objects.equals(applicationSessionId, that.applicationSessionId);
+            Objects.equals(applicationSessionId, that.applicationSessionId) &&
+            Objects.equals(personalCertificate, that.personalCertificate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(tenantId, accessContract, applicationSessionId);
+        return Objects.hash(tenantId, accessContract, applicationSessionId, personalCertificate);
     }
 }
