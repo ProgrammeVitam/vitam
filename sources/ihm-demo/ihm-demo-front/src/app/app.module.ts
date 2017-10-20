@@ -69,6 +69,7 @@ import { AgenciesComponent } from './referentials/details/agencies/agencies.comp
 import { AuditComponent } from './admin/audit/audit.component';
 import { AuditService } from './admin/audit/audit.service';
 import { AccessionRegisterComponent } from './referentials/details/accession-register/accession-register.component';
+import { FilingschemeComponent } from './admin/filingscheme/filingscheme.component';
 
 const appRoutes: Routes = [
   {
@@ -97,6 +98,9 @@ const appRoutes: Routes = [
   },
   {
     path: 'admin/logbookOperation/:id', component: LogbookOperationDetailsComponent
+  },
+  {
+    path: 'admin/fillingScheme', component: FilingschemeComponent
   },
   {
     path: 'admin/import/:referentialType', component: ImportComponent
@@ -182,7 +186,8 @@ const appRoutes: Routes = [
     TreeSearchComponent,
     AgenciesComponent,
     AuditComponent,
-    AccessionRegisterComponent
+    AccessionRegisterComponent,
+    FilingschemeComponent
   ],
   imports: [
     RouterModule.forRoot(appRoutes, {useHash: true}),

@@ -26,7 +26,7 @@ export class RegisterData {
 }
 
 export class AccessionRegisterDetail {
-  _id : string;
+  '#id' : string;
  '#tenant' : number;
   ArchivalAgreement : string;
   EndDate : string;

@@ -20,7 +20,7 @@ const PROFIL_KEY_TRANSLATION = {
   Status : 'Statut',
   Description : 'Description',
   Path : 'Fichier',
-  _tenant : 'Tenant',
+  '#tenant' : 'Tenant',
 };
 @Component({
   selector: 'vitam-profil',

@@ -19,7 +19,7 @@ const CONTEXT_KEY_TRANSLATION = {
   Name : 'Nom',
   Status : 'Statut',
   Description : 'Description',
-  _tenant : 'Tenant'
+  '#tenant' : 'Tenant'
 };
 
 @Component({
@@ -87,7 +87,7 @@ export class ContextComponent extends PageComponent {
   }
 
   isUpdatable(key : string) {
-    if (['CreationDate', 'LastUpdate', 'Identifier', '_tenant', '_id'].indexOf(key) > -1) {
+    if (['CreationDate', 'LastUpdate', 'Identifier', '#tenant', '_id'].indexOf(key) > -1) {
       return false;
     } else {
       return this.update;

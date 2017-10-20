@@ -53,7 +53,7 @@ export class SearchReferentialsComponent  extends PageComponent {
               () => ({'width': '325px'})),
             ColumnDefinition.makeStaticColumn('Identifier', 'Identifiant', undefined,
               () => ({'width': '225px'})),
-            ColumnDefinition.makeStaticColumn('_tenant', 'Tenant', undefined,
+            ColumnDefinition.makeStaticColumn('#tenant', 'Tenant', undefined,
               () => ({'width': '125px'})),
             ColumnDefinition.makeStaticColumn('Status', 'Statut', SearchReferentialsComponent.handleStatus,
               () => ({'width': '125px'})),
@@ -77,7 +77,7 @@ export class SearchReferentialsComponent  extends PageComponent {
               () => ({'width': '325px'})),
             ColumnDefinition.makeStaticColumn('Identifier', 'Identifiant', undefined,
               () => ({'width': '225px'})),
-            ColumnDefinition.makeStaticColumn('_tenant', 'Tenant', undefined,
+            ColumnDefinition.makeStaticColumn('#tenant', 'Tenant', undefined,
               () => ({'width': '125px'})),
             ColumnDefinition.makeStaticColumn('Status', 'Statut', SearchReferentialsComponent.handleStatus,
               () => ({'width': '125px'})),
@@ -204,7 +204,7 @@ export class SearchReferentialsComponent  extends PageComponent {
               () => ({'width': '125px'}))
           ];
           this.extraColumns = [
-            ColumnDefinition.makeStaticColumn('_id', 'GUID', undefined,
+            ColumnDefinition.makeStaticColumn('#id', 'GUID', undefined,
               () => ({'width': '325px'})),
             ColumnDefinition.makeSpecialValueColumn("Contrat d'accès",
               SearchReferentialsComponent.checkAccessContract, undefined,

@@ -1,6 +1,6 @@
 export class Rule {
-  _id: string;
-  _tenant: number;
+  '#id': string;
+  '#tenant': number;
   RuleType: string;
   RuleId: string;
   RuleMeasurement: string;

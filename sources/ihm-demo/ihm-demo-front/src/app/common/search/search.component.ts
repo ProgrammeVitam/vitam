@@ -113,8 +113,10 @@ export class SearchComponent implements OnInit {
   clearFields() {
     this.searchForm.reset();
     this.searchForm.enable();
-    this.advancedSearchForm.reset();
-    this.advancedSearchForm.enable();
+    if (this.advancedSearchForm) {
+      this.advancedSearchForm.reset();
+      this.advancedSearchForm.enable();
+    }
     this.preSearchReturn = new Preresult();
   }
 

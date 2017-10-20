@@ -23,7 +23,6 @@ export class MenuComponent implements OnInit {
 
   constructor(private resourcesService: ResourcesService, private authenticationService : AuthenticationService,
               private router : Router, private accessContractService: AccessContractService) {
-
   }
 
   ngOnInit() {
@@ -62,7 +61,7 @@ export class MenuComponent implements OnInit {
               {label: 'Gestion des opérations', routerLink: ['admin/workflow']},
               {label: 'Opérations de sécurisation', routerLink: ['admin/traceability']},
               {separator: true},
-              {label: 'Import de l\'arbre de positionnement', routerLink: ['admin/import/fillingScheme']},
+              {label: 'Import de l\'arbre de positionnement', routerLink: ['admin/fillingScheme']},
               {label: 'Import du référentiel des règles de gestion', routerLink: ['admin/import/rule']},
               {label: 'Import du référentiel des formats', routerLink: ['admin/import/format']},
               {label: 'Import des contrats d\'entrée', routerLink: ['admin/import/ingestContract']},
@@ -83,44 +82,39 @@ export class MenuComponent implements OnInit {
         ];
         this.isAuthenticated = true;
         this.tenantChosen = this.resourcesService.getTenant();
-        if (this.accessContracts.length == 0) {
-          this.resourcesService.getAccessContrats().subscribe((data) => {
-            let accessContracts = this.accessContracts;
-            data.$results.forEach(function(value) {
-              accessContracts.push({label:value.Name, value:value.Name});
-            });
-            if (this.resourcesService.getAccessContract()) {
-              let contractName = this.resourcesService.getAccessContract();
-              this.accessContract = contractName;
-            } else {
-              this.accessContract = this.accessContracts[0].value;
-            }
-            this.updateContract();
-          }, (error: HttpErrorResponse) => {
 
-            if (error.error instanceof Error) {
-              // A client-side or network error occurred. Handle it accordingly.
-            } else {
-              // The backend returned an unsuccessful response code.
-              // The response body may contain clues as to what went wrong,
+        this.resourcesService.getAccessContrats().subscribe((data) => {
+          this.accessContracts = [];
+          let contractInCookie = this.resourcesService.getAccessContract();
+          let hasContract = false;
+          for (let contract of data.$results) {
+            this.accessContracts.push({label:contract.Name, value:contract.Name});
+            if (contract.Name === contractInCookie) {
+              hasContract = true
             }
-
-            // Logout when cookie expired
-            if (error.status == 0) {
-              this.isAuthenticated = false;
-              this.logOut();
-              this.router.navigate(['login']);
-            }
-          });
-        } else {
-          if (this.resourcesService.getAccessContract()) {
-            let contractName = this.resourcesService.getAccessContract();
-            this.accessContract = contractName;
-          } else {
+          }
+          if (contractInCookie && hasContract) {
+            this.accessContract = contractInCookie;
+          } else if (this.accessContracts.length > 0) {
             this.accessContract = this.accessContracts[0].value;
           }
           this.updateContract();
-        }
+        }, (error: HttpErrorResponse) => {
+
+          if (error.error instanceof Error) {
+            // A client-side or network error occurred. Handle it accordingly.
+          } else {
+            // The backend returned an unsuccessful response code.
+            // The response body may contain clues as to what went wrong,
+          }
+
+          // Logout when cookie expired
+          if (error.status == 0) {
+            this.isAuthenticated = false;
+            this.logOut();
+            this.router.navigate(['login']);
+          }
+        });
 
       } else {
         this.items = [];

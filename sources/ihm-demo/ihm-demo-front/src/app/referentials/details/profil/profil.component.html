@@ -30,7 +30,7 @@
             <p-toggleButton onLabel="Actif" offLabel="Inactif" [(ngModel)]="isActif" (onChange)="changeStatus()"></p-toggleButton>
           </div>
         </div>
-        <vitam-metadata-field [title]="'Tenant'" [value]="modifiedProfil._tenant" [labelSize]="5"
+        <vitam-metadata-field [title]="'Tenant'" [value]="modifiedProfil['#tenant']" [labelSize]="5"
                               class="ui-g-4 minHeight45 " [updateMode]="false" [(updatedFields)]="updatedFields"></vitam-metadata-field>
       </div>
       <div class="ui-g-12">

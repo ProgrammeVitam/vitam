@@ -23,7 +23,7 @@ const ACCESS_CONTRACT_KEY_TRANSLATION = {
   Description : 'Description',
   DataObjectVersion : 'Usage',
   RootUnits : 'Noeuds de consultation',
-  _tenant : 'Tenant',
+  '#tenant' : 'Tenant',
   OriginatingAgencies : "Service Producteur",
   EveryOriginatingAgency : 'Tous les services producteurs',
   EveryDataObjectVersion : 'Tous les usages'
