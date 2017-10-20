@@ -146,7 +146,7 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>rpm-maven-plugin</artifactId>
                 <configuration>
-                    <name>vitam-${unix.name}-v2</name>
+                    <name>vitam-${unix.name}</name>
                     <disabled>false</disabled>
                     <licence>CeCILL 2.1</licence>
                     <distribution>Vitam Project</distribution>
