@@ -10,10 +10,10 @@
 
 - name: Copy the workflows files
   copy:
-    src: "{{ role_path }}/files/{{ item }}"
-    dest: "{{vitam_folder_conf}}/workflows/{{ item }}"
+    src: "{{ item }}"
+    dest: "{{vitam_folder_conf}}/workflows/{{ item | basename }}"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  when: "{{ lookup('pipe', 'test -d {{ role_path }}/files || echo nofolder') == \"\"}}"
-  with_items: "{{ lookup('pipe','find {{ role_path }}/files/ -type l -exec basename {} \\; || true').split('\n') }}"
+  with_fileglob:
+    - "{{ role_path }}/files/*.json"

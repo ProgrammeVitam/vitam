@@ -14,28 +14,25 @@
 
 - name: copy the systemd unit & timer files for curator on CentOS environment
   template:
-    src: "{{ role_path }}/templates/systemd/{{ item }}.j2"
-    dest: "/usr/lib/systemd/system/{{ item }}"
-  with_items: "{{ lookup('pipe','find {{ role_path }}/templates/systemd/ -type f  -exec basename {} .j2 \\; || true').split('\n') }}"
-  when:
-    - ansible_distribution == 'CentOS'
-    - "{{ lookup('pipe', 'test -d {{ role_path }}/templates/systemd || echo nofolder') == \"\" }}"
+    src: "{{ item }}"
+    dest: "/usr/lib/systemd/system/{{ item | basename | regex_replace('\\.j2$') }}"
+  with_fileglob:
+    - "{{ role_path }}/templates/systemd/*"
+  when: ansible_distribution == 'CentOS'
 
 - name: copy the systemd unit & timer files for curator on Debian environment
   template:
-    src: "{{ role_path }}/templates/systemd/{{ item }}.j2"
-    dest: "/lib/systemd/system/{{ item }}"
-  with_items: "{{ lookup('pipe','find {{ role_path }}/templates/systemd/ -type f  -exec basename {} .j2 \\; || true').split('\n') }}"
-  when:
-    - ansible_distribution == 'Debian'
-    - "{{ lookup('pipe', 'test -d {{ role_path }}/templates/systemd || echo nofolder') == \"\" }}"
+    src: "{{ item }}"
+    dest: "/lib/systemd/system/{{ item | basename | regex_replace('\\.j2$') }}"
+  with_fileglob:
+    - "{{ role_path }}/templates/systemd/*"
+  when: ansible_distribution == 'Debian'
 
 - name: Enable systemd timers
   systemd:
-    name: "{{ item }}"
+    name: "{{ item | basename | regex_replace('\\.j2$') }}"
     daemon_reload: "yes"
     enabled: "yes"
     state: "started"
-  with_items: "{{ lookup('pipe','find {{ role_path }}/templates/systemd/ -type f -name *.timer.j2 -exec basename {} .j2 \\; || true').split('\n') }}"
-  when:
-    - "{{ lookup('pipe', 'test -d {{ role_path }}/templates/systemd || echo nofolder') == \"\" }}"
+  with_fileglob:
+    - "{{ role_path }}/templates/systemd/*.timer.j2"
