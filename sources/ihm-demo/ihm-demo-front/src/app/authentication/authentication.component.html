@@ -2,7 +2,7 @@
   <p-panel [header]="'Authentification'">
     <form class="ui-g ui-fluid" [formGroup]="loginForm" (ngSubmit)="login()">
       <div class="ui-g-12 ui-md-12 login-error-message">
-        {{errorMessages}}
+        {{errorMessage}}
       </div>
       <div class="ui-g-12 ui-md-4">
         <label>Identifiant</label><br/>

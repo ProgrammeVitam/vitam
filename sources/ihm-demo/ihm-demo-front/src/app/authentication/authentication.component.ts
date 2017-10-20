@@ -11,7 +11,7 @@ import { AuthenticationService, UserInformation } from './authentication.service
 })
 export class AuthenticationComponent implements OnInit {
 
-  errorMessages = '';
+  errorMessage = '';
   tenantId: string;
   username: string;
   password: string;
@@ -39,7 +39,7 @@ export class AuthenticationComponent implements OnInit {
   }
 
   login() {
-    this.errorMessages = '';
+    this.errorMessage = '';
     if (this.loginForm.valid) {
       let username = this.loginForm.controls.username.value;
       let password = this.loginForm.controls.password.value;
@@ -50,19 +50,25 @@ export class AuthenticationComponent implements OnInit {
           this.authenticationService.loggedIn(user, tenant);
         },
         (error) => {
-          this.errorMessages = 'Merci de vérifier votre identifiant et votre mot de passe';
+          this.errorMessage = 'Identifiant et/ou mot de passe incorrect';
           this.authenticationService.loggedOut();
         }
       )
     } else {
       if (!this.loginForm.controls.username.valid) {
-        this.errorMessages = 'Merci de remplir votre identifiant';
+        if (!this.loginForm.controls.password.valid) {
+          this.errorMessage = 'Veuillez entrer votre identifiant et votre mot de passe';
+          return;
+        }
+        this.errorMessage = 'Veuillez entrer votre identifiant';
+        return;
       }
       if (!this.loginForm.controls.password.valid) {
-        this.errorMessages = 'Merci de remplir votre mot de passe ';
+        this.errorMessage = 'Veuillez entrer votre mot de passe';
+        return;
       }
       if (!this.loginForm.controls.tenant.valid) {
-        this.errorMessages = 'Merci de choisir un tenant';
+        this.errorMessage = 'Veuillez choisir un tenant';
       }
     }
 
