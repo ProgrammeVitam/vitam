@@ -112,7 +112,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     private final LogbookOperationsClient logBookclient;
     private final VitamCounterService vitamCounterService;
     private final MetaDataClient metaDataClient;
-    private final EntryContractManager manager;
+    private final IngestContractManager manager;
     private static final String _TENANT = "_tenant";
     private static final String _ID = "_id";
     /**
@@ -130,7 +130,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         mongoAccess = dbConfiguration;
         this.vitamCounterService = vitamCounterService;
         logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
-        manager = new EntryContractManager(logBookclient, metaDataClient);
+        manager = new IngestContractManager(logBookclient, metaDataClient);
         this.metaDataClient = metaDataClient;
     }
 
@@ -163,7 +163,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 // if a contract have and id
                 if (null != acm.getId()) {
                     error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
-                        EntryContractValidator.GenericRejectionCause.rejectIdNotAllowedInCreate(acm.getName())
+                        IngestContractValidator.GenericRejectionCause.rejectIdNotAllowedInCreate(acm.getName())
                             .getReason()));
                     continue;
                 }
@@ -172,7 +172,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 if (contractNames.contains(acm.getName())) {
                     error
                         .addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
-                            EntryContractValidator.GenericRejectionCause.rejectDuplicatedEntry(acm.getName())
+                            IngestContractValidator.GenericRejectionCause.rejectDuplicatedEntry(acm.getName())
                                 .getReason()));
                     continue;
                 }
@@ -182,7 +182,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     if (!manager.checkIfAUInFilingOrHoldingSchema(linkParentId)) {
                         error
                             .addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
-                                EntryContractValidator.GenericRejectionCause
+                                IngestContractValidator.GenericRejectionCause
                                     .rejectWrongLinkParentId(linkParentId)
                                     .getReason()));
                         continue;
@@ -202,7 +202,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
 
                 if (slaveMode) {
-                    final Optional<EntryContractValidator.GenericRejectionCause> result =
+                    final Optional<IngestContractValidator.GenericRejectionCause> result =
                         manager.checkDuplicateInIdentifierSlaveModeValidator().validate(acm, acm.getIdentifier());
                     result.ifPresent(t -> error
                         .addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(result
@@ -305,12 +305,12 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     /**
      * Contract validator and logBook manager
      */
-    protected final static class EntryContractManager {
+    protected final static class IngestContractManager {
 
         private static final String UPDATED_DIFFS = "updatedDiffs";
         private static final String INGEST_CONTRACT = "IngestContract";
 
-        private List<EntryContractValidator> validators;
+        private List<IngestContractValidator> validators;
 
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         private GUID eip = null;
@@ -318,7 +318,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         private final LogbookOperationsClient logBookclient;
         private final MetaDataClient metaDataClient;
 
-        public EntryContractManager(LogbookOperationsClient logBookclient, MetaDataClient metaDataClient) {
+        public IngestContractManager(LogbookOperationsClient logBookclient, MetaDataClient metaDataClient) {
             this.logBookclient = logBookclient;
             this.metaDataClient = metaDataClient;
             //Init validator
@@ -332,8 +332,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         private boolean validateContract(IngestContractModel contract, String jsonFormat,
             VitamError error) {
 
-            for (final EntryContractValidator validator : validators) {
-                final Optional<EntryContractValidator.GenericRejectionCause> result =
+            for (final IngestContractValidator validator : validators) {
+                final Optional<IngestContractValidator.GenericRejectionCause> result =
                     validator.validate(contract, jsonFormat);
                 if (result.isPresent()) {
                     // there is a validation error on this contract
@@ -487,14 +487,14 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         /**
          * Validate that contract have not a missing mandatory parameter
          *
-         * @return EntryContractValidator
+         * @return IngestContractValidator
          */
-        private EntryContractValidator createMandatoryParamsValidator() {
+        private IngestContractValidator createMandatoryParamsValidator() {
             return (contract, jsonFormat) -> {
-                EntryContractValidator.GenericRejectionCause rejection = null;
+                IngestContractValidator.GenericRejectionCause rejection = null;
                 if (contract.getName() == null || contract.getName().trim().isEmpty()) {
                     rejection =
-                        EntryContractValidator.GenericRejectionCause.rejectMandatoryMissing(IngestContract.NAME);
+                        IngestContractValidator.GenericRejectionCause.rejectMandatoryMissing(IngestContract.NAME);
                 }
 
                 return rejection == null ? Optional.empty() : Optional.of(rejection);
@@ -504,9 +504,9 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         /**
          * Set a default value if null
          *
-         * @return EntryContractValidator
+         * @return IngestContractValidator
          */
-        private EntryContractValidator createWrongFieldFormatValidator() {
+        private IngestContractValidator createWrongFieldFormatValidator() {
             return (contract, inputList) -> {
                 GenericContractValidator.GenericRejectionCause rejection = null;
                 final String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
@@ -517,7 +517,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     !contract.getStatus().equals(ContractStatus.INACTIVE.name())) {
                     LOGGER.error("Error ingest contract status not valide (must be ACTIVE or INACTIVE");
                     rejection =
-                        EntryContractValidator.GenericRejectionCause
+                        IngestContractValidator.GenericRejectionCause
                             .rejectMandatoryMissing("Status " + contract.getStatus() +
                                 " not valide must be ACTIVE or INACTIVE");
                 }
@@ -530,7 +530,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
                 } catch (final Exception e) {
                     LOGGER.error("Error ingest contract parse dates", e);
-                    rejection = EntryContractValidator.GenericRejectionCause.rejectMandatoryMissing("Creationdate");
+                    rejection = IngestContractValidator.GenericRejectionCause.rejectMandatoryMissing("Creationdate");
                 }
                 try {
                     if (contract.getActivationdate() == null || contract.getActivationdate().trim().isEmpty()) {
@@ -541,7 +541,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     }
                 } catch (final Exception e) {
                     LOGGER.error("Error ingest contract parse dates", e);
-                    rejection = EntryContractValidator.GenericRejectionCause.rejectMandatoryMissing("ActivationDate");
+                    rejection = IngestContractValidator.GenericRejectionCause.rejectMandatoryMissing("ActivationDate");
                 }
                 try {
                     if (contract.getDeactivationdate() == null || contract.getDeactivationdate().trim().isEmpty()) {
@@ -554,7 +554,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 } catch (final Exception e) {
                     LOGGER.error("Error ingest contract parse dates", e);
                     rejection =
-                        EntryContractValidator.GenericRejectionCause.rejectMandatoryMissing("deactivationdate");
+                        IngestContractValidator.GenericRejectionCause.rejectMandatoryMissing("deactivationdate");
                 }
 
                 contract.setLastupdate(now);
@@ -567,17 +567,17 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         /**
          * Check if the contract the same name already exists in database
          *
-         * @return EntryContractValidator
+         * @return IngestContractValidator
          */
-        private EntryContractValidator createCheckDuplicateInDatabaseValidator() {
+        private IngestContractValidator createCheckDuplicateInDatabaseValidator() {
             return (contract, contractName) -> {
-                EntryContractValidator.GenericRejectionCause rejection = null;
+                IngestContractValidator.GenericRejectionCause rejection = null;
                 final int tenant = ParameterHelper.getTenantParameter();
                 final Bson clause =
                     and(eq(VitamDocument.TENANT_ID, tenant), eq(IngestContract.NAME, contract.getName()));
                 final boolean exist = FunctionalAdminCollections.INGEST_CONTRACT.getCollection().count(clause) > 0;
                 if (exist) {
-                    rejection = EntryContractValidator.GenericRejectionCause.rejectDuplicatedInDatabase(contractName);
+                    rejection = IngestContractValidator.GenericRejectionCause.rejectDuplicatedInDatabase(contractName);
                 }
                 return rejection == null ? Optional.empty() : Optional.of(rejection);
             };
@@ -589,19 +589,19 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
          *
          * @return
          */
-        private EntryContractValidator checkDuplicateInIdentifierSlaveModeValidator() {
+        private IngestContractValidator checkDuplicateInIdentifierSlaveModeValidator() {
             return (contract, contractIdentifier) -> {
                 if (contractIdentifier == null || contractIdentifier.isEmpty()) {
                     return Optional
-                        .of(EntryContractValidator.GenericRejectionCause.rejectMandatoryMissing(contractIdentifier));
+                        .of(IngestContractValidator.GenericRejectionCause.rejectMandatoryMissing(contractIdentifier));
                 }
-                EntryContractValidator.GenericRejectionCause rejection = null;
+                IngestContractValidator.GenericRejectionCause rejection = null;
                 final int tenant = ParameterHelper.getTenantParameter();
                 final Bson clause =
                     and(eq(VitamDocument.TENANT_ID, tenant), eq(AccessContract.IDENTIFIER, contract.getIdentifier()));
                 final boolean exist = FunctionalAdminCollections.INGEST_CONTRACT.getCollection().count(clause) > 0;
                 if (exist) {
-                    rejection = EntryContractValidator.GenericRejectionCause.rejectDuplicatedInDatabase(contractIdentifier);
+                    rejection = IngestContractValidator.GenericRejectionCause.rejectDuplicatedInDatabase(contractIdentifier);
                 }
                 return rejection == null ? Optional.empty() : Optional.of(rejection);
             };
@@ -610,21 +610,21 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         /**
          * Check if the profiles exists bien dans la base de données
          *
-         * @return EntryContractValidator
+         * @return IngestContractValidator
          */
-        private EntryContractValidator createCheckProfilesExistsInDatabaseValidator() {
+        private IngestContractValidator createCheckProfilesExistsInDatabaseValidator() {
             return (contract, contractName) -> {
                 if (null == contract.getArchiveProfiles()) {
                     return Optional.empty();
                 }
-                EntryContractValidator.GenericRejectionCause rejection = null;
+                IngestContractValidator.GenericRejectionCause rejection = null;
                 final int tenant = ParameterHelper.getTenantParameter();
                 final Bson clause =
                     and(eq(VitamDocument.TENANT_ID, tenant), in(Profile.IDENTIFIER, contract.getArchiveProfiles()));
                 final long count = FunctionalAdminCollections.PROFILE.getCollection().count(clause);
                 if (count != contract.getArchiveProfiles().size()) {
                     rejection =
-                        EntryContractValidator.GenericRejectionCause
+                        IngestContractValidator.GenericRejectionCause
                             .rejectArchiveProfileNotFoundInDatabase(contractName);
                 }
                 return rejection == null ? Optional.empty() : Optional.of(rejection);
@@ -704,7 +704,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     if (!manager.checkIfAUInFilingOrHoldingSchema(linkParentId)) {
                         error
                             .addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
-                                EntryContractValidator.GenericRejectionCause
+                                IngestContractValidator.GenericRejectionCause
                                     .rejectWrongLinkParentId(linkParentId)
                                     .getReason()));
 
@@ -719,9 +719,9 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             if (archiveProfilesNode != null) {
                 final Set<String> archiveProfiles =
                     JsonHandler.getFromString(archiveProfilesNode.toString(), Set.class, String.class);
-                final EntryContractValidator validator =
+                final IngestContractValidator validator =
                     manager.createCheckProfilesExistsInDatabaseValidator();
-                final Optional<EntryContractValidator.GenericRejectionCause> result =
+                final Optional<IngestContractValidator.GenericRejectionCause> result =
                     validator.validate(new IngestContractModel().setArchiveProfiles(archiveProfiles),
                         "update contract ..");
                 if (result.isPresent()) {

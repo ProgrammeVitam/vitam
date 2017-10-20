@@ -103,11 +103,11 @@
   <script src="pages/access-contract-search/access-contract-component.js"></script>
   <script src="pages/access-contract-details/access-contract-details.controller.js"></script>
 
-  <script src="resources/entry-contract.resource.js"></script>
-  <script src="pages/entry-contract-search/entry-contract.module.js"></script>
-  <script src="pages/entry-contract-search/entry-contract.controller.js"></script>
-  <script src="pages/entry-contract-search/entry-contract.component.js"></script>
-  <script src="pages/entry-contract-details/entry-contract-details.controller.js"></script>
+  <script src="resources/ingest-contract.resource.js"></script>
+  <script src="pages/ingest-contract-search/ingest-contract.module.js"></script>
+  <script src="pages/ingest-contract-search/ingest-contract.controller.js"></script>
+  <script src="pages/ingest-contract-search/ingest-contract.component.js"></script>
+  <script src="pages/ingest-contract-details/ingest-contract-details.controller.js"></script>
 
   <script src="resources/context.resource.js"></script>
   <script src="pages/context-search/context.module.js"></script>
@@ -266,7 +266,7 @@
               <li><a href="#!/admin/profiles" ng-show="hasPermission('profiles:read')">Référentiel des profils</a></li>
               <li><a href="#!/admin/journalOperations" ng-show="hasPermission('logbook:operations:read')">Journal des Opérations</a></li>
               <li><a href="#!/admin/workflows" ng-show="hasPermission('operations:read')">Gestion des opérations</a></li>
-              <li><a href="#!/admin/entryContracts" ng-show="hasPermission('contracts:read')">Contrats d'entrée</a></li>
+              <li><a href="#!/admin/ingestContracts" ng-show="hasPermission('contracts:read')">Contrats d'entrée</a></li>
               <li><a href="#!/admin/accessContracts" ng-show="hasPermission('accesscontracts:read')">Contrats d'accès</a></li>
               <li><a href="#!/admin/contexts" ng-show="hasPermission('contexts:read')">Contextes applicatifs</a></li>
 

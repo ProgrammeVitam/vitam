@@ -202,15 +202,15 @@ config(['$locationProvider' ,'$routeProvider',
         title: 'Gestion des opérations',
         permission: 'ingest:create'
     }).
-     when('/admin/entryContracts', {
-       templateUrl: 'pages/entry-contract-search/entry-contract.template.html',
-       controller: 'entryContractsController',
+     when('/admin/ingestContracts', {
+       templateUrl: 'pages/ingest-contract-search/ingest-contract.template.html',
+       controller: 'ingestContractsController',
        title: 'Contrats d\'entrée',
        permission: 'contracts:read'
      }).
-    when('/admin/entryContracts/:id', {
-      templateUrl: 'pages/entry-contract-details/entry-contract-details.template.html',
-      controller: 'entryContractsDetailsController',
+    when('/admin/ingestContracts/:id', {
+      templateUrl: 'pages/ingest-contract-details/ingest-contract-details.template.html',
+      controller: 'ingestContractsDetailsController',
       title: 'Détail d\'un contrat d\'entrée',
       permission: 'contracts:read'
     }).

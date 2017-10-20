@@ -27,5 +27,10 @@
 
 'use strict';
 
-// Define the `entryContracts` module
-angular.module('entryContracts', ['core']);
+// Register `ingestContractsComponent` component, along with its associated controller and template
+angular.
+  module('ingestContracts').
+  component('ingestContractsComponent', {
+    templateUrl: 'modules/ingest-contracts/ingest-contracts.template.html',
+    controller: 'ingestContractsController as logctrl'
+  });

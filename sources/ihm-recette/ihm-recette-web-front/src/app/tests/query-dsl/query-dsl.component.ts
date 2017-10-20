@@ -29,7 +29,7 @@ const defaultCollections = [
   {label: 'Registre des fonds', value: 'ACCESSION_REGISTERS'},
   {label: 'Profil', value: 'PROFILE'},
   {label: 'Contrat d\'accès', value: 'ACCESS_CONTRACTS'},
-  {label: 'Contrat d\'entrée', value: 'ENTRY_CONTRACTS'},
+  {label: 'Contrat d\'entrée', value: 'INGEST_CONTRACTS'},
   {label: 'Contexte', value: 'CONTEXTS'},
   {label: 'Règle de gestion', value: 'RULES'},
   {label: 'Format', value: 'FORMATS'},

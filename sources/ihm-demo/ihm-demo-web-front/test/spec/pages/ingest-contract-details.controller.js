@@ -27,10 +27,10 @@
 
 'use strict';
 
-describe('entryContractsDetailsController', function() {
+describe('ingestContractsDetailsController', function() {
     beforeEach(module('ihm.demo'));
 
-    var scope, EntryContractsDetailsController, EntryContractResource;
+    var scope, IngestContractsDetailsController, IngestContractResource;
     var contractId = 'aefqaaaaaagbcaacaapr4ak3uctdrnaaaaaq';
 
     var contractDetail = {
@@ -52,25 +52,25 @@ describe('entryContractsDetailsController', function() {
         }],"$context":{}
     };
 
-    beforeEach(inject(function ($rootScope, $controller, _entryContractResource_) {
+    beforeEach(inject(function ($rootScope, $controller, _ingestContractResource_) {
         scope = $rootScope.$new(false, null);
-        EntryContractResource = _entryContractResource_;
+        IngestContractResource = _ingestContractResource_;
 
-        EntryContractsDetailsController = function() {
-            return $controller('entryContractsDetailsController', {
+        IngestContractsDetailsController = function() {
+            return $controller('ingestContractsDetailsController', {
                 $scope: scope,
                 $routeParams: {id: contractId},
-                entryContractResource: EntryContractResource
+                ingestContractResource: IngestContractResource
             });
         };
     }));
 
     it('should init the detail on initialization', function() {
-        spyOn(EntryContractResource, 'getDetails').and.callFake(function (id, callback) {
+        spyOn(IngestContractResource, 'getDetails').and.callFake(function (id, callback) {
             callback({data: contractDetail});
         });
 
-        EntryContractsDetailsController();
+        IngestContractsDetailsController();
 
         expect(scope.contract._id).toBe(contractId)
         expect(scope.tmpVars.oldStatus).toBe('ACTIVE'); // $results.Status
@@ -78,11 +78,11 @@ describe('entryContractsDetailsController', function() {
     });
 
     it('should update Status when updateStatus is called', function() {
-        spyOn(EntryContractResource, 'getDetails').and.callFake(function (id, callback) {
+        spyOn(IngestContractResource, 'getDetails').and.callFake(function (id, callback) {
             callback({data: contractDetail});
         });
 
-        EntryContractsDetailsController();
+        IngestContractsDetailsController();
 
         expect(scope.tmpVars.oldStatus).toBe('ACTIVE'); // $results.Status
         expect(scope.tmpVars.isActive).toBe(true); // true because Status is ACTIVE
