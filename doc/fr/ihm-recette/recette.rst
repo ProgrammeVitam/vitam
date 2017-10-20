@@ -18,17 +18,16 @@ Elle contient des interfaces utilisateurs permettant, par tenant, de :
   * Sécuriser manuellement les journaux des opérations
   * Consulter les journaux de sécurisation
 
-Certificat
-----------
-
-L'accès de l'IHM recette de la solution logicielle Vitam nécéssite l'utilisation d'un certificat. Celui-ci sera mis à disposition par l'administrateur de la soution logicielle Vitam.
-    
 Accès 
 -----
 
 L'accès à l'IHM de recette s'effectue par un chemin différent de l'IHM démo. Par défaut, son adresse est :
 
 **addresse_de_votre_serveur/ihm-recette/#!/login**
+
+Contrairement à l'IHM de démo, la sélection de tenants se fait une foix connecté. La mire de connexion contient donc un champ "Identifiant" et un champ "Mot de passe".
+
+.. image:: images/RECETTE_Connexion.png
 
 Par soucis de distinction visuelle avec l'interface de démo, la couleur dominante de cette IHM est le rouge.
 
@@ -43,11 +42,11 @@ Le menu de navigation contient trois menus
 
 .. image:: images/RECETTE_navigation.png
 
-Les pages accesibles sont réparties de la façon suivante.
+Les pages accessibles sont réparties de la façon suivante :
 
 **Admin**
 
-	* Administreation des collections
+	* Administration des collections
 
 **Tests**
 
@@ -57,21 +56,22 @@ Les pages accesibles sont réparties de la façon suivante.
 
 **Sécurisation**
 
-	* Sécurisation du journal des opérations
+	* Sécurisation des journaux des opérations
+	* Sécurisation des journaux de cycle de vie
 
 Fil d'Ariane
 ------------
 
 Le fil d’Ariane est un élément qui permet de visualiser le chemin d’accès à la page affichée. Il est situé sur toutes les pages, en dessous du menu.
 
-Il est est composé d'un symbole "home" du nom du menu dans lequel se trouve la page en cours puis de la page en cours.
+Il est est composé d'un symbole "home" du nom du menu dans lequel se trouve la page en cours puis de la page consultée.
 
 .. image:: images/RECETTE_Fil_Ariane.png
 
 Titre des onglets
 -----------------
 
-Sur IHM recette, le titre des pages est celui du dernier nœud du fil d’Ariane, précédé du mot “Recette -”. Par exemple :
+Sur l'IHM recette, le titre des pages est celui du dernier nœud du fil d’Ariane, précédé du mot “Recette -”. Par exemple :
 
 * Recette - Test Fonctionnels
 * Recette - Administration des collections
@@ -86,9 +86,9 @@ Pour sélectionner un tenant, il suffit de choisir celui désiré dans le menu d
 
 .. image:: images/selection_tenant.png
 
-Une fois le tenant sélectionné, les boutons sont activés et l'intégralité de l'interface de recette est disponible.
+Une fois le tenant sélectionné, les boutons précédement grisés sont activés et l'intégralité de l'interface de recette est disponible.
 
-Dans le reste de ce document, il est considéré que l'utilisateur s'est placé dans le tenant dans lequel il veut effectuer ses opérations.
+Dans le reste de ce document, il est considéré que l'utilisateur s'est placé dans le tenant sur lequel il veut effectuer ses opérations.
 L'utilisateur peut changer de tenant à tout moment, en réitérant l'opération précédente.
 
 NB : le référentiel des formats est lié à la plateforme et non à un tenant. C'est pour cette raison que l'option de suppression du référentiel des formats est toujours disponible, même si aucun tenant n'est sélectionné.

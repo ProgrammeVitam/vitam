@@ -10,9 +10,10 @@ L'utilisateur y accède par le menu, en cliquant sur "Administration des collect
 Action de suppression
 =====================
 
-Chaque bouton "supprimer" est situé sous le titre de son action.
-Lors du clic sur un des boutons "supprimer", une fenêtre modale apparaît et demande de confirmer l'action de suppression.
+Chaque bouton "purger" est situé sous le titre de son action.
+Lors du clic sur ce bouton "purger", une fenêtre modale apparaît et demande de confirmer l'action de suppression.
 Il existe deux types de purge:
+
 
 Purge de toutes les collections de la solution logicielle Vitam
 ===============================================================
@@ -25,8 +26,8 @@ Purge des référentiels
 
 Il est possible de supprimer isolément un référentiel : 
 
-* Un clic sur "Annuler", annule la demande de suppression, la fenêtre modale se ferme et rien ne se passe
-* Un clic sur "Vider", valide la demande de suppression, la fenêtre modale se ferme et la suppression est effectuée
+* Un clic sur la croix de la fenêtre modale ou sur "non", annule la demande de suppression
+* Un clic sur "Oui", valide la demande de suppression, la fenêtre modale se ferme et la suppression est effectuée
   
 .. image:: images/administration_purge_pop_up.png
 
@@ -40,19 +41,19 @@ Le référentiel des formats de la solution logicielle Vitam est supprimé **pou
 
 **Référentiel des règles de gestion**
 
-Le référentiel des règles de gestion de la solution logicielle Vitam est supprimé. L'IHM des règles de gestion est vide de contenu. Sans référentiel des règles de gestion, aucun SIP ne pourra être importé dans la solution logicielle Vitam.
+Le référentiel des règles de gestion de la solution logicielle Vitam est supprimé pour le tenant séléctionné par l'utilisateur. L'IHM des "règles de gestion" est vide de contenu. Sans référentiel des règles de gestion, aucun SIP ne pourra être importé dans la solution logicielle Vitam.
 
 **Registre des fonds**
 
-Le contenu du registre des fonds de la solution logicielle Vitam est supprimé. L'IHM du registre des fonds est vide de contenu.
+Le contenu du registre des fonds de la solution logicielle Vitam est supprimé. L'IHM du "registre des fonds" est vide de contenu.
 
 **Purge des profils**
 
-Tous les profils sont supprimés de la solution logicielle Vitam. L'IHM "Référentiel des profils" est vide de contenu.
+Tous les profils sont supprimés de la solution logicielle Vitam. L'IHM du "référentiel des profils" est vide de contenu.
 
 **Purge des contextes**
 
-Lors de son exécution, la fonctionnalité de purge des contextes contrôle qu'il y a plus d'un contexte dans le référentiel. Si tel n'est pas le cas, la purge n'est pas réalisée. Si le référentiel contient plus d'un contexte, ils sont supprimés de la solution logicielle Vitam à l'exception de celui nommé « admin-context ».
+Lors de son exécution, la fonctionnalité de purge des contextes contrôle qu'il y a plus d'un contexte dans le référentiel. Si tel n'est pas le cas, la purge n'est pas réalisée. Si le référentiel contient plus d'un contexte, ils sont supprimés de la solution logicielle Vitam à l'exception de celui nommé « admin-context ».
 
 Purge des journaux
 ==================
@@ -67,7 +68,7 @@ Tous les journaux du cycle de vie des unités archivistiques sont supprimés de 
 Tous les journaux du cycle de vie des objets sont supprimés de la solution logicielle Vitam. L'IHM de chaque "Journal du cycle de vie" d'un objet est vide de contenu.
 
 
-**Journal des Opérations**
+**Journaux des Opérations**
 
 Tous les journaux des opérations sont supprimés de la solution logicielle Vitam. Les IHM "Journal des opérations" et "Journal des opérations d'entrées" sont vides de contenu.
 
