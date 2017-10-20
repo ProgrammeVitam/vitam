@@ -8,7 +8,7 @@ export class ArchiveUnitHelper {
     ['#management.SubmissionAgency'], ['#management.OriginatingAgency'], 'inheritedRule'];
   public rulesCategories = [
     {rule: 'AccessRule', label: 'Délai de communicabilité'},
-    {rule: 'AppraisalRule', label: 'Durée d\'utilité Administrative'},
+    {rule: 'AppraisalRule', label: 'Durée d\'utilité administrative'},
     {rule: 'ClassificationRule', label: 'Durée de classification'},
     {rule: 'DisseminationRule', label: 'Délai de diffusion'},
     {rule: 'ReuseRule', label: 'Durée de réutilisation'},
