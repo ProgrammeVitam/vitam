@@ -1,0 +1,84 @@
+
+---
+
+vitam:
+    accessinternal:
+        jvm_opts:
+            # memory: "-Xms512m -Xmx512m"
+            # gc: ""
+            # java: ""
+    accessexternal:
+        jvm_opts:
+            # memory: "-Xms512m -Xmx512m"
+            # gc: ""
+            # java: ""
+    ingestinternal:
+        jvm_opts:
+            # memory: "-Xms512m -Xmx512m"
+            # gc: ""
+            # java: ""
+    ingestexternal:
+        jvm_opts:
+            # memory: "-Xms512m -Xmx512m"
+            # gc: ""
+            # java: ""
+    metadata:
+        jvm_opts:
+            # memory: "-Xms512m -Xmx512m"
+            # gc: ""
+            # java: ""
+    ihm_demo:
+        jvm_opts:
+            # memory: "-Xms512m -Xmx512m"
+            # gc: ""
+            # java: ""
+    ihm_recette:
+        jvm_opts:
+            # memory: "-Xms512m -Xmx512m"
+            # gc: ""
+            # java: ""
+    logbook:
+        jvm_opts:
+            # memory: "-Xms512m -Xmx512m"
+            # gc: ""
+            # java: ""
+    workspace:
+        jvm_opts:
+            # memory: "-Xms512m -Xmx512m"
+            # gc: ""
+            # java: ""
+    processing:
+        jvm_opts:
+            # memory: "-Xms512m -Xmx512m"
+            # gc: ""
+            # java: ""
+    worker:
+        jvm_opts:
+            # memory: "-Xms512m -Xmx512m"
+            # gc: ""
+            # java: ""
+    storageengine:
+        jvm_opts:
+            # memory: "-Xms512m -Xmx512m"
+            # gc: ""
+            # java: ""
+    storageofferdefault:
+        jvm_opts:
+            # memory: "-Xms512m -Xmx512m"
+            # gc: ""
+            # java: ""
+    functional_administration:
+        jvm_opts:
+            # memory: "-Xms512m -Xmx512m"
+            # gc: ""
+            # java: ""
+    security_internal:
+        jvm_opts:
+            # memory: "-Xms512m -Xmx512m"
+            # gc: ""
+            # java: ""
+    library:
+        jvm_opts:
+            # memory: "-Xms512m -Xmx512m"
+            # gc: ""
+            # java: ""
