@@ -29,7 +29,6 @@ package fr.gouv.vitam.access.external.client;
 import java.io.InputStream;
 
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -64,35 +63,30 @@ import fr.gouv.vitam.common.model.processing.WorkFlow;
 public interface AdminExternalClient extends BasicClient, OperationStatusClient {
 
     /**
-     * checkDocuments
+     * checkRules
      *
      *
      * @param vitamContext the vitam context
      * @param documentType
-     * @param stream
+     * @param rules
      * @return response
      * @throws VitamClientException
      */
-    Response checkDocuments(VitamContext vitamContext, AdminCollections documentType,
-        InputStream stream)
+    Response checkRules(VitamContext vitamContext, InputStream rules)
         throws VitamClientException;
 
-
     /**
-     * importDocuments
+     * checkFormats
      *
      *
      * @param vitamContext the vitam context
      * @param documentType
-     * @param stream
-     * @param filename
-     * @return the status
-     * @throws AccessExternalClientNotFoundException
-     * @throws AccessExternalClientException
+     * @param formats
+     * @return response
+     * @throws VitamClientException
      */
-    Status createDocuments(VitamContext vitamContext, AdminCollections documentType,
-        InputStream stream, String filename)
-        throws AccessExternalClientException;
+    Response checkFormats(VitamContext vitamContext, InputStream formats)
+        throws VitamClientException;
 
     /**
      * Find formats.
@@ -202,7 +196,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
         AccessExternalClientNotFoundException;
 
     /**
-     * Import a set of contracts after passing the validation steps. If all the contracts are valid, they are stored in
+     * create a set of contracts after passing the validation steps. If all the contracts are valid, they are stored in
      * the collection and indexed. </BR>
      * The input is invalid in the following situations : </BR>
      * <ul>
@@ -221,7 +215,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException
      */
-    RequestResponse importContracts(VitamContext vitamContext, InputStream contracts,
+    RequestResponse createContracts(VitamContext vitamContext, InputStream contracts,
         AdminCollections collection)
         throws InvalidParseOperationException, AccessExternalClientException;
 
@@ -292,7 +286,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException
      */
-    RequestResponse importProfileFile(VitamContext vitamContext, String profileMetadataId,
+    RequestResponse createProfileFile(VitamContext vitamContext, String profileMetadataId,
         InputStream profile)
         throws InvalidParseOperationException, AccessExternalClientException;
 
@@ -309,7 +303,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
         throws AccessExternalClientException, AccessExternalNotFoundException;
 
     /**
-     * import a set of context
+     * create a set of context
      * 
      *
      * @param vitamContext the vitam context
@@ -318,7 +312,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
      */
-    RequestResponse importContexts(VitamContext vitamContext, InputStream contexts)
+    RequestResponse createContexts(VitamContext vitamContext, InputStream contexts)
         throws InvalidParseOperationException, AccessExternalClientServerException;
 
     /**
@@ -589,8 +583,6 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
         String id)
         throws VitamClientException, IllegalArgumentException;
 
-
-    // FIXME P1 : is tenant really necessary ?
     /**
      * 
      *
@@ -598,4 +590,64 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * @throws VitamClientException
      */
     RequestResponse<WorkFlow> getWorkflowDefinitions(VitamContext vitamContext) throws VitamClientException;
+
+
+    /**
+     * create a set of agencies
+     * 
+     *
+     * @param vitamContext the vitam context
+     * @param agencies agencies to be created
+     * @param filename
+     * @return Vitam response
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientException
+     */
+    RequestResponse createAgencies(VitamContext vitamContext, InputStream agencies, String filename)
+        throws AccessExternalClientException, InvalidParseOperationException;
+
+    /**
+     * create a set of formats
+     * 
+     *
+     * @param vitamContext the vitam context
+     * @param formats formats to be created
+     * @param filename
+     * @return Vitam response
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientException
+     */
+    RequestResponse createFormats(VitamContext vitamContext, InputStream formats, String filename)
+        throws AccessExternalClientException, InvalidParseOperationException;
+
+    /**
+     * create a set of rules
+     * 
+     *
+     * @param vitamContext the vitam context
+     * @param rules rules to be created
+     * @param filename
+     * @return Vitam response
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientException
+     */
+    RequestResponse createRules(VitamContext vitamContext, InputStream rules, String filename)
+        throws AccessExternalClientException, InvalidParseOperationException;
+
+
+    /**
+     * create a set of security profiles
+     * 
+     *
+     * @param vitamContext the vitam context
+     * @param securityProfiles security profiles to be created
+     * @param filename
+     * @return Vitam response
+     * @throws AccessExternalClientException
+     * @throws InvalidParseOperationException
+     * @throws VitamClientException
+     */
+    RequestResponse createSecurityProfiles(VitamContext vitamContext, InputStream securityProfiles, String filename)
+        throws AccessExternalClientException, InvalidParseOperationException, VitamClientException;
+
 }

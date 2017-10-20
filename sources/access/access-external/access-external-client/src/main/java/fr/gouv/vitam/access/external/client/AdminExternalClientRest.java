@@ -77,52 +77,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
 
     AdminExternalClientRest(AdminExternalClientFactory factory) {
         super(factory);
-    }
-
-    @Override
-    public Response checkDocuments(VitamContext vitamContext, AdminCollections documentType,
-        InputStream stream)
-        throws VitamClientException {
-
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
-        try {
-            return performRequest(HttpMethod.PUT, documentType.getName(), headers,
-                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
-                MediaType.APPLICATION_OCTET_STREAM_TYPE);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
-            throw new VitamClientException(e);
-        }
-    }
-
-    @Override
-    public Status createDocuments(VitamContext vitamContext, AdminCollections documentType,
-        InputStream stream, String filename)
-        throws AccessExternalClientException {
-        Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
-        headers.add(GlobalDataRest.X_FILENAME, filename);
-        try {
-            response = performRequest(HttpMethod.POST, documentType.getName(), headers,
-                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
-            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-                throw new AccessExternalClientNotFoundException(URI_NOT_FOUND);
-            }
-            if (response.getStatus() == Status.FORBIDDEN.getStatusCode()) {
-                throw new AccessExternalClientException(JsonHandler.unprettyPrint(response.readEntity(String.class)));
-            }
-            final Status status = Status.fromStatusCode(response.getStatus());
-            return status;
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
+    }    
 
     @Override
     public RequestResponse<FileFormatModel> findFormats(VitamContext vitamContext,
@@ -142,7 +97,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     public RequestResponse<IngestContractModel> findIngestContracts(
         VitamContext vitamContext, JsonNode select)
         throws VitamClientException {
-        return internalFindDocuments(vitamContext, AdminCollections.INGEST_CONTRACTS, select, IngestContractModel.class);
+        return internalFindDocuments(vitamContext, AdminCollections.INGEST_CONTRACTS, select,
+            IngestContractModel.class);
     }
 
     @Override
@@ -266,7 +222,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
 
 
     @Override
-    public RequestResponse importContracts(VitamContext vitamContext, InputStream contracts,
+    public RequestResponse createContracts(VitamContext vitamContext, InputStream contracts,
         AdminCollections collection)
         throws AccessExternalClientException {
         // FIXME : should be replaced by createDocuments
@@ -344,7 +300,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         headers.putAll(vitamContext.getHeaders());
         try {
             response = performRequest(HttpMethod.POST, AdminCollections.PROFILE.getName(), headers,
-                profiles, MediaType.APPLICATION_JSON_TYPE,
+                profiles, MediaType.APPLICATION_OCTET_STREAM_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
@@ -356,7 +312,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse importProfileFile(VitamContext vitamContext,
+    public RequestResponse createProfileFile(VitamContext vitamContext,
         String profileMetadataId, InputStream profile)
         throws InvalidParseOperationException, AccessExternalClientException {
         ParametersChecker.checkParameter("The input profile stream is mandatory", profile, AdminCollections.PROFILE);
@@ -367,7 +323,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         try {
             response =
                 performRequest(HttpMethod.PUT, AdminCollections.PROFILE.getName() + "/" + profileMetadataId, headers,
-                    profile, MediaType.APPLICATION_JSON_TYPE,
+                    profile, MediaType.APPLICATION_OCTET_STREAM_TYPE,
                     MediaType.APPLICATION_JSON_TYPE);
             return RequestResponse.parseFromResponse(response);
         } catch (final VitamClientInternalException e) {
@@ -419,7 +375,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public RequestResponse importContexts(VitamContext vitamContext, InputStream contexts)
+    public RequestResponse createContexts(VitamContext vitamContext, InputStream contexts)
         throws InvalidParseOperationException, AccessExternalClientServerException {
         Response response = null;
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
@@ -878,5 +834,90 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         }
     }
 
+
+    private RequestResponse internalCreateDocument(VitamContext vitamContext, AdminCollections documentType,
+        InputStream stream, String filename, MediaType type)
+        throws AccessExternalClientException {
+        ParametersChecker.checkParameter("The input is mandatory", stream, documentType);
+        Response response = null;
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.putAll(vitamContext.getHeaders());
+        headers.add(GlobalDataRest.X_FILENAME, filename);
+        try {
+            response = performRequest(HttpMethod.POST, documentType.getName(), headers,
+                stream, type, MediaType.APPLICATION_JSON_TYPE);
+            if (response.getStatus() == Response.Status.OK.getStatusCode() ||
+                response.getStatus() == Response.Status.CREATED.getStatusCode()) {
+                return new RequestResponseOK().setHttpCode(Status.CREATED.getStatusCode());
+            } else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                throw new AccessExternalClientNotFoundException(URI_NOT_FOUND);
+            } else if (response.getStatus() == Response.Status.FORBIDDEN.getStatusCode()) {
+                throw new AccessExternalClientException(JsonHandler.unprettyPrint(response.readEntity(String.class)));
+            } else {
+                return RequestResponse.parseFromResponse(response);
+            }
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse createAgencies(VitamContext vitamContext, InputStream agencies, String filename)
+        throws AccessExternalClientException {
+        return internalCreateDocument(vitamContext, AdminCollections.AGENCIES, agencies, filename,
+            MediaType.APPLICATION_OCTET_STREAM_TYPE);
+    }
+
+    @Override
+    public RequestResponse createFormats(VitamContext vitamContext, InputStream formats, String filename)
+        throws AccessExternalClientException {
+        return internalCreateDocument(vitamContext, AdminCollections.FORMATS, formats, filename,
+            MediaType.APPLICATION_OCTET_STREAM_TYPE);
+    }
+
+    @Override
+    public RequestResponse createRules(VitamContext vitamContext, InputStream rules, String filename)
+        throws AccessExternalClientException {
+        return internalCreateDocument(vitamContext, AdminCollections.RULES, rules, filename,
+            MediaType.APPLICATION_OCTET_STREAM_TYPE);
+    }
+
+    @Override
+    public RequestResponse createSecurityProfiles(VitamContext vitamContext, InputStream securityProfiles,
+        String filename)
+        throws AccessExternalClientException {
+        return internalCreateDocument(vitamContext, AdminCollections.SECURITY_PROFILES, securityProfiles, filename,
+            MediaType.APPLICATION_JSON_TYPE);
+    }
+
+    @Override
+    public Response checkRules(VitamContext vitamContext, InputStream rules) throws VitamClientException {
+        return internalCheckDocuments(vitamContext, AdminCollections.RULES, rules);
+    }
+
+    @Override
+    public Response checkFormats(VitamContext vitamContext, InputStream formats) throws VitamClientException {
+        return internalCheckDocuments(vitamContext, AdminCollections.FORMATS, formats);
+    }
+
+    
+    private Response internalCheckDocuments(VitamContext vitamContext, AdminCollections documentType,
+        InputStream stream)
+        throws VitamClientException {
+
+        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.putAll(vitamContext.getHeaders());
+        try {
+            return performRequest(HttpMethod.PUT, documentType.getName(), headers,
+                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientException(e);
+        }
+    }
 
 }

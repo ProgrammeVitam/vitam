@@ -83,7 +83,7 @@ public class ContextStep {
         throws IOException, AccessExternalClientServerException, InvalidParseOperationException {
         Path context = Paths.get(world.getBaseDirectory(), fileName);
         final RequestResponse response =
-            world.getAdminClient().importContexts(
+            world.getAdminClient().createContexts(
                     new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                     Files.newInputStream(context, StandardOpenOption.READ));
         assertThat(Response.Status.OK.getStatusCode() == response.getStatus());
@@ -94,7 +94,7 @@ public class ContextStep {
         throws AccessExternalClientServerException, InvalidParseOperationException, IOException {
         Path context = Paths.get(world.getBaseDirectory(), fileName);
         final RequestResponse response =
-            world.getAdminClient().importContexts(
+            world.getAdminClient().createContexts(
                     new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                     Files.newInputStream(context, StandardOpenOption.READ));
         assertThat(Response.Status.BAD_REQUEST.getStatusCode() == response.getStatus());

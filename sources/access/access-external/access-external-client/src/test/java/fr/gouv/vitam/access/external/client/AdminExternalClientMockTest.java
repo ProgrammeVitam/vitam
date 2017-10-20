@@ -42,13 +42,19 @@ public class AdminExternalClientMockTest {
         throws Exception {
 
         Response checkDocumentsResponse =
-            client.checkDocuments(new VitamContext(TENANT_ID), AdminCollections.FORMATS,
-                new ByteArrayInputStream("test".getBytes()));
+            client.checkFormats(new VitamContext(TENANT_ID), new ByteArrayInputStream("test".getBytes()));
         assertEquals(Status.OK.getStatusCode(), checkDocumentsResponse.getStatus());
         assertEquals(
-            client.createDocuments(new VitamContext(TENANT_ID), AdminCollections.FORMATS,
-                new ByteArrayInputStream("test".getBytes()), "test.xml"),
-            Status.CREATED);
+            client.createFormats(new VitamContext(TENANT_ID), new ByteArrayInputStream("test".getBytes()), "test.xml").getHttpCode(),
+            Status.CREATED.getStatusCode());
+
+        assertEquals(
+            client.createRules(new VitamContext(TENANT_ID), new ByteArrayInputStream("test".getBytes()), "test.xml").getHttpCode(),
+            Status.CREATED.getStatusCode());
+
+        assertEquals(
+            client.createAgencies(new VitamContext(TENANT_ID), new ByteArrayInputStream("test".getBytes()), "test.xml").getHttpCode(),
+            Status.CREATED.getStatusCode());
 
         assertEquals(
             client.createProfiles(new VitamContext(TENANT_ID), new ByteArrayInputStream("test".getBytes()))
@@ -56,7 +62,7 @@ public class AdminExternalClientMockTest {
             Status.CREATED.getStatusCode());
 
         assertEquals(
-            client.importProfileFile(new VitamContext(TENANT_ID), "fakeId", new ByteArrayInputStream("test".getBytes()))
+            client.createProfileFile(new VitamContext(TENANT_ID), "fakeId", new ByteArrayInputStream("test".getBytes()))
                 .getHttpCode(),
             Status.CREATED.getStatusCode());
 
@@ -84,7 +90,7 @@ public class AdminExternalClientMockTest {
             ClientMockResultHelper.getRule().toString());
 
         assertEquals(
-            client.importContexts(new VitamContext(TENANT_ID), new ByteArrayInputStream("test".getBytes()))
+            client.createContexts(new VitamContext(TENANT_ID), new ByteArrayInputStream("test".getBytes()))
                 .getHttpCode(),
             Status.CREATED.getStatusCode());
 
@@ -99,9 +105,9 @@ public class AdminExternalClientMockTest {
             Status.ACCEPTED.getStatusCode());
 
         assertEquals(
-            client.createDocuments(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
-                AdminCollections.SECURITY_PROFILES, new ByteArrayInputStream("test".getBytes()), "test.json"),
-            Status.CREATED);
+            client.createSecurityProfiles(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
+                new ByteArrayInputStream("test".getBytes()), "test.json").getHttpCode(),
+            Status.CREATED.getStatusCode());
 
         assertEquals(
             client.findSecurityProfiles(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),

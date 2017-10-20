@@ -900,9 +900,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response checkRefFormat(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             Response response =
-                adminClient.checkDocuments(
-                    new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()),
-                    AdminCollections.FORMATS, input);
+                adminClient.checkFormats(
+                    new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()), input);
             return response;
         } catch (final VitamClientException e) {
             LOGGER.error("VitamClientException ", e);
@@ -929,11 +928,18 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("format:create")
     public Response uploadRefFormat(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            Status status =
-                adminClient.createDocuments(
-                    new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()),
-                    AdminCollections.FORMATS, input, headers.getHeaderString(GlobalDataRest.X_FILENAME));
-            return Response.status(status).build();
+            RequestResponse response =
+                adminClient.createFormats(
+                    new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()), input,
+                    headers.getHeaderString(GlobalDataRest.X_FILENAME));
+            if (response != null && response instanceof RequestResponseOK) {
+                return Response.status(Status.OK).build();
+            }
+            if (response != null && response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (final AccessExternalClientException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.FORBIDDEN).build();
@@ -1309,9 +1315,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private void asyncDownloadErrorReport(InputStream document, int tenant, final AsyncResponse asyncResponse) {
         AsyncInputStreamHelper helper;
         try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
-            final Response response = client.checkDocuments(
-                new VitamContext(tenant).setApplicationSessionId(getAppSessionId()),
-                AdminCollections.RULES, document);
+            final Response response = client.checkRules(
+                new VitamContext(tenant).setApplicationSessionId(getAppSessionId()), document);
             helper = new AsyncInputStreamHelper(asyncResponse, response);
             final Response.ResponseBuilder responseBuilder =
                 Response.status(response.getStatus())
@@ -1345,12 +1350,18 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("rules:create")
     public Response uploadRefRule(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            Status status =
-                adminClient.createDocuments(
-                    new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()),
-                    AdminCollections.RULES, input,
+            RequestResponse response =
+                adminClient.createRules(
+                    new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()), input,
                     headers.getHeaderString(GlobalDataRest.X_FILENAME));
-            return Response.status(status).build();
+            if (response != null && response instanceof RequestResponseOK) {
+                return Response.status(Status.OK).build();
+            }
+            if (response != null && response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (final AccessExternalClientException e) {
             return Response.status(Status.FORBIDDEN).entity(e.getMessage()).build();
         } catch (final Exception e) {
@@ -1782,7 +1793,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse response =
                 adminClient
-                    .importContracts(new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()),
+                    .createContracts(new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()),
                         input, AdminCollections.INGEST_CONTRACTS);
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).build();
@@ -1936,7 +1947,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response uploadAccessContracts(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse response =
-                adminClient.importContracts(
+                adminClient.createContracts(
                     new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()),
                     input, AdminCollections.ACCESS_CONTRACTS);
             if (response != null && response instanceof RequestResponseOK) {
@@ -2141,7 +2152,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response uploadContext(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse response =
-                adminClient.importContexts(
+                adminClient.createContexts(
                     new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()), input);
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).build();
@@ -2277,7 +2288,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response importProfileFile(@Context HttpHeaders headers, InputStream input, @PathParam("id") String id) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse response =
-                adminClient.importProfileFile(
+                adminClient.createProfileFile(
                     new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()), id, input);
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).build();
@@ -2701,12 +2712,18 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("agencies:create")
     public Response uploadServiceAgencies(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-            Status status =
-                adminClient.createDocuments(
+            RequestResponse response =
+                adminClient.createAgencies(
                     new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()),
-                    AdminCollections.AGENCIES,
                     input, headers.getHeaderString(GlobalDataRest.X_FILENAME));
-            return Response.status(status).build();
+            if (response != null && response instanceof RequestResponseOK) {
+                return Response.status(Status.OK).build();
+            }
+            if (response != null && response instanceof VitamError) {
+                LOGGER.error(response.toString());
+                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
+            }
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (final AccessExternalClientException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
             return Response.status(Status.FORBIDDEN).build();

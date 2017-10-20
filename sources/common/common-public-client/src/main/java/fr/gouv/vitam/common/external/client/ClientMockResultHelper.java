@@ -287,7 +287,7 @@ public class ClientMockResultHelper {
 
     }
 
-    private static AgenciesModel getAgeciesModel() {
+    private static AgenciesModel getAgenciesModel() {
         AgenciesModel model = new AgenciesModel();
         model.setId("aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq");
         model.setTenant(0);
@@ -542,6 +542,16 @@ public class ClientMockResultHelper {
         return new RequestResponseOK<FileFormatModel>().addResult(getFormatItem())
             .setHttpCode(Status.OK.getStatusCode());
     }
+    
+    /**
+    *
+    * @param statusCode 
+     * @return a default Format
+    */
+   public static RequestResponse<FileFormatModel> getFormat(int statusCode) {
+       return new RequestResponseOK<FileFormatModel>().addResult(getFormatItem())
+           .setHttpCode(statusCode);
+   }
 
     /**
      *
@@ -551,6 +561,16 @@ public class ClientMockResultHelper {
         return new RequestResponseOK<FileRulesModel>().addResult(getRuleItem())
             .setHttpCode(Status.OK.getStatusCode());
     }
+    
+    /**
+    *
+    * @param statusCode 
+     * @return a default Rule
+    */
+   public static RequestResponse<FileRulesModel> getRule(int statusCode) {
+       return new RequestResponseOK<FileRulesModel>().addResult(getRuleItem())
+           .setHttpCode(statusCode);
+   }
 
     /**
      * @return a RequestResponse containing contracts json
@@ -573,8 +593,17 @@ public class ClientMockResultHelper {
      * @return a RequestResponse containing agencies json
      */
     public static RequestResponse<AgenciesModel> getAgencies() {
-        return new RequestResponseOK<AgenciesModel>().addResult(getAgeciesModel())
+        return new RequestResponseOK<AgenciesModel>().addResult(getAgenciesModel())
             .setHttpCode(Status.OK.getStatusCode());
+    }
+    
+    /**
+     * @param statusCode 
+     * @return a RequestResponse containing agencies json
+     */
+    public static RequestResponse<AgenciesModel> getAgencies(int statusCode) {
+        return new RequestResponseOK<AgenciesModel>().addResult(getAgenciesModel())
+            .setHttpCode(statusCode);
     }
 
     /**
@@ -716,9 +745,28 @@ public class ClientMockResultHelper {
         return createReponse(TRACEABILITY_LOGBOOK_OPERATION);
     }
 
+    /**
+     * 
+     * @return 
+     * @throws VitamClientException
+     */
     public static RequestResponse getSecurityProfiles() throws VitamClientException {
         try {
             return createReponse(SECURITY_PROFILES);
+        } catch (InvalidParseOperationException e) {
+            throw new  VitamClientException(e);
+        }
+    }
+    
+    /**
+     * 
+     * @param statusCode
+     * @return
+     * @throws VitamClientException
+     */
+    public static RequestResponse getSecurityProfiles(int statusCode) throws VitamClientException {
+        try {
+            return createReponse(SECURITY_PROFILES, statusCode);
         } catch (InvalidParseOperationException e) {
             throw new  VitamClientException(e);
         }

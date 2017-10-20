@@ -118,7 +118,7 @@ public class ProfileStep {
         throws InvalidParseOperationException, IOException, AccessExternalClientException {
         Path profil = Paths.get(world.getBaseDirectory(), fileName);
         final RequestResponse response =
-            world.getAdminClient().importProfileFile(
+            world.getAdminClient().createProfileFile(
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                 this.model.get("Identifier").asText(),
                 Files.newInputStream(profil, StandardOpenOption.READ));

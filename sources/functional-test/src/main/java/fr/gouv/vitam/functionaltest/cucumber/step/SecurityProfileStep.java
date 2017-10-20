@@ -81,28 +81,26 @@ public class SecurityProfileStep {
 
     @Then("^j'importe ce profile de sécurité en succès")
     public void success_upload_security_profile()
-            throws IOException, VitamClientException, AccessExternalClientException {
+        throws IOException, VitamClientException, AccessExternalClientException, InvalidParseOperationException {
         Path securityProfile = Paths.get(world.getBaseDirectory(), fileName);
-        Response.Status status =
-                world.getAdminClient().createDocuments(
-                        new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                        AdminCollections.SECURITY_PROFILES,
-                        Files.newInputStream(securityProfile, StandardOpenOption.READ),
-                        fileName);
-        assertThat(Response.Status.CREATED).isEqualTo(status);
+        RequestResponse response =
+            world.getAdminClient().createSecurityProfiles(
+                new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                Files.newInputStream(securityProfile, StandardOpenOption.READ),
+                fileName);
+        assertThat(response.getHttpCode()).isEqualTo(Response.Status.CREATED.getStatusCode());
     }
 
     @Then("^j'importe ce profile de sécurité en échec")
     public void fail_upload_security_profile()
-            throws VitamClientException, IOException, AccessExternalClientException {
+        throws VitamClientException, IOException, AccessExternalClientException, InvalidParseOperationException {
         Path securityProfile = Paths.get(world.getBaseDirectory(), fileName);
-        final Response.Status status =
-                world.getAdminClient().createDocuments(
-                        new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                        AdminCollections.SECURITY_PROFILES,
-                        Files.newInputStream(securityProfile, StandardOpenOption.READ),
-                        fileName);
-        assertThat(Response.Status.BAD_REQUEST).isEqualTo(status);
+        RequestResponse response =
+            world.getAdminClient().createSecurityProfiles(
+                new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                Files.newInputStream(securityProfile, StandardOpenOption.READ),
+                fileName);
+        assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
     }
 
     /**
@@ -117,7 +115,7 @@ public class SecurityProfileStep {
 
     @When("^je modifie le profile de sécurité avec le fichier de requête suivant (.*)$")
     public void update_security_profile_by_query(String queryFilename)
-            throws VitamClientException, IOException, InvalidParseOperationException, InvalidCreateOperationException {
+        throws VitamClientException, IOException, InvalidParseOperationException, InvalidCreateOperationException {
 
         String securityProfileIdentifier = getSecurityProfileByName().getIdentifier();
 
@@ -125,16 +123,16 @@ public class SecurityProfileStep {
         String query = FileUtil.readFile(queryFile.toFile());
         JsonNode queryDsl = JsonHandler.getFromString(query);
         RequestResponse<SecurityProfileModel> requestResponse =
-                world.getAdminClient().updateSecurityProfile(
-                        new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                        securityProfileIdentifier, queryDsl);
+            world.getAdminClient().updateSecurityProfile(
+                new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                securityProfileIdentifier, queryDsl);
         assertThat(Response.Status.OK.getStatusCode()).isEqualTo(requestResponse.getStatus());
     }
 
     @Then("^le profile de sécurité contient la permission (.*)$")
     public void has_permission(String permission)
-            throws AccessExternalClientException, InvalidParseOperationException,
-            VitamClientException, InvalidCreateOperationException {
+        throws AccessExternalClientException, InvalidParseOperationException,
+        VitamClientException, InvalidCreateOperationException {
 
         SecurityProfileModel securityProfileModel = getSecurityProfileByName();
         assertThat(securityProfileModel.getPermissions()).contains(permission);
@@ -142,8 +140,8 @@ public class SecurityProfileStep {
 
     @Then("^le profile de sécurité ne contient pas la permission (.*)$")
     public void has_not_permission(String permission)
-            throws AccessExternalClientException, InvalidParseOperationException,
-            VitamClientException, InvalidCreateOperationException {
+        throws AccessExternalClientException, InvalidParseOperationException,
+        VitamClientException, InvalidCreateOperationException {
 
         SecurityProfileModel securityProfileModel = getSecurityProfileByName();
         assertThat(securityProfileModel.getPermissions()).doesNotContain(permission);
@@ -151,28 +149,30 @@ public class SecurityProfileStep {
 
     @Then("^le profile de sécurité a toutes les permissions$")
     public void has_full_access()
-            throws InvalidParseOperationException, VitamClientException, InvalidCreateOperationException {
+        throws InvalidParseOperationException, VitamClientException, InvalidCreateOperationException {
 
         SecurityProfileModel securityProfileModel = getSecurityProfileByName();
         assertThat(securityProfileModel.getFullAccess()).isTrue();
     }
 
-    private SecurityProfileModel getSecurityProfileByName() throws InvalidCreateOperationException, VitamClientException {
+    private SecurityProfileModel getSecurityProfileByName()
+        throws InvalidCreateOperationException, VitamClientException {
 
         final fr.gouv.vitam.common.database.builder.request.single.Select select =
-                new fr.gouv.vitam.common.database.builder.request.single.Select();
+            new fr.gouv.vitam.common.database.builder.request.single.Select();
         select.setQuery(eq(SecurityProfile.NAME, securityProfileName));
         final JsonNode query = select.getFinalSelect();
 
         RequestResponse<SecurityProfileModel> requestResponse =
-                world.getAdminClient().findSecurityProfiles(
-                        new VitamContext(world.getTenantId()).setAccessContract(null)
-                                .setApplicationSessionId(world.getApplicationSessionId()),
-                        query);
+            world.getAdminClient().findSecurityProfiles(
+                new VitamContext(world.getTenantId()).setAccessContract(null)
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                query);
 
         assertThat(requestResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<SecurityProfileModel>)requestResponse).getResults().size()).isEqualTo(1);
-        SecurityProfileModel securityProfileModel = ((RequestResponseOK<SecurityProfileModel>) requestResponse).getFirstResult();
+        assertThat(((RequestResponseOK<SecurityProfileModel>) requestResponse).getResults().size()).isEqualTo(1);
+        SecurityProfileModel securityProfileModel =
+            ((RequestResponseOK<SecurityProfileModel>) requestResponse).getFirstResult();
         assertThat(securityProfileModel.getName()).isEqualTo(securityProfileName);
         return securityProfileModel;
     }
