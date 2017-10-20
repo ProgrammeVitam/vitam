@@ -1,0 +1,18 @@
+{
+  "$roots": [
+    "aeaqaaaaaagdmvr3abnwoak7fzjq75qaaaca"
+  ],
+  "$query": [
+    {
+      "$size": {
+        "#unitups": 2
+      },
+      "$depth": 0
+    }
+  ],
+  "$filter": {
+    "$orderby": {
+      "TransactionDate": 1
+    }
+  }
+}

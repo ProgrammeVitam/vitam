@@ -1,0 +1,16 @@
+{
+  "$roots": [
+    "azdazdazdaz"
+  ],
+  "$query": [
+    {
+      "$search": {},
+      "$depth": 0
+    }
+  ],
+  "$filter": {
+    "$orderby": {
+      "TransactionDate": 1
+    }
+  }
+}

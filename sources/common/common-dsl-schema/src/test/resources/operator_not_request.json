@@ -1,0 +1,27 @@
+{
+  "$roots": [
+    "aeaqaaaaaagdmvr3abnwoak7fzjq75qaaaca"
+  ],
+  "$query": [
+    {
+      "$not": [
+        {
+          "$match": {
+            "Title": "api"
+          }
+        }
+      ],
+      "$depth": 0
+    },
+    {
+      "$match": {
+        "toto": 12
+      }
+    }
+  ],
+  "$filter": {
+    "$orderby": {
+      "TransactionDate": 1
+    }
+  }
+}

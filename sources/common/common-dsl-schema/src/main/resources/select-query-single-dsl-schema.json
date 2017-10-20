@@ -1,0 +1,202 @@
+{
+  "root": "DSL",
+  "definitions": {
+    "DSL": {
+      "object": {
+        "$query": {
+          "type": "QUERY",
+          "optional": false,
+          "hint": "Single query"
+        },
+        "$filter": {
+          "type": "FILTER",
+          "optional": true,
+          "hint": "Filters"
+        },
+        "$projection": {
+          "type": "PROJECTION",
+          "optional": true,
+          "hint": "Projections to apply on results"
+        }
+      }
+    },
+    "QUERY": {
+      "keychoice": {
+        "$match": {
+          "type": {
+            "anykey": "anyvalue",
+            "min": 1,
+            "max": 1
+          }
+        },
+        "$search": {
+          "type": {
+            "anykey": "anyvalue",
+            "min": 1,
+            "max": 1
+          }
+        },
+        "$match_all": {
+          "type": {
+            "anykey": "anyvalue",
+            "min": 1,
+            "max": 1
+          }
+        },
+        "$match_phrase": {
+          "type": {
+            "anykey": "anyvalue",
+            "min": 1,
+            "max": 1
+          }
+        },
+        "$match_phrase_prefix": {
+          "type": {
+            "anykey": "anyvalue",
+            "min": 1,
+            "max": 1
+          }
+        },
+        "$eq": {
+          "type": {
+            "anykey": "anyvalue",
+            "min": 1,
+            "max": 1
+          }
+        },
+        "$exists": {
+          "type": {
+            "anykey": "anyvalue",
+            "min": 1,
+            "max": 1
+          }
+        },
+        "$ne": {
+          "type": {
+            "anykey": "anyvalue",
+            "min": 1,
+            "max": 1
+          }
+        },
+        "$or": {
+          "type": {
+            "array": "QUERY",
+            "min": 1
+          },
+          "hint": "Disjonction de sous-requêtes"
+        },
+        "$and": {
+          "type": {
+            "array": "QUERY",
+            "min": 1
+          },
+          "hint": "Conjonction de sous-requêtes"
+        },
+        "$not": {
+          "type": {
+            "array": "QUERY",
+            "min": 1
+          },
+          "hint": "Négation de sous-requêtes"
+        },
+        "$in": {
+          "type": {
+            "anykey": {
+              "array": "anyvalue"
+            },
+            "min": 1,
+            "max": 1
+          },
+          "hint": "recherche  de sous-requêtes"
+        },
+        "$nin": {
+          "type": {
+            "anykey": {
+              "array": "anyvalue"
+            },
+            "min": 1,
+            "max": 1
+          },
+          "hint": "négation de recherche de sous-requêtes"
+        },
+        "$range": {
+          "type": {
+            "anykey": {
+              "anykey": "anyvalue",
+              "min": 2,
+              "max": 2
+            }
+          },
+          "hint": "intervalle de sous-requêtes"
+        },
+        "$gt": {
+          "type": {
+            "anykey": "anyvalue",
+            "min": 1,
+            "max": 1
+          }
+        },
+        "$lt": {
+          "type": {
+            "anykey": "anyvalue",
+            "min": 1,
+            "max": 1
+          }
+        },
+        "$lte": {
+          "type": {
+            "anykey": "anyvalue",
+            "min": 1,
+            "max": 1
+          }
+        },
+        "$gte": {
+          "type": {
+            "anykey": "anyvalue",
+            "min": 1,
+            "max": 1
+          }
+        },
+        "$size": {
+          "type": {
+            "anykey": "integer",
+            "min": 1
+          }
+        }
+      }
+    },
+    "FILTER": {
+      "object": {
+        "$offset": {
+          "type": "posinteger",
+          "optional": true,
+          "hint": "Position of results"
+         },
+        "$limit": {
+          "type": "posinteger",
+          "optional": true,
+          "hint": "Max number of results"
+        },
+        "$orderby": {
+          "type": { 
+            "anykey": { "enum": [ -1, 1 ] } 
+          },
+          "optional": true,
+          "hint": "Sorts on result"
+        }
+      }
+    },
+    "PROJECTION": {
+      "object": {
+        "$fields": {
+          "type": {
+            "anykey": { "enum": [ 1 ] }
+          },
+          "optional": true,
+          "hint": "Fields to retrieve in the result"
+        }
+      }
+    }
+  }
+}
+

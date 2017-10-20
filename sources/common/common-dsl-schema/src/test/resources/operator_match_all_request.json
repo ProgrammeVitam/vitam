@@ -1,0 +1,23 @@
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$match_all": {
+        "Title": "assemblée"
+      },
+      "$depth": 20
+    },
+    {
+      "$match_all": {
+        "Title": "discours"
+      },
+      "$depth": 20
+    }
+  ],
+  "$filter": {
+    "$orderby": {
+      "TransactedDate": 1
+    }
+  }
+}
+

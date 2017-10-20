@@ -1,0 +1,16 @@
+{
+	"$query": {},
+	"$filter": {
+	   "$offset":0,
+	   "$limit":100,
+		"$orderby": {
+			"Identifier": -1
+		}
+	},
+	"$projection": {
+		"$fields": {
+			"#id": 1,
+			"Title": 1
+		}
+	}
+}

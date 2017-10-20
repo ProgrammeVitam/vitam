@@ -1,0 +1,20 @@
+{
+  "$roots": [],
+  "$query": [
+    {
+      "exists": {
+        "Title": "assemblée"
+      },
+      "$depth": 20
+    },
+    {
+      "exists": "Title",
+      "$depth": 20
+    }
+  ],
+  "$filter": {
+    "$orderby": {
+      "TransactedDate": 1
+    }
+  }
+}

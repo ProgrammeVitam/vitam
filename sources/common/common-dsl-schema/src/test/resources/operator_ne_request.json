@@ -1,0 +1,16 @@
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$ne": {
+        "Title": "Archive unit SEDA-ID-UNIT"
+      }
+    }
+  ],
+  "$projection": {
+    "$fields": {
+      "#id": 1,
+      "Title": 1
+    }
+  }
+}

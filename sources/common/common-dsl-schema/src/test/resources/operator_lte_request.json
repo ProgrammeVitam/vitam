@@ -1,0 +1,36 @@
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$and": [
+        {
+          "$lte": {
+            "EndDate": "1701-01-03T00:00:00.000Z"
+          }
+        },
+        {
+          "$lte": {
+            "EndDate": 1
+          }
+        }
+      ],
+      "$depth": 20
+    }
+  ],
+  "$filter": {
+    "$orderby": {
+      "TransactedDate": 1
+    }
+  },
+  "$projection": {
+    "$fields": {
+      "TransactedDate": 1,
+      "#id": 1,
+      "Title": 1,
+      "#object": 1,
+      "DescriptionLevel": 1,
+      "EndDate": 1,
+      "StartDate": 1
+    }
+  }
+}

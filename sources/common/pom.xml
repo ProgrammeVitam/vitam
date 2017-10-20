@@ -12,6 +12,7 @@
 
 	<packaging>pom</packaging>
 	<modules>
+		<module>common-dsl-schema</module>
 		<module>common-public</module>
 		<module>common-private</module>
 		<module>common-junit</module>

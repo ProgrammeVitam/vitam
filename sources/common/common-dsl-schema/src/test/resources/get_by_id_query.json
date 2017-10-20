@@ -1,0 +1,9 @@
+{
+    "$query": {},
+	"$projection": {
+		"$fields": {
+			"#id": 1,
+			"Title": 1
+		}
+	}
+}

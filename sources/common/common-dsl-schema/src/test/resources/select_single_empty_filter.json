@@ -1,0 +1,18 @@
+{
+	"$query": {
+		"$and": [
+			{
+				"$match": {
+					"Description": "Zimbabwe"
+				}
+			}
+		]
+	},
+	"$filter": {},
+	"$projection": {
+		"$fields": {
+			"#id": 1,
+			"Title": 1
+		}
+	}
+}
