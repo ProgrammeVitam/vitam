@@ -78,9 +78,9 @@
 
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">VITAM</div>
-						<div class="col-md-2"><a href="{{ vitam.ihm_demo.baseuri }}" class="btn btn-primary btn-xs" target="_blank">IHM demo</a> </div>
-						<div class="col-md-2"><a href="{{ vitam.ihm_demo.baseuri_v2 }}" class="btn btn-primary btn-xs" target="_blank">Nouvelle IHM demo</a> </div>
-						<div class="col-md-2"><a href="{{ vitam.ihm_recette.baseurl }}" class="btn btn-primary btn-xs" target="_blank">IHM recette</a> </div>
+						<div class="col-md-2"><a href="/{{ vitam.ihm_demo.baseuri }}/" class="btn btn-primary btn-xs" target="_blank">IHM demo</a> </div>
+						<div class="col-md-2"><a href="/{{ vitam.ihm_demo.baseuri_v2 }}/" class="btn btn-primary btn-xs" target="_blank">Nouvelle IHM demo</a> </div>
+						<div class="col-md-2"><a href="/{{ vitam.ihm_recette.baseuri }}/" class="btn btn-primary btn-xs" target="_blank">IHM recette</a> </div>
 					</p>
 {% if groups['hosts-kibana-data']|length >0 %}
 					<p class="row" style="vertical-align: middle">
@@ -111,7 +111,7 @@
 {% if groups['library']|length >0 %}
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">Documentation</div>
-						<div class="col-md-2"><a href="/doc/index.html" class="btn btn-primary btn-xs" target="_blank">Documentation</a></div>
+						<div class="col-md-2"><a href="/{{ vitam.library.baseuri }}/index.html" class="btn btn-primary btn-xs" target="_blank">Documentation</a></div>
 					</p>
 {% endif %}
 
@@ -125,7 +125,7 @@
 {% if groups['hosts-dev-tools']|length >0 %}
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">MongoDB</div>
-						<div class="col-md-2"><a href="/mongo-express" class="btn btn-primary btn-xs" target="_blank">Mongo express</a></div>
+						<div class="col-md-2"><a href="/{{ mongo_express.baseuri }}" class="btn btn-primary btn-xs" target="_blank">Mongo express</a></div>
 					</p>
 {% endif %}
 
@@ -134,9 +134,9 @@
 						<div class="col-md-3">Elasticsearch logs</div>
 						<div class="col-md-9">
 							<a href="/head" class="btn btn-primary btn-xs" target="_blank">Plugin Head</a>
-							<a href="/cerebro/#/overview?host=http://elasticsearch-log.service.consul:{{ elasticsearch.elasticsearch_log.http_port }}" class="btn btn-primary btn-xs" target="_blank">cerebro</a>
-							<a href="/elasticsearch-log" class="btn btn-primary btn-xs" target="_blank">API</a>
-							<a href="/elasticsearch-log/_cluster/health?pretty" class="btn btn-primary btn-xs" target="_blank">Santé du cluster</a>
+							<a href="/{{ cerebro.baseuri }}/#/overview?host={{ elasticsearch.log|client_url }}" class="btn btn-primary btn-xs" target="_blank">Cerebro</a>
+							<a href="/{{ elasticsearch.log.baseuri }}" class="btn btn-primary btn-xs" target="_blank">API</a>
+							<a href="/{{ elasticsearch.log.baseuri }}/_cluster/health?pretty" class="btn btn-primary btn-xs" target="_blank">Santé du cluster</a>
 						</div>
 					</p>
 {% endif %}
@@ -146,9 +146,9 @@
 						<div class="col-md-3">Elasticsearch data</div>
 						<div class="col-md-9">
 							<a href="/head" class="btn btn-primary btn-xs" target="_blank">Plugin Head</a>
-							<a href="/cerebro/#/overview?host=http://elasticsearch-data.service.consul:{{ elasticsearch.elasticsearch_data.http_port }}" class="btn btn-primary btn-xs" target="_blank">cerebro</a>
-							<a href="/elasticsearch-data" class="btn btn-primary btn-xs" target="_blank">API</a>
-							<a href="/elasticsearch-data/_cluster/health?pretty" class="btn btn-primary btn-xs" target="_blank">Santé du cluster</a>
+							<a href="/{{ cerebro.baseuri }}/#/overview?host={{ elasticsearch.data|client_url }}" class="btn btn-primary btn-xs" target="_blank">Cerebro</a>
+							<a href="/{{ elasticsearch.data.baseuri }}" class="btn btn-primary btn-xs" target="_blank">API</a>
+							<a href="/{{ elasticsearch.data.baseuri }}/_cluster/health?pretty" class="btn btn-primary btn-xs" target="_blank">Santé du cluster</a>
 						</div>
 					</p>
 {% endif %}

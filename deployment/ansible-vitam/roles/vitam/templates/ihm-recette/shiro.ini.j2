@@ -1,7 +1,6 @@
-{% if vitam_struct.vitam_ihm_recette_secure_mode == 'x509' %}
-
 [main]
 
+{% if vitam_struct.vitam_ihm_recette_secure_mode == 'x509' %}
 x509 = fr.gouv.vitam.common.auth.web.filter.X509AuthenticationFilter
 
 x509.useHeader = {{vitam_ssl_user_header}}
@@ -20,7 +19,6 @@ securityManager.subjectDAO.sessionStorageEvaluator.sessionStorageEnabled = false
 /v1/api/** = x509
 
 {% else %}
-[main]
 # Objects and their properties are defined here,
 # Such as the securityManager, Realms and anything
 # else needed to build the SecurityManager

@@ -1,7 +1,7 @@
 # Configuration processing
 # HERE MUST BE MY (WORKER) current configuration
-registerServerHost: {{ip_service}}
-registerServerPort: {{vitam_struct.port}}
+registerServerHost: {{ ip_service }}
+registerServerPort: {{ vitam_struct.port_http }}
 # Configuration handler
 processingUrl: {{vitam.processing | client_url}}
 urlMetadata: {{vitam.metadata | client_url}}

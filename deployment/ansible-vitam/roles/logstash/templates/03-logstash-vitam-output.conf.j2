@@ -16,7 +16,7 @@ output
                 # template => "/vitam/conf/logstash/extra/elasticsearch-template.json"
                 index => "logstash-vitam-%{+YYYY.MM.dd}"
                 {% for host in groups['hosts-elasticsearch-log'] %}
-                 hosts =>  ["{{ hostvars[host]['ip_admin'] }}:{{ elasticsearch.elasticsearch_log.http_port }}"]
+                 hosts =>  ["{{ hostvars[host]['ip_admin'] }}:{{ elasticsearch.log.port_http }}"]
                 {% endfor %}
             }
         }
@@ -26,7 +26,7 @@ output
             {
                 # template => "/vitam/conf/logstash/extra/elasticsearch-template.json"
                 index => "logstash-logs-%{+YYYY.MM.dd}"
-                hosts => ["{{ groups['hosts-elasticsearch-log']|join(':' + elasticsearch.elasticsearch_log.http_port + '", "') }}:{{ elasticsearch.elasticsearch_log.http_port }}"]
+                hosts => ["{{ groups['hosts-elasticsearch-log']|join(':' + elasticsearch.log.port_http + '", "') }}:{{ elasticsearch.log.port_http }}"]
             }
         }
         else
@@ -35,7 +35,7 @@ output
             {
                 # template => "/vitam/conf/logstash/extra/elasticsearch-template.json"
                 index => "logstash-uncatched-%{+YYYY.MM.dd}"
-                hosts => ["{{ groups['hosts-elasticsearch-log']|join(':' + elasticsearch.elasticsearch_log.http_port + '", "') }}:{{ elasticsearch.elasticsearch_log.http_port }}"]
+                hosts => ["{{ groups['hosts-elasticsearch-log']|join(':' + elasticsearch.log.port_http + '", "') }}:{{ elasticsearch.log.port_http }}"]
             }
         }
     }
@@ -45,7 +45,7 @@ output
         elasticsearch
         {
             index => "logstash-failure-%{+YYYY.MM.dd}"
-            hosts => ["{{ groups['hosts-elasticsearch-log']|join(':' + elasticsearch.elasticsearch_log.http_port + '", "') }}:{{ elasticsearch.elasticsearch_log.http_port }}"]
+            hosts => ["{{ groups['hosts-elasticsearch-log']|join(':' + elasticsearch.log.port_http + '", "') }}:{{ elasticsearch.log.port_http }}"]
         }
     }
 

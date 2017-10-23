@@ -42,108 +42,146 @@ consul_folder_conf: "{{vitam_defaults.folder.root_path}}/conf/{{consul_component
 ### Composants Vitam ###
 
 vitam:
-    accessinternal:
-        host: "access-internal.service.{{consul_domain}}"
-        port: 8101
-        port_admin: 28101
-        baseuri: "/access-internal"
-        https_enabled: false
     accessexternal:
+        vitam_component: access-external
         host: "access-external.service.{{consul_domain}}"
-        port: 8102
+        port_http: 8102
         port_admin: 28102
         port_https: 8444
-        baseuri: "/access-external"
+        baseuri: "access-external"
         https_enabled: true
-    ingestinternal:
-        host: "ingest-internal.service.{{consul_domain}}"
-        port: 8100
-        port_admin: 28100
-        baseuri: "/ingest-internal"
+        secret_platform: "false"
+    accessinternal:
+        vitam_component: access-internal
+        host: "access-internal.service.{{consul_domain}}"
+        port_http: 8101
+        port_admin: 28101
+        baseuri: "access-internal"
         https_enabled: false
+        secret_platform: "true"
+    functional_administration:
+        vitam_component: functional-administration
+        host: "functional-administration.service.{{consul_domain}}"
+        port_http: 8004
+        port_admin: 18004
+        baseuri: "functional-administration"
+        https_enabled: false
+        secret_platform: "true"
+        cluster_name: "{{ elasticsearch.data.cluster_name }}"
     ingestexternal:
+        vitam_component: ingest-external
         host: "ingest-external.service.{{consul_domain}}"
-        port: 8001
+        port_http: 8001
         port_admin: 28001
         port_https: 8443
-        baseuri: "/ingest-external"
+        baseuri: "ingest-external"
         https_enabled: true
-    metadata:
-        host: "metadata.service.{{consul_domain}}"
-        port: 8200
-        port_admin: 28200
-        baseuri: "/metadata"
+        secret_platform: "false"
+    ingestinternal:
+        vitam_component: ingest-internal
+        host: "ingest-internal.service.{{consul_domain}}"
+        port_http: 8100
+        port_admin: 28100
+        baseuri: "ingest-internal"
         https_enabled: false
+        secret_platform: "true"
     ihm_demo:
+        vitam_component: "ihm-demo"
         host: "{{groups['hosts-ihm-demo'][0]}}"
-        port: 8002
+        port_http: 8002
         port_admin: 28002
-        baseurl: /ihm-demo
+        baseurl: "/ihm-demo"
         static_content: "{{ vitam_defaults.folder.root_path }}/app/ihm-demo/v1"
-        baseuri: "/ihm-demo"
+        baseuri: "ihm-demo"
         static_content_v2: "{{ vitam_defaults.folder.root_path }}/app/ihm-demo/v2"
-        baseuri_v2: "/ihm-demo-v2"
+        baseuri_v2: "ihm-demo-v2"
         https_enabled: false
+        secret_platform: "false"
     ihm_recette:
-        host: "{{groups['hosts-ihm-recette'][0]}}"
-        port: 8204
+        vitam_component: ihm-recette
+        host: "ihm-recette.service.{{ consul_domain }}"
+        port_http: 8204
         port_https: 8445
         port_admin: 28204
         baseurl: /ihm-recette
         static_content: "{{ vitam_defaults.folder.root_path }}/app/ihm-recette"
-        baseuri: "/ihm-recette"
+        baseuri: "ihm-recette"
         vitam_ihm_recette_secure_mode: "authc"
         https_enabled: true
+        secret_platform: "false"
+        cluster_name: "{{ elasticsearch.data.cluster_name }}"
+    library:
+        vitam_component: library
+        host: "library.service.{{consul_domain}}"
+        port_http: 8090
+        port_admin: 28090
+        baseuri: "doc"
+        https_enabled: false
+        secret_platform: "false"
     logbook:
+        vitam_component: logbook
         host: "logbook.service.{{consul_domain}}"
-        port: 9002
+        port_http: 9002
         port_admin: 29002
-        baseuri: "/logbook"
+        baseuri: "logbook"
         https_enabled: false
-    workspace:
-        host: "workspace.service.{{consul_domain}}"
-        port: 8201
-        port_admin: 28201
-        baseuri: "/workspace"
+        secret_platform: "true"
+        cluster_name: "{{ elasticsearch.data.cluster_name }}"
+    metadata:
+        vitam_component: metadata
+        host: "metadata.service.{{consul_domain}}"
+        port_http: 8200
+        port_admin: 28200
+        baseuri: "metadata"
         https_enabled: false
+        secret_platform: "true"
+        cluster_name: "{{ elasticsearch.data.cluster_name }}"
     processing:
+        vitam_component: processing
         host: "processing.service.{{consul_domain}}"
-        port: 8203
+        port_http: 8203
         port_admin: 28203
-        baseuri: "/processing"
+        baseuri: "processing"
         https_enabled: false
-    worker:
-        port: 9104
-        port_admin: 29104
-        baseuri: "/worker"
+        secret_platform: "true"
+    security_internal:
+        vitam_component: security-internal
+        host: "security-internal.service.{{consul_domain}}"
+        port_http: 8005
+        port_admin: 28005
+        baseuri: "security-internal"
         https_enabled: false
+        secret_platform: "true"
     storageengine:
+        vitam_component: storage
         host: "storage.service.{{consul_domain}}"
-        port: 9102
+        port_http: 9102
         port_admin: 29102
-        baseuri: "/storage-engine"
+        baseuri: "storage-engine"
         # FIXME: replace with https_enabled
         test_tls_offer_enabled: false
         https_enabled: false
+        secret_platform: "true"
     storageofferdefault:
-        port: 9900
+        vitam_component: "offer"
+        port_http: 9900
         port_admin: 29900
         port_https: 9901
-        baseuri: "/storage-offer-default"
+        baseuri: "storage-offer-default"
         https_enabled: false
-    functional_administration:
-        host: "functional-administration.service.{{consul_domain}}"
-        port: 8004
-        port_admin: 18004
-        baseuri: "/functional-administration"
+        secret_platform: "true"
+    worker:
+        vitam_component: worker
+        port_http: 9104
+        port_admin: 29104
+        baseuri: "worker"
         https_enabled: false
-    security_internal:
-        port: 8005
-        port_admin: 28005
-        baseuri: "/security-internal"
+        secret_platform: "true"
+    workspace:
+        vitam_component: workspace
+        host: "workspace.service.{{consul_domain}}"
+        port_http: 8201
+        port_admin: 28201
+        baseuri: "workspace"
         https_enabled: false
-    library:
-        port: 8090
-        port_admin: 28090
-        baseuri: "/doc"
-        https_enabled: false
+        secret_platform: "true"

@@ -1,18 +1,18 @@
-serverHost: {{ip_service}}
-port: {{vitam_struct.port_https}}
+serverHost: {{ ip_service }}
+port: {{ vitam_struct.port_https }}
 
-baseUrl: "{{ vitam_struct.baseuri }}"
+baseUrl: "/{{ vitam_struct.baseuri }}"
 staticContent: "{{ vitam_struct.static_content }}"
 
 jettyConfig: jetty-config.xml
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
 secure: true
 secureMode: {{vitam_struct.secure_mode}}
-sipDirectory: {{vitam_folder_data}}/test-data
-performanceReportDirectory: {{vitam_folder_data}}/report/performance
+sipDirectory: {{ vitam_folder_data }}/test-data
+performanceReportDirectory: {{ vitam_folder_data }}/report/performance
 
-testSystemSipDirectory: {{vitam_folder_data}}/test-data/system
-testSystemReportDirectory: {{vitam_folder_data}}/report/system
+testSystemSipDirectory: {{ vitam_folder_data }}/test-data/system
+testSystemReportDirectory: {{ vitam_folder_data }}/report/system
 
 # Configuration MongoDB
 mongoDbNodes:
@@ -31,9 +31,9 @@ dbUserName: {{mongoAdminUser}}
 dbPassword: {{mongoAdminPassword}}
 
 # ElasticSearch
-clusterName: {{cluster_name}}
+clusterName: {{ vitam_struct.cluster_name }}
 elasticsearchNodes:
 {% for server in groups['hosts-elasticsearch-data'] %}
 - hostName: {{hostvars[server]['ip_service']}}
-  tcpPort: {{ elasticsearch.elasticsearch_data.tcp_port }}
+  tcpPort: {{ elasticsearch.data.port_tcp }}
 {% endfor %}

@@ -1,14 +1,14 @@
 {
   "service": {
     "name": "{{ kibana_service_name }}",
-    "port": {{ kibana_port }},
-    "address": "{{ip_service}}",
+    "port": {{ composant.port }},
+    "address": "{{ ip_service }}",
     "enableTagOverride": false,
     "checks": [
       {
-        "id": "kibana home page",
+        "id": "Kibana home page",
         "notes": "Kibana home page access",
-        "http": "http://{{ip_service}}:{{ kibana_port }}/app/kibana",
+        "http": "http://{{ ip_service }}:{{ composant.port }}/app/kibana",
         "interval": "1s"
       }
     ]

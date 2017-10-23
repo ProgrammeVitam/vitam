@@ -118,7 +118,7 @@
     env:
       ME_CONFIG_MONGODB_SERVER: "{{ groups['mongos'][0] }}"
       ME_CONFIG_MONGODB_PORT: "{{ mongodb.mongos_port }}"
-      ME_CONFIG_SITE_BASEURL: "/mongo-express/"
+      ME_CONFIG_SITE_BASEURL: "/{{ mongo_express.baseuri }}/"
       ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
       ME_CONFIG_MONGODB_ADMINUSERNAME: "{{mongoAdminUser}}"
       ME_CONFIG_MONGODB_ADMINPASSWORD: "{{mongoAdminPassword}}"

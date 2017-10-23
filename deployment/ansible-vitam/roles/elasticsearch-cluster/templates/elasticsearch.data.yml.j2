@@ -14,7 +14,7 @@
 #
 # Use a descriptive name for your cluster:
 #
-cluster.name: {{cluster_name}}
+cluster.name: {{ composant.cluster_name }}
 #
 # ------------------------------------ Node ------------------------------------
 #
@@ -30,11 +30,11 @@ node.name: {{inventory_hostname}}
 #
 # Path to directory where to store the data (separate multiple locations by comma):
 #
-path.data: {{elasticsearch_data_dir}}
+path.data: {{ elasticsearch_data_dir }}
 #
 # Path to log files:
 #
-path.logs: {{elasticsearch_log_dir}}
+path.logs: {{ elasticsearch_log_dir }}
 #
 # ----------------------------------- Memory -----------------------------------
 #
@@ -63,9 +63,9 @@ network.host: 0.0.0.0
 #
 # Set a custom port for HTTP:
 #
-http.port: {{ port_http }}
-network.port: {{ port_tcp }}
-transport.tcp.port: {{ port_tcp }}
+http.port: {{ composant.port_http }}
+network.port: {{ composant.port_tcp }}
+transport.tcp.port: {{ composant.port_tcp }}
 #
 # For more information, see the documentation at:
 # <http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-network.html>

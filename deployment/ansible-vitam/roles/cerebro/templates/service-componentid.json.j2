@@ -8,7 +8,7 @@
       {
         "id": "Check status",
         "notes": "Status check",
-        "http": "http://{{ ip_service }}:{{ cerebro.port }}/cerebro/",
+        "http": "http://{{ ip_service }}:{{ cerebro.port }}/{{ cerebro.baseuri }}/",
         "interval": "1s"
       }
     ]

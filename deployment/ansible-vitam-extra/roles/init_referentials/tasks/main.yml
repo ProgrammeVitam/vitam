@@ -14,7 +14,7 @@
 
 - name: Connection to ihm-demo before uploading
   uri:
-    url: "http://{{ ip_service }}:{{vitam.ihm_demo.port}}/ihm-demo/v1/api/login"
+    url: "http://{{ ip_service }}:{{ vitam.ihm_demo.port_http }}/{{ vitam.ihm_demo.baseuri }}/v1/api/login"
     method: POST
     body: '{"token":{"principal":"{{vitam_users[0].login}}","credentials": "{{vitam_users[0].password}}" }}' # First account is used
     body_format: json
@@ -31,7 +31,7 @@
 
 - name: upload PRONOM
   uri:
-    url: "http://{{ ip_service }}:{{vitam.ihm_demo.port}}{{ vitam.ihm_demo.baseuri }}/v1/api/format/upload"
+    url: "http://{{ ip_service }}:{{ vitam.ihm_demo.port_http }}/{{ vitam.ihm_demo.baseuri }}/v1/api/format/upload"
     method: POST
     headers:
       Connection: "keep-alive"
@@ -45,35 +45,3 @@
   when: connected.set_cookie != ''
   with_items:
     - "{{vitam_tenant_ids|first}}"
-
-# Apparently, we cannot send json with Content-Type: application/octet-stream with uri module :(
-# - name: upload contracts
-#   uri:
-#     url: http://localhost:{{vitam_ihm_demo_port}}/ihm-demo/v1/api/contracts
-#     method: POST
-#     headers:
-#       Connection: "keep-alive"
-#       X-Tenant-Id: "{{ item }}"
-#       Content-Type: "application/json"
-#       Cookie: "{{connected.set_cookie}}"
-#       Host: "{{ inventory_hostname }}"
-#       Content-Type: "application/octet-stream"
-#     body: "{{ lookup('file', 'referential_contracts_ok.json') }}"
-#   ignore_errors: true
-#   when: connected.set_cookie != ''
-#   with_items:
-#     - "{{vitam_tenant_ids}}"
-
-# - name: copy contracts
-#   copy:
-#     src: referential_contracts_ok.json
-#     dest: /vitam/tmp/ihm-demo/referential_contracts_ok.json
-#     owner: root
-#     mode: "{{ vitam_defaults.folder.conf_permission }}"
-#
-# - name: upload contracts
-#   command: "curl -v -X POST --data @/vitam/tmp/ihm-demo/referential_contracts_ok.json -H 'Host: {{ inventory_hostname }}' -H 'Cookie: {{connected.set_cookie}}' -H 'X-Tenant-Id: {{ item }}' -H 'Content-Type: application/octet-stream' http://localhost:{{vitam_ihm_demo_port}}/ihm-demo/v1/api/contracts"
-#   when: connected.set_cookie != ''
-#   ignore_errors: true
-#   with_items:
-#     - "{{vitam_tenant_ids}}"

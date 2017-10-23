@@ -5,14 +5,14 @@
 
 - name: Wait for the kibana port to be open
   wait_for:
-    host: "{{ip_service}}"
-    port: "{{kibana.log_port}}"
+    host: "{{ ip_service }}"
+    port: "{{ kibana.log.port }}"
     timeout: "{{ vitam_defaults.services.start_timeout }}"
   run_once: true
 
 - name: Wait until kibana service is OK
   uri:
-    url: 'http://{{ip_service}}:{{kibana.log_port}}/status'
+    url: 'http://{{ip_service}}:{{ kibana.log.port }}/status'
     method: GET
   register: kibana_result
   until: kibana_result.status != 503
@@ -21,7 +21,7 @@
 
 - name: Wait until .kibana index exists
   uri:
-    url: 'http://{{elasticsearch.elasticsearch_log.host}}:{{ elasticsearch.elasticsearch_log.http_port }}/.kibana'
+    url: '{{ elasticsearch.log|client_url }}.kibana'
     method: HEAD
     status_code: 200
   register: kibana_result
@@ -34,7 +34,7 @@
   when: "{{ (groups['hosts-kibana-log'] | length) > 0 }}"
   run_once: true
   uri:
-    url: 'http://{{elasticsearch.elasticsearch_log.host}}:{{ elasticsearch.elasticsearch_log.http_port }}/.kibana/{{ item.split(".")[0] }}*'
+    url: '{{ elasticsearch.log|client_url }}.kibana/{{ item.split(".")[0] }}*'
     method: PUT
     body: "{{ lookup('file', '{{ role_path }}/files/kibana-metrics-configuration/{{ item }}') }}"
     body_format: json
@@ -47,7 +47,7 @@
   when: "{{ (groups['hosts-kibana-log'] | length) > 0 }}"
   run_once: true
   uri:
-    url: 'http://{{elasticsearch.elasticsearch_log.host}}:{{ elasticsearch.elasticsearch_log.http_port }}/.kibana/{{ item.split(".")[0] }}'
+    url: '{{ elasticsearch.log|client_url }}.kibana/{{ item.split(".")[0] }}'
     method: PUT
     body: "{{ lookup('file', '{{ role_path }}/files/kibana-metrics-configuration/{{ item }}') }}"
     body_format: json
@@ -63,7 +63,7 @@
   when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
   run_once: true
   uri:
-    url: "http://{{elasticsearch.elasticsearch_log.host}}:{{ elasticsearch.elasticsearch_log.http_port }}/_template/metrics_template"
+    url: "{{ elasticsearch.log|client_url }}_template/metrics_template"
     method: PUT
     body: "{{ lookup('file', '{{ role_path }}/files/kibana-metrics-configuration/metrics.template.json') }}"
     body_format: json
@@ -74,7 +74,7 @@
   when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
   run_once: true
   uri:
-    url: 'http://{{elasticsearch.elasticsearch_log.host}}:{{ elasticsearch.elasticsearch_log.http_port }}/.kibana/config/5.6.1'
+    url: '{{ elasticsearch.log|client_url }}.kibana/config/5.6.1'
     method: PUT
     body: '{"defaultIndex": "logstash-vitam*", "buildNum": 15533}'
     body_format: json

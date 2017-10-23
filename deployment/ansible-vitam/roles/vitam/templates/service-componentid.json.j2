@@ -1,11 +1,11 @@
 {
   "service": {
-    "name": "{{ vitam_component }}",
+    "name": "{{ vitam_struct.vitam_component }}",
     "address": "{{ip_service}}",
 {% if vitam_struct.https_enabled==true %}
     "port": {{ vitam_struct.port_https }},
 {% else %}
-    "port": {{ vitam_struct.port }},
+    "port": {{ vitam_struct.port_http }},
 {% endif %}
     "enableTagOverride": false,
     "checks": [
@@ -17,7 +17,7 @@
 {% else %}
         "id": "http tcp check",
         "notes": "HTTP port opened",
-        "tcp": "{{ip_service}}:{{ vitam_struct.port }}",
+        "tcp": "{{ip_service}}:{{ vitam_struct.port_http }}",
 {% endif %}
         "interval": "1s"
       },
@@ -27,7 +27,7 @@
         "http": "http://{{ip_admin}}:{{ vitam_struct.port_admin }}/admin/v1/status",
         "interval": "1s"
       }
-{% if vitam_component == 'worker'  %}
+{% if vitam_struct.vitam_component == 'worker'  %}
       ,
       {
         "id": "siegfried check",
@@ -35,7 +35,7 @@
         "tcp": "localhost:{{ siegfried.port }}",
         "interval": "1s"
       }
-{% elif vitam_component =='ingest-external' %}
+{% elif vitam_struct.vitam_component =='ingest-external' %}
       ,
       {
         "id": "siegfried check",
