@@ -1,6 +1,6 @@
 export class Profil {
-  _id: string;
-  _tenant: string;
+  '#id': string;
+  '#tenant': string;
   Name: string;
   Identifier: string;
   Description: string;

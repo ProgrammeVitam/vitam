@@ -1,5 +1,5 @@
 export class Format {
-  _id: string;
+  '#id': string;
   Name: string;
   Comment : string;
   Alert : boolean;

@@ -1,5 +1,5 @@
 export class Context {
-  _id : string;
+  '#id' : string;
   Identifier: string;
   CreationDate : string;
   LastUpdate : string;
@@ -8,7 +8,7 @@ export class Context {
   Name : string;
   Status : boolean;
   Description : string;
-  _tenant : string;
+  '#tenant' : string;
   EnableControl : boolean;
   Permissions : Permission[];
 }

@@ -145,7 +145,11 @@ export class ReferentialsService {
     return this.resourceService.post('admin/accession-register', null, searchForm)
       .map((res: Response) => res.json())
   }
-
+  getFundRegisterDetailById(id : string) : Observable<VitamResponse> {
+    let searchForm = {"OriginatingAgency":id};
+    return this.resourceService.post('admin/accession-register/'+ id +'/accession-register-detail', null, searchForm)
+      .map((res: Response) => res.json())
+  }
   getContextById(id : string) : Observable<VitamResponse> {
     return this.resourceService.get('contexts/' + id)
       .map((res: Response) => res.json())

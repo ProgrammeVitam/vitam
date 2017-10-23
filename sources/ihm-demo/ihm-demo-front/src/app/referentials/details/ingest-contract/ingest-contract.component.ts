@@ -21,7 +21,7 @@ const INGEST_CONTRACT_KEY_TRANSLATION = {
   Description : 'Description',
   FilingParentId : 'Noeuds de rattachement',
   ArchiveProfiles : 'Profils d\'archivage',
-  _tenant : 'Tenant',
+  '#tenant' : 'Tenant',
 };
 
 @Component({

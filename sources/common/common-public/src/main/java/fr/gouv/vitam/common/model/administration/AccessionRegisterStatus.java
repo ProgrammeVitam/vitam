@@ -46,7 +46,7 @@ public enum AccessionRegisterStatus {
     /**
      * UNSTORED : indicates that the Accession register is not stored
      */
-    UNSTORED("stored");
+    UNSTORED("unstored");
 
     private final String value;
 

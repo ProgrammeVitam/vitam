@@ -40,10 +40,9 @@ export class AuditComponent extends PageComponent {
 
   pageOnInit() {
     this.searchReferentialsService.setSearchAPI('admin/accession-register');
-    this.searchReferentialsService.getResults({}).subscribe(
+    this.searchReferentialsService.getResults({ACCESSIONREGISTER : "ACCESSIONREGISTER"}).subscribe(
         data => {
           for (let result of data.$results) {
-            console.log(result);
             this.registers.push({label: result['OriginatingAgency'], value:result['OriginatingAgency']})
           }
           this.auditType = 'originatingagency';
@@ -57,9 +56,6 @@ export class AuditComponent extends PageComponent {
   }
 
   launchAudit() {
-    console.log(this.auditAction);
-    console.log(this.auditType);
-    console.log(this.objectId);
     this.auditService.launchAudit({
       auditActions : this.auditAction,
       auditType : this.auditType,
