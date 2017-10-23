@@ -73,6 +73,7 @@ import { LogbookDetailsDescriptionComponent } from "./admin/logbook-operation/lo
 import { LogbookHelperService } from "./common/logbook-operation-events/logbook-helper.service";
 import { AccessionRegisterComponent } from './referentials/details/accession-register/accession-register.component';
 import { FilingschemeComponent } from './admin/filingscheme/filingscheme.component';
+import { OperationComponent } from './admin/traceability/operation/operation.component';
 
 const appRoutes: Routes = [
   {
@@ -104,6 +105,9 @@ const appRoutes: Routes = [
   },
   {
     path: 'admin/fillingScheme', component: FilingschemeComponent
+  },
+  {
+    path: 'admin/traceabilityOperation', component: OperationComponent
   },
   {
     path: 'admin/import/:referentialType', component: ImportComponent
@@ -195,7 +199,8 @@ const appRoutes: Routes = [
     LogbookDetailsDescriptionComponent,
     AuditComponent,
     AccessionRegisterComponent,
-    FilingschemeComponent
+    FilingschemeComponent,
+    OperationComponent
   ],
   imports: [
     RouterModule.forRoot(appRoutes, {useHash: true}),

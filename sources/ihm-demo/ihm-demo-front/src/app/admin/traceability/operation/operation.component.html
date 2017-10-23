@@ -1,0 +1,4 @@
+<vitam-search label="Journal des opérations" [service]="logbookService" [data]="logbookData" [preSearch]="preSearchFunction"
+              [submitFunction]="initialSearch" (responseEvent)="onNotify($event)"></vitam-search>
+<vitam-results [data]="response" [cols]="columns" [extraCols]="extraColumns" [service]="logbookService"
+               [searchFunction]="paginationSearch" [searchForm]="searchForm" [identifier]="'evIdProc'"></vitam-results>

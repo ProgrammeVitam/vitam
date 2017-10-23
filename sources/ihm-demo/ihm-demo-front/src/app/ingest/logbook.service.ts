@@ -9,6 +9,7 @@ import {VitamResponse} from "../common/utils/response";
 export class LogbookService {
   LOGBOOK_API = 'logbook/operations';
   REPORT_DOWNLOAD_API = 'rules/report/download';
+  REPORT_TRACEABILITY_DOWNLOAD_API = 'traceability';
 
   constructor(private resourceService: ResourcesService) { }
 
@@ -43,5 +44,25 @@ export class LogbookService {
     return this.resourceService.post(`${this.LOGBOOK_API}/${id}`, null, {})
         .map((res: Response) => res.json());
   }
+
+  downloadTraceabilityReport(objectId : string) {
+    let tenant = this.resourceService.getTenant();
+    let contractName = this.resourceService.getAccessContract();
+    this.resourceService.get(`${this.REPORT_TRACEABILITY_DOWNLOAD_API}/${objectId}/content?contractId=${contractName}&tenantId=${tenant}`)
+      .subscribe(
+      (response) => {
+        const a = document.createElement('a');
+        document.body.appendChild(a);
+
+        a.href = URL.createObjectURL(new Blob([response.text()], {type: 'application/zip'}));
+
+        if (response.headers.get('content-disposition') !== undefined && response.headers.get('content-disposition') !== null) {
+          a.download = response.headers.get('content-disposition').split('filename=')[1];
+          a.click();
+        }
+      }
+    );
+  }
+
 
 }

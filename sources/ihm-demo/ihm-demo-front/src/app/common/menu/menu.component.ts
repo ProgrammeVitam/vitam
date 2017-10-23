@@ -59,7 +59,7 @@ export class MenuComponent implements OnInit {
               {separator: true},
               {label: 'Journal des opérations', routerLink: ['admin/logbookOperation']},
               {label: 'Gestion des opérations', routerLink: ['admin/workflow']},
-              {label: 'Opérations de sécurisation', routerLink: ['admin/traceability']},
+              {label: 'Opérations de sécurisation', routerLink: ['admin/traceabilityOperation']},
               {separator: true},
               {label: 'Import de l\'arbre de positionnement', routerLink: ['admin/fillingScheme']},
               {label: 'Import du référentiel des règles de gestion', routerLink: ['admin/import/rule']},
