@@ -173,7 +173,8 @@ public class WebApplicationResourceTest {
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
         final WebApplicationConfig webApplicationConfig =
             (WebApplicationConfig) new WebApplicationConfig().setPort(port).setBaseUrl(DEFAULT_WEB_APP_CONTEXT)
-                .setServerHost(DEFAULT_HOST).setStaticContent(DEFAULT_STATIC_CONTENT).setBaseUri(DEFAULT_WEB_APP_CONTEXT)
+                .setServerHost(DEFAULT_HOST).setStaticContent(DEFAULT_STATIC_CONTENT)
+                .setBaseUri(DEFAULT_WEB_APP_CONTEXT)
                 .setStaticContentV2(DEFAULT_STATIC_CONTENT_V2).setBaseUriV2(DEFAULT_WEB_APP_CONTEXT_V2)
                 .setSecure(false)
                 .setSipDirectory(Thread.currentThread().getContextClassLoader().getResource(SIP_DIRECTORY).getPath())
@@ -693,7 +694,7 @@ public class WebApplicationResourceTest {
         final AdminExternalClientFactory adminManagementClientFactory =
             PowerMockito.mock(AdminExternalClientFactory.class);
         PowerMockito.doThrow(new AccessExternalClientException("")).when(adminManagementClient)
-            .createDocuments(anyObject(), anyObject(), anyObject(), anyObject());
+            .createFormats(anyObject(), anyObject(), anyObject());
         PowerMockito.when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
 
@@ -716,9 +717,9 @@ public class WebApplicationResourceTest {
         final AdminExternalClient adminManagementClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminManagementClientFactory =
             PowerMockito.mock(AdminExternalClientFactory.class);
-        PowerMockito.doReturn(Status.OK).when(adminManagementClient).createDocuments(anyObject(),
-            anyObject(), anyObject(),
-            anyObject());
+        PowerMockito.doReturn(new RequestResponseOK<JsonNode>().setHttpCode(Status.OK.getStatusCode()))
+            .when(adminManagementClient).createFormats(anyObject(),
+                anyObject(), anyObject());
         PowerMockito.when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
 
@@ -856,7 +857,7 @@ public class WebApplicationResourceTest {
     public void testCheckFormatOK() throws Exception {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
-        PowerMockito.when(adminClient.checkDocuments(anyObject(), anyObject(), anyObject()))
+        PowerMockito.when(adminClient.checkFormats(anyObject(), anyObject()))
             .thenReturn(Response.ok().build());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
             .thenReturn(JsonHandler.getFromString(OPTIONS));
@@ -1120,7 +1121,7 @@ public class WebApplicationResourceTest {
         final AdminExternalClientFactory adminExternalClientFactory =
             PowerMockito.mock(AdminExternalClientFactory.class);
         PowerMockito.doThrow(new AccessExternalClientException("")).when(adminManagementClient)
-            .createDocuments(anyObject(), anyObject(), anyObject(), anyObject());
+            .createRules(anyObject(), anyObject(), anyObject());
         PowerMockito.when(adminExternalClientFactory.getClient()).thenReturn(adminManagementClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminExternalClientFactory);
 
@@ -1143,9 +1144,8 @@ public class WebApplicationResourceTest {
         final AdminExternalClient adminManagementClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminManagementClientFactory =
             PowerMockito.mock(AdminExternalClientFactory.class);
-        PowerMockito.doReturn(Status.OK).when(adminManagementClient).createDocuments(anyObject(),
-            anyObject(), anyObject(),
-            anyObject());
+        PowerMockito.doReturn(new RequestResponseOK<JsonNode>().setHttpCode(Status.OK.getStatusCode()))
+            .when(adminManagementClient).createRules(anyObject(), anyObject(), anyObject());
         PowerMockito.when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
 
@@ -1245,11 +1245,9 @@ public class WebApplicationResourceTest {
     @Test
     public void testCheckRulesFileOK() throws Exception {
         String jsonReturn = "{test: \"ok\"}";
-        InputStream inputStream =
-            new ByteArrayInputStream(jsonReturn.getBytes(StandardCharsets.UTF_8));
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
-        when(adminClient.checkDocuments(anyObject(), anyObject(), anyObject()))
+        when(adminClient.checkRules(anyObject(), anyObject()))
             .thenReturn(ClientMockResultHelper.getObjectStream());
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
             .thenReturn(JsonHandler.getFromString(OPTIONS));
@@ -1570,8 +1568,8 @@ public class WebApplicationResourceTest {
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminExternalClientFactory);
 
         PowerMockito
-            .when(adminExternalClient.createDocuments(anyObject(), anyObject(),anyObject(),anyObject()))
-            .thenReturn(Status.OK);
+            .when(adminExternalClient.createAgencies(anyObject(), anyObject(), anyObject()))
+            .thenReturn(new RequestResponseOK<JsonNode>().setHttpCode(Status.OK.getStatusCode()));
         PowerMockito
             .when(adminExternalClient.findAgencies(anyObject(), anyObject()))
             .thenReturn(ClientMockResultHelper.getAgenciesList());
@@ -1581,7 +1579,7 @@ public class WebApplicationResourceTest {
 
         final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam-ko.fake");
 
-        //import agencies
+        // import agencies
         given().contentType(ContentType.BINARY)
             .content(stream)
             .expect()
@@ -1589,7 +1587,7 @@ public class WebApplicationResourceTest {
             .when()
             .post("/agencies").getBody();
 
-        //find agencies by DSL
+        // find agencies by DSL
         given().contentType(ContentType.JSON)
             .body(new Select().getFinalSelect())
             .expect()
@@ -1597,7 +1595,7 @@ public class WebApplicationResourceTest {
             .when()
             .post("/agencies");
 
-        //find agencies by Id
+        // find agencies by Id
         given().contentType(ContentType.JSON)
             .expect()
             .statusCode(Status.OK.getStatusCode())
@@ -1606,7 +1604,7 @@ public class WebApplicationResourceTest {
 
 
         PowerMockito
-            .when(adminExternalClient.createDocuments(anyObject(), anyObject(),anyObject(),anyObject()))
+            .when(adminExternalClient.createAgencies(anyObject(), anyObject(), anyObject()))
             .thenThrow(new AccessExternalClientException(""));
         PowerMockito
             .when(adminExternalClient.findAgencies(anyObject(), anyObject()))
@@ -1615,7 +1613,7 @@ public class WebApplicationResourceTest {
             .when(adminExternalClient.findAgencyByID(anyObject(), anyObject()))
             .thenThrow(new VitamClientException(""));
         final InputStream stream2 = PropertiesUtils.getResourceAsStream("FF-vitam-ko.fake");
-        //import agencies
+        // import agencies
         given().contentType(ContentType.BINARY)
             .content(stream2)
             .expect()
@@ -1623,7 +1621,7 @@ public class WebApplicationResourceTest {
             .when()
             .post("/agencies").getBody();
 
-        //find agencies by DSL
+        // find agencies by DSL
         given().contentType(ContentType.JSON)
             .body(new Select().getFinalSelect())
             .expect()
@@ -1631,7 +1629,7 @@ public class WebApplicationResourceTest {
             .when()
             .post("/agencies");
 
-        //find agencies by Id
+        // find agencies by Id
         given().contentType(ContentType.JSON)
             .expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())

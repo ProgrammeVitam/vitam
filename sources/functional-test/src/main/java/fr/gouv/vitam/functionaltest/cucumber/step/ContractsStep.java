@@ -144,7 +144,7 @@ public class ContractsStep {
             AdminCollections collection = AdminCollections.valueOf(type);
             this.setContractType(collection.getName());
             RequestResponse response =
-                world.getAdminClient().importContracts(
+                world.getAdminClient().createContracts(
                     new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                     inputStream, collection);
             assertThat(response instanceof RequestResponseOK);
@@ -165,7 +165,7 @@ public class ContractsStep {
             AdminCollections collection = AdminCollections.valueOf(type);
             this.setContractType(collection.getName());
             RequestResponse response =
-                world.getAdminClient().importContracts(
+                world.getAdminClient().createContracts(
                     new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                     inputStream, collection);
             // TODO : this has to be fixed, the returned response is not correct, Bad request must me obtained

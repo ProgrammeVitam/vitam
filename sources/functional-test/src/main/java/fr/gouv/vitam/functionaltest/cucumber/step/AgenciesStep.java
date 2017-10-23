@@ -85,6 +85,7 @@ public class AgenciesStep {
      * generic model result
      */
     private JsonNode model;
+
     /**
      * type de agency
      */
@@ -110,12 +111,11 @@ public class AgenciesStep {
     public void upload_agency(String type) {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
-            Response.Status response;
-            response = world.getAdminClient()
-                .createDocuments(new VitamContext(world.getTenantId()), AdminCollections.AGENCIES, inputStream,
-                    fileName);
-
-            assertThat(response.getStatusCode()).isEqualTo(Response.Status.CREATED.getStatusCode());
+            RequestResponse response =
+                world.getAdminClient()
+                    .createAgencies(new VitamContext(world.getTenantId()), inputStream,
+                        fileName);
+            assertThat(response.getHttpCode()).isEqualTo(Response.Status.CREATED.getStatusCode());
         } catch (IllegalStateException e) {
             fail("should not produce this exception" + e);
         } catch (Exception e) {

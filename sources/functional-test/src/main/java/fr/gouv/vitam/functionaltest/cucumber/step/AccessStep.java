@@ -46,14 +46,19 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
+import org.assertj.core.api.AutoCloseableSoftAssertions;
+import org.assertj.core.api.Fail;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
+
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
@@ -81,8 +86,6 @@ import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import org.assertj.core.api.AutoCloseableSoftAssertions;
-import org.assertj.core.api.Fail;
 
 /**
  * step defining access glue
@@ -170,22 +173,18 @@ public class AccessStep {
             } else {
                 if (isArray) {
                     Set<String> resultArray =
-                        JsonHandler.getFromStringAsTypeRefence(resultValue, new TypeReference<Set<String>>() {
-                        });
+                        JsonHandler.getFromStringAsTypeRefence(resultValue, new TypeReference<Set<String>>() {});
 
                     Set<String> expectedrray =
-                        JsonHandler.getFromStringAsTypeRefence(resultExpected, new TypeReference<Set<String>>() {
-                        });
+                        JsonHandler.getFromStringAsTypeRefence(resultExpected, new TypeReference<Set<String>>() {});
                     assertThat(resultArray).isEqualTo(expectedrray);
                 } else {
                     Set<Set<String>> resultArray =
-                        JsonHandler.getFromStringAsTypeRefence(resultValue, new TypeReference<Set<Set<String>>>() {
-                        });
+                        JsonHandler.getFromStringAsTypeRefence(resultValue, new TypeReference<Set<Set<String>>>() {});
 
                     Set<Set<String>> expectedrray =
                         JsonHandler
-                            .getFromStringAsTypeRefence(resultExpected, new TypeReference<Set<Set<String>>>() {
-                            });
+                            .getFromStringAsTypeRefence(resultExpected, new TypeReference<Set<Set<String>>>() {});
 
                     assertThat(expectedrray).isEqualTo(resultArray);
                 }
@@ -206,7 +205,7 @@ public class AccessStep {
             String unitGuid = replaceTitleByGUID(title);
             String newContract = CONTRACT_WITH_LINK.replace(UNIT_GUID, unitGuid);
             JsonNode node = JsonHandler.getFromString(newContract);
-            world.getAdminClient().importContracts(
+            world.getAdminClient().createContracts(
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                 new ByteArrayInputStream(newContract.getBytes()),
                 AdminCollections.INGEST_CONTRACTS);
@@ -273,8 +272,7 @@ public class AccessStep {
             world.getAccessClient().selectUnits(
                 new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
                     .setApplicationSessionId(world.getApplicationSessionId()),
-                searchQuery.getFinalSelect()
-            );
+                searchQuery.getFinalSelect());
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             if (requestResponseOK.getHits().getTotal() == 0) {
@@ -294,7 +292,7 @@ public class AccessStep {
     /**
      * Get a specific field value from a result identified by its index
      *
-     * @param field     field name
+     * @param field field name
      * @param numResult number of the result in results
      * @return value if found or null
      * @throws Throwable
@@ -331,7 +329,8 @@ public class AccessStep {
 
         requestResponse = world.getAccessClient().selectUnits(
             new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId()), queryJSON);
+                .setApplicationSessionId(world.getApplicationSessionId()),
+            queryJSON);
 
         the_status_of_the_request(status);
     }
@@ -365,7 +364,8 @@ public class AccessStep {
         String unitId = getValueFromResult("#id", 0);
         RequestResponse<JsonNode> requestResponse = world.getAccessClient().updateUnitbyId(
             new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId()), queryJSON, unitId);
+                .setApplicationSessionId(world.getApplicationSessionId()),
+            queryJSON, unitId);
         assertThat(requestResponse.isOk()).isFalse();
         final VitamError vitamError = (VitamError) requestResponse;
         assertThat(Response.Status.valueOf(status.toUpperCase()).getStatusCode()).isEqualTo(vitamError.getHttpCode());
@@ -448,7 +448,8 @@ public class AccessStep {
         JsonNode queryJSON = JsonHandler.getFromString(query);
         RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(
             new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId()), queryJSON);
+                .setApplicationSessionId(world.getApplicationSessionId()),
+            queryJSON);
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             results = requestResponseOK.getResults();
@@ -468,7 +469,8 @@ public class AccessStep {
 
         RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(
             new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId()), queryJSON);
+                .setApplicationSessionId(world.getApplicationSessionId()),
+            queryJSON);
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             results = requestResponseOK.getResults();
@@ -490,7 +492,8 @@ public class AccessStep {
         JsonNode queryJSON = JsonHandler.getFromString(query);
         RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(
             new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId()), queryJSON);
+                .setApplicationSessionId(world.getApplicationSessionId()),
+            queryJSON);
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             world.setUnitId(requestResponseOK.getResults().get(0).get("#id").asText());
@@ -561,11 +564,12 @@ public class AccessStep {
         if (queryJSON.get("$projection").get("$fields").get("#object") == null) {
             ((ObjectNode) queryJSON.get("$projection").get("$fields")).put("#object", 1);
         }
- 
+
         // Search units
         RequestResponse<JsonNode> requestResponseUnit = world.getAccessClient().selectUnits(
             new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-            .setApplicationSessionId(world.getApplicationSessionId()),queryJSON);
+                .setApplicationSessionId(world.getApplicationSessionId()),
+            queryJSON);
         if (requestResponseUnit.isOk()) {
             RequestResponseOK<JsonNode> responseOK = (RequestResponseOK<JsonNode>) requestResponseUnit;
             List<JsonNode> unitResults = responseOK.getResults();
@@ -573,8 +577,10 @@ public class AccessStep {
             for (JsonNode unitResult : unitResults) {
                 // search object group on unit
                 RequestResponse responseObjectGroup =
-                    world.getAccessClient().selectObjectMetadatasByUnitId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                        .setApplicationSessionId(world.getApplicationSessionId()),new SelectMultiQuery().getFinalSelect(),
+                    world.getAccessClient().selectObjectMetadatasByUnitId(
+                        new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                            .setApplicationSessionId(world.getApplicationSessionId()),
+                        new SelectMultiQuery().getFinalSelect(),
                         unitResult.get("#id").asText());
                 if (responseObjectGroup.isOk()) {
                     List<JsonNode> objectGroupResults =
@@ -651,7 +657,8 @@ public class AccessStep {
         RequestResponse<JsonNode> requestResponse =
             world.getAdminClient().getAccessionRegisterDetail(
                 new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                    .setApplicationSessionId(world.getApplicationSessionId()), originatingAgency, queryJSON);
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                originatingAgency, queryJSON);
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             results = requestResponseOK.getResults();
@@ -664,8 +671,8 @@ public class AccessStep {
     /**
      * Import or Check an admin referential file
      *
-     * @param action     the action we want to execute : "vérifie" for check / "importe" for import
-     * @param filename   name of the file to import or check
+     * @param action the action we want to execute : "vérifie" for check / "importe" for import
+     * @param filename name of the file to import or check
      * @param collection name of the collection
      * @throws Throwable
      */
@@ -675,21 +682,38 @@ public class AccessStep {
         Path file = Paths.get(world.getBaseDirectory(), filename);
         try (InputStream inputStream = Files.newInputStream(file, StandardOpenOption.READ)) {
             AdminCollections adminCollection = AdminCollections.valueOf(collection);
-            Status status = null;
+            int status = 0;
             results = new ArrayList<>();
             if ("vérifie".equals(action)) {
                 // status =
-                world.getAdminClient().checkDocuments(
-                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                    adminCollection, inputStream);
-            } else if ("importe".equals(action)) {
-                status =
-                    world.getAdminClient().createDocuments(
+                if (AdminCollections.FORMATS.equals(adminCollection)) {
+                    world.getAdminClient().checkFormats(
                         new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                        adminCollection, inputStream, filename);
+                        inputStream);
+                } else if (AdminCollections.RULES.equals(adminCollection)) {
+                    world.getAdminClient().checkRules(
+                        new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                        inputStream);
+                }
+            } else if ("importe".equals(action)) {
+                if (AdminCollections.FORMATS.equals(adminCollection)) {
+                    RequestResponse response =
+                        world.getAdminClient().createFormats(
+                            new VitamContext(world.getTenantId())
+                                .setApplicationSessionId(world.getApplicationSessionId()),
+                            inputStream, filename);
+                    status = response.getHttpCode();
+                } else if (AdminCollections.RULES.equals(adminCollection)) {
+                    RequestResponse response =
+                        world.getAdminClient().createRules(
+                            new VitamContext(world.getTenantId())
+                                .setApplicationSessionId(world.getApplicationSessionId()),
+                            inputStream, filename);
+                    status = response.getHttpCode();
+                }
             }
-            if (status != null) {
-                results.add(JsonHandler.createObjectNode().put("Code", String.valueOf(status.getStatusCode())));
+            if (status != 0) {
+                results.add(JsonHandler.createObjectNode().put("Code", String.valueOf(status)));
             }
         } catch (Exception e) {
             LOGGER.warn("Referentiels collection already imported");
@@ -723,8 +747,8 @@ public class AccessStep {
             case ACCESS_CONTRACTS:
                 requestResponse = world.getAdminClient().findAccessContracts(
                     new VitamContext(world.getTenantId()).setAccessContract(null)
-                        .setApplicationSessionId(world.getApplicationSessionId())
-                    , queryJSON);
+                        .setApplicationSessionId(world.getApplicationSessionId()),
+                    queryJSON);
                 break;
             case INGEST_CONTRACTS:
                 requestResponse = world.getAdminClient().findIngestContracts(
@@ -776,7 +800,8 @@ public class AccessStep {
         RequestResponse<LogbookLifecycle> requestResponse =
             world.getAccessClient().selectUnitLifeCycleById(
                 new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                    .setApplicationSessionId(world.getApplicationSessionId()), unitId, new Select().getFinalSelect());
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                unitId, new Select().getFinalSelect());
         if (requestResponse.isOk()) {
             RequestResponseOK<LogbookLifecycle> requestResponseOK =
                 (RequestResponseOK<LogbookLifecycle>) requestResponse;
@@ -831,7 +856,7 @@ public class AccessStep {
     /**
      * check if the status is valid for a list of event type according to logbook lifecycle
      *
-     * @param eventNames  list of event
+     * @param eventNames list of event
      * @param eventStatus status of event
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
@@ -870,8 +895,7 @@ public class AccessStep {
             Response response = world.getAccessClient().getObject(
                 new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
                     .setApplicationSessionId(world.getApplicationSessionId()),
-                queryDsl, replaceTitleByGUID(title), usage, version
-            );
+                queryDsl, replaceTitleByGUID(title), usage, version);
             statusCode = StatusCode.parseFromHttpStatus(response.getStatus());
         } catch (AccessExternalClientServerException | AccessExternalClientNotFoundException |
             AccessUnauthorizedException | InvalidParseOperationException e) {

@@ -50,38 +50,6 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminExternalClientMock.class);
 
     @Override
-    public Response checkDocuments(VitamContext vitamContext, AdminCollections documentType,
-        InputStream stream)
-        throws VitamClientException {
-        StreamUtils.closeSilently(stream);
-
-        if (AdminCollections.RULES.equals(documentType) || AdminCollections.FORMATS.equals(documentType) ||
-            AdminCollections.AGENCIES.equals(documentType)) {
-            return new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream("Vitam Test"),
-                MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
-        } else {
-            try {
-                return new AbstractMockClient.FakeInboundResponse(Status.INTERNAL_SERVER_ERROR,
-                    JsonHandler.writeToInpustream(VitamCodeHelper
-                        .toVitamError(VitamCode.ADMIN_EXTERNAL_CHECK_DOCUMENT_ERROR, "Collection not found")),
-                    MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
-            } catch (InvalidParseOperationException e) {
-                return new AbstractMockClient.FakeInboundResponse(Status.INTERNAL_SERVER_ERROR,
-                    new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes()),
-                    MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
-            }
-        }
-    }
-
-    @Override
-    public Status createDocuments(VitamContext vitamContext, AdminCollections documentType,
-        InputStream stream, String filename)
-        throws AccessExternalClientNotFoundException, AccessExternalClientException {
-        StreamUtils.closeSilently(stream);
-        return Status.CREATED;
-    }
-
-    @Override
     public RequestResponse getAccessionRegisterDetail(VitamContext vitamContext, String id,
         JsonNode query)
         throws InvalidParseOperationException, AccessExternalClientServerException,
@@ -90,7 +58,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public RequestResponse importContracts(VitamContext vitamContext, InputStream contracts,
+    public RequestResponse createContracts(VitamContext vitamContext, InputStream contracts,
         AdminCollections collection)
         throws InvalidParseOperationException {
         if (AdminCollections.ACCESS_CONTRACTS.equals(collection))
@@ -123,7 +91,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public RequestResponse importProfileFile(VitamContext vitamContext,
+    public RequestResponse createProfileFile(VitamContext vitamContext,
         String profileMetadataId, InputStream profile)
         throws InvalidParseOperationException, AccessExternalClientException {
         return new RequestResponseOK().setHttpCode(Status.CREATED.getStatusCode());
@@ -137,7 +105,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public RequestResponse importContexts(VitamContext vitamContext, InputStream contexts)
+    public RequestResponse createContexts(VitamContext vitamContext, InputStream contexts)
         throws InvalidParseOperationException {
         return ClientMockResultHelper
             .createReponse(ClientMockResultHelper.getContexts(Status.CREATED.getStatusCode()).toJsonNode())
@@ -349,6 +317,83 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     @Override
     public RequestResponse<WorkFlow> getWorkflowDefinitions(VitamContext vitamContext) throws VitamClientException {
         return new RequestResponseOK<WorkFlow>().addResult(new WorkFlow()).setHttpCode(Status.OK.getStatusCode());
+    }
+
+
+
+    @Override
+    public RequestResponse createAgencies(VitamContext vitamContext, InputStream agencies, String filename)
+        throws AccessExternalClientException, InvalidParseOperationException {
+        StreamUtils.closeSilently(agencies);
+        return ClientMockResultHelper.createReponse(
+            ClientMockResultHelper.getAgencies(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(
+                Status.CREATED.getStatusCode());
+    }
+
+
+
+    @Override
+    public RequestResponse createFormats(VitamContext vitamContext, InputStream formats, String filename)
+        throws AccessExternalClientException, InvalidParseOperationException {
+        StreamUtils.closeSilently(formats);
+        return ClientMockResultHelper.createReponse(
+            ClientMockResultHelper.getFormat(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(
+                Status.CREATED.getStatusCode());
+    }
+
+
+
+    @Override
+    public RequestResponse createRules(VitamContext vitamContext, InputStream rules, String filename)
+        throws AccessExternalClientException, InvalidParseOperationException {
+        StreamUtils.closeSilently(rules);
+        return ClientMockResultHelper.createReponse(
+            ClientMockResultHelper.getRule(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(
+                Status.CREATED.getStatusCode());
+    }
+
+
+
+    @Override
+    public RequestResponse createSecurityProfiles(VitamContext vitamContext, InputStream securityProfiles,
+        String filename) throws AccessExternalClientException, InvalidParseOperationException, VitamClientException {
+        StreamUtils.closeSilently(securityProfiles);
+        return ClientMockResultHelper.createReponse(
+            ClientMockResultHelper.getSecurityProfiles(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(
+                Status.CREATED.getStatusCode());
+    }
+
+    private Response checkInternalDocuments(VitamContext vitamContext, AdminCollections documentType,
+        InputStream stream)
+        throws VitamClientException {
+        StreamUtils.closeSilently(stream);
+
+        if (AdminCollections.RULES.equals(documentType) || AdminCollections.FORMATS.equals(documentType) ||
+            AdminCollections.AGENCIES.equals(documentType)) {
+            return new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream("Vitam Test"),
+                MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+        } else {
+            try {
+                return new AbstractMockClient.FakeInboundResponse(Status.INTERNAL_SERVER_ERROR,
+                    JsonHandler.writeToInpustream(VitamCodeHelper
+                        .toVitamError(VitamCode.ADMIN_EXTERNAL_CHECK_DOCUMENT_ERROR, "Collection not found")),
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+            } catch (InvalidParseOperationException e) {
+                return new AbstractMockClient.FakeInboundResponse(Status.INTERNAL_SERVER_ERROR,
+                    new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes()),
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+            }
+        }
+    }
+    
+    @Override
+    public Response checkRules(VitamContext vitamContext, InputStream rules) throws VitamClientException {
+        return checkInternalDocuments(vitamContext, AdminCollections.RULES, rules);
+    }
+
+    @Override
+    public Response checkFormats(VitamContext vitamContext, InputStream formats) throws VitamClientException {
+        return checkInternalDocuments(vitamContext, AdminCollections.FORMATS, formats);
     }
 
 }
