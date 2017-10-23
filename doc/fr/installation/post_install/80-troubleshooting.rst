@@ -8,4 +8,4 @@ Cette section a pour but de recenser les problèmes déjà rencontrés et apport
 
 .. attention, titres très moyen
 
-.. include:: ../exploitation/FAQ/kb.rst
+.. include:: ../../exploitation/FAQ/kb.rst

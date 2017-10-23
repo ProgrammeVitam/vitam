@@ -1,0 +1,127 @@
+Procédure de première installation
+##################################
+
+
+.. |repertoire_deploiement| replace:: ``deployment``
+.. |repertoire_inventory| replace:: ``environments``
+.. |repertoire_playbook ansible| replace:: ``ansible-vitam``
+
+Déploiement
+===========
+
+Fichier de mot de passe
+-----------------------
+
+Par défaut, le mot de passe des "vault" sera demandé à chaque exécution d'ansible. Si le fichier ``deployment/vault_pass.txt`` est renseigné avec le mot de passe du fichier ``environments/group_vars/all/vault-vitam.yml``, le mot de passe ne sera pas demandé (dans ce cas, changez l'option ``--ask-vault-pass`` des invocations ansible par l'option ``--vault-password-file=VAULT_PASSWORD_FILES``.
+
+.. _pkiconfsection:
+
+Mise en place des repositories VITAM (optionnel)
+-------------------------------------------------
+
+VITAM fournit un playbook permettant de définir sur les partitions cible la configuration d'appel aux repositories spécifiques à VITAM :
+
+
+Editer le fichier ``environments/group_vars/all/repositories.yml`` à partir des modèles suivants (décommenter également les lignes) :
+
+Pour une cible de déploiement CentOS :
+
+.. literalinclude:: ../../../../deployment/environments/group_vars/all/example_bootstrap_repo_centos.yml
+   :language: yaml
+   :linenos:
+
+
+Pour une cible de déploiement Debian :
+
+.. literalinclude:: ../../../../deployment/environments/group_vars/all/example_bootstrap_repo_debian.yml
+   :language: yaml
+   :linenos:
+
+Ce fichier permet de définir une liste de repositories. Décommenter et adapter à votre cas.
+
+Pour mettre en place ces repositories sur les machines cibles, lancer la commande :
+
+.. code-block:: console
+
+  ansible-playbook ansible-vitam-extra/bootstrap.yml -i environments/<fichier d'inventaire>  --ask-vault-pass
+
+.. note:: En environnement CentOS, il est recommandé de créer des noms de repository commençant par  "vitam-".
+
+Réseaux
+-------
+
+Une fois l'étape de PKI effectuée avec succès, il convient de procéder à la génération des hostvars, qui permettent de définir quelles interfaces réseau utiliser.
+Actuellement la solution logicielle Vitam est capable de gérer 2 interfaces réseau:
+
+    - Une d'administration
+    - Une de service
+
+Cas 1: Machines avec une seule interface réseau
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Si les machines sur lesquelles Vitam sera déployé ne disposent que d'une interface réseau, ou si vous ne souhaitez en utiliser qu'une seule, il convient d'utiliser le playbook ``ansible-vitam/generate_hostvars_for_1_network_interface.yml``
+
+Cette définition des host_vars se base sur la directive ansible ``ansible_default_ipv4.address``, qui se base sur l'adresse IP associée à la route réseau définie par défaut.
+
+.. Warning:: Les communication d'administration et de service transiteront donc toutes les deux via l'unique interface réseau disponible.
+
+Cas 2: Machines avec plusieurs interfaces réseau
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Si les machines sur lesquelles Vitam sera déployé disposent de plusieurs interfaces, si celles-ci respectent cette règle:
+
+    - Interface nommée eth0 = ip_service
+    - Interface nommée eth1 = ip_admin
+
+Alors il est possible d'utiliser le playbook ``ansible-vitam-extra/generate_hostvars_for_2_network_interfaces.yml``
+
+.. Note:: Pour les autres cas de figure, il sera nécessaire de générer ces hostvars à la main ou de créer un script pour automatiser cela.
+
+Vérification de la génération des hostvars
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A l'issue, vérifier le contenu des fichiers générés sous ``environments/host_vars/`` et les adapter au besoin.
+
+Déploiement
+-------------
+
+Le déploiement s'effectue depuis la machine "ansible" et va distribuer la solution VITAM selon l'inventaire correctement renseigné.
+
+Une fois l'étape de la génération des hosts a été effectuée avec succès, le déploiement est à réaliser avec la commande suivante :
+
+.. code-block:: console
+
+   ansible-playbook ansible-vitam/vitam.yml -i environments/<ficher d'inventaire> --ask-vault-pass
+
+
+.. note:: Une confirmation est demandée pour lancer ce script. Il est possible de rajouter le paramètre ``-e confirmation=yes`` pour bypasser cette demande de confirmation (cas d'un déploiement automatisé).
+
+Extra
+------
+
+Deux playbook d'extra sont fournis pour usage "tel quel".
+
+1. ihm-recette
+
+Ce playbook permet d'installer également le composant :term:`VITAM` ihm-recette.
+
+.. code-block:: console
+
+   ansible-playbook ansible-vitam-extra/ihm-recette.yml -i environments/<ficher d'inventaire> --ask-vault-pass
+
+
+2. extra complet
+
+Ce playbook permet d'installer :
+  - topbeat
+  - packetbeat
+  - un serveur Apache pour naviguer sur le ``/vitam``  des différentes machines hébergeant :term:`VITAM`
+  - mongo-express (en docker  ; une connexion internet est alors nécessaire)
+  - le composant :term:`VITAM` library, hébergeant les documentations du projet
+  - le composant :term:`VITAM` ihm-recette (nécessite un accès à un répertoire "partagé" pour récupérer les jeux de tests)
+  - un reverse proxy, afin de simplifier les appels aux composants
+
+
+.. code-block:: console
+
+   ansible-playbook ansible-vitam-extra/extra.yml -i environments/<ficher d'inventaire> --ask-vault-pass

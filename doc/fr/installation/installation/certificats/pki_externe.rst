@@ -7,9 +7,12 @@ Procédure générale
 ------------------
 
 Si vous disposez d'une PKI, il n'est pas nécessaire d'utiliser celle de Vitam.
-Il va par contre être nécessaire de déposer les certificats et les autorités de certifications correspondantes dans les bon répertoires.
-Il sera aussi nécessaire de renseigner les mots de passe des clés privées des certificats dans le vault ansible environmements/certs/vault-certs.yml
-Il faudra alors ensuite utiliser le script Vitam permettant de générer les différents keystores.
+
+Il est par contre être nécessaire de :
+
+* déposer les certificats et les autorités de certifications correspondantes dans les bon répertoires.
+* renseigner les mots de passe des clés privées des certificats dans le vault ansible environmements/certs/vault-certs.yml
+* utiliser le script Vitam permettant de générer les différents keystores.
 
 
 Intégration de certificats existants
@@ -17,10 +20,9 @@ Intégration de certificats existants
 
 Si vous possédez déjà une :term:`PKI`, il convient de positionner les certificats et CA sous ``environmements/certs/....`` en respectant la structure indiquée ci-dessous.
 
-.. _arborescence_certs:
-.. figure:: images/arborescence_certs.*
+.. figure:: ../../annexes/images/arborescence_certs.*
     :align: center
-    :target: ../_images/arborescence_certs.svg
+    :target: ../../_images/arborescence_certs.svg
 
     Vue détaillée de l'arborescence des certificats
 

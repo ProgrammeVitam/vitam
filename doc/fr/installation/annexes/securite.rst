@@ -1,5 +1,5 @@
-Configuration de sécurité
-##########################
+Ansible & ssh
+#############
 
 En fonction de la méthode d'authentification sur les serveurs et d'élevation de privilège, il faut rajouter des options aux lignes de commande ansible. Ces options seront à rajouter pour toutes les commandes ansible du document .
 
@@ -41,6 +41,7 @@ Authentification des hôtes
 Pour éviter les attaques de type :term:`MitM`, le client SSH cherche à authentifier le serveur sur lequel il se connecte. Ceci se base généralement sur le stockage des clés publiques des serveurs auxquels il faut faire confiance (~/.ssh/known_hosts).
 
 Il existe différentes méthodes pour remplir ce fichier (vérification humaine à la première connexion, gestion centralisée, :term:`DNSSEC`). La gestion de fichier est hors périmètre Vitam mais c'est un pré-requis pour le lancement d'ansible.
+
 
 Elevation de privilèges
 =======================

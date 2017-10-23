@@ -1,5 +1,5 @@
-Validation de la procédure
-##########################
+Validation du déploiement
+#########################
 
 .. |repertoire_deploiement| replace:: ``deployment``
 .. |repertoire_inventory| replace:: ``environments``
@@ -48,18 +48,6 @@ Si une autre couleur apparaît, cliquer sur le service "KO" et vérifier le test
 
 .. warning:: les composants :term:`VITAM` "ihm" (ihm-demo, ihm-recette) n'intègrent pas /admin/v1/status" et donc sont indiqués "KO" sous Consul ; il ne faut pas en tenir compte, sachant que si l'IHM s'affiche en appel "classique", le composant fonctionne.
 
-.. deprecated
-.. Validation via SoapUI
-.. =====================
-
-.. Pour les environnements de recette, il est possible de lancer les tests de validation métier au sein de l'interface du .. composant IHM-recette (menu > tests SOAP-UI).
-
-.. note Cette validation n'est possible que si les :term:`TNR` ont été installés (via git-lfs et connexion webdav).
-
-.. Validation via IHM technique
-.. ============================
-
-.. TODO pour le moment, cette IHM n'existe pas. Penser aux copies écran quand...
 
 Post-installation : administration fonctionnelle
 ================================================
@@ -72,6 +60,7 @@ A l'issue de l'installation, puis la validation, un **administrateur fonctionnel
 
 Les chargements sont effectués depuis l':term:`IHM` demo.
 
+
 Cas du référentiel PRONOM
 --------------------------
 
@@ -81,4 +70,4 @@ Ce playbook n'est à passer que si aucun référentiel PRONOM n'a été chargé,
 
 ``ansible-playbook ansible-vitam-extra/init_pronom.yml -i environments/<fichier d'inventaire> --ask-vault-pass``
 
-.. caution:: le playbook ne se termine pas correctement (code HTTP 403) si un référentiel PRONOM a déjà été chargé.
+.. caution:: le playbook termine en erreur (code HTTP 403) si un référentiel PRONOM a déjà été chargé.

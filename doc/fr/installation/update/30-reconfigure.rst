@@ -1,16 +1,8 @@
-Procédure de mise à niveau
-##########################
-
-
-Cette section décrit globalement le processus de mise à niveau d'une solution VITAM déjà en place et ne peut se substituer aux recommandations effectuées dans la "release note" associée à la fourniture des composants mis à niveau.
-
-La mise à jour peut actuellement être effectuée comme une "première installation".
-
-Modification de comportement de VITAM
-======================================
+Reconfiguration
+###############
 
 Cas d'une modification du nombre de tenants
---------------------------------------------
+===========================================
 
 Modifier dans le fichier d'inventaire  la directive ``vitam_tenant_ids``
 
@@ -24,14 +16,14 @@ A l'issue, il faut lancer le playbook de déploiement de VITAM (et, si déployé
 
 Exemple:
 
-.. code-block:: bash
+.. code-block:: console
 
 	ansible-playbook -i environments/hosts.deployment ansible-vitam/vitam.yml --ask-vault-pass --tags update_vitam_configuration
 	ansible-playbook -i environments/hosts.deployment ansible-vitam-extra/extra.yml --ask-vault-pass --tags update_vitam_configuration
 
 
 Cas d'une modification des paramètres JVM
---------------------------------------------
+=========================================
 
 Se référer à :ref:`update_jvm`
 
@@ -41,7 +33,7 @@ A l'issue, il faut lancer le playbook de déploiement de VITAM (et, si déployé
 
 Exemple:
 
-.. code-block:: bash
+.. code-block:: console
 
 	ansible-playbook -i environments/hosts.deployment ansible-vitam/vitam.yml --ask-vault-pass --tags update_jvmoptions_vitam
 	ansible-playbook -i environments/hosts.deployment ansible-vitam-extra/extra.yml --ask-vault-pass --tags update_jvmoptions_vitam

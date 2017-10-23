@@ -1,8 +1,8 @@
-Introduction sur les certificats dans Vitam
-===========================================
+Vue d'ensemble de la gestion des certificats
+############################################
 
 Liste des suites cryptographiques & protocoles supportés par Vitam
-------------------------------------------------------------------
+==================================================================
 
 Il est possible de consulter les ciphers supportés par Vitam dans deux fichiers disponibles sur ce chemin: `ansible-vitam/roles/vitam/templates/`
 
@@ -17,9 +17,10 @@ Il est possible de consulter les ciphers supportés par Vitam dans deux fichiers
 .. seealso:: Ces fichiers correspondent à la configuration recommandée ; celle-ci est décrite plus en détail dans le DAT (chapitre sécurité).
 
 Vue d'ensemble de la gestion des certificats
---------------------------------------------
+============================================
 
 .. _pki-certificats:
+
 .. figure:: images/pki-certificats.*
     :align: center
 
@@ -27,7 +28,7 @@ Vue d'ensemble de la gestion des certificats
 
 
 Description de l'arborescence de la PKI
----------------------------------------
+=======================================
 
 Tous les fichiers de gestion de la PKI se trouvent dans le répertoire ``deployment`` de l'arborescence Vitam:
 
@@ -41,6 +42,7 @@ Tous les fichiers de gestion de la PKI se trouvent dans le répertoire ``deploym
 * Le script ``generate_stores.sh`` génère les magasins de certificats (keystores), cf la section :ref:`fonctionnementScriptsPki`
 
 .. _arborescence_pki:
+
 .. figure:: images/arborescence_pki.*
     :align: center
     :target: ../_images/arborescence_pki.svg
@@ -54,9 +56,10 @@ Tous les fichiers de gestion de la PKI se trouvent dans le répertoire ``deploym
 
 
 Description de l'arborescence du répertoire deployment/environments/certs
--------------------------------------------------------------------------
+=========================================================================
 
 .. _arborescence_certs:
+
 .. figure:: images/arborescence_certs.*
     :align: center
     :target: ../_images/arborescence_certs.svg
@@ -70,9 +73,10 @@ Description de l'arborescence du répertoire deployment/environments/certs
 
 
 Description de l'arborescence du répertoire deployment/environments/keystores
------------------------------------------------------------------------------
+=============================================================================
 
 .. _arborescence_keystores:
+
 .. figure:: images/arborescence_keystores.*
     :align: center
     :target: ../_images/arborescence_keystores.svg
@@ -89,7 +93,7 @@ Description de l'arborescence du répertoire deployment/environments/keystores
 
 
 Fonctionnement des scripts de la PKI
-------------------------------------
+====================================
 
 La gestion de la PKI se fait avec 3 scripts dans le répertoire deployment de l'arborescence Vitam:
 

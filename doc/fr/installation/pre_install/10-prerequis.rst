@@ -1,16 +1,14 @@
-Pré-requis
-##########
+Pré-requis plate-forme
+######################
 
-Description
-===========
+Les pré-requis suivants sont nécessaires :
 
-Les pré-requis logiciels suivants sont nécessaires :
 
 Base commune
--------------
+============
 
 * Tous les serveurs hébergeant la solution :term:`VITAM` doivent êre synchronisés sur un serveur de temps (pas de stratum 10)
-* Disposer de la solution de déploiement basé sur ansible
+* Disposer de la solution de déploiement basée sur ansible
 
 .. penser à ajouter une note sur /etc/hostname
 
@@ -29,10 +27,25 @@ Le déploiement est orchestré depuis un poste ou serveur d'administration ; les
 
 .. caution:: dans le cadre de l'installation des packages "extra", il est nécessaire, pour les partitions hébergeant des containeurs docker (mongo-express, head), qu'elles aient un accès internet.
 
-.. warning:: dans le cas d'une installation du composant **vitam-offer** en *filesystem-hash*, il est fortement recommandé d'employer un système de fichiers **xfs** pour le stockage des données. Se référer au :term:`DAT` pour connaître la structuration des filesystems dans :term:`VITAM`. En cas d'utilisation d'un autre type, s'assurer que le filesystem possède/gère bien l'option **user_xattr**.
+.. warning:: dans le cas d'une installation du composant ``vitam-offer`` en ``filesystem-hash``, il est fortement recommandé d'employer un système de fichiers ``xfs`` pour le stockage des données. Se référer au :term:`DAT` pour connaître la structuration des filesystems dans :term:`VITAM`. En cas d'utilisation d'un autre type, s'assurer que le filesystem possède/gère bien l'option ``user_xattr``.
+
+
+Systèmes d'exploitation
+=======================
+
+Seules deux distributions Linux suivantes sont supportées à ce jour :
+
+* CentOS 7
+* Debian 8 (jessie)
+
+SELinux doit être configuré en mode ``permissive`` ou ``disabled``.
+
+.. Sujets à adresser : préciser la version minimale ; donner une matrice de compatibilité -> post-V1
+
+.. caution:: En cas d'installation initiale, les utilisateurs et groupes systèmes (noms et UID) utilisés par VITAM (et listés dans le :term:`DAT`) ne doivent pas être présents sur les serveurs cible. Ces comptes sont créés lors de l'installation de VITAM et gérés par VITAM.
 
 Déploiement sur environnement CentOS
--------------------------------------
+------------------------------------
 
 * Disposer d'une plate-forme Linux CentOS 7 installée selon la répartition des services souhaitée. En particulier, ces serveurs doivent avoir :
 
@@ -44,7 +57,7 @@ Déploiement sur environnement CentOS
 * Disposer des binaires VITAM : paquets RPM de VITAM (vitam-product) ainsi que les paquets d'éditeurs tiers livrés avec Vitam (vitam-external)
 
 Déploiement sur environnement Debian
--------------------------------------
+------------------------------------
 
 * Disposer d'une plate-forme Linux Debian "jessie" installée selon la répartition des services souhaitée. En particulier, ces serveurs doivent avoir :
 
