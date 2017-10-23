@@ -200,6 +200,15 @@ Données gérées :
 
 * Aucune
 
+
+Internal security
+=====================================
+
+* Rôle :Permettre l'authentification des  utilisateurs vitam
+    permet de stocker les certificats
+    il permet aussi l'authentification personae
+
+
 .. A terme, il y aura les journaux d'accès
 
 
@@ -244,3 +253,4 @@ Contraintes techniques :
 Données gérées :
 
 * Aucune
+

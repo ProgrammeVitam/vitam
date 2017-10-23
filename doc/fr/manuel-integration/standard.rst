@@ -108,6 +108,22 @@ L'authentification dans Vitam authentifie l'application Front-Office qui se conn
 - Le service REST, sur la base de cette authentification, s'assure que l'application Front-Office ait bien l'habilitation nécessaire pour effectuer la requête exprimée.
 
 
+
+Authentification Personae
+=========================
+
+C'est une authentification Personae sur certaines fonctionnalités de functional-administration
+Vitam n'authentifier  pas les utilisateurs  mais seulement s’assurer que le SIA les a authentifier fortement.
+
+Une base d’utilisateurs « Admins » est stockée en base.
+
+Un référentiel de privilèges (liste des endpoints) :
+
+Si une nouvelle API est rajoutée et que le référentiel est pas mis à jour, on considère le endpoint comme super admin par défaut.
+
+Vitam tres les accès KO comme opération dans le journal des opérations avec à minima (tenantId, contextId, ApplicationSessionId, RequestId, les premiers 10K de la request body en Base64)
+
+
 Identifiant de corrélation
 ==========================
 

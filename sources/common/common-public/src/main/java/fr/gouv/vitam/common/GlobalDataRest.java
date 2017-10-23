@@ -47,6 +47,12 @@ public class GlobalDataRest {
     public static final String X_APPLICATION_ID = "X-Application-Id";
 
     /**
+     * Header Parameter X_PERSONAL_CERTIFICATE
+     */
+    public static final String X_PERSONAL_CERTIFICATE = "X-Personal-Certificate";
+
+
+    /**
      * Header Parameter X_ACTION
      */
     public static final String X_ACTION = "X-ACTION";

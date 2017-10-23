@@ -76,6 +76,7 @@ Pour la suite, se référer à la javadoc de la classe ``AccessExternalClient``.
 Le même ficher est utilisé pour la factory ``AdminExternalClientFactory`` et son client ``AdminExternalClient``.
 
 
+
 Configuration d'un client externe
 ---------------------------------
 
@@ -88,3 +89,5 @@ La configuration du client prend en compte les paramètres et fichiers suivants 
 	- keystore : ``keyPath`` et ``keyPassword`` permettent d'indiquer le chemin et le mot de passe du magasin de certificats contenant le certificat client utilisé par le client externe pour s'authentifier auprès de l'API externe ;
 	- trusstore : ``keyPath`` et ``keyPassword`` permettent d'indiquer le chemin et le mot de passe du magasin de certificats contenant les certificats des autorités de certification requise (i.e. AC des certificats client et serveur).
 
+Le client externe peut necessiter un header pour l'authentification "X-Personal-Certificate" pour certaines resources sensibles.
+Ces resources sont listés dans la collectionn certificate de la base  de donnee identity
