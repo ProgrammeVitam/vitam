@@ -1,0 +1,10 @@
+{
+	   "fileName": "{{ sip_name }}",
+{% if parallel==true %}
+	   "delay": 5000,
+{% else %}
+	   "parallelIngest": 1,
+{% endif %}
+	   "numberOfIngest": {{ ingest_number }},
+     "numberOfRetry": {{ nb_retries }}
+}
