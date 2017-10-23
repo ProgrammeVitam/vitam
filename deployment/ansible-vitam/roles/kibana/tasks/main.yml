@@ -21,7 +21,7 @@
   replace:
     dest: /etc/kibana/kibana.yml
     regexp: '^#elasticsearch\.url:.*$'
-    replace: "elasticsearch.url: \"http://{{elasticsearch_host}}:{{elasticsearch_port}}\""
+    replace: "elasticsearch.url: \"http://{{ elasticsearch_host }}:{{ elasticsearch_port }}\""
   notify:
     - restart kibana
 
@@ -29,7 +29,7 @@
   replace:
     dest: /etc/kibana/kibana.yml
     regexp: '^#server.basePath:.*$'
-    replace: "server.basePath: \"/kibana_{{groupe}}\""
+    replace: "server.basePath: \"/{{ composant.baseuri }}\""
   when: groups['reverse']|length > 0
   notify:
     - restart kibana
@@ -38,7 +38,7 @@
   replace:
     dest: /etc/kibana/kibana.yml
     regexp: '^#server\.host:.*$'
-    replace: "server.host: \"{{ip_service}}\""
+    replace: "server.host: \"{{ ip_service }}\""
   notify:
     - restart kibana
 

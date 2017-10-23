@@ -9,7 +9,7 @@
   tags: load_kibana_data
   run_once: true
   uri:
-    url: 'http://{{elasticsearch_data_host}}:{{ elasticsearch.elasticsearch_data.http_port }}/.kibana/{{ item.split(".")[0] }}*'
+    url: '{{ elasticsearch.data|client_url }}.kibana/{{ item.split(".")[0] }}*'
     method: PUT
     body: "{{ lookup('file', '{{ role_path }}/files/kibana-data-configuration/{{ item }}') }}"
     body_format: json
@@ -23,7 +23,7 @@
   run_once: true
   tags: load_kibana_data
   uri:
-    url: 'http://{{elasticsearch_data_host}}:{{ elasticsearch.elasticsearch_data.http_port }}/.kibana/{{ item.split(".")[0] }}'
+    url: '{{ elasticsearch.data|client_url }}.kibana/{{ item.split(".")[0] }}'
     method: PUT
     body: "{{ lookup('file', '{{ role_path }}/files/kibana-data-configuration/{{ item }}') }}"
     body_format: json
@@ -40,7 +40,7 @@
   tags: load_kibana_data
   run_once: true
   uri:
-    url: 'http://{{elasticsearch_data_host}}:{{ elasticsearch.elasticsearch_data.http_port }}/.kibana/config/4.6.1'
+    url: '{{ elasticsearch.data|client_url }}.kibana/config/4.6.1'
     method: PUT
     body: '{"defaultIndex": "logbookoperation_*", "buildNum": 10229}'
     body_format: json

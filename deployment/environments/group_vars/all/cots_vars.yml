@@ -1,14 +1,22 @@
 ---
 
 elasticsearch:
-    elasticsearch_log:
+    log:
         host: "elasticsearch-log.service.{{ consul_domain }}"
-        http_port: "9201"
-        tcp_port: "9301"
-    elasticsearch_data:
+        port_http: "9201"
+        port_tcp: "9301"
+        groupe: "log"
+        baseuri: "elasticsearch-log"
+        cluster_name: "elasticsearch-log"
+        https_enabled: false
+    data:
         host: "elasticsearch-data.service.{{ consul_domain }}"
-        http_port: "9200"
-        tcp_port: "9300"
+        port_http: "9200"
+        port_tcp: "9300"
+        groupe: "data"
+        baseuri: "elasticsearch-data"
+        cluster_name: "elasticsearch-data"
+        https_enabled: false
 
 mongodb:
     mongos_port: 27017
@@ -23,12 +31,18 @@ logstash:
     rest_port: 20514
 
 kibana:
-    # FIXME : changing port doesn't work, yet (not taken into account in kibana configuration)
-    log_port: 5601
+    log:
+        baseuri: "kibana_log"
+        groupe: "log"
+        port: 5601
     # KWA FIXME : changing port doesn't work, yet (not taken into account in kibana configuration)
-    data_port: 5601
+    data:
+        baseuri: "kibana_data"
+        groupe: "data"
+        port: 5601
 
 cerebro:
+    baseuri: "cerebro"
     port: 9000
 
 siegfried:
@@ -36,3 +50,6 @@ siegfried:
 
 clamav:
     port: 3310
+
+mongo_express:
+    baseuri: "mongo-express"

@@ -81,7 +81,7 @@
     <!--                     </Item>								-->
     <!--                 </Array>								-->
     <!--             </Arg>									-->
-    <!--             <Set name="port">{{vitam_struct.port}}</Set>					-->
+    <!--             <Set name="port">{{ vitam_struct.port_http }}</Set>					-->
     <!--             <Set name="idleTimeout">							-->
     <!--                 <Property name="http.timeout" default="{{ vitam_defaults.services.port_http_timeout }}"/>	-->
     <!--             </Set>									-->
@@ -143,10 +143,10 @@
         </Call>
     </New>
         <New id="sslContextFactory" class="org.eclipse.jetty.util.ssl.SslContextFactory">
-        <Set name="KeyStorePath">{{vitam_folder_conf}}/keystore_{{vitam_component}}.jks</Set>
+        <Set name="KeyStorePath">{{ vitam_folder_conf }}/keystore_{{ vitam_struct.vitam_component }}.jks</Set>
         <Set name="KeyStorePassword">{{password_keystore}}</Set>
         <Set name="KeyManagerPassword">{{password_manager_keystore}}</Set>
-        <Set name="TrustStorePath">{{vitam_folder_conf}}/truststore_{{vitam_component}}.jks</Set>
+        <Set name="TrustStorePath">{{ vitam_folder_conf }}/truststore_{{ vitam_struct.vitam_component }}.jks</Set>
         <Set name="TrustStorePassword">{{password_truststore}}</Set>
         <Set name="TrustStoreType">JKS</Set>
         <Set name="NeedClientAuth">false</Set>
@@ -225,8 +225,8 @@
                 </Item>
             </Array>
         </Arg>
-        <Set name="host">{{ip_service}}</Set>
-        <Set name="port">{{vitam_struct.port}}</Set>
+        <Set name="host">{{ ip_service }}</Set>
+        <Set name="port">{{ vitam_struct.port_http }}</Set>
 	<Set name="name">business</Set>
         <Set name="idleTimeout">
             <Property name="http.timeout" default="{{ vitam_defaults.services.port_http_timeout }}"/>
@@ -251,8 +251,8 @@
                 </Item>
             </Array>
         </Arg>
-        <Set name="host">{{ip_admin}}</Set>
-        <Set name="port">{{vitam_struct.port_admin}}</Set>
+        <Set name="host">{{ ip_admin }}</Set>
+        <Set name="port">{{ vitam_struct.port_admin }}</Set>
 	<Set name="name">admin</Set>
         <Set name="idleTimeout">
             <Property name="http.timeout" default="{{ vitam_defaults.services.port_http_timeout }}"/>

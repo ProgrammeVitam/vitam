@@ -153,7 +153,7 @@ output:
     # Scheme and port can be left out and will be set to the default (http and 9200)
     # In case you specify and additional path, the scheme is required: http://localhost:9200/path
     # IPv6 addresses should always be defined as: https://[2001:db8::1]:9200
-    # hosts: ["http://{{elasticsearch.elasticsearch_log.host}}:{{ elasticsearch.elasticsearch_log.http_port }}"]
+    # hosts: ["http://{{elasticsearch.log.host}}:{{ elasticsearch.log.http_port }}"]
     # To be sure we point the admin service IP
     hosts: [{% for item in groups['hosts-elasticsearch-log'] %}"hostvars[item]['ip_admin']:elasticsearch_log_http_port"{% if not loop.last %},{% endif %}{% endfor %}]
 

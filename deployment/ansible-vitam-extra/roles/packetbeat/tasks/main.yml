@@ -33,7 +33,7 @@
 - name: create packetbeat index
   when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
   uri:
-    url: 'http://{{elasticsearch.elasticsearch_log.host}}:{{ elasticsearch.elasticsearch_log.http_port }}/_template/packetbeat'
+    url: '{{elasticsearch.log|client_url }}_template/packetbeat'
     method: PUT
     body: "{{ lookup('file', '/tmp/packetbeat/packetbeat.template.json') }}"
     body_format: json
@@ -47,7 +47,7 @@
 - name: load kibana dashboards to .kibana elasticsearch index
   when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
   uri:
-    url: 'http://{{elasticsearch.elasticsearch_log.host}}:{{ elasticsearch.elasticsearch_log.http_port }}/.kibana/{{item.split(".")[0] }}'
+    url: '{{elasticsearch.log|client_url }}.kibana/{{item.split(".")[0] }}'
     method: PUT
     body: "{{ lookup('file', '{{ item }}') }}"
     body_format: json

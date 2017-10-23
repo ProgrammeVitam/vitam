@@ -3,9 +3,9 @@
 {
     "id" : "{{ item }}",
     {% if vitam.storageofferdefault.https_enabled==true %}
-    "baseUrl" : "https://{{hostvars[item]['ip_service']}}:{{vitam.storageofferdefault.port_https}}",
+    "baseUrl" : "https://{{hostvars[item]['ip_service']}}:{{ vitam.storageofferdefault.port_https }}",
     {% else %}
-    "baseUrl" : "http://{{hostvars[item]['ip_service']}}:{{vitam.storageofferdefault.port}}",
+    "baseUrl" : "http://{{hostvars[item]['ip_service']}}:{{ vitam.storageofferdefault.port_http }}",
     {% endif %}
     "parameters" : {
         {% if vitam.storageofferdefault.https_enabled==true %}

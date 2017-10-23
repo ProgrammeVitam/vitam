@@ -28,12 +28,8 @@
   roles:
     - vitam
   vars:
-    vitam_component: library
     vitam_struct: "{{ vitam.library }}"
-    java_args: /vitam/conf/library/library.conf
-    port_http: "{{vitam_library_port}}"
-    port_http_admin: "{{vitam_library_port_admin}}"
-    secret_platform: "false"
+
 
 - include: ihm-recette.yml
 

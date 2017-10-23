@@ -16,11 +16,11 @@ workspaceUrl: {{vitam.workspace | client_url}}
 processingUrl: {{vitam.processing | client_url}}
 
 # ElasticSearch
-clusterName: {{cluster_name}}
+clusterName: {{ vitam_struct.cluster_name }}
 elasticsearchNodes:
 {% for host in groups['hosts-elasticsearch-data'] %}
 - hostName: {{hostvars[host]['ip_service']}}
-  tcpPort: {{ elasticsearch.elasticsearch_data.tcp_port }}
+  tcpPort: {{ elasticsearch.data.port_tcp }}
 {% endfor %}
 
 

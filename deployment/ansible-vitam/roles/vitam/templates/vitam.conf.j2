@@ -1,5 +1,5 @@
 secret : {{plateforme_secret}}
-filterActivation : {{secret_platform}}
+filterActivation : {{ vitam_struct.secret_platform }}
 {% if inventory_hostname in groups['hosts-processing'] %}
 distributeurBatchSize: 800
 workerBulkSize: 16

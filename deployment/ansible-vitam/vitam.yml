@@ -53,9 +53,8 @@
     - elasticsearch-cluster
     - curator
   vars:
-    port_http: "{{elasticsearch.elasticsearch_log.http_port}}"
-    port_tcp: "{{elasticsearch.elasticsearch_log.tcp_port}}"
-    groupe: log
+    composant: "{{ elasticsearch.log }}"
+
 
 ### LOG SERVER INSTALLATION ###
 - hosts: hosts-logstash
@@ -67,10 +66,11 @@
     - kibana
     - kibana_log_dashboards
   vars:
-    groupe: log
-    elasticsearch_host: "{{elasticsearch.elasticsearch_log.host}}"
-    elasticsearch_port: "{{elasticsearch.elasticsearch_log.http_port}}"
-    kibana_port: "{{kibana.log_port}}"
+    composant: "{{ kibana.log }}"
+    # groupe: log
+    elasticsearch_host: "{{ elasticsearch.log.host }}"
+    elasticsearch_port: "{{ elasticsearch.log.port_http }}"
+    # kibana_port: "{{ kibana.log.port }}"
 
 
 ### RSYSLOG INSTALLATION ###
@@ -85,9 +85,7 @@
   roles:
     - elasticsearch-cluster
   vars:
-    port_http: "{{elasticsearch.elasticsearch_data.http_port}}"
-    port_tcp: "{{elasticsearch.elasticsearch_data.tcp_port}}"
-    groupe: data
+    composant: "{{ elasticsearch.data }}"
 
 - hosts: hosts-cerebro
   roles:
@@ -97,8 +95,14 @@
 # OMA/ desactivated as long as ES 5 is not on data cluster
 - hosts: hosts-kibana-data
   roles:
-    - {role: kibana, groupe: data, elasticsearch_host: "{{elasticsearch_data_host}}", elasticsearch_port: "{{ elasticsearch.elasticsearch_data.http_port }}", kibana_port: "{{kibana_data_port}}"}
+    - kibana
     - kibana_data_dashboards
+  vars:
+    composant: "{{ kibana.data }}"
+    #groupe: data
+    elasticsearch_host: "{{ elasticsearch.data.host }}"
+    elasticsearch_port: "{{ elasticsearch.data.port_http }}"
+    #kibana_port: "{{ kibana.kibana_data.port }}"    
 
 ### MONGO DB INSTALLATION ###
 
@@ -143,9 +147,7 @@
   roles:
     - vitam
   vars:
-    vitam_component: offer
     vitam_struct: "{{ vitam.storageofferdefault }}"
-    secret_platform: "true"
     password_keystore: "{{keystores.server.offer}}"
     password_manager_keystore: "{{keystores.server.offer}}"
     password_truststore: "{{truststores.client_storage}}"
@@ -159,9 +161,7 @@
     - vitam
     - storage
   vars:
-    vitam_component: storage
     vitam_struct: "{{ vitam.storageengine }}"
-    secret_platform: "true"
     vitam_certificate_client_type: "storage"
 
 
@@ -170,11 +170,7 @@
   roles:
     - vitam
   vars:
-    vitam_component: metadata
     vitam_struct: "{{ vitam.metadata }}"
-    cluster_name: elasticsearch-data
-    secret_platform: "true"
-
 
 
 - hosts: hosts-logbook
@@ -183,23 +179,14 @@
     - logbook_secure_operations
     - logbook_secure_lifecycles
   vars:
-    vitam_component: logbook
     vitam_struct: "{{ vitam.logbook }}"
     vitam_timestamp_usage: secure-logbook
-    cluster_name: elasticsearch-data
-    secret_platform: "true"
-
-
 
 - hosts: hosts-functional-administration
   roles:
     - vitam
   vars:
-    vitam_component: functional-administration
     vitam_struct: "{{ vitam.functional_administration }}"
-    secret_platform: "true"
-    cluster_name: elasticsearch-data
-
 
 
 - hosts: hosts-security-internal
@@ -207,9 +194,7 @@
     - vitam
     - init_contexts_and_security_profiles
   vars:
-    vitam_component: security-internal
     vitam_struct: "{{ vitam.security_internal }}"
-    secret_platform: "true"
 
 
 
@@ -217,9 +202,7 @@
   roles:
     - vitam
   vars:
-    vitam_component: workspace
     vitam_struct: "{{ vitam.workspace }}"
-    secret_platform: "true"
 
 
 
@@ -228,9 +211,7 @@
     - vitam
     - processing_create_workflows
   vars:
-    vitam_component: processing
     vitam_struct: "{{ vitam.processing }}"
-    secret_platform: "true"
 
 
 
@@ -239,10 +220,8 @@
     - siegfried
     - vitam
   vars:
-    vitam_component: worker
     vitam_struct: "{{ vitam.worker }}"
     vitam_timestamp_usage: secure-logbook
-    secret_platform: "true"
 
 
 
@@ -250,9 +229,7 @@
   roles:
     - vitam
   vars:
-    vitam_component: access-internal
     vitam_struct: "{{ vitam.accessinternal }}"
-    secret_platform: "true"
 
 
 
@@ -260,9 +237,7 @@
   roles:
     - vitam
   vars:
-    vitam_component: access-external
     vitam_struct: "{{ vitam.accessexternal }}"
-    secret_platform: "false"
     password_keystore: "{{keystores.server.access_external}}"
     password_manager_keystore: "{{keystores.server.access_external}}"
     password_truststore: "{{truststores.client_external}}"
@@ -270,15 +245,12 @@
     vitam_certificate_client_type: "external"
 
 
-
 - hosts: hosts-ingest-internal
   roles:
     - vitam
   vars:
-    vitam_component: ingest-internal
     vitam_struct: "{{ vitam.ingestinternal }}"
-    secret_platform: "true"
-
+    
 
 
 - hosts: hosts-ingest-external
@@ -287,9 +259,7 @@
     - vitam
     - {role: clamav, when: vitam_defaults.installation_clamav=="true"}
   vars:
-    vitam_component: ingest-external
     vitam_struct: "{{ vitam.ingestexternal }}"
-    secret_platform: "false"
     password_keystore: "{{keystores.server.ingest_external}}"
     password_manager_keystore: "{{keystores.server.ingest_external}}"
     password_truststore: "{{truststores.client_external}}"
@@ -304,7 +274,5 @@
     - ihm-demo-front
     - ihm-demo-front-v2
   vars:
-    vitam_component: ihm-demo
     vitam_struct: "{{ vitam.ihm_demo }}"
-    secret_platform: "false"
     vitam_certificate_client_type: "external"

@@ -1,31 +1,31 @@
 {
   "service": {
-    "name": "elasticsearch-{{ groupe }}",
-    {% if groupe=='log' %}
-    "address": "{{ip_admin}}",
+    "name": "{{ composant.cluster_name }}",
+    {% if composant.groupe=='log' %}
+    "address": "{{ ip_admin }}",
     {% else %}
-    "address": "{{ip_service}}",
+    "address": "{{ ip_service }}",
     {% endif %}
-    "port": {{ port_http }},
+    "port": {{ composant.port_http }},
     "enableTagOverride": false,
     "checks": [
       {
         "id": "check-elasticsearch-http",
-        "notes": "Statut HTTP elasticsearch-{{groupe}}",
-        {% if groupe=='log' %}
-        "http": "http://{{ ip_admin }}:{{ port_http }}",
+        "notes": "Statut HTTP {{ composant.cluster_name }}",
+        {% if composant.groupe=='log' %}
+        "http": "http://{{ ip_admin }}:{{ composant.port_http }}",
         {% else %}
-        "http": "http://{{ ip_service }}:{{ port_http }}",
+        "http": "http://{{ ip_service }}:{{ composant.port_http }}",
         {% endif %}
         "interval": "2s"
       },
       {
         "id": "check-elasticsearch-tcp",
-        "notes": "Statut TCP elasticsearch-{{groupe}}",
-        {% if groupe=='log' %}
-        "tcp": "{{ ip_admin }}:{{ port_tcp }}",
+        "notes": "Statut TCP {{ composant.cluster_name }}",
+        {% if composant.groupe=='log' %}
+        "tcp": "{{ ip_admin }}:{{ composant.port_tcp }}",
         {% else %}
-        "tcp": "{{ ip_service }}:{{ port_tcp }}",
+        "tcp": "{{ ip_service }}:{{ composant.port_tcp }}",
         {% endif %}
         "interval": "2s"
       }

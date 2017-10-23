@@ -1,2 +1,2 @@
 ---
-kibana_service_name: kibana-{{groupe}}
+kibana_service_name: kibana-{{ composant.groupe }}

@@ -8,7 +8,7 @@ def client_url(vitam_struct):
     if vitam_struct["https_enabled"]:
         return "https://%s:%s/" % (vitam_struct["host"], vitam_struct["port_https"])
     else:
-        return "http://%s:%s/" % (vitam_struct["host"], vitam_struct["port"])
+        return "http://%s:%s/" % (vitam_struct["host"], vitam_struct["port_http"])
 
 
 class FilterModule(object):

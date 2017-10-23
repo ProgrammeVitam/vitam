@@ -6,16 +6,16 @@
 #ES_HOME=/usr/share/elasticsearch
 
 # Elasticsearch configuration directory
-CONF_DIR={{vitam_defaults.folder.root_path}}/conf/elasticsearch-{{groupe}}
+CONF_DIR={{ vitam_defaults.folder.root_path }}/conf/{{ composant.cluster_name }}
 
 # Elasticsearch data directory
-#DATA_DIR={{vitam_defaults.folder.root_path}}/data/elasticsearch-{{groupe}}
+#DATA_DIR={{ vitam_defaults.folder.root_path }}/data/{{ composant.cluster_name }}
 
 # Elasticsearch logs directory
-#LOG_DIR={{vitam_defaults.folder.root_path}}/log/elasticsearch-{{groupe}}
+#LOG_DIR={{ vitam_defaults.folder.root_path }}/log/{{ composant.cluster_name }}
 
 # Elasticsearch PID directory
-#PID_DIR=/var/run/elasticsearch-{{groupe}}
+#PID_DIR=/var/run/{{ composant.cluster_name }}
 
 # Heap size defaults to 256m min, 1g max
 # Set ES_HEAP_SIZE to 50% of available RAM, but no more than 31g
@@ -28,13 +28,13 @@ CONF_DIR={{vitam_defaults.folder.root_path}}/conf/elasticsearch-{{groupe}}
 #ES_DIRECT_SIZE=
 
 # Additional Java OPTS
-ES_JAVA_OPTS="-Xms{{elasticsearch_memory}} -Xmx{{elasticsearch_memory}} -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+PrintGCDetails -XX:+PrintGCApplicationStoppedTime"
+ES_JAVA_OPTS="-Xms{{ elasticsearch_memory }} -Xmx{{ elasticsearch_memory }} -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+PrintGCDetails -XX:+PrintGCApplicationStoppedTime"
 
 # Configure restart on package upgrade (true, every other setting will lead to not restarting)
 #RESTART_ON_UPGRADE=true
 
 # Path to the GC log file
-#ES_GC_LOG_FILE={{vitam_defaults.folder.root_path}}/log/elasticsearch-{{groupe}}/gc.log
+#ES_GC_LOG_FILE={{ vitam_defaults.folder.root_path }}/log/{{ composant.cluster_name }}/gc.log
 
 ################################
 # Elasticsearch service

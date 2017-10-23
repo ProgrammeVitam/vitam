@@ -5,7 +5,7 @@ http.address= {{ ip_service }}
 secret = "{{ cerebro_secret_key }}"
 
 # Application base path
-basePath = "/cerebro/"
+basePath = "/{{ cerebro.baseuri }}/"
 
 # Defaults to RUNNING_PID at the root directory of the app.
 # To avoid creating a PID file set this value to /dev/null

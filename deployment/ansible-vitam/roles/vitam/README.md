@@ -14,12 +14,12 @@ Variables
 Les variables attendues pour ce rôle sont :
 * Variables obligatoires
 
-  + {{ vitam_component }} : nom du composant à installer
+  + {{ vitam_struct.vitam_component }} : nom du composant à installer, issu du dictionnaire
 
 * Variables optionnelles : permet de surcharger une valeur par défaut (valeur par défaut)
   + {{ vitam_defaults.users.vitam }} : propriétaire unix des fichiers déployés (valeur par défaut : vitam)
   + {{ vitam_defaults.users.group }} : groupe unix des fichiers déployés (valeur par défaut : vitam)
-  + {{ package_name }} : nom du fichier rpm à déployer (valeur par défaut : vitam-{{ vitam_component }})
+  + {{ package_name }} : nom du fichier rpm à déployer (valeur par défaut : vitam-{{ vitam_struct.vitam_component }})
   + {{ memory_opts }} : paramétres mémoire de la JVM (valeur par défaut : -Xms512m -Xmx512m)
   + {{ gc_opts }} : paramétrage du garbage collector (valeur par défaut : "" )
   + {{ java_opts }} : autres variables à passer à la JVM (valeur par défaut : "")
