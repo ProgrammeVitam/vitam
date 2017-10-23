@@ -30,6 +30,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
@@ -47,13 +48,13 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.dsl.schema.Dsl;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
@@ -77,13 +78,11 @@ import fr.gouv.vitam.common.security.rest.EndpointInfo;
 import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
 import fr.gouv.vitam.common.security.rest.Secured;
 import fr.gouv.vitam.common.security.rest.Unsecured;
-import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-
 
 /**
  * AccessResourceImpl implements AccessResource
@@ -242,7 +241,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * get units list by query based on identifier
      *
      * @param queryJson query as String
-     * @param idUnit    the id of archive unit to get
+     * @param idUnit the id of archive unit to get
      * @return Archive Unit
      */
     @GET
@@ -296,7 +295,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * update archive units by Id with Json query
      *
      * @param queryJson the update query (null not allowed)
-     * @param idUnit    units identifier
+     * @param idUnit units identifier
      * @return a archive unit result list
      */
     @PUT
@@ -376,8 +375,8 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * Retrieve Object group list by query based on identifier of the unit
      *
-     * @param headers   the http header defined parameters of request
-     * @param unitId    the id of archive unit
+     * @param headers the http header defined parameters of request
+     * @param unitId the id of archive unit
      * @param queryJson the query to get object
      * @return Response
      */
@@ -434,8 +433,8 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
      * @param headers the http header defined parameters of request
-     * @param unitId  the id of archive unit
-     * @param query   the query to get object
+     * @param unitId the id of archive unit
+     * @param query the query to get object
      * @return response
      */
     @GET
@@ -534,7 +533,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
 
         final String xQualifier = multipleMap.get(GlobalDataRest.X_QUALIFIER).get(0);
         final String xVersion = multipleMap.get(GlobalDataRest.X_VERSION).get(0);
-        AsyncInputStreamHelper helper;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(query);
             HttpHeaderHelper.checkVitamHeadersMap(multipleMap);

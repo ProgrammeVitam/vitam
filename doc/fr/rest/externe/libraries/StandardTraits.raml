@@ -187,6 +187,10 @@ traits:
       417:
         description: Expectation Failed, used in Validation when the required validation (X-Valid) is in error
         headers: *standardheader
+  StandardHeader500:
+    responses:
+      500:
+        description: Internal Server Error, the server encountered an unexpected condition which prevented it from fulfilling the request
   StandardHeader503:
     responses:
       503:

@@ -36,6 +36,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.dsl.schema.meta.Schema;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Dsl validator for DSL queries.
@@ -49,6 +51,8 @@ import fr.gouv.vitam.common.dsl.schema.meta.Schema;
  * </ul>
  */
 public class DslValidator {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DslValidator.class);
 
     /**
      * List of schemas
@@ -65,6 +69,7 @@ public class DslValidator {
         // FIXME find a way to use JsonHandler's mapper if possible
         ObjectMapper objectMapper = new ObjectMapper();
         for (DslSchema dslSchema : DslSchema.values()) {
+            LOGGER.debug("Loading schema {} from {}", dslSchema.name(), dslSchema.getFilename());
             try (final InputStream schemaSource = PropertiesUtils.getResourceAsStream(dslSchema.getFilename())) {
                 final Schema schema = Schema.load(objectMapper, schemaSource);
                 schemas.put(dslSchema, schema);

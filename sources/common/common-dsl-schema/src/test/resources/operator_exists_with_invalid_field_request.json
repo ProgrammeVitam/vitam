@@ -2,13 +2,13 @@
   "$roots": [],
   "$query": [
     {
-      "exists": {
+      "$exists": {
         "Title": "assemblée"
       },
       "$depth": 20
     },
     {
-      "exists": {
+      "$exists": {
       },
       "$depth": 20
     }
