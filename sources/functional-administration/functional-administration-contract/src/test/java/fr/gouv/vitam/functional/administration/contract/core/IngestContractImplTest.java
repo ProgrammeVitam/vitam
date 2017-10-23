@@ -354,7 +354,7 @@ public class IngestContractImplTest {
         assertThat(id1).isNotNull();
 
 
-        final IngestContractModel one = ingestContractService.findOne(id1);
+        final IngestContractModel one = ingestContractService.findByIdentifier(id1);
 
         assertThat(one).isNotNull();
 
@@ -396,7 +396,7 @@ public class IngestContractImplTest {
 
         VitamThreadUtils.getVitamSession().setTenantId(2);
 
-        final IngestContractModel one = ingestContractService.findOne(id1);
+        final IngestContractModel one = ingestContractService.findByIdentifier(id1);
 
         assertThat(one).isNull();
 
@@ -424,7 +424,7 @@ public class IngestContractImplTest {
         assertThat(id1).isNotNull();
 
 
-        final IngestContractModel one = ingestContractService.findOne(id1);
+        final IngestContractModel one = ingestContractService.findByIdentifier(id1);
 
         assertThat(one).isNotNull();
 
@@ -455,7 +455,7 @@ public class IngestContractImplTest {
         assertThat(id1).isNotNull();
 
 
-        final IngestContractModel one = ingestContractService.findOne(id1);
+        final IngestContractModel one = ingestContractService.findByIdentifier(id1);
 
         assertThat(one).isNotNull();
 

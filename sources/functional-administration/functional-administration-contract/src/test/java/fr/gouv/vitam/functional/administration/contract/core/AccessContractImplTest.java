@@ -26,6 +26,20 @@
  */
 package fr.gouv.vitam.functional.administration.contract.core;
 
+import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.AGENCIES;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -81,20 +95,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.AGENCIES;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 
 public class AccessContractImplTest {
@@ -536,7 +536,7 @@ public class AccessContractImplTest {
         assertThat(id1).isNotNull();
 
 
-        final AccessContractModel one = accessContractService.findOne(id1);
+        final AccessContractModel one = accessContractService.findByIdentifier(id1);
 
         assertThat(one).isNotNull();
 
@@ -578,7 +578,7 @@ public class AccessContractImplTest {
 
         VitamThreadUtils.getVitamSession().setTenantId(2);
 
-        final AccessContractModel one = accessContractService.findOne(id1);
+        final AccessContractModel one = accessContractService.findByIdentifier(id1);
 
         assertThat(one).isNull();
 
@@ -606,7 +606,7 @@ public class AccessContractImplTest {
         assertThat(id1).isNotNull();
 
 
-        final AccessContractModel one = accessContractService.findOne(id1);
+        final AccessContractModel one = accessContractService.findByIdentifier(id1);
 
         assertThat(one).isNotNull();
 

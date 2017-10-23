@@ -80,12 +80,12 @@ public interface ContractService<T extends AbstractContractModel> extends VitamA
 
 
     /**
-     * Find contract by id
+     * Find contract by identifier
      *
-     * @param id
+     * @param identifier
      * @return T
      */
-    public T findOne(String id) throws ReferentialException, InvalidParseOperationException;
+    public T findByIdentifier(String identifier) throws ReferentialException, InvalidParseOperationException;
 
 
     /**

@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -38,17 +39,16 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import org.apache.commons.io.IOUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
@@ -69,6 +69,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.ProfileFormat;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.model.administration.ProfileStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
@@ -98,6 +99,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.io.IOUtils;
 
 /**
  * The implementation of the profile servie This implementation manage creation, update, ... profiles with any given
@@ -112,8 +114,18 @@ public class ProfileServiceImpl implements ProfileService {
 
     private static final String PROFILE_IS_MANDATORY_PATAMETER = "profiles parameter is mandatory";
     private static final String PROFILES_IMPORT_EVENT = "STP_IMPORT_PROFILE_JSON";
+    private static final String PROFILES_UPATE_EVENT = "STP_UPDATE_PROFILE_JSON";
     private static final String PROFILES_FILE_IMPORT_EVENT = "STP_IMPORT_PROFILE_FILE";
+    private static final String PROFILE_NOT_FOUND = "Update a not found profile";
     private static final String OP_PROFILE_STORAGE = "OP_PROFILE_STORAGE";
+    private static final String UPDATED_DIFFS = "updatedDiffs";
+
+    private static final String THE_PROFILE_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT =
+        "The profile status must be ACTIVE or INACTIVE but not ";
+    public static final String PROFILE_FORMAT_SHOULD_BE_XSD_OR_RNG = "Profile Format should be XSD or RNG : ";
+    public static final String PROFILE_IDENTIFIER_ALREADY_EXISTS_IN_DATABASE =
+        "Profile identifier already exists in database ";
+    public static final String PROFILE_IDENTIFIER_MUST_BE_STRING = "Profile identifier shoud be a string ";
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logBookclient;
     private final WorkspaceClientFactory workspaceClientFactory;
@@ -122,10 +134,11 @@ public class ProfileServiceImpl implements ProfileService {
     private final ProfileManager manager;
     private static final String _TENANT = "_tenant";
     private static final String _ID = "_id";
+
     /**
      * Constructor
      *
-     * @param mongoAccess MongoDB client
+     * @param mongoAccess            MongoDB client
      * @param workspaceClientFactory
      * @param vitamCounterService
      */
@@ -155,7 +168,7 @@ public class ProfileServiceImpl implements ProfileService {
 
         final Set<String> profileIdentifiers = new HashSet<>();
         final Set<String> profileNames = new HashSet<>();
-        ArrayNode profilesToPersist = null;
+        ArrayNode profilesToPersist;
 
         final VitamError error =
             getVitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(), "Global create profile error").setHttpCode(
@@ -398,15 +411,15 @@ public class ProfileServiceImpl implements ProfileService {
                     UpdateActionHelper.set("LastUpdate", LocalDateUtil.now().toString()));
                 updateParserActive.parse(update.getFinalUpdate());
                 final JsonNode queryDsl = updateParserActive.getRequest().getFinalUpdate();
-                updateProfiles(queryDsl);
+
+                mongoAccess.updateData(queryDsl, FunctionalAdminCollections.PROFILE).close();
 
 
-
-            } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
+            } catch (ReferentialException | StorageAlreadyExistsClientException | StorageNotFoundClientException |
                 InvalidCreateOperationException |
                 StorageServerClientException | ContentAddressableStorageNotFoundException e) {
                 final String err =
-                    new StringBuilder("Import profiles storage error : ").append(e.getMessage()).toString();
+                    new StringBuilder("Import profiles error : ").append(e.getMessage()).toString();
                 LOGGER.error(err, e);
                 manager.logFatalError(OP_PROFILE_STORAGE, profileMetadata.getId(), err);
                 return getVitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem(), err).setHttpCode(
@@ -490,15 +503,136 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public RequestResponse<ProfileModel> updateProfiles(JsonNode jsonNode) throws VitamException {
-        try {
-            mongoAccess.updateData(jsonNode, FunctionalAdminCollections.PROFILE).close();
-        } catch (final ReferentialException e) {
-            final String err = new StringBuilder("Update profile error : ").append(e.getMessage()).toString();
-            return getVitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem(), err);
+    public RequestResponse<ProfileModel> updateProfile(String identifier, JsonNode jsonDsl) throws VitamException {
+
+        final ProfileModel profileModel = findByIdentifier(identifier);
+        return updateProfile(profileModel, jsonDsl);
+    }
+
+
+    @Override
+    public RequestResponse<ProfileModel> updateProfile(ProfileModel profileModel, JsonNode jsonDsl)
+        throws VitamException {
+
+        if (profileModel == null) {
+            return getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
+                PROFILE_NOT_FOUND + profileModel.getIdentifier())
+                .setHttpCode(
+                    Response.Status.BAD_REQUEST.getStatusCode());
         }
 
+        Map<String, List<String>> updateDiffs;
+        manager.logStarted(PROFILES_UPATE_EVENT, profileModel.getId());
+
+        if (jsonDsl == null || !jsonDsl.isObject()) {
+            manager.logValidationError(PROFILES_UPATE_EVENT, profileModel.getId(),
+                "Update query dsl must be an object and not null");
+            return getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
+                "Update query dsl must be an object and not null : " + profileModel.getIdentifier())
+                .setHttpCode(
+                    Response.Status.BAD_REQUEST.getStatusCode());
+        }
+
+        final VitamError error = getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
+            "Update profile error : " + profileModel.getIdentifier())
+            .setHttpCode(
+                Response.Status.BAD_REQUEST.getStatusCode());
+
+        final JsonNode actionNode = jsonDsl.get(BuilderToken.GLOBAL.ACTION.exactToken());
+
+        for (final JsonNode fieldToSet : actionNode) {
+            final JsonNode fieldName = fieldToSet.get(BuilderToken.UPDATEACTION.SET.exactToken());
+            if (fieldName != null) {
+                final Iterator<String> it = fieldName.fieldNames();
+                while (it.hasNext()) {
+                    final String field = it.next();
+                    final JsonNode value = fieldName.findValue(field);
+                    validateUpdateAction(profileModel, error, field, value);
+                }
+            }
+        }
+
+        if (error.getErrors() != null && error.getErrors().size() > 0) {
+            final String errorsDetails =
+                error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
+            manager.logValidationError(PROFILES_UPATE_EVENT, profileModel.getId(), errorsDetails);
+
+            return error;
+        }
+
+
+        try (DbRequestResult result = mongoAccess.updateData(jsonDsl, FunctionalAdminCollections.PROFILE)) {
+            updateDiffs = result.getDiffs();
+        } catch (final ReferentialException e) {
+            final String err = new StringBuilder("Update profile error : ").append(e.getMessage()).toString();
+            manager.logFatalError(PROFILES_UPATE_EVENT, profileModel.getId(), err);
+            error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
+                .setDescription(err)
+                .setHttpCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+
+            return error;
+        }
+        List<String> diff = updateDiffs.get(profileModel.getId());
+        String wellFormedJson = null;
+        try {
+            final ObjectNode object = JsonHandler.createObjectNode();
+            object.put(UPDATED_DIFFS, Joiner.on(" ").join(diff));
+            wellFormedJson = SanityChecker.sanitizeJson(object);
+        } catch (InvalidParseOperationException e) {
+            // Do nothing
+        }
+        manager.logSuccess(PROFILES_UPATE_EVENT, profileModel.getId(), wellFormedJson);
         return new RequestResponseOK().setHttpCode(Response.Status.OK.getStatusCode());
+    }
+
+    /**
+     * Validate dsl
+     *
+     * @param profileModel
+     * @param error
+     * @param field
+     * @param value
+     */
+    private void validateUpdateAction(ProfileModel profileModel, final VitamError error, final String field,
+        final JsonNode value) {
+        if (Profile.STATUS.equals(field)) {
+            if (!(ProfileStatus.ACTIVE.name().equals(value.asText()) || ProfileStatus.INACTIVE
+                .name().equals(value.asText()))) {
+                error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
+                    THE_PROFILE_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT + value.asText())
+                    .setHttpCode(
+                        Response.Status.BAD_REQUEST.getStatusCode()));
+            }
+        }
+
+        if (Profile.FORMAT.equals(field)) {
+            if (!(ProfileFormat.XSD.name().equals(value.asText()) || ProfileFormat.RNG
+                .name().equals(value.asText()))) {
+                error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
+                    PROFILE_FORMAT_SHOULD_BE_XSD_OR_RNG + value.asText())
+                    .setHttpCode(
+                        Response.Status.BAD_REQUEST.getStatusCode()));
+            }
+        }
+
+        if (ProfileModel.IDENTIFIER.equals(field)) {
+            if (!value.isTextual()) {
+                error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
+                    PROFILE_IDENTIFIER_MUST_BE_STRING + " : " + value.asText())
+                    .setHttpCode(
+                        Response.Status.BAD_REQUEST.getStatusCode()));
+
+            } else if (!profileModel.getIdentifier().equals(value.asText())) {
+                Optional<RejectionCause> validateIdentifier = manager.createCheckDuplicateInDatabaseValidator()
+                    .validate(new ProfileModel().setIdentifier(value.asText()));
+                if (validateIdentifier.isPresent()) {
+                    error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
+                        PROFILE_IDENTIFIER_ALREADY_EXISTS_IN_DATABASE + " : " + value.asText())
+                        .setHttpCode(
+                            Response.Status.BAD_REQUEST.getStatusCode()));
+                }
+            }
+        }
     }
 
     @Override
