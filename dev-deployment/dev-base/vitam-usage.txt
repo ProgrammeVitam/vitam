@@ -15,5 +15,7 @@
 * The command to stop VITAM  : vitam-stop
 * The command to restart VITAM  : vitam-restart
 * The command to launch ingest perf test : vitam-bench-ingest
-
+*
+* The command to use & authenticate with the mongo cli: vitam-mongo-cli
+* The command to use & authenticate on the local replica set with the mongo cli: vitam-mongo-cli-rs
 
