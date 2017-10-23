@@ -9,11 +9,7 @@ Securite
    *
 
 
-.. todo Intégrer (KWA : dans quelle mesure ?) l'étude ebios "cadre" qui aurait déjà été réalisée.
-
-
-.. Sera à compléter au fur et à mesure.
-
+.. TODO Intégrer (KWA : dans quelle mesure ?) l'étude ebios "cadre" qui aurait déjà été réalisée.
 
 .. Autres points à aborder :
 
