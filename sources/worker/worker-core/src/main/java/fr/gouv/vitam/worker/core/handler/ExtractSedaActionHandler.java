@@ -135,6 +135,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingManifestReferenceException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnauthorizeException;
+import fr.gouv.vitam.processing.common.exception.ProcessingUnitLinkingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitNotFoundException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -445,6 +446,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ArchiveUnitContainSpecialCharactersException e) {
             LOGGER.debug("ProcessingException: archive unit contains special characters.", e);
+            globalCompositeItemStatus.increment(StatusCode.KO);
+        } catch (final ProcessingUnitLinkingException e) {
+            LOGGER.debug("ProcessingException: Linking FILING_UNIT or HOLDING_UNIT to INGEST Unauthorized", e);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingException | WorkerspaceQueueException e) {
             LOGGER.debug("ProcessingException", e);
