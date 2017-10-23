@@ -270,7 +270,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
             try {
                 if (!isImportOperationInProgress(client)) {
                     initStpImportRulesLogbookOperation(eip, client);
-                    initCheckFileRulesLogbookOperation(CHECK_RULES, StatusCode.STARTED, eip, client);
                     /* To process import validate the file first */
                     validatedRules =
                         checkFile(new FileInputStream(file), errors, usedDeletedRulesForReport,
@@ -622,7 +621,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         List<FileRulesModel> fileRulesModelsToImport, GUID eipMaster, LogbookOperationsClient client)
         throws FileRulesException, LogbookClientServerException, StorageException, LogbookClientBadRequestException,
         LogbookClientAlreadyExistsException {
-        initCommitFileRulesLogbookOperation(COMMIT_RULES, StatusCode.STARTED, eipMaster, client);
         boolean secureRules = false;
         try {
             Integer sequence = vitamCounterService
@@ -1003,14 +1001,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient();
             StorageClient storageClient = storageClientFactory.getClient();) {
             final GUID eip1 = GUIDFactory.newOperationLogbookGUID(tenantId);
-            final LogbookOperationParameters logbookParametersStart =
-                LogbookParametersFactory
-                    .newLogbookOperationParameters(eip1, RULES_REPORT, eipMaster,
-                        LogbookTypeProcess.STORAGE_RULE,
-                        StatusCode.STARTED, VitamLogbookMessages.getCodeOp(
-                            RULES_REPORT, StatusCode.STARTED),
-                        eip1);
-            updateLogBookEntry(logbookParametersStart, client);
             final String fileName = eipMaster + ".json";
             final String uri = String.format("%s/%s", STORAGE_RULES_WORKSPACE, fileName);
             InputStream stream = null;
@@ -1519,14 +1509,18 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                 JsonHandler.createObjectNode().set(BuilderToken.PROJECTION.FIELDS.exactToken(),
                     JsonHandler.createObjectNode()
                         .put(BuilderToken.PROJECTIONARGS.ID.exactToken(), 1)
-                        .put(String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.outcome.name()), 1)));
+                        .put(String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.eventType.getDbname()), 1)));
             JsonNode logbookResult = client.selectOperation(select.getFinalSelect());
             RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(logbookResult);
-            // one result and statuscode is STARTED -> import in progress
+            // one result and last event type is STP_IMPORT_RULES -> import in progress
             if (requestResponseOK.getHits().getSize() != 0) {
                 JsonNode result = requestResponseOK.getResults().get(0);
-                return StatusCode.STARTED.name().equals(
-                    result.get(LogbookDocument.EVENTS).get(0).get(LogbookMongoDbName.outcome.name()).asText());
+                if(result.get(LogbookDocument.EVENTS) !=  null && result.get(LogbookDocument.EVENTS).size() > 0){ 
+                    JsonNode lastEvent = result.get(LogbookDocument.EVENTS).get(result.get(LogbookDocument.EVENTS).size() - 1);
+                    return !STP_IMPORT_RULES.equals(lastEvent.get(LogbookMongoDbName.eventType.getDbname()).asText());
+                } else {
+                    return false;
+                }
             } else {
                 return false;
             }

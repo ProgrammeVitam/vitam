@@ -236,8 +236,6 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
                             }
                             if (nbUpdates > 0) {
                                 try {
-                                    archiveUnitUpdateUtils.logLifecycle(params, auGuid, StatusCode.STARTED, null,
-                                        logbookLifeCycleClient);
                                     query.addActions(
                                         UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getProcessId()));
                                     JsonNode updateResultJson =

@@ -332,9 +332,9 @@ public class WorkerImpl implements Worker {
                 GUIDReader.getGUID(workParams.getContainerName()),
                 // TODO Le type de process devrait venir du message recu (paramètre du workflow)
                 workParams.getLogbookTypeProcess(),
-                StatusCode.STARTED,
-                VitamLogbookMessages.getOutcomeDetailLfc(handlerName, StatusCode.STARTED),
-                VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.STARTED),
+                StatusCode.OK,
+                VitamLogbookMessages.getOutcomeDetailLfc(handlerName, StatusCode.OK),
+                VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.OK),
                 GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(workParams)));
         } else if (step.getDistribution().getElement()
             .equals(LogbookType.OBJECTGROUP.getType())) {
@@ -344,9 +344,9 @@ public class WorkerImpl implements Worker {
                 GUIDReader.getGUID(workParams.getContainerName()),
                 // TODO Le type de process devrait venir du message recu (paramètre du workflow)
                 workParams.getLogbookTypeProcess(),
-                StatusCode.STARTED,
-                VitamLogbookMessages.getOutcomeDetailLfc(handlerName, StatusCode.STARTED),
-                VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.STARTED),
+                StatusCode.OK,
+                VitamLogbookMessages.getOutcomeDetailLfc(handlerName, StatusCode.OK),
+                VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.OK),
                 GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(workParams)));
         } else if (step.getDistribution().getElement()
             .equals(AuditWorkflowConstants.AUDIT_FILE)) {
@@ -356,9 +356,9 @@ public class WorkerImpl implements Worker {
                 GUIDReader.getGUID(workParams.getContainerName()),
                 // TODO Le type de process devrait venir du message recu (paramètre du workflow)
                 workParams.getLogbookTypeProcess(),
-                StatusCode.STARTED,
-                VitamLogbookMessages.getOutcomeDetailLfc(handlerName, StatusCode.STARTED),
-                VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.STARTED),
+                StatusCode.OK,
+                VitamLogbookMessages.getOutcomeDetailLfc(handlerName, StatusCode.OK),
+                VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.OK),
                 GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(workParams)));
         }
         if (lfcParam != null) {
@@ -376,10 +376,10 @@ public class WorkerImpl implements Worker {
         LogbookLifeCycleParameters finalLogbookLfcParam = LogbookLifeCyclesClientHelper.copy(logbookParam);
         if (!actionResponse.getItemId().contains(".")) {
             finalLogbookLfcParam.setFinalStatus(handlerName, null, actionResponse.getGlobalStatus(),
-                actionResponse.getMessage());
+                    actionResponse.getMessage());
         } else {
             finalLogbookLfcParam.setFinalStatus(actionResponse.getItemId(), null, actionResponse.getGlobalStatus(),
-                actionResponse.getMessage());
+                    actionResponse.getMessage());
         }
         if (!actionResponse.getEvDetailData().isEmpty()) {
             finalLogbookLfcParam.putParameterValue(LogbookParameterName.eventDetailData,

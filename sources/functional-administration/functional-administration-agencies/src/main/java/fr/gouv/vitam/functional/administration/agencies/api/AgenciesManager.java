@@ -88,26 +88,6 @@ class AgenciesManager {
         logBookclient.create(logbookParameters);
     }
 
-
-    /**
-     * log start process
-     *
-     * @param eventType
-     * @throws VitamException
-     */
-    public void logStartEvent(String eventType) throws VitamException {
-
-        final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-
-        final LogbookOperationParameters logbookParameters;
-        logbookParameters = LogbookParametersFactory
-            .newLogbookOperationParameters(eipUsage, eventType, eip,
-                LogbookTypeProcess.MASTERDATA,
-                StatusCode.STARTED,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.STARTED), eipUsage);
-        logBookclient.update(logbookParameters);
-    }
-
     /**
      * log end success process
      *

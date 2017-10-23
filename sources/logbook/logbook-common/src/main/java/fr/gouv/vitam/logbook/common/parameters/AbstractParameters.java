@@ -124,7 +124,8 @@ abstract class AbstractParameters implements LogbookParameters {
     public LogbookParameters setBeginningLog(String handlerId, String subTaskId,
         String additionnalMessage, String... params) {
         if (this instanceof LogbookOperationParameters) {
-            setFinalStatusOp(handlerId, subTaskId, StatusCode.STARTED, additionnalMessage, params);
+            // should call setFinalStatus instead, as STARTED event is no longer used for logbook operation 
+            setFinalStatusOp(handlerId, subTaskId, StatusCode.OK, additionnalMessage, params);
         } else {
             // should call setFinalStatus instead, as STARTED event is no longer used for LFC  
             setFinalStatusLfc(handlerId, subTaskId, StatusCode.OK, additionnalMessage, params);
@@ -175,8 +176,12 @@ abstract class AbstractParameters implements LogbookParameters {
 
     private LogbookParameters setFinalStatusOp(String handlerId, String subTaskId,
         StatusCode code, String additionnalMessage, String... params) {
-        // TODO eventType for subTasks should be different that the main task's one (already done in setFinalStatusLfc)
-        putParameterValue(LogbookParameterName.eventType, handlerId);
+        if(subTaskId != null){
+            putParameterValue(LogbookParameterName.eventType,
+                    VitamLogbookMessages.getSubTaskEventTypeLfc(handlerId, subTaskId));
+        } else {
+            putParameterValue(LogbookParameterName.eventType, handlerId);
+        }
         putParameterValue(LogbookParameterName.outcome, code.name());
         if (subTaskId != null) {
             putParameterValue(LogbookParameterName.outcomeDetail,

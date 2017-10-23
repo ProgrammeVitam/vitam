@@ -39,6 +39,7 @@ Extrait d'un JSON correspondant à une opération d'entrée terminée avec succ�
  {
     "_id": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
     "evId": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
+    "evParentId": null,
     "evType": "PROCESS_SIP_UNITARY",
     "evDateTime": "2017-09-12T12:08:33.166",
     "evDetData": "{\n  \"EvDetailReq\" : \"Cartes postales (Grande Collecte)\",\n  \"EvDateTimeReq\" : \"2016-10-12T16:28:40\",\n  \"ArchivalAgreement\" : \"ArchivalAgreement0\",\n  \"ServiceLevel\" : null\n}",
@@ -59,13 +60,14 @@ Extrait d'un JSON correspondant à une opération d'entrée terminée avec succ�
     "events": [
         {
             "evId": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
-            "evType": "STP_SANITY_CHECK_SIP",
+            "evParentId": null,
+            "evType": "STP_SANITY_CHECK_SIP.STARTED",
             "evDateTime": "2017-09-12T12:08:33.166",
             "evDetData": null,
             "evIdProc": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
             "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": "STP_SANITY_CHECK_SIP.STARTED",
+            "outcome": "OK",
+            "outDetail": "STP_SANITY_CHECK_SIP.STARTED.OK",
             "outMessg": "Début du processus des contrôles préalables à l'entrée",
             "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1211004455,\"SiteId\":1,\"GlobalPlatformId\":137262631}",
             "evIdReq": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
@@ -73,14 +75,30 @@ Extrait d'un JSON correspondant à une opération d'entrée terminée avec succ�
         },
         {
             "evId": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
+            "evParentId": null,
+            "evType": "STP_SANITY_CHECK_SIP",
+            "evDateTime": "2017-09-12T12:08:33.219",
+            "evDetData": null,
+            "evIdProc": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
+            "evTypeProc": "INGEST",
+            "outcome": "OK",
+            "outDetail": "STP_SANITY_CHECK_SIP.OK",
+            "outMessg": "Début du processus des contrôles préalables à l'entrée",
+            "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1211004455,\"SiteId\":1,\"GlobalPlatformId\":137262631}",
+            "evIdReq": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
+            "obId": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq"
+        },
+        {
+            "evId": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
+            "evParentId": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
             "evType": "SANITY_CHECK_SIP",
             "evDateTime": "2017-09-12T12:08:33.219",
             "evDetData": null,
             "evIdProc": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
             "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": "SANITY_CHECK_SIP.STARTED",
-            "outMessg": "Début du contrôle sanitaire",
+            "outcome": "OK",
+            "outDetail": "SANITY_CHECK_SIP.OK",
+            "outMessg": "Succès du contrôle sanitaire",
             "agId": "{\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1211004455,\"SiteId\":1,\"GlobalPlatformId\":137262631}",
             "evIdReq": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq",
             "obId": "aedqaaaaacec45rhabfy2ak6ox625ciaaaaq"
@@ -114,6 +132,14 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
   * Cet identifiant doit être l'identifiant d'un événement dans le cadre de l'opération (evIdProc) et doit donc être différent par paire (début/fin).
   * Cardinalité : 1-1
   * Ce champ existe pour les structures incluantes et incluses*
+
+**"evParentId" (event Parent Identifier):** identifiant de l'événement parent.
+    * Il est constitué d'une chaîne de 36 caractères correspondant à un GUID. 
+    * Il identifie l'événement parent.
+    * Ce champ est toujours à null pour la structure incluante et les tâches principales
+    * Cardinalité : 1-1 
+
+    *Ce champ existe pour les structures incluantes et incluses*
 
 **"evType" (event Type):** nom de l'événement
 
@@ -419,9 +445,9 @@ Extrait d'un JSON correspondant à un journal de cycle de vie d'une unité archi
             "evDateTime": "2017-04-10T12:39:37.953",
             "evIdProc": "aedqaaaaaghe45hwabliwak3k7qg7kaaaaaq",
             "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": "LFC.CHECK_MANIFEST.STARTED",
-            "outMessg": "Début de la vérification de la cohérence du bordereau",
+            "outcome": "OK",
+            "outDetail": "LFC.CHECK_MANIFEST.OK",
+            "outMessg": "Succès de la vérification de la cohérence du bordereau",
             "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":1041627981,\"SiteId\":1,\"GlobalPlatformId\":236321613}",
             "obId": "aeaqaaaaaehbl62nabqkwak3k7qg5tiaaaaq",
             "evDetData": null,

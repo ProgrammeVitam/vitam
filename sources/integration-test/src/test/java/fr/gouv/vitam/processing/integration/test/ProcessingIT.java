@@ -624,8 +624,12 @@ public class ProcessingIT {
             selectQuery.setQuery(QueryHelper.eq("evIdProc", containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
 
+            // as logbookClient.selectOperation returns last two events and after removing STARTED from events
+            // the order is main-event > sub-events, so events[0] will be "ROLL_BACK.OK" and not "STP_INGEST_FINALISATION.OK"
             assertEquals(logbookResult.get("$results").get(0).get("events").get(0).get("outDetail").asText(),
-                "STP_INGEST_FINALISATION.OK");
+                    "ROLL_BACK.OK");
+            assertEquals(logbookResult.get("$results").get(0).get("events").get(1).get("outDetail").asText(),
+                    "PROCESS_SIP_UNITARY.WARNING");
 
             assertEquals(logbookResult.get("$results").get(0).get("obIdIn").asText(),
                 "bug2721_2racines_meme_rattachement");
@@ -782,7 +786,7 @@ public class ProcessingIT {
                 new fr.gouv.vitam.common.database.builder.request.single.Select();
             JsonNode logbookResult = logbookClient.selectOperationById(containerName, selectQuery.getFinalSelect());
             JsonNode logbookNode = logbookResult.get("$results").get(0);
-            assertEquals(logbookNode.get("events").get(7).get("outDetail").asText(),
+            assertEquals(logbookNode.get("events").get(5).get("outDetail").asText(),
                 "CHECK_HEADER.CHECK_CONTRACT_INGEST.UNKNOWN.KO");
 
         } catch (final Exception e) {
@@ -2714,8 +2718,12 @@ public class ProcessingIT {
             selectQuery.setQuery(QueryHelper.eq("evIdProc", containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
 
+            // as logbookClient.selectOperation returns last two events and after removing STARTED from events
+            // the order is main-event > sub-events, so events[0] will be "ROLL_BACK.OK" and not "STP_INGEST_FINALISATION.OK"
             assertEquals(logbookResult.get("$results").get(0).get("events").get(0).get("outDetail").asText(),
-                "STP_INGEST_FINALISATION.OK");
+                    "ROLL_BACK.OK");
+            assertEquals(logbookResult.get("$results").get(0).get("events").get(1).get("outDetail").asText(),
+                    "PROCESS_SIP_UNITARY.WARNING");
 
         } catch (final Exception e) {
             e.printStackTrace();

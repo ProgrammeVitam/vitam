@@ -539,7 +539,7 @@ public class ReplayProcessingIT {
         }
         listStepsExecutedReplay.forEach((k, v) -> {
             if ("ATR_NOTIFICATION".equals(k) || "ROLL_BACK".equals(k) || "PROCESS_SIP_UNITARY".equals(k) ||
-                "STP_INGEST_FINALISATION".equals(k)) {
+                "STP_INGEST_FINALISATION".equals(k) || k.endsWith(".STARTED")) {
                 assertEquals((int) listStepsToCheck.get(k), (int) v);
             } else {
                 assertEquals(2 * (int) listStepsToCheck.get(k), (int) v);

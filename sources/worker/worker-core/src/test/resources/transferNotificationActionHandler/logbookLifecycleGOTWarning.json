@@ -5,26 +5,13 @@
     "evDateTime": "2017-10-09T13:38:00.081",
     "evIdProc": "aedqaaaaacgxckdfabw4eak7afnt6fqaaaaq",
     "evTypeProc": "INGEST",
-    "outcome": "STARTED",
-    "outDetail": "LFC.LFC_CREATION.STARTED",
+    "outcome": "OK",
+    "outDetail": "LFC.LFC_CREATION.OK",
     "outMessg": "Création du journal du cycle de vie",
     "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":2051163433,\"SiteId\":1,\"GlobalPlatformId\":172115241}",
     "obId": "aeaaaaaaaaaam7mxaaijcakyj2tcvsqaaaaq",
     "evDetData": null,
     "events": [
-        {
-            "evId": "aedqaaaaacfeerjjablysak7afnuoeiaaabq",
-            "evType": "LFC.CHECK_MANIFEST",
-            "evDateTime": "2017-10-09T13:38:00.081",
-            "evIdProc": "aedqaaaaacgxckdfabw4eak7afnt6fqaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": "LFC.CHECK_MANIFEST.STARTED",
-            "outMessg": "Début de la vérification de la cohérence du bordereau",
-            "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":2051163433,\"SiteId\":1,\"GlobalPlatformId\":172115241}",
-            "obId": "aeaaaaaaaaaam7mxaaijcakyj2tcvsqaaaaq",
-            "evDetData": null
-        },
         {
             "evId": "aedqaaaaacfeerjjablysak7afnuoeiaaabq",
             "evType": "LFC.CHECK_MANIFEST.LFC_CREATION",
@@ -57,35 +44,9 @@
             "evDateTime": "2017-10-09T13:38:01.339",
             "evIdProc": "aedqaaaaacgxckdfabw4eak7afnt6fqaaaaq",
             "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": "LFC.CHECK_CONSISTENCY.STARTED",
-            "outMessg": "Début de la vérification de la cohérence entre objets, groupes d'objets et unités archivistiques",
-            "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":2051163433,\"SiteId\":1,\"GlobalPlatformId\":172115241}",
-            "obId": "aeaaaaaaaaaam7mxaaijcakyj2tcvsqaaaaq",
-            "evDetData": null
-        },
-        {
-            "evId": "aedqaaaaacfeerjjablysak7afnux6yaaaaq",
-            "evType": "LFC.CHECK_CONSISTENCY",
-            "evDateTime": "2017-10-09T13:38:01.339",
-            "evIdProc": "aedqaaaaacgxckdfabw4eak7afnt6fqaaaaq",
-            "evTypeProc": "INGEST",
             "outcome": "OK",
             "outDetail": "LFC.CHECK_CONSISTENCY.OK",
             "outMessg": "Succès du contrôle de la cohérence entre objets, groupes d'objets et unités archivistiques",
-            "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":2051163433,\"SiteId\":1,\"GlobalPlatformId\":172115241}",
-            "obId": "aeaaaaaaaaaam7mxaaijcakyj2tcvsqaaaaq",
-            "evDetData": null
-        },
-        {
-            "evId": "aedqaaaaacfeerjjablysak7afnu6vyaaaaq",
-            "evType": "LFC.CHECK_DIGEST",
-            "evDateTime": "2017-10-09T13:38:02.199",
-            "evIdProc": "aedqaaaaacgxckdfabw4eak7afnt6fqaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": "LFC.CHECK_DIGEST.STARTED",
-            "outMessg": "Début de la vérification des objets versés",
             "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":2051163433,\"SiteId\":1,\"GlobalPlatformId\":172115241}",
             "obId": "aeaaaaaaaaaam7mxaaijcakyj2tcvsqaaaaq",
             "evDetData": null
@@ -132,19 +93,6 @@
         {
             "evId": "aedqaaaaacfeerjjablysak7afnva6yaaaaq",
             "evType": "LFC.OG_OBJECTS_FORMAT_CHECK",
-            "evDateTime": "2017-10-09T13:38:02.491",
-            "evIdProc": "aedqaaaaacgxckdfabw4eak7afnt6fqaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": "LFC.OG_OBJECTS_FORMAT_CHECK.STARTED",
-            "outMessg": "Début de la vérification du format",
-            "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":2051163433,\"SiteId\":1,\"GlobalPlatformId\":172115241}",
-            "obId": "aeaaaaaaaaaam7mxaaijcakyj2tcvsqaaaaq",
-            "evDetData": null
-        },
-        {
-            "evId": "aedqaaaaacfeerjjablysak7afnva6yaaaaq",
-            "evType": "LFC.OG_OBJECTS_FORMAT_CHECK",
             "evDateTime": "2017-10-09T13:38:02.540",
             "evIdProc": "aedqaaaaacgxckdfabw4eak7afnt6fqaaaaq",
             "evTypeProc": "INGEST",
@@ -167,19 +115,6 @@
             "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":2051163433,\"SiteId\":1,\"GlobalPlatformId\":172115241}",
             "obId": "aeaaaaaaaaaam7mxaaijcakyj2tcvsqaaaaq",
             "evDetData": "{\"diff\":{\"-\":{\"FormatLitteral\":\"Portable Network Graphics\",\"MimeType\":\"image/png\",\"FormatId\":\"fmt/13\"},\"+\":{\"FormatLitteral\":\"JPEG File Interchange Format\",\"MimeType\":\"image/jpeg\",\"FormatId\":\"fmt/43\"}}}"
-        },
-        {
-            "evId": "aedqaaaaacfeerjjablysak7afnv5miaaaaq",
-            "evType": "LFC.OBJ_STORAGE",
-            "evDateTime": "2017-10-09T13:38:06.129",
-            "evIdProc": "aedqaaaaacgxckdfabw4eak7afnt6fqaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": "LFC.OBJ_STORAGE.STARTED",
-            "outMessg": "Début de l'écriture de l'objet sur les offres de stockage",
-            "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":2051163433,\"SiteId\":1,\"GlobalPlatformId\":172115241}",
-            "obId": "aeaaaaaaaaaam7mxaaijcakyj2tcvsqaaaaq",
-            "evDetData": null
         },
         {
             "evId": "aedqaaaaacfeerjjablysak7afnv5miaaaaq",
@@ -223,19 +158,6 @@
         {
             "evId": "aedqaaaaacfeerjjablysak7afnwbmyaaaaq",
             "evType": "LFC.OG_METADATA_INDEXATION",
-            "evDateTime": "2017-10-09T13:38:06.643",
-            "evIdProc": "aedqaaaaacgxckdfabw4eak7afnt6fqaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": "LFC.OG_METADATA_INDEXATION.STARTED",
-            "outMessg": "Début de l'indexation des métadonnées du groupe d'objets",
-            "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":2051163433,\"SiteId\":1,\"GlobalPlatformId\":172115241}",
-            "obId": "aeaaaaaaaaaam7mxaaijcakyj2tcvsqaaaaq",
-            "evDetData": null
-        },
-        {
-            "evId": "aedqaaaaacfeerjjablysak7afnwbmyaaaaq",
-            "evType": "LFC.OG_METADATA_INDEXATION",
             "evDateTime": "2017-10-09T13:38:06.792",
             "evIdProc": "aedqaaaaacgxckdfabw4eak7afnt6fqaaaaq",
             "evTypeProc": "INGEST",
@@ -245,19 +167,6 @@
             "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":2051163433,\"SiteId\":1,\"GlobalPlatformId\":172115241}",
             "obId": "aeaaaaaaaaaam7mxaaijcakyj2tcvsqaaaaq",
             "evDetData": "{}"
-        },
-        {
-            "evId": "aedqaaaaacfeerjjablysak7afnyagaaaaaq",
-            "evType": "LFC.OG_METADATA_STORAGE",
-            "evDateTime": "2017-10-09T13:38:14.680",
-            "evIdProc": "aedqaaaaacgxckdfabw4eak7afnt6fqaaaaq",
-            "evTypeProc": "INGEST",
-            "outcome": "STARTED",
-            "outDetail": "LFC.OG_METADATA_STORAGE.STARTED",
-            "outMessg": "Début de l'écriture des métadonnées du groupe d'objet",
-            "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":2051163433,\"SiteId\":1,\"GlobalPlatformId\":172115241}",
-            "obId": "aeaaaaaaaaaam7mxaaijcakyj2tcvsqaaaaq",
-            "evDetData": null
         },
         {
             "evId": "aedqaaaaacfeerjjablysak7afnyagaaaaaq",

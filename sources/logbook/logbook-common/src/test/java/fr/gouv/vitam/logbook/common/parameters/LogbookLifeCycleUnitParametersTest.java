@@ -123,17 +123,17 @@ public class LogbookLifeCycleUnitParametersTest {
         final GUID aa = GUIDFactory.newEventGUID(0);
         final GUID cc = GUIDFactory.newEventGUID(0);
         LogbookParametersFactory.newLogbookLifeCycleUnitParameters(aa, "aa", aa,
-            LogbookTypeProcess.AUDIT, StatusCode.STARTED, "CheckDigest", "Informative Message", cc);
+            LogbookTypeProcess.AUDIT, StatusCode.OK, "CheckDigest", "Informative Message", cc);
         try {
             LogbookParametersFactory.newLogbookLifeCycleUnitParameters(aa, "", aa,
-                LogbookTypeProcess.AUDIT, StatusCode.STARTED, "CheckDigest", "Informative Message", cc);
+                LogbookTypeProcess.AUDIT, StatusCode.OK, "CheckDigest", "Informative Message", cc);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
             LogbookParametersFactory.newLogbookLifeCycleUnitParameters(aa, "aa", null,
-                LogbookTypeProcess.AUDIT, StatusCode.STARTED, "CheckDigest", "Informative Message", cc);
+                LogbookTypeProcess.AUDIT, StatusCode.OK, "CheckDigest", "Informative Message", cc);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
@@ -147,7 +147,7 @@ public class LogbookLifeCycleUnitParametersTest {
         }
         try {
             LogbookParametersFactory.newLogbookLifeCycleUnitParameters(aa, "aa", aa,
-                null, StatusCode.STARTED, "CheckDigest", "Informative Message", cc);
+                null, StatusCode.OK, "CheckDigest", "Informative Message", cc);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore

@@ -9,6 +9,7 @@
   "$results": [
     {
       "_id": "aedaaaaaacdugmd5aa7raak6kmb6ibiaaaaq",
+      "evParentId": null,
       "evId": "aecaaaaaacdugmd5aa7raak6kmcakiiaaaaq",
       "evType": "Process_SIP_unitary",
       "evDateTime": "2017-09-05T17:08:46.019",
@@ -30,6 +31,7 @@
       "events": [
         {
           "evId": "aedqaaaaacdugmd5aa7raak6kmcegziaaabq",
+          "evParentId": null,
           "evType": "STP_INGEST_FINALISATION",
           "evDateTime": "2017-09-05T17:09:01.925",
           "evDetData": null,
@@ -50,6 +52,7 @@
         },
         {
           "evId": "aedaaaaaacdugmd5aa7raak6kmb6ibiaaaaq",
+          "evParentId": null,
           "evType": "PROCESS_SIP_UNITARY",
           "evDateTime": "2017-09-05T17:09:02.073",
           "evDetData": null,

@@ -282,8 +282,6 @@ public class AgenciesService implements VitamAutoCloseable {
      */
     public void findAllAgenciesUsedByUnits() throws VitamException {
 
-        manager.logStartEvent(AGENCIES_IMPORT_AU_USAGE);
-
         for (AgenciesModel agency : agenciesToUpdate) {
             final SelectMultiQuery selectMultiple = new SelectMultiQuery();
             try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
@@ -327,8 +325,6 @@ public class AgenciesService implements VitamAutoCloseable {
     }
 
     public void findAllAgenciesUsedByAccessContrats() throws InvalidCreateOperationException, VitamException {
-
-        manager.logStartEvent(AGENCIES_IMPORT_CONTRACT_USAGE);
 
         for (AgenciesModel agency : agenciesToUpdate) {
 
@@ -664,46 +660,6 @@ public class AgenciesService implements VitamAutoCloseable {
     }
 
     /**
-     * Check if an Import operation is in progress
-     *
-     * @return true if an import operation is launche / false if not an import operation is in progress
-     * @throws LogbookClientException when error
-     */
-    private boolean isImportOperationInProgress() throws LogbookClientException {
-        try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
-
-            final Select select = new Select();
-            select.setLimitFilter(0, 1);
-            select.addOrderByDescFilter(LogbookMongoDbName.eventDateTime.getDbname());
-            select.setQuery(eq(
-                String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.eventType.getDbname()),
-                AGENCIES_IMPORT_EVENT));
-            select.addProjection(
-                JsonHandler.createObjectNode().set(BuilderToken.PROJECTION.FIELDS.exactToken(),
-                    JsonHandler.createObjectNode()
-                        .put(BuilderToken.PROJECTIONARGS.ID.exactToken(), 1)
-                        .put(String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.outcome.name()), 1)));
-            JsonNode logbookResult = client.selectOperation(select.getFinalSelect());
-
-            RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(logbookResult);
-            // one result and statuscode is STARTED -> import in progress
-            if (requestResponseOK.getHits().getSize() != 0) {
-                JsonNode result = requestResponseOK.getResults().get(0);
-                return StatusCode.STARTED.name().equals(
-                    result.get(LogbookDocument.EVENTS).get(0).get(LogbookMongoDbName.outcome.name()).asText());
-            } else {
-                return false;
-            }
-        } catch (LogbookClientNotFoundException e) {
-
-            LOGGER.warn(e);
-            return false;
-        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
-            throw new LogbookClientServerException(e);
-        }
-    }
-
-    /**
      * @param queryDsl
      * @return
      * @throws ReferentialException
@@ -891,7 +847,7 @@ public class AgenciesService implements VitamAutoCloseable {
         InputStream stream = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
         digest.update(json.getBytes(StandardCharsets.UTF_8));
 
-        store(stream, JSON, digest.toString());
+        store(stream, digest.toString(), JSON);
     }
 
     @Override
