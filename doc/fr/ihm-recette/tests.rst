@@ -9,16 +9,18 @@ Principe
 
 Les tests de performance consistent à réaliser plusieurs fois l'entrée d'un SIP et d'en mesurer le temps. Ces entrées peuvent être réalisées par une ou plusieurs tâches parallèles. 
 
+L'interface est accessible par le menu : Tests > Test de performance
+
 Champs disponibles
 ------------------
 
 L'IHM est constituée de trois champs :
 
 * Liste des SIP : liste des SIP disponibles pour réaliser le test. Ces SIP sont ceux déposés dans le dépôt vitam-itest. Il n'est possible de sélectionner qu'un SIP à la fois.
-* Nb Thread : Permet de définir le nombre de tâches parallèles qui exécuteront les entrées.
-* Nb total : Permet de définir le nombre total d'entrées à réaliser.
+* Nombre Thread : Permet de définir le nombre de tâches parallèles qui exécuteront les entrées.
+* Nombre d'Ingest : Permet de définir le nombre total d'entrées à réaliser.
 
-Un bouton "lancer" permet d’exécuter le test de performance.
+Un bouton "lancer les tests" permet d’exécuter le test de performance.
 
 .. image:: images/performance_champs_disponibles.png
 
@@ -35,11 +37,45 @@ Chaque ligne du csv représente une entrée. Les colonnes sont :
 
 * OperationID
 * PROCESS_SIP_UNITARY
-* SANITY_CHECK_SIP	
-* CHECK_CONTAINER	
-* STP_SANITY_CHECK_SIP	
-* STP_UPLOAD_SIP	
+* STP_SANITY_CHECK_SIP
+* SANITY_CHECK_SIP
+* CHECK_CONTAINER
+* STP_UPLOAD_SIP
 * STP_INGEST_CONTROL_SIP
+* CHECK_SEDA
+* CHECK_HEADER
+* CHECK_HEADER.CHECK_AGENT
+* CHECK_HEADER.CHECK_CONTRACT_INGEST
+* CHECK_HEADER.CHECK_IC_AP_RELATION
+* CHECK_HEADER.CHECK_ARCHIVEPROFILE
+* CHECK_DATAOBJECTPACKAGE
+* CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_DATAOBJECT_VERSION
+* CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST_OBJECTNUMBER
+* CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST
+* CHECK_DATAOBJECTPACKAGE.CHECK_CONSISTENCY
+* STP_OG_CHECK_AND_TRANSFORME
+* CHECK_DIGEST
+* OG_OBJECTS_FORMAT_CHECK
+* STP_UNIT_CHECK_AND_PROCESS	CHECK_UNIT_SCHEMA
+* UNITS_RULES_COMPUTE
+* STP_STORAGE_AVAILABILITY_CHECK	STORAGE_AVAILABILITY_CHECK
+* STORAGE_AVAILABILITY_CHECK.STORAGE_AVAILABILITY_CHECK
+* STP_OBJ_STORING
+* OBJ_STORAGE
+* OG_METADATA_INDEXATION
+* STP_UNIT_METADATA
+* UNIT_METADATA_INDEXATION
+* STP_OG_STORING	OG_METADATA_STORAGE
+* COMMIT_LIFE_CYCLE_OBJECT_GROUP
+* STP_UNIT_STORING
+* UNIT_METADATA_STORAGE
+* COMMIT_LIFE_CYCLE_UNIT
+* STP_ACCESSION_REGISTRATION
+* ACCESSION_REGISTRATION
+* STP_INGEST_FINALISATION
+* ATR_NOTIFICATION
+* ROLL_BACK
+
  
 La première contient le GUID de l'opération d'entrée. Les autres colonnes indique le temps en millisecondes qui a été nécessaire pour passer l'étape.
 
@@ -51,11 +87,13 @@ Introduction
 
 La partie "Tests Fonctionnels" contient les écrans de lancement et de consultation des résultats des TNR. 
 
-Elle est accessible depuis l'IHM de recette, par le menu Menu > Test Fonctionnels
+Elle est accessible depuis l'IHM de recette, par le menu Tests > Test Fonctionnels
 
 Les tests ne sont pas segmentés par tenant. Ces derniers sont directement configurés dans les tests. Il n'est donc pas nécessaire de sélectionner un tenant pour accéder au contenu de cette section.
 
-**NB** : La configuration des TNR ne s'effectue pas depuis ces écrans. La procédure de configuration est décrite dans la documentation dédiée à ce sujet.
+**NB** : La configuration des TNR ne s'effectue pas depuis ces écrans. La procédure de configuration est décrite dans la documentation "Configuration des tests de non régression".
+
+L'interface est accessible par le menu : Tests > Test Fonctionnels
 
 Page Tests Fonctionnels
 -----------------------
@@ -81,7 +119,7 @@ Les résultats de tests sont affichés dans un tableau à deux colonnes :
     
 Chaque ligne représente le rapport issu d'une campagne de tests. La colonne "Rapport" indique le nom du rapport. Celui-ci est constitué de la façon suivante : report_AAAAMMJJ_HHmmss.json. Ainsi le rapport correspondant à la dernière campagne de tests se trouve au-dessus de la liste. 
 
-La colonne détail affiche simplement la mention "accès au détail". 
+La colonne détail affiche simplement la mention "Accès au détail". 
 
 Au clic sur une ligne, la page du détail du rapport concerné s'affichera dans un nouvel onglet.
 
@@ -99,9 +137,9 @@ L'écran de détail d'une campagne de tests est divisé en deux parties :
 
 La partie résumé comporte les trois indications suivantes :
 
-  * NB Tests : nombre de tests inclus dans la campagne
+  * Nombre de Tests : nombre de tests inclus dans la campagne
   * Succès : nombre de tests en succès
-  * Echecs : nombre de tests en échec
+  * Échecs : nombre de tests en échec
 
 **Partie Détails**
 
@@ -111,13 +149,12 @@ Ci-après l'exemple de lignes correspondant à un test en succès. Par défaut, 
 
 .. image:: images/RECETTE_detail_test_OK.png
 
-Le tableau est constitué de cinq colonnes :
+Le tableau est constitué de quatre colonnes :
 
-    * Icône : Correspond au statut du test. Il s'agit d'une coche verte pour un succès, d'une croix rouge pour un échec.
-    * feature : Correspond à la fonctionnalité testée. Par défaut, un fichier de configuration correspond à une fonctionnalité. On a par exemple un fichier de configurtion pour réaliser tous les tests sur l'INGEST. Dans ce cas, le nom de la fonctionnalité sera indiqué dans tous les cas de test correspondant dans le tableau de restitution. 
-    * ID opération : Identifiant de l'opération correspondant au test. On peut aisnsi s'en servir pour trouver plus de détails sur le test dans le journal des opérations.
+    * Fonctionnalité : Correspond à la fonctionnalité testée. Par défaut, un fichier de configuration correspond à une fonctionnalité. On a par exemple un fichier de configurtion pour réaliser tous les tests sur l'INGEST. Dans ce cas, le nom de la fonctionnalité sera indiqué dans tous les cas de test correspondant dans le tableau de restitution. 
+    * Identifiant : Identifiant de l'opération correspondant au test. On peut ainsi s'en servir pour trouver plus de détails sur le test dans le journal des opérations.
     * Description : Il s'agit d'une description du cas de test effectué. Celle-ci est indiquée dans le fichier de configuration pour chacun des test.
-    * Errors : Erreur technique liée à l'échec du test. Cette colonne est vide pour les tests en succès.
+    * Erreurs : Erreur technique liée à l'échec du test. Cette colonne est vide pour les tests en succès.
     
 Testeur de requêtes DSL
 =======================
@@ -126,18 +163,20 @@ Le testeur de requêtes DSL met à disposition des administrateurs une interface
 
 Celle-ci contient un formulaire composé de plusieurs champs.
 
+L'interface est accessible par le menu : Tests > Test requêtes DSL
+
 Champs disponibles
 ------------------
 
-**Tenant** : champ obligatoire. Indique le tenant sur lequel la requête va être exécutée. Ce champs est contribué automatiquement avec le numéro du tenant sélectionné par l’administrateur.
+**Tenant** : champ obligatoire. Indique le tenant sur lequel la requête va être exécutée. Ce champ est contribué automatiquement avec le numéro du tenant sélectionné par l’administrateur.
 
-**Contrat** : champ optionnel. Liste permettant de sélectionner un contrat d'accès qui sera associé à la requête.
+**Contrat** : champ optionnel selon la collection utilisée. Liste permettant de sélectionner un contrat d'accès qui sera associé à la requête.
 
 **Collection** : champ obligatoire. Liste permettant de sélectionner la collection sur laquelle la requête va être exécutée.
 
 **Action** : champ obligatoire. Liste permettant de sélectionner le type d'action à effectuer. Il est possible de sélectionner l'action "Rechercher" pour l'ensemble des collections.
 
-Pour les collections suivantes, il est également possible de choisir l'action "Mise à jour" :
+Pour les collections suivantes, il est également possible de choisir l'action "Mettre à jour" :
 
 * Unit
 * Contrat d'accès
@@ -156,11 +195,11 @@ Pour réaliser une requête, l'administrateur rempli les champs du formulaire af
 
 .. image:: images/DSL_envoyer_requete.png
 
-Pour vérifier la validité du formatage du Json, l'administrateur clique sur bouton "Vérifier Json". Si le Json est valide, le texte est mis en forme et la mention "Json Valide" est affichée à gauche du bouton. Dans le cas contraire, la mention "Json non valide" est indiquée.
+Pour vérifier la validité du formatage du Json, l'administrateur clique sur bouton "Valider Json". Si le Json est valide, le texte est mis en forme et la mention "Json Valide" est affichée à gauche du bouton. Dans le cas contraire, la mention "Json non valide" est indiquée.
 
 .. image:: images/DSL_Json_Invalide.png
 
-Pour exécuter la requête, l'administrateur clique sur le bouton "Envoyer la requête". Une zone de résultat est alors affichée à droite de l'écran et contient le retour envoyé par la solution logicielle Vitam.
+Pour exécuter la requête, l'administrateur clique sur le bouton "Envoyer requête". Une zone de résultat est alors affichée à droite de l'écran et contient le retour envoyé par la solution logicielle Vitam.
 
 .. image:: images/DSL_requete_OK.png
 
@@ -171,3 +210,5 @@ Si la requête contient une erreur autre que le non-respect du formatage de la r
 Si la requête envoyée par l'administrateur ne respecte pas le formatage de la requête Json, l'endroit où se trouve l'erreur sera indiqué dans le retour de la façon suivante :
 
 .. image:: images/DSl_requete_Json_KO.png
+
+L'utilisateur peut vider le contenu de l'espace dédié à la réponse du DSL en cliquant sur le bouton "Effacer". Le contenu de l'espace dédié à la question n'est en revanche pas éffacé.
