@@ -6,8 +6,8 @@ Introduction
 
 Cette section décrit l'import d'un référentiel de services agents
 
-Processus d'import  et mise à jour d'un référentiel de services agents
-======================================================================
+Processus d'import  et mise à jour d'un référentiel de services agents (STP_IMPORT_AGENCIES)
+============================================================================================
 
 L'import d'un référentiel de profil permet de vérifier le formalisme du référentiel des services agent et que les données obligatoires sont bien présentes pour chacun des agents.
 
@@ -32,3 +32,15 @@ Import d'un référentiel de services agents (STP_IMPORT_AGENCIES)
     - KO : une des règles ci-dessus n'est pas respectée
 
     - FATAL : une erreur technique est survenue lors de l'import du référentiel des formats (STP_IMPORT_AGENCIES.FATAL=Erreur fatale lors de l''import du service producteur)
+      
+Vérification des contrats utilisés (STP_IMPORT_AGENCIES.USED_CONTRACT)
+----------------------------------------------------------------------
+
+Vérification des contrats utilisés (STP_IMPORT_AGENCIES.USED_AU)
+----------------------------------------------------------------
+
+Création du rapport au format JSON (AGENCIES_REPORT_JSON)
+
+(AGENCIES_REPORT_CSV)
+
+(AGENCIES_REPORT_JSON)
