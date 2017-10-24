@@ -158,5 +158,6 @@ CMD ["/sbin/init"]
 COPY vitam-stop /usr/bin
 COPY vitam-start /usr/bin
 COPY vitam-restart /usr/bin
+COPY vitam-bench-ingest /usr/bin
 
 RUN  chmod a+x /usr/bin/vitam-*

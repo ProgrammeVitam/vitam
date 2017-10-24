@@ -1,0 +1,78 @@
+---
+# FIXME OMA : variabiliser les arborescences... et remettre / entre port et baseuri quand ansiblerie 2.1 sera mergée !
+
+- name: copy "jeux de données" for performance tests
+  copy:
+    src: "{{ item }}"
+    dest: "{{ vitam_defaults.folder.root_path }}/data/ihm-recette/test-data/{{item }}"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+  with_items: "{{ lookup('pipe','find {{ role_path }}/files/ -type f -exec basename {} \\; || true').split('\n') }}"
+
+# - name: restart vitam-ihm-recette
+#   service:
+#     name: vitam-ihm-recette
+#     state: restarted
+
+# - name: wait for ihm-recette port to be open
+#   wait_for:
+#     host: "{{ip_service}}"
+#     port: "{{ vitam.ihm_recette.port_https }}"
+#     timeout: 60
+
+- name: Connection to ihm-recette before uploading
+  uri:
+    url: "{% if vitam.ihm_recette.https_enabled==true %}https{% else %}http{% endif %}://{{ ip_service }}:{% if vitam.ihm_recette.https_enabled==true %}{{ vitam.ihm_recette.port_https }}{% else %}{{ vitam.ihm_recette.port }}{% endif %}/{{ vitam.ihm_recette.baseuri }}/v1/api/login"
+    validate_certs: no
+    method: POST
+    body: '{"token":{"principal":"{{vitam_users[0].login}}","credentials": "{{vitam_users[0].password}}" }}' # First account is used
+    body_format: json
+    status_code: 200
+    headers:
+      Content-Type: "application/json;charset=utf-8"
+      Accept: "application/json, text/plain, */*"
+      Connection: "keep-alive"
+      Host: "{{ ip_service }}"
+  run_once: true
+  no_log: true
+  register: connected
+
+# KWA comment : better with a template... and a loop !
+- name: launch perf test
+  uri:
+    url: "{% if vitam.ihm_recette.https_enabled==true %}https{% else %}http{% endif %}://{{ ip_service }}:{% if vitam.ihm_recette.https_enabled==true %}{{ vitam.ihm_recette.port_https }}{% else %}{{ vitam.ihm_recette.port }}{% endif %}/{{ vitam.ihm_recette.baseuri }}/v1/api/performances"
+    validate_certs: no
+    return_content: yes
+    method: POST
+    headers:
+      Connection: "keep-alive"
+      X-Tenant-Id: "{{item}}"
+#      Content-Type: "application/octet-stream"
+      Cookie: "{{connected.set_cookie}}"
+      Host: "{{ip_service}}"
+      body_format: json
+    body: "{{ lookup('template','perf.json.j2') }}"
+    body_format: json
+    status_code: 202
+  run_once: true # Limit as this upload is not related to tenants
+  when: connected.set_cookie != ''
+  with_items:
+    - "{{ vitam_tenant_ids|first }}"
+  register: launched
+
+- name: Wait until ingest is finished
+  command: "curl -I --silent -k -H \"Cookie: {{ connected.set_cookie }}\" -H \"Host: {{ ip_service }}\" {% if vitam.ihm_recette.https_enabled==true %}https{% else %}http{% endif %}://{{ ip_service }}:{% if vitam.ihm_recette.https_enabled==true %}{{ vitam.ihm_recette.port_https }}{% else %}{{ vitam.ihm_recette.port }}{% endif %}/{{ vitam.ihm_recette.baseuri }}/v1/api/performances"
+  register: result
+  until: result.stdout.find("200 OK") != -1
+  retries: "{{ nb_retries }}"
+  delay: 10
+
+- name: download output file
+  fetch:
+    src: "{{ vitam_defaults.folder.root_path }}/data/ihm-recette/report/performance/{{launched.results[0].content}}"
+    dest: "{{inventory_dir}}/"
+    flat: yes
+  ignore_errors: true
+
+
