@@ -263,7 +263,10 @@ Identification des formats (OG_OBJECTS_FORMAT_CHECK)
 
   - OK : l'identification s'est bien passée, les formats identifiés sont référencés dans le référentiel interne et les informations sont cohérentes avec celles déclarées dans le manifeste (OG_OBJECTS_FORMAT_CHECK.OK = Succès de la vérification des formats)
 
-  - KO : le format identifié n'est pas référencé dans le référentiel interne ou aucun format n'a été trouvé pour un objet (OG_OBJECTS_FORMAT_CHECK.KO = Échec de la vérification des formats)
+  - KO : 
+    - Cas 1 : au moins un objet reçu a un format qui n'a pas été trouvé (OG_OBJECTS_FORMAT_CHECK.KO = Échec de la vérification des formats)
+    - Cas 2 : au moins un objet reçu a un format qui n'est pas référencé dans le référentiel interne (.OG_OBJECTS_FORMAT_CHECK.FILE_FORMAT.UNCHARTED.KO)
+    - Cas 3 : le SIP soumis soumis à la solution logicielle Vitam contient à la fois le cas 1 et le cas 2 (OG_OBJECTS_FORMAT_CHECK.KO = Échec de la vérification des formats)
 
   - FATAL : l'identification des formats n'a pas été réalisée suite à une erreur technique (OG_OBJECTS_FORMAT_CHECK.FATAL = Erreur fatale lors de la vérification des formats)
 
