@@ -16,10 +16,10 @@ Documents internes
    :header: "Nom", "Lien"
    :widths: 10, 20
 
-   ":term:`DAT`","(à renseigner)"
-   ":term:`DIN`","(à renseigner)"
-   ":term:`DEX`","(à renseigner)"
-   "Release notes","(à renseigner)"
+   ":term:`DAT`","http://www.programmevitam.fr/ressources/DocCourante/html/archi"
+   ":term:`DIN`","http://www.programmevitam.fr/ressources/DocCourante/html/installation"
+   ":term:`DEX`","http://www.programmevitam.fr/ressources/DocCourante/html/exploitation"
+   "Release notes",""
 
 
 Référentiels externes

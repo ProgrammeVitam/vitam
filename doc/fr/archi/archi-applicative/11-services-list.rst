@@ -148,6 +148,24 @@ Données gérées :
     - ...
 
 
+Gestion des droits & accès (security-internal)
+==============================================
+
+Rôle :
+
+* Gérer le référentiel d'authentification des applications
+
+Fonctions :
+
+* Gestion des certificats d'accès des applications
+* Gestion des contextes
+
+Données gérées :
+
+* Contextes & certificats associés
+
+
+
 Offre de stockage par défaut (storage-offer-default)
 ====================================================
 

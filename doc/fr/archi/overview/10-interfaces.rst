@@ -28,4 +28,3 @@ Ces API sont exposées en tant qu'API REST (HTTPS) au niveau des composants exte
 
 .. seealso:: Les points relatifs à la sécurité des interfaces externes exposées sont abordés dans la section :doc:`sécurité </securite/_toc>`
 
-.. TODO Lister ici les interfaces proposées par VITAM, en en dictant éventuellement les principes d'authentification et d'autorisation ; faire référence au besoin à la documentation des API externes. ; préciser notamment les points de sécurité liés, ou reporter au chapitre idoine dans la partie sécurité. En outre, préciser les éléments relatifs aux clients logiciels fournis.

@@ -22,16 +22,29 @@ Les principes d'implémentation applicative ont pour but de faciliter, voire d'a
 Services
 ========
 
-Le système VITAM est découpé en services autonomes interagissant pour permettre de rendre le service global; ce découpage applicatif suit en grande partie le découpage présenté plus haut dans l'architecture fonctionnelle :
+La solution logicielle VITAM est découpé en services autonomes interagissant pour permettre de rendre le service global; ce découpage applicatif suit en grande partie le découpage présenté plus haut dans l'architecture fonctionnelle. 
 
-.. figure:: images/vitam-applicative-architecture.*
+Les schémas suivants présentent l'architecture applicative et les flux d'informations entre composants. Tous les composants jaunes sont fournis dans le cadre de la solution VITAM ; tous sont requis pour le bon fonctionnement de la solution, à l'exception de deux d'entre eux : ihm-demo et storage-offer-default (selon les choix de déploiement). Enfin, chaque service possède un nom propre qui l'identifie de manière unique au sein de la solution logicielle VITAM.
+
+.. figure:: images/vitam-applicative-architecture-datacmd.*
     :align: center
-    :height: 15 cm
+    :height: 10 cm
+
+    Architecture applicative : flux de données d'archives et de commandes    
+
+.. figure:: images/vitam-applicative-architecture-logbook.*
+    :align: center
+    :height: 10 cm
+
+    Architecture applicative : flux de données de journalisation   
+ 
+.. figure:: images/vitam-applicative-architecture-ref.*
+    :align: center
+    :height: 10 cm
+
+    Architecture applicative : flux de données de référentiels    
 
 
-    Architecture applicative et flux d'informations entre composants. Tous les composants jaunes sont fournis dans le cadre de la solution VITAM ; tous sont requis pour le bon fonctionnement de la solution, à l'exception de deux d'entre eux : ihm-demo et storage-offer-default (selon les choix de déploiement)
-
-    Chaque service possède un nom propre qui l'identifie de manière unique au sein du système VITAM.
 
 Les services sont organisés en zones logiques :
 
@@ -59,3 +72,10 @@ On distingue globalement 4 types de flux de données différents :
 * Les flux de référentiels : ils portent les informations des référentiels hébergés au sein de VITAM (référentiels des formats, des contrats, ...)
 
 .. KWA TODO : présenter des éléments d'architecture complémentaires (notamment sur le fonctionnement workers / processing).
+
+
+Données métier
+==============
+
+Le modèle de donnés métier est décrit dans `un document dédié <http://www.programmevitam.fr/ressources/DocCourante/html/data-model>`_ . 
+
