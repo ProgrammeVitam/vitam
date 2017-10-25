@@ -32,7 +32,7 @@ export class ArchiveUnitDetailsComponent extends PageComponent {
         this.id =  params.get('id');
         let newBreadcrumb = [
           {label: 'Recherche', routerLink: ''},
-          {label: 'Recherche des unités archivistiques', routerLink: 'search/archiveUnit'},
+          {label: 'Recherche d\'archives', routerLink: 'search/archiveUnit'},
           {label: 'Détails de l\'unité archivistique ' + this.id, routerLink: 'search/archiveUnit/' + this.id}
         ];
         this.setBreadcrumb(newBreadcrumb);

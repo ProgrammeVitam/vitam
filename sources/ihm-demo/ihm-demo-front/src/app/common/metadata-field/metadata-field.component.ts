@@ -1,4 +1,4 @@
-import {Component, OnInit, Input, Output, EventEmitter, SimpleChanges} from '@angular/core';
+import {Component, OnInit, OnChanges, Input, Output, EventEmitter, SimpleChanges} from '@angular/core';
 import {ArchiveUnitHelper} from "../../archive-unit/archive-unit.helper";
 import {ReferentialHelper} from "../../referentials/referential.helper";
 import { SelectItem } from 'primeng/primeng';
@@ -9,7 +9,7 @@ import { SelectItem } from 'primeng/primeng';
   templateUrl: './metadata-field.component.html',
   styleUrls: ['./metadata-field.component.css']
 })
-export class MetadataFieldComponent implements OnInit {
+export class MetadataFieldComponent implements OnInit, OnChanges {
   @Input() title: string;
   @Input() originalTitle: string;
   @Input() fieldCode: string;
@@ -24,6 +24,7 @@ export class MetadataFieldComponent implements OnInit {
   @Input() disabled : boolean;
   @Input() updatedFields: {};
 
+  initialValue: any;
   typeOfField: string;
   displayMode: string;
   @Output() updatedFieldsChange = new EventEmitter<{}>();
@@ -39,13 +40,40 @@ export class MetadataFieldComponent implements OnInit {
 
   constructor(public archiveUnitHelper: ArchiveUnitHelper, public referentialHelper : ReferentialHelper) { }
 
+  ngOnChanges(change) {
+    if(change.updateMode) {
+      if (change.updateMode.currentValue === false && change.updateMode.previousValue === true) {
+        if (this.typeOfField === 'Object') {
+          this.value = JSON.parse(this.initialValue);
+        } else {
+          this.value = this.initialValue;
+        }
+        this.init();
+      }
+    }
+  }
+
   ngOnInit() {
     if (!this.fieldCode) {
       this.fieldCode = this.originalTitle;
     }
+
     if (this.value instanceof Array) {
-      // Handle array of values
       this.typeOfField = 'Array';
+      this.initialValue = this.value;
+    } else if (typeof this.value === 'object' && this.value != null) {
+      this.typeOfField = 'Object';
+      this.initialValue = JSON.stringify(this.value);
+    } else {
+      this.typeOfField = 'other';
+      this.initialValue = this.value;
+    }
+
+    this.init();
+  }
+
+  init() {
+    if (this.typeOfField === 'Array') {
       this.arrayValue = [];
       for (var i=0, len=this.value.length; i<len; i++) {
         let item = this.value[i];
@@ -62,38 +90,39 @@ export class MetadataFieldComponent implements OnInit {
         }
       }
 
-    } else if (typeof this.value === 'object' && this.value != null) {
-      this.typeOfField = 'Object';
+    } else if (this.typeOfField === 'Object') {
       for (let field in this.value) {
         this.fields.push({title: this.translate(`${this.originalTitle}.${field}`), value: field,
           originalTitle: `${this.originalTitle}.${field}`, fieldCode: `${this.fieldCode}.${field}`});
       }
     } else {
-      this.typeOfField = 'other';
-      // Handle Date
       if (!!this.title && this.title.indexOf('Date') !== -1) {
         this.dateValue = new Date(this.value);
+        if ( isNaN(this.dateValue.getTime()) ) {
+          this.dateValue = null;
+        }
+        this.displayMode = 'Date';
       }
     }
 
-    if (this.dateValue) {
-      this.displayMode = 'Date';
-    } else if (this.archiveUnitHelper.isTextArea(this.originalTitle)) {
-      this.displayMode = 'TextArea';
-    } else if (this.archiveUnitHelper.isSelection(this.originalTitle)) {
-      this.displayMode = 'DropDown';
-      this.options = this.archiveUnitHelper.getOptions(this.originalTitle);
-    } else if (this.referentialHelper.useSwitchButton(this.originalTitle)) {
-      this.displayMode = 'SwitchButton';
-    } else if (this.referentialHelper.useMultiSelect(this.originalTitle)) {
-      this.options = this.referentialHelper.getOptions(this.originalTitle);
-      this.displayMode = 'MultiSelect';
-      this.typeOfField = 'other';
-    } else if (this.referentialHelper.useChips(this.originalTitle)) {
-      this.displayMode = 'Chips';
-      this.typeOfField = 'other';
-    } else {
-      this.displayMode = 'TextInput';
+    if (!this.displayMode) {
+      if (this.archiveUnitHelper.isTextArea(this.originalTitle)) {
+        this.displayMode = 'TextArea';
+      } else if (this.archiveUnitHelper.isSelection(this.originalTitle)) {
+        this.displayMode = 'DropDown';
+        this.options = this.archiveUnitHelper.getOptions(this.originalTitle);
+      } else if (this.referentialHelper.useSwitchButton(this.originalTitle)) {
+        this.displayMode = 'SwitchButton';
+      } else if (this.referentialHelper.useMultiSelect(this.originalTitle)) {
+        this.options = this.referentialHelper.getOptions(this.originalTitle);
+        this.displayMode = 'MultiSelect';
+        this.typeOfField = 'other';
+      } else if (this.referentialHelper.useChips(this.originalTitle)) {
+        this.displayMode = 'Chips';
+        this.typeOfField = 'other';
+      } else {
+        this.displayMode = 'TextInput';
+      }
     }
 
     // Handle Specific field size
@@ -103,12 +132,14 @@ export class MetadataFieldComponent implements OnInit {
       this.labelClass = `ui-g-${this.labelSize}`;
       this.inputClass = `ui-g-${12 - this.labelSize}`;
     }
-
   }
 
   valueChange() {
     if (this.displayMode === 'Date' && !this.dateValue) {
       this.dateValue = new Date(this.value);
+      if ( isNaN(this.dateValue.getTime()) ) {
+        this.dateValue = null;
+      }
       return;
     }
     if (this.dateValue) {
