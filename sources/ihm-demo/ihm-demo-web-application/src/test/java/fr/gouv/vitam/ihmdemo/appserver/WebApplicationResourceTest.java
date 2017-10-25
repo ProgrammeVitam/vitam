@@ -1637,6 +1637,29 @@ public class WebApplicationResourceTest {
 
     }
 
+    @Test
+    public void testCreateDipOK() throws Exception {
+        PowerMockito.when(UserInterfaceTransactionManager.exportDIP(anyObject(), anyObject(),
+            anyObject(), anyString()))
+            .thenReturn(ClientMockResultHelper.getDipInfo());
+
+        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+            .statusCode(Status.OK.getStatusCode()).when()
+            .post("/archiveunit/dipexport");
+    }
+
+    @Test
+    public void testCreateDipBadRequest() throws Exception {
+        PowerMockito
+            .when(UserInterfaceTransactionManager.exportDIP(anyObject(), anyObject(),
+                anyObject(), anyString()))
+            .thenThrow(new InvalidParseOperationException(""));
+
+        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+            .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
+            .post("/archiveunit/dipexport");
+    }
+
     private static String getAppSessionId() {
         return "MyApplicationId-ChangeIt";
     }

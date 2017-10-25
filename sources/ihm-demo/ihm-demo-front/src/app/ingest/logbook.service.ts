@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import {ResourcesService} from "../common/resources.service";
-import {Headers, Response} from "@angular/http";
+import {Headers, Response } from "@angular/http";
 import {Observable} from "rxjs/Observable";
 import 'rxjs/add/observable/of';
 import {VitamResponse} from "../common/utils/response";
+import {ArchiveUnitService} from '../archive-unit/archive-unit.service';
 
 @Injectable()
 export class LogbookService {
@@ -11,7 +12,8 @@ export class LogbookService {
   REPORT_DOWNLOAD_API = 'rules/report/download';
   REPORT_TRACEABILITY_DOWNLOAD_API = 'traceability';
 
-  constructor(private resourceService: ResourcesService) { }
+
+  constructor(private resourceService: ResourcesService, public archiveUnitService: ArchiveUnitService) { }
 
   getResults(body: any, offset: number = 0): Observable<VitamResponse> {
 
@@ -64,5 +66,20 @@ export class LogbookService {
     );
   }
 
+  downloadDIP(id) {
+    this.archiveUnitService.downloadDIP(id).subscribe(
+      (response) => {
+        console.log(response);
+        const a = document.createElement('a');
+        document.body.appendChild(a);
 
+        a.href = URL.createObjectURL(new Blob([response['_body']], {type: 'application/zip'}));
+
+        if (response.headers.get('content-disposition') !== undefined && response.headers.get('content-disposition') !== null) {
+          a.download = response.headers.get('content-disposition').split('filename=')[1];
+          a.click();
+        }
+      }
+    );
+  }
 }

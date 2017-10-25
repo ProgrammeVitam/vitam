@@ -70,5 +70,9 @@ public class AccessExtAPI {
     public static final String WORKFLOWS = "workflows";
     public static final String WORKFLOWS_API = "/" + WORKFLOWS;
     
+    public static final String DIP = "dipexport";
+    public static final String DIP_API = "/" + DIP;
+    
+    
     public static final String SECURITY_PROFILES = "securityprofiles";
 }

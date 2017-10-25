@@ -89,7 +89,7 @@ export class LogbookOperationComponent extends PageComponent {
         () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeStaticColumn('evIdAppSession', 'Identifiant transaction', undefined,
         () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
-    ColumnDefinition.makeSpecialIconColumn('Rapport', (item) => item.evTypeProc.toUpperCase() === 'AUDIT' ? ['fa-download'] : [],
+    ColumnDefinition.makeSpecialIconColumn('Rapport', LogbookOperationComponent.handleReports,
         () => ({'width': '50px', 'overflow-wrap': 'break-word'}), LogbookOperationComponent.downloadReports, this.logbookService),
   ];
 
@@ -103,6 +103,15 @@ export class LogbookOperationComponent extends PageComponent {
     this.logbookService.getResults(this.searchForm, 0).subscribe(
         data => this.response = data,
         error => console.log('Error - ', this.response));
+  }
+
+  static handleReports(item): string[] {
+    const evType = item.evTypeProc.toUpperCase();
+    if (evType === 'AUDIT' || evType === 'EXPORT_DIP') {
+      return ['fa-download']
+    }else {
+      return [];
+    }
   }
 
   static handleStatus(status): string {
@@ -128,6 +137,11 @@ export class LogbookOperationComponent extends PageComponent {
       delete request.EventType;
     }
 
+    request.orderby = {
+      field: 'evDateTime',
+      sortType: 'DESC'
+    };
+
     preResult.request = request;
     preResult.searchProcessSkip = false;
     preResult.success = true;
@@ -140,6 +154,10 @@ export class LogbookOperationComponent extends PageComponent {
   }
 
   static downloadReports(item, logbookService) {
+    if(item.evTypeProc === 'EXPORT_DIP') {
+        logbookService.downloadDIP(item.evIdProc);
+        return;
+    }
     logbookService.downloadReport(item.evIdProc);
   }
 

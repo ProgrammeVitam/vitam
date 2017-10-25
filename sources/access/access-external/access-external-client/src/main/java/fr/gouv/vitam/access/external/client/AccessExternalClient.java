@@ -202,6 +202,24 @@ public interface AccessExternalClient extends BasicClient {
     RequestResponse<LogbookLifecycle> selectObjectGroupLifeCycleById(
         VitamContext vitamContext, String idObject, JsonNode select)
         throws VitamClientException;
+
+	/**
+	 * @param vitamContext the vitam context
+	 * @param selectQuery the DSL query used to select unit to export as DIP
+	 * @return the 
+	 * @throws VitamClientException
+	 */
+	RequestResponse<JsonNode> exportDIP(VitamContext vitamContext,
+			JsonNode selectQuery) throws VitamClientException;
+
+	/**
+	 * @param vitamContext the vitam context
+	 * @param dipId the previously generated DIP id to download the DIP
+	 * @return
+	 * @throws VitamClientException
+	 */
+	Response getDIPById(VitamContext vitamContext, String dipId)
+			throws VitamClientException;
 }
 
 
