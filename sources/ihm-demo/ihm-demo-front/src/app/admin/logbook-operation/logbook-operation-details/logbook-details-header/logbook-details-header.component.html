@@ -1,11 +1,8 @@
 <div class="ui-g" *ngIf="results">
-    <div class="ui-g-5">
-      <p-chart type="doughnut" [data]="data"></p-chart>
-    </div>
-    <div class="ui-g-7 ui-g-nopad" style="text-align: left;">
+    <div class="ui-g-12" style="text-align: center;">
       <div class="ui-g-12">
         <span style="font-weight: bold;">Statut : </span>
-        {{lastEvent.outcome}}
+        {{lastEvent.evType.indexOf('.STARTED') > -1 ? 'En cours' : lastEvent.outcome}}
       </div>
       <div class="ui-g-12">
         <span style="font-weight: bold;">Étape en cours : </span>

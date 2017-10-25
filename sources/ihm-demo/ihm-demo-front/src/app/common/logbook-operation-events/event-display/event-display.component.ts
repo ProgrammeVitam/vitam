@@ -21,7 +21,12 @@ export class EventDisplayComponent implements OnInit {
 
   ngOnInit() {
     if (this.event.end) {
-      this.setStepStatusIcon(this.event.end.outcome);
+      if (this.event.end.evType.toUpperCase().indexOf('.STARTED') > -1) {
+        this.stepStatusIcon = 'fa-circle-o-notch fa-spin';
+        this.logbookRowStyle = 'okRow';
+      } else {
+        this.setStepStatusIcon(this.event.end.outcome);
+      }
     } else {
       this.stepStatusIcon = 'fa-circle-o-notch fa-spin';
       this.logbookRowStyle = 'okRow';

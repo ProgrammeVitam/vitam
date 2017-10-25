@@ -232,8 +232,7 @@ const appRoutes: Routes = [
     MultiSelectModule,
     CheckboxModule,
     DataGridModule,
-    CheckboxModule,
-    ChartModule
+    CheckboxModule
   ],
   providers: [
     ResourcesService,
