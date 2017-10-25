@@ -244,13 +244,14 @@ Vérification de l'intégrité des objets (CHECK_DIGEST)
 
 + **Statuts** :
 
-  - OK : tous les objets binaires reçus sont identiques aux objets binaires attendus. Tous les objets binaires disposent désormais d'une empreinte calculée avec l'algorithme SHA-512 (CHECK_DIGEST.OK = Succès de la vérification de l'intégrité des objets binaires)
+  - OK : tous les objets binaires reçus sont identiques aux objets binaires attendus. Tous les objets binaires disposent désormais d'une empreinte calculée avec l'algorithme SHA-256 (CHECK_DIGEST.OK = Succès de la vérification de l'intégrité des objets binaires)
 
-  - KO : au moins un objet reçu n'est pas identique aux objets attendus (CHECK_DIGEST.KO = Échec de la vérification de l'intégrité des objets binaires)
+  - KO : 
+    - Cas 1 : au moins un objet reçu n'a pas d'empreinte dans le bordereau (CHECK_DIGEST.EMPTY.KO=Échec lors de la lecture de l'empreinte du fichier)
+    - Cas 2 : au moins une empreinte d'un objet reçu n'est pas conforme à son empreinte dans le bordereau (CHECK_DIGEST.INVALID.KO=Échec lors de la vérification de l'empreinte du fichier)
+    - Cas 3 : le SIP soumis à la solution logicielle Vitam contient à la fois le cas 1 et le cas 2 (CHECK_DIGEST.KO=Échec de la vérification de l'intégrité des objets)
 
   - FATAL : la vérification de l'intégrité des objets binaires n'a pas pu être réalisée suite à une erreur système, par exemple lorsque l'algorithme inconnu (CHECK_DIGEST.FATAL = Erreur fatale lors de la vérification des objets)
-
-
 
 Identification des formats (OG_OBJECTS_FORMAT_CHECK)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
