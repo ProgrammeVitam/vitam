@@ -41,12 +41,13 @@
 
 - name: Copy the database scripts files
   template:
-    src: "{{ item }}.j2"
-    dest: "{{ vitam_defaults.folder.root_path }}/app/mongos/{{ item }}"
+    src: "{{ item }}"
+    dest: "{{ vitam_defaults.folder.root_path }}/app/mongos/{{ item | basename | regex_replace('\\.j2$') }}"
     owner: "{{ vitam_defaults.users.vitamdb }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  with_items: "{{ lookup('pipe','find {{ role_path }}/templates/ -type f  -exec basename {} .j2 \\;').split('\n') }}"
+  with_fileglob:
+    - "{{ role_path }}/templates/*"
   run_once: true
 
 # Enable sharding for specific databases and collections

@@ -99,13 +99,13 @@
 # Caution : commands in both lines (with_items and when) should always both return a success code (even if folder doesn't exist)
 - name: Deploy specific configuration files (can override the common configuration files)
   template:
-    src: "{{ role_path }}/templates/{{ vitam_struct.vitam_component }}/{{ item }}.j2"
-    dest: "{{vitam_folder_conf}}/{{ item }}"
+    src: "{{ item }}"
+    dest: "{{vitam_folder_conf}}/{{ item | basename | regex_replace('\\.j2$') }}"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  when: "{{ lookup('pipe', 'test -d {{ role_path }}/templates/{{ vitam_struct.vitam_component }} || echo nofolder') == \"\"}}"
-  with_items: "{{ lookup('pipe','find {{ role_path }}/templates/{{ vitam_struct.vitam_component }}/ -type f  -exec basename {} .j2 \\; || true').split('\n') }}"
+  with_fileglob:
+    - "{{ role_path }}/templates/{{ vitam_struct.vitam_component }}/*"
   no_log: false # OMA test as there may be secrets in verbose output
   tags:
     - update_vitam_configuration
@@ -114,25 +114,13 @@
 
 - name: copy files section for {{ package_name }} when applicable
   copy:
-    src: "{{ role_path }}/files/{{ vitam_struct.vitam_component }}/{{ item }}"
-    dest: "{{vitam_folder_conf}}/{{ item }}"
+    src: "{{ item }}"
+    dest: "{{vitam_folder_conf}}/{{ item | basename | regex_replace('\\.j2$') }}"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  when: "{{ lookup('pipe', 'test -d {{ role_path }}/files/{{ vitam_struct.vitam_component }} || echo nofolder') == \"\"}}"
-  with_items: "{{ lookup('pipe','find {{ role_path }}/files/{{ vitam_struct.vitam_component }}/ -type f -exec basename {} \\; || true').split('\n') }}"
-  notify:
-    - restart service
-
-- name: copy files section (symbolic links to sources) for {{ package_name }} when applicable
-  copy:
-    src: "{{ role_path }}/files/{{ vitam_struct.vitam_component }}/{{ item }}"
-    dest: "{{vitam_folder_conf}}/{{ item }}"
-    owner: "{{ vitam_defaults.users.vitam }}"
-    group: "{{ vitam_defaults.users.group }}"
-    mode: "{{ vitam_defaults.folder.conf_permission }}"
-  when: "{{ lookup('pipe', 'test -d {{ role_path }}/files/{{ vitam_struct.vitam_component }} || echo nofolder') == \"\"}}"
-  with_items: "{{ lookup('pipe','find {{ role_path }}/files/{{ vitam_struct.vitam_component }}/ -type l -exec basename {} \\; || true').split('\n') }}"
+  with_fileglob:
+    - "{{ role_path }}/files/{{ vitam_struct.vitam_component }}/*"
   notify:
     - restart service
 

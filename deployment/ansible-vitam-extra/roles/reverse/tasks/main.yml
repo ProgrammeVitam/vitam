@@ -18,7 +18,7 @@
 
 - name: install apache2
   package:
-    name: "{{apache_service}}"
+    name: "{{ apache_service }}"
     state: latest
 
 - name: Ensure mod_ssl is installed (CentOS)
@@ -30,8 +30,8 @@
 # TODO: We could use apache2_module of ansible but it is currently flagged as preview
 - name: Enable mod_ssl & mod_proxy (Debian)
   file:
-    src: "/etc/{{apache_service}}/mods-available/{{ item }}"
-    dest: "/etc/{{apache_service}}/mods-enabled/{{ item }}"
+    src: "/etc/{{ apache_service }}/mods-available/{{ item }}"
+    dest: "/etc/{{ apache_service }}/mods-enabled/{{ item }}"
     owner: "root"
     state: link
   when:  ansible_distribution == "Debian"
@@ -47,42 +47,33 @@
 
 - name: create DocumentRoot directory
   file:
-    path: "/var/www/html-{{environnement}}"
+    path: "/var/www/html-{{ environnement }}"
     state: directory
     owner: root
     mode: 0755
   notify:
      - reload apache
 
-# FIXME - which group do we have to set ?
-- name: create logs-nightly-builds subdirectory
-  file:
-    path: "/var/www/html-{{environnement}}/logs-nightly-deploy"
-    state: directory
-    owner: "root"
-    group: "{{ansible_user_id}}"
-    mode: 0775
-
 - name: create certificates directory
   file:
-    path: "/etc/{{apache_service}}/certs"
+    path: "/etc/{{ apache_service }}/certs"
     state: directory
     owner: "root"
-    group: "{{apache_group}}"
+    group: "{{ apache_group }}"
     mode: 0550
 
 - name: create ca directory
   file:
-    path: "/etc/{{apache_service}}/ca/{{environnement}}"
+    path: "/etc/{{ apache_service }}/ca/{{ environnement }}"
     state: directory
     owner: "root"
-    group: "{{apache_group}}"
+    group: "{{ apache_group }}"
     mode: 0550
 
 - name: copy index resources
   copy:
     src: "{{ item }}"
-    dest: "/var/www/html-{{environnement}}/"
+    dest: "/var/www/html-{{ environnement }}/"
     owner: "root"
     mode: 0644
   with_items:
@@ -95,7 +86,7 @@
 - name: copy index default page
   template:
     src: "index.html.j2"
-    dest: "/var/www/html-{{environnement}}/index.html"
+    dest: "/var/www/html-{{ environnement }}/index.html"
     owner: "root"
     mode: 0644
   tags:
@@ -106,8 +97,8 @@
 #OMA: if problem with apache2 restart due to absent pem, manually remove on reverse the above p12 file and relaunch playbook
 - name: copy certificate
   copy:
-    src: "{{inventory_dir}}/keystores/client-external/keystore_reverse.p12"
-    dest: "/etc/{{apache_service}}/certs/keystore_client_{{environnement}}.p12"
+    src: "{{ inventory_dir }}/keystores/client-external/keystore_reverse.p12"
+    dest: "/etc/{{ apache_service }}/certs/keystore_client_{{ environnement }}.p12"
     owner: "root"
     mode: 0400
   notify:
@@ -116,17 +107,17 @@
 
 - name: Copy the CA
   copy:
-    src: "{{inventory_dir}}/certs/client-external/ca/{{ item }}"
-    dest: "/etc/{{apache_service}}/ca/{{environnement}}/{{ item }}"
+    src: "{{ item }}"
+    dest: "/etc/{{ apache_service }}/ca/{{ environnement }}/{{ item | basename }}"
     owner: "root"
     mode: 0400
-  when: "{{ lookup('pipe', 'test -d {{inventory_dir}}/certs/client-external/ca/ || echo nofolder') == \"\"}}"
-  with_items: "{{ lookup('pipe','find {{inventory_dir}}/certs/client-external/ca/ -type f -name *.crt -exec basename {} \\; || true').split('\n') }}"
+  with_fileglob:
+    - "{{ inventory_dir }}/certs/client-external/ca/*.crt"
 
 - name: copy httpd configuration template
   template:
     src: httpd_config
-    dest: "/etc/{{apache_service}}/{{apache_conf_dir}}/zz_{{vitam_reverse_external_dns}}.conf"
+    dest: "/etc/{{ apache_service }}/{{ apache_conf_dir }}/zz_{{ vitam_reverse_external_dns }}.conf"
     owner: "root"
     mode: 0644
   tags:
@@ -136,8 +127,8 @@
 
 - name: activate httpd configuration for debian
   file:
-    src: /etc/{{apache_service}}/sites-available/zz_{{vitam_reverse_external_dns}}.conf
-    dest: /etc/{{apache_service}}/sites-enabled/zz_{{vitam_reverse_external_dns}}.conf
+    src: /etc/{{ apache_service }}/sites-available/zz_{{ vitam_reverse_external_dns }}.conf
+    dest: /etc/{{ apache_service }}/sites-enabled/zz_{{ vitam_reverse_external_dns }}.conf
     owner: "root"
     state: link
   when:  ansible_distribution == "Debian"

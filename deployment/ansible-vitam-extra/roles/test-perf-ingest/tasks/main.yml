@@ -4,11 +4,12 @@
 - name: copy "jeux de données" for performance tests
   copy:
     src: "{{ item }}"
-    dest: "{{ vitam_defaults.folder.root_path }}/data/ihm-recette/test-data/{{item }}"
+    dest: "{{ vitam_defaults.folder.root_path }}/data/ihm-recette/test-data/{{ item | basename }}"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  with_items: "{{ lookup('pipe','find {{ role_path }}/files/ -type f -exec basename {} \\; || true').split('\n') }}"
+  with_fileglob:
+    - "{{ role_path }}/files/*"
 
 # - name: restart vitam-ihm-recette
 #   service:
@@ -74,5 +75,3 @@
     dest: "{{inventory_dir}}/"
     flat: yes
   ignore_errors: true
-
-
