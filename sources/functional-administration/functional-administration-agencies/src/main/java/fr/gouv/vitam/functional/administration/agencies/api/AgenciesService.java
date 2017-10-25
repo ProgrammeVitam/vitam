@@ -133,6 +133,8 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 public class AgenciesService implements VitamAutoCloseable {
 
     public static final String AGENCIES_IMPORT_EVENT = "STP_IMPORT_AGENCIES";
+    public static final String AGENCIES_REPORT_EVENT = "STP_AGENCIES_REPORT";
+
     public static final String AGENCIES_IMPORT_AU_USAGE = AGENCIES_IMPORT_EVENT + ".USED_AU";
     private static final String AGENCIES_IMPORT_CONTRACT_USAGE = AGENCIES_IMPORT_EVENT + ".USED_CONTRACT";
 
@@ -165,7 +167,6 @@ public class AgenciesService implements VitamAutoCloseable {
     private List<AgenciesModel> agenciesToImport;
     private List<AgenciesModel> agenciesInDb;
     private final FilesSecurisator securisator;
-    private final String logbookReport = "AGENCIES_REPORT";
 
     private final String file_name = "AGENCIES";
     private GUID eip;
@@ -804,7 +805,7 @@ public class AgenciesService implements VitamAutoCloseable {
             .getSequence(ParameterHelper.getTenantParameter(), SequenceType.AGENCIES_SEQUENCE.getName());
 
         securisator.secureFiles(sequence, stream, extension, eip, digest, LogbookTypeProcess.STORAGE_AGENCIES,
-            StorageCollectionType.AGENCIES, logbookReport, file_name);
+            StorageCollectionType.AGENCIES, AGENCIES_IMPORT_EVENT, file_name);
     }
 
     private void storeReport(InputStream stream)
@@ -814,9 +815,8 @@ public class AgenciesService implements VitamAutoCloseable {
         final String fileName = eip + ".json";
 
         securisator
-            .secureFiles(stream, JSON, eip, LogbookTypeProcess.STORAGE_AGENCIES,
-                StorageCollectionType.REPORTS, logbookReport, file_name, fileName);
-
+            .secureFiles(stream, eip, AGENCIES_REPORT_EVENT, LogbookTypeProcess.STORAGE_AGENCIES,
+                StorageCollectionType.REPORTS, file_name, fileName);
     }
 
     private void storeCSV(File file)
