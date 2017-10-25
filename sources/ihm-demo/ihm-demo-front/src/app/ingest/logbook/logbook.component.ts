@@ -13,7 +13,7 @@ import {ArchiveUnitHelper} from "../../archive-unit/archive-unit.helper";
 
 const breadcrumb: BreadcrumbElement[] = [
   {label: 'Entrée', routerLink: ''},
-  {label: 'Journal des opérations d\'entrée', routerLink: 'ingest/logbook'}
+  {label: 'Suivi des opérations d\'entrée', routerLink: 'ingest/logbook'}
 ];
 
 @Component({
@@ -45,7 +45,7 @@ export class LogbookComponent extends PageComponent {
   }
 
   public columns = [
-    ColumnDefinition.makeSpecialValueColumn('Identifiant de la demande d\'entrée',
+    ColumnDefinition.makeSpecialValueColumn('Identifiant',
         (item) => item.events[0].obIdIn === null ? item.events[1].obIdIn : item.events[0].obIdIn, undefined,
         () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeSpecialValueColumn('Intitulé',
@@ -54,16 +54,16 @@ export class LogbookComponent extends PageComponent {
     ColumnDefinition.makeSpecialValueColumn('Statut',
         (item) => item.events[1].outcome.toUpperCase(), LogbookComponent.handleStatus,
         () => ({'width': '125px'})),
-    ColumnDefinition.makeSpecialValueColumn('Service Versant',
+    ColumnDefinition.makeSpecialValueColumn('Service versant',
         (item) => !!item.evDetData ? JSON.parse(item.evDetData).AgIfTrans : '', undefined,
         () => ({'width': '125px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeSpecialValueColumn('Contrat',
         (item) => !!item.evDetData ? JSON.parse(item.evDetData).ArchivalAgreement : '', undefined,
         () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
-    ColumnDefinition.makeStaticColumn('evDateTime', 'Début opération', this.archiveUnitHelper.handleDate,
+    ColumnDefinition.makeStaticColumn('evDateTime', 'Début opération', this.archiveUnitHelper.handleDateWithTime,
         () => ({'width': '100px'})),
     ColumnDefinition.makeSpecialValueColumn('Fin opération',
-        (item) => item.events[1].evDateTime, this.archiveUnitHelper.handleDate,
+        (item) => item.events[1].evDateTime, this.archiveUnitHelper.handleDateWithTime,
         () => ({'width': '100px'})),
     ColumnDefinition.makeIconColumn('Bordereau', ['fa-download'],
         LogbookComponent.downloadManifest, LogbookComponent.displayManifestDownload,
@@ -132,6 +132,10 @@ export class LogbookComponent extends PageComponent {
     if (request.obIdIn === '') {
       delete request.obIdIn;
     }
+    request.orderby = {
+      field: 'evDateTime',
+      sortType: 'DESC'
+    };
     preResult.request = request;
     preResult.searchProcessSkip = false;
     preResult.success = true;
