@@ -4,9 +4,9 @@ Base Logbook
 Collections contenues dans la base
 ===================================
 
-La base Logbook contient les collections relatives aux journaux d'opérations et de cycles de vie des unités archivistiques et des objets numériques de la solution logicielle Vitam.
+La base Logbook contient les collections relatives aux journaux d'opérations et de cycles de vie des unités archivistiques et des groupes d'objets de la solution logicielle Vitam.
 
-L'ensemble des champs sont peuplés automatiquement par Vitam.
+L'ensemble des champs est peuplé automatiquement par Vitam.
 
 Collection LogbookOperation
 ===========================
@@ -18,19 +18,19 @@ La collection LogbookOperation comporte toutes les informations de traitement li
 
 Ces opérations sont :
 
+- Audit (implémentée dans la release en cours)
+- Données de référence (implémentée dans la release en cours)
+- Elimination (non implémentée dans la release en cours)
 - Entrée (implémentée dans la release en cours)
 - Mise à jour (implémentée dans la release en cours)
-- Données de référence (implémentée dans la release en cours)
-- Audit (implémentée dans la release en cours)
-- Elimination (non implémentée dans la release en cours)
 - Préservation (non implémentée dans la release en cours)
-- Vérification (implémentée dans la release en cours)
 - Sécurisation (implémentée dans la release en cours)
+- Vérification (implémentée dans la release en cours)
   
-Les valeurs correspondant à ces opérations dans les journaux sont détaillées dans l'annexe 5.3.
+Les valeurs correspondant à ces opérations dans les journaux sont détaillées dans l'annexe 7.3.
 
-Exemple de JSON stocké en base comprenant l'exhaustivité des champs
--------------------------------------------------------------------
+Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la collection LogbookOperation
+-----------------------------------------------------------------------------------------------------
 
 Extrait d'un JSON correspondant à une opération d'entrée terminée avec succès.
 
@@ -113,7 +113,7 @@ Extrait d'un JSON correspondant à une opération d'entrée terminée avec succ�
 Détail des champs du JSON stocké dans la collection
 ----------------------------------------------------
 
-Chaque entrée de cette collection est composée d'une structure auto-imbriquée : la structure possède une première instanciation "incluante", et contient un tableau de N structures identiques, dont seules les valeurs contenues dans les champs changent.
+Chaque enregistrement de cette collection est composé d'une structure auto-imbriquée : la structure possède une première instanciation "incluante" et contient un tableau de n structures identiques, dont seules les valeurs contenues dans les champs changent.
 
 La structure est décrite ci-dessous.
 Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'une structure incluse dans celle-ci.
@@ -123,7 +123,7 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
   * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
   * Cet identifiant constitue la clé primaire de l'opération dans la collection.
   * Cardinalité : 1-1
-  * Ce champ existe uniquement pour la structure incluante.*
+  * Ce champ existe uniquement pour la structure incluante.
 
 **"evId" (event Identifier): Champs obligatoire peuplé par Vitam** identifiant de l'événement 
 
@@ -134,107 +134,103 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
   * Ce champ existe pour les structures incluantes et incluses*
 
 **"evParentId" (event Parent Identifier):** identifiant de l'événement parent.
+
     * Il est constitué d'une chaîne de 36 caractères correspondant à un GUID. 
     * Il identifie l'événement parent.
     * Ce champ est toujours à null pour la structure incluante et les tâches principales
     * Cardinalité : 1-1 
+    * Ce champ existe pour les structures incluantes et incluses.
 
-    *Ce champ existe pour les structures incluantes et incluses*
-
-**"evType" (event Type):** nom de l'événement
+**"evType" (event Type):** code du type de l'opération
 
   * Issu de la définition du workflow en JSON (fichier default-workflow.json).
   * La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code est stocké dans ce champ, la traduction se faisant via un fichier properties (vitam-logbook-message-fr.properties).
   * Cardinalité : 1-1
-  * Ce champ existe pour les structures incluantes et incluses*
+  * Ce champ existe pour les structures incluantes et incluses.
 
-**"evDateTime" (event DateTime):** date de l'événement
+**"evDateTime" (event DateTime):** date de lancement de l'opération
     
   * Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
-  * Positionnée par le client LogBook.
+  * Elle est renseignée par le client LogBook.
     ``Exemple : "2016-08-17T08:26:04.227"``
   * Cardinalité : 1-1
-  * Ce champ existe pour les structures incluantes et incluses*
+  * Ce champ existe pour les structures incluantes et incluses.
 
-**"evDetData" (event Detail Data):** détails de l'événement.
+**"evDetData" (event Detail Data):** détails des données l'événement.
 
-    * Donne plus de détail sur l'événement ou son résultat.
-    * Par exemple, pour l'étape ATR_NOTIFICATION, ce champ détaille le nom de l'ArchiveTransferReply, son empreinte et l'algorithme utilisé pour calculer l'empreinte.
+  * Donne plus de détail sur l'événement ou son résultat.
+  * Par exemple, pour l'étape ATR_NOTIFICATION, ce champ détaille le nom de l'ArchiveTransferReply, son empreinte et l'algorithme utilisé pour calculer l'empreinte.
     
-    * Sur la structure incluante du journal d'opérations d'entrée, il contient un JSON composé des champs suivants :
+  * Sur la structure incluante du journal d'opérations d'entrée, il contient un JSON composé des champs suivants :
 
-        * evDetDataType : structure impactée. Chaîne de caractères. Doit correspondre à une valeur de l'énumération LogbookEvDetDataType
-        * EvDetailReq : précisions sur la demande de transfert. Chaîne de caractères. Reprend le champ "Comment" du message ArchiveTransfer. 
-        * EvDateTimeReq : date de la demande de transfert inscrit dans le champs evDetData. Date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes].
-        * ServiceLevel : niveau de service. Chaîne de caractères. Reprend le champ ServiceLevel du message ArchiveTransfer
+    * evDetDataType : structure impactée. Chaîne de caractères. Doit correspondre à une valeur de l'énumération LogbookEvDetDataType
+    * EvDetailReq : précisions sur la demande de transfert. Chaîne de caractères. Reprend le champ "Comment" du message ArchiveTransfer. 
+    * EvDateTimeReq : date de la demande de transfert inscrit dans le champ evDetData. Date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes].
+    * ServiceLevel : niveau de service. Chaîne de caractères. Reprend le champ ServiceLevel du message ArchiveTransfer
     
-    * Cardinalité pour les structures incluantes : 1-1 
-    * Cardinalité pour les structures incluses : 0-1 
-    *Ce champ existe pour les structures incluantes et incluses*
+  * Cardinalité pour les structures incluantes : 1-1 
+  * Cardinalité pour les structures incluses : 0-1 
+  * Ce champ existe pour les structures incluantes et incluses.
 
 **"evIdProc" (event Identifier Process):** identifiant du processus. 
 
-    * Il s'agit d'une chaîne de 36 caractères.
-    * Toutes les mêmes entrées du journal des opérations partagent la même valeur, qui est celle du champ "_id"
-    * Cardinalité : 1-1
-    *Ce champ existe pour les structures incluantes et incluses*
+  * Il s'agit d'une chaîne de 36 caractères.
+  * Toutes les mêmes entrées du journal des opérations partagent la même valeur, qui est celle du champ "_id"
+  * Cardinalité : 1-1
+  * Ce champ existe pour les structures incluantes et incluses.
 
 **"evTypeProc" (event Type Process):** type de processus.
 
-    * Il s'agit d'une chaîne de caractères.
-    * Nom du processus qui effectue l'action, parmi une liste de processus possibles fixée. Cette liste est disponible en annexe 5.3.
-    * Cardinalité : 1-1 
-    * Ce champ existe pour les structures incluantes et incluses*
+  * Il s'agit d'une chaîne de caractères.
+  * Nom du processus qui effectue l'action, parmi une liste de processus possibles fixée. Cette liste est disponible en annexe 7.3.
+  * Cardinalité : 1-1 
+  * Ce champ existe pour les structures incluantes et incluses.
 
 **"outcome":** Statut de l'événement.
 
-    * Il s'agit d'une chaîne de caractères devant correspondre à une valeur de la liste suivante :
+  * Il s'agit d'une chaîne de caractères devant correspondre à une valeur de la liste suivante :
 
-    - STARTED (début de l'événement)
+    - STARTED (Début de l'événement)
     - OK (Succès de l'événement)
-    - KO (Echec de l'événement)
-    - WARNING (Succès de l'événement comportant des alertes)
+    - KO (Échec de l'événement)
+    - WARNING (Succès de l'événement comportant toutefois des alertes)
     - FATAL (Erreur technique)
 
-    * Cardinalité : 1-1 
-    *Ce champ existe pour les structures incluantes et incluses*
+  * Cardinalité : 1-1 
+  * Ce champ existe pour les structures incluantes et incluses.
 
 **"outDetail" (outcome Detail):** code correspondant au résultat de l'événement.
 
-    * Il s'agit d'une chaîne de caractères.
-    * Il contient le code correspondant au résultat de l'événement, incluant le statut. La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via un fichier properties (vitam-logbook-message-fr.properties)
+  * Il s'agit d'une chaîne de caractères.
+  * Il contient le code correspondant au résultat de l'événement, incluant le statut. La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via un fichier properties (vitam-logbook-message-fr.properties)
+  * Cardinalité : 1-1 
+  * Ce champ existe pour les structures incluantes et incluses.
 
+**"outMessg" (outcomeDetailMessage):** détail du résultat de l'événement.
+
+  * Il s'agit d'une chaîne de caractères.
+  * C'est un message intelligible destiné à être lu par un être humain en tant que détail de l'événement. Traduction du code présent dans outDetail issue du fichier vitam-logbook-message-fr.properties.
+  * Cardinalité : 1-1 
+  * Ce champ existe pour les structures incluantes et incluses.
+
+**"agId" (agent Identifier):** identifiant de l'agent interne réalisant l'évènement.
+
+    * Il s'agit de plusieurs chaînes de caractères indiquant le nom, le rôle et le PID de l'agent. Ce champ est calculé par le journal à partir de ServerIdentifier. ``Exemple : {\"name\":\"ingest-internal_1\",\"role\":\"ingest-internal\",\"pid\":425367}``
     * Cardinalité : 1-1 
-    *Ce champ existe pour les structures incluantes et incluses*
+    * Ce champ existe pour les structures incluantes et incluses.
 
-**"outMessg" (outcomeDetailMessage):** détail de l'événement.
-
-    * Il s'agit d'une chaîne de caractères.
-    * C'est un message intelligible destiné à être lu par un être humain en tant que détail de l'événement.
-    Traduction du code présent dans outDetail issue du fichier vitam-logbook-message-fr.properties.
-
-    * Cardinalité : 1-1 
-    *Ce champ existe pour les structures incluantes et incluses*
-
-**"agId" (agent Identifier):** identifiant de l'agent interne réalisant l'action.
-    Il s'agit de plusieurs chaînes de caractères indiquant le nom, le rôle et le PID de l'agent. Ce champ est calculé par le journal à partir de ServerIdentifier.
-    ``Exemple : {\"name\":\"ingest-internal_1\",\"role\":\"ingest-internal\",\"pid\":425367}``
-
-    * Cardinalité : 1-1 
-    *Ce champ existe pour les structures incluantes et incluses*
-
-**"agIdApp" (agent Identifier Application):** identifiant de l’application externe qui appelle la solution logicielle Vitam pour effectuer l'opération. Cet identifiant est celui du contexte utilisé par l'application.
+**"agIdApp" (agent Identifier Application):** identifiant de l’application externe qui appelle la solution logicielle Vitam pour effectuer d'une opération. Cet identifiant est celui du contexte applicatif utilisé par l'application.
 
     * Il s'agit d'une chaîne de caractères. 
     * Cardinalité : 1-1 
-    * Ce champ existe uniquement pour la structure incluante.*
+    * Ce champ existe uniquement pour la structure incluante.
 
-**"evIdAppSession" (agent Identifier Application Session):** identifiant de la transaction qui a entraîne le lancement d'une opération dans Vitam.
+**"evIdAppSession" (event Identifier Application Session):** identifiant de la transaction qui a entraîné le lancement d'une opération dans Vitam.
 
     * L’application externe est responsable de la gestion de cet identifiant. Il correspond à un identifiant pour une session donnée côté application externe.
     * Il s'agit d'une chaîne de caractères.
     * Cardinalité : 1-1 
-    * Ce champ existe uniquement pour la structure incluante.*
+    * Ce champ existe uniquement pour la structure incluante.
 
 **"evIdReq" (event Identifier Request):** identifiant de la requête déclenchant l’opération.
 
@@ -242,70 +238,69 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
     * Cardinalité : 1-1 
     * Une requestId est créée pour chaque nouvelle requête http venant de l’extérieur.
     * Dans le cas du processus d'entrée, il devrait s'agir du numéro de l'opération (EvIdProc).
-    * Il s'agit du X-Application-Id
-    * Ce champ existe pour les structures incluantes et incluses*. .
+    * Il s'agit du X-Application-Id.
+    * Ce champ existe pour les structures incluantes et incluses.
 
-**"agIdExt" (agent Identifier External):** identifiants des agents externes mentionnés dans le message ArchiveTransfer.
+**"agIdExt" (agent Identifier External):** identifiant de l'agent externe mentionné dans le message ArchiveTransfer.
 
-    * Il s'agit pour un ingest d'un json comprennant les champs suivants :
+    * Il s'agit pour un ingest d'un JSON comprenant les champs suivants :
 
-	* "originatingAgency": identifiant du service producteur.
-	    Il s'agit d'une chaîne de caractères.
-	    Reprend le contenu du champ OriginatingAgencyIdentifier du message ArchiveTransfer.
-	* "transferringAgency": identifiant du service de transfert.
-	    Il s'agit d'une chaîne de caractères.
-	    Reprend le contenu du champ TransferringAgencyIdentifier du message ArchiveTransfer.
-	* "ArchivalAgency": identifiant du service d'archivage.
-	    Il s'agit d'une chaîne de caractères.
-	    Reprend le contenu du champ ArchivalAgencyIdentifier du message ArchiveTransfer.	    
-	* "submissionAgency": identifiant du service versant.
-	    Il s'agit d'une chaîne de caractères.
-	    Reprend le contenu du champ SubmissionAgencyIdentifier du message ArchiveTransfer.
-	    Non rempli pour l'instant.
+        * originatingAgency : identifiant du service producteur. Il s'agit d'une chaîne de caractères. Reprend le contenu du champ OriginatingAgencyIdentifier du message ArchiveTransfer.
+        * transferringAgency : identifiant du service de transfert. Il s'agit d'une chaîne de caractères. Reprend le contenu du champ TransferringAgencyIdentifier du message ArchiveTransfer.
+        * ArchivalAgency : identifiant du service d'archivage. Il s'agit d'une chaîne de caractères. Reprend le contenu du champ ArchivalAgencyIdentifier du message ArchiveTransfer.	    
+        * submissionAgency : identifiant du service versant. Il s'agit d'une chaîne de caractères. Reprend le contenu du champ SubmissionAgencyIdentifier du message ArchiveTransfer. Ne contient aucune valeur actuellement
 
     * Cardinalité : 1-1 
-    * Ce champ existe uniquement pour la structure incluante.*
+    * Ce champ existe uniquement pour la structure incluante.
 
-**"rightsStatementIdentifier":** identifiants des données référentielles en vertue desquelle l'opération peut s'éxécuter.
+**"rightsStatementIdentifier":** identifiant des données référentielles en vertu desquelles l'opération peut s'éxécuter
 
     * Il s'agit pour un ingest d'un json comprennant les champs suivants :
 
-	* ArchivalAgreement: contrat d'entrée utilisé pour réaliser l'ingest.
+	   * ArchivalAgreement: identifiant du contrat d'entrée utilisé pour réaliser l'ingest.
 	    Il s'agit d'une chaîne de caractères.
 	    Reprend le contenu du champ ArchivalAgreement du message ArchiveTransfer.	    
-	* Profil: profil utilisé pour réaliser l'ingest.
+	   * Profil: identifiant du profil utilisé pour réaliser l'ingest.
 	    Il s'agit d'une chaîne de caractères.
-	    Reprend le contenu du champ ArchiveProfil du message ArchiveTransfer.	 
+	    Reprend le contenu du champ ArchiveProfile du message ArchiveTransfer.	 
+
+    * Il s'agit pour un update d'un json comprennant les champs suivants :	   
+
+    	* AccessContract : identifiant du contrat d'accès utilisé pour réaliser l'update.
+    
+    * Cardinalité : 1-1
 
 **"obId" (object Identifier):** identifiant Vitam du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
 
     * Il s'agit d'une chaîne de 36 caractères.
     * Dans le cas d’une opération d'entrée, il s’agit du GUID de l’entrée (evIdProc). 
-    * Dans le cas d’une opération ‘Audit’, il s’agit par exemple du nom d’un lot d’archives prédéfini.
-    * Dans le cas d’une opération d'update, il s’agit du GUID de l'objet mis à jour.
+    * Dans le cas d’une opération d'audit, il s’agit par exemple du nom d’un lot d’archives prédéfini.
+    * Dans le cas d’une opération de mise à jour, il s’agit du GUID de l'unité archivistique mise à jour.
+    * Dans le cas d'une opération de Masterdata, il s'agit de l'id de l'opération
     * Cardinalité structure incluante : 1-1 
     * Cardinalité structure incluse : 0-1 
-    *Ce champ existe pour les structures incluantes et incluses*
+    * Ce champ existe pour les structures incluantes et incluses
 
-**"obIdReq" (object Identifier Request):** Identifiant Vitam de la requête caractérisant un lot d’objets auquel s’applique l’opération.
-    Ne concerne que les lots d’objets dynamiques, c’est-à-dire obtenus par la présente requête. Ne concerne pas les lots ayant un identifiant défini.
+**"obIdReq" (object Identifier Request):** identifiant Vitam de la requête caractérisant un lot d’objets auquel s’applique l’opération.
+    
+    * Ne concerne que les lots d’objets dynamiques, c’est-à-dire obtenus par la présente requête. Ne concerne pas les lots ayant un identifiant défini.
+    * Cardinalité : 1-1
+    * Actuellement, la valeur est toujours 'null'. Ce champ existe pour les structures incluantes et incluses
 
-    *Actuellement, la valeur est toujours 'null'. Ce champ existe pour les structures incluantes et incluses*
+**"obIdIn" (Object Identifier Income):** identifiant externe du lot d’objets auquel s’applique l’opération.
 
-**"obIdIn" (ObjectIdentifierIncome):** Identifiant externe du lot d’objets auquel s’applique l’opération.
-
-    * Chaîne de caractères intelligible pour un humain qui permet de comprendre à quel SIP ou quel lot d'archives se raporte l'événement.
+    * Chaîne de caractères intelligible pour un humain qui permet de comprendre à quel SIP ou quel lot d'archives se rapporte l'événement.
     * Reprend le contenu du champ MessageIdentifier du message ArchiveTransfer.
     * Cardinalité structure incluante : 1-1 
     * Cardinalité structure incluse : 0-1 
-    * Ce champ existe pour les structures incluantes et incluses*
-    * Non utilisé à ce jour*
+    * Ce champ existe pour les structures incluantes et incluses.
 
 **"events":** tableau de structure.
 
-    * Pour la structure incluante, le tableau contient N structures incluses dans l'ordre des événements (date)
+    * Pour la structure incluante, le tableau contient n structures incluses dans l'ordre des événements (date)
     * Cardinalité : 1-1 
-    * Ce champ existe uniquement pour la structure incluante.*
+    * S'agissant d'un tableau, les structures incluses ont pour cardinalité 1-n.
+    * Ce champ existe uniquement pour la structure incluante.
 
 **"_tenant":** identifiant du tenant.
 
@@ -319,6 +314,7 @@ Champ présents dans les events
 Les events sont au minimum composés des champs suivants:
 
       * evId 
+      * evParentId
       * evType
       * evDateTime
       * evDetData
@@ -331,12 +327,14 @@ Les events sont au minimum composés des champs suivants:
       * evIdReq
       * obId
 
-D'autres champs peuvent apparaitent dans certains events lorsqu'ils mettent à jour le master.
+D'autres champs peuvent apparaître dans certains events lorsqu'ils mettent à jour le master.
 
-Détail des champs du JSON stocké en base spécifiques à une opération de sécurisation
-------------------------------------------------------------------------------------
+Détail des champs du JSON stocké en base spécifiques à une opération de sécurisation des journaux d'opération et de cycle de vie
+---------------------------------------------------------------------------------------------------------------------------------
 
-Exemple de données stockées :
+Ceci ne concerne aujourd'hui que les sécurisations des journaux d'opération et la sécurisation des journaux de cycle de vie.
+
+Exemple de données stockées par l'opération de sécurisation des journaux d'opération :
 
 ::
 
@@ -347,6 +345,9 @@ Exemple de données stockées :
 	\"EndDate\":\"2017-06-29T09:39:08.690\",
 	\"Hash\":\"HYnFf07gFkar3lO+U2FQ9qkhi9eUMFN5hcH7oU7vrAAL3FAlMm8aJP7+VxkVWhLzmmFolwUEcq6fbS7Km2is5g==\",
 	\"TimeStampToken\":\"MIIEljAVAgEAMBAMDk9wZXJhdGlvbiBPa2F5MIIEewYJKoZIhvcNAQcCoIIEbDCCBGgCAQMxDzANBglghkgBZQMEAgMFADCBgAYLKoZIhvcNAQkQAQSgcQRvMG0CAQEGASkwUTANBglghkgBZQMEAgMFAARAvp71IU4GqUJ/rIVKZ74J09qdSDeHw24HHsjw0tAnHjD6ZfUJHjDp8yQSdB6Lf2a6ORPF5JCgsh86CctQ9h93mwIBARgPMjAxNzA2MjkwOTM5MDdaMYIDzTCCA8kCAQEwfjB4MQswCQYDVQQGEwJmcjEMMAoGA1UECAwDaWRmMQ4wDAYDVQQHDAVwYXJpczEOMAwGA1UECgwFdml0YW0xFDASBgNVBAsMC2F1dGhvcml0aWVzMSUwIwYDVQQDDBxjYV9pbnRlcm1lZGlhdGVfdGltZXN0YW1waW5nAgIAtzANBglghkgBZQMEAgMFAKCCASAwGgYJKoZIhvcNAQkDMQ0GCyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0xNzA2MjkwOTM5MDdaMC0GCSqGSIb3DQEJNDEgMB4wDQYJYIZIAWUDBAIDBQChDQYJKoZIhvcNAQENBQAwTwYJKoZIhvcNAQkEMUIEQN8TGGTXtmpAztB16UGznFwW2xZMKRuX3zMnF9bTZFybM9tCGJtJd/IdBglcs69fsH05yuXOEYuwPhN1yQijSGEwZAYLKoZIhvcNAQkQAi8xVTBTMFEwTzALBglghkgBZQMEAgMEQGlkJQTJOiVJrGpFe2GsjJ0Ekug0n9Opel3//wOcpCmpqIET8w2yUcP1yqQJXYc87YeY1/OWhZiWFqbWXVV9HS4wDQYJKoZIhvcNAQENBQAEggIAV/rdnxIAyhvoGDprIahKAK3TPcriTggh1+gtDjEiD7kGB0KtXwAmPn2gb/2YtOmvIU7/a5KBFlfBR+foIRrc6z52cEdalhSpyHpYgpFuF7SjMFO6Mfso1dwjI9KpZTv6OI6Kplbg6zwK939GpDbPgKaMrXw0EDafk184RQz6NNFFYG8JuQxhlba1SYkEMg0+oOkcz814H1ET7zUbt2yq75zdffduUDB81dxjsvpKbx/LbBEOUswGgnfnYGOlo1XbQaI2sM2+YiXHGD/qnl/uAteBayFeaHKXel+gkp8D1ykBFOrE46n6fCI5i0OhKHcPAxvxTg8p03M38PrZIwnqSUI1rxfJhk9Hu0JVcQi1EYLBMmyL4IbhXNFz2ZmSHgC6/BGTMZmuEksrA4vJr1WEFMUocEFQnL9pOJ+iI8U0SusJEDYvjde+yvfnxC8ZOGXOsaP9aUsuITOMT/wFdrH4RFe8q8Wjxzu5p4lSvJI9P+soSfBbLyzGUjmF2lAi/HdyzjunhmRr/kxHK8P9Bo2CSz77xgN566k2r44ER/lyHFvHme5ITq25CRhJf39kfbPh1Jjku3ulwiquykhnjXX7YGx5bDRNv+z29l4tq+AkZqq8O+0XY5fLGgauptsKhpj+CsfYs0uNJCywZtIOHzdL0NBeF7AF97nwTV841ZN/rKg=\",
+	\"PreviousLogbookTraceabilityDate\":null,
+	\"MinusOneMonthLogbookTraceabilityDate\":null,
+	\"MinusOneYeargbookTraceabilityDate\":null,
 	\"NumberOfElement\":379,
 	\"FileName\":\"0_LogbookOperation_20170629_093907.zip\",
 	\"Size\":3975227,
@@ -354,54 +355,84 @@ Exemple de données stockées :
 
 Dans le cas de l'événement final d'une opération de sécurisation du LogbookOperation, le champ **"evDetData"** est composé des champs suivants :
 
-"LogType": type de logbook sécurisé.
-      Collection faisant l'objet de l'opération de sécurisation (LogbookOperation)
+**"LogType":** type de logbook sécurisé.
+
+      * Collection faisant l'objet de l'opération de sécurisation
       ``Exemple : "operation"``
+      * La valeur de ce champ est soit OPERATION soit LIFECYCLE.
+      * Cardinalité : 1-1
 
-"StartDate": Date de début de la période de couverture de l'opération de sécurisation.
-      Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] (correspond à la date de la dernière opération sécurisée par la précédente sécurisation)
+**"StartDate":** date de début de la période de couverture de l'opération de sécurisation.
+
+      * Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] (correspond à la date de la première sécurisation)
       ``Exemple : "2016-08-17T08:26:04.227"``
 
-"EndDate": date de fin de la période de couverture de l'opération de sécurisation.
-      Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] (correspond à la date de la dernière opération sécurisée par la précédente sécurisation)
+      * Cardinalité : 1-1
+
+**"EndDate":** date de fin de la période de couverture de l'opération de sécurisation.
+
+      * Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] (correspond à la date de la dernière opération sécurisée par la précédente sécurisation)
+      ``Exemple : "2016-08-17T08:26:04.227"``
+      * Cardinalité : 1-1
+
+**"PreviousLogbookTraceabilityDate":** date de la précédente opération de sécurisation de ce type de journal.
+
+      * Il s'agit  de la date de début de la précédente opération de sécurisation du même type au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] (correspond à la date de début de la sécurisation précédente)
       ``Exemple : "2016-08-17T08:26:04.227"``
 
-"PreviousLogbookTraceabilityDate": date de la précédente opération de sécurisation.
-      Il s'agit  de la date de début de la précédente opération de sécurisation du même type au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] (correspond à la date de début de la sécurisation précédente)
+      * Cardinalité : 1-1
+
+**"MinusOneMonthLogbookTraceabilityDate":** date de l'opération de sécurisation passée d'un mois.
+
+      * Il s'agit  de la date de début de la précédente opération de sécurisation du même type réalisée un mois avant au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] 
       ``Exemple : "2016-08-17T08:26:04.227"``
 
-"MinusOneMonthLogbookTraceabilityDate": date de l'opération de sécurisation passée d'un mois.
-      Il s'agit  de la date de début de la précédente opération de sécurisation du même type réalisée un mois avant au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] 
-      ``Exemple : "2016-08-17T08:26:04.227"``
+      * Cardinalité : 1-1
 
-"MinusOneYeargbookTraceabilityDate": date de l'opération de sécurisation passée d'un an.
-     Il s'agit  de la date de début de la précédente opération de sécurisation du même type réalisée un an avant au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] 
+**"MinusOneYeaLogbookTraceabilityDate":** date de l'opération de sécurisation passée d'un an.
+
+      * Il s'agit de la date de début de la précédente opération de sécurisation du même type réalisée un an avant au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] 
      ``Exemple : "2016-08-17T08:26:04.227"``
 
-"Hash": Empreinte racine.
-      Il s'agit d'une chaîne de caractères.
-      Empreinte de la racine de l'arbre de Merkle.
+      * Cardinalité : 1-1
 
-"TimeStampToken": Tampon d’horodatage.
-      Il s'agit d'une chaîne de caractères.
-      Tampon d’horodatage sûr du journal sécurisé.
+**"Hash":** Empreinte racine.
 
-"NumberOfElement": Nombre d'éléments.
-      Il s'agit d'un entier.
-      Nombre d'opérations sécurisées.
+      * Il s'agit d'une chaîne de caractères.
+      * Empreinte de la racine de l'arbre de Merkle.
+      * Cardinalité : 1-1
 
-"Size": Taille du fichier.
-      Il s'agit d'un entier.
-      Taille du fichier sécurisé (en bytes).
+**"TimeStampToken":** Tampon d’horodatage.
 
-"FileName": Identifiant du fichier.
-      Il s'agit d'une chaîne de caractères.
-      Nom du fichier sécurisé dans le stockage au format {tenant}_LogbookOperation_{AAAAMMJJ_HHMMSS}.zip.
+      * Il s'agit d'une chaîne de caractères.
+      * Tampon d’horodatage sûr du journal sécurisé.
+      * Cardinalité : 1-1
+
+**"NumberOfElement":** Nombre d'éléments.
+
+      * Il s'agit d'un entier.
+      * Nombre d'opérations sécurisées.
+      * Cardinalité : 1-1
+
+**"Size":** Taille du fichier.
+
+      * Il s'agit d'un entier.
+      * Taille du fichier sécurisé (en octets).
+      * Cardinalité : 1-1
+
+**"FileName":** Identifiant du fichier.
+
+      * Il s'agit d'une chaîne de caractères.
+      * Nom du fichier sécurisé sur les offres de stockage au format {tenant}_LogbookOperation_{AAAAMMJJ_HHMMSS}.zip.
       ``Exemple : "0_LogbookOperation_20170127_141136.zip"``
 
-"DigestAlgorithm": algorithme de hachage.
-      Il s'agit d'une chaîne de caractères.
-      Il s'agit du nom de l'algorithme de hachage utilisé pour réaliser le tampon d'horodatage.
+      * Cardinalité : 1-1
+
+**"DigestAlgorithm":** algorithme de hachage.
+
+      * Il s'agit d'une chaîne de caractères.
+      * Il s'agit du nom de l'algorithme de hachage utilisé pour réaliser le tampon d'horodatage.
+      * Cardinalité : 1-1
 
 Collection LogbookLifeCycleUnit
 ===============================
@@ -411,15 +442,15 @@ Utilisation de la collection LogbookLifeCycleUnit
 
 Le journal du cycle de vie d'une unité archivistique (ArchiveUnit) trace tous les événements qui impactent celle-ci dès sa prise en charge dans le système. Il doit être conservé aussi longtemps que l'ArchiveUnit est gérée par le système.
 
-- dès la réception d'une ArchiveUnit, on trace les opérations effectuées sur elles
-- les journaux du cycle de vie sont "committés" une fois le stockage des objets effectué sans échec et l'indexation des métadonnées effectuée sans échec, avant notification au service versant
+- dès la réception d'une ArchiveUnit, l'ensemble des opérations qui lui sont appliquées sont tracées
+- les journaux du cycle de vie sont "committés" une fois le stockage des objets et l'indexation des métadonnées effectués sans échec, avant l'envoi d'une notification au service versant
 
 Chaque unité archivistique possède une et une seule entrée dans la collection LogbookLifeCycleUnit.
 
-Exemple de JSON stocké en base comprenant l'exhaustivité des champs
--------------------------------------------------------------------
+Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la collection LogbookLifeCycleUnit
+---------------------------------------------------------------------------------------------------------
 
-Extrait d'un JSON correspondant à un journal de cycle de vie d'une unité archivistique.
+Extrait d'un JSON correspondant à un journal de cycle du vie d'une unité archivistique.
 
 ::
 
@@ -483,30 +514,29 @@ Détail des champs du JSON stocké en base
     * Il est constitué d'une chaîne de 36 caractères correspondant à un GUID.
     * Cet identifiant constitue la clé primaire du journal du cycle de vie de l'unité archivistique. Il reprend la valeur du champ _id de la collection Unit.
     * Cardinalité : 1-1 
-    *Ce champ existe uniquement pour la structure incluante.*
+    * Ce champ existe uniquement pour la structure incluante.
 
 **"evId" (event Identifier):** identifiant de l'événement.
 
     * Il est constitué d'une chaîne de 36 caractères correspondant à un GUID. 
     * Il identifie l'événement de manière unique dans la base.
     * Cardinalité : 1-1 
-    * Ce champ existe pour les structures incluantes et incluses*
+    * Ce champ existe pour les structures incluantes et incluses.
 
 **"evParentId" (event Parent Identifier):** identifiant de l'événement parent.
 
     * Il est constitué d'une chaîne de 36 caractères correspondant à un GUID. 
     * Il identifie l'événement parent.
-    * Ce champ est toujours à null pour la structure incluante et les tâches principales
+    * La valeur est toujours null pour la structure incluante et les tâches principales
     * Cardinalité : 1-1 
+    * Ce champ existe pour les structures incluantes et incluses.
 
-    *Ce champ existe pour les structures incluantes et incluses*
-
-**"evType" (event Type):** nom de l'événement.
+**"evType" (event Type):** code du type d'événement.
 
     * Il s'agit d'une chaîne de caractères.
     * La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code est stocké dans ce champ, la traduction se fait via un fichier properties (vitam-logbook-message-fr.properties)
     * Cardinalité : 1-1 
-    *Ce champ existe pour les structures incluantes et incluses*
+    * Ce champ existe pour les structures incluantes et incluses.
 
 **"evDateTime" (event DateTime):** date de l'événement.
 
@@ -519,7 +549,7 @@ Détail des champs du JSON stocké en base
 **"evIdProc" (event Identifier Process):** identifiant du processus. 
 
     * Il s'agit d'une chaîne de 36 caractères.
-    * Toutes les mêmes entrées du journal du cycle de vie partagent la même valeur, qui est celle du champ "_id"
+    * Toutes les mêmes entrées du journal du cycle de vie partagent la même valeur, qui est celle du champ "_id" de la collection LogbookOperation
     * Cardinalité : 1-1 
     *Ce champ existe pour les structures incluantes et incluses*
 
@@ -534,11 +564,11 @@ Détail des champs du JSON stocké en base
 
     * Il s'agit d'une chaîne de caractères devant correspondre à une valeur de la liste suivante :
 
-    - STARTED (début de l'événement)
-    - OK (Succès de l'événement)
-    - KO (Echec de l'événement)
-    - WARNING (Succès de l'événement comportant des alertes)
-    - FATAL (Erreur technique)
+        - STARTED (début de l'événement)
+        - OK (Succès de l'événement)
+        - KO (Echec de l'événement)
+        - WARNING (Succès de l'événement comportant des alertes)
+        - FATAL (Erreur technique)
 
     * Cardinalité : 1-1 
     *Ce champ existe pour les structures incluantes et incluses*
@@ -548,63 +578,65 @@ Détail des champs du JSON stocké en base
     * Il s'agit d'une chaîne de caractères.
     * Il contient le code fin de l'événement, incluant le statut. La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code est stocké dans ce champ, la traduction se fait via le fichier properties (vitam-logbook-message-fr.properties)
     * Cardinalité : 1-1 
-    *Ce champ existe pour les structures incluantes et incluses*
+    * Ce champ existe pour les structures incluantes et incluses
 
-**"outMessg" (outcomeDetailMessage):** détail de l'événement.
+**"outMessg" (outcomeDetailMessage):** détail du résultat de l'événement.
 
     * Il s'agit d'une chaîne de caractères.
     * C'est un message intelligible destiné à être lu par un être humain en tant que détail de l'événement.
-    Traduction du code présent dans outDetail issue du fichier vitam-logbook-message-fr.properties.
+    * Traduction du code présent dans outDetail issue du fichier vitam-logbook-message-fr.properties.
     * Cardinalité : 1-1
-    *Ce champ existe pour les structures incluantes et incluses*
+    * Ce champ existe pour les structures incluantes et incluses
 
-**"agId" (agent Identifier):** identifiant de l'agent réalisant l'action.
+**"agId" (agent Identifier):** identifiant de l'agent réalisant l'évènement.
 
     * Il s'agit de plusieurs chaînes de caractères indiquant le nom, le rôle et le PID de l'agent. Ce champ est calculé par le journal à partir de ServerIdentifier.
     ``Exemple : {\"name\":\"ingest-internal_1\",\"role\":\"ingest-internal\",\"pid\":425367}``
     * Cardinalité : 1-1 
     *Ce champ existe pour les structures incluantes et incluses*
 
-**"obId" (object Identifier):** identifiant Vitam de l'objet ou du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
+**"obId" (object Identifier):** identifiant de la solution logicielle Vitam correspondant au GUID de l'unité archivistique sur laquelle s'applique l'opération.
 
     * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
     * Cardinalité : 1-1 
-    * Ce champ existe pour les structures incluantes et incluses*
+    * Ce champ existe pour les structures incluantes et incluses
 
 **"evDetData" (event Detail Data):** détails des données de l'événement.
 
+    * Donne plus de détail sur l'événement. Par exemple, l'historisation de métadonnées lors d'une modification se fait dans ce champ. 
+    * Dans la structure incluse correspondant à cet événement, il contient un JSON, par exemple, composé du champ suivant :
+
+        - diff: contient la différence entre les métadonnées d'origine et les métadonnées modifiées. Chaîne de caractères.
+
+    * En outre, lors de l'historisation de la sauvegarde de l'unité archivistique sur les offres de stockage, on utilise ce champ pour tracer les informations sur le fichier sauvegardé. Il contient, ainsi, un JSON composé comme suit :
+
+        - FileName : Identifiant du fichier. Il s'agit du nom du fichier sauvegardé sur les offres de stockage.
+        - Algorithm : Algorithme de hachage. Il s'agit du nom de l'algorithme de hachage.
+        - MessageDigest : Empreinte du fichier. Il s'agit d'une chaîne de caractères contenant l'empreinte du fichier.
+        - Offers : Offres de stockage. Il s'agit des offres de stockage utilisées pour la sauvegarde du fichier.
+
     * Cardinalité : 1-1 
-    * Donne plus de détail sur l'événement. Par exemple, l'historisation de métadonnées lors d'une modification se fait dans ce champ. Dans la structure incluse correspondant à cet événement, il contient un JSON composé du champ suivant :
+    * Ce champ existe pour les structures incluantes et incluses.
 
-    - diff: contient la différence entre les métadonnées d'origine et les métadonnées modifiées. Chaîne de caractères.
+**"events":** tableau de structure.
 
-En outre, lors de l'historisation de la sauvegarde de l'unité archivistique sur les offres de stockage, on utilise ce champ pour tracer les informations sur le fichier sauvegardé. Il contient, ainsi, un JSON composé comme suit :
-
-    - FileName : Identifiant du fichier. Il s'agit du nom du fichier sauvegardé dans le stockage.
-    - Algorithm : Algorithme de hachage. Il s'agit du nom de l'algorithme de hachage.
-    - MessageDigest : Empreinte du fichier. Il s'agit d'une chaîne de caractères contenant l'empreinte du fichier.
-    - Offers : Offres de srockage. Il s'agit des offres de stockage utilisées pour la sauvegarde du fichier.
-
+    * Pour la structure incluante, le tableau contient n structures incluses dans l'ordre des événements (date)
     * Cardinalité : 1-1 
-    * Ce champ existe pour les structures incluantes et incluses*
-
-**"events":** tableau de structure
-
-    * Pour la structure incluante, le tableau contient N structures incluses dans l'ordre des événements (date)
-    * Cardinalité : 1-1 
-    *Ce champ existe uniquement pour la structure incluante*
+    * S'agissant d'un tableau, les structures incluses ont pour cardinalité 1-n.
+    * Ce champ existe uniquement pour la structure incluante.
 
 **"_tenant":** identifiant du tenant
 
     * Il s'agit d'un entier.
     * Cardinalité : 1-1 
-    *Ce champ existe uniquement pour la structure incluante.*
+    * Ce champ existe uniquement pour la structure incluante.
 
-**"_v":** version de l'objet décrit
+**"_v":** version de l'enregistrement décrit 
 
     * Il s'agit d'un entier.
     * Cardinalité : 1-1 
-    *Ce champ existe uniquement pour la structure incluante.*
+    * Ce champ existe uniquement pour la structure incluante.
+    * 0 correspond à l'enregistrement d'origine. Si le numéro est supérieur à 0, alors il s'agit du numéro de version de l'enregistrement.
 
 Détail des champs du JSON stocké en base spécifiques à une mise à jour
 -----------------------------------------------------------------------
@@ -616,10 +648,11 @@ Exemple de données stockées :
    "evDetData": "{\"diff\":\"-  Title : Recommandation de 2012 du CCSDS for Space Data System Practices - Reference Model for an Open Archival Information System (OAIS)\\n+  Title : Recommandation de 2012 du CCSDS for Space Data System Practices - Reference Model for an Open Archival Information System (OAIS) 222\\n-  #operations : [ aedqaaaaacaam7mxabxecakz3jbfwpaaaaaq \\n+  #operations : [ aedqaaaaacaam7mxabxecakz3jbfwpaaaaaq, aecaaaaaacaam7mxabjssak2dzsjniyaaaaq \"}"
 
 
-Dans le cas d'une mise à jour de métadonnées d'une unité archivistique (ArchiveUnit), le champ **"evDetData"** de l'événement final est composé des champs suivants :
+Dans le cas d'une mise à jour de métadonnées d'une unité archivistique (ArchiveUnit), le champ **"evDetData"** de l'événement final est composé du champ suivant :
 
-"diff": historisation des modifications de métadonnées.
-    Son contenu doit respecter la forme suivante : les anciennes valeurs sont précédées d'un "-" (``-champ1: valeur1``) et les nouvelles valeurs sont précédées d'un "+" (``+champ1: valeur2``)
+**"diff":** historisation des modifications de métadonnées.
+
+    * Son contenu doit respecter la forme suivante : les anciennes valeurs sont précédées d'un "-" (``-champ1: valeur1``) et les nouvelles valeurs sont précédées d'un "+" (``+champ1: valeur2``)
 
     ``Exemple :
     -Titre: Discours du Roi \n+Titre: Discours du Roi Louis XVI \n-Description: Etat Généraux du 5 mai 1789 \n+Description: Etat Généraux du 5 mai 1789 au Château de Versailles``
@@ -633,10 +666,10 @@ Utilisation de la collection LogbookLifeCycleObjectGroup
 
 Le journal du cycle de vie du groupe d'objets (ObjectGroup) trace tous les événements qui impactent le groupe d'objets (et les objets associés) dès sa prise en charge dans le système. Il doit être conservé aussi longtemps que les objets sont gérés dans le système.
 
-- dès la réception des objets, on trace les opérations effectuées sur les groupes d'objets et objets qui sont dans le SIP
-- les journaux du cycle de vie sont "committés" une fois le stockage des objets effectué sans échec et l'indexation des métadonnées effectuée sans échec, avant notification au service versant
+- dès la réception des objets, on trace les opérations effectuées sur les groupes d'objets et objets qui sont dans le SIP.
+- les journaux du cycle de vie sont "committés" une fois le stockage des objets effectué et l'indexation des métadonnées effectué, avant l'envoi d'une notification au service versant.
 
-Chaque groupe d'objets possède une et une seule entrée dans sa collection LogbookLifeCycleObjectGroup.
+Chaque groupe d'objets possède une et une seule entrée dans la collection LogbookLifeCycleObjectGroup.
 
 Exemple de JSON stocké en base comprenant l'exhaustivité des champs
 --------------------------------------------------------------------
@@ -668,7 +701,7 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
             "outcome": "OK",
             "outDetail": "OK",
             "outMessg": "Objet/groupe dobjet référencé par un ArchiveUnit.",
-            "agId": "{\"Name\":\"vitam-iaas-worker-01\",\"Role\":\"worker\",\"PlatformId\":425367}",
+            "agId": "{\"Name\":\"vitam-iaas-app-02\",\"Role\":\"worker\",\"ServerId\":773928267,\"SiteId\":1,\"GlobalPlatformId\":237057355}",
             "obId": "aeaaaaaaaaaam7mxaap44akyf7hurgaaaaba",
             "evDetData": null,
         },
@@ -707,131 +740,137 @@ Détail des champs du JSON stocké en base
     * Il est constitué d'une chaîne de 36 caractères correspondant à un GUID. Il reprend la valeur du champ _id de la collection ObjectGroup.
     * Cet identifiant constitue la clé primaire du journal du cycle de vie du groupe d'objet.
     * Cardinalité : 1-1 
-    * Ce champ existe uniquement pour la structure incluante.*
+    * Ce champ existe uniquement pour la structure incluante.
 
 **"evId" (event Identifier):** identifiant de l'événement.
+
     * Il est constitué d'une chaîne de 36 caractères correspondant à un GUID.
     * Il identifie l'événement de manière unique dans la base.
     * Cardinalité : 1-1 
     * Ce champ existe pour les structures incluantes et incluses*
-
     *Ce champ existe pour les structures incluantes et incluses*
 
 **"evParentId" (event Parent Identifier):** identifiant de l'événement parent.
     * Il est constitué d'une chaîne de 36 caractères correspondant à un GUID. 
     * Il identifie l'événement parent.
-    * Ce champ est toujours à null pour la structure incluante et les tâches principales
+    * La valeur du champ est toujours "null" pour la structure incluante et les tâches principales
     * Cardinalité : 1-1 
-
-    *Ce champ existe pour les structures incluantes et incluses*
+    * Ce champ existe pour les structures incluantes et incluses
     
 **"evType"** (event Type): nom de l'événement.
 
     * Il s'agit d'une chaîne de caractères.
     * La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code doit être stocké dans ce champ, la traduction doit se faire via le fichier properties (vitam-logbook-message-fr.properties).
     * Cardinalité : 1-1 
-    * Ce champ existe pour les structures incluantes et incluses*
+    * Ce champ existe pour les structures incluantes et incluses.
 
 **"evDateTime" (event DateTime):** date de l'événement.
+
     * Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
     ``Exemple : "2016-08-17T08:26:04.227"``.
+
     * Ce champ est positionné par le client LogBook.
     * Cardinalité : 1-1 
-    * Ce champ existe pour les structures incluantes et incluses*
+    * Ce champ existe pour les structures incluantes et incluses.
 
 **"evIdProc" (event Identifier Process):** identifiant du processus. 
+
     * Il s'agit d'une chaîne de 36 caractères.
-    * Toutes les mêmes entrées du journal du cycle de vie partagent la même valeur, qui est celle du champ "_id".
+    * Toutes les mêmes entrées du journal du cycle de vie partagent la même valeur, qui est celle du champ "_id" de la collection LogbookOperation.
     * Cardinalité : 1-1 
-    * Ce champ existe pour les structures incluantes et incluses*
+    * Ce champ existe pour les structures incluantes et incluses.
 
 **"evTypeProc" (event Type Process):** type de processus.
 
     * Il s'agit d'une chaîne de caractères.
     * Nom du processus qui effectue l'action, parmi une liste de processus possibles fixée. Cette liste est disponible en annexe.
     * Cardinalité : 1-1 
-    * Ce champ existe pour les structures incluantes et incluses*
+    * Ce champ existe pour les structures incluantes et incluses
 
 **"outcome":** statut de l'événement.
 
     * Il s'agit d'une chaîne de caractères devant correspondre une valeur de la liste suivante :
 
-    - STARTED (Début de l'événement)
-    - OK (Succès de l'événement)
-    - KO (Echec de l'événement)
-    - WARNING (Succès de l'événement comportant des alertes)
-    - FATAL (Erreur technique)
+    	- STARTED (Début de l'événement)
+    	- OK (Succès de l'événement)
+    	- KO (Échec de l'événement)
+    	- WARNING (Succès de l'événement comportant des alertes)
+    	- FATAL (Erreur technique)
 
     * Cardinalité : 1-1 
-    *Ce champ existe pour les structures incluantes et incluses*
+    * Ce champ existe pour les structures incluantes et incluses.
 
 **"outDetail" (outcome Detail):** code correspondant à l'erreur
 
     * Il s'agit d'une chaîne de caractères.
     * Il contient le code fin de l'événement, incluant le statut. La liste des valeurs possibles pour ce champ se trouve en annexe. Seul le code est stocké dans ce champ, la traduction doit se faire via le fichier properties (vitam-logbook-message-fr.properties)
     * Cardinalité : 1-1 
-    * Ce champ existe pour les structures incluantes et incluses*
+    * Ce champ existe pour les structures incluantes et incluses.
 
-**"outMessg" (outcomeDetailMessage):** détail de l'événement.
+**"outMessg" (outcomeDetailMessage):** détail du résultat de l'événement.
 
     * Il s'agit d'une chaîne de caractères.
-    * C'est un message intelligible destiné à être lu par un être humain en tant que détail de l'événement.
+    * C'est un message intelligible destiné à être lu par un être humain en tant que détail du résultat de l'événement.
     * Traduction du code présent dans outDetail issue du fichier vitam-logbook-message-fr.properties du code présent dans outDetail.
     * Cardinalité : 1-1 
-    * Ce champ existe pour les structures incluantes et incluses*
+    * Ce champ existe pour les structures incluantes et incluses.
 
-**"agId" (agent Identifier):** identifiant de l'agent réalisant l'action.
+**"agId" (agent Identifier):** identifiant de l'agent réalisant l'évènement.
 
     * Il s'agit de plusieurs chaînes de caractères indiquant le nom, le rôle et le PID de l'agent. Ce champ est calculé par le journal à partir de ServerIdentifier.
-    * ``Exemple : {\"name\":\"ingest-internal_1\",\"role\":\"ingest-internal\",\"pid\":425367}``
+    ``Exemple : {\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1514166061,\"SiteId\":1,\"GlobalPlatformId\":171988781}``
+
+    * Cardinalité : 1-1 
+    * Ce champ existe pour les structures incluantes et incluses.
+
+**"obId" (object Identifier):** identifiant de la solution logicielle Vitam du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
+
+	* Si l'évènement touche tout le GOT, alors le champs contiendra l'ID du GOT. S'il touche qu'un seul objet du GOT, alors contiendra que celui de l'objet en question
     * Cardinalité : 1-1 
     * Ce champ existe pour les structures incluantes et incluses*
-
-**"obId" (object Identifier):** identifiant Vitam du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
-    * Cardinalité : 1-1 
-    *Ce champ existe pour les structures incluantes et incluses*
 
 **"evDetData" (event Detail Data):** détails des données de l'événement.
 
     * Donne plus de détails sur l'événement.
     * Par exemple, pour l'événement LFC.CHECK_DIGEST, lorsque l'empreinte d'un objet inscrite dans le bordereau n'est pas calculée en SHA512, ce champ précise l'empreinte d'origine et celle réalisée ensuite par la solution logicielle Vitam. Dans la structure incluse correspondant à cet événement, il contient un JSON composé des champs suivants :
 
-    - MessageDigest : empreinte de l'objet dans le bordereau. Chaîne de caractères. Reprends le champ "MessageDigest" du message ArchiveTransfer.
-    - Algorithm : algorithme de hachage utilisé dans le bordereau. Chaîne de caractères. Reprends l'attribut de champ "MessageDigest" du message ArchiveTransfer.
-    - SystemMessageDigest : empreinte de l'objet réalisé par la solution logicielle Vitam. Chaîne de caractères.
-    - SystemAlgorithm : algorithme de hachage utilisé par la solution logicielle Vitam. Chaîne de caractères.
+    	- MessageDigest : empreinte de l'objet dans le bordereau. Chaîne de caractères, reprenant le champ "MessageDigest" du message ArchiveTransfer.
+    	- Algorithm : algorithme de hachage utilisé dans le bordereau. Chaîne de caractères, reprenant l'attribut de champ "MessageDigest" du message ArchiveTransfer.
+    	- SystemMessageDigest : empreinte de l'objet réalisé par la solution logicielle Vitam. Chaîne de caractères.
+    	- SystemAlgorithm : algorithme de hachage utilisé par la solution logicielle Vitam. Chaîne de caractères.
 
 En outre, pour l'événement LFC.OBJ_STORAGE, on utilise ce champ pour tracer les informations sur l'objet (fichier binaire) sauvegardé. Il contient un JSON composé comme suit :
 
-    - FileName : Identifiant du fichier. Il s'agit du nom du fichier sauvegardé dans le stockage.
-    - Algorithm : Algorithme de hachage. Il s'agit du nom de l'algorithme de hachage.
-    - MessageDigest : Empreinte de l'objet. Il s'agit d'une chaîne de caractères contenant l'empreinte de l'objet.
-    - Offers : Offres de srockage. Il s'agit des offres de stockage utilisées pour la sauvegarde de l'objet.
+    	- FileName : Identifiant du fichier. Il s'agit du nom du fichier sauvegardé sur les offres de stockage.
+    	- Algorithm : Algorithme de hachage. Il s'agit du nom de l'algorithme de hachage.
+    	- MessageDigest : Empreinte de l'objet. Il s'agit d'une chaîne de caractères contenant l'empreinte de l'objet.
+    	- Offers : Offres de srockage. Il s'agit des offres de stockage utilisées pour la sauvegarde de l'objet.
 
 Pour l'événement LFC.OG_METADATA_STORAGE, on utilise ce champ pour tracer les informations sur le fichier (métadonnée) sauvegardé. Il contient un JSON composé comme suit :
 
-    - FileName : Identifiant du fichier. Il s'agit du nom du fichier sauvegardé dans le stockage.
-    - Algorithm : Algorithme de hachage. Il s'agit du nom de l'algorithme de hachage.
-    - MessageDigest : Empreinte du fichier. Il s'agit d'une chaîne de caractères contenant l'empreinte du fichier.
-    - Offers : Offres de srockage. Il s'agit des offres de stockage utilisées pour la sauvegarde du fichier.
-    - 
+    	- FileName : Identifiant du fichier. Il s'agit du nom du fichier sauvegardé sur les offres de stockage.
+    	- Algorithm : Algorithme de hachage. Il s'agit du nom de l'algorithme de hachage.
+    	- MessageDigest : Empreinte du fichier. Il s'agit d'une chaîne de caractères contenant l'empreinte du fichier.
+    	- Offers : Offres de stockage. Il s'agit des offres de stockage utilisées pour la sauvegarde du fichier.
+    
     * Cardinalité : 1-1 
-    * Ce champ existe pour les structures incluantes et incluses*
+    * Ce champ existe pour les structures incluantes et incluses
 
 **"events":** tableau de structure.
     
-    * Pour la structure incluante, le tableau contient N structures incluses dans l'ordre des événements (date)
+    * Pour la structure incluante, le tableau contient n structures incluses dans l'ordre des événements (date)
     * Cardinalité : 1-1 
-    *Ce champ existe uniquement pour la structure incluante.*
+    * S'agissant d'un tableau, les structures incluses ont pour cardinalité 1-n.
+    * Ce champ existe uniquement pour la structure incluante.
 
 **"_tenant":** identifiant du tenant.
 
     * Il s'agit d'un entier.
     * Cardinalité : 1-1 
-    * Ce champ existe uniquement pour la structure incluante.*
+    * Ce champ existe uniquement pour la structure incluante.
 
-**"_v":** version de l'objet décrit.
+**"_v":** version de l'enregistrement décrit.
 
     * Il s'agit d'un entier.
     * Cardinalité : 1-1 
-    * Ce champ existe uniquement pour la structure incluante.*
+    * Ce champ existe uniquement pour la structure incluante.

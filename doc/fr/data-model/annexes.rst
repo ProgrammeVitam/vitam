@@ -11,20 +11,20 @@ Valeurs possibles pour le champ evType du LogBook LifeCycle
   
 L'ensemble des étapes, tâches et traitements sont détaillées dans la documentation modèle de workflow
 
-Valeurs possibles pour le champ evTypeProc
-------------------------------------------
+Valeurs possibles pour le champ evTypeProc (type de processus)
+--------------------------------------------------------------
 
 .. csv-table::
-  :header: "Process Type","Valeur"
+  :header: "Process Type","Valeur", "Description"
 
-  "Audit type process","AUDIT"
-  "Check type process","CHECK"
-  "Destruction type process (v2)","DESTRUCTION"
-  "Ingest type process","INGEST"
-  "Preservation type process","PRESERVATION"
-  "Rules Manager process","MASTERDATA"
-  "Traceability type process","TRACEABILITY"
-  "Update process","UPDATE"
+  "Audit type process","AUDIT", "Audit"
+  "Check type process","CHECK", "Vérification"
+  "Destruction type process (v2)","DESTRUCTION", "Élimination"
+  "Ingest type process","INGEST", "Entrée"
+  "Preservation type process","PRESERVATION", "Préservation"
+  "Rules Manager process","MASTERDATA", "Données de base"
+  "Traceability type process","TRACEABILITY", "Sécurisation"
+  "Update process","UPDATE", "Mise à jour"
 
 Catégories de règles possibles
 --------------------------------
@@ -33,7 +33,7 @@ Catégories de règles possibles
   :header: "Prefixe (Peut être modifié)", "Type de règle correspondante", "Description du type de règle"
 
   "ACC", "AccessRule", "Règle d'accès / délai de communicabilité"
-  "APP", "Appraisal", "Règle correspondant à la durée d'utilité administrative (DUA)/ Durée de rétention"
+  "APP", "Appraisal", "Règle correspondant à la durée d'utilité administrative (DUA)/ Durée de rétention / conservation"
   "CLASS", "ClassificationRule", "Règle de classification"
   "DIS", "DisseminationRule", "Règle de diffusion"
   "REU", "ReuseRule", "Règle de réutilisation"
@@ -57,5 +57,14 @@ Valeurs possibles pour le champ Name de la collection VitamSecquence
 
   "AC", "AccessContract", "Contrat d'accès"
   "IC", "IngestContract", "Contrat d'entrée"
-  "PR", "Profile", "Profils"
+  "PR", "Profile", "Profils d'archivage"
   "CT", "Context", "Contextes applicatifs"
+  
+Diagramme du modèle de données Vitam
+------------------------------------
+
+.. figure:: images/vitam-class-diagram.png
+    :align: center
+    :height: 15 cm
+
+    Modèle de données métier : vue d'ensemble.
