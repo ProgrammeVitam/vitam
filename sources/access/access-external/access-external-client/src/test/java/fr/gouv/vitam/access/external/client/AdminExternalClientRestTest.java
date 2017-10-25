@@ -420,7 +420,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
             Response.status(Status.CREATED).entity(new RequestResponseOK<>().addAllResults(getContracts())).build());
         InputStream fileContracts = PropertiesUtils.getResourceAsStream("referential_contracts_ok.json");
         RequestResponse resp =
-            client.createContracts(new VitamContext(TENANT_ID), fileContracts, AdminCollections.INGEST_CONTRACTS);
+            client.createIngestContracts(new VitamContext(TENANT_ID), fileContracts);
         Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
         Assert.assertTrue((((RequestResponseOK) resp).isOk()));
     }
@@ -440,8 +440,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
             .setMessage("invalid input").setDescription("Input file of contracts is malformed");
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(error).build());
         RequestResponse resp =
-            client.createContracts(new VitamContext(TENANT_ID), new FakeInputStream(0),
-                AdminCollections.INGEST_CONTRACTS);
+            client.createIngestContracts(new VitamContext(TENANT_ID), new FakeInputStream(0));
         Assert.assertTrue(VitamError.class.isAssignableFrom(resp.getClass()));
         Assert.assertEquals(Status.BAD_REQUEST.getStatusCode(), (((VitamError) resp).getHttpCode()));
     }
@@ -449,7 +448,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     @Test(expected = IllegalArgumentException.class)
     public void importContractsWithNullStreamThrowIllegalArgException()
         throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
-        client.createContracts(new VitamContext(TENANT_ID), null, AdminCollections.INGEST_CONTRACTS);
+        client.createIngestContracts(new VitamContext(TENANT_ID), null);
     }
 
 
@@ -462,7 +461,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
                 .build());
         InputStream fileContracts = PropertiesUtils.getResourceAsStream("contracts_access_ok.json");
         RequestResponse resp =
-            client.createContracts(new VitamContext(TENANT_ID), fileContracts, AdminCollections.ACCESS_CONTRACTS);
+            client.createAccessContracts(new VitamContext(TENANT_ID), fileContracts);
         Assert.assertTrue(RequestResponseOK.class.isAssignableFrom(resp.getClass()));
         Assert.assertTrue((((RequestResponseOK) resp).isOk()));
     }
@@ -482,8 +481,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
             .setMessage("invalid input").setDescription("Input file of contracts is malformed");
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(error).build());
         RequestResponse resp =
-            client.createContracts(new VitamContext(TENANT_ID), new FakeInputStream(0),
-                AdminCollections.ACCESS_CONTRACTS);
+            client.createAccessContracts(new VitamContext(TENANT_ID), new FakeInputStream(0));
         Assert.assertTrue(VitamError.class.isAssignableFrom(resp.getClass()));
         Assert.assertEquals(Status.BAD_REQUEST.getStatusCode(), (((VitamError) resp).getHttpCode()));
     }
@@ -491,7 +489,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     @Test(expected = IllegalArgumentException.class)
     public void importAccessContractsWithNullStreamThrowIllegalArgException()
         throws FileNotFoundException, InvalidParseOperationException, AccessExternalClientException {
-        client.createContracts(new VitamContext(TENANT_ID), null, AdminCollections.ACCESS_CONTRACTS);
+        client.createAccessContracts(new VitamContext(TENANT_ID), null);
     }
 
 

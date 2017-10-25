@@ -1793,8 +1793,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse response =
                 adminClient
-                    .createContracts(new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()),
-                        input, AdminCollections.INGEST_CONTRACTS);
+                    .createIngestContracts(
+                        new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()),
+                        input);
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).build();
             }
@@ -1947,9 +1948,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response uploadAccessContracts(@Context HttpHeaders headers, InputStream input) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse response =
-                adminClient.createContracts(
-                    new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()),
-                    input, AdminCollections.ACCESS_CONTRACTS);
+                adminClient.createAccessContracts(
+                    new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()), input);
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).build();
             }

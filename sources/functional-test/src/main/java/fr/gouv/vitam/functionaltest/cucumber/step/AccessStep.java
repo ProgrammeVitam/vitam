@@ -205,10 +205,9 @@ public class AccessStep {
             String unitGuid = replaceTitleByGUID(title);
             String newContract = CONTRACT_WITH_LINK.replace(UNIT_GUID, unitGuid);
             JsonNode node = JsonHandler.getFromString(newContract);
-            world.getAdminClient().createContracts(
+            world.getAdminClient().createIngestContracts(
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                new ByteArrayInputStream(newContract.getBytes()),
-                AdminCollections.INGEST_CONTRACTS);
+                new ByteArrayInputStream(newContract.getBytes()));
         } catch (AccessExternalClientException | IllegalStateException | InvalidParseOperationException e) {
             // Do Nothing
             LOGGER.warn("Contrat d'entrée est déjà importé");

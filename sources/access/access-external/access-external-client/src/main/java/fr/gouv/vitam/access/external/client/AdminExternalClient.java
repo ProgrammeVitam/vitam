@@ -196,7 +196,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
         AccessExternalClientNotFoundException;
 
     /**
-     * create a set of contracts after passing the validation steps. If all the contracts are valid, they are stored in
+     * create a set of ingest contracts after passing the validation steps. If all the contracts are valid, they are stored in
      * the collection and indexed. </BR>
      * The input is invalid in the following situations : </BR>
      * <ul>
@@ -209,14 +209,34 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * 
      *
      * @param vitamContext the vitam context
-     * @param contracts as InputStream
-     * @param collection the collection name
+     * @param ingestContracts as InputStream
      * @return Vitam response
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException
      */
-    RequestResponse createContracts(VitamContext vitamContext, InputStream contracts,
-        AdminCollections collection)
+    RequestResponse createIngestContracts(VitamContext vitamContext, InputStream ingestContracts)
+        throws InvalidParseOperationException, AccessExternalClientException;
+    
+    /**
+     * create a set of access contracts after passing the validation steps. If all the contracts are valid, they are stored in
+     * the collection and indexed. </BR>
+     * The input is invalid in the following situations : </BR>
+     * <ul>
+     * <li>The json is invalid</li>
+     * <li>The json contains 2 ore many contracts having the same name</li>
+     * <li>One or more mandatory field is missing</li>
+     * <li>A field has an invalid format</li>
+     * <li>One or many contracts already exist in the database</li>
+     * </ul>
+     * 
+     *
+     * @param vitamContext the vitam context
+     * @param accessContracts as InputStream
+     * @return Vitam response
+     * @throws InvalidParseOperationException
+     * @throws AccessExternalClientException
+     */
+    RequestResponse createAccessContracts(VitamContext vitamContext, InputStream accessContracts)
         throws InvalidParseOperationException, AccessExternalClientException;
 
     /**

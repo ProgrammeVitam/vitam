@@ -39,11 +39,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.io.IOUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Joiner;
 import com.google.common.base.Strings;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -99,7 +102,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.io.IOUtils;
 
 /**
  * The implementation of the profile servie This implementation manage creation, update, ... profiles with any given
@@ -138,7 +140,7 @@ public class ProfileServiceImpl implements ProfileService {
     /**
      * Constructor
      *
-     * @param mongoAccess            MongoDB client
+     * @param mongoAccess MongoDB client
      * @param workspaceClientFactory
      * @param vitamCounterService
      */
@@ -516,9 +518,9 @@ public class ProfileServiceImpl implements ProfileService {
 
         if (profileModel == null) {
             return getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
-                PROFILE_NOT_FOUND + profileModel.getIdentifier())
-                .setHttpCode(
-                    Response.Status.BAD_REQUEST.getStatusCode());
+                PROFILE_NOT_FOUND)
+                    .setHttpCode(
+                        Response.Status.BAD_REQUEST.getStatusCode());
         }
 
         Map<String, List<String>> updateDiffs;
@@ -529,14 +531,14 @@ public class ProfileServiceImpl implements ProfileService {
                 "Update query dsl must be an object and not null");
             return getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
                 "Update query dsl must be an object and not null : " + profileModel.getIdentifier())
-                .setHttpCode(
-                    Response.Status.BAD_REQUEST.getStatusCode());
+                    .setHttpCode(
+                        Response.Status.BAD_REQUEST.getStatusCode());
         }
 
         final VitamError error = getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
             "Update profile error : " + profileModel.getIdentifier())
-            .setHttpCode(
-                Response.Status.BAD_REQUEST.getStatusCode());
+                .setHttpCode(
+                    Response.Status.BAD_REQUEST.getStatusCode());
 
         final JsonNode actionNode = jsonDsl.get(BuilderToken.GLOBAL.ACTION.exactToken());
 
@@ -600,8 +602,8 @@ public class ProfileServiceImpl implements ProfileService {
                 .name().equals(value.asText()))) {
                 error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
                     THE_PROFILE_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT + value.asText())
-                    .setHttpCode(
-                        Response.Status.BAD_REQUEST.getStatusCode()));
+                        .setHttpCode(
+                            Response.Status.BAD_REQUEST.getStatusCode()));
             }
         }
 
@@ -610,8 +612,8 @@ public class ProfileServiceImpl implements ProfileService {
                 .name().equals(value.asText()))) {
                 error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
                     PROFILE_FORMAT_SHOULD_BE_XSD_OR_RNG + value.asText())
-                    .setHttpCode(
-                        Response.Status.BAD_REQUEST.getStatusCode()));
+                        .setHttpCode(
+                            Response.Status.BAD_REQUEST.getStatusCode()));
             }
         }
 
@@ -619,8 +621,8 @@ public class ProfileServiceImpl implements ProfileService {
             if (!value.isTextual()) {
                 error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
                     PROFILE_IDENTIFIER_MUST_BE_STRING + " : " + value.asText())
-                    .setHttpCode(
-                        Response.Status.BAD_REQUEST.getStatusCode()));
+                        .setHttpCode(
+                            Response.Status.BAD_REQUEST.getStatusCode()));
 
             } else if (!profileModel.getIdentifier().equals(value.asText())) {
                 Optional<RejectionCause> validateIdentifier = manager.createCheckDuplicateInDatabaseValidator()
@@ -628,8 +630,8 @@ public class ProfileServiceImpl implements ProfileService {
                 if (validateIdentifier.isPresent()) {
                     error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
                         PROFILE_IDENTIFIER_ALREADY_EXISTS_IN_DATABASE + " : " + value.asText())
-                        .setHttpCode(
-                            Response.Status.BAD_REQUEST.getStatusCode()));
+                            .setHttpCode(
+                                Response.Status.BAD_REQUEST.getStatusCode()));
                 }
             }
         }

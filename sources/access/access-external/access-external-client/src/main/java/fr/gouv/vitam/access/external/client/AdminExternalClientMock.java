@@ -58,17 +58,6 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public RequestResponse createContracts(VitamContext vitamContext, InputStream contracts,
-        AdminCollections collection)
-        throws InvalidParseOperationException {
-        if (AdminCollections.ACCESS_CONTRACTS.equals(collection))
-            return ClientMockResultHelper.createReponse(ClientMockResultHelper.getAccessContracts().toJsonNode());
-        else
-            return ClientMockResultHelper.createReponse(ClientMockResultHelper.getIngestContracts().toJsonNode());
-
-    }
-
-    @Override
     public RequestResponse updateAccessContract(VitamContext vitamContext, String id,
         JsonNode queryDsl)
         throws InvalidParseOperationException, AccessExternalClientException {
@@ -385,7 +374,7 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
             }
         }
     }
-    
+
     @Override
     public Response checkRules(VitamContext vitamContext, InputStream rules) throws VitamClientException {
         return checkInternalDocuments(vitamContext, AdminCollections.RULES, rules);
@@ -394,6 +383,22 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     @Override
     public Response checkFormats(VitamContext vitamContext, InputStream formats) throws VitamClientException {
         return checkInternalDocuments(vitamContext, AdminCollections.FORMATS, formats);
+    }
+
+
+
+    @Override
+    public RequestResponse createIngestContracts(VitamContext vitamContext, InputStream ingestContracts)
+        throws InvalidParseOperationException, AccessExternalClientException {
+        return ClientMockResultHelper.createReponse(ClientMockResultHelper.getIngestContracts().toJsonNode());
+    }
+
+
+
+    @Override
+    public RequestResponse createAccessContracts(VitamContext vitamContext, InputStream accessContracts)
+        throws InvalidParseOperationException, AccessExternalClientException {
+        return ClientMockResultHelper.createReponse(ClientMockResultHelper.getAccessContracts().toJsonNode());
     }
 
 }
