@@ -123,15 +123,17 @@ public class FilesSecurisator {
         evDetData.put(DIGEST, digest);
         String name = getName(version, extension, prefix_name, ParameterHelper.getTenantParameter());
 
-        secureFiles(stream, extension, eipMaster, process, storageCollectionType, logbook_event, prefix_name, name);
+        final String eventCode = logbook_event + "_" + extension.toUpperCase();
+
+        secureFiles(stream, eipMaster, eventCode, process, storageCollectionType, prefix_name, name);
     }
 
     /**
      * secure File
      */
-    public void secureFiles(InputStream stream, String extension, GUID eipMaster,
+    public void secureFiles(InputStream stream, GUID eipMaster, String eventCode,
         LogbookTypeProcess process, StorageCollectionType storageCollectionType,
-        String logbook_event, String prefix_name, String fileName)
+        String prefix_name, String fileName)
 
         throws StorageException, LogbookClientServerException, LogbookClientBadRequestException,
         LogbookClientAlreadyExistsException {
@@ -144,7 +146,6 @@ public class FilesSecurisator {
         ) {
 
             final GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
-            final String eventCode = logbook_event + "_" + extension.toUpperCase();
             final String uri = String.format("%s/%s", prefix_name, fileName);
             final ObjectDescription description = new ObjectDescription();
 
