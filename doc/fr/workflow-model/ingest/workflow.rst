@@ -128,7 +128,10 @@ La tâche contient les traitements suivants
 
       - OK : le profil SEDA déclaré dans le contrat d'entrée et celui déclaré dans le manifeste sont les mêmes (CHECK_HEADER.CHECK_IC_AP_RELATION.OK = Succès de la vérification de la relation entre le contrat et le profil SEDA)
 
-      - KO : le profil déclaré dans le contrat d'entrée et celui déclaré dans le manifeste ne sont pas les mêmes (CHECK_HEADER.CHECK_IC_AP_RELATION.KO = Echec de la vérification de la relation entre le contrat et le profil SEDA)
+      - KO : 
+    - Cas 1 : le profil déclaré dans le SIP est inexistant (CHECK_HEADER.CHECK_IC_AP_RELATION.UNKNOWN.KO=Échec du contrôle de la présence du profil)
+    - Cas 2 : le profil déclaré dans le SIP est inactif (CHECK_HEADER.CHECK_IC_AP_RELATION.INACTIVE.KO=Échec du contrôle du caractère actif du profil)        
+    - Cas 3 : le profil déclaré dans le contrat d'entrée et celui déclaré dans le manifeste ne sont pas les mêmes (CHECK_HEADER.CHECK_IC_AP_RELATION.DIFF.KO=Echec du contrôle de cohérence entre le profil déclaré dans le bordereau et celui déclaré dans le contrat)
 
       - FATAL : une erreur technique est survenue lors de la vérification de la relation (CHECK_HEADER.CHECK_IC_AP_RELATION.FATAL = Erreur fatale lors de la vérification de la relation entre le contrat et le profil SEDA)
 
@@ -152,7 +155,9 @@ La tâche contient les traitements suivants
 
     - OK : le contrat déclaré dans le SIP est valide (contrat existant dans le référentiel des contrats et dont le statut est actif)
 
-    - KO : le contrat déclaré dans le SIP est invalide (contrat non trouvé dans le référentiel de contrats ou contrat existant mais inactif)
+    - KO : 
+    - Cas 1 : le contrat déclaré dans le SIP est inexistant (CHECK_HEADER.CHECK_CONTRACT_INGEST.INACTIVE.KO=Échec du contrôle du caractère actif du contrat d'entrée)
+    - Cas 2 : le contrat déclaré dans le SIP est inactif (CHECK_HEADER.CHECK_CONTRACT_INGEST.INACTIVE.KO=Échec du contrôle du caractère actif du contrat d'entrée)
 
     - FATAL : une erreur technique est survenue lors de la vérification de la présence et du contrôle du contrat d'entrée
 
@@ -538,10 +543,11 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
       - Recherche l'identifier du contrat d'entrée dans le SIP
 
-      - Vérification de la validité du contrat par rapport au référentiel de contrats présent dans la solution logicielle VITAM
+      - Vérification de la validité et de l'activité du contrat par rapport au référentiel de contrats présent dans la solution logicielle VITAM
 
     + Contient CHECK_IC_AP_RELATION, exécuté si un profil SEDA s'applique pour le SIP (CheckArchiveProfileRelationActionHandler.java) :
 
+      - Vérification de la validité et de l'activité du profil SEDA par rapport au référentiel de contrats présent dans la solution logicielle VITAM
       - Vérification que le profil SEDA déclaré dans le contrat d'entrée et le même que celui déclaré dans le SIP
 
     + Contient CHECK_ARCHIVEPROFILE, exécuté si un profil SEDA s'applique pour le SIP (CheckArchiveProfileActionHandler.java) :
