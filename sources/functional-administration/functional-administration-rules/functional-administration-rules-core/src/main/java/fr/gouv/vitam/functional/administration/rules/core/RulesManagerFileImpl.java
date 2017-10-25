@@ -1037,10 +1037,10 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                 }
                 final LogbookOperationParameters logbookParametersEnd =
                     LogbookParametersFactory
-                        .newLogbookOperationParameters(eip1, RULES_REPORT + "_JSON",
+                        .newLogbookOperationParameters(eip1, RULES_REPORT,
                             eipMaster, LogbookTypeProcess.STORAGE_RULE,
                             StatusCode.OK, VitamLogbookMessages.getCodeOp(
-                                RULES_REPORT + "_JSON", StatusCode.OK),
+                                RULES_REPORT, StatusCode.OK),
                             eip1);
                 final ObjectNode evDetData = JsonHandler.createObjectNode();
                 evDetData.put(FILE_NAME, fileName);
@@ -1051,10 +1051,10 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                 LOGGER.error("unable to create container or store file in workspace", e);
                 final LogbookOperationParameters logbookParametersEnd =
                     LogbookParametersFactory
-                        .newLogbookOperationParameters(eip1, RULES_REPORT + "_JSON",
+                        .newLogbookOperationParameters(eip1, RULES_REPORT,
                             eipMaster, LogbookTypeProcess.STORAGE_RULE,
                             StatusCode.KO, VitamLogbookMessages.getCodeOp(
-                                RULES_REPORT + "_JSON", StatusCode.KO),
+                                RULES_REPORT, StatusCode.KO),
                             eip1);
                 updateLogBookEntry(logbookParametersEnd, client);
                 throw new StorageException(e);
