@@ -26,8 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.mapping.dip;
 
+import static java.util.Collections.singletonList;
+
+import java.math.BigInteger;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+
 import fr.gouv.culture.archivesdefrance.seda.v2.BinaryDataObjectType;
-import fr.gouv.culture.archivesdefrance.seda.v2.BinaryObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectPackageType;
 import fr.gouv.culture.archivesdefrance.seda.v2.FileInfoType;
 import fr.gouv.culture.archivesdefrance.seda.v2.FormatIdentificationType;
@@ -41,12 +47,6 @@ import fr.gouv.vitam.common.model.objectgroup.FormatIdentificationModel;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import java.math.BigInteger;
-
-import static java.util.Collections.singletonList;
 
 /**
  * Mapper that map ObjectGroupResponse(POJO Dslquery response) to a DataObjectPackage (JAXB elements)
@@ -133,16 +133,18 @@ public class ObjectGroupMapper {
                                     dateCreatedByApplication));
                         }
                     }
-                    binaryDataObjectType.setUri(version.getUri());
-                    binaryDataObjectType.setSize(BigInteger.valueOf(version.getSize()));
                     binaryDataObjectType.setFileInfo(fileInfoType);
-                    final MessageDigestBinaryObjectType messageDigestBinaryObjectType =
-                        new MessageDigestBinaryObjectType();
-                    messageDigestBinaryObjectType.setAlgorithm(version.getAlgorithm());
-                    messageDigestBinaryObjectType.setValue(version.getMessageDigest());
-                    binaryDataObjectType.setMessageDigest(messageDigestBinaryObjectType);
-                    mapCommonInformations(version, binaryDataObjectType);
-                    binaryDataObjectType.setMetadata(coreMetadataMapper.map(version.getMetadata()));
+                    if (version != null) {
+                        binaryDataObjectType.setUri(version.getUri());
+                        binaryDataObjectType.setSize(BigInteger.valueOf(version.getSize()));
+                        final MessageDigestBinaryObjectType messageDigestBinaryObjectType =
+                            new MessageDigestBinaryObjectType();
+                        messageDigestBinaryObjectType.setAlgorithm(version.getAlgorithm());
+                        messageDigestBinaryObjectType.setValue(version.getMessageDigest());
+                        binaryDataObjectType.setMessageDigest(messageDigestBinaryObjectType);
+                        mapCommonInformations(version, binaryDataObjectType);
+                        binaryDataObjectType.setMetadata(coreMetadataMapper.map(version.getMetadata()));
+                    }
                     dataObjectPackageType.getBinaryDataObjectOrPhysicalDataObject().add(binaryDataObjectType);
                 }
             }

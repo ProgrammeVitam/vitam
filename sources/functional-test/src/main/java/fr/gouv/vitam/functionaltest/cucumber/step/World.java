@@ -43,7 +43,9 @@ import fr.gouv.vitam.client.IhmRecetteClient;
 import fr.gouv.vitam.client.IhmRecetteClientFactory;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.functionaltest.configuration.TnrClientConfiguration;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
@@ -283,7 +285,7 @@ public class World {
     /**
      * @return base directory on .feature file
      */
-    public String getBaseDirectory() {
+    public String getBaseDirectory() {        
         return baseDirectory;
     }
 
@@ -292,8 +294,8 @@ public class World {
         try {
             confFile = PropertiesUtils.findFile(TNR_CONF);
             tnrClientConfiguration = PropertiesUtils.readYaml(confFile, TnrClientConfiguration.class);
-
-        } catch (IOException e) {
+            SanityChecker.checkParameter(baseDirectory);
+        } catch (IOException | InvalidParseOperationException e) {
             Fail.fail("Unable to load configuration File: \n" + e.getMessage());
         }
 

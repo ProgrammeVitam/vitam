@@ -218,38 +218,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         } finally {
             consumeAnyEntityAndClose(response);
         }
-    }
-
-
-    @Override
-    public RequestResponse createContracts(VitamContext vitamContext, InputStream contracts,
-        AdminCollections collection)
-        throws AccessExternalClientException {
-        // FIXME : should be replaced by createDocuments
-        ParametersChecker.checkParameter("The input contracts json is mandatory", contracts, collection);
-        Response response = null;
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.putAll(vitamContext.getHeaders());
-        try {
-            response = performRequest(HttpMethod.POST, collection.getName(), headers,
-                contracts, MediaType.APPLICATION_JSON_TYPE,
-                MediaType.APPLICATION_JSON_TYPE);
-
-
-            // FIXME quick fix for response OK, adapt response for all response types
-            if (response.getStatus() == Response.Status.OK.getStatusCode() ||
-                response.getStatus() == Response.Status.CREATED.getStatusCode()) {
-                return new RequestResponseOK().setHttpCode(Status.OK.getStatusCode());
-            } else {
-                return RequestResponse.parseFromResponse(response);
-            }
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
+    }    
 
     @Override
     public RequestResponse updateAccessContract(VitamContext vitamContext, String id,
@@ -918,6 +887,44 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
         }
+    }
+    
+    private RequestResponse internalCreateContracts(VitamContext vitamContext, InputStream contracts,
+        AdminCollections collection)
+        throws AccessExternalClientException {
+        ParametersChecker.checkParameter("The input contracts json is mandatory", contracts, collection);
+        Response response = null;
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.putAll(vitamContext.getHeaders());
+        try {
+            response = performRequest(HttpMethod.POST, collection.getName(), headers,
+                contracts, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+            // FIXME quick fix for response OK, adapt response for all response types
+            if (response.getStatus() == Response.Status.OK.getStatusCode() ||
+                response.getStatus() == Response.Status.CREATED.getStatusCode()) {
+                return new RequestResponseOK().setHttpCode(Status.OK.getStatusCode());
+            } else {
+                return RequestResponse.parseFromResponse(response);
+            }
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new AccessExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse createIngestContracts(VitamContext vitamContext, InputStream ingestContracts)
+        throws InvalidParseOperationException, AccessExternalClientException {
+        return internalCreateContracts(vitamContext, ingestContracts, AdminCollections.INGEST_CONTRACTS);
+    }
+
+    @Override
+    public RequestResponse createAccessContracts(VitamContext vitamContext, InputStream accessContracts)
+        throws InvalidParseOperationException, AccessExternalClientException {
+        return internalCreateContracts(vitamContext, accessContracts, AdminCollections.ACCESS_CONTRACTS);
     }
 
 }

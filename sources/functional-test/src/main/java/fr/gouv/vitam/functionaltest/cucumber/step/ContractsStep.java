@@ -143,11 +143,20 @@ public class ContractsStep {
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
             AdminCollections collection = AdminCollections.valueOf(type);
             this.setContractType(collection.getName());
-            RequestResponse response =
-                world.getAdminClient().createContracts(
-                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                    inputStream, collection);
-            assertThat(response instanceof RequestResponseOK);
+            if (AdminCollections.ACCESS_CONTRACTS.equals(collection)) {
+                RequestResponse response =
+                    world.getAdminClient().createAccessContracts(
+                        new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                        inputStream);
+                assertThat(response instanceof RequestResponseOK);
+            } else if (AdminCollections.INGEST_CONTRACTS.equals(collection)) {
+                RequestResponse response =
+                    world.getAdminClient().createIngestContracts(
+                        new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                        inputStream);
+                assertThat(response instanceof RequestResponseOK);
+            }
+
         }
     }
 
@@ -164,12 +173,21 @@ public class ContractsStep {
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
             AdminCollections collection = AdminCollections.valueOf(type);
             this.setContractType(collection.getName());
-            RequestResponse response =
-                world.getAdminClient().createContracts(
-                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                    inputStream, collection);
-            // TODO : this has to be fixed, the returned response is not correct, Bad request must me obtained
-            assertThat(Response.Status.BAD_REQUEST.getStatusCode() == response.getStatus());
+            if (AdminCollections.ACCESS_CONTRACTS.equals(collection)) {
+                RequestResponse response =
+                    world.getAdminClient().createAccessContracts(
+                        new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                        inputStream);
+                // TODO : this has to be fixed, the returned response is not correct, Bad request must me obtained
+                assertThat(Response.Status.BAD_REQUEST.getStatusCode() == response.getStatus());
+            } else if (AdminCollections.INGEST_CONTRACTS.equals(collection)) {
+                RequestResponse response =
+                    world.getAdminClient().createIngestContracts(
+                        new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                        inputStream);
+                // TODO : this has to be fixed, the returned response is not correct, Bad request must me obtained
+                assertThat(Response.Status.BAD_REQUEST.getStatusCode() == response.getStatus());
+            }
         } catch (IllegalStateException e) {
             // Do nothing
         } catch (Exception e) {
