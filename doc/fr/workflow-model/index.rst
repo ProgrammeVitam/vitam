@@ -11,6 +11,7 @@
    audit/_toc_audit.rst
    traceability/_toc_traceability.rst
    rules_update/_toc_rules_update.rst
+   dip/_toc_dip.rst
 
 .. only:: latex
 
