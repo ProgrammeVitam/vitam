@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.Matchers.anyObject;
@@ -51,6 +52,9 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
@@ -149,6 +153,8 @@ public class FinalizeLifecycleTraceabilityActionHandlerTest {
             .setContainerName(guid.getId()).setLogbookTypeProcess(LogbookTypeProcess.TRACEABILITY);
 
     private List<IOParameter> in;
+    
+    private final DigestType digestType = VitamConfiguration.getDefaultDigestType();
 
     public FinalizeLifecycleTraceabilityActionHandlerTest() throws FileNotFoundException {
         // do nothing
@@ -268,8 +274,8 @@ public class FinalizeLifecycleTraceabilityActionHandlerTest {
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
         try {
-        getSavedWorkspaceObject("LogbookLifecycles", ".zip");
-        fail("Should throw an exception");
+            getSavedWorkspaceObject("LogbookLifecycles", ".zip");
+            fail("Should throw an exception");
         } catch (FileNotFoundException e) {
             // do nothing
         }        
@@ -308,6 +314,12 @@ public class FinalizeLifecycleTraceabilityActionHandlerTest {
         assertEquals(StatusCode.OK, response.getGlobalStatus());
         InputStream stream = getSavedWorkspaceObject("LogbookLifecycles", ".zip");
         assertNotNull(stream);
+        
+        JsonNode evDetData = JsonHandler.getFromString(response.getEvDetailData());
+        assertNotNull(evDetData);
+        String hash = evDetData.get("Hash").asText();
+        String expectedHash = new Digest(digestType).update(PropertiesUtils.getResourceFile(OBJECT_FILE)).toString();
+        assertTrue(hash.equals(expectedHash));
     }
 
     private static JsonNode getLogbookOperation()

@@ -41,6 +41,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -80,17 +84,24 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 @PowerMockIgnore("javax.net.ssl.*")
 @PrepareForTest({MetaDataClientFactory.class, WorkspaceClientFactory.class})
 public class CreateObjectSecureFileActionPluginTest {
+    
     CreateObjectSecureFileActionPlugin plugin = new CreateObjectSecureFileActionPlugin();
+    
     private static final Integer TENANT_ID = 0;
     private static final String HANDLER_ID = "OG_CREATE_SECURED_FILE";
     private static final String OBJECT_LFC_1 = "CreateObjectSecureFileActionPlugin/object1.json";
     private static final String OBJECT_LFC_2 = "CreateObjectSecureFileActionPlugin/object2.json";
     private static final String OBJECT_GROUP = "CreateObjectSecureFileActionPlugin/objectGroup.json";
+    private static final String OBJECT_GROUP_MD = "CreateObjectSecureFileActionPlugin/objectGroup_md.json";
     private GUID guid = GUIDFactory.newGUID();
     private String guidOg = "aebaaaaaaahgausqab7boak55jchzyqaaaaq";
+
+    private final DigestType digestType = VitamConfiguration.getDefaultDigestType();
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
     private HandlerIO handler = mock(HandlerIO.class);
@@ -104,9 +115,11 @@ public class CreateObjectSecureFileActionPluginTest {
     private WorkspaceClientFactory workspaceClientFactory;
     private MetaDataClient metadataClient;
     private MetaDataClientFactory metadataClientFactory;
+    
     public CreateObjectSecureFileActionPluginTest() {
         // do nothing
     }
+    
     @Before
     public void setUp() throws Exception {
         File tempFolder = folder.newFolder();
@@ -123,6 +136,7 @@ public class CreateObjectSecureFileActionPluginTest {
         SystemPropertyUtil.refresh();
         handler = new HandlerIOImpl(workspaceClient, "CreateObjectSecureFileActionPluginTest", "workerId");
     }
+    
     @Test
     @RunWithCustomExecutor
     public void givenNothingDoneWhenExecuteThenReturnResponseKO() throws Exception {
@@ -136,6 +150,7 @@ public class CreateObjectSecureFileActionPluginTest {
         final ItemStatus response = plugin.execute(params, handler);
         assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
     }
+    
     @Test
     @RunWithCustomExecutor
     public void givenExistingAndCorrectFilesWhenExecuteThenReturnResponseOK() throws Exception {
@@ -158,7 +173,22 @@ public class CreateObjectSecureFileActionPluginTest {
         assertTrue(fileAsString.startsWith("aedqaaaaacgxm4z4abt3gak55jccrjyaaaba | INGEST | 2017-08-16T09:29:25.562"));
         //units have only 6 separators, objects 7
         assertEquals(7, StringUtils.countMatches(fileAsString, "|"));
+
+        // check hash for LFC and for MD
+        final String gotMDHash = generateExpectedDigest(OBJECT_GROUP_MD);
+        final String gotLFCHash = generateExpectedDigest(OBJECT_LFC_1);
+        assertTrue(fileAsString.startsWith("aedqaaaaacgxm4z4abt3gak55jccrjyaaaba | INGEST | 2017-08-16T09:29:25.562 | " +
+                guidOg+ " | OK | " + gotLFCHash + " | " + gotMDHash));
+
     }
+
+    private String generateExpectedDigest(String resource) throws Exception {
+        JsonNode jsonNode = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(resource));
+        Digest digest = new Digest(digestType);
+        digest.update(JsonHandler.unprettyPrint(jsonNode).getBytes());
+        return digest.toString();
+    }
+    
     private void saveWorkspacePutObject(String filename) throws ContentAddressableStorageServerException {
         doAnswer(invocation -> {
             InputStream inputStream = invocation.getArgumentAt(2, InputStream.class);
@@ -171,6 +201,7 @@ public class CreateObjectSecureFileActionPluginTest {
         }).when(workspaceClient).putObject(org.mockito.Matchers.anyString(),
             org.mockito.Matchers.eq(filename), org.mockito.Matchers.any(InputStream.class));
     }
+    
     private String getSavedWorkspaceObject(String filename) throws IOException {
         byte[] encoded = Files
             .readAllBytes(Paths.get(System.getProperty("vitam.tmp.folder") + "/" + handler.getContainerName() + "_" +

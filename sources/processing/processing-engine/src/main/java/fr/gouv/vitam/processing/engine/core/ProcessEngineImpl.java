@@ -505,6 +505,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                     messageLogbookEngineHelper
                         .getLabelOp(OBJECTS_LIST_EMPTY, itemStatusObjectListEmpty.getGlobalStatus()),
                     GUIDReader.getGUID(workParams.getContainerName()));
+            actionParameters.putParameterValue(LogbookParameterName.parentEventIdentifier, stepEventIdentifier);
             helper.updateDelegate(actionParameters);
         }
 

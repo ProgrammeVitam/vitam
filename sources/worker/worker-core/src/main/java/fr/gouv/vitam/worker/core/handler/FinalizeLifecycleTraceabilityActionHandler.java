@@ -58,7 +58,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 
-import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
@@ -142,6 +141,8 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
     private static final String VERIFY_TIMESTAMP_CONF_FILE = "verify-timestamp.conf";
 
     private static final String DEFAULT_STRATEGY = "default";
+    private final DigestType digestType = VitamConfiguration.getDefaultDigestType();
+    private final DigestType timestampDigestType = VitamConfiguration.getDefaultTimestampDigestType();
 
     /**
      * Empty constructor FinalizeLifecycleTraceabilityActionPlugin
@@ -262,12 +263,12 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
                     final String timestampToken3 =
                         findHashByTraceabilityEventExpect(logbookOperationsClient, expectedLogbookId,
                             currentDate.minusYears(1));
-                    final String timestampToken1Base64 =
-                        (timestampToken1 == null) ? null : BaseXx.getBase64(timestampToken1.getBytes());
-                    final String timestampToken2Base64 =
-                        (timestampToken2 == null) ? null : BaseXx.getBase64(timestampToken2.getBytes());
-                    final String timestampToken3Base64 =
-                        (timestampToken3 == null) ? null : BaseXx.getBase64(timestampToken3.getBytes());
+                    final String timestampToken1Digest =
+                        (timestampToken1 == null) ? null : generateTimestampDigest(timestampToken1.getBytes());
+                    final String timestampToken2Digest =
+                        (timestampToken2 == null) ? null : generateTimestampDigest(timestampToken2.getBytes());
+                    final String timestampToken3Digest =
+                        (timestampToken3 == null) ? null : generateTimestampDigest(timestampToken3.getBytes());
 
                     final byte[] timeStampToken =
                         generateTimeStampToken(GUIDReader.getGUID(params.getProcessId()), tenantId, rootHash,
@@ -289,9 +290,9 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
                     }
 
                     traceabilityFile.storeAdditionalInformation(numberOfLifecycles, startDate, endDate);
-                    traceabilityFile.storeHashCalculationInformation(rootHash, timestampToken1Base64,
-                        timestampToken2Base64,
-                        timestampToken3Base64);
+                    traceabilityFile.storeHashCalculationInformation(rootHash, timestampToken1Digest,
+                        timestampToken2Digest,
+                        timestampToken3Digest);
 
                     String previousDate = null;
                     String previousMonthDate = null;
@@ -327,7 +328,7 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
 
                     traceabilityEvent = new TraceabilityEvent(TraceabilityType.LIFECYCLE, startDate, endDate,
                         rootHash, timeStampToken, previousDate, previousMonthDate, previousYearDate, numberOfLifecycles,
-                        fileName, size, VitamConfiguration.getDefaultDigestType());
+                        fileName, size, digestType);
 
                     itemStatus.setEvDetailData(JsonHandler.unprettyPrint(traceabilityEvent));
                     itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(),
@@ -400,6 +401,18 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
     }
 
     /**
+     * Generate a hash for a byte array
+     *
+     * @param bytes the byte array to compute digest for
+     * @return hash of the byte array
+     */
+    private String generateTimestampDigest(byte[] bytes) {
+        final Digest digest = new Digest(timestampDigestType);
+        digest.update(bytes);
+        return digest.toString();
+    }
+
+    /**
      * Reduce part of the process : lets merge in one only file the disting lifecycles ones
      * 
      * @param listOfFiles
@@ -423,7 +436,8 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
                 org.apache.commons.io.IOUtils.copy(lifecycleIn, baos);
                 byte[] bytes = baos.toByteArray();
                 traceabilityFile.storeLifecycleLog(new ByteArrayInputStream(bytes));
-                rootHash = BaseXx.getBase64(bytes);
+                final Digest digest = new Digest(digestType);
+                rootHash = digest.update(bytes).toString();
             } else {
                 traceabilityFile.storeLifecycleLog(lifecycleIn);
             }
@@ -557,12 +571,11 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
         final ItemStatus subItemStatusTimestamp = new ItemStatus(HANDLER_SUB_ACTION_TIMESTAMP);
         try {
             final String hash = joiner.join(rootHash, hash1, hash2, hash3);
-            final DigestType digestType = VitamConfiguration.getDefaultTimestampDigestType();
-            final Digest digest = new Digest(digestType);
+            final Digest digest = new Digest(timestampDigestType);
             digest.update(hash);
             final byte[] hashDigest = digest.digest();
             // TODO maybe nonce could be different than null ? If so, think about changing VerifyTimeStampActionHandler
-            final byte[] timeStampToken = timestampGenerator.generateToken(hashDigest, digestType, null);
+            final byte[] timeStampToken = timestampGenerator.generateToken(hashDigest, timestampDigestType, null);
             itemStatus.setItemsStatus(HANDLER_SUB_ACTION_TIMESTAMP, subItemStatusTimestamp.increment(StatusCode.OK));
             return timeStampToken;
         } catch (final TimeStampException e) {
