@@ -36,10 +36,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Iterables;
 
-import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -69,6 +71,7 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
     private static final String SEPARATOR = " | ";
     private static final String COMA_SEPARATOR = ",";
     private static final String RESULTS = "$results";
+    private final DigestType digestType = VitamConfiguration.getDefaultDigestType();
     
     
     protected void storeLifecycle(JsonNode lifecycle, String lfGuid, HandlerIO handlerIO, String lifecycleType)
@@ -87,19 +90,18 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
                 folder = SedaConstants.LFC_UNITS_FOLDER;
                 JsonNode unit = selectArchiveUnitById(objectGroupId);
                 if (unit != null) {
-                    hashLFCOgOrUnit = BaseXx.getBase64(JsonHandler.unprettyPrint(unit).getBytes());
+                    hashLFCOgOrUnit = generateDigest(unit);
                 }
             } else if (LogbookLifeCycleObjectGroup.class.getName().equals(lifecycleType)) {
                 folder = SedaConstants.LFC_OBJECTS_FOLDER;
                 JsonNode og = selectObjectGroupById(objectGroupId);
                 if (og != null) {
-                    hashLFCOgOrUnit = BaseXx.getBase64(JsonHandler.unprettyPrint(og).getBytes());
+                    hashLFCOgOrUnit = generateDigest(og);
                     specificListObjects = extractListObjectsFromJson(og);
                 }
             }
 
-            final String logbookLFCStr = JsonHandler.unprettyPrint(lifecycle);
-            final String hashGlobalLFC = BaseXx.getBase64(logbookLFCStr.getBytes());
+            final String hashGlobalLFC = generateDigest(lifecycle);
 
 
             fw.write(lifecycle.get(LogbookMongoDbName.eventIdentifierProcess.getDbname()).asText());
@@ -159,7 +161,7 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
                 if (versions.isArray() && versions.size() > 0) {
                     for (final JsonNode version : versions) {
                         sj.add("{\"id\":" + version.get("_id") +
-                            ", \"object\": \"" + BaseXx.getBase64(JsonHandler.unprettyPrint(version).getBytes()) +
+                            ", \"object\": \"" + generateDigest(version) +
                             "\"}");
                     }
                 }
@@ -186,6 +188,18 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
             MetaDataClientServerException | InvalidParseOperationException e) {
             throw new ProcessingException(e);
         }
+    }
+
+    /**
+     * Generate a hash for a JsonNode using VITAM Digest Algorithm
+     * 
+     * @param jsonNode the jsonNode to compute digest for
+     * @return hash of the jsonNode
+     */
+    private String generateDigest(JsonNode jsonNode) {
+        final Digest digest = new Digest(digestType);
+        digest.update(JsonHandler.unprettyPrint(jsonNode).getBytes());
+        return digest.toString();
     }
 
 }
