@@ -273,7 +273,7 @@ Identification des formats (OG_OBJECTS_FORMAT_CHECK)
 Contrôle et traitements des unités archivistiques (STP_UNIT_CHECK_AND_TRANSFORME)
 =================================================================================
 
-Vérification globale de l'unité archivistique (CHECK_UNIT_schéma)
+Vérification globale de l'unité archivistique (CHECK_UNIT_SCHEMA)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 + **Règle** :  contrôle additionnel sur la validité des champs de l'unité archivistique par rapport au schéma prédéfini dans la solution logicielle Vitam. Par exemple, les champs obligatoires, comme les titres des unités archivistiques, ne doivent pas être vides. En plus du contrôle par le schéma, cette tâche vérifie que la date de fin des dates extrêmes soit bien supérieure ou égale à la date de début du l'unité archivistique.
@@ -282,11 +282,14 @@ Vérification globale de l'unité archivistique (CHECK_UNIT_schéma)
 
 + **Statuts** :
 
-  - OK : tous les champs de l'unité archivistique sont conformes à ce qui est attendu (CHECK_UNIT_schéma.OK = Succès du contrôle additionnel sur la validité des champs de l'unité archivistique)
+  - OK : tous les champs de l'unité archivistique sont conformes à ce qui est attendu (CHECK_UNIT_SCHEMA.OK = Succès du contrôle additionnel sur la validité des champs de l'unité archivistique)
 
-  - KO : au moins un champ de l'unité archivistique n'est pas conforme à ce qui est attendu (titre vide, date incorrecte...) ou la date de fin des dates extrêmes est strictement inférieure à la date de début (CHECK_UNIT_schéma.KO = Échec lors du contrôle additionnel sur la validité des champs de l'unité archivistique)
+  - KO : 
+    - Cas 1 : au moins un champ d'une unité archivistique n'est pas conforme dont le schéma n'est pas conforme par rapport au schéma prédéfini du référentiel VITAM (CHECK_UNIT_SCHEMA.INVALID_UNIT.KO=Échec lors du contrôle additionnel sur la validité des champs de l'unité archivistique)
+    - Cas 2 : au moins un champ obligatoire d'une unité archivistique est vide(CHECK_UNIT_SCHEMA.EMPTY_REQUIRED_FIELD.KO=Échec lors du contrôle additionnel sur la validité des champs de l'unité archivistique, champs obligatoire)
+    - Cas 3 : au moins un champ date d'une unité archivistique est supérieur à 9000 (titre vide, date incorrecte...) ou la date de fin des dates extrêmes est strictement inférieure à la date de début (CHECK_UNIT_SCHEMA.RULE_DATE_THRESHOLD.KO=Échec du calcul des dates d'échéance, la date ne peut être gérée)
 
-  - FATAL : la vérification de l'unité archivistique n'a pu être effectuée suite à une erreur technique (CHECK_UNIT_schéma.FATAL = Erreur fatale du contrôle additionnel sur la validité des champs de l'unité archivistique)
+  - FATAL : la vérification de l'unité archivistique n'a pu être effectuée suite à une erreur technique (CHECK_UNIT_SCHEMA.FATAL = Erreur fatale du contrôle additionnel sur la validité des champs de l'unité archivistique)
 
 Application des règles de gestion et calcul des dates d'échéances (UNITS_RULES_COMPUTE)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -299,10 +302,9 @@ Application des règles de gestion et calcul des dates d'échéances (UNITS_RULE
 
   - OK : les règles de gestion sont référencées dans le référentiel interne et ont été appliquées avec succès (UNITS_RULES_COMPUTE.OK = Succès du calcul des dates d'échéance)
 
-  - KO : Une erreur s'est produite lors du calcul des échéances. Ceci peut-être causé par le fait que :
-      
-      * au moins une règle de gestion déclarée dans le manifeste n'est pas référencée dans le référentiel interne
-      * une balise RefnonRuleId a un ID d'une règle d'une autre catégorie que la sienne 
+  - KO :
+    - Cas 1 : au moins une règle de gestion déclarée dans le manifeste n'est pas référencée dans le référentiel interne (UNITS_RULES_COMPUTE.UNKNOWN.KO=Échec lors du calcul des dates déchéance, règle de gestion inconnue)
+    - Cas 2 : une balise RefnonRuleId a un ID d'une règle d'une autre catégorie que la sienne (UNITS_RULES_COMPUTE.REF_INCONSISTENCY.KO=Échec lors du calcul des dates d''échéance, exclusion d''héritage incohérente)
 
   - FATAL : une erreur technique est survenue lors du calcul des dates d'échéances (UNITS_RULES_COMPUTE.FATAL = Erreur fatale lors du calcul des dates d'échéance)
 
@@ -614,10 +616,14 @@ D'une façon synthétique, le workflow est décrit de cette façon :
 
 - **Step 3** - STP_UNIT_CHECK_AND_PROCESS : Contrôle et traitements des units / distribution sur LIST GUID
 
-  * CHECK_UNIT_schéma (CheckArchiveUnitschémaActionPlugin.java) :
+  * CHECK_UNIT_SCHEMA (CheckArchiveUnitschémaActionPlugin.java) :
 
-    + contrôle de validité des champs des unités archivistiques
+    + contrôle de conformité des champs des unités archivistiques
 
+    + contrôle de la complétude des champs obligatoires des unités archivistiques
+
+    + contrôle que les dates des unités archivistiques sont inférieures à 9000
+      
   * UNITS_RULES_COMPUTE (UnitsRulesComputePlugin.java) :
 
     + vérification de l'existence de la règle dans le référentiel des règles de gestion
