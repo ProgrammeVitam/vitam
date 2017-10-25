@@ -110,7 +110,12 @@ public class SchemaValidationStatus {
         /**
          * Required field empty
          */
-        EMPTY_REQUIRED_FIELD;
+        EMPTY_REQUIRED_FIELD,
+        /**
+         * Rule's date in bad format
+         */
+        RULE_DATE_FORMAT;
+
     }
 
 }

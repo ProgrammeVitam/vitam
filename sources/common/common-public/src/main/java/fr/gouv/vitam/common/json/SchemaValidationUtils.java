@@ -119,6 +119,11 @@ public class SchemaValidationUtils {
                 ObjectNode errorNode = JsonHandler.createObjectNode();
                 errorNode.set( "validateUnitReport",  error);
                 LOGGER.error("Archive unit is not valid : \n" + errorNode.toString());
+                String instancePointer = error.get(0).get("instance").get("pointer").asText();
+                if (instancePointer.contains("StartDate") || instancePointer.contains("EndDate")) {
+                    return new SchemaValidationStatus(errorNode.toString(),
+                            SchemaValidationStatusEnum.RULE_DATE_FORMAT);
+                }
                 if (error.get(0).get("required") !=null && error.get(0).get("missing") != null) {
                     return new SchemaValidationStatus(errorNode.toString(),
                         SchemaValidationStatusEnum.EMPTY_REQUIRED_FIELD);

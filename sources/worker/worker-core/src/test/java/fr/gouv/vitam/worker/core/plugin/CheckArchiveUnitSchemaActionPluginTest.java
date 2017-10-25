@@ -257,8 +257,8 @@ public class CheckArchiveUnitSchemaActionPluginTest {
                 .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidDate).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertTrue(response.getItemsStatus().containsKey(CHECK_UNIT_SCHEMA_TASK_ID + "." + "INVALID_UNIT"));
-        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA.INVALID_UNIT").getItemId(), "CHECK_UNIT_SCHEMA.INVALID_UNIT");
+        assertTrue(response.getItemsStatus().containsKey(CHECK_UNIT_SCHEMA_TASK_ID + "." + "RULE_DATE_FORMAT"));
+        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA.RULE_DATE_FORMAT").getItemId(), "CHECK_UNIT_SCHEMA.RULE_DATE_FORMAT");
     }
 
 
