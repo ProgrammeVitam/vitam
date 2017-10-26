@@ -3,14 +3,19 @@
   <div class="logbookRowBorder no-padding" [ngClass]="[stepMessageClass, logbookRowStyle]">
     <div class="ui-g-6" style="height: 100%">
       {{event.end.evType}}
-      <span class="toggleEvDetData" *ngIf="event.end.evDetData" (click)="showEvDetData = !showEvDetData">
-        <a><i [ngClass]="showEvDetData ? 'fa fa-minus fa-lg' : 'fa fa-plus fa-lg'"></i></a>
-      </span>
     </div>
 
     <div class="ui-g-6">
       <div class="ui-g-12 no-padding">{{event.end.evDateTime | date:'dd/MM/yyyy à HH:mm'}}</div>
-      <div class="ui-g-11" style="padding-bottom: 0;">{{event.end.outMessg}}</div>
+      <div class="ui-g-11" style="padding-bottom: 0;">
+        {{event.end.outMessg}}
+          <a class="toggleEvDetData" *ngIf="event.end.evDetData && event.end.evDetData.length > 2" (click)="showEvDetData = !showEvDetData">
+            <i [ngClass]="showEvDetData ? 'fa fa-minus fa-lg' : 'fa fa-plus fa-lg'"></i>
+          </a>
+        <div class="ui-g-12" [ngClass]="logbookRowStyle" *ngIf="event.end.evDetData && showEvDetData">
+          <span style="font-weight: bold">Détails des données de l'évènement :</span> {{event.end.evDetData}}
+        </div>
+      </div>
       <div class="ui-g-1 no-padding">
         <span *ngIf="isParent" class="toggleIcon" (click)="toggleChildren()">
           <i [ngClass]="getCaretType()"></i>
@@ -20,14 +25,6 @@
   </div>
 
   <div class="ui-g-1"><i class="stepStatusIcon fa fa-2x" [ngClass]="stepStatusIcon"></i></div>
-</div>
-
-<div class="ui-g" *ngIf="event.end.evDetData && showEvDetData">
-  <div class="ui-g-2"></div>
-  <div class="ui-g-8 evDetDataDisplay">
-    <span style="font-weight: bold">evDetData :</span> {{event.end.evDetData}}
-  </div>
-  <div class="ui-g-2"></div>
 </div>
 
 <div *ngFor="let task of event.subEvents" class="eventChild" [hidden]="hideChildren">

@@ -19,7 +19,7 @@ describe('EventDisplayComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(EventDisplayComponent);
     component = fixture.componentInstance;
-    component.event = new Event({}, {}, []);
+    component.event = new Event({}, {'outcome': 'OK'}, []);
     fixture.detectChanges();
   });
 

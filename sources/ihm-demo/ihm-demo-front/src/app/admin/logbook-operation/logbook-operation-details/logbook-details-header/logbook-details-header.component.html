@@ -1,0 +1,29 @@
+<div class="ui-g" *ngIf="results">
+    <div class="ui-g-5">
+      <p-chart type="doughnut" [data]="data"></p-chart>
+    </div>
+    <div class="ui-g-7 ui-g-nopad" style="text-align: left;">
+      <div class="ui-g-12">
+        <span style="font-weight: bold;">Statut : </span>
+        {{lastEvent.outcome}}
+      </div>
+      <div class="ui-g-12">
+        <span style="font-weight: bold;">Étape en cours : </span>
+        {{lastEvent.evType}}
+      </div>
+      <div class="ui-g-12" *ngIf="warningMessages.length > 0">
+        <span style="font-weight: bold;">Alerte(s) : </span>
+        <div *ngFor="let message of warningMessages">
+          <div class="ui-g-1"></div>
+          <div class="ui-g-11" style="color: #FF6600; font-size: 14px;">{{message}}</div>
+        </div>
+      </div>
+      <div class="ui-g-12" *ngIf="errorMessages.length > 0">
+        <span style="font-weight: bold;">Erreur(s) : </span>
+        <div *ngFor="let message of errorMessages">
+          <div class="ui-g-1"></div>
+          <div class="ui-g-11" style="color: #FF8080; font-size: 14px;">{{message}}</div>
+        </div>
+      </div>
+    </div>
+</div>

@@ -1,28 +1,28 @@
 import { BrowserModule} from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
-import {RouterModule, Routes} from '@angular/router';
-import {CookieService} from 'angular2-cookie/core';
+import { RouterModule, Routes } from '@angular/router';
+import { CookieService } from 'angular2-cookie/core';
 
 import { ButtonModule, CalendarModule, MenubarModule, BreadcrumbModule, DropdownModule,
   ProgressBarModule, PaginatorModule, PanelModule, ListboxModule, GrowlModule, RadioButtonModule, TabViewModule,
   InputTextModule, DataTableModule, SharedModule, DialogModule, FieldsetModule, ToggleButtonModule,
   ConfirmDialogModule, ConfirmationService, OverlayPanelModule, InputSwitchModule, ChipsModule, MultiSelectModule,
-  CheckboxModule, DataGridModule} from 'primeng/primeng';
+  CheckboxModule, DataGridModule, ChartModule} from 'primeng/primeng';
 
 import { AppComponent } from './app.component';
-import {MenuComponent} from './common/menu/menu.component';
-import {BreadcrumbComponent} from './common/breadcrumb/breadcrumb.component';
-import {ArchiveUnitHelper} from './archive-unit/archive-unit.helper';
-import {ReferentialHelper} from './referentials/referential.helper';
-import {ResourcesService} from './common/resources.service';
-import {BreadcrumbService} from './common/breadcrumb.service';
+import { MenuComponent } from './common/menu/menu.component';
+import { BreadcrumbComponent } from './common/breadcrumb/breadcrumb.component';
+import { ArchiveUnitHelper } from './archive-unit/archive-unit.helper';
+import { ReferentialHelper } from './referentials/referential.helper';
+import { ResourcesService } from './common/resources.service';
+import { BreadcrumbService } from './common/breadcrumb.service';
 import { IngestUtilsService } from './common/utils/ingest-utils.service';
 import { LogbookService } from './ingest/logbook.service';
 import { IngestService } from './ingest/ingest.service';
 import { HomeComponent } from './home/home.component';
-import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {HttpModule} from '@angular/http';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { HttpModule } from '@angular/http';
 import { FileDropModule } from 'angular2-file-drop';
 
 import { LogbookComponent } from './ingest/logbook/logbook.component';
@@ -49,13 +49,13 @@ import { ArchiveTreeViewComponent } from './archive-unit/archive-unit-details/ar
 import { KeysPipe, BytesPipe } from './common/utils/pipes';
 import { DateService } from './common/utils/date.service';
 import { ObjectsService } from './common/utils/objects.service';
-import {ArchiveUnitService} from "./archive-unit/archive-unit.service";
+import { ArchiveUnitService } from "./archive-unit/archive-unit.service";
 import { ImportComponent } from './referentials/import/import.component';
 import { SearchReferentialsComponent } from './referentials/search-referentials/search-referentials.component';
 import { ReferentialsService } from './referentials/referentials.service';
 import { UploadReferentialsComponent } from './common/upload/upload-referentials/upload-referentials.component';
 import { UploadSipComponent } from './common/upload/upload-sip/upload-sip.component';
-import {AccessContractService} from "./common/access-contract.service";
+import { AccessContractService } from "./common/access-contract.service";
 import { FormatComponent } from './referentials/details/format/format.component';
 import { RuleComponent } from './referentials/details/rule/rule.component';
 import { AccessContractComponent } from './referentials/details/access-contract/access-contract.component';
@@ -68,6 +68,9 @@ import { TreeSearchComponent } from './archive-unit/archive-unit-details/archive
 import { AgenciesComponent } from './referentials/details/agencies/agencies.component';
 import { AuditComponent } from './admin/audit/audit.component';
 import { AuditService } from './admin/audit/audit.service';
+import { LogbookDetailsHeaderComponent } from './admin/logbook-operation/logbook-operation-details/logbook-details-header/logbook-details-header.component';
+import { LogbookDetailsDescriptionComponent } from "./admin/logbook-operation/logbook-operation-details/logbook-details-description/logbook-details-description.component";
+import { LogbookHelperService } from "./common/logbook-operation-events/logbook-helper.service";
 import { AccessionRegisterComponent } from './referentials/details/accession-register/accession-register.component';
 import { FilingschemeComponent } from './admin/filingscheme/filingscheme.component';
 
@@ -186,6 +189,11 @@ const appRoutes: Routes = [
     TreeSearchComponent,
     AgenciesComponent,
     AuditComponent,
+    TreeSearchComponent,
+    EventDisplayComponent,
+    LogbookDetailsHeaderComponent,
+    LogbookDetailsDescriptionComponent,
+    AuditComponent,
     AccessionRegisterComponent,
     FilingschemeComponent
   ],
@@ -223,13 +231,16 @@ const appRoutes: Routes = [
     OverlayPanelModule,
     MultiSelectModule,
     CheckboxModule,
-    DataGridModule
+    DataGridModule,
+    CheckboxModule,
+    ChartModule
   ],
   providers: [
     ResourcesService,
     CookieService,
     BreadcrumbService,
     LogbookService,
+    LogbookHelperService,
     IngestService,
     IngestUtilsService,
     UploadService,
