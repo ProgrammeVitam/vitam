@@ -76,7 +76,6 @@ import fr.gouv.vitam.common.model.administration.ContractStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
-import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -593,12 +592,12 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             return (contract, contractIdentifier) -> {
                 if (contractIdentifier == null || contractIdentifier.isEmpty()) {
                     return Optional
-                        .of(IngestContractValidator.GenericRejectionCause.rejectMandatoryMissing(contractIdentifier));
+                        .of(IngestContractValidator.GenericRejectionCause.rejectMandatoryMissing(IngestContract.IDENTIFIER));
                 }
                 IngestContractValidator.GenericRejectionCause rejection = null;
                 final int tenant = ParameterHelper.getTenantParameter();
                 final Bson clause =
-                    and(eq(VitamDocument.TENANT_ID, tenant), eq(AccessContract.IDENTIFIER, contract.getIdentifier()));
+                    and(eq(VitamDocument.TENANT_ID, tenant), eq(IngestContract.IDENTIFIER, contract.getIdentifier()));
                 final boolean exist = FunctionalAdminCollections.INGEST_CONTRACT.getCollection().count(clause) > 0;
                 if (exist) {
                     rejection = IngestContractValidator.GenericRejectionCause.rejectDuplicatedInDatabase(contractIdentifier);
@@ -614,7 +613,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
          */
         private IngestContractValidator createCheckProfilesExistsInDatabaseValidator() {
             return (contract, contractName) -> {
-                if (null == contract.getArchiveProfiles()) {
+                if (null == contract.getArchiveProfiles() || contract.getArchiveProfiles().size() == 0) {
                     return Optional.empty();
                 }
                 IngestContractValidator.GenericRejectionCause rejection = null;

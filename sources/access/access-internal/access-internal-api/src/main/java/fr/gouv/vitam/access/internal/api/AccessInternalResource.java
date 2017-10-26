@@ -27,19 +27,13 @@
 package fr.gouv.vitam.access.internal.api;
 
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.server.application.resources.VitamResource;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.server.application.resources.VitamResource;
 
 /**
  * Access Resource REST API
@@ -54,8 +48,16 @@ public interface AccessInternalResource extends VitamResource {
      */
     Response getUnits(JsonNode dslQuery);
 
+    /**
+     * @param queryDsl
+     * @return
+     */
     Response exportDIP(JsonNode queryDsl);
 
+    /**
+     * @param id of operation (x-request-id)
+     * @return
+     */
     Response findDIPByID(String id);
 
     /**

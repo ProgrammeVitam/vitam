@@ -1203,7 +1203,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 extInputJSON = PropertiesUtils.getConfigAsStream(EXTERNAL_PROCESS_CONTEXT_FILE);
             } catch (IOException ioe) {
                 // do nothing as external config file is optional
-                LOGGER.warn("IOException thrown while loading External Process Context", ioe);
+                LOGGER.debug("IOException thrown while loading External Process Context", ioe);
             }
 
             // create context node
@@ -1215,7 +1215,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     extInputJSON.close();
                 }
             } catch (IOException e) {
-                LOGGER.warn("IOException thrown while closing External Process Context file", e);
+                LOGGER.debug("IOException thrown while closing External Process Context file", e);
             }
         }
 
