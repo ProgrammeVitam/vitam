@@ -1,4 +1,4 @@
-<p-panel header="Recherche de parents">
+<p-panel header="{{label}}">
 
   <form class="w-100" [formGroup]="searchForm" (ngSubmit)="onSubmit()">
     <div class="ui-g">
@@ -24,7 +24,30 @@
 
 </p-panel>
 
-<p-panel header="Résultats ({{hits.total}})" *ngIf="data && hits && items">
+<p-panel header="Résultats ({{hits.total}})" *ngIf="data && hits">
 
+  <p-paginator [rows]="nbRows" (onPageChange)="paginate($event)" [totalRecords]="hits.total" [(first)]="firstItem"></p-paginator>
+
+  <p-dataTable [value]="displayedItems" (onRowClick)="switchSelected($event)" [emptyMessage]="'Aucun Résultat'">
+    <p-column [header]="'Selectioné'">
+      <ng-template let-item="rowData" pTemplate="body">
+        <span *ngIf="isInList(item)" class="fa fa-check"></span>
+        <span *ngIf="!isInList(item)" class="fa fa-fw"></span>
+      </ng-template>
+    </p-column>
+
+    <p-column *ngFor="let col of columns" [field]="col.field" [header]="col.label" [style]="col.computeCss()" [styleClass]="'clickableDiv'" >
+      <ng-template let-item="rowData" pTemplate="body">
+      <span [ngClass]="col.computeCss()" title="{{col.transform(col.getValue(item))}}">
+        {{col.transform(col.getValue(item)) }}
+      </span>
+      </ng-template>
+    </p-column>
+  </p-dataTable>
+  <div class="ui-g">
+    <div class="ui-g-12">
+      <button pButton icon="fa-check" label="Valider" (click)="updateSelection()"></button>
+    </div>
+  </div>
 
 </p-panel>

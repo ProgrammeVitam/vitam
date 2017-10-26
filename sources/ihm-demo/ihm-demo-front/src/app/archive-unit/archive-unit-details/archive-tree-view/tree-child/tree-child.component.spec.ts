@@ -8,7 +8,9 @@ import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import { CalendarModule, OverlayPanelModule, PanelModule } from 'primeng/primeng';
 
 import { TreeChildComponent } from './tree-child.component';
+import { TreeSearchComponent } from '../tree-search/tree-search.component';
 import { ArchiveUnitService } from "../../../archive-unit.service";
+import { ArchiveUnitHelper } from "../../../archive-unit.helper";
 import { VitamResponse } from "../../../../common/utils/response";
 
 let ArchiveUnitServiceStub = {
@@ -25,10 +27,12 @@ describe('TreeChildComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       providers: [
+        ArchiveUnitHelper,
         { provide: ArchiveUnitService, useValue: ArchiveUnitServiceStub }
       ],
       imports: [ BrowserAnimationsModule, CalendarModule, RouterTestingModule, OverlayPanelModule, PanelModule, FormsModule, ReactiveFormsModule ],
-      declarations: [ TreeChildComponent ]
+      declarations: [ TreeChildComponent, TreeSearchComponent ],
+      schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();
   }));

@@ -1,5 +1,6 @@
 export class NodeData {
-  public haveMore: boolean = false;
+  public haveMoreChildren: boolean = false;
+  public haveMoreParents: boolean = false;
   constructor(public type: string, public unitups: string[]) {}
 }
 
