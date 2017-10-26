@@ -2,6 +2,7 @@ package fr.gouv.vitam.access.external.rest;
 
 import com.google.common.base.Throwables;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.dsl.schema.DslDynamicFeature;
 import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
 import fr.gouv.vitam.common.security.rest.SecureEndpointScanner;
 import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
@@ -49,6 +50,7 @@ public class BusinessApplicationTest extends Application {
             singletons.add(new SanityDynamicFeature());
             singletons.add(new HttpMethodOverrideFilter());
             singletons.add(secureEndpointScanner);
+            singletons.add(new DslDynamicFeature());
         } catch (IOException e) {
             throw Throwables.propagate(e);
         }

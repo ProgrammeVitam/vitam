@@ -30,7 +30,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.junit.Test;
 
@@ -51,14 +53,16 @@ public class ValidatorSelectQuerySingleTest {
 
     private Validator loadSchema(ObjectMapper objectMapper, File dslSource)
         throws IOException, InvalidParseOperationException {
-        final Schema schema = Schema.load(objectMapper, dslSource);
-        TypeDef dslType = schema.getDefinitions().get("DSL");
-        System.out.println(dslType.toString());
-        TypeDef queryType = schema.getDefinitions().get("QUERY");
-        System.out.println(queryType.toString());
-        TypeDef filterType = schema.getDefinitions().get("FILTER");
-        System.out.println(filterType.toString());
-        return new Validator(schema);
+        try (InputStream inputStream = new FileInputStream(dslSource)) {
+            final Schema schema = Schema.load(objectMapper, inputStream);
+            TypeDef dslType = schema.getDefinitions().get("DSL");
+            System.out.println(dslType.toString());
+            TypeDef queryType = schema.getDefinitions().get("QUERY");
+            System.out.println(queryType.toString());
+            TypeDef filterType = schema.getDefinitions().get("FILTER");
+            System.out.println(filterType.toString());
+            return new Validator(schema);
+        }
     }
 
     @Test
@@ -77,15 +81,18 @@ public class ValidatorSelectQuerySingleTest {
     }
 
     @Test
-    public void should_retrieve_errors_when_select_single_empty_query_dsl()
+    public void should_not_retrieve_errors_when_select_single_empty_query_dsl()
         throws IOException, InvalidParseOperationException {
         JsonNode test1Json =
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_single_empty_query.json"));
         final Validator validator =
             loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON));
-        assertThatThrownBy(() -> validator.validate(test1Json))
-            .hasMessageContaining("$query")
-            .hasMessageContaining("ELEMENT_TOO_SHORT: 0 < 1");
+        try {
+            validator.validate(test1Json);
+        } catch (ValidationException e) {
+            e.printStackTrace();
+            fail();
+        }
     }
 
 
@@ -98,6 +105,7 @@ public class ValidatorSelectQuerySingleTest {
             loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON));
         assertThatThrownBy(() -> validator.validate(test1Json))
             .hasMessageContaining("$query: QUERY ~ MANDATORY ~ hint: Single query");
+
     }
 
     @Test

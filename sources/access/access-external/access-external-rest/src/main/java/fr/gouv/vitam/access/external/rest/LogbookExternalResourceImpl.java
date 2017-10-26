@@ -43,6 +43,8 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
+import fr.gouv.vitam.common.dsl.schema.Dsl;
+import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
@@ -73,7 +75,6 @@ public class LogbookExternalResourceImpl {
 
     /**
      * Constructor
-     *
      */
     public LogbookExternalResourceImpl() {
         LOGGER.debug("LogbookExternalResource initialized");
@@ -92,10 +93,9 @@ public class LogbookExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "logbookoperations:read", description = "Lister toutes les opérations")
-    public Response selectOperation(JsonNode query) {
+    public Response selectOperation(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode query) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(query);
@@ -132,7 +132,7 @@ public class LogbookExternalResourceImpl {
 
     /**
      * @param operationId the operation id
-     * @param queryDsl the query
+     * @param queryDsl    the query
      * @return the response with a specific HTTP status
      */
     @GET
@@ -160,10 +160,10 @@ public class LogbookExternalResourceImpl {
             LOGGER.error("Client exception while trying to get operation by id: ", e);
             status = Status.NOT_FOUND;
             return Response.status(status)
-                    .entity(VitamCodeHelper
-                            .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
-                            .setHttpCode(status.getStatusCode()))
-                    .build();
+                .entity(VitamCodeHelper
+                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
+                    .setHttpCode(status.getStatusCode()))
+                .build();
         } catch (final LogbookClientException e) {
             LOGGER.error("Client exception while trying to get operation by id: ", e);
             status = Status.INTERNAL_SERVER_ERROR;
@@ -203,9 +203,8 @@ public class LogbookExternalResourceImpl {
      * gets the unit life cycle based on its id
      *
      * @param unitLifeCycleId the unit life cycle id
-     * @param queryDsl the query
+     * @param queryDsl        the query
      * @return the unit life cycle
-     *
      */
     @GET
     @Path("/unitlifecycles/{id_lc}")
@@ -266,7 +265,7 @@ public class LogbookExternalResourceImpl {
      * gets the object group life cycle based on its id
      *
      * @param objectGroupLifeCycleId the object group life cycle id
-     * @param queryDsl the query
+     * @param queryDsl               the query
      * @return the object group life cycle
      */
     @GET

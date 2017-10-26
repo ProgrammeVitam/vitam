@@ -280,7 +280,6 @@ public class Validator {
         for (JsonNode item : node) {
             validate(itemProperty, item, null);
         }
-
     }
 
     private void validateAnyKey(Property property, JsonNode node, Consumer<String> fieldReport) {

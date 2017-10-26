@@ -26,8 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.dsl.schema;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,9 +65,10 @@ public class DslValidator {
         // FIXME find a way to use JsonHandler's mapper if possible
         ObjectMapper objectMapper = new ObjectMapper();
         for (DslSchema dslSchema : DslSchema.values()) {
-            final File schemaFile = PropertiesUtils.getResourceFile(dslSchema.getFilename());
-            final Schema schema = Schema.load(objectMapper, schemaFile);
-            schemas.put(dslSchema, schema);
+            try (final InputStream schemaSource = PropertiesUtils.getResourceAsStream(dslSchema.getFilename())) {
+                final Schema schema = Schema.load(objectMapper, schemaSource);
+                schemas.put(dslSchema, schema);
+            }
         }
     }
 

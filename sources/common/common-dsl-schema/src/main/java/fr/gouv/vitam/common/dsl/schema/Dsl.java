@@ -24,37 +24,15 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.dsl.schema.meta;
+package fr.gouv.vitam.common.dsl.schema;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-public class Schema {
-    private Map<String, TypeDef> definitions;
-    private String root;
-
-    public Map<String, TypeDef> getDefinitions() {
-        return definitions;
-    }
-
-    public void setDefinitions(Map<String, TypeDef> definitions) {
-        this.definitions = definitions;
-    }
-
-    public String getRoot() {
-        return root;
-    }
-
-    public void setRoot(String root) {
-        this.root = root;
-    }
-
-    public static Schema load(ObjectMapper mapper, InputStream dslSource) throws IOException {
-        return mapper.readValue(dslSource, Schema.class);
-    }
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.PARAMETER})
+public @interface Dsl {
+    DslSchema value();
 }
-
-

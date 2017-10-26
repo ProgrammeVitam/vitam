@@ -30,7 +30,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.junit.Test;
 
@@ -51,14 +53,16 @@ public class ValidatorSelectQueryMultipleTest {
 
     private Validator loadSchema(ObjectMapper objectMapper, File dslSource)
         throws IOException, InvalidParseOperationException {
-        final Schema schema = Schema.load(objectMapper, dslSource);
-        TypeDef dslType = schema.getDefinitions().get("DSL");
-        System.out.println(dslType.toString());
-        TypeDef queryType = schema.getDefinitions().get("QUERY");
-        System.out.println(queryType.toString());
-        TypeDef filterType = schema.getDefinitions().get("FILTER");
-        System.out.println(filterType.toString());
-        return new Validator(schema);
+        try (InputStream inputStream = new FileInputStream(dslSource)) {
+            final Schema schema = Schema.load(objectMapper, inputStream);
+            TypeDef dslType = schema.getDefinitions().get("DSL");
+            System.out.println(dslType.toString());
+            TypeDef queryType = schema.getDefinitions().get("QUERY");
+            System.out.println(queryType.toString());
+            TypeDef filterType = schema.getDefinitions().get("FILTER");
+            System.out.println(filterType.toString());
+            return new Validator(schema);
+        }
     }
 
     @Test
