@@ -30,10 +30,15 @@ package fr.gouv.vitam.common.external.client;
  * Ingest collection types with collection names.
  */
 public enum IngestCollection {
+    // TODO : only one unique name should be used, reports must be changed to archivetransferreply
     /**
      * Reports collection
      */
     REPORTS("reports"),
+    /**
+     * ATR collection
+     */
+    ARCHIVETRANSFERREPLY("archivetransferreply"),
     /**
      * Manifests collection
      */

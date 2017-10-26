@@ -48,7 +48,6 @@ import javax.ws.rs.core.Response.Status;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.IngestCollection;
-import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
@@ -179,26 +178,26 @@ public class IngestExternalResource extends ApplicationStatusResource {
     }
 
     /**
-     * Download reports stored by Ingest operation (currently reports and manifests)
+     * Download archive transfer reply stored by Ingest operation
      * <p>
-     * Return the reports as stream asynchronously<br/>
+     * Return the archive transfer reply as stream asynchronously<br/>
      * <br/>
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
-     * @param objectId the id of object to download
+     * @param objectId the id of archive transfer reply to download
      * @return response
      */
     @GET
-    @Path("/ingests/{objectId}/reports")
+    @Path("/ingests/{objectId}/archivetransferreply")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "ingests:id:reports:read",
+    @Secured(permission = "ingests:id:archivetransfertreply:read",
         description = "Récupérer l'accusé de récéption pour une opération d'entrée donnée")
-    public Response downloadIngestReportsAsStream(@PathParam("objectId") String objectId) {
+    public Response downloadArchiveTransferReplyAsStream(@PathParam("objectId") String objectId) {
         return downloadObjectAsync(objectId, IngestCollection.REPORTS);
     }
 
     /**
-     * Download manifest stored by Ingest operation (currently manifests)
+     * Download manifest stored by Ingest operation
      * <p>
      * Return the manifest as stream asynchronously<br/>
      * <br/>

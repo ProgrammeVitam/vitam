@@ -124,60 +124,6 @@ documentation:
         StandardTraits.StandardHeader204,
         StandardTraits.StandardHeader417]
 
-/accession-registers:
-  displayName: AccessionRegisters
-  description: |
-   **DEPRECATED** : ne sera plus supporté en V1 car déplacé dans functional-administration.
-
-   **ALPHA version** API qui définit les requêtes pour accéder au Registre des Fonds.
-   La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste de registres selon le DSL Vitam en cas de succès.
-  get:
-    description: |
-      Request that will return results composed of AccessionRegister
-    is: [RegisterTraits.RegisterListingResponse]
-  post:
-    description: |
-      Request that will return results composed of AccessionRegister, the request must use POST with X-Http-Method-Override: GET.
-    is: [RegisterTraits.RegisterListingResponse, StandardTraits.OverrideGet]
-    headers:
-      X-Http-Method-Override:
-        required: true
-
-  /{idu}:
-    displayName: AccessionRegister
-    description: |
-     **DEPRECATED** : ne sera plus supporté en V1 car déplacé dans functional-administration.
-
-     **UNSUPPORTED** API qui définit les requêtes pour accéder à 1 Résumé d'un Fond dans le Registre des Fonds.
-    get:
-      description: |
-        **UNSUPPORTED** Request that will return result composed of 1 AccessionRegister
-      is: [RegisterTraits.RegisterItemResponse]
-    post:
-      description: |
-        **UNSUPPORTED** Request that will return result of 1 AccessionRegister. The request is using POST with X-Http-Method-Override: GET
-      is: [RegisterTraits.RegisterItemResponse, StandardTraits.OverrideGet]
-      headers:
-        X-Http-Method-Override:
-          required: true
-
-    /accession-register-detail:
-      displayName: AccessionRegisterDetail
-      description: |
-       **DEPRECATED** : ne sera plus supporté en V1 car déplacé dans functional-administration.
-
-       **ALPHA version** API qui définit les requêtes pour accéder au détail d'un Fond dans le Registre des Fonds.
-      get:
-        description: Request that will return result composed of 1 AccessionRegisterDetail
-        is: [RegisterTraits.RegisterListingResponse]
-      post:
-        description: |
-          Request that will return result of all AccessionRegisterDetail of one AccessionRegister. The request is using POST with X-Http-Method-Override: GET
-        is: [RegisterTraits.RegisterListingResponse, StandardTraits.OverrideGet]
-        headers:
-          X-Http-Method-Override:
-            required: true
-
 /:
   displayName: Endpoints
   description: |

@@ -39,8 +39,6 @@ import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.gouv.vitam.common.security.rest.EndpointInfo;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.AfterClass;
@@ -53,8 +51,10 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
+
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.IngestCollection;
@@ -68,8 +68,7 @@ import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSieg
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.ProcessQuery;
+import fr.gouv.vitam.common.security.rest.EndpointInfo;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
@@ -151,7 +150,7 @@ public class IngestExternalResourceTest {
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         RestAssured.given()
-            .when().get(INGEST_URI + "/1/" + IngestCollection.REPORTS.getCollectionName())
+            .when().get(INGEST_URI + "/1/" + IngestCollection.ARCHIVETRANSFERREPLY.getCollectionName())
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
@@ -169,7 +168,7 @@ public class IngestExternalResourceTest {
 
         RestAssured.given()
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-            .when().get(INGEST_URI + "/1/" + IngestCollection.REPORTS.getCollectionName())
+            .when().get(INGEST_URI + "/1/" + IngestCollection.ARCHIVETRANSFERREPLY.getCollectionName())
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
     }
 
@@ -208,15 +207,15 @@ public class IngestExternalResourceTest {
     public void downloadIngestReportsAsStream()
         throws Exception {
         RestAssured.given()
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-                .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
-                .when().get(INGEST_URI + "/1/" + IngestCollection.REPORTS.getCollectionName())
-                .then().statusCode(Status.OK.getStatusCode());
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
+            .when().get(INGEST_URI + "/1/" + IngestCollection.ARCHIVETRANSFERREPLY.getCollectionName())
+            .then().statusCode(Status.OK.getStatusCode());
     }
 
     @Test
     public void downloadIngestManifestsAsStream()
-            throws Exception {
+        throws Exception {
 
         RestAssured.given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -270,8 +269,7 @@ public class IngestExternalResourceTest {
                 }
 
                 @Override
-                public void describeTo(Description description) {
-                }
+                public void describeTo(Description description) {}
             });
     }
 
