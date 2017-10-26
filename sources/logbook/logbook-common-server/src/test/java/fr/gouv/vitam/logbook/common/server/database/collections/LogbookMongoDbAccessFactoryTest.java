@@ -590,9 +590,13 @@ public class LogbookMongoDbAccessFactoryTest {
         mongoDbAccess.updateLogbookLifeCycleUnit(
             parameters2.getParameterValue(LogbookParameterName.eventIdentifierProcess), parameters2);
 
+        // check current lfc version
+        assertEquals(mongoDbAccess.getLogbookLifeCycleUnit(oi2).get(LogbookDocument.VERSION), 0);
         // Commit the last update
         commitUnit(oi2, false, parameters2);
         assertEquals(nbl + 1, mongoDbAccess.getLogbookLifeCyleUnitSize());
+        // check version increment
+        assertEquals(mongoDbAccess.getLogbookLifeCycleUnit(oi2).get(LogbookDocument.VERSION), 1);
 
         try {
             mongoDbAccess.updateLogbookLifeCycleUnit(

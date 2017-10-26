@@ -47,6 +47,10 @@ public abstract class LogbookDocument<E> extends Document {
      */
     public static final String TENANT_ID = "_tenant";
     /**
+     * Version of the document: Incresed for each update
+     */
+    public static final String VERSION = "_v";
+    /**
      * Contains the series of entries within the very same Logbook operation (1 operation) / Lyfecycle (all)
      */
     public static final String EVENTS = "events";
@@ -123,6 +127,14 @@ public abstract class LogbookDocument<E> extends Document {
         return getInteger(TENANT_ID);
     }
 
+    /**
+     *
+     * @return the version
+     */
+    public final int getVersion() {
+        return getInteger(VERSION);
+    }
+    
     /**
      *
      * @return the bypass toString

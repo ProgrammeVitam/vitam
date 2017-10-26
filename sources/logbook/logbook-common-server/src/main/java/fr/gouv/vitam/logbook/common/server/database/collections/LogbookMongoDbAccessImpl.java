@@ -30,6 +30,7 @@ import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.or;
 import static com.mongodb.client.model.Indexes.hashed;
+import static com.mongodb.client.model.Updates.combine;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 
 import java.util.ArrayList;
@@ -1236,10 +1237,14 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         String logbookLifeCycleId = logbookLifeCycleUnitInProcess.getId();
 
         try {
+            final Bson updateEvents = Updates.addEachToSet(LogbookDocument.EVENTS, 
+                (List<VitamDocument>) logbookLifeCycleUnitInProcess.get(LogbookDocument.EVENTS));
+            final Bson updateVersion = Updates.inc(LogbookDocument.VERSION, 1);
+            final Bson update = combine(updateEvents, updateVersion);
+
+            // Make Update
             final UpdateResult result = LogbookCollections.LIFECYCLE_UNIT.getCollection().updateOne(
-                eq(LogbookDocument.ID, logbookLifeCycleId),
-                Updates.addEachToSet(LogbookDocument.EVENTS,
-                    (List<VitamDocument>) logbookLifeCycleUnitInProcess.get(LogbookDocument.EVENTS)));
+                eq(LogbookDocument.ID, logbookLifeCycleId), update);
 
             if (result.getMatchedCount() != 1) {
                 throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + logbookLifeCycleId);
