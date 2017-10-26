@@ -17,7 +17,7 @@
       <h3 class="first">Mode d'exécution</h3>
       <div class="ui-g ingest-option">
         <div class="ui-g-12"><p-radioButton value="RESUME" label="En continu" [(ngModel)]="action" inputId="opt1"></p-radioButton></div>
-        <div class="ui-g-12" ><p-radioButton value="NEXT" label="Pas à pas" [(ngModel)]="action" inputId="opt2"></p-radioButton></div>
+        <div class="ui-g-12" *ngIf="isAdmin"><p-radioButton value="NEXT" label="Pas à pas" [(ngModel)]="action" inputId="opt2"></p-radioButton></div>
       </div>
       <h3 class="first">Destination</h3>
       <div class="ui-g ingest-option">

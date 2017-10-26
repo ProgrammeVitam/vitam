@@ -13,7 +13,8 @@ import { UploadSipComponent } from '../../common/upload/upload-sip/upload-sip.co
 import { ResourcesService } from '../../common/resources.service';
 import { UploadService } from '../../common/upload/upload.service';
 import { BreadcrumbService } from "../../common/breadcrumb.service";
-import { FilingschemeComponent } from './filingscheme.component';
+import { HoldingschemeComponent } from './holdingscheme.component';
+import { AuthenticationService } from '../../authentication/authentication.service';
 
 const UploadServiceStub = {
   uploadFile: (username : string, password : string) => {
@@ -29,13 +30,13 @@ const UploadServiceStub = {
   }
 };
 
-describe('FilingschemeComponent', () => {
-  let component: FilingschemeComponent;
-  let fixture: ComponentFixture<FilingschemeComponent>;
+describe('HoldingschemeComponent', () => {
+  let component: HoldingschemeComponent;
+  let fixture: ComponentFixture<HoldingschemeComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ FilingschemeComponent, UploadSipComponent ],
+      declarations: [ HoldingschemeComponent, UploadSipComponent ],
       imports: [ TabViewModule, FormsModule, RadioButtonModule, ProgressBarModule,
         BrowserAnimationsModule, RouterTestingModule],
       providers: [
@@ -50,7 +51,8 @@ describe('FilingschemeComponent', () => {
             return new Http(mockBackend, defaultOptions);
           },
           deps: [MockBackend, BaseRequestOptions]         },
-        {provide: UploadService, useValue : UploadServiceStub}
+        { provide: UploadService, useValue : UploadServiceStub },
+        { provide: AuthenticationService, useValue : {isAdmin : () => {return true;}}}
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })
@@ -58,7 +60,7 @@ describe('FilingschemeComponent', () => {
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(FilingschemeComponent);
+    fixture = TestBed.createComponent(HoldingschemeComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

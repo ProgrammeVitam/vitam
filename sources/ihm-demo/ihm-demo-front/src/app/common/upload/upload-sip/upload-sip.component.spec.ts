@@ -5,6 +5,7 @@ import { Observable } from "rxjs/Rx";
 
 import { UploadSipComponent } from './upload-sip.component';
 import { UploadService } from '../upload.service';
+import { AuthenticationService } from '../../../authentication/authentication.service';
 
 const UploadServiceStub = {
   uploadReferentials: (url, file) => Observable.of('OK')
@@ -17,7 +18,8 @@ describe('UploadSipComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       providers: [
-        { provide: UploadService, useValue: UploadServiceStub }
+        { provide: UploadService, useValue: UploadServiceStub },
+        { provide: AuthenticationService, useValue : {isAdmin : () => {return true;}}}
       ],
       declarations: [ UploadSipComponent ],
       imports: [ RouterTestingModule ],

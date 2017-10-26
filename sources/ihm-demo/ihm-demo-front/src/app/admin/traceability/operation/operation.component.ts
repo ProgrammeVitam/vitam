@@ -75,7 +75,7 @@ export class OperationComponent extends PageComponent {
 
   constructor(public logbookService: LogbookService, public titleService: Title,
               public breadcrumbService: BreadcrumbService, public archiveUnitHelper: ArchiveUnitHelper) {
-    super('Journaux d\'opérations d\'entrée', breadcrumb, titleService, breadcrumbService);
+    super('Opérations de sécurisation', breadcrumb, titleService, breadcrumbService);
   }
 
   pageOnInit() {

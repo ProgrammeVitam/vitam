@@ -34,6 +34,7 @@ export class AuthenticationService {
 
   loggedIn(user : UserInformation, tenantId : string) {
     this.cookies.put(LOGGED_IN, 'true');
+    this.userInformation = user;
     localStorage.setItem(USER, JSON.stringify(user));
     this.setTenant(tenantId);
     this.loginState.next(true);
@@ -77,5 +78,18 @@ export class AuthenticationService {
 
   getUserinformation() : UserInformation {
     return this.userInformation;
+  }
+
+  isAdmin() {
+    // TODO find better check
+    return this.checkUserPermission('format:create');
+  }
+
+  checkUserPermission(permission : string) : boolean {
+    if (this.userInformation) {
+      return this.userInformation.permissions.indexOf(permission) > -1;
+    } else {
+      return false;
+    }
   }
 }

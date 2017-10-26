@@ -5,6 +5,7 @@ import { Observable, Subscription } from "rxjs";
 
 import { ResourcesService } from '../../resources.service';
 import { UploadService, ingestStatusElement } from '../upload.service';
+import { AuthenticationService } from '../../../authentication/authentication.service';
 
 
 @Component({
@@ -27,6 +28,7 @@ export class UploadSipComponent implements OnInit {
   displayDialog = false;
   displayUploadMessage = false;
   importError = false;
+  isAdmin = false;
 
   @Input() uploadType: string;
   @Input() url: string;
@@ -35,7 +37,7 @@ export class UploadSipComponent implements OnInit {
   @Input() uploadAPI: string;
   @Input() extensions: string[];
 
-  constructor(private uploadService : UploadService, private router: Router) {
+  constructor(private uploadService : UploadService, private router: Router, private authenticationService : AuthenticationService) {
     this.router.events.subscribe(event => {
       if(event instanceof NavigationStart) {
         delete this.fileName;
@@ -49,6 +51,7 @@ export class UploadSipComponent implements OnInit {
     if (!this.extensions) {
       this.extensions = ["tar", "zip"];
     }
+    this.isAdmin = this.authenticationService.isAdmin();
   }
 
   ngOnDestroy() {
