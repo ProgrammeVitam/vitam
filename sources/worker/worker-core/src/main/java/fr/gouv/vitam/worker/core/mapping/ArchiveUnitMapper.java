@@ -277,7 +277,7 @@ public class ArchiveUnitMapper {
             ruleUsed = true;
             List<String> refNonRuleId =
                 rule.getRefNonRuleId().stream().map(RuleIdType::getValue).collect(Collectors.toList());
-            ruleCategoryModel.addPreventRulesId(refNonRuleId);
+            ruleCategoryModel.addAllPreventRulesId(refNonRuleId);
         }
 
         if (!ruleUsed) {

@@ -28,11 +28,15 @@ package fr.gouv.vitam.common.mapping.dip;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
-import fr.gouv.vitam.common.mapping.dip.ArchiveUnitMapper;
+import fr.gouv.culture.archivesdefrance.seda.v2.RuleIdType;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
+import fr.gouv.vitam.common.model.unit.RuleModel;
 import org.junit.Test;
 
 public class ArchiveUnitMapperTest {
@@ -44,13 +48,181 @@ public class ArchiveUnitMapperTest {
         ArchiveUnitModel archiveUnitModel = new ArchiveUnitModel();
         archiveUnitModel.setId("1234564");
         archiveUnitModel.setDescriptiveMetadataModel(new DescriptiveMetadataModel());
-        archiveUnitModel.getManagement().setStorage(new RuleCategoryModel());
+        RuleCategoryModel rule;
+
+        //AccessRule
+        rule = generateRule(SedaConstants.TAG_RULE_ACCESS);
+        archiveUnitModel.getManagement().setRuleCategoryModel(rule, SedaConstants.TAG_RULE_ACCESS);
+
+        //AppraisalRule
+        rule = generateRule(SedaConstants.TAG_RULE_APPRAISAL);
+        archiveUnitModel.getManagement().setRuleCategoryModel(rule, SedaConstants.TAG_RULE_APPRAISAL);
+
+        //ClassificationRule
+        rule = generateRule(SedaConstants.TAG_RULE_CLASSIFICATION);
+        archiveUnitModel.getManagement().setRuleCategoryModel(rule, SedaConstants.TAG_RULE_CLASSIFICATION);
+
+        //DisseminationRule
+        rule = generateRule(SedaConstants.TAG_RULE_DISSEMINATION);
+        archiveUnitModel.getManagement().setRuleCategoryModel(rule, SedaConstants.TAG_RULE_DISSEMINATION);
+
+        //ReuseRule
+        rule = generateRule(SedaConstants.TAG_RULE_REUSE);
+        archiveUnitModel.getManagement().setRuleCategoryModel(rule, SedaConstants.TAG_RULE_REUSE);
+
+        //StorageRule
+        rule = generateRule(SedaConstants.TAG_RULE_STORAGE);
+        archiveUnitModel.getManagement().setRuleCategoryModel(rule, SedaConstants.TAG_RULE_STORAGE);
 
         // When
         ArchiveUnitType archiveUnitType = archiveUnitMapper.map(archiveUnitModel);
 
         // Then
         assertThat(archiveUnitType.getId()).isEqualTo("1234564");
+        ArchiveUnitType.Management management = archiveUnitType.getManagement();
+        assertThat(management).isNotNull();
+
+        //AccessRule
+        assertThat(management.getAccessRule()).isNotNull();
+        assertThat(management.getAccessRule().isPreventInheritance()).isTrue();
+        assertThat(management.getAccessRule().getRefNonRuleId()).hasSize(2);
+        assertThat(management.getAccessRule().getRefNonRuleId().get(0).getValue()).isIn("R1", "R2");
+        assertThat(management.getAccessRule().getRefNonRuleId().get(1).getValue()).isIn("R1", "R2");
+        assertThat(management.getAccessRule().getRuleAndStartDate()).hasSize(1);
+        assertThat(management.getAccessRule().getRuleAndStartDate().get(0)).isInstanceOf(RuleIdType.class);
+        RuleIdType ruleIdType = (RuleIdType) management.getAccessRule().getRuleAndStartDate().get(0);
+        assertThat(ruleIdType.getValue()).isEqualTo("R3");
+
+        //AppraisalRule
+        assertThat(management.getAppraisalRule()).isNotNull();
+        assertThat(management.getAppraisalRule().isPreventInheritance()).isTrue();
+        assertThat(management.getAppraisalRule().getRefNonRuleId()).hasSize(2);
+        assertThat(management.getAppraisalRule().getRefNonRuleId().get(0).getValue()).isIn("R1", "R2");
+        assertThat(management.getAppraisalRule().getRefNonRuleId().get(1).getValue()).isIn("R1", "R2");
+        assertThat(management.getAppraisalRule().getRuleAndStartDate().get(0)).isInstanceOf(RuleIdType.class);
+        ruleIdType = (RuleIdType) management.getAppraisalRule().getRuleAndStartDate().get(0);
+        assertThat(ruleIdType.getValue()).isEqualTo("R3");
+        assertThat(management.getAppraisalRule().getRuleAndStartDate().get(1)).isInstanceOf(XMLGregorianCalendar.class);
+        XMLGregorianCalendar date = (XMLGregorianCalendar) management.getAppraisalRule().getRuleAndStartDate().get(1);
+        assertThat(date.getYear()).isEqualTo(2000);
+        assertThat(date.getMonth()).isEqualTo(1);
+        assertThat(date.getDay()).isEqualTo(1);
+        assertThat(management.getAppraisalRule().getFinalAction().value()).isEqualTo("Keep");
+
+        //ClassificationRule
+        assertThat(management.getClassificationRule()).isNotNull();
+        assertThat(management.getClassificationRule().isPreventInheritance()).isTrue();
+        assertThat(management.getClassificationRule().getRefNonRuleId()).hasSize(2);
+        assertThat(management.getClassificationRule().getRefNonRuleId().get(0).getValue()).isIn("R1", "R2");
+        assertThat(management.getClassificationRule().getRefNonRuleId().get(1).getValue()).isIn("R1", "R2");
+        assertThat(management.getClassificationRule().getRuleAndStartDate().get(0)).isInstanceOf(RuleIdType.class);
+        ruleIdType = (RuleIdType) management.getClassificationRule().getRuleAndStartDate().get(0);
+        assertThat(ruleIdType.getValue()).isEqualTo("R3");
+        assertThat(management.getClassificationRule().getRuleAndStartDate().get(1))
+            .isInstanceOf(XMLGregorianCalendar.class);
+        date = (XMLGregorianCalendar) management.getClassificationRule().getRuleAndStartDate().get(1);
+        assertThat(date.getYear()).isEqualTo(2000);
+        assertThat(date.getMonth()).isEqualTo(1);
+        assertThat(date.getDay()).isEqualTo(1);
+        assertThat(management.getClassificationRule().getClassificationLevel()).isEqualTo("fakeClassificationLevel");
+        assertThat(management.getClassificationRule().getClassificationOwner()).isEqualTo("fakeClassificationOwner");
+        assertThat(management.getClassificationRule().isNeedReassessingAuthorization()).isTrue();
+        date = management.getClassificationRule().getClassificationReassessingDate();
+        assertThat(date.getYear()).isEqualTo(2000);
+        assertThat(date.getMonth()).isEqualTo(1);
+        assertThat(date.getDay()).isEqualTo(2);
+
+        //DisseminationRule
+        assertThat(management.getDisseminationRule()).isNotNull();
+        assertThat(management.getDisseminationRule().isPreventInheritance()).isTrue();
+        assertThat(management.getDisseminationRule().getRefNonRuleId()).hasSize(2);
+        assertThat(management.getDisseminationRule().getRefNonRuleId().get(0).getValue()).isIn("R1", "R2");
+        assertThat(management.getDisseminationRule().getRefNonRuleId().get(1).getValue()).isIn("R1", "R2");
+        assertThat(management.getDisseminationRule().getRuleAndStartDate().get(0)).isInstanceOf(RuleIdType.class);
+        ruleIdType = (RuleIdType) management.getDisseminationRule().getRuleAndStartDate().get(0);
+        assertThat(ruleIdType.getValue()).isEqualTo("R3");
+        assertThat(management.getDisseminationRule().getRuleAndStartDate().get(1))
+            .isInstanceOf(XMLGregorianCalendar.class);
+        date = (XMLGregorianCalendar) management.getDisseminationRule().getRuleAndStartDate().get(1);
+        assertThat(date.getYear()).isEqualTo(2000);
+        assertThat(date.getMonth()).isEqualTo(1);
+        assertThat(date.getDay()).isEqualTo(1);
+
+        //ReuseRule
+        assertThat(management.getReuseRule()).isNotNull();
+        assertThat(management.getReuseRule().isPreventInheritance()).isTrue();
+        assertThat(management.getReuseRule().getRefNonRuleId()).hasSize(2);
+        assertThat(management.getReuseRule().getRefNonRuleId().get(0).getValue()).isIn("R1", "R2");
+        assertThat(management.getReuseRule().getRefNonRuleId().get(1).getValue()).isIn("R1", "R2");
+        assertThat(management.getReuseRule().getRuleAndStartDate().get(0)).isInstanceOf(RuleIdType.class);
+        ruleIdType = (RuleIdType) management.getReuseRule().getRuleAndStartDate().get(0);
+        assertThat(ruleIdType.getValue()).isEqualTo("R3");
+        assertThat(management.getReuseRule().getRuleAndStartDate().get(1)).isInstanceOf(XMLGregorianCalendar.class);
+        date = (XMLGregorianCalendar) management.getReuseRule().getRuleAndStartDate().get(1);
+        assertThat(date.getYear()).isEqualTo(2000);
+        assertThat(date.getMonth()).isEqualTo(1);
+        assertThat(date.getDay()).isEqualTo(1);
+
+        //StorageRule
+        assertThat(management.getStorageRule()).isNotNull();
+        assertThat(management.getStorageRule().isPreventInheritance()).isTrue();
+        assertThat(management.getStorageRule().getRefNonRuleId()).hasSize(2);
+        assertThat(management.getStorageRule().getRefNonRuleId().get(0).getValue()).isIn("R1", "R2");
+        assertThat(management.getStorageRule().getRefNonRuleId().get(1).getValue()).isIn("R1", "R2");
+        assertThat(management.getStorageRule().getRuleAndStartDate().get(0)).isInstanceOf(RuleIdType.class);
+        ruleIdType = (RuleIdType) management.getStorageRule().getRuleAndStartDate().get(0);
+        assertThat(ruleIdType.getValue()).isEqualTo("R3");
+        assertThat(management.getStorageRule().getRuleAndStartDate().get(1)).isInstanceOf(XMLGregorianCalendar.class);
+        date = (XMLGregorianCalendar) management.getStorageRule().getRuleAndStartDate().get(1);
+        assertThat(date.getYear()).isEqualTo(2000);
+        assertThat(date.getMonth()).isEqualTo(1);
+        assertThat(date.getDay()).isEqualTo(1);
+        assertThat(management.getStorageRule().getFinalAction().value()).isEqualTo("Copy");
+    }
+
+
+
+    /**
+     * Generate rule
+     *
+     * @param type
+     * @return
+     */
+    private RuleCategoryModel generateRule(String type) {
+        RuleCategoryModel ruleCategoryModel = new RuleCategoryModel();
+        ruleCategoryModel.addToPreventRulesId("R1");
+        ruleCategoryModel.addToPreventRulesId("R2");
+        ruleCategoryModel.setPreventInheritance(true);
+
+        RuleModel rule = new RuleModel();
+        rule.setRule("R3");
+        rule.setStartDate("2000-01-01");
+
+        switch (type) {
+            case SedaConstants.TAG_RULE_STORAGE:
+                rule.setFinalAction("Copy");
+                break;
+            case SedaConstants.TAG_RULE_APPRAISAL:
+                rule.setFinalAction("Keep");
+                break;
+            case SedaConstants.TAG_RULE_ACCESS:
+                rule.setStartDate(null);
+
+            case SedaConstants.TAG_RULE_DISSEMINATION:
+            case SedaConstants.TAG_RULE_REUSE:
+                break;
+            case SedaConstants.TAG_RULE_CLASSIFICATION:
+                rule.setClassificationLevel("fakeClassificationLevel");
+                rule.setClassificationOwner("fakeClassificationOwner");
+                rule.setNeedReassessingAuthorization(true);
+                rule.setClassificationReassessingDate("2000-01-02");
+                break;
+            default:
+                throw new IllegalArgumentException("Type cannot be " + type);
+        }
+        ruleCategoryModel.getRules().add(rule);
+
+        return ruleCategoryModel;
     }
 
 }
