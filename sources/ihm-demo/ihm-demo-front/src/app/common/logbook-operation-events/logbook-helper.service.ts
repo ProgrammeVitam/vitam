@@ -29,6 +29,7 @@ export class LogbookHelperService {
           }
           if (tasks.length > 0) {
             events[eventIndex].subEvents = tasks;
+            eventIndex = events.length;
           }
           tasks = [];
           if (events[eventIndex] && events[eventIndex].end) {
