@@ -45,9 +45,8 @@ export class LogbookComponent extends PageComponent {
   }
 
   public columns = [
-    ColumnDefinition.makeSpecialValueColumn('Identifiant',
-        (item) => item.events[0].obIdIn === null ? item.events[1].obIdIn : item.events[0].obIdIn, undefined,
-        () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
+    ColumnDefinition.makeStaticColumn('obIdIn', 'Identifiant de la demande d\'entrée',
+        undefined, () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeSpecialValueColumn('Intitulé',
         (item) => !!item.evDetData ? JSON.parse(item.evDetData).EvDetailReq : '', undefined,
         () => ({'width': '200px', 'overflow-wrap': 'break-word'})),
@@ -87,7 +86,7 @@ export class LogbookComponent extends PageComponent {
 
   constructor(public logbookService: LogbookService, private ingestUtilsService: IngestUtilsService,
               public titleService: Title, public breadcrumbService: BreadcrumbService, public archiveUnitHelper: ArchiveUnitHelper) {
-    super('Journaux d\'opérations d\'entrée', breadcrumb, titleService, breadcrumbService);
+    super('Suivi des opérations d\'entrée', breadcrumb, titleService, breadcrumbService);
   }
 
   pageOnInit() {

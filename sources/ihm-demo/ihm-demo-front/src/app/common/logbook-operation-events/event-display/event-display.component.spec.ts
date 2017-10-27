@@ -19,7 +19,7 @@ describe('EventDisplayComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(EventDisplayComponent);
     component = fixture.componentInstance;
-    component.event = new Event({}, {'outcome': 'OK'}, []);
+    component.event = new Event({}, {'outcome': 'OK', 'evType': 'STP_OBJ_STORING'}, []);
     fixture.detectChanges();
   });
 

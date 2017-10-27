@@ -8,11 +8,9 @@ import { LogbookHelperService } from "../../../../common/logbook-operation-event
   templateUrl: './logbook-details-header.component.html'
 })
 export class LogbookDetailsHeaderComponent implements OnInit {
-  @Input() operation: any;
   @Input() operationId: string;
   results: any;
   lastEvent: any;
-  data: any;
   warningNumber = 0;
   warningMessages: String[] = [];
   errorMessages: String[] = [];
@@ -22,8 +20,6 @@ export class LogbookDetailsHeaderComponent implements OnInit {
   constructor(private logbookService: LogbookService, private logbookHelper: LogbookHelperService) { }
 
   ngOnInit() {
-    this.initDoughnut();
-
     this.logbookService.getDetails(this.operationId).subscribe(
         (data) => {this.results = data.$results[0];
           this.events = this.logbookHelper.initEventsArray(this.results);
@@ -75,27 +71,6 @@ export class LogbookDetailsHeaderComponent implements OnInit {
       default:
         break;
     }
-  }
-
-  // TODO: Doughnut needs to be initialized with steps done out of total steps (if possible)
-  private initDoughnut() {
-    this.data = {
-      labels: ['A', 'B', 'C'],
-      datasets: [
-        {
-          data: [300, 50, 100],
-          backgroundColor: [
-            '#FF6384',
-            '#36A2EB',
-            '#FFCE56'
-          ],
-          hoverBackgroundColor: [
-            '#FF6384',
-            '#36A2EB',
-            '#FFCE56'
-          ]
-        }]
-    };
   }
 
 }
