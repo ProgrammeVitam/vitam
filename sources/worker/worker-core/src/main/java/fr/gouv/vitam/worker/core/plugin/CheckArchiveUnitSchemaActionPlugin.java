@@ -114,6 +114,13 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
                     itemStatus.setEvDetailData(schemaValidationStatus.getValidationMessage());
                     return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(),
                         itemStatus);
+                case RULE_DATE_FORMAT:
+                    itemStatus.setItemId(CHECK_UNIT_SCHEMA_TASK_ID + "." + CheckUnitSchemaStatus.RULE_DATE_FORMAT.toString());
+                    itemStatus.increment(StatusCode.KO);
+                    itemStatus.setEvDetailData(schemaValidationStatus.getValidationMessage());
+                    return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(),
+                            itemStatus);
+
             }
         } catch (final ArchiveUnitContainSpecialCharactersException e) {
             itemStatus.setItemId(UNIT_SANITIZE);
@@ -183,6 +190,10 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
         /**
          * Required field empty
          */
-        EMPTY_REQUIRED_FIELD
+        EMPTY_REQUIRED_FIELD,
+        /**
+         * Rule's date in bad format
+         */
+        RULE_DATE_FORMAT;
     }
 }
