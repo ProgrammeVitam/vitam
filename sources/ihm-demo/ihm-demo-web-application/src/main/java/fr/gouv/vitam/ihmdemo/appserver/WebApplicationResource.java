@@ -2493,7 +2493,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             response = ingestExternalClient
                 .downloadObjectAsync(
                     new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()),
-                    guid, IngestCollection.REPORTS);
+                    guid, IngestCollection.ARCHIVETRANSFERREPLY);
             InputStream inputStream = response.readEntity(InputStream.class);
             if (inputStream != null) {
                 file = PropertiesUtils.fileFromTmpFolder("ATR_" + guid + ".xml");

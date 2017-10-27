@@ -30,11 +30,11 @@ public class AccessExtAPI {
 
     private AccessExtAPI() {}
     
-    public static final String ACCESSION_REGISTERS = "accession-registers";
+    public static final String ACCESSION_REGISTERS = "accessionregisters";
     public static final String ACCESSION_REGISTERS_API = "/" + ACCESSION_REGISTERS;
-    public static final String ACCESSION_REGISTERS_API_UPDATE = "/accession-registers";
+    public static final String ACCESSION_REGISTERS_API_UPDATE = "/accessionregisters";
     
-    public static final String ACCESSION_REGISTERS_DETAIL = "accession-register-detail";
+    public static final String ACCESSION_REGISTERS_DETAIL = "accessionregisterdetails";
     
     public static final String INGEST_CONTRACT = "ingestcontracts";
     public static final String AGENCIES = "agencies";

@@ -59,13 +59,13 @@ documentation:
   /{objectId}/{type}:
       displayName: IngestsType
       description: |
-        Télécharger un objet associé au processus INGEST (reports ou manifests)
+        Télécharger un objet associé au processus INGEST (archivetransferreply ou manifests)
       is: [ StandardTraits.StandardOptionalHeader,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
       StandardTraits.StandardHeader409, StandardTraits.StandardHeader412, IngestTraits.IngestFinalResponse ]
       get:
         description:  |
-          Permet de télécharger un objet en précisant son identifiant et son type (reports ou manifests)
+          Permet de télécharger un objet en précisant son identifiant et son type (archivetransferreply ou manifests)
 
 /:
   displayName: Endpoints

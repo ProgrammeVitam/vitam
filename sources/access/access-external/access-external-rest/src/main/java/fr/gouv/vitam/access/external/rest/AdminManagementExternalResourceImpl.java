@@ -1042,11 +1042,11 @@ public class AdminManagementExternalResourceImpl {
      * @param select the select query to find document
      * @return Response
      */
-    @Path("/accession-registers")
+    @Path(AccessExtAPI.ACCESSION_REGISTERS_API)
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "accession-registers:read",
+    @Secured(permission = AccessExtAPI.ACCESSION_REGISTERS + ":read",
         description = "Lister le contenu du référentiel des registres des fonds")
     public Response getAccessionRegister(JsonNode select) {
 
@@ -1455,10 +1455,10 @@ public class AdminManagementExternalResourceImpl {
      * @return Response
      */
     @GET
-    @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}/accession-register-detail")
+    @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}/" + AccessExtAPI.ACCESSION_REGISTERS_DETAIL)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "accession-registers:id:accession-register-detail:read",
+    @Secured(permission = AccessExtAPI.ACCESSION_REGISTERS + ":id:" + AccessExtAPI.ACCESSION_REGISTERS_DETAIL + ":read",
         description = "Lister les détails d'un registre de fonds")
     public Response findAccessionRegisterDetail(@PathParam("id_document") String documentId, JsonNode select) {
         addRequestId();
@@ -1556,7 +1556,7 @@ public class AdminManagementExternalResourceImpl {
                 .setDescription(e.getMessage())).build();
         }
     }
-  
+
     /**
      * Import security profile documents
      *

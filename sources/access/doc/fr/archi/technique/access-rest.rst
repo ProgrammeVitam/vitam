@@ -1,5 +1,5 @@
 Access-rest
-############
+###########
 
 Présentation
 ************
@@ -8,14 +8,14 @@ API REST appelées par le client access interne. Il y a un controle des paramèt
 avec ESAPI.
 
 Packages:
-**********
+*********
 
 fr.gouv.vitam.access.external.config : contient les paramètres de configurations du service web d'application.
 fr.gouv.vitam.access.external.model : classes métiers, classes implémentant le pattern DTO... .
 fr.gouv.vitam.access.external.rest : classes de lancement du serveur d'application et du controlleur REST.
 
 fr.gouv.vitam.access.external.rest
-***********************************
+**********************************
 
 Rest API
 --------
@@ -24,9 +24,9 @@ Rest API
 | https://vitam/access-external/v1/units/unit_id
 | https://vitam/access-external/v1/objects
 | https://vitam/access-external/v1/units/unit_id/objects
-| https://vitam/access-external/v1/accession-registers
-| https://vitam/access-external/v1/accession-registers/document_id
-| https://vitam/access-external/v1/accession-registers/document_id/accession-register-detail
+| https://vitam/access-external/v1/accessionregisters
+| https://vitam/access-external/v1/accessionregisters/document_id
+| https://vitam/access-external/v1/accessionregisters/document_id/accessionregisterdetail
 | https://vitam/access-external/v1/operations
 | https://vitam/access-external/v1/operations/operation_id
 | https://vitam/access-external/v1/unitlifecycles/lifecycle_id
@@ -214,7 +214,7 @@ La classe contient actuellement 9 méthodes :
      ...
 
 -LogbookExternalResourceImpl.java
-#########################################
+#################################
 classe controlleur REST
 
 la classe contient actuellement 6 méthodes :
@@ -305,7 +305,7 @@ la classe contient actuellement 6 méthodes :
 
 
 -AdminManagementExternalResourceImpl.java
-##########################################
+#########################################
 classe controlleur REST
 
 la classe contient actuellement 10 méthodes :

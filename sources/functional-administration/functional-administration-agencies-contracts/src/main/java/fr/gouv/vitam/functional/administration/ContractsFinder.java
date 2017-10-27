@@ -28,22 +28,19 @@ package fr.gouv.vitam.functional.administration;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
-;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
-
 /**
  * Just a classe for
  * <p>
- * Class for finding Contracts
- * to prevent cyclic dependancy between agencies and contracts module
+ * Class for finding Contracts to prevent cyclic dependancy between agencies and contracts module
  */
 public class ContractsFinder {
     private final MongoDbAccessAdminImpl mongoAccess;

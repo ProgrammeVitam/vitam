@@ -365,7 +365,7 @@ public class IngestStep {
         Response response = world.getIngestClient()
             .downloadObjectAsync(
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                world.getOperationId(), IngestCollection.REPORTS);
+                world.getOperationId(), IngestCollection.ARCHIVETRANSFERREPLY);
         InputStream inputStream = response.readEntity(InputStream.class);
         assertThat(inputStream).isNotNull();
         StreamUtils.closeSilently(inputStream);
@@ -385,7 +385,7 @@ public class IngestStep {
         Response response = world.getIngestClient()
             .downloadObjectAsync(
                 new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                world.getOperationId(), IngestCollection.REPORTS);
+                world.getOperationId(), IngestCollection.ARCHIVETRANSFERREPLY);
         InputStream inputStream = response.readEntity(InputStream.class);
         String result = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
         assertThat(result).contains(message);        

@@ -187,7 +187,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         }
 
         @POST
-        @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}/accession-register-detail")
+        @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}/" + AccessExtAPI.ACCESSION_REGISTERS_DETAIL)
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response findAccessionRegisterDetail(@PathParam("id_document") String documentId,
