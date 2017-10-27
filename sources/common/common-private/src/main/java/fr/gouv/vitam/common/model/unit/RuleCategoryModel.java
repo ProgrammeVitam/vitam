@@ -80,7 +80,7 @@ public class RuleCategoryModel {
     }
 
     @JsonIgnore
-    public void addPreventRulesId(List<String> preventRulesId) {
+    public void addAllPreventRulesId(List<String> preventRulesId) {
         if (inheritance == null) {
             inheritance = new InheritanceModel();
         }
@@ -88,7 +88,7 @@ public class RuleCategoryModel {
     }
 
     @JsonIgnore
-    public void addPreventRuleId(String preventRulesId) {
+    public void addToPreventRulesId(String preventRulesId) {
         if (inheritance == null) {
             inheritance = new InheritanceModel();
         }

@@ -1201,11 +1201,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
         if (globalMgtRuleNode.has(SedaConstants.TAG_RULE_REF_NON_RULE_ID)) {
             if (globalMgtRuleNode.get(SedaConstants.TAG_RULE_REF_NON_RULE_ID).isArray()) {
                 for (JsonNode refNonRuleId : globalMgtRuleNode.get(SedaConstants.TAG_RULE_REF_NON_RULE_ID)) {
-                    ruleCategoryModel.addPreventRuleId(refNonRuleId.asText());
+                    ruleCategoryModel.addToPreventRulesId(refNonRuleId.asText());
                 }
             } else {
                 ruleCategoryModel
-                    .addPreventRuleId(globalMgtRuleNode.get(SedaConstants.TAG_RULE_REF_NON_RULE_ID).asText());
+                    .addToPreventRulesId(globalMgtRuleNode.get(SedaConstants.TAG_RULE_REF_NON_RULE_ID).asText());
             }
         }
         archiveUnitManagementModel.setRuleCategoryModel(ruleCategoryModel, ruleType);

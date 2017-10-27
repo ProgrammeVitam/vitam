@@ -172,7 +172,7 @@ public class CreateManifest extends ActionHandler {
 
                 for (JsonNode result : results) {
                     String id = result.get(id()).asText();
-                    ArrayNode nodes = (ArrayNode) result.get(VitamFieldsHelper.allunitups());
+                    ArrayNode nodes = (ArrayNode) result.get(VitamFieldsHelper.unitups());
                     for (JsonNode node : nodes) {
                         multimap.put(node.asText(), id);
                     }
