@@ -51,7 +51,7 @@ export class MenuComponent implements OnInit {
           {
             label: 'Sécurisation',
             items: [
-              {label: 'Sécurisation du journal des opérations', routerLink: ['traceability/logbook']}
+              {label: 'Sécurisation des journaux', routerLink: ['traceability/logbook']}
             ]
           }
         ];
