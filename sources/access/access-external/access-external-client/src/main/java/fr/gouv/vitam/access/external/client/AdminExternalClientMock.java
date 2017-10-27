@@ -401,4 +401,10 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         return ClientMockResultHelper.createReponse(ClientMockResultHelper.getAccessContracts().toJsonNode());
     }
 
+    @Override
+    public Response downloadRulesReport(VitamContext vitamContext, String opId)
+        throws VitamClientException {
+        return ClientMockResultHelper.getObjectStream();
+    }
+
 }

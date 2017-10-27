@@ -71,4 +71,8 @@ public class AccessExtAPI {
     public static final String WORKFLOWS_API = "/" + WORKFLOWS;
     
     public static final String SECURITY_PROFILES = "securityprofiles";
+
+    public static final String RULES_REPORT = "rulesreport";
+    public static final String RULES_REPORT_API = "/" + RULES_REPORT;
+
 }
