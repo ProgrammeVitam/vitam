@@ -658,18 +658,6 @@ public class QueryHelper {
      *
      * @param variableName key name
      * @param value of key
-     * @return a MatchQuery using PREFIX operator
-     * @throws InvalidCreateOperationException when creating query errors
-     */
-    public static final MatchQuery prefix(final String variableName, final String value)
-        throws InvalidCreateOperationException {
-        return new MatchQuery(QUERY.PREFIX, variableName, value);
-    }
-
-    /**
-     *
-     * @param variableName key name
-     * @param value of key
      * @return a SearchQuery using REGEX operator
      * @throws InvalidCreateOperationException when creating query errors
      */

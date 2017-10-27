@@ -46,7 +46,6 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.nin;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.not;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.path;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.prefix;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.range;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.regex;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.term;
@@ -69,7 +68,6 @@ import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.ne;
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.nin;
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.nop;
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.path;
-import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.prefix;
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.range;
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.regex;
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.term;
@@ -206,9 +204,6 @@ public class QueryParserHelperTest {
             compare(match, match2);
             match = matchPhrasePrefix("var", "value");
             match2 = matchPhrasePrefix(match.getNode(QUERY.MATCH_PHRASE_PREFIX.exactToken()), noAdapter);
-            compare(match, match2);
-            match = prefix("var", "value");
-            match2 = prefix(match.getNode(QUERY.PREFIX.exactToken()), noAdapter);
             compare(match, match2);
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             e.printStackTrace();

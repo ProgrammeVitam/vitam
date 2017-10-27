@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MatchQueryBuilder.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -67,6 +69,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
  * Elasticsearch Translator
  */
 public class QueryToElasticsearch {
+
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(QueryToElasticsearch.class);
 
     private static final String _UID = "_uid";
     private static final String FUZZINESS = "AUTO";
@@ -114,7 +119,7 @@ public class QueryToElasticsearch {
      * <b>Note</b> : if the query contains a match and the collection allows to use score, the socre is added to the
      * sort<br>
      * <br>
-     * 
+     *
      * @param requestParser the original parser
      * @param hasFullText True to add scoreSort
      * @param score True will add score first
@@ -212,7 +217,6 @@ public class QueryToElasticsearch {
             case MATCH_ALL:
             case MATCH_PHRASE:
             case MATCH_PHRASE_PREFIX:
-            case PREFIX:
                 return matchCommand(req, content);
             case SEARCH:
                 return searchCommand(req, content);
@@ -380,73 +384,115 @@ public class QueryToElasticsearch {
      */
     private static QueryBuilder searchCommand(final QUERY query, final JsonNode content)
         throws InvalidParseOperationException {
+
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
         final String attribute = element.getKey();
+
+        if (ParserTokens.PROJECTIONARGS.isNotAnalyzed(attribute)) {
+            // Unsupported mode. May be updated without prior notice.
+            logUnsupportedCommand(query, content, "Not_analyzed field: '" + attribute + "'");
+        } else {
+            logCommand(query, content);
+        }
+
         return QueryBuilders.simpleQueryStringQuery(element.getValue().asText()).field(attribute);
     }
 
     /**
-     * $match : { name : words, $max_expansions : n }
+     * $match : { name : words }
      *
-     * @param req QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the match Command
      * @throws InvalidParseOperationException if check unicity is in error
      */
     private static QueryBuilder matchCommand(final QUERY query, final JsonNode content)
         throws InvalidParseOperationException {
-        // TODO P1 add operator (and, or)
+
         final JsonNode max = ((ObjectNode) content).remove(QUERYARGS.MAX_EXPANSIONS.exactToken());
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
         final String attribute = element.getKey();
+
+        // Unsupported match over analyzed field
         if (ParserTokens.PROJECTIONARGS.isNotAnalyzed(attribute)) {
-            switch (query) {
-                case MATCH:
-                    return QueryBuilders.termsQuery(element.getKey(), element.getValue().toString().split(" "));
-                case MATCH_ALL:
-                case MATCH_PHRASE:
-                case MATCH_PHRASE_PREFIX:
-                default:
-                    return QueryBuilders.termQuery(element.getKey(), element.getValue().toString());
-            }
-        } else {
-            QUERY query2 = query;
-            if (query == QUERY.PREFIX) {
-                query2 = QUERY.MATCH_PHRASE_PREFIX;
-            }
-            if (max != null && !max.isMissingNode()) {
-                switch (query2) {
-                    case MATCH:
-                        return QueryBuilders.matchQuery(element.getKey(), element.getValue().toString())
-                            .maxExpansions(max.asInt()).operator(Operator.OR);
-                    case MATCH_ALL:
-                        return QueryBuilders.matchQuery(element.getKey(), element.getValue().toString())
-                            .maxExpansions(max.asInt()).operator(Operator.AND);
-                    case MATCH_PHRASE:
-                        return QueryBuilders.matchPhraseQuery(element.getKey(), element.getValue().toString())
-                            .maxExpansions(max.asInt());
-                    case MATCH_PHRASE_PREFIX:
-                        return QueryBuilders.matchPhrasePrefixQuery(element.getKey(), element.getValue().toString())
-                            .maxExpansions(max.asInt());
-                    default:
-                        throw new InvalidParseOperationException("Not correctly parsed: " + query);
-                }
-            } else {
-                switch (query) {
-                    case MATCH:
-                        return QueryBuilders.matchQuery(element.getKey(), element.getValue().toString())
-                            .operator(Operator.OR);
-                    case MATCH_ALL:
-                        return QueryBuilders.matchQuery(element.getKey(), element.getValue().toString())
-                            .operator(Operator.AND);
-                    case MATCH_PHRASE:
-                        return QueryBuilders.matchPhraseQuery(element.getKey(), element.getValue().toString());
-                    case MATCH_PHRASE_PREFIX:
-                        return QueryBuilders.matchPhrasePrefixQuery(element.getKey(), element.getValue().toString());
-                    default:
-                        throw new InvalidParseOperationException("Not correctly parsed: " + query);
-                }
-            }
+            return matchCommandOverNonAnalyzedField(query, content, element, attribute);
+        }
+
+        // Unsupported max_expansions
+        if (max != null && !max.isMissingNode()) {
+            return matchCommandWithMaxExpansions(query, content, max, element);
+        }
+
+        logCommand(query, content);
+
+        switch (query) {
+            case MATCH:
+                return QueryBuilders.matchQuery(element.getKey(), element.getValue().asText())
+                    .operator(Operator.OR);
+            case MATCH_ALL:
+                return QueryBuilders.matchQuery(element.getKey(), element.getValue().asText())
+                    .operator(Operator.AND);
+            case MATCH_PHRASE:
+                return QueryBuilders.matchPhraseQuery(element.getKey(), element.getValue().asText());
+            case MATCH_PHRASE_PREFIX:
+                return QueryBuilders.matchPhrasePrefixQuery(element.getKey(), element.getValue().asText());
+            default:
+                throw new InvalidParseOperationException("Not correctly parsed: " + query);
+        }
+    }
+
+    /**
+     * $match : { name : words, $max_expansions : n }. Unsupported $max_expansions mode to be removed later.
+     *
+     * @param query QUERY
+     * @param content JsonNode
+     * @return the match Command
+     * @throws InvalidParseOperationException if check unicity is in error
+     * @deprecated Unsupported case. Should/will be removed without prior notice.
+     */
+    private static QueryBuilder matchCommandWithMaxExpansions(QUERY query, JsonNode content, JsonNode max, Entry<String, JsonNode> element) throws InvalidParseOperationException {
+
+        logUnsupportedCommand(query, content, "Unsupported max_expansions operator");
+
+        switch (query) {
+            case MATCH:
+                return QueryBuilders.matchQuery(element.getKey(), element.getValue().asText())
+                    .maxExpansions(max.asInt()).operator(Operator.OR);
+            case MATCH_ALL:
+                return QueryBuilders.matchQuery(element.getKey(), element.getValue().asText())
+                    .maxExpansions(max.asInt()).operator(Operator.AND);
+            case MATCH_PHRASE:
+                return QueryBuilders.matchPhraseQuery(element.getKey(), element.getValue().asText())
+                    .maxExpansions(max.asInt());
+            case MATCH_PHRASE_PREFIX:
+                return QueryBuilders.matchPhrasePrefixQuery(element.getKey(), element.getValue().asText())
+                    .maxExpansions(max.asInt());
+            default:
+                throw new InvalidParseOperationException("Not correctly parsed: " + query);
+        }
+    }
+
+    /**
+     * $match : { name : words } for non analyzed fields. Unsupported use case to be removed later.
+     *
+     * @param query QUERY
+     * @param content JsonNode
+     * @return the match Command
+     * @throws InvalidParseOperationException if check unicity is in error
+     * @deprecated Unsupported cases. Should/will be removed without prior notice.
+     */
+    private static QueryBuilder matchCommandOverNonAnalyzedField(QUERY query, JsonNode content, Entry<String, JsonNode> element, String attribute) {
+
+        logUnsupportedCommand(query, content, "Not_analyzed field: '" + attribute + "'");
+
+        switch (query) {
+            case MATCH:
+                return QueryBuilders.termsQuery(element.getKey(), element.getValue().toString().split(" "));
+            case MATCH_ALL:
+            case MATCH_PHRASE:
+            case MATCH_PHRASE_PREFIX:
+            default:
+                return QueryBuilders.termQuery(element.getKey(), element.getValue().toString());
         }
     }
 
@@ -555,7 +601,7 @@ public class QueryToElasticsearch {
     /**
      * $regex : { name : regex }
      *
-     * @param req QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the regex Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -563,14 +609,66 @@ public class QueryToElasticsearch {
     private static QueryBuilder regexCommand(final QUERY query, final JsonNode content)
         throws InvalidParseOperationException {
         final Entry<String, JsonNode> entry = JsonHandler.checkUnicity(query.exactToken(), content);
+        String key = entry.getKey();
+
+        // Analyzed fields are not supported
+        if (!ParserTokens.PROJECTIONARGS.isNotAnalyzed(key)) {
+            return regexCommandOverAnalyzedField(query, content);
+        }
+
+        // special case of _id (cannot be queried)
+        if (key.equals(VitamDocument.ID)) {
+            return regexCommandOverIdField(query, content);
+        }
+
+        String value = entry.getValue().asText();
+        logCommand(query, content);
+
+        return QueryBuilders.regexpQuery(key, value);
+    }
+
+    /**
+     * Handles  $regex : { name : regex } for _id field. Unsupported use case to be removed later.
+     *
+     * @param query QUERY
+     * @param content JsonNode
+     * @return the regex Command
+     * @throws InvalidParseOperationException if check unicity is in error
+     * @deprecated Unsupported cases should/will be removed without prior notice.
+     */
+    private static QueryBuilder regexCommandOverIdField(final QUERY query, final JsonNode content)
+        throws InvalidParseOperationException {
+        final Entry<String, JsonNode> entry = JsonHandler.checkUnicity(query.exactToken(), content);
+
+        String key = entry.getKey();
+
+        logUnsupportedCommand(query, content, "Unsupported ID field");
+
+        String value = entry.getValue().asText().replaceAll("[\\.\\?\\+\\*\\|\\{\\}\\[\\]\\(\\)\\\"\\\\\\#\\@\\&\\<\\>\\~]", " ");
+        value = removeAllDoubleSpace(value);
+        return QueryBuilders.termsQuery(key, value.split(" "));
+    }
+
+
+    /**
+     * Handles  $regex : { name : regex } for analyzed fields. Unsupported use case to be removed later.
+     *
+     * @param query QUERY
+     * @param content JsonNode
+     * @return the regex Command
+     * @throws InvalidParseOperationException if check unicity is in error
+     * @deprecated Unsupported cases should/will be removed without prior notice.
+     */
+    private static QueryBuilder regexCommandOverAnalyzedField(final QUERY query, final JsonNode content)
+        throws InvalidParseOperationException {
+        final Entry<String, JsonNode> entry = JsonHandler.checkUnicity(query.exactToken(), content);
+
         // special case of _id
         String key = entry.getKey();
         String value = "/" + entry.getValue().asText() + "/";
-        if (key.equals(VitamDocument.ID)) {
-            value = entry.getValue().asText().replaceAll("[\\.\\?\\+\\*\\|\\{\\}\\[\\]\\(\\)\\\"\\\\\\#\\@\\&\\<\\>\\~]", " ");
-            value = removeAllDoubleSpace(value);
-            return QueryBuilders.termsQuery(key, value.split(" "));
-        }
+
+        logUnsupportedCommand(query, content, "Analyzed field: '" + key + "'");
+
         return QueryBuilders.regexpQuery(key, value);
     }
 
@@ -627,10 +725,11 @@ public class QueryToElasticsearch {
 
 
     /**
-     * $wildcard : { name : term }
+     * $wildcard : { name : expression }
      *
-     * @param refCommand
-     * @param command
+     * @param query   QUERY
+     * @param content JsonNode
+     * @return the wildcard Command
      */
     private static QueryBuilder wildcardCommand(final QUERY query, final JsonNode content)
         throws InvalidParseOperationException {
@@ -638,15 +737,25 @@ public class QueryToElasticsearch {
         String key = entry.getKey();
         final JsonNode node = entry.getValue();
         String val = node.asText();
-        if (ParserTokens.PROJECTIONARGS.isNotAnalyzed(key)) {
-            val = val.replace("*", " ");
-            val = val.replace("?", " ");
-            val = removeAllDoubleSpace(val);
-            return QueryBuilders.termsQuery(key, val.split(" "));
+
+        if (!ParserTokens.PROJECTIONARGS.isNotAnalyzed(key)) {
+            // Unsupported wildcard with analyzed field
+            logUnsupportedCommand(query, content, "Analyzed field: '" + key + "'");
+        } else {
+            // Not analyzed mode...
+            if (key.equals(VitamDocument.ID)) {
+                // special case of _id (cannot be queried)
+                logUnsupportedCommand(query, content, "Unsupported ID field");
+            } else {
+                // OK Mode
+                logCommand(query, content);
+            }
         }
+
         return QueryBuilders.wildcardQuery(key, val);
     }
 
+    @Deprecated
     private static String removeAllDoubleSpace(String value) {
         String oldValue = value;
         String newValue = oldValue.replace("  ", " ");
@@ -783,5 +892,25 @@ public class QueryToElasticsearch {
         } else {
             return value.asText();
         }
+    }
+
+    /**
+     * Helper method for logging/dumping supported queries
+     * @param query
+     * @param content
+     */
+    private static void logCommand(QUERY query, JsonNode content) {
+        LOGGER.debug(String.format("Command #QUERY: %s . Content: %s", query, content));
+    }
+
+    /**
+     * Logs a warning message for unsupported cases. Unsupported cases should/will be removed without prior notice.
+     * @param query   the query
+     * @param content the json content
+     * @param message the error message
+     * @deprecated Used to dump unsupported usages for queries.
+     */
+    private static void logUnsupportedCommand(QUERY query, JsonNode content, String message) {
+        LOGGER.warn(String.format("UNSUPPORTED command #QUERY: %s. Message: %s. Content: %s", query, message, content));
     }
 }

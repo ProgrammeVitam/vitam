@@ -438,8 +438,6 @@ public class QueryTest {
             request.setMatchMaxExpansions(10);
             assertTrue(request.getCurrentObject()
                 .has(QUERYARGS.MAX_EXPANSIONS.exactToken()));
-            request = new MatchQuery(QUERY.PREFIX, "var", "val");
-            assertTrue(request.isReady());
             request.setMatchMaxExpansions(10);
             assertTrue(request.getCurrentObject()
                 .has(QUERYARGS.MAX_EXPANSIONS.exactToken()));

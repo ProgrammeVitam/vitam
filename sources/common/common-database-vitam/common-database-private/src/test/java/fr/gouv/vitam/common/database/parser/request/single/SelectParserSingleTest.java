@@ -46,7 +46,6 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.nin;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.not;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.path;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.prefix;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.range;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.regex;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.search;
@@ -133,7 +132,6 @@ public class SelectParserSingleTest {
             "{ $mlt : { $fields : [ 'mavar12', 'mavar13' ], $like : 'ceci est une phrase' } }," +
             "{ $and : [ " +
             "{ $search : { 'mavar13' : 'ceci est une phrase' } }, " +
-            "{ $prefix : { 'mavar13' : 'ceci est une phrase' } }, " +
             "{ $wildcard : { 'mavar13' : 'ceci' } }, " + "{ $regex : { 'mavar14' : '^start?aa.*' } } ] }," +
             "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " + "{ $and : [ " +
             "{ $term : { 'mavar16' : 'motMajuscule', 'mavar17' : 'simplemot' } }, " +
@@ -205,7 +203,6 @@ public class SelectParserSingleTest {
                     flt("ceci est une phrase", "mavar12", "mavar13"),
                     mlt("ceci est une phrase", "mavar12", "mavar13"),
                     and().add(search("mavar13", "ceci est une phrase"),
-                        prefix("mavar13", "ceci est une phrase"),
                         wildcard("mavar13", "ceci"),
                         regex("mavar14", "^start?aa.*")),
                     and().add(term("mavar14", "motMajuscule").add("mavar15", "simplemot")),

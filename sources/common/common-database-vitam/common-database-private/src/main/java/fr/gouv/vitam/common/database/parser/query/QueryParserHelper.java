@@ -252,18 +252,6 @@ public class QueryParserHelper extends QueryHelper {
      *
      * @param command JsonNode
      * @param adapter VarNameAdapter
-     * @return a MatchQuery using PREFIX operator
-     * @throws InvalidParseOperationException if could not parse to JSON
-     */
-    public static final MatchQuery prefix(final JsonNode command, final VarNameAdapter adapter)
-        throws InvalidParseOperationException {
-        return new MatchQuery(QUERY.PREFIX, command, adapter);
-    }
-
-    /**
-     *
-     * @param command JsonNode
-     * @param adapter VarNameAdapter
      * @return a SearchQuery using REGEX operator
      * @throws InvalidParseOperationException if could not parse to JSON
      */

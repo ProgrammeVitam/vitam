@@ -132,7 +132,6 @@ public class QueryToMongodb {
             case MATCH_ALL:
             case MATCH_PHRASE:
             case MATCH_PHRASE_PREFIX:
-            case PREFIX:
             case SEARCH:
                 throw new InvalidParseOperationException(
                     COMMAND_NOT_ALLOWED_WITH_MONGO_DB + req.exactToken());
