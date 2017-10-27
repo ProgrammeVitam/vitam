@@ -83,6 +83,7 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
             String objectGroupId = lifecycle.get(LogbookMongoDbName.objectIdentifier.getDbname()).asText();
             JsonNode lastEvent = (JsonNode) Iterables.getLast(events);
             String finalOutcome = lastEvent.get(LogbookMongoDbName.outcome.getDbname()).asText();
+            String finalEventTypeProc = lastEvent.get(LogbookMongoDbName.eventTypeProcess.getDbname()).asText();
             String finalEvDateTime = lastEvent.get(LogbookMongoDbName.eventDateTime.getDbname()).asText();
             String hashLFCOgOrUnit = null;
             String specificListObjects = null;
@@ -102,11 +103,10 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
             }
 
             final String hashGlobalLFC = generateDigest(lifecycle);
-
-
+            
             fw.write(lifecycle.get(LogbookMongoDbName.eventIdentifierProcess.getDbname()).asText());
             fw.write(SEPARATOR);
-            fw.write(lifecycle.get(LogbookMongoDbName.eventTypeProcess.getDbname()).asText());
+            fw.write(finalEventTypeProc);
             fw.write(SEPARATOR);
             fw.write(finalEvDateTime);
             fw.write(SEPARATOR);

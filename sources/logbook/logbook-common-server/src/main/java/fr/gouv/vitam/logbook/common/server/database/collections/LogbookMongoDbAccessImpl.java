@@ -770,7 +770,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             removeDuplicatedInformation(document);
             final VitamDocument<?> result = (VitamDocument<?>) collection.getCollection().findOneAndUpdate(
                 eq(LogbookDocument.ID, mainLogbookDocumentId),
-                Updates.combine(listUpdates),
+                combine(listUpdates),
                 new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
             if (result == null) {
                 throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + mainLogbookDocumentId);
@@ -1005,7 +1005,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         try {
             final VitamDocument<?> result = (VitamDocument<?>) collection.getCollection().findOneAndUpdate(
                 eq(LogbookDocument.ID, mainLogbookDocumentId),
-                Updates.combine(listMaster),
+                combine(listMaster),
                 new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
             if (result == null) {
                 throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + mainLogbookDocumentId);
@@ -1288,10 +1288,14 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         String logbookLifeCycleId = logbookLifeCycleObjectGrouptInProcess.getId();
 
         try {
+
+            final Bson updateEvents = Updates.addEachToSet(LogbookDocument.EVENTS,
+                    (List<VitamDocument>) logbookLifeCycleObjectGrouptInProcess.get(LogbookDocument.EVENTS));
+            final Bson updateVersion = Updates.inc(LogbookDocument.VERSION, 1);
+            final Bson update = combine(updateEvents, updateVersion);
+
             final UpdateResult result = LogbookCollections.LIFECYCLE_OBJECTGROUP.getCollection().updateOne(
-                eq(LogbookDocument.ID, logbookLifeCycleId),
-                Updates.addEachToSet(LogbookDocument.EVENTS,
-                    (List<VitamDocument>) logbookLifeCycleObjectGrouptInProcess.get(LogbookDocument.EVENTS)));
+                eq(LogbookDocument.ID, logbookLifeCycleId), update);
 
             if (result.getMatchedCount() != 1) {
                 throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + logbookLifeCycleId);

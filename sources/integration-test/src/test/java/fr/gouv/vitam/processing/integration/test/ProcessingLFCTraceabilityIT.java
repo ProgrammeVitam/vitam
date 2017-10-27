@@ -44,10 +44,14 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
@@ -62,6 +66,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -74,9 +79,14 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -105,11 +115,13 @@ import org.junit.rules.TemporaryFolder;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.InputStream;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static com.jayway.restassured.RestAssured.get;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -507,17 +519,93 @@ public class ProcessingLFCTraceabilityIT {
             // launch an ingest
             launchIngest();
 
-            // Launch securization a second time, with no lfc added
+            // Launch securization a second time, with new lfc added
             String containerName3rd = launchLogbookLFC();
             wait(containerName3rd);
             ProcessWorkflow processWorkflow3rd =
                 processMonitoring.findOneProcessWorkflow(containerName3rd, tenantId);
-            assertNotNull(processWorkflow2nd);
+            assertNotNull(processWorkflow3rd);
             assertEquals(ProcessState.COMPLETED, processWorkflow3rd.getState());
             assertEquals(StatusCode.OK, processWorkflow3rd.getStatus());
+            
+            // simulate audit, update some object LFC
+            changeOneGotLFC();
+            // simulate unit update, update some unit LFC
+            changeOneUnitLFC();
+            
+            // Launch securization a second time, with lfc updated > so status OK
+            String containerName4rd = launchLogbookLFC();
+            wait(containerName4rd);
+            ProcessWorkflow processWorkflow4rd =
+                    processMonitoring.findOneProcessWorkflow(containerName4rd, tenantId);
+            assertNotNull(processWorkflow4rd);
+            assertEquals(ProcessState.COMPLETED, processWorkflow4rd.getState());
+            assertEquals(StatusCode.OK, processWorkflow4rd.getStatus());
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
+        }
+    }
+    
+    private void changeOneGotLFC() throws Exception {
+        try(LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+            // search for got lfc
+            final Query parentQuery = QueryHelper.gte("evDateTime", LocalDateTime.MIN.toString());
+            final Select select = new Select();
+            select.setQuery(parentQuery);
+            select.addOrderByAscFilter("evDateTime");
+            RequestResponseOK requestResponseOK = RequestResponseOK.getFromJsonNode(
+                    logbookLifeCyclesClient.selectObjectGroupLifeCycle(select.getFinalSelect()));
+            List<JsonNode> foundObjectGroupLifecycles = requestResponseOK.getResults();
+            assertTrue(foundObjectGroupLifecycles != null && foundObjectGroupLifecycles.size() > 0);
+            
+            // get one got lfc
+            String oneGotLfc = foundObjectGroupLifecycles.get(0).get(LogbookDocument.ID).asText();
+            
+            // update got lfc
+            final GUID updateLfcGuidStart = GUIDFactory.newOperationLogbookGUID(tenantId);
+            LogbookLifeCycleObjectGroupParameters logbookLifeGotUpdateParameters =
+                LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(updateLfcGuidStart,
+                    VitamLogbookMessages.getEventTypeLfc("AUDIT_CHECK_OBJECT"),
+                    updateLfcGuidStart,
+                        LogbookTypeProcess.AUDIT, StatusCode.KO,
+                    VitamLogbookMessages.getOutcomeDetailLfc("AUDIT_CHECK_OBJECT", StatusCode.KO),
+                    VitamLogbookMessages.getCodeLfc("AUDIT_CHECK_OBJECT", StatusCode.KO), 
+                        GUIDReader.getGUID(oneGotLfc));
+
+            logbookLifeCyclesClient.update(logbookLifeGotUpdateParameters);
+            logbookLifeCyclesClient.commit(logbookLifeGotUpdateParameters);
+        }
+    }
+
+    private void changeOneUnitLFC() throws Exception {
+        try(LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+            // search for got lfc
+            final Query parentQuery = QueryHelper.gte("evDateTime", LocalDateTime.MIN.toString());
+            final Select select = new Select();
+            select.setQuery(parentQuery);
+            select.addOrderByAscFilter("evDateTime");
+            RequestResponseOK requestResponseOK = RequestResponseOK.getFromJsonNode(
+                    logbookLifeCyclesClient.selectUnitLifeCycle(select.getFinalSelect()));
+            List<JsonNode> foundUnitLifecycles = requestResponseOK.getResults();
+            assertTrue(foundUnitLifecycles != null && foundUnitLifecycles.size() > 0);
+
+            // get one got lfc
+            String oneUnitLfc = foundUnitLifecycles.get(0).get(LogbookDocument.ID).asText();
+
+            // update got lfc
+            final GUID updateLfcGuidStart = GUIDFactory.newOperationLogbookGUID(tenantId);
+            LogbookLifeCycleUnitParameters logbookLifeUnitUpdateParameters =
+                    LogbookParametersFactory.newLogbookLifeCycleUnitParameters(updateLfcGuidStart,
+                            VitamLogbookMessages.getEventTypeLfc("UNIT_UPDATE"),
+                            updateLfcGuidStart,
+                            LogbookTypeProcess.UPDATE, StatusCode.OK,
+                            VitamLogbookMessages.getOutcomeDetailLfc("UNIT_UPDATE", StatusCode.OK),
+                            VitamLogbookMessages.getCodeLfc("UNIT_UPDATE", StatusCode.OK), 
+                            GUIDReader.getGUID(oneUnitLfc));
+
+            logbookLifeCyclesClient.update(logbookLifeUnitUpdateParameters);
+            logbookLifeCyclesClient.commit(logbookLifeUnitUpdateParameters);
         }
     }
 
