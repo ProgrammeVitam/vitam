@@ -17,7 +17,8 @@ const BreadcrumbServiceStub = {
 let response = {status : 200};
 
 const LogbookServiceStub = {
-  launchTracability: () => Observable.of(response)
+  launchTraceability: () => Observable.of(response),
+  launchTraceabilityLFC: () => Observable.of(response)
 };
 
 describe('LogbookComponent', () => {

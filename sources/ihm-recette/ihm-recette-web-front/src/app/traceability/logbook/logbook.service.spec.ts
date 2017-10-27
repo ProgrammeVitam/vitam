@@ -31,7 +31,7 @@ describe('LogbookService', () => {
     service = TestBed.get(LogbookService);
   });
 
-  it('launchTracability should call correct api', (done) => {
+  it('launchTraceability should call correct api', (done) => {
     let response = {
       "result": 1
     };
@@ -41,10 +41,10 @@ describe('LogbookService', () => {
       expect(connection.request.method).toEqual(RequestMethod.Post);
       done();
     });
-    service.launchTracability();
+    service.launchTraceability();
   });
 
-  it('launchTracability should get response', (done) => {
+  it('launchTraceability should get response', (done) => {
     let response = {
       "result": 1
     };
@@ -55,7 +55,37 @@ describe('LogbookService', () => {
       }));
     });
 
-    service.launchTracability().subscribe(response => {
+    service.launchTraceability().subscribe(response => {
+      expect(response).not.toBeNull();
+      done();
+    });
+  });
+  
+  it('launchTraceabilityLFC should call correct api', (done) => {
+    let response = {
+      "result": 1
+    };
+
+    backend.connections.subscribe(connection => {
+      expect(connection.request.url).toEqual('/ihm-recette/v1/api/lifecycles/traceability');
+      expect(connection.request.method).toEqual(RequestMethod.Post);
+      done();
+    });
+    service.launchTraceabilityLFC();
+  });
+
+  it('launchTraceabilityLFC should get response', (done) => {
+    let response = {
+      "result": 1
+    };
+
+    backend.connections.subscribe(connection => {
+      connection.mockRespond(new Response(<ResponseOptions>{
+        body: JSON.stringify(response)
+      }));
+    });
+
+    service.launchTraceabilityLFC().subscribe(response => {
       expect(response).not.toBeNull();
       done();
     });
