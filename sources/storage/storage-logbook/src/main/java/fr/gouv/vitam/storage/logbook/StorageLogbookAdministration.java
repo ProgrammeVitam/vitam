@@ -90,7 +90,7 @@ public class StorageLogbookAdministration {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageLogbookAdministration.class);
 
-    private static final String STP_OP_SECURISATION = "STP_OP_SECURISATION";
+    private static final String STP_OP_SECURISATION = "STP_STORAGE_SECURISATION";
 
 
     private static final String STRATEGY_ID = "default";
@@ -216,7 +216,7 @@ public class StorageLogbookAdministration {
     private void createLogbookOperationStarted(LogbookOperationsClientHelper helper, GUID eip)
         throws LogbookClientNotFoundException, LogbookClientAlreadyExistsException {
         final LogbookOperationParameters logbookOperationParameters = LogbookParametersFactory
-            .newLogbookOperationParameters(eip, STP_OP_SECURISATION, eip, LogbookTypeProcess.STORAGE_LOGBOOK,
+            .newLogbookOperationParameters(eip, STP_OP_SECURISATION, eip, LogbookTypeProcess.TRACEABILITY,
                 StatusCode.STARTED,
                 VitamLogbookMessages.getCodeOp(STP_OP_SECURISATION, StatusCode.STARTED), eip);
         logbookOperationParameters.putParameterValue(LogbookParameterName.outcomeDetail, STP_OP_SECURISATION +
@@ -230,7 +230,7 @@ public class StorageLogbookAdministration {
         StatusCode statusCode) throws LogbookClientNotFoundException {
 
         final LogbookOperationParameters logbookOperationParameters = LogbookParametersFactory
-            .newLogbookOperationParameters(parentEventId, eventType, parentEventId, LogbookTypeProcess.STORAGE_LOGBOOK,
+            .newLogbookOperationParameters(parentEventId, eventType, parentEventId, LogbookTypeProcess.TRACEABILITY,
                 statusCode,
                 VitamLogbookMessages.getCodeOp(eventType, statusCode), parentEventId);
         logbookOperationParameters.putParameterValue(LogbookParameterName.outcomeDetail, eventType +
