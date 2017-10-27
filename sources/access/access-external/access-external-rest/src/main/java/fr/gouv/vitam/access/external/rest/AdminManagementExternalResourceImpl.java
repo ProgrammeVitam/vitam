@@ -61,6 +61,8 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFou
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.dsl.schema.Dsl;
+import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -706,7 +708,7 @@ public class AdminManagementExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "formats:read", description = "Lister le contenu du référentiel des formats")
-    public Response getFormats(JsonNode select) {
+    public Response getFormats(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
 
         addRequestId();
         try {
@@ -745,7 +747,7 @@ public class AdminManagementExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "rules:read", description = "Lister le contenu du référentiel des règles de gestion")
-    public Response getRules(JsonNode select) {
+    public Response getRules(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
 
         addRequestId();
         try {
@@ -784,7 +786,7 @@ public class AdminManagementExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "ingestcontracts:read",
         description = "Lister le contenu du référentiel des contrats d'entrée")
-    public Response findIngestContracts(JsonNode select) {
+    public Response findIngestContracts(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
 
         addRequestId();
         try {
@@ -820,7 +822,7 @@ public class AdminManagementExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "accesscontracts:read", description = "Lister le contenu du référentiel des contrats d'accès")
-    public Response findAccessContracts(JsonNode select) {
+    public Response findAccessContracts(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
 
         addRequestId();
         try {
@@ -856,7 +858,7 @@ public class AdminManagementExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "profiles:read", description = "Lister le contenu du référentiel des profils")
-    public Response findProfiles(JsonNode select) {
+    public Response findProfiles(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
 
         addRequestId();
         try {
@@ -892,7 +894,7 @@ public class AdminManagementExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "contexts:read", description = "Lister le contenu du référentiel des contextes")
-    public Response findContexts(JsonNode select) {
+    public Response findContexts(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
 
         addRequestId();
         try {
@@ -1012,7 +1014,7 @@ public class AdminManagementExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "agencies:read", description = "Lister le contenu du référentiel des services producteurs")
-    public Response findAgencies(JsonNode select) throws IOException {
+    public Response findAgencies(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) throws IOException {
 
         addRequestId();
         try {
@@ -1048,7 +1050,7 @@ public class AdminManagementExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = AccessExtAPI.ACCESSION_REGISTERS + ":read",
         description = "Lister le contenu du référentiel des registres des fonds")
-    public Response getAccessionRegister(JsonNode select) {
+    public Response getAccessionRegister(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
 
         addRequestId();
         try {
@@ -1460,7 +1462,8 @@ public class AdminManagementExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = AccessExtAPI.ACCESSION_REGISTERS + ":id:" + AccessExtAPI.ACCESSION_REGISTERS_DETAIL + ":read",
         description = "Lister les détails d'un registre de fonds")
-    public Response findAccessionRegisterDetail(@PathParam("id_document") String documentId, JsonNode select) {
+    public Response findAccessionRegisterDetail(@PathParam("id_document") String documentId,
+        @Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
         addRequestId();
 
         ParametersChecker.checkParameter("accession register id is a mandatory parameter", documentId);
@@ -1496,7 +1499,7 @@ public class AdminManagementExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "traceability:check", description = "Tester l'intégrité d'un journal sécurisé")
-    public Response checkOperationTraceability(JsonNode query) {
+    public Response checkOperationTraceability(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode query) {
 
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             ParametersChecker.checkParameter("checks operation Logbook traceability parameters", query);
@@ -1604,7 +1607,7 @@ public class AdminManagementExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "securityprofiles:read",
         description = "Lister le contenu du référentiel des profiles de sécurité")
-    public Response findSecurityProfiles(JsonNode select) {
+    public Response findSecurityProfiles(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode select) {
 
         addRequestId();
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {

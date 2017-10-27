@@ -41,10 +41,13 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.action.AddAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -66,6 +69,8 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 @PowerMockIgnore({"javax.net.ssl.*", "javax.management.*"})
 @PrepareForTest({AdminManagementClientFactory.class})
 public class AdminManagementExternalResourceImplTest {
+
+    private static final String CODE_VALIDATION_DSL = VitamCodeHelper.getCode(VitamCode.GLOBAL_INVALID_DSL);
 
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(AdminManagementExternalResourceImplTest.class);
@@ -100,8 +105,6 @@ public class AdminManagementExternalResourceImplTest {
         "/FR_ORG_AGEC/" +
         AccessExtAPI.ACCESSION_REGISTERS_DETAIL;
     private static final String CHECK_TRACEABILITY_OPERATION_URI = AccessExtAPI.TRACEABILITY_API + "/check";
-
-    private static final String request = "{ $query: {} , $projection: {}, $filter: {} }";
 
     private static final String X_HTTP_METHOD_OVERRIDE = "X-HTTP-Method-Override";
 
@@ -362,6 +365,258 @@ public class AdminManagementExternalResourceImplTest {
     }
 
     @Test
+    public void testFindRules() throws InvalidCreateOperationException, FileNotFoundException {
+        AdminManagementClientFactory.changeMode(null);
+
+        final Select select = new Select();
+        select.setQuery(eq("Identifier", "APP-00001"));
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(RULES_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        final Select emptyQuerySelect = new Select();
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(emptyQuerySelect.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(RULES_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        final SelectMultiQuery selectMultiple = new SelectMultiQuery();
+        selectMultiple.setQuery(eq("Identifier", "APP-00001"));
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(selectMultiple.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(RULES_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode())
+            .body(CoreMatchers.containsString(CODE_VALIDATION_DSL));
+
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(RULES_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when().post(RULES_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .when().post(RULES_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+    }
+
+    @Test
+    public void testFindFormats() throws InvalidCreateOperationException, FileNotFoundException {
+        AdminManagementClientFactory.changeMode(null);
+
+        final Select select = new Select();
+        select.setQuery(eq("PUID", "x-fmt/348"));
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(FORMAT_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        final Select emptyQuerySelect = new Select();
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(emptyQuerySelect.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(FORMAT_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        final SelectMultiQuery selectMultiple = new SelectMultiQuery();
+        selectMultiple.setQuery(eq("PUID", "x-fmt/348"));
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(selectMultiple.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(FORMAT_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode())
+            .body(CoreMatchers.containsString(CODE_VALIDATION_DSL));
+
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(FORMAT_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when().post(FORMAT_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .when().post(FORMAT_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+    }
+
+    @Test
+    public void testFindAccessionRegister() throws InvalidCreateOperationException, FileNotFoundException {
+        AdminManagementClientFactory.changeMode(null);
+
+        final Select select = new Select();
+        select.setQuery(eq("OriginatingAgency", "RATP"));
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(AccessExtAPI.ACCESSION_REGISTERS_API)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        final Select emptyQuerySelect = new Select();
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(emptyQuerySelect.getFinalSelect())
+            .and().header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(AccessExtAPI.ACCESSION_REGISTERS_API)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        final SelectMultiQuery selectMultiple = new SelectMultiQuery();
+        selectMultiple.setQuery(eq("OriginatingAgency", "RATP"));
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(selectMultiple.getFinalSelect())
+            .and().header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(AccessExtAPI.ACCESSION_REGISTERS_API)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode())
+            .body(CoreMatchers.containsString(CODE_VALIDATION_DSL));
+
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .and().header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(AccessExtAPI.ACCESSION_REGISTERS_API)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when().get(AccessExtAPI.ACCESSION_REGISTERS_API)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .when().get(AccessExtAPI.ACCESSION_REGISTERS_API)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void testFindAccessionRegisterDetail() throws InvalidCreateOperationException, FileNotFoundException {
+        AdminManagementClientFactory.changeMode(null);
+
+        final Select select = new Select();
+        select.setQuery(eq("OriginatingAgency", "RATP"));
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(ACCESSION_REGISTER_DETAIL_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        final Select emptyQuerySelect = new Select();
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(emptyQuerySelect.getFinalSelect())
+            .and().header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(ACCESSION_REGISTER_DETAIL_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        final SelectMultiQuery selectMultiple = new SelectMultiQuery();
+        selectMultiple.setQuery(eq("OriginatingAgency", "RATP"));
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(selectMultiple.getFinalSelect())
+            .and().header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(ACCESSION_REGISTER_DETAIL_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode())
+            .body(CoreMatchers.containsString(CODE_VALIDATION_DSL));
+
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .and().header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(ACCESSION_REGISTER_DETAIL_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when().get(ACCESSION_REGISTER_DETAIL_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .when().get(ACCESSION_REGISTER_DETAIL_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
     public void testGetDocuments() throws InvalidCreateOperationException, FileNotFoundException {
         final Select select = new Select();
         select.setQuery(eq("Id", "APP-00001"));
@@ -376,7 +631,7 @@ public class AdminManagementExternalResourceImplTest {
             .when().post(RULES_URI + RULE_ID)
             .then().statusCode(Status.OK.getStatusCode());
 
-        
+
         given()
             .accept(ContentType.JSON)
             .contentType(ContentType.JSON)
@@ -401,50 +656,9 @@ public class AdminManagementExternalResourceImplTest {
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON)
-            .body(select.getFinalSelect())
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().get(RULES_URI)
-            .then().statusCode(Status.OK.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .body(select.getFinalSelect())
-            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-            .when().post(RULES_URI)
-            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .body(select.getFinalSelect())
-            .when().post(RULES_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
-
-        given()
             .accept(ContentType.JSON)
             .body(select.getFinalSelect())
             .when().post(RULES_URI + DOCUMENT_ID)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .body(select.getFinalSelect())
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().get(RULES_URI)
-            .then().statusCode(Status.OK.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .body(select.getFinalSelect())
-            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-            .when().post(RULES_URI)
-            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .body(select.getFinalSelect())
-            .when().post(RULES_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
 
@@ -468,26 +682,6 @@ public class AdminManagementExternalResourceImplTest {
             .accept(ContentType.JSON)
             .body(select.getFinalSelect())
             .when().get(FORMAT_URI + DOCUMENT_ID)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .body(select.getFinalSelect())
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().get(FORMAT_URI)
-            .then().statusCode(Status.OK.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .body(select.getFinalSelect())
-            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-            .when().post(FORMAT_URI)
-            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .body(select.getFinalSelect())
-            .when().post(FORMAT_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
@@ -563,22 +757,6 @@ public class AdminManagementExternalResourceImplTest {
             .when().post(AccessExtAPI.ACCESSION_REGISTERS_API + "/" + GOOD_ID)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
-        given()
-            .contentType(ContentType.JSON)
-            .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .and().header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
-            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(select.getFinalSelect())
-            .when().post(ACCESSION_REGISTER_DETAIL_URI)
-            .then().statusCode(Status.OK.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
-            .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
-            .body(select.getFinalSelect())
-            .when().post(ACCESSION_REGISTER_DETAIL_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -755,10 +933,43 @@ public class AdminManagementExternalResourceImplTest {
 
         doReturn(new RequestResponseOK<>().addAllResults(getIngestContracts())).when(adminCLient)
             .findIngestContracts(anyObject());
-        given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
+
+        Select select = new Select();
+        select.setQuery(eq("Status", "ACTIVE"));
+
+        given().contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(AccessExtAPI.INGEST_CONTRACT_API)
             .then().statusCode(Status.OK.getStatusCode());
+
+        Select emptySelect = new Select();
+        given().contentType(ContentType.JSON)
+            .body(emptySelect.getFinalSelect())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(AccessExtAPI.INGEST_CONTRACT_API)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        SelectMultiQuery selectMulti = new SelectMultiQuery();
+        selectMulti.setQuery(eq("Status", "ACTIVE"));
+        given().contentType(ContentType.JSON)
+            .body(selectMulti.getFinalSelect())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(AccessExtAPI.INGEST_CONTRACT_API)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode())
+            .body(CoreMatchers.containsString(CODE_VALIDATION_DSL));
+
+        given().contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(AccessExtAPI.INGEST_CONTRACT_API)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given().contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when().get(AccessExtAPI.INGEST_CONTRACT_API)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
     }
 
 
@@ -804,10 +1015,42 @@ public class AdminManagementExternalResourceImplTest {
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
         doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminCLient)
             .findAccessContracts(anyObject());
-        given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
+
+        Select select = new Select();
+        select.setQuery(eq("Status", "ACTIVE"));
+
+        given().contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(AccessExtAPI.ACCESS_CONTRACT_API)
             .then().statusCode(Status.OK.getStatusCode());
+
+        Select emptySelect = new Select();
+        given().contentType(ContentType.JSON)
+            .body(emptySelect.getFinalSelect())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(AccessExtAPI.ACCESS_CONTRACT_API)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        SelectMultiQuery selectMulti = new SelectMultiQuery();
+        selectMulti.setQuery(eq("Status", "ACTIVE"));
+        given().contentType(ContentType.JSON)
+            .body(selectMulti.getFinalSelect())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(AccessExtAPI.ACCESS_CONTRACT_API)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode())
+            .body(CoreMatchers.containsString(CODE_VALIDATION_DSL));
+
+        given().contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(AccessExtAPI.ACCESS_CONTRACT_API)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given().contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when().get(AccessExtAPI.ACCESS_CONTRACT_API)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
     }
 
 
@@ -863,10 +1106,63 @@ public class AdminManagementExternalResourceImplTest {
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
         doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminCLient)
             .findProfiles(anyObject());
-        given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().get(PROFILE_URI)
+
+        final Select select = new Select();
+        select.setQuery(eq("Status", "ACTIVE"));
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(PROFILE_URI)
             .then().statusCode(Status.OK.getStatusCode());
+
+        final Select emptyQuerySelect = new Select();
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(emptyQuerySelect.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(PROFILE_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        final SelectMultiQuery selectMultiple = new SelectMultiQuery();
+        selectMultiple.setQuery(eq("Status", "ACTIVE"));
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(selectMultiple.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(PROFILE_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode())
+            .body(CoreMatchers.containsString(CODE_VALIDATION_DSL));
+
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(PROFILE_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when().post(PROFILE_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .when().post(PROFILE_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
     }
 
 
@@ -879,21 +1175,123 @@ public class AdminManagementExternalResourceImplTest {
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
         doReturn(new RequestResponseOK<>().addAllResults(getAgencies())).when(adminCLient)
             .findProfiles(anyObject());
-        given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+
+        final Select select = new Select();
+        select.setQuery(eq("Status", "ACTIVE"));
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(AGENCY_URI)
             .then().statusCode(Status.OK.getStatusCode());
+
+        final Select emptyQuerySelect = new Select();
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(emptyQuerySelect.getFinalSelect())
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(AGENCY_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        final SelectMultiQuery selectMultiple = new SelectMultiQuery();
+        selectMultiple.setQuery(eq("Status", "ACTIVE"));
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(selectMultiple.getFinalSelect())
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(AGENCY_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode())
+            .body(CoreMatchers.containsString(CODE_VALIDATION_DSL));
+
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(AGENCY_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when().get(AGENCY_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .when().get(AGENCY_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
     }
 
     @Test
-    public void testCheckTraceabilityOperation() throws InvalidParseOperationException {
+    public void testCheckTraceabilityOperation()
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+        // given()
+        // .contentType(ContentType.JSON)
+        // .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+        // .body(JsonHandler.getFromString(request))
+        // .when()
+        // .post(CHECK_TRACEABILITY_OPERATION_URI)
+        // .then().statusCode(Status.OK.getStatusCode());
+
+
+
+        final Select select = new Select();
+        select.setQuery(eq("evType", "TRACEABILITY"));
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(CHECK_TRACEABILITY_OPERATION_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        final Select emptyQuerySelect = new Select();
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(emptyQuerySelect.getFinalSelect())
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(CHECK_TRACEABILITY_OPERATION_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        final SelectMultiQuery selectMultiple = new SelectMultiQuery();
+        selectMultiple.setQuery(eq("evType", "TRACEABILITY"));
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(selectMultiple.getFinalSelect())
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(CHECK_TRACEABILITY_OPERATION_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode())
+            .body(CoreMatchers.containsString(CODE_VALIDATION_DSL));
+
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(CHECK_TRACEABILITY_OPERATION_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(JsonHandler.getFromString(request))
-            .when()
-            .post(CHECK_TRACEABILITY_OPERATION_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .body(select.getFinalSelect())
+            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when().post(CHECK_TRACEABILITY_OPERATION_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .when().post(CHECK_TRACEABILITY_OPERATION_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+
     }
 
     @Test
@@ -913,7 +1311,7 @@ public class AdminManagementExternalResourceImplTest {
         array.forEach(e -> res.add(e));
         return res;
     }
-    
+
     private List<Object> getContexts() throws FileNotFoundException, InvalidParseOperationException {
         InputStream fileContexts = PropertiesUtils.getResourceAsStream("context.json");
         ArrayNode array = (ArrayNode) JsonHandler.getFromInputStream(fileContexts);
@@ -988,7 +1386,6 @@ public class AdminManagementExternalResourceImplTest {
 
         // Test OK with GET
         given()
-            .accept(ContentType.JSON)
             .contentType(ContentType.JSON)
             .body(select.getFinalSelect())
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -1005,6 +1402,37 @@ public class AdminManagementExternalResourceImplTest {
             .when().post(SECURITY_PROFILES_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
+
+        // Test empty query
+        final Select emptySelect = new Select();
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(emptySelect.getFinalSelect())
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(SECURITY_PROFILES_URI)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        // Test multi query
+        final SelectMultiQuery selectMulti = new SelectMultiQuery();
+        selectMulti.setQuery(eq("Identifier", securityProfileIdentifier));
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(selectMulti.getFinalSelect())
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(SECURITY_PROFILES_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode())
+            .body(CoreMatchers.containsString(CODE_VALIDATION_DSL));
+        
+        // Test no query
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(SECURITY_PROFILES_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+        
         // Test unknown tenant Id
         given()
             .accept(ContentType.JSON)
@@ -1095,26 +1523,27 @@ public class AdminManagementExternalResourceImplTest {
             .when().put(SECURITY_PROFILES_URI + "/" + securityProfileIdentifier)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
-    
+
     @Test
-    public void testUpdateProfile() throws InvalidCreateOperationException, InvalidParseOperationException, AdminManagementClientServerException {
+    public void testUpdateProfile()
+        throws InvalidCreateOperationException, InvalidParseOperationException, AdminManagementClientServerException {
         String NewPermission = "new_permission:update:json";
-        
+
         final Update update = new Update();
         update.setQuery(QueryHelper.eq("Name", "aName"));
         final AddAction setActionAddPermission = UpdateActionHelper.add("Permissions", NewPermission);
         update.addActions(setActionAddPermission);
         AdminManagementClientFactory.changeMode(null);
-        
+
         given()
             .contentType(ContentType.JSON)
             .contentType(ContentType.JSON)
             .body(update.getFinalUpdate())
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().put(PROFILE_URI + "/" +  GOOD_ID)
+            .when().put(PROFILE_URI + "/" + GOOD_ID)
             .then().statusCode(Status.OK.getStatusCode());
     }
-    
+
     @Test
     public void listOperations()
         throws Exception {
@@ -1127,7 +1556,7 @@ public class AdminManagementExternalResourceImplTest {
             .when().get("operations")
             .then().statusCode(Status.OK.getStatusCode());
     }
-    
+
     @Test
     public void cancelOperationTest()
         throws Exception {
@@ -1194,7 +1623,7 @@ public class AdminManagementExternalResourceImplTest {
             .when().put("operations/1")
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
-    
+
     @Test
     public void testimportValidContextFileReturnCreated() throws Exception {
         PowerMockito.mockStatic(AdminManagementClientFactory.class);
@@ -1221,10 +1650,67 @@ public class AdminManagementExternalResourceImplTest {
 
         doReturn(new RequestResponseOK<>().addAllResults(getContexts())).when(adminCLient)
             .findContexts(anyObject());
-        given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().get(AccessExtAPI.CONTEXTS_API)
+
+        final Select select = new Select();
+        select.setQuery(eq("STATUS", true));
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(AccessExtAPI.CONTEXTS_API)
             .then().statusCode(Status.OK.getStatusCode());
+
+        final Select emptyQuerySelect = new Select();
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(emptyQuerySelect.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(AccessExtAPI.CONTEXTS_API)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        final SelectMultiQuery selectMultiple = new SelectMultiQuery();
+        selectMultiple.setQuery(eq("STATUS", true));
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(selectMultiple.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(AccessExtAPI.CONTEXTS_API)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode())
+            .body(CoreMatchers.containsString(CODE_VALIDATION_DSL));
+
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(AccessExtAPI.CONTEXTS_API)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when().post(AccessExtAPI.CONTEXTS_API)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
+            .when().post(AccessExtAPI.CONTEXTS_API)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
     }
 
 
@@ -1241,7 +1727,7 @@ public class AdminManagementExternalResourceImplTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(AccessExtAPI.CONTEXTS_API)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json");
-        
+
         doThrow(new ReferentialException("ReferentialException"))
             .when(adminCLient).importContexts(anyObject());
 
@@ -1251,5 +1737,5 @@ public class AdminManagementExternalResourceImplTest {
             .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json");
 
     }
-    
+
 }

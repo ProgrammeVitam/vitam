@@ -200,11 +200,8 @@ public class ValidatorTest {
         JsonNode test1Json =
             mapper.readTree(PropertiesUtils.getResourceFile("operator_exists_with_invalid_field_request.json"));
         final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
-        assertThatThrownBy(() -> validator.validate(test1Json)).hasMessageContaining(
-            // FIXME Message text potentially unstable
-            "Validating $query: ROOT_QUERY[] ~ INVALID_JSON_FIELD: exists ~ hint: Query or list of query ~ found json: {\\\"Title\\\":\\\"assembl\\u00E9e\\\"} ~ path: [$query]")
-            .hasMessageContaining(
-                "Validating $query: ROOT_QUERY[] ~ INVALID_JSON_FIELD: exists ~ hint: Query or list of query ~ found json: {} ~ path: [$query]");
+        assertThatThrownBy(() -> validator.validate(test1Json)).hasMessageContaining("$exists: string ~ INVALID_JSON_FIELD: Title")
+            .hasMessageContaining("$exists: string ~ INVALID_VALUE: OBJECT ~ found json");
 
     }
 
