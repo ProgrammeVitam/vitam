@@ -29,6 +29,7 @@ package fr.gouv.vitam.ingest.internal.integration.test;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.NullNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.restassured.RestAssured;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -49,6 +50,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
@@ -69,7 +71,6 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
-import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -81,8 +82,6 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
-import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
@@ -601,10 +600,15 @@ public class IngestInternalIT {
             responseStorage = accessClient.getObject(new SelectMultiQuery().getFinalSelect(), og, "BinaryMaster", 1);
             inputStream = responseStorage.readEntity(InputStream.class);
 
-            RequestResponse response = accessClient.updateUnitbyId(new UpdateMultiQuery().getFinalUpdate(),
-                unit.findValuesAsText("#id").get(0));
+            // get initial lfc version
+            String unitId = unit.findValuesAsText("#id").get(0);
+            assertEquals(checkAndRetrieveLfcVersionForUnit(unitId, accessClient), 0);
+            // execute update
+            RequestResponse response = accessClient.updateUnitbyId(new UpdateMultiQuery().getFinalUpdate(), unitId);
             assertEquals(response.toJsonNode().get("$hits").get("size").asInt(), 1);
-
+            // check version incremented in lfc
+            assertEquals(checkAndRetrieveLfcVersionForUnit(unitId, accessClient), 1);
+            
             sizedInputStream = new SizedInputStream(inputStream);
             final long size2 = StreamUtils.closeSilently(sizedInputStream);
             LOGGER.warn("read: " + size2);
@@ -622,7 +626,6 @@ public class IngestInternalIT {
             assertNotNull(hit);
             // TODO compare
 
-
         } catch (final Exception e) {
             LOGGER.error(e);
             SearchResponse elasticSearchResponse =
@@ -638,6 +641,22 @@ public class IngestInternalIT {
 
             fail("should not raized an exception" + e);
         }
+    }
+    
+    private int checkAndRetrieveLfcVersionForUnit(String unitId,  AccessInternalClient accessClient) throws Exception {
+        final SelectParserSingle parser = new SelectParserSingle();
+        Select selectLFC = new Select();
+        parser.parse(selectLFC.getFinalSelect());
+        parser.addCondition(QueryHelper.eq("obId", unitId));
+        ObjectNode queryDsl = parser.getRequest().getFinalSelect();
+        
+        JsonNode lfcResponse = accessClient.selectUnitLifeCycleById(unitId, queryDsl).toJsonNode();
+        final JsonNode result = lfcResponse.get("$results");
+        assertNotNull(result);
+        final JsonNode lfc = result.get(0);
+        assertNotNull(lfc);
+        
+        return lfc.get(LogbookDocument.VERSION).asInt();
     }
 
 
