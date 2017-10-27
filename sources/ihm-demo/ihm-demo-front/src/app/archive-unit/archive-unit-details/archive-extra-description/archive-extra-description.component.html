@@ -15,11 +15,30 @@
               icon="fa-save" iconPos="left"></button>
     </div>
   </div>
-  <div class="ui-g">
+  <div class="ui-g" *ngIf="!saveRunning">
     <ng-template ngFor let-field [ngForOf]="fields">
       <vitam-metadata-field [title]="field.title" [originalTitle]="field.value" [value]="archiveUnit[field.value]"
                            class="ui-g-12" style="text-align: left" [translate]="translate" [(updatedFields)]="updatedFields"
                            [updateMode]="update"></vitam-metadata-field>
     </ng-template>
   </div>
+
+  <div *ngIf="saveRunning">
+    Sauvegarde des métadonnées en cours...
+  </div>
+
 </p-panel>
+
+<p-dialog header="Sauvegarde réussie" [(visible)]="displayOK">
+  L'unité archivistique à bien été sauvegardée.
+  <p-footer>
+    <button pButton type="button" (click)="displayOK = false" label="OK"></button>
+  </p-footer>
+</p-dialog>
+
+<p-dialog header="Sauvegarde: Echec" [(visible)]="displayKO">
+  Echec lors de la mise à jour des métadonnées.
+  <p-footer>
+    <button pButton type="button" (click)="displayKO = false" label="OK"></button>
+  </p-footer>
+</p-dialog>

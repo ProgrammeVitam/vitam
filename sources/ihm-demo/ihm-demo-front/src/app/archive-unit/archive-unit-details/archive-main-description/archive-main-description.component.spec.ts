@@ -9,7 +9,7 @@ import { ArchiveUnitService } from "../../archive-unit.service";
 import { VitamResponse } from "../../../common/utils/response";
 
 let ArchiveUnitServiceStub = {
-  getDetails: (id) => Observable.of(new VitamResponse()),
+  getDetails: (id) => Observable.of({$results: [{ test: 'newValue', '#management': {SubmissionAgency: 'id'} }]}),
   getObjects: (id) => Observable.of(new VitamResponse()),
   getResults: (body, offset, limit) => Observable.of(new VitamResponse()),
   updateMetadata: (id, updateRequest) => Observable.of(new VitamResponse())
@@ -34,10 +34,36 @@ describe('ArchiveMainDescriptionComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(ArchiveMainDescriptionComponent);
     component = fixture.componentInstance;
+    component.archiveUnit = {
+      test: 'initialValue',
+      '#management': {SubmissionAgency: 'id'}
+    };
     fixture.detectChanges();
   });
 
   it('should be created', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should display update when swhitch update is called', () => {
+    expect(component.update).toBeFalsy();
+    component.switchUpdateMode();
+    expect(component.update).toBeTruthy();
+  });
+
+  it('should rollback update when cancel update is called', () => {
+    component.switchUpdateMode();
+    expect(component.update).toBeTruthy();
+    component.dataToDisplay.test = 'updated';
+    component.switchUpdateMode();
+    expect(component.dataToDisplay.test).toBe('initialValue');
+    expect(component.update).toBeFalsy();
+  });
+
+  it('should update data on update success', () => {
+    expect(component.saveRunning).toBeFalsy();
+    component.updatedFields = {test: 'newValue'};
+    component.saveUpdate();
+    expect(component.dataToDisplay.test).toBe('newValue');
   });
 });

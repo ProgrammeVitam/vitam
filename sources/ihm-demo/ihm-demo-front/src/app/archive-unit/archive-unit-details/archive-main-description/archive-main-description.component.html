@@ -23,7 +23,7 @@
               icon="fa-save" iconPos="left"></button>
     </div>
   </div>
-  <div class="ui-g" *ngIf="dataToDisplay">
+  <div class="ui-g" *ngIf="dataToDisplay && !saveRunning">
     <vitam-metadata-field [title]="'Identifiant'" [originalTitle]="'#id'" [value]="dataToDisplay['#id']" [translate]="translate" [labelSize]="2"
                          class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields" [canUpdate]="false"></vitam-metadata-field>
     <vitam-metadata-field [title]="'Date de début'" [originalTitle]="'StartDate'" [value]="dataToDisplay.StartDate" [translate]="translate" [labelSize]="6"
@@ -42,7 +42,25 @@
                          class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
     <vitam-metadata-field [title]="'Description'" [originalTitle]="'Description'" [value]="dataToDisplay.Description" [translate]="translate" [labelSize]="2"
                          class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
-    <vitam-metadata-field [title]="'Type d\'archive'" [originalTitle]="'#unitType'" [value]="archiveUnitHelper.transformType(dataToDisplay['_unitType'])" [translate]="translate"
-                         class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+    <vitam-metadata-field [title]="'Type d\'archive'" [originalTitle]="'#unitType'" [value]="archiveUnitHelper.transformType(dataToDisplay['#unitType'])" [translate]="translate"
+                         class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields" [canUpdate]="false"></vitam-metadata-field>
   </div>
+  <div *ngIf="saveRunning">
+    Sauvegarde des métadonnées en cours...
+  </div>
+
 </p-panel>
+
+<p-dialog header="Sauvegarde réussie" [(visible)]="displayOK">
+    L'unité archivistique à bien été sauvegardée.
+    <p-footer>
+        <button pButton type="button" (click)="displayOK = false" label="OK"></button>
+    </p-footer>
+</p-dialog>
+
+<p-dialog header="Sauvegarde: Echec" [(visible)]="displayKO">
+    Echec lors de la mise à jour des métadonnées.
+    <p-footer>
+        <button pButton type="button" (click)="displayKO = false" label="OK"></button>
+    </p-footer>
+</p-dialog>
