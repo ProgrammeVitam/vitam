@@ -8,6 +8,10 @@
           "type": "object",
           "enabled": true,
           "properties": {
+            "errors": {
+              "type": "object",
+              "enabled": false
+            },
             "evDetDataType": {
               "type": "string",
               "index": "not_analyzed"
