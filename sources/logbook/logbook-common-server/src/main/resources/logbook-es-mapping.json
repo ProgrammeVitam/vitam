@@ -78,6 +78,23 @@
             },
             "diff": {
               "enabled": false
+            },
+            "validateUnitReport": {
+              "properties": {
+                "reports": {
+                  "enabled": false
+                },
+                "schema": {
+                  "properties": {
+                    "loadingURI": {
+                      "type": "string"
+                    },
+                    "pointer": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
             }
           }
         },
