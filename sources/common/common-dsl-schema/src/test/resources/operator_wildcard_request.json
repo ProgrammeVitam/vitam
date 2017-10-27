@@ -1,0 +1,22 @@
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$wildcard": {
+        "Title": "assemblée*"
+      },
+      "$depth": 20
+    },
+    {
+      "$wildcard": {
+        "Title": "dis*rs"
+      },
+      "$depth": 20
+    }
+  ],
+  "$filter": {
+    "$orderby": {
+      "TransactedDate": 1
+    }
+  }
+}

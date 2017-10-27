@@ -1,0 +1,16 @@
+{
+  "$roots": [
+    "aeaqaaaaaagdmvr3abnwoak7fzjq75qaaaca"
+  ],
+  "$query": [
+    {
+      "$regex": {},
+      "$depth": 0
+    }
+  ],
+  "$filter": {
+    "$orderby": {
+      "TransactionDate": 1
+    }
+  }
+}

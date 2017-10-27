@@ -569,7 +569,7 @@ public class WebApplicationResourceTest {
         // DslqQueryHelper Exceptions : InvalidParseOperationException,
         // InvalidCreateOperationException
         final Map<String, JsonNode> updateRules = new HashMap<>();
-        PowerMockito.when(DslQueryHelper.createUpdateDSLQuery(updateCriteriaMap, updateRules))
+        PowerMockito.when(DslQueryHelper.createUpdateByIdDSLQuery(updateCriteriaMap, updateRules))
             .thenThrow(InvalidParseOperationException.class, InvalidCreateOperationException.class);
 
         given().contentType(ContentType.JSON).body(UPDATE).expect()

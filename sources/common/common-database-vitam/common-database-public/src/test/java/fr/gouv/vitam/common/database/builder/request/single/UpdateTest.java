@@ -24,9 +24,12 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.database.builder.request.multiple;
+package fr.gouv.vitam.common.database.builder.request.single;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -45,31 +48,16 @@ import fr.gouv.vitam.common.database.builder.query.action.PushAction;
 import fr.gouv.vitam.common.database.builder.query.action.RenameAction;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.MULTIFILTER;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
-@SuppressWarnings("javadoc")
-public class UpdateMultiQueryTest {
-
-    @Test
-    public void testSetMult() {
-        final UpdateMultiQuery update = new UpdateMultiQuery();
-        assertTrue(update.getFilter().size() == 0);
-        update.setMult(true);
-        assertTrue(update.getFilter().size() == 1);
-        update.setMult(false);
-        assertTrue(update.getFilter().size() == 1);
-        assertTrue(update.getFilter().has(MULTIFILTER.MULT.exactToken()));
-        update.resetFilter();
-        assertTrue(update.getFilter().size() == 0);
-    }
+public class UpdateTest {
 
     @Test
     public void testAddActions() {
-        final UpdateMultiQuery update = new UpdateMultiQuery();
+        final Update update = new Update();
         assertTrue(update.actions.isEmpty());
         try {
             update.addActions(new AddAction("varname", 1).add(true));
@@ -90,19 +78,16 @@ public class UpdateMultiQueryTest {
     }
 
     @Test
-    public void testAddRequests() {
-        final UpdateMultiQuery update = new UpdateMultiQuery();
-        assertTrue(update.queries.isEmpty());
+    public void testAddQuery() {
+        final Update update = new Update();
+        assertNull(update.query);
         try {
-            update.addQueries(
+            update.setQuery(
                 new BooleanQuery(QUERY.AND).add(new ExistsQuery(QUERY.EXISTS, "varA"))
                     .setRelativeDepthLimit(5));
-            update.addQueries(new PathQuery("path1", "path2"),
-                new ExistsQuery(QUERY.EXISTS, "varB").setExactDepthLimit(10));
-            update.addQueries(new PathQuery("path3"));
-            assertEquals(4, update.queries.size());
-            update.resetQueries();
-            assertEquals(0, update.queries.size());
+            assertNotNull(update.query);
+            update.resetQuery();
+            assertFalse(update.query.getCurrentQuery().fields().hasNext());
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -111,15 +96,14 @@ public class UpdateMultiQueryTest {
 
     @Test
     public void testGetFinalUpdate() {
-        final UpdateMultiQuery update = new UpdateMultiQuery();
-        assertTrue(update.queries.isEmpty());
+        final Update update = new Update();
+        assertNull(update.query);
         try {
-            update.addQueries(new PathQuery("path3"));
-            assertEquals(1, update.queries.size());
-            update.setMult(true);
+            update.setQuery(new PathQuery("path3"));
+            assertTrue(update.query.getCurrentQuery().fields().hasNext());
             update.addActions(new IncAction("mavar"));
             final ObjectNode node = update.getFinalUpdate();
-            assertEquals(4, node.size());
+            assertEquals(3, node.size());
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -128,12 +112,11 @@ public class UpdateMultiQueryTest {
 
     @Test
     public void testGetFinalUpdateById() {
-        final UpdateMultiQuery update = new UpdateMultiQuery();
-        assertTrue(update.queries.isEmpty());
+        final Update update = new Update();
+        assertNull(update.query);
         try {
-            update.addQueries(new PathQuery("path3"));
-            assertEquals(1, update.queries.size());
-            update.setMult(true);
+            update.setQuery(new PathQuery("path3"));
+            assertTrue(update.query.getCurrentQuery().fields().hasNext());
             update.addActions(new IncAction("mavar"));
             final ObjectNode node = update.getFinalUpdateById();
             assertEquals(1, node.size());
@@ -145,7 +128,7 @@ public class UpdateMultiQueryTest {
 
     @Test
     public void testAllReset() throws InvalidCreateOperationException {
-        final UpdateMultiQuery update = new UpdateMultiQuery();
+        final Update update = new Update();
         update.addActions(new AddAction("varname", 1));
         assertEquals(1, update.actions.size());
         update.reset();
@@ -154,7 +137,7 @@ public class UpdateMultiQueryTest {
 
     @Test
     public void testAllSet() throws InvalidParseOperationException, InvalidCreateOperationException {
-        final UpdateMultiQuery update = new UpdateMultiQuery();
+        final Update update = new Update();
         update.setMult(JsonHandler.createObjectNode().put("$mult", "true"));
         assertTrue(update.getFilter().size() == 1);
         update.resetFilter();
@@ -163,7 +146,7 @@ public class UpdateMultiQueryTest {
         assertTrue(update.getFilter().size() == 1);
 
         final String s =
-            "UPDATEACTION: Requests: \n\tFilter: {\"$mult\":\"true\"}\n\tRoots: []\n\tActions: \n{\"$inc\":{\"var2\":2}}";
+            "UPDATEACTION: Requests: \n\tFilter: {\"$mult\":\"true\"}\n\tActions: \n{\"$inc\":{\"var2\":2}}";
         update.addActions(new IncAction("var2", 2));
         assertEquals(s, update.toString());
 

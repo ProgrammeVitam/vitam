@@ -79,6 +79,20 @@
             "max": 1
           }
         },
+        "$wildcard": {
+          "type": {
+            "anykey": "anyvalue",
+            "min": 1,
+            "max": 1
+          }
+        },
+        "$regex": {
+          "type": {
+            "anykey": "anyvalue",
+            "min": 1,
+            "max": 1
+          }
+        },
         "$eq": {
           "type": {
             "anykey": "anyvalue",

@@ -59,6 +59,8 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
+import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.dsl.schema.Dsl;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -315,13 +317,17 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "units:id:update", description = "Réaliser la mise à jour d'une unité archivistique")
-    public Response updateUnitById(JsonNode queryJson, @PathParam("idu") String idUnit) {
+    public Response updateUnitById(@Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryJson, @PathParam("idu") String idUnit) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            SanityChecker.checkJsonAll(queryJson);
-            RequestResponse<JsonNode> response = client.updateUnitbyId(queryJson, idUnit);
+            // FIXME P1 add of idUnit as roots should be made in metadata as it is an internal concern 
+            UpdateParserMultiple updateParserMultiple = new UpdateParserMultiple();
+            updateParserMultiple.parse(queryJson);
+            UpdateMultiQuery updateMultiQuery = updateParserMultiple.getRequest();
+            updateMultiQuery.addRoots(idUnit);
+            RequestResponse<JsonNode> response = client.updateUnitbyId(updateMultiQuery.getFinalUpdate(), idUnit);
             if (!response.isOk() && response instanceof VitamError) {
                 VitamError error = (VitamError) response;
                 return buildErrorFromError(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR, error.getMessage(),

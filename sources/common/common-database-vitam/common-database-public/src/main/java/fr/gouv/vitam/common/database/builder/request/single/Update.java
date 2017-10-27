@@ -134,6 +134,18 @@ public class Update extends RequestSingle {
 
     /**
      *
+     * @return the Final Update by id containing one parts: actions
+     */
+    public final ObjectNode getFinalUpdateById() {
+        final ObjectNode node = getFinalUpdate();
+        node.remove(GLOBAL.QUERY.exactToken());
+        node.remove(GLOBAL.FILTER.exactToken());
+        node.remove(GLOBAL.PROJECTION.exactToken());
+        return node;
+    }
+
+    /**
+     *
      * @return the Final Update containing all 4 parts: roots, queries array, filter and actions
      */
     public final ObjectNode getFinalUpdate() {

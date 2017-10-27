@@ -90,7 +90,7 @@ public class DslScannerFilter implements ContainerRequestFilter {
             }
             requestContext.setEntityStream(new ByteArrayInputStream(bout.toByteArray()));
         } catch (ValidationException e) {
-            LOGGER.warn(e);
+            LOGGER.error(e);
             requestContext.abortWith(
                 e.getVitamError().toResponse());
         } catch (InvalidParseOperationException e) {

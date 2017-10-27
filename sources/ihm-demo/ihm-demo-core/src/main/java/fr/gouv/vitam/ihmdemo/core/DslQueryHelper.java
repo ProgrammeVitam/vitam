@@ -545,7 +545,7 @@ public final class DslQueryHelper {
 
         return select.getFinalSelect();
     }
-
+    
     /**
      * @param searchCriteriaMap Criteria received from The IHM screen Empty Keys or Value is not allowed
      * @param updateRules       rules that must be updated in the AU.
@@ -553,8 +553,7 @@ public final class DslQueryHelper {
      * @throws InvalidParseOperationException  thrown when an error occurred during parsing
      * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
-    public static JsonNode createUpdateDSLQuery(Map<String, JsonNode> searchCriteriaMap,
-        Map<String, JsonNode> updateRules)
+    public static JsonNode createUpdateByIdDSLQuery(Map<String, JsonNode> searchCriteriaMap, Map<String, JsonNode> updateRules)
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
         final UpdateMultiQuery update = new UpdateMultiQuery();
@@ -565,11 +564,6 @@ public final class DslQueryHelper {
 
             if (searchKeys.isEmpty()) {
                 throw new InvalidParseOperationException("Parameters should not be empty or null");
-            }
-            // Add root
-            if (searchKeys.equals(UiConstants.SELECT_BY_ID.toString())) {
-                update.addRoots(searchValue.textValue());
-                continue;
             }
             // Add Actions
             Map<String, JsonNode> action = new HashMap<>();
@@ -589,7 +583,7 @@ public final class DslQueryHelper {
                 update.addActions(new SetAction(action));
             }
         }
-        return update.getFinalUpdate();
+        return update.getFinalUpdateById();
     }
 
     /**
