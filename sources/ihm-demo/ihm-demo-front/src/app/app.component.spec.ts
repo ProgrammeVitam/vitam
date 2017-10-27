@@ -1,13 +1,35 @@
 import { TestBed, async } from '@angular/core/testing';
-
+import {RouterTestingModule} from '@angular/router/testing';
 import { AppComponent } from './app.component';
 import {NO_ERRORS_SCHEMA} from '@angular/core';
+import {Observable} from 'rxjs/Observable';
+import 'rxjs/add/observable/of';
+
+import { AuthenticationService } from './authentication/authentication.service';
+
+
+
+const AuthenticationServiceStub = {
+  getLoginState: () => Observable.of(''),
+  logIn: () => Observable.of({ status : 200 }),
+  loggedIn: () => {},
+  loggedOut: () => {},
+  logOut: () => Observable.of('')
+};
 
 describe('AppComponent', () => {
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [
         AppComponent
+      ],
+      imports: [
+        RouterTestingModule.withRoutes([
+          { path: 'login', component: AppComponent }
+        ])
+      ],
+      providers: [
+        { provide: AuthenticationService, useValue: AuthenticationServiceStub }
       ],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();

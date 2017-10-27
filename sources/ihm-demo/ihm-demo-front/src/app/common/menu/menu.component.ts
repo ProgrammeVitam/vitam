@@ -28,58 +28,126 @@ export class MenuComponent implements OnInit {
   ngOnInit() {
     this.authenticationService.getLoginState().subscribe((value) => {
       if (value) {
-        this.items = [
-          {
-            label: 'Entrée',
-            icon: 'fa-sign-in',
-            items: [
-              {label: 'Transfert SIP',routerLink: ['ingest/sip']},
-              {label: 'Suivi des opérations d\'entrée', routerLink: ['ingest/logbook']}
-            ]
-          },
-          {
-            label: 'Recherche',
-            icon: 'fa-search',
-            items: [
-              {label: 'Recherche d\'archives', routerLink: ['search/archiveUnit']},
-              {label: 'Registre des fonds', routerLink: ['admin/search/accession-register']}
-            ]
-          },
-          {
-            label: 'Administration',
-            icon: 'fa-cogs',
-            items: [
-              {label: 'Référentiel des règles de gestion', routerLink: ['admin/search/rule']},
-              {label: 'Référentiel des formats', routerLink: ['admin/search/format']},
-              {label: 'Référentiel des profils', routerLink: ['admin/search/profil']},
-              {label: 'Contrats d\'entrée', routerLink: ['admin/search/ingestContract']},
-              {label: 'Contrats d\'accès', routerLink: ['admin/search/accessContract']},
-              {label: 'Contextes applicatifs', routerLink: ['admin/search/context']},
-              {label: 'Service agent', routerLink: ['admin/search/agencies']},
-              {separator: true},
-              {label: 'Journal des opérations', routerLink: ['admin/logbookOperation']},
-              {label: 'Gestion des opérations', routerLink: ['admin/workflow']},
-              {label: 'Opérations de sécurisation', routerLink: ['admin/traceability']},
-              {separator: true},
-              {label: 'Import de l\'arbre de positionnement', routerLink: ['admin/fillingScheme']},
-              {label: 'Import du référentiel des règles de gestion', routerLink: ['admin/import/rule']},
-              {label: 'Import du référentiel des formats', routerLink: ['admin/import/format']},
-              {label: 'Import des contrats d\'entrée', routerLink: ['admin/import/ingestContract']},
-              {label: 'Import des contrats d\'accès', routerLink: ['admin/import/accessContract']},
-              {label: 'Import des profils', routerLink: ['admin/import/profil']},
-              {label: 'Import des contextes', routerLink: ['admin/import/context']},
-              {label: 'Import des service agent', routerLink: ['admin/import/agencies']}
-            ]
-          },
-          {
-            label: 'Gestion des archives',
-            icon: 'fa-area-chart',
-            items: [
-              {label: 'Audit', routerLink: ['admin/audits']}
-            ]
-          }
-
-        ];
+        //FIXME change menu model or wait primeng fix the bug of visible https://github.com/primefaces/primeng/issues/3072
+        if (this.authenticationService.isAdmin()) {
+          this.items = [
+            {
+              label: 'Entrée',
+              icon: 'fa-sign-in',
+              items: [
+                {label: 'Transfert de SIP et plan de classement',routerLink: ['ingest/sip']},
+                {label: 'Suivi des opérations d\'entrée', routerLink: ['ingest/logbook']}
+              ]
+            },
+            {
+              label: 'Recherche',
+              icon: 'fa-search',
+              items: [
+                {label: 'Recherche d\'archives', routerLink: ['search/archiveUnit']},
+                {label: 'Recherche par services producteurs', routerLink: ['admin/search/accession-register']}
+              ]
+            },
+            {
+              label: 'Administration',
+              icon: 'fa-cogs',
+              items: [
+                {
+                  label: 'Référentiels  fonctionnels',
+                  items: [
+                    {label: 'Règles de gestion', routerLink: ['admin/search/rule'], disabled : false},
+                    {label: 'Formats', routerLink: ['admin/search/format']},
+                    {label: 'Profils d\'archivage', routerLink: ['admin/search/profil']},
+                    {label: 'Référentiel des services agents', routerLink: ['admin/search/agencies']}
+                  ]
+                },
+                {
+                  label: 'Référentiels techniques',
+                  items: [
+                    {label: 'Contextes applicatifs', routerLink: ['admin/search/context']},
+                    {label: 'Contrats d\'entrée', routerLink: ['admin/search/ingestContract']},
+                    {label: 'Contrats d\'accès', routerLink: ['admin/search/accessContract']}
+                  ]
+                },
+                {
+                  label: 'Import des référentiels',
+                  items: [
+                    {label: 'Import des règles de gestion', routerLink: ['admin/import/rule']},
+                    {label: 'Import des formats', routerLink: ['admin/import/format']},
+                    {label: 'Import des profils d\'archivage', routerLink: ['admin/import/profil']},
+                    {label: 'Import des services agents', routerLink: ['admin/import/agencies']},
+                    {label: 'Import d\'un arbre de positionnement', routerLink: ['admin/holdingScheme']},
+                    {label: 'Import des contextes applicatifs', routerLink: ['admin/import/context']},
+                    {label: 'Import des contrats d\'entrée', routerLink: ['admin/import/ingestContract']},
+                    {label: 'Import des contrats d\'accès', routerLink: ['admin/import/accessContract']}
+                  ]
+                },
+                {
+                  label: 'Opérations',
+                  items: [
+                    {label: 'Gestion des opérations', routerLink: ['admin/workflow']},
+                    {label: 'Journal des opérations', routerLink: ['admin/logbookOperation']},
+                    {label: 'Opérations de sécurisation', routerLink: ['admin/traceabilityOperation']}
+                  ]
+                }
+              ]
+            },
+            {
+              label: 'Gestion des archives',
+              icon: 'fa-area-chart',
+              items: [
+                {label: 'Audit', routerLink: ['admin/audits']}
+              ]
+            }
+          ];
+        } else {
+          this.items = [
+            {
+              label: 'Entrée',
+              icon: 'fa-sign-in',
+              items: [
+                {label: 'Transfert de SIP et plan de classement',routerLink: ['ingest/sip']},
+                {label: 'Suivi des opérations d\'entrée', routerLink: ['ingest/logbook']}
+              ]
+            },
+            {
+              label: 'Recherche',
+              icon: 'fa-search',
+              items: [
+                {label: 'Recherche d\'archives', routerLink: ['search/archiveUnit']},
+                {label: 'Recherche par services producteurs', routerLink: ['admin/search/accession-register']}
+              ]
+            },
+            {
+              label: 'Administration',
+              icon: 'fa-cogs',
+              items: [
+                {
+                  label: 'Référentiels  fonctionnels',
+                  items: [
+                    {label: 'Règles de gestion', routerLink: ['admin/search/rule'], disabled : false},
+                    {label: 'Formats', routerLink: ['admin/search/format']},
+                    {label: 'Profils d\'archivage', routerLink: ['admin/search/profil']},
+                    {label: 'Référentiel des services agents', routerLink: ['admin/search/agencies']}
+                  ]
+                },
+                {
+                  label: 'Référentiels techniques',
+                  items: [
+                    {label: 'Contextes applicatifs', routerLink: ['admin/search/context']},
+                    {label: 'Contrats d\'entrée', routerLink: ['admin/search/ingestContract']},
+                    {label: 'Contrats d\'accès', routerLink: ['admin/search/accessContract']}
+                  ]
+                },
+                {
+                  label: 'Opérations',
+                  items: [
+                    {label: 'Journal des opérations', routerLink: ['admin/logbookOperation']}
+                  ]
+                }
+              ]
+            }
+          ];
+        }
         this.isAuthenticated = true;
         this.tenantChosen = this.resourcesService.getTenant();
 

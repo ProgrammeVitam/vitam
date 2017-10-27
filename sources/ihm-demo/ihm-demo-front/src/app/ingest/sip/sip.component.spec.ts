@@ -14,6 +14,7 @@ import { UploadSipComponent } from '../../common/upload/upload-sip/upload-sip.co
 import { ResourcesService } from '../../common/resources.service';
 import { UploadService } from '../../common/upload/upload.service';
 import { BreadcrumbService } from "../../common/breadcrumb.service";
+import { AuthenticationService } from '../../authentication/authentication.service';
 
 const UploadServiceStub = {
   uploadFile: (username : string, password : string) => {
@@ -50,7 +51,8 @@ describe('SipComponent', () => {
             return new Http(mockBackend, defaultOptions);
           },
           deps: [MockBackend, BaseRequestOptions]         },
-        {provide: UploadService, useValue : UploadServiceStub}
+        {provide: UploadService, useValue : UploadServiceStub},
+        {provide: AuthenticationService, useValue : {isAdmin : () => {return true;}}}
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })

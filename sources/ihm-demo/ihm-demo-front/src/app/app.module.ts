@@ -72,71 +72,75 @@ import { LogbookDetailsHeaderComponent } from './admin/logbook-operation/logbook
 import { LogbookDetailsDescriptionComponent } from "./admin/logbook-operation/logbook-operation-details/logbook-details-description/logbook-details-description.component";
 import { LogbookHelperService } from "./common/logbook-operation-events/logbook-helper.service";
 import { AccessionRegisterComponent } from './referentials/details/accession-register/accession-register.component';
-import { FilingschemeComponent } from './admin/filingscheme/filingscheme.component';
+import { OperationComponent } from './admin/traceability/operation/operation.component';
+import { HoldingschemeComponent } from './admin/holdingscheme/holdingscheme.component';
 
 const appRoutes: Routes = [
   {
     path: 'home', component: HomeComponent
   },
   {
-    path: 'search/archiveUnit', component: ArchiveUnitComponent
+    path: 'search/archiveUnit', component: ArchiveUnitComponent, data : {permission : 'archivesearch:units:read'}
   },
   {
-    path: 'search/archiveUnit/:id', component: ArchiveUnitDetailsComponent
+    path: 'search/archiveUnit/:id', component: ArchiveUnitDetailsComponent, data : {permission : 'archivesearch:units:read'}
   },
   {
     path: 'login', component: AuthenticationComponent
   },
   {
-    path: 'ingest/logbook', component: LogbookComponent
+    path: 'ingest/logbook', component: LogbookComponent, data : {permission : 'logbook:operations:read'}
   },
   {
-    path: 'ingest/logbook/:id', component: LogbookDetailsComponent
+    path: 'ingest/logbook/:id', component: LogbookDetailsComponent, data : {permission : 'logbook:operations:read'}
   },
   {
-    path: 'ingest/sip', component: SipComponent
+    path: 'ingest/sip', component: SipComponent, data : {permission : 'ingest:create'}
   },
   {
-    path: 'admin/logbookOperation', component: LogbookOperationComponent
+    path: 'admin/logbookOperation', component: LogbookOperationComponent, data : {permission : 'logbook:operations:read'}
   },
   {
-    path: 'admin/logbookOperation/:id', component: LogbookOperationDetailsComponent
+    path: 'admin/logbookOperation/:id', component: LogbookOperationDetailsComponent, data : {permission : 'logbook:operations:read'}
   },
   {
-    path: 'admin/fillingScheme', component: FilingschemeComponent
+    path: 'admin/holdingScheme', component: HoldingschemeComponent, data : {permission : 'format:create'}
   },
   {
-    path: 'admin/import/:referentialType', component: ImportComponent
+    path: 'admin/traceabilityOperation', component: OperationComponent, data : {permission : 'logbook:operations:read'}
   },
   {
-    path: 'admin/format/:id', component: FormatComponent
+    path: 'admin/import/:referentialType', component: ImportComponent, data : { permission : 'format:create' }
   },
   {
-    path: 'admin/rule/:id', component: RuleComponent
+    path: 'admin/format/:id', component: FormatComponent, data : {permission : 'admin:formats:read'}
   },
   {
-    path: 'admin/accessContract/:id', component: AccessContractComponent
+    path: 'admin/rule/:id', component: RuleComponent, data : {permission : 'admin:rules:read'}
   },
   {
-    path: 'admin/ingestContract/:id', component: IngestContractComponent
+    path: 'admin/accessContract/:id', component: AccessContractComponent, data : {permission : 'accesscontracts:read'}
   },
   {
-    path: 'admin/profil/:id', component: ProfilComponent
+    path: 'admin/ingestContract/:id', component: IngestContractComponent, data : {permission : 'contracts:read'}
   },
   {
-    path: 'admin/context/:id', component: ContextComponent
+    path: 'admin/profil/:id', component: ProfilComponent, data : {permission : 'profiles:read'}
   },
   {
-    path: 'admin/agencies/:id', component: AgenciesComponent
+    path: 'admin/context/:id', component: ContextComponent, data : {permission : 'contexts:read'}
   },
   {
-    path: 'admin/accessionRegister/:id', component: AccessionRegisterComponent
+    path: 'admin/agencies/:id', component: AgenciesComponent, data : {permission : 'admin:accession-register:read'}
   },
   {
-    path: 'admin/search/:referentialType', component: SearchReferentialsComponent
+    path: 'admin/accessionRegister/:id', component: AccessionRegisterComponent, data : {permission : 'admin:accession-register:read'}
   },
   {
-    path: 'admin/audits', component: AuditComponent
+    path: 'admin/search/:referentialType', component: SearchReferentialsComponent, data : {permission : 'admin:formats:read'}
+  },
+  {
+    path: 'admin/audits', component: AuditComponent, data : {permission : 'admin:audit'}
   },
   {
     path: '**', redirectTo: 'ingest/sip', pathMatch: 'full'
@@ -195,7 +199,8 @@ const appRoutes: Routes = [
     LogbookDetailsDescriptionComponent,
     AuditComponent,
     AccessionRegisterComponent,
-    FilingschemeComponent
+    OperationComponent,
+    HoldingschemeComponent
   ],
   imports: [
     RouterModule.forRoot(appRoutes, {useHash: true}),
