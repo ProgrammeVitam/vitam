@@ -331,7 +331,7 @@ public class AccessInternalResourceImplTest {
     public void given_getUnits_and_getUnitByID_thenReturn_OK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         AccessContractModel contract = new AccessContractModel();
-        Set<String> prodServices = new HashSet<String>(Arrays.asList("a", "b"));
+        Set<String> prodServices = new HashSet<>(Arrays.asList("a", "b"));
         contract.setOriginatingAgencies(prodServices);
         VitamThreadUtils.getVitamSession().setContract(contract);
         with()
@@ -430,6 +430,7 @@ public class AccessInternalResourceImplTest {
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_TENANT_ID, 0)
             .body(BODY_TEST).when()
             .get(OBJECTS_URI +
                 OBJECT_ID)

@@ -266,10 +266,9 @@ public class DbRequestResult implements VitamAutoCloseable {
                 case TENANT:
                     replace(document, VitamDocument.TENANT_ID, VitamFieldsHelper.tenant());
                     break;
-                //FIXE ME check if _v is necessary
-                //                case VERSION:
-                //                    replace(document, VitamDocument.VERSION, VitamFieldsHelper.version());
-                //                    break;
+                case VERSION:
+                    replace(document, VitamDocument.VERSION, VitamFieldsHelper.version());
+                    break;
                 default:
                     break;
 

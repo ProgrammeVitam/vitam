@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
