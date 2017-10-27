@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.DefaultSerializerProvider;
 import com.google.common.base.Strings;
 
@@ -50,6 +51,7 @@ import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -59,7 +61,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Helper class to create DSL queries
- *
  */
 public final class DslQueryHelper {
 
@@ -138,10 +139,9 @@ public final class DslQueryHelper {
     /**
      * generate the DSL query after receiving the search criteria
      *
-     *
      * @param searchCriteriaMap the map containing the criteria
      * @return DSL request
-     * @throws InvalidParseOperationException if a parse exception is encountered
+     * @throws InvalidParseOperationException  if a parse exception is encountered
      * @throws InvalidCreateOperationException if an Invalid create operation is encountered
      */
     @SuppressWarnings("unchecked")
@@ -297,8 +297,7 @@ public final class DslQueryHelper {
                     case PROFILE_NAME:
                         if ("all".equals(searchValue)) {
                             query.add(exists("Name"));
-                        }
-                        else  if (!searchValue.isEmpty()) {
+                        } else if (!searchValue.isEmpty()) {
                             query.add(match("Name", searchValue));
                         }
                         break;
@@ -316,8 +315,7 @@ public final class DslQueryHelper {
                     case PROFILE_IDENTIFIER:
                         if ("all".equals(searchValue)) {
                             query.add(exists("Identifier"));
-                        }
-                        else  if (!searchValue.isEmpty()) {
+                        } else if (!searchValue.isEmpty()) {
                             query.add(match("Identifier", searchValue));
                         }
                         break;
@@ -342,7 +340,7 @@ public final class DslQueryHelper {
     /**
      * @param searchCriteriaMap Criteria received from The IHM screen Empty Keys or Value is not allowed
      * @return the JSONDSL File
-     * @throws InvalidParseOperationException thrown when an error occurred during parsing
+     * @throws InvalidParseOperationException  thrown when an error occurred during parsing
      * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
 
@@ -392,9 +390,41 @@ public final class DslQueryHelper {
     }
 
     /**
+     * Create GetById Select Multiple Query Dsl request that contains only projection.
+     *
+     * @param projectionCriteriaMap the given projection parameters
+     * @return request with projection
+     * @throws InvalidParseOperationException  null key or value parameters
+     * @throws InvalidCreateOperationException queryDsl create operation
+     */
+    public static JsonNode createGetByIdDSLSelectMultipleQuery(Map<String, String> projectionCriteriaMap)
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+
+        final SelectMultiQuery select = new SelectMultiQuery();
+
+        for (final Entry<String, String> entry : projectionCriteriaMap.entrySet()) {
+            final String searchKeys = entry.getKey();
+            final String searchValue = entry.getValue();
+
+            if (searchKeys.isEmpty() || searchValue.isEmpty()) {
+                throw new InvalidParseOperationException("Parameters should not be empty or null");
+            }
+
+            // Add projection for fields prefixed by projection_
+            if (searchKeys.startsWith(PROJECTION_PREFIX)) {
+                select.addUsedProjection(searchValue);
+            }
+
+        }
+        // Suppress 3 parts of queryDsl for validation in getById only Projection is authorize
+        ObjectNode finalSelect = select.getFinalSelectById();
+        return finalSelect;
+    }
+
+    /**
      * @param searchCriteriaMap Criteria received from The IHM screen Empty Keys or Value is not allowed
      * @return the JSONDSL File
-     * @throws InvalidParseOperationException thrown when an error occurred during parsing
+     * @throws InvalidParseOperationException  thrown when an error occurred during parsing
      * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
     @SuppressWarnings("unchecked")
@@ -450,7 +480,7 @@ public final class DslQueryHelper {
 
             // ADD_ROOT
             if (searchKeys.equalsIgnoreCase(ROOTS)) {
-                List<String> list = (List)searchValue;
+                List<String> list = (List) searchValue;
                 String[] roots = list.toArray(new String[list.size()]);
                 select.addRoots(roots);
                 continue;
@@ -498,7 +528,7 @@ public final class DslQueryHelper {
         }
         // US 509:start AND end date must be filled.
         if (!Strings.isNullOrEmpty(endDate) && !Strings.isNullOrEmpty(startDate)) {
-        	andQuery.add(createSearchUntisQueryByDate(startDate, endDate));
+            andQuery.add(createSearchUntisQueryByDate(startDate, endDate));
         }
 
         if (advancedSearchFlag.equalsIgnoreCase(YES)) {
@@ -518,12 +548,13 @@ public final class DslQueryHelper {
 
     /**
      * @param searchCriteriaMap Criteria received from The IHM screen Empty Keys or Value is not allowed
-     * @param updateRules rules that must be updated in the AU.
+     * @param updateRules       rules that must be updated in the AU.
      * @return the JSONDSL File
-     * @throws InvalidParseOperationException thrown when an error occurred during parsing
+     * @throws InvalidParseOperationException  thrown when an error occurred during parsing
      * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
-    public static JsonNode createUpdateDSLQuery(Map<String, JsonNode> searchCriteriaMap, Map<String, JsonNode> updateRules)
+    public static JsonNode createUpdateDSLQuery(Map<String, JsonNode> searchCriteriaMap,
+        Map<String, JsonNode> updateRules)
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
         final UpdateMultiQuery update = new UpdateMultiQuery();
@@ -546,7 +577,7 @@ public final class DslQueryHelper {
             update.addActions(new SetAction(action));
         }
 
-        for (final Entry<String, JsonNode> categoryRule: updateRules.entrySet()) {
+        for (final Entry<String, JsonNode> categoryRule : updateRules.entrySet()) {
             final String categoryKey = categoryRule.getKey();
             final JsonNode categoryRules = categoryRule.getValue();
 
@@ -554,7 +585,7 @@ public final class DslQueryHelper {
                 update.addActions(new UnsetAction(MANAGEMENT_KEY + '.' + categoryKey));
             } else {
                 Map<String, JsonNode> action = new HashMap<>();
-                action.put(MANAGEMENT_KEY + '.'  + categoryKey, categoryRules);
+                action.put(MANAGEMENT_KEY + '.' + categoryKey, categoryRules);
                 update.addActions(new SetAction(action));
             }
         }
@@ -564,10 +595,10 @@ public final class DslQueryHelper {
     /**
      * Creates Select Query to retrieve all parents relative to the unit specified by its id
      *
-     * @param unitId the unit id
+     * @param unitId           the unit id
      * @param immediateParents immediate parents (_up field value)
      * @return DSL Select Query
-     * @throws InvalidParseOperationException if error when parse json data for creating query
+     * @throws InvalidParseOperationException  if error when parse json data for creating query
      * @throws InvalidCreateOperationException if exception occurred when create query
      */
     public static JsonNode createSelectUnitTreeDSLQuery(String unitId, List<String> immediateParents)

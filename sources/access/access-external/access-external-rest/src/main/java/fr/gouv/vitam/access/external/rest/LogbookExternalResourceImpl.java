@@ -26,17 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -59,6 +49,15 @@ import fr.gouv.vitam.common.security.rest.Secured;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 /**
  * AccessResourceImpl implements AccessResource
@@ -140,20 +139,19 @@ public class LogbookExternalResourceImpl {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "logbookoperations:id:read", description = "Récupérer le journal d'une opération donnée")
-    public Response getOperationById(@PathParam("id_op") String operationId, JsonNode queryDsl) {
+    public Response getOperationById(@PathParam("id_op") String operationId,
+        @Dsl(value = DslSchema.GET_BY_ID) JsonNode queryDsl) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            SanityChecker.checkJsonAll(queryDsl);
             SanityChecker.checkParameter(operationId);
             final SelectParserSingle parser = new SelectParserSingle();
-            Select select = new Select();
-            parser.parse(select.getFinalSelect());
-            parser.addCondition(QueryHelper.eq(EVENT_ID_PROCESS, operationId));
-            queryDsl = parser.getRequest().getFinalSelect();
-            RequestResponse<JsonNode> result = client.selectOperationById(operationId, queryDsl);
+            parser.parse(queryDsl);
+            Select select = parser.getRequest();
+            select.setQuery(QueryHelper.eq(EVENT_ID_PROCESS, operationId));
+            RequestResponse<JsonNode> result = client.selectOperationById(operationId, select.getFinalSelect());
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (LogbookClientNotFoundException e) {
@@ -210,20 +208,18 @@ public class LogbookExternalResourceImpl {
     @Path("/unitlifecycles/{id_lc}")
     @Secured(permission = "unitlifecycles:id:read", description = "Récupérer le journal de cycle de vie d'une unité archivistique")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getUnitLifeCycleById(@PathParam("id_lc") String unitLifeCycleId, JsonNode queryDsl) {
+    public Response getUnitLifeCycleById(@PathParam("id_lc") String unitLifeCycleId,
+        @Dsl(value = DslSchema.GET_BY_ID) JsonNode queryDsl) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            SanityChecker.checkJsonAll(queryDsl);
-            SanityChecker.checkParameter(unitLifeCycleId);
             final SelectParserSingle parser = new SelectParserSingle();
-            Select select = new Select();
-            parser.parse(select.getFinalSelect());
-            parser.addCondition(QueryHelper.eq(OB_ID, unitLifeCycleId));
-            queryDsl = parser.getRequest().getFinalSelect();
-            RequestResponse<JsonNode> result = client.selectUnitLifeCycleById(unitLifeCycleId, queryDsl);
+            parser.parse(queryDsl);
+            Select select = parser.getRequest();
+            select.setQuery(QueryHelper.eq(OB_ID, unitLifeCycleId));
+            RequestResponse<JsonNode> result = client.selectUnitLifeCycleById(unitLifeCycleId, select.getFinalSelect());
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (final LogbookClientException e) {
@@ -273,21 +269,18 @@ public class LogbookExternalResourceImpl {
     @Secured(permission = "objectgrouplifecycles:id:read", description = "Récupérer le journal de cycle de vie d'un groupe d'objet")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectGroupLifeCycleById(@PathParam("id_lc") String objectGroupLifeCycleId,
-        JsonNode queryDsl) {
+        @Dsl(value = DslSchema.GET_BY_ID) JsonNode queryDsl) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            SanityChecker.checkJsonAll(queryDsl);
-            SanityChecker.checkParameter(objectGroupLifeCycleId);
             final SelectParserSingle parser = new SelectParserSingle();
-            Select select = new Select();
-            parser.parse(select.getFinalSelect());
-            parser.addCondition(QueryHelper.eq(OB_ID, objectGroupLifeCycleId));
-            queryDsl = parser.getRequest().getFinalSelect();
+            parser.parse(queryDsl);
+            Select select = parser.getRequest();
+            select.setQuery(QueryHelper.eq(OB_ID, objectGroupLifeCycleId));
             RequestResponse<JsonNode> result =
-                client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, queryDsl);
+                client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, select.getFinalSelect());
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (final LogbookClientException e) {

@@ -133,7 +133,7 @@ public class AccessStep {
     /**
      * check if the metadata are valid.
      *
-     * @param dataTable
+     * @param dataTable dataTable
      * @throws Throwable
      */
     @Then("^les metadonnées sont$")
@@ -824,7 +824,7 @@ public class AccessStep {
             world.getAccessClient().selectUnitbyId(
                 new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
                     .setApplicationSessionId(world.getApplicationSessionId()),
-                new SelectMultiQuery().getFinalSelect(), unitId);
+                new SelectMultiQuery().getFinalSelectById(), unitId);
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             JsonNode unit = requestResponseOK.getResults().get(0);

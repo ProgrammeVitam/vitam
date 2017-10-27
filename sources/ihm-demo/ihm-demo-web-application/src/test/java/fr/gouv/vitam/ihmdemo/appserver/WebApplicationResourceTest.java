@@ -444,12 +444,11 @@ public class WebApplicationResourceTest {
     public void testGetArchiveUnitDetails() throws Exception {
 
         final Map<String, String> searchCriteriaMap = new HashMap<>();
-        searchCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
         searchCriteriaMap.put(DslQueryHelper.PROJECTION_DSL, GLOBAL.RULES.exactToken());
 
         final JsonNode preparedDslQuery = JsonHandler.createObjectNode();
 
-        PowerMockito.when(DslQueryHelper.createSelectDSLQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
+        PowerMockito.when(DslQueryHelper.createGetByIdDSLSelectMultipleQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
 
         PowerMockito
             .when(UserInterfaceTransactionManager.getArchiveUnitDetails(preparedDslQuery, "1", TENANT_ID, CONTRACT_NAME,
@@ -469,12 +468,12 @@ public class WebApplicationResourceTest {
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
         final Map<String, String> searchCriteriaMap = new HashMap<>();
-        searchCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
+//        searchCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
         searchCriteriaMap.put(DslQueryHelper.PROJECTION_DSL, GLOBAL.RULES.exactToken());
 
         // DslqQueryHelper Exceptions : InvalidParseOperationException,
         // InvalidCreateOperationException
-        PowerMockito.when(DslQueryHelper.createSelectDSLQuery(searchCriteriaMap))
+        PowerMockito.when(DslQueryHelper.createGetByIdDSLSelectMultipleQuery(searchCriteriaMap))
             .thenThrow(InvalidParseOperationException.class, InvalidCreateOperationException.class);
 
         given().param("id", "1").expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
@@ -509,12 +508,12 @@ public class WebApplicationResourceTest {
     public void testArchiveUnitDetailsNotFoundError()
         throws Exception {
         final Map<String, String> searchCriteriaMap = new HashMap<>();
-        searchCriteriaMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
         searchCriteriaMap.put(DslQueryHelper.PROJECTION_DSL, GLOBAL.RULES.exactToken());
 
         final JsonNode preparedDslQuery = JsonHandler.createObjectNode();
 
-        PowerMockito.when(DslQueryHelper.createSelectDSLQuery(searchCriteriaMap)).thenReturn(preparedDslQuery);
+        PowerMockito.when(DslQueryHelper.createGetByIdDSLSelectMultipleQuery(searchCriteriaMap))
+            .thenReturn(preparedDslQuery);
 
         PowerMockito
             .when(UserInterfaceTransactionManager.getArchiveUnitDetails(preparedDslQuery, "1", TENANT_ID, CONTRACT_NAME,
@@ -718,7 +717,7 @@ public class WebApplicationResourceTest {
             PowerMockito.mock(AdminExternalClientFactory.class);
         PowerMockito.doReturn(new RequestResponseOK<JsonNode>().setHttpCode(Status.OK.getStatusCode()))
             .when(adminManagementClient).createFormats(anyObject(),
-                anyObject(), anyObject());
+            anyObject(), anyObject());
         PowerMockito.when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
 
@@ -1017,8 +1016,8 @@ public class WebApplicationResourceTest {
 
         PowerMockito.when(
             DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(
-                JsonHandler
-                    .getFromString(FAKE_STRING_RETURN));
+            JsonHandler
+                .getFromString(FAKE_STRING_RETURN));
         PowerMockito.when(
             UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject(), anyString()))
             .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN));
@@ -1062,8 +1061,8 @@ public class WebApplicationResourceTest {
         throws Exception {
         PowerMockito.when(
             DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(
-                JsonHandler
-                    .getFromString(FAKE_STRING_RETURN));
+            JsonHandler
+                .getFromString(FAKE_STRING_RETURN));
         PowerMockito.when(
             UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject(), anyString()))
             .thenThrow(AccessExternalClientServerException.class);
@@ -1079,8 +1078,8 @@ public class WebApplicationResourceTest {
         throws Exception {
         PowerMockito.when(
             DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(
-                JsonHandler
-                    .getFromString(FAKE_STRING_RETURN));
+            JsonHandler
+                .getFromString(FAKE_STRING_RETURN));
 
         PowerMockito.when(
             UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject(), anyString()))
@@ -1097,7 +1096,7 @@ public class WebApplicationResourceTest {
         throws InvalidCreateOperationException, VitamException {
         PowerMockito.when(
             DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(
-                JsonHandler.getFromString(FAKE_STRING_RETURN));
+            JsonHandler.getFromString(FAKE_STRING_RETURN));
         PowerMockito.when(
             UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject(), anyString()))
             .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN));
@@ -1505,7 +1504,7 @@ public class WebApplicationResourceTest {
         when(adminExternalClient.downloadTraceabilityOperationFile(
             eq(new VitamContext(0).setAccessContract(contractName).setApplicationSessionId(getAppSessionId())),
             eq("1")))
-                .thenReturn(ClientMockResultHelper.getObjectStream());
+            .thenReturn(ClientMockResultHelper.getObjectStream());
 
         RestAssured.given()
             .when().get("traceability" + "/1/" + "content?contractId=" + contractName)

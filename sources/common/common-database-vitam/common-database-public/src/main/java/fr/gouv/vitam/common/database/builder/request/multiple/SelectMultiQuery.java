@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.database.builder.request.multiple;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -37,11 +38,9 @@ import fr.gouv.vitam.common.json.JsonHandler;
 /**
  * Select: { $roots: roots, $query : query, $filter : filter, $projection : projection } or [ roots, query, filter,
  * projection ]
- *
  */
 public class SelectMultiQuery extends RequestMultiple {
     /**
-     *
      * @return this Query
      */
     public final SelectMultiQuery resetLimitFilter() {
@@ -50,7 +49,6 @@ public class SelectMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @return this Query
      */
     public final SelectMultiQuery resetOrderByFilter() {
@@ -59,7 +57,6 @@ public class SelectMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @return this Query
      */
     public final SelectMultiQuery resetUsedProjection() {
@@ -68,7 +65,6 @@ public class SelectMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @return this Query
      */
     public final SelectMultiQuery resetUsageProjection() {
@@ -91,7 +87,7 @@ public class SelectMultiQuery extends RequestMultiple {
 
     /**
      * @param offset ignored if 0
-     * @param limit ignored if 0
+     * @param limit  ignored if 0
      * @return this Query
      */
     public final SelectMultiQuery setLimitFilter(final long offset, final long limit) {
@@ -100,7 +96,6 @@ public class SelectMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @param filterContent content json
      * @return this Query
      */
@@ -110,7 +105,6 @@ public class SelectMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @param filter string filter
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -122,7 +116,6 @@ public class SelectMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @param variableNames list of key name
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -134,7 +127,6 @@ public class SelectMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @param variableNames list of key name
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -146,7 +138,6 @@ public class SelectMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @param filterContent json filter
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -158,7 +149,6 @@ public class SelectMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @param filter string filter
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -170,7 +160,6 @@ public class SelectMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @param filterContent json filter
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -184,7 +173,6 @@ public class SelectMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @param variableNames list of key name
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -196,7 +184,6 @@ public class SelectMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @param variableNames list of key name
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -208,7 +195,6 @@ public class SelectMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @param projectionContent json projection
      * @return this Query
      */
@@ -218,7 +204,6 @@ public class SelectMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @param projection string projection
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -231,8 +216,8 @@ public class SelectMultiQuery extends RequestMultiple {
 
     /**
      * Specific command to get the correct Qualifier and Version from ObjectGroup. By default always return "_id".
-     * @param additionalFields additional fields
      *
+     * @param additionalFields additional fields
      * @throws InvalidParseOperationException when projection parse exception occurred
      */
     public void setProjectionSliceOnQualifier(String... additionalFields)
@@ -249,7 +234,6 @@ public class SelectMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @param usage string
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -268,7 +252,6 @@ public class SelectMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @param projectionContent json projection
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -291,7 +274,6 @@ public class SelectMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @param projectionContent json projection
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -303,7 +285,6 @@ public class SelectMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
      * @return the Final Select containing all 4 parts: roots array, queries array, filter and projection
      */
     public final ObjectNode getFinalSelect() {
@@ -311,7 +292,17 @@ public class SelectMultiQuery extends RequestMultiple {
     }
 
     /**
-     *
+     * @return the Final Select By Id containing only one part: projection
+     */
+    public final ObjectNode getFinalSelectById() {
+        final ObjectNode objectNode = selectGetFinalSelect();
+        objectNode.remove(BuilderToken.GLOBAL.QUERY.exactToken());
+        objectNode.remove(BuilderToken.GLOBAL.FILTER.exactToken());
+        objectNode.remove(BuilderToken.GLOBAL.ROOTS.exactToken());
+        return objectNode;
+    }
+
+    /**
      * @return True if the projection is not restricted
      */
     @Override
