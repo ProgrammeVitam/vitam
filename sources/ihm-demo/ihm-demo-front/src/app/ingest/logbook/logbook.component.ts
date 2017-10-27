@@ -51,7 +51,7 @@ export class LogbookComponent extends PageComponent {
         (item) => !!item.evDetData ? JSON.parse(item.evDetData).EvDetailReq : '', undefined,
         () => ({'width': '200px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeSpecialValueColumn('Statut',
-        (item) => item.events[1].outcome.toUpperCase(), LogbookComponent.handleStatus,
+        (item) => item.events[1], LogbookComponent.handleStatus,
         () => ({'width': '125px'})),
     ColumnDefinition.makeSpecialValueColumn('Service versant',
         (item) => !!item.evDetData ? JSON.parse(item.evDetData).AgIfTrans : '', undefined,
@@ -97,22 +97,31 @@ export class LogbookComponent extends PageComponent {
   }
 
   // TODO Move me in some utils class ?
-  static handleStatus(status): string {
-    switch (status) {
-      case 'OK': return 'Succès';
-      case 'STARTED': return 'En cours';
-      case 'KO': case 'FATAL': return 'Erreur';
-      default: return 'Avertissement';
+  static handleStatus(event): string {
+    let status = event.outcome.toUpperCase();
+    if ( event.evType === 'PROCESS_SIP_UNITARY' ) {
+      switch (status) {
+        case 'OK': return 'Succès';
+        case 'STARTED': return 'En cours';
+        case 'KO': case 'FATAL': return 'Erreur';
+        default: return 'Avertissement';
+      }
+    } else {
+      if (status === 'KO' || status === 'FATAL') {
+        return 'Erreur';
+      } else {
+        return 'En cours';
+      }
     }
   }
 
   static displayManifestDownload(item): boolean {
     return (item.events[1].outcome.toUpperCase() === 'OK' || item.events[1].outcome.toUpperCase() === 'WARNING')
-        && item.events[0].outDetail === 'STP_INGEST_FINALISATION.OK';
+        && item.events[1].evType === 'PROCESS_SIP_UNITARY';
   }
 
   static displayReportDownload(item): boolean {
-    return item.events[1].outcome.toUpperCase() !== 'STARTED' && item.events[0].outDetail === 'STP_INGEST_FINALISATION.OK';
+    return item.events[1].evType === 'PROCESS_SIP_UNITARY';
   }
 
   // TODO Move me in some utils class ?

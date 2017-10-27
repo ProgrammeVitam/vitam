@@ -20,6 +20,9 @@ const IngestUtilsServiceStub = {
 describe('LogbookComponent', () => {
   let component: LogbookComponent;
   let fixture: ComponentFixture<LogbookComponent>;
+  const okFinalEvent = {events: [{}, {evType: 'PROCESS_SIP_UNITARY', outcome: 'OK'}]};
+  const koFinalEvent = {events: [{}, {evType: 'PROCESS_SIP_UNITARY', outcome: 'KO'}]};
+  const runningEvent = {events: [{}, {evType: 'OBJ_STORAGE', outcome: 'OK'}]};
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
@@ -43,5 +46,23 @@ describe('LogbookComponent', () => {
 
   it('should be created', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should display manifest action in good status', () => {
+    expect(LogbookComponent.displayManifestDownload(okFinalEvent)).toBeTruthy();
+    expect(LogbookComponent.displayManifestDownload(koFinalEvent)).toBeFalsy();
+    expect(LogbookComponent.displayManifestDownload(runningEvent)).toBeFalsy();
+  });
+
+  it('should display atr action in good status', () => {
+    expect(LogbookComponent.displayReportDownload(okFinalEvent)).toBeTruthy();
+    expect(LogbookComponent.displayReportDownload(koFinalEvent)).toBeTruthy();
+    expect(LogbookComponent.displayReportDownload(runningEvent)).toBeFalsy();
+  });
+
+  it('should display good status', () => {
+    expect(LogbookComponent.handleStatus(okFinalEvent.events[1])).toBe('Succès');
+    expect(LogbookComponent.handleStatus(koFinalEvent.events[1])).toBe('Erreur');
+    expect(LogbookComponent.handleStatus(runningEvent.events[1])).toBe('En cours');
   });
 });
