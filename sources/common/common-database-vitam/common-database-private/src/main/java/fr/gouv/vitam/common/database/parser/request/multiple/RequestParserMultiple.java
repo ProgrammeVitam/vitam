@@ -75,6 +75,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
     protected static final int QUERY_POS = 1;
     protected static final int FILTER_POS = 2;
 
+    private static final int DEFAULT_RELATIVE_DEPTH = 1000;
     /**
      * Last computed Depth
      */
@@ -277,7 +278,7 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
         }
         // new Query to analyze, so reset to false
         hasFullTextCurrentQuery = false;
-        // default is immediate next level
+        // default is 1
         int relativedepth = 1;
         // default is to not specify any exact exactdepth (implicit)
         int exactdepth = 0;
@@ -301,6 +302,9 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
                 relativedepth = jdepth.asInt();
                 isDepth = true;
             }
+        } else {
+            // this means depth is not set, so instead of setting a value equals to one, lets put the default value
+            relativedepth = DEFAULT_RELATIVE_DEPTH;
         }
         // Root may be empty: ok since it means validate all "root nodes"
         if (command.size() == 0) {

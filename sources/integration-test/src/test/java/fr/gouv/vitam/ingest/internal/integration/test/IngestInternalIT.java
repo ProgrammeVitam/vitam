@@ -278,6 +278,8 @@ public class IngestInternalIT {
 
     private static String SIP_OK_PHYSICAL_ARCHIVE = "integration-ingest-internal/OK_ArchivesPhysiques.zip";
 
+    private static String SIP_OK_ARBO_RATEAU_GRAPH = "integration-ingest-internal/OK_ARBO_rateau_GRAPH.zip";
+
     private static ElasticsearchTestConfiguration config = null;
 
     @BeforeClass
@@ -460,16 +462,14 @@ public class IngestInternalIT {
                 File fileContracts =
                     PropertiesUtils.getResourceFile("integration-ingest-internal/referential_contracts_ok.json");
                 List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
-                    new TypeReference<List<IngestContractModel>>() {
-                    });
+                    new TypeReference<List<IngestContractModel>>() {});
 
                 client.importIngestContracts(IngestContractModelList);
 
                 // import contrat
                 File fileAccessContracts = PropertiesUtils.getResourceFile("access_contrats.json");
                 List<AccessContractModel> accessContractModelList = JsonHandler
-                    .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
-                    });
+                    .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {});
                 client.importAccessContracts(accessContractModelList);
 
             } catch (final Exception e) {
@@ -1069,6 +1069,99 @@ public class IngestInternalIT {
 
     @RunWithCustomExecutor
     @Test
+    public void testIngestWithArboRateauToCheckDepth() throws Exception {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            tryImportFile();
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(SIP_OK_ARBO_RATEAU_GRAPH);
+
+            // init default logbook operation
+            final List<LogbookOperationParameters> params = new ArrayList<>();
+            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                operationGuid, "Process_SIP_unitary", operationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
+            params.add(initParameters);
+            LOGGER.error(initParameters.toString());
+
+            // call ingest
+            IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
+            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+            final Response response2 = client.uploadInitialLogbook(params);
+
+            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+
+            // init workflow before execution
+            client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+            client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
+
+            wait(operationGuid.toString());
+
+            ProcessWorkflow processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+
+            // Try to check AU - arborescence and parents stuff, without roots
+            final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
+            JsonNode select = JsonHandler.getFromFile(
+                PropertiesUtils.findFile("integration-ingest-internal/select_by_title_dsl_noroot_default_depth.json"));
+            String queryModified = select.toString().replaceAll("Operation-Id", operationGuid.toString())
+                .replaceAll("SEDA-ID-UNIT", "ID0301");
+            JsonNode node = metadataClient.selectUnits(JsonHandler.getFromString(queryModified));
+
+            LOGGER.debug(JsonHandler.prettyPrint(node));
+            final JsonNode result = node.get("$results");
+            assertNotNull(result);
+            final JsonNode unit = result.get(0);
+            assertNotNull(unit);
+            
+            // get the parent id 
+            select = JsonHandler.getFromFile(
+                PropertiesUtils.findFile("integration-ingest-internal/select_by_title_dsl_noroot_default_depth.json"));
+            queryModified = select.toString().replaceAll("Operation-Id", operationGuid.toString())
+                .replaceAll("SEDA-ID-UNIT", "ID0501");
+            node = metadataClient.selectUnits(JsonHandler.getFromString(queryModified));
+            LOGGER.debug(JsonHandler.prettyPrint(node));
+            final JsonNode resultRoot1 = node.get("$results");
+            assertNotNull(resultRoot1);
+            final JsonNode unitRoot1 = resultRoot1.get(0);
+            assertNotNull(unitRoot1);
+            assertNotNull(unitRoot1.get("#id"));
+
+            
+            // Try to check AU - arborescence and parents stuff, with roots
+            final JsonNode selectRoot = JsonHandler.getFromFile(
+                PropertiesUtils.findFile("integration-ingest-internal/select_by_title_dsl_root_default_depth.json"));
+            String queryModifiedRoot = selectRoot.toString().replaceAll("Operation-Id", operationGuid.toString())
+                .replace("{{guid}}", unitRoot1.get("#id").asText())
+                .replaceAll("SEDA-ID-UNIT", "ID0601");
+
+            final JsonNode nodeRoot = metadataClient.selectUnits(JsonHandler.getFromString(queryModifiedRoot));
+            LOGGER.debug(JsonHandler.prettyPrint(nodeRoot));
+            final JsonNode resultRoot = nodeRoot.get("$results");
+            assertNotNull(resultRoot);
+            final JsonNode unitRoot = resultRoot.get(0);
+            assertNotNull(unitRoot);
+            
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+    }
+
+
+    @RunWithCustomExecutor
+    @Test
     public void testIngestWithManifestHavingBothUnitMgtAndMgtMetaDataRules() throws Exception {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
@@ -1602,8 +1695,7 @@ public class IngestInternalIT {
             // import contrat
             File fileAccessContracts = PropertiesUtils.getResourceFile("access_contrats.json");
             List<AccessContractModel> accessContractModelList = JsonHandler
-                .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
-                });
+                .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {});
             client.importAccessContracts(accessContractModelList);
 
             status = client.importAgenciesFile(stream, FILE_AGENCIES_AU_update);
@@ -1717,7 +1809,7 @@ public class IngestInternalIT {
     /**
      * Check error report
      *
-     * @param fileInputStreamToImport   the given FileInputStream
+     * @param fileInputStreamToImport the given FileInputStream
      * @param expectedStreamErrorReport expected Stream error report
      */
     private void checkFileRulesWithCustomReferential(final FileInputStream fileInputStreamToImport,
