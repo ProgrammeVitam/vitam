@@ -199,7 +199,7 @@ public abstract class CreateSecureFileActionPlugin extends ActionHandler {
     private String generateDigest(JsonNode jsonNode) {
         final Digest digest = new Digest(digestType);
         digest.update(JsonHandler.unprettyPrint(jsonNode).getBytes());
-        return digest.toString();
+        return digest.digest64();
     }
 
 }

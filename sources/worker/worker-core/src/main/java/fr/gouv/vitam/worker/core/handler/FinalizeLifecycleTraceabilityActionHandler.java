@@ -51,6 +51,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 
+import fr.gouv.vitam.common.BaseXx;
 import org.apache.commons.compress.archivers.ArchiveException;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -409,7 +410,7 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
     private String generateTimestampDigest(byte[] bytes) {
         final Digest digest = new Digest(timestampDigestType);
         digest.update(bytes);
-        return digest.toString();
+        return digest.digest64();
     }
 
     /**
@@ -437,7 +438,7 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
                 byte[] bytes = baos.toByteArray();
                 traceabilityFile.storeLifecycleLog(new ByteArrayInputStream(bytes));
                 final Digest digest = new Digest(digestType);
-                rootHash = digest.update(bytes).toString();
+                rootHash = digest.update(bytes).digest64();
             } else {
                 traceabilityFile.storeLifecycleLog(lifecycleIn);
             }
