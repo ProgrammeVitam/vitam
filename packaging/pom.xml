@@ -277,6 +277,19 @@
 
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>ihm-demo-front</artifactId>
+			<version>${project.version}</version>
+			<type>rpm</type>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>ihm-demo-front</artifactId>
+			<version>${project.version}</version>
+			<type>deb</type>
+		</dependency>
+
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>ihm-recette-web-application</artifactId>
 			<version>${project.version}</version>
 			<type>rpm</type>
@@ -290,13 +303,26 @@
 
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>ihm-recette-web-front</artifactId>
+			<artifactId>ihm-recette-front</artifactId>
 			<version>${project.version}</version>
 			<type>rpm</type>
 		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>ihm-recette-web-front</artifactId>
+			<artifactId>ihm-recette-front</artifactId>
+			<version>${project.version}</version>
+			<type>deb</type>
+		</dependency>
+
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>internal-security-rest</artifactId>
+			<version>${project.version}</version>
+			<type>rpm</type>
+		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>internal-security-rest</artifactId>
 			<version>${project.version}</version>
 			<type>deb</type>
 		</dependency>
