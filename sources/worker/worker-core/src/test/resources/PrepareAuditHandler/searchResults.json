@@ -3,7 +3,8 @@
     "total": 1,
     "offset": 0,
     "limit": 10000,
-    "size": 1
+    "size": 1,
+    "scrollId": "id"
   },
   "$results": [
     {

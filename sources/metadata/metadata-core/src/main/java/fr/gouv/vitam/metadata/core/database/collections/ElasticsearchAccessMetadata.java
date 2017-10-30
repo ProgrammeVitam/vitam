@@ -46,8 +46,10 @@ import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.index.IndexRequest.OpType;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchScrollRequest;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.action.update.UpdateResponse;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -442,44 +444,67 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @throws MetaDataExecutionException
      */
     protected final Result search(final MetadataCollections collection, final Integer tenantId, final String type,
-        final QueryBuilder query, final QueryBuilder filter, final List<SortBuilder> sorts, int offset, int limit)
+        final QueryBuilder query, final QueryBuilder filter, final List<SortBuilder> sorts, int offset, Integer limit,
+        final String scrollId, final Integer scrollTimeout)
         throws MetaDataExecutionException {
-        // Note: Could change the code to allow multiple indexes and multiple
-        // types
-        final SearchRequestBuilder request = client.prepareSearch(getIndexName(collection, tenantId))
-            .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setTypes(type).setExplain(false)
-            .setSize(GlobalDatas.LIMIT_LOAD).setFetchSource(MetadataDocument.ES_PROJECTION, null);
-        if (offset != -1) {
-            request.setFrom(offset);
-        }
-        if (limit != -1) {
-            request.setSize(limit);
-        }
-        if (sorts != null) {
-            sorts.stream().forEach(sort -> request.addSort(sort));
-        }
-        if (filter != null) {
-            if (GlobalDatasDb.USE_FILTERED_REQUEST) {
-                final BoolQueryBuilder filteredQueryBuilder = QueryBuilders.boolQuery().must(query).must(filter);
-                request.setQuery(filteredQueryBuilder);
-            } else {
-                request.setQuery(query).setPostFilter(filter);
-            }
-        } else {
-            request.setQuery(query);
-        }
-        if (GlobalDatasDb.PRINT_REQUEST) {
-            LOGGER.warn("ESReq: {}", request);
-        } else {
-            LOGGER.debug("ESReq: {}", request);
-        }
+
         final SearchResponse response;
-        try {
-            response = request.get();
-        } catch (final Exception e) {
-            LOGGER.debug(e.getMessage(), e);
-            throw new MetaDataExecutionException(e.getMessage(), e);
+        final SearchRequestBuilder request;
+        final boolean isUnit = collection == MetadataCollections.C_UNIT;
+        final Result<MetadataDocument<?>> resultRequest =
+            isUnit ? MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS)
+                : MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
+        if (scrollId != null && !scrollId.isEmpty()) {
+            int limitES = (limit != null && limit > 0) ? limit : GlobalDatasDb.DEFAULT_LIMIT_SCROLL;
+            int scrollTimeoutES = (scrollTimeout != null && scrollTimeout > 0) ? scrollTimeout : GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT;
+            request = client.prepareSearch(getIndexName(collection, tenantId))
+                .setScroll(new TimeValue(scrollTimeoutES))
+                .setQuery(query)
+                .setSize(limitES);
+            if (scrollId.equals(GlobalDatasDb.SCROLL_ACTIVATE_KEYWORD)) {
+                response = request.get();
+            } else {
+                response = client.prepareSearchScroll(scrollId).setScroll(new TimeValue(scrollTimeoutES)).execute().actionGet();
+            }
+            resultRequest.setScrollId(response.getScrollId());
+        } else {
+            // Note: Could change the code to allow multiple indexes and multiple
+            // types
+            request = client.prepareSearch(getIndexName(collection, tenantId))
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setTypes(type).setExplain(false)
+                .setSize(GlobalDatas.LIMIT_LOAD).setFetchSource(MetadataDocument.ES_PROJECTION, null);
+            if (offset != -1) {
+                request.setFrom(offset);
+            }
+            if (limit != -1) {
+                request.setSize(limit);
+            }
+            if (sorts != null) {
+                sorts.stream().forEach(sort -> request.addSort(sort));
+            }
+            if (filter != null) {
+                if (GlobalDatasDb.USE_FILTERED_REQUEST) {
+                    final BoolQueryBuilder filteredQueryBuilder = QueryBuilders.boolQuery().must(query).must(filter);
+                    request.setQuery(filteredQueryBuilder);
+                } else {
+                    request.setQuery(query).setPostFilter(filter);
+                }
+            } else {
+                request.setQuery(query);
+            }
+            if (GlobalDatasDb.PRINT_REQUEST) {
+                LOGGER.warn("ESReq: {}", request);
+            } else {
+                LOGGER.debug("ESReq: {}", request);
+            }
+            try {
+                response = request.get();
+            } catch (final Exception e) {
+                LOGGER.debug(e.getMessage(), e);
+                throw new MetaDataExecutionException(e.getMessage(), e);
+            }
         }
+
         if (response.status() != RestStatus.OK) {
             LOGGER.error("Error " + response.status() + " from : " + request + ":" + query + " # " + filter);
             throw new MetaDataExecutionException("Error " + response.status());
@@ -490,16 +515,11 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         }
         if (hits.getTotalHits() == 0) {
             LOGGER.error("No result from : " + request);
-            final boolean isUnit = collection == MetadataCollections.C_UNIT;
             return isUnit ? MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS)
                 : MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
         }
         // TODO to return the number of Units immediately below
         long nb = 0;
-        final boolean isUnit = collection == MetadataCollections.C_UNIT;
-        final Result<MetadataDocument<?>> resultRequest =
-            isUnit ? MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS)
-                : MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
         final Iterator<SearchHit> iterator = hits.iterator();
         while (iterator.hasNext()) {
             final SearchHit hit = iterator.next();

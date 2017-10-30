@@ -387,6 +387,8 @@ public class DbRequest {
         List<SortBuilder> sorts = null;
         int limit = -1;
         int offset = -1;
+        String scrollId = requestParser.getFinalScrollId();
+        Integer scrollTimeout = requestParser.getFinalScrollTimeout();
         final Integer tenantId = ParameterHelper.getTenantParameter();
         final FILTERARGS collectionType = requestToMongodb.model();
         if (requestToMongodb instanceof SelectToMongodb && isLastQuery) {
@@ -437,24 +439,26 @@ public class DbRequest {
                     // Exact Depth request (descending)
                     LOGGER.debug("Unit Exact Depth request (descending)");
                     result = exactDepthUnitQuery(realQuery, previous, exactDepth, tenantId, sorts,
-                        offset, limit);
+                        offset, limit, scrollId, scrollTimeout);
                 } else if (relativeDepth != 0) {
                     // Relative Depth request (ascending or descending)
                     LOGGER.debug("Unit Relative Depth request (ascending or descending)");
                     result =
                         relativeDepthUnitQuery(realQuery, previous, relativeDepth, tenantId, sorts,
-                            offset, limit);
+                            offset, limit, scrollId, scrollTimeout);
                 } else {
                     // Current sub level request
                     LOGGER.debug("Unit Current sub level request");
-                    result = sameDepthUnitQuery(realQuery, previous, tenantId, sorts, offset, limit);
+                    result = sameDepthUnitQuery(realQuery, previous, tenantId, sorts, offset,
+                        limit, scrollId, scrollTimeout);
                 }
             } else {
                 // OBJECTGROUPS
                 // No depth at all
                 // FIXME later on see if we should support depth
                 LOGGER.debug("ObjectGroup No depth at all");
-                result = objectGroupQuery(realQuery, previous, tenantId, sorts, offset, limit);
+                result = objectGroupQuery(realQuery, previous, tenantId, sorts, offset,
+                    limit, scrollId, scrollTimeout);
             }
         } finally {
             previous.clear();
@@ -477,8 +481,8 @@ public class DbRequest {
      * @throws MetaDataExecutionException
      */
     protected Result<MetadataDocument<?>> exactDepthUnitQuery(Query realQuery, Result<MetadataDocument<?>> previous,
-        int exactDepth, Integer tenantId,
-        final List<SortBuilder> sorts, final int offset, final int limit)
+        int exactDepth, Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
+        final String scrollId, final Integer scrollTimeout)
         throws InvalidParseOperationException, MetaDataExecutionException {
         // ES only
         final BoolQueryBuilder roots =
@@ -505,7 +509,7 @@ public class DbRequest {
 
         final Result<MetadataDocument<?>> result =
             MetadataCollections.C_UNIT.getEsClient().search(MetadataCollections.C_UNIT, tenantId,
-                VitamCollection.getTypeunique(), query, null, sorts, offset, limit);
+                VitamCollection.getTypeunique(), query, null, sorts, offset, limit, scrollId, scrollTimeout);
 
         if (GlobalDatasDb.PRINT_REQUEST) {
             LOGGER.warn("UnitExact: {}", result);
@@ -528,8 +532,8 @@ public class DbRequest {
      * @throws MetaDataExecutionException
      */
     protected Result<MetadataDocument<?>> relativeDepthUnitQuery(Query realQuery, Result<MetadataDocument<?>> previous,
-        int relativeDepth, Integer tenantId,
-        final List<SortBuilder> sorts, final int offset, final int limit)
+        int relativeDepth, Integer tenantId, final List<SortBuilder> sorts, final int offset,
+        final int limit, final String scrollId, final Integer scrollTimeout)
         throws InvalidParseOperationException, MetaDataExecutionException {
         // ES only
         QueryBuilder roots = null;
@@ -573,7 +577,7 @@ public class DbRequest {
 
         final Result<MetadataDocument<?>> resultPreviousFilter =
             MetadataCollections.C_UNIT.getEsClient().search(MetadataCollections.C_UNIT, tenantId,
-                VitamCollection.getTypeunique(), query, null, sorts, offset, limit);
+                VitamCollection.getTypeunique(), query, null, sorts, offset, limit, scrollId, scrollTimeout);
 
         // Now filter to remove false positive for > 1
         Result<MetadataDocument<?>> result = resultPreviousFilter;
@@ -677,7 +681,7 @@ public class DbRequest {
      */
     protected Result<MetadataDocument<?>> sameDepthUnitQuery(Query realQuery, Result<MetadataDocument<?>> previous,
         Integer tenantId, final List<SortBuilder> sorts,
-        final int offset, final int limit)
+        final int offset, final int limit, final String scrollId, final Integer scrollTimeout)
         throws InvalidParseOperationException, MetaDataExecutionException {
         // ES
         final QueryBuilder query = QueryToElasticsearch.getCommand(realQuery);
@@ -697,7 +701,7 @@ public class DbRequest {
 
         LOGGER.debug(QUERY2 + "{}", finalQuery);
         return MetadataCollections.C_UNIT.getEsClient().search(MetadataCollections.C_UNIT, tenantId,
-            VitamCollection.getTypeunique(), finalQuery, null, sorts, offset, limit);
+            VitamCollection.getTypeunique(), finalQuery, null, sorts, offset, limit, scrollId, scrollTimeout);
     }
 
     /**
@@ -714,8 +718,8 @@ public class DbRequest {
      * @throws MetaDataExecutionException
      */
     protected Result<MetadataDocument<?>> objectGroupQuery(Query realQuery, Result<MetadataDocument<?>> previous,
-        Integer tenantId, final List<SortBuilder> sorts,
-        final int offset, final int limit)
+        Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
+        final String scrollId, final Integer scrollTimeout)
         throws InvalidParseOperationException, MetaDataExecutionException {
         // ES
         final QueryBuilder query = QueryToElasticsearch.getCommand(realQuery);
@@ -739,7 +743,7 @@ public class DbRequest {
 
         LOGGER.debug(QUERY2 + "{}", finalQuery);
         return MetadataCollections.C_OBJECTGROUP.getEsClient().search(MetadataCollections.C_OBJECTGROUP, tenantId,
-            VitamCollection.getTypeunique(), finalQuery, null, sorts, offset, limit);
+            VitamCollection.getTypeunique(), finalQuery, null, sorts, offset, limit, scrollId, scrollTimeout);
     }
 
     private Result<MetadataDocument<?>> getDebug(FILTERARGS model, Result<MetadataDocument<?>> last)

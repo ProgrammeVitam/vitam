@@ -333,6 +333,14 @@ public abstract class BuilderToken {
          */
         LIMIT("limit"),
         /**
+         * scrollId for scroll functionality $scrollId
+         */
+        SCROLL_ID("scrollId"),
+        /**
+         * scrollTimeout  expiry time for scrollId
+         */
+        SCROLL_TIMEOUT("scrollTimeout"),
+        /**
          * According to an orderby, start to return the elements from rank start<br>
          * $offset : start
          */

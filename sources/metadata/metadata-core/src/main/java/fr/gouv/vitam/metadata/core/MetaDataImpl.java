@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import fr.gouv.vitam.common.model.DatabaseCursor;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.bson.Document;
@@ -254,6 +255,16 @@ public class MetaDataImpl implements MetaData {
         }
 
         final JsonNode queryCopy = selectQuery.deepCopy();
+        long offset = 0;
+        long limit = 0;
+        if (selectQuery.get("$filter") != null) {
+            if (selectQuery.get("$filter").get("$offset") != null) {
+                offset = selectQuery.get("$filter").get("$offset").asLong();
+            }
+            if (selectQuery.get("$filter").get("$limit") != null) {
+                limit = selectQuery.get("$filter").get("$limit").asLong();
+            }
+        }
 
         try {
             // parse Select request
@@ -277,6 +288,7 @@ public class MetaDataImpl implements MetaData {
                     request.addHintFilter(hints);
                 }
             }
+
             boolean shouldComputeUnitRule = false;
             ObjectNode fieldsProjection =
                 (ObjectNode) selectRequest.getRequest().getProjection().get(PROJECTION.FIELDS.exactToken());
@@ -300,10 +312,14 @@ public class MetaDataImpl implements MetaData {
             throw new MetaDataExecutionException(e);
         }
         List res = toArrayList(arrayNodeResponse);
-        Long total = result != null ? result.getTotal() : res.size();
+        Long total = (result != null) ? result.getTotal() : res.size();
+        String scrollId = (result != null) ? result.getScrollId() : null;
+        DatabaseCursor hits = (scrollId != null) ?
+            new DatabaseCursor(total, offset, limit, total, scrollId) :
+            new DatabaseCursor(total, offset, limit, total);
         return new RequestResponseOK<JsonNode>(queryCopy)
             .addAllResults(toArrayList(arrayNodeResponse))
-            .setTotal(total);
+            .setHits(hits);
     }
 
     // TODO : handle version

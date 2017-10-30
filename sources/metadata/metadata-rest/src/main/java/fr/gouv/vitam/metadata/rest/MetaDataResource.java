@@ -161,10 +161,11 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setDescription(e.getMessage()))
                 .build();
         }
+        RequestResponseOK responseOK = new RequestResponseOK(insertRequest);
+        responseOK.setHits(1, 0, 1)
+            .setHttpCode(Status.CREATED.getStatusCode());
         return Response.status(Status.CREATED)
-            .entity(new RequestResponseOK(insertRequest)
-                .setHits(1, 0, 1)
-                .setHttpCode(Status.CREATED.getStatusCode()))
+            .entity(responseOK)
             .build();
     }
 
