@@ -26,8 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import java.util.List;
+import java.util.Map;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -44,6 +48,18 @@ import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 public class CheckVersionActionHandler extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckVersionActionHandler.class);
     private static final String HANDLER_ID = "CHECK_MANIFEST_DATAOBJECT_VERSION";
+
+    private static final String SUBTASK_PDO_DATAOBJECTIONVERSION_BINARYMASTER = "PDO_DATAOBJECTIONVERSION_BINARYMASTER";
+    private static final String SUBTASK_BDO_DATAOBJECTIONVERSION_PHYSICALMASTER =
+        "BDO_DATAOBJECTIONVERSION_PHYSICALMASTER";
+    private static final String SUBTASK_INVALID_DATAOBJECTVERSION = "INVALID_DATAOBJECTVERSION";
+    private static final String SUBTASK_EMPTY_REQUIRED_FIELD = "EMPTY_REQUIRED_FIELD";
+
+    private static final String BDO_CONTAINS_OTHER_TYPE = "BinaryDataObjectContainsOtherType";
+    private static final String PDO_CONTAINS_OTHER_TYPE = "PhysicalDataObjectContainsOtherType";
+    private static final String INCORRECT_VERSION_FORMAT = "IncorrectVersionFormat";
+    private static final String INCORRECT_URI = "IncorrectUri";
+    private static final String INCORRECT_PHYSICAL_ID = "IncorrectPhysicalId";
 
     /**
      * Constructor with parameter SedaUtilsFactory
@@ -69,9 +85,37 @@ public class CheckVersionActionHandler extends ActionHandler {
 
         try {
             checkMandatoryIOParameter(handlerIO);
-            final List<String> versionInvalidList = sedaUtils.checkSupportedDataObjectVersion(params);
+            final Map<String, String> versionInvalidList = sedaUtils.checkSupportedDataObjectVersion(params);
             if (!versionInvalidList.isEmpty()) {
                 itemStatus.increment(StatusCode.KO);
+
+                versionInvalidList.forEach((key, value) -> {
+                    if (key.endsWith(BDO_CONTAINS_OTHER_TYPE)) {
+                        updateDetailItemStatus(itemStatus,
+                            getMessageItemStatusUsageError(SedaConstants.TAG_BINARY_DATA_OBJECT, key, value),
+                            SUBTASK_BDO_DATAOBJECTIONVERSION_PHYSICALMASTER);
+                    } else if (key.endsWith(PDO_CONTAINS_OTHER_TYPE)) {
+                        updateDetailItemStatus(itemStatus,
+                            getMessageItemStatusUsageError(SedaConstants.TAG_PHYSICAL_DATA_OBJECT, key, value),
+                            SUBTASK_PDO_DATAOBJECTIONVERSION_BINARYMASTER);
+                    } else if (key.endsWith(INCORRECT_VERSION_FORMAT)) {
+                        updateDetailItemStatus(itemStatus,
+                            getMessageItemStatusUsageError(
+                                key.contains(SedaConstants.TAG_BINARY_DATA_OBJECT)
+                                    ? SedaConstants.TAG_BINARY_DATA_OBJECT : SedaConstants.TAG_PHYSICAL_DATA_OBJECT,
+                                key, value),
+                            SUBTASK_INVALID_DATAOBJECTVERSION);
+                    } else if (key.endsWith(INCORRECT_URI)) {
+                        updateDetailItemStatus(itemStatus,
+                            getMessageItemStatusUsageError(SedaConstants.TAG_BINARY_DATA_OBJECT, key, value),
+                            SUBTASK_EMPTY_REQUIRED_FIELD);
+                    } else if (key.endsWith(INCORRECT_PHYSICAL_ID)) {
+                        updateDetailItemStatus(itemStatus,
+                            getMessageItemStatusUsageError(SedaConstants.TAG_PHYSICAL_DATA_OBJECT, key, value),
+                            SUBTASK_EMPTY_REQUIRED_FIELD);
+                    }
+                });
+
                 itemStatus.setData("errorNumber", versionInvalidList.size());
             } else {
                 itemStatus.increment(StatusCode.OK);
@@ -81,6 +125,14 @@ public class CheckVersionActionHandler extends ActionHandler {
             itemStatus.increment(StatusCode.FATAL);
         }
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+    }
+
+    private String getMessageItemStatusUsageError(final String typeDataObject, final String key,
+        final String errorVersion) {
+        ObjectNode errorDetail = JsonHandler.createObjectNode();
+        errorDetail.put(typeDataObject, errorVersion +
+            (key.contains("_") ? (" - " + key.split("_")[0]) : ""));
+        return JsonHandler.unprettyPrint(errorDetail);
     }
 
     @Override

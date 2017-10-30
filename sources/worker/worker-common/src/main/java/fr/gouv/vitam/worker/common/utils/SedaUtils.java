@@ -34,10 +34,8 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
@@ -52,6 +50,7 @@ import org.apache.commons.io.IOUtils;
 import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -95,7 +94,12 @@ public class SedaUtils {
 
     private static final String CANNOT_READ_SEDA = "Can not read SEDA";
     private static final String MANIFEST_NOT_FOUND = "Manifest.xml Not Found";
-    private static final int VERSION_POSITION = 0;
+    private static final String CONTAINS_OTHER_TYPE = "ContainsOtherType";
+    private static final String INCORRECT_VERSION_FORMAT = "IncorrectVersionFormat";
+    private static final String INCORRECT_URI = "IncorrectUri";
+    private static final String INCORRECT_PHYSICAL_ID = "IncorrectPhysicalId";
+    private static final int USAGE_POSITION = 0;
+    private static final int VERSION_POSITION = 1;
 
     /**
      * nbAUExisting: number of the AU already existing
@@ -510,18 +514,18 @@ public class SedaUtils {
      * check if the version list of the manifest.xml in workspace is valid
      *
      * @param params worker parameter
-     * @return list of unsupported version
+     * @return map containing unsupported version
      * @throws ProcessingException throws when error occurs
      */
-    public List<String> checkSupportedDataObjectVersion(WorkerParameters params)
+    public Map<String, String> checkSupportedDataObjectVersion(WorkerParameters params)
         throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
         return isSedaVersionValid();
     }
 
-    private List<String> isSedaVersionValid() throws ProcessingException {
+    private Map<String, String> isSedaVersionValid() throws ProcessingException {
         InputStream xmlFile = null;
-        List<String> invalidVersionList;
+        Map<String, String> invalidVersionList;
         XMLEventReader reader = null;
         try {
             try {
@@ -573,6 +577,7 @@ public class SedaUtils {
                     if (SedaConstants.TAG_BINARY_DATA_OBJECT.equals(startElement.getName().getLocalPart())) {
                         final String id = ((Attribute) startElement.getAttributes().next()).getValue();
                         dataObjectInfo.setId(id);
+                        dataObjectInfo.setType(SedaConstants.TAG_BINARY_DATA_OBJECT);
                         evenReader.nextEvent();
 
                         while (evenReader.hasNext()) {
@@ -583,8 +588,13 @@ public class SedaUtils {
                                 final String tag = startElement.getName().getLocalPart();
                                 switch (tag) {
                                     case SedaConstants.TAG_URI:
-                                        final String uri = evenReader.getElementText();
-                                        dataObjectInfo.setUri(uri);
+                                        try {
+                                            final String uri = evenReader.getElementText();
+                                            dataObjectInfo.setUri(uri);
+                                        } catch (IllegalArgumentException e) {
+                                            // this exception will be treated after, in order to detect every errors
+                                            LOGGER.error("Missing required field", e);
+                                        }
                                         break;
                                     case SedaConstants.TAG_DO_VERSION:
                                         final String version = evenReader.getElementText();
@@ -618,6 +628,7 @@ public class SedaUtils {
                     if (SedaConstants.TAG_PHYSICAL_DATA_OBJECT.equals(startElement.getName().getLocalPart())) {
                         final String id = ((Attribute) startElement.getAttributes().next()).getValue();
                         dataObjectInfo.setId(id);
+                        dataObjectInfo.setType(SedaConstants.TAG_PHYSICAL_DATA_OBJECT);
                         evenReader.nextEvent();
 
                         while (evenReader.hasNext()) {
@@ -628,6 +639,8 @@ public class SedaUtils {
                                 final String tag = startElement.getName().getLocalPart();
                                 if (SedaConstants.TAG_DO_VERSION.equals(tag)) {
                                     dataObjectInfo.setVersion(evenReader.getElementText());
+                                } else if (SedaConstants.TAG_PHYSICAL_ID.equals(tag)) {
+                                    dataObjectInfo.setPhysicalId(evenReader.getElementText());
                                 }
                             }
 
@@ -656,23 +669,22 @@ public class SedaUtils {
      * @throws ProcessingException when error in execution
      */
 
-    public Map<String, Set<String>> manifestVersionList(XMLEventReader evenReader)
+    public Map<String, List<DataObjectInfo>> manifestVersionList(XMLEventReader evenReader)
         throws ProcessingException {
-        final Map<String, Set<String>> versionListByType = new HashMap<>();
+        final Map<String, List<DataObjectInfo>> versionListByType = new HashMap<>();
         final SedaUtilInfo sedaUtilInfo = getDataObjectInfo(evenReader);
         final Map<String, DataObjectInfo> dataObjectMap = sedaUtilInfo.getDataObjectMap();
 
         // init
-        Set<String> physicalObjectsVersion = new HashSet<>();
-        Set<String> binaryObjectsVersion = new HashSet<>();
+        List<DataObjectInfo> physicalObjectsVersion = new ArrayList<>();
+        List<DataObjectInfo> binaryObjectsVersion = new ArrayList<>();
 
 
         for (final String mapKey : dataObjectMap.keySet()) {
-            // add physicalId ?
-            if (dataObjectMap.get(mapKey).getUri() == null) {
-                physicalObjectsVersion.add(dataObjectMap.get(mapKey).getVersion());
+            if (SedaConstants.TAG_PHYSICAL_DATA_OBJECT.equals(dataObjectMap.get(mapKey).getType())) {
+                physicalObjectsVersion.add(dataObjectMap.get(mapKey));
             } else {
-                binaryObjectsVersion.add(dataObjectMap.get(mapKey).getVersion());
+                binaryObjectsVersion.add(dataObjectMap.get(mapKey));
             }
         }
         versionListByType.put(SedaConstants.TAG_BINARY_DATA_OBJECT, binaryObjectsVersion);
@@ -684,10 +696,10 @@ public class SedaUtils {
      * compare if the version list of manifest.xml is included in or equal to the version list of version.conf
      *
      * @param eventReader xml event reader
-     * @return list of unsupported version
+     * @return map containing the error code and the unsupported version
      * @throws ProcessingException when error in execution
      */
-    public List<String> compareVersionList(XMLEventReader eventReader)
+    public Map<String, String> compareVersionList(XMLEventReader eventReader)
         throws ProcessingException {
 
         SedaVersion sedaVersion;
@@ -697,17 +709,46 @@ public class SedaUtils {
             LOGGER.error(e);
             throw new ProcessingException(e);
         }
+        final Map<String, List<DataObjectInfo>> manifestVersionListByType = manifestVersionList(eventReader);
+        final Map<String, String> invalidVersionList = new HashMap<>();
 
-        final Map<String, Set<String>> manifestVersionListByType = manifestVersionList(eventReader);
-        final List<String> invalidVersionList = new ArrayList<>();
-
-        for (Map.Entry<String, Set<String>> manifestVersionEntry : manifestVersionListByType.entrySet()) {
-            for (final String version : manifestVersionEntry.getValue()) {
-                List<String> fileVersions = sedaVersion.getVersionForType(manifestVersionEntry.getKey());
-                if (version != null) {
-                    final String versionParts[] = version.split("_");
-                    if (versionParts.length > 2 || !fileVersions.contains(versionParts[VERSION_POSITION])) {
-                        invalidVersionList.add(version);
+        for (Map.Entry<String, List<DataObjectInfo>> manifestVersionEntry : manifestVersionListByType.entrySet()) {
+            List<String> fileVersions = sedaVersion.getVersionForType(manifestVersionEntry.getKey());
+            for (final DataObjectInfo doi : manifestVersionEntry.getValue()) {
+                if (doi.getVersion() != null) {
+                    final String versionParts[] = doi.getVersion().split("_");
+                    String errorCode = manifestVersionEntry.getKey();
+                    if (versionParts.length > 2 || !fileVersions.contains(versionParts[USAGE_POSITION])) {
+                        List<String> otherFileVersions =
+                            sedaVersion.getVersionForOtherType(manifestVersionEntry.getKey());
+                        if (otherFileVersions.contains(versionParts[USAGE_POSITION])) {
+                            errorCode += CONTAINS_OTHER_TYPE;
+                        }
+                        invalidVersionList.put(doi.getId() + "_" + errorCode, doi.getVersion());
+                        continue;
+                    }
+                    if (versionParts.length == 2) {
+                        // lets check the version (it should be an even int)
+                        try {
+                            int currentVersion = Integer.parseInt(versionParts[VERSION_POSITION]);
+                            if (currentVersion < 0) {
+                                invalidVersionList.put(doi.getId() + "_" + errorCode + "_" + INCORRECT_VERSION_FORMAT,
+                                    doi.getVersion());
+                            }
+                        } catch (NumberFormatException e) {
+                            LOGGER.warn("Wrong version ", e);
+                            invalidVersionList.put(doi.getId() + "_" + errorCode + "_" + INCORRECT_VERSION_FORMAT,
+                                doi.getVersion());
+                        }
+                    }
+                    if (SedaConstants.TAG_BINARY_DATA_OBJECT.equals(doi.getType())) {
+                        if (Strings.isNullOrEmpty(doi.getUri())) {
+                            invalidVersionList.put(doi.getId() + "_" + errorCode + "_" + INCORRECT_URI,
+                                SedaConstants.TAG_URI);
+                        }
+                    } else if (Strings.isNullOrEmpty(doi.getPhysicalId())) {
+                        invalidVersionList.put(doi.getId() + "_" + errorCode + "_" + INCORRECT_PHYSICAL_ID,
+                            SedaConstants.TAG_PHYSICAL_ID);
                     }
                 }
             }

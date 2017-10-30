@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -65,6 +67,11 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
      * Handler's ID
      */
     private static final String HANDLER_ID = "CHECK_MANIFEST_OBJECTNUMBER";
+    private static final String SUBTASK_INVALID_URI = "INVALID_URI";
+    private static final String SUBTASK_MANIFEST_INFERIOR_BDO = "MANIFEST_INFERIOR_BDO";
+    private static final String SUBTASK_MANIFEST_SUPERIOR_BDO = "MANIFEST_SUPERIOR_BDO";
+    private static final String ERROR_IN_MANIFEST = "manifestError";
+    private static final String ERROR_IN_CONTENT = "contentError";
 
     private HandlerIO handlerIO;
 
@@ -156,7 +163,6 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
         ParametersChecker.checkParameter("ItemStatus is a mandatory parameter", itemStatus);
         // TODO P1
         // Use Java 8, Methods Reference, lambda expressions and streams
-
         /**
          * compare the size between list uri from manifest and list uri from workspace.
          */
@@ -170,6 +176,10 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
                 itemStatus.increment(StatusCode.OK, uriListManifest.size());
             }
             itemStatus.increment(StatusCode.KO, countCompare);
+            updateDetailItemStatus(itemStatus,
+                getMessageItemStatusInvalidURIandIncorrectTotals(uriListManifest, uriListWorkspace),
+                uriListManifest.size() > uriListWorkspace.size() ? SUBTASK_MANIFEST_SUPERIOR_BDO
+                    : SUBTASK_MANIFEST_INFERIOR_BDO);
         } else {
 
             /**
@@ -211,9 +221,39 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
                 // The number of object in manifest is the reference for number of OK
                 itemStatus.increment(StatusCode.OK, countConsistentDigitalObjectFromManifest);
                 itemStatus.increment(StatusCode.KO, countCompare);
+                updateDetailItemStatus(itemStatus,
+                    getMessageItemStatusInvalidURIandIncorrectTotals(uriListManifest, uriListWorkspace),
+                    SUBTASK_INVALID_URI);
             }
         }
         itemStatus.setData("errorNumber", countCompare);
+    }
+
+
+    private String getMessageItemStatusInvalidURIandIncorrectTotals(final List<URI> uriListManifest,
+        final List<URI> uriListWorkspace) {
+        ObjectNode error = JsonHandler.createObjectNode();
+
+        List<URI> uriNotInWorkspace =
+            uriListManifest.stream().filter(uri -> !uriListWorkspace.contains(uri)).collect(Collectors.toList());
+        List<URI> uriNotInManifest =
+            uriListWorkspace.stream().filter(uri -> !uriListManifest.contains(uri)).collect(Collectors.toList());
+
+        if (!uriNotInWorkspace.isEmpty()) {
+            ArrayNode errorDetailsManifest = JsonHandler.createArrayNode();
+            uriNotInWorkspace.forEach(uri -> {
+                errorDetailsManifest.add(uri.getPath());
+            });
+            error.set(ERROR_IN_MANIFEST, errorDetailsManifest);
+        }
+        if (!uriNotInWorkspace.isEmpty()) {
+            ArrayNode errorDetailsContent = JsonHandler.createArrayNode();
+            uriNotInManifest.forEach(uri -> {
+                errorDetailsContent.add(uri.getPath());
+            });
+            error.set(ERROR_IN_CONTENT, errorDetailsContent);
+        }
+        return JsonHandler.unprettyPrint(error);
     }
 
     /**

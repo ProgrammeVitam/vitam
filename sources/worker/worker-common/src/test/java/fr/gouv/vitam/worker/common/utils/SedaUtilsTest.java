@@ -40,9 +40,9 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -175,17 +175,20 @@ public class SedaUtilsTest {
         final XMLInputFactory factory = XMLInputFactory.newInstance();
         final XMLEventReader evenReader = factory.createXMLEventReader(
             new FileReader(PropertiesUtils.getResourcePath("sip.xml").toString()));
-        Map<String, Set<String>> versionList;
+        Map<String, List<DataObjectInfo>> versionList;
 
         versionList = utils.manifestVersionList(evenReader);
         assertEquals(2, versionList.size());
         assertEquals(4, versionList.get(SedaConstants.TAG_BINARY_DATA_OBJECT).size());
         assertEquals(1, versionList.get(SedaConstants.TAG_PHYSICAL_DATA_OBJECT).size());
-        assertTrue(versionList.get(SedaConstants.TAG_PHYSICAL_DATA_OBJECT).contains("PhysicalMaster_1"));
-        assertTrue(versionList.get(SedaConstants.TAG_BINARY_DATA_OBJECT).contains("BinaryMaster"));
-        assertTrue(versionList.get(SedaConstants.TAG_BINARY_DATA_OBJECT).contains("Dissemination_1"));
-        assertTrue(versionList.get(SedaConstants.TAG_BINARY_DATA_OBJECT).contains("Thumbnail"));
-        assertTrue(versionList.get(SedaConstants.TAG_BINARY_DATA_OBJECT).contains("TextContent_1"));
+        List<String> versionsToBeChecked = new ArrayList<>();
+        assertTrue(
+            versionList.get(SedaConstants.TAG_PHYSICAL_DATA_OBJECT).get(0).getVersion().equals("PhysicalMaster_1"));
+        versionsToBeChecked.addAll(Arrays.asList("BinaryMaster", "Dissemination_1", "Thumbnail", "TextContent_1"));
+        versionList.get(SedaConstants.TAG_BINARY_DATA_OBJECT).forEach(key -> {
+            assertTrue(versionsToBeChecked.contains(key.getVersion()));
+            versionsToBeChecked.remove(key.getVersion());
+        });
     }
 
     @Test
@@ -194,10 +197,29 @@ public class SedaUtilsTest {
         final XMLInputFactory factory = XMLInputFactory.newInstance();
 
         XMLEventReader evenReader = factory.createXMLEventReader(new FileReader("src/test/resources/sip.xml"));
-        assertEquals(0, utils.compareVersionList(evenReader).size());
+        Map<String, String> map = utils.compareVersionList(evenReader);
+        assertEquals(0, map.size());
 
         evenReader = factory.createXMLEventReader(new FileReader("src/test/resources/sip-with-wrong-version.xml"));
-        assertEquals(3, utils.compareVersionList(evenReader).size());
+        map = utils.compareVersionList(evenReader);
+        assertEquals(3, map.size());
+        assertTrue(map.containsValue("PhysicalMaste"));
+        assertTrue(map.containsValue("Diffusion"));
+        assertTrue(map.containsValue("PhysicalMaster"));
+
+        evenReader =
+            factory.createXMLEventReader(new FileReader("src/test/resources/sip-incorrect-version-format.xml"));
+        map = utils.compareVersionList(evenReader);
+        assertEquals(2, map.size());
+        assertTrue(map.containsValue("PhysicalMaster_-1"));
+        assertTrue(map.containsValue("Dissemination_One"));
+        
+        evenReader =
+            factory.createXMLEventReader(new FileReader("src/test/resources/sip_missing_required_value.xml"));
+        map = utils.compareVersionList(evenReader);
+        assertEquals(2, map.size());
+        assertTrue(map.containsKey("ID004_BinaryDataObject_IncorrectUri"));
+        assertTrue(map.containsKey("ID006_PhysicalDataObject_IncorrectPhysicalId"));
     }
 
     @Test

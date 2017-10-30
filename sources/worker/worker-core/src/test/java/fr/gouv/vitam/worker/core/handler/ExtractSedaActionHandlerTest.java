@@ -117,6 +117,7 @@ public class ExtractSedaActionHandlerTest {
     private static final String OK_SIGNATURE = "extractSedaActionHandler/signature.xml";
     private static final String OK_RULES_WOUT_ID = "extractSedaActionHandler/manifestRulesWithoutId.xml";
     private static final String KO_CYCLE = "extractSedaActionHandler/KO_cycle.xml";
+    private static final String KO_AU_REF_OBJ = "extractSedaActionHandler/KO_AU_REF_OBJ.xml";    
     private WorkspaceClient workspaceClient;
     private MetaDataClient metadataClient;
     private WorkspaceClientFactory workspaceClientFactory;
@@ -904,5 +905,27 @@ public class ExtractSedaActionHandlerTest {
         final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
+    
+    @Test
+    @RunWithCustomExecutor
+    public void givenManifestWithAUDeclaringObjWhenExecuteThenReturnResponseKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
+        final InputStream seda_arborescence =
+            PropertiesUtils.getResourceAsStream(KO_AU_REF_OBJ);
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
+        handlerIO.addOutIOParameters(out);
+
+        final ItemStatus response = handler.execute(params, handlerIO);       
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
+        JsonNode evDetData = JsonHandler.getFromString((String) response.getData("eventDetailData"));
+        assertNotNull(evDetData);
+        assertNotNull(evDetData.get("evDetTechData"));
+        assertTrue(evDetData.get("evDetTechData").asText().contains("ArchiveUnit"));
+        assertTrue(evDetData.get("evDetTechData").asText().contains("BinaryDataObjectID"));
+        assertTrue(evDetData.get("evDetTechData").asText().contains("DataObjectGroupId"));
+        assertTrue(evDetData.get("evDetTechData").asText().contains("ID22"));
+    }    
 
 }

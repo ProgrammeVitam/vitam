@@ -28,10 +28,15 @@
 package fr.gouv.vitam.processing.common.exception;
 
 /**
- * Define a Processing Exception to be thrown when an error occurred, not a fatal error
+ * Define a Archive Unit Contain Data Object Exception to be thrown when an error occurred, not a fatal error This kind
+ * of exception occurs when an archive unit references a Binary Data Object instead of a Data Object Group
  */
 public class ArchiveUnitContainDataObjectException extends ProcessingException {
     private static final long serialVersionUID = -8063612650088096556L;
+
+    private String unitId;
+    private String bdoId;
+    private String gotId;
 
     /**
      * @param message associated message
@@ -54,4 +59,42 @@ public class ArchiveUnitContainDataObjectException extends ProcessingException {
     public ArchiveUnitContainDataObjectException(String message) {
         super(message);
     }
+
+    /**
+     * @param message associated message
+     * @param unitId
+     * @param bdoId
+     * @param gotId
+     */
+    public ArchiveUnitContainDataObjectException(String message, String unitId, String bdoId, String gotId) {
+        super(message);
+        this.unitId = unitId;
+        this.gotId = gotId;
+        this.bdoId = bdoId;
+    }
+
+    /**
+     * 
+     * @return the bdo Id
+     */
+    public String getBdoId() {
+        return bdoId;
+    }
+
+    /**
+     * 
+     * @return the got Id
+     */
+    public String getGotId() {
+        return gotId;
+    }
+
+    /**
+     * 
+     * @return the unit id
+     */
+    public String getUnitId() {
+        return unitId;
+    }
+
 }

@@ -113,6 +113,55 @@ documentation:
      description:  |
       Permet de télécharger un objet représentant le rapport d'import des règles en fonction de l'id de l'opération
 
+/accessionregisters:
+  displayName: AccessionRegisters
+  description: |
+   API qui définit les requêtes pour accéder au Registre des Fonds.
+   La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste de registres selon le DSL Vitam en cas de succès.
+  get:
+    description: |
+      Request that will return results composed of AccessionRegister
+    is: [RegisterTraits.RegisterListingResponse]
+  post:
+    description: |
+      Request that will return results composed of AccessionRegister, the request must use POST with X-Http-Method-Override: GET.
+    is: [RegisterTraits.RegisterListingResponse, StandardTraits.OverrideGet]
+    headers:
+      X-Http-Method-Override:
+        required: true
+
+  /{idu}:
+    displayName: AccessionRegister
+    description: |
+     API qui définit les requêtes pour accéder à 1 Résumé d'un Fond dans le Registre des Fonds.
+    get:
+      description: Request that will return result composed of 1 AccessionRegister
+      is: [RegisterTraits.RegisterItemResponse]
+    post:
+      description: |
+        Request that will return result of 1 AccessionRegister. The request is using POST with X-Http-Method-Override: GET
+      is: [RegisterTraits.RegisterItemResponse, StandardTraits.OverrideGet]
+      headers:
+        X-Http-Method-Override:
+          required: true
+
+    /accessionregisterdetails:
+      displayName: AccessionRegisterDetail
+      description: |
+       API qui définit les requêtes pour accéder au détail d'un Fond dans le Registre des Fonds.
+      get:
+        description: Request that will return result composed of 1 AccessionRegisterDetail
+        is: [RegisterTraits.RegisterListingResponse]
+      post:
+        description: |
+          Request that will return result of 1 AccessionRegisterDetail. The request is using POST with X-Http-Method-Override: GET
+        is: [RegisterTraits.RegisterListingResponse, StandardTraits.OverrideGet]
+        headers:
+          X-Http-Method-Override:
+            required: true
+
+
+
 /accesscontracts:
   displayName: Access contracts
   description: |

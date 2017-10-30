@@ -174,6 +174,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String HANDLER_ID = "CHECK_MANIFEST";
     private static final String SUBTASK_LOOP = "CHECK_MANIFEST_LOOP";
     private static final String SUBTASK_ATTACHEMENT = "CHECK_MANIFEST_WRONG_ATTACHMENT";
+    private static final String EXISTING_OG_NOT_DECLARED = "EXISTING_OG_NOT_DECLARED";
     private static final String LFC_INITIAL_CREATION_EVENT_TYPE = "LFC_CREATION";
     private static final String LFC_CREATION_SUB_TASK_ID = "LFC_CREATION";
     private static final String ATTACHMENT_IDS = "_up";
@@ -444,6 +445,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ArchiveUnitContainDataObjectException e) {
             LOGGER.debug("ProcessingException: archive unit contain an data object declared object group.", e);
+            updateDetailItemStatus(globalCompositeItemStatus,
+                getMessageItemStatusAUDeclaringObject(e.getUnitId(), e.getBdoId(), e.getGotId()),
+                EXISTING_OG_NOT_DECLARED);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ArchiveUnitContainSpecialCharactersException e) {
             LOGGER.debug("ProcessingException: archive unit contains special characters.", e);
@@ -480,6 +484,15 @@ public class ExtractSedaActionHandler extends ActionHandler {
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, globalCompositeItemStatus);
     }
 
+
+    private String getMessageItemStatusAUDeclaringObject(final String unitId, final String bdoId, final String gotId) {
+        ObjectNode error = JsonHandler.createObjectNode();
+        error.put(SedaConstants.TAG_ARCHIVE_UNIT, unitId);
+        error.put(SedaConstants.TAG_BINARY_DATA_OBJECT_ID, bdoId);
+        error.put(SedaConstants.TAG_DATA_OBJECT_GROUPE_ID, gotId);
+        return JsonHandler.unprettyPrint(error);
+    }
+
     private String getMessageItemStatusAUNotFound(final String unitId, final String unitGuid) {
         ObjectNode error = JsonHandler.createObjectNode();
         ObjectNode errorDetail = JsonHandler.createObjectNode();
@@ -495,28 +508,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         error.set(unitId, errorDetail);
         return JsonHandler.unprettyPrint(error);
     }
-
-    private void updateDetailItemStatus(final ItemStatus globalCompositeItemStatus, final String value,
-        final String globalOutcomeDetailSubcode) {
-        try {
-            if (value != null) {
-                ObjectNode evDetData =
-                    (ObjectNode) JsonHandler.getFromString(globalCompositeItemStatus.getEvDetailData());
-                String oldValue = "";
-                if (evDetData.has(SedaConstants.EV_DET_TECH_DATA)) {
-                    oldValue = evDetData.get(SedaConstants.EV_DET_TECH_DATA).textValue() + " \n";
-                }
-                evDetData.put(SedaConstants.EV_DET_TECH_DATA, oldValue + value);
-                globalCompositeItemStatus.setEvDetailData(JsonHandler.unprettyPrint(evDetData));
-                globalCompositeItemStatus.setMasterData(LogbookParameterName.eventDetailData.name(),
-                    JsonHandler.unprettyPrint(evDetData));
-            }
-            globalCompositeItemStatus.setGlobalOutcomeDetailSubcode(globalOutcomeDetailSubcode);
-        } catch (InvalidParseOperationException e1) {
-            LOGGER.error("Unexpected exception : evDetData invalid", e1);
-            globalCompositeItemStatus.increment(StatusCode.FATAL);
-        }
-    }
+    
 
     /**
      * Split Element from InputStream and write it to workspace
@@ -1467,7 +1459,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         if (!groupId.equals(entry.getValue())) {
                             throw new ArchiveUnitContainDataObjectException(
                                 "The archive unit " + entry.getKey() + " references one BDO Id " + entry.getValue() +
-                                    " while this BDO has a GOT id " + groupId);
+                                    " while this BDO has a GOT id " + groupId,
+                                entry.getKey(), entry.getValue(), groupId);
                         }
                     }
                 }
