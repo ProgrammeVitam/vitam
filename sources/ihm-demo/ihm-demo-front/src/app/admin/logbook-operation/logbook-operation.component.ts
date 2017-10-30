@@ -107,7 +107,7 @@ export class LogbookOperationComponent extends PageComponent {
 
   static handleReports(item): string[] {
     const evType = item.evTypeProc.toUpperCase();
-    if (evType === 'AUDIT' || evType === 'EXPORT_DIP') {
+    if (['AUDIT','EXPORT_DIP','INGEST'].indexOf(evType) > -1) {
       return ['fa-download']
     }else {
       return [];
@@ -154,11 +154,18 @@ export class LogbookOperationComponent extends PageComponent {
   }
 
   static downloadReports(item, logbookService) {
-    if(item.evTypeProc === 'EXPORT_DIP') {
+    switch (item.evTypeProc.toUpperCase()) {
+      case 'AUDIT':
+        logbookService.downloadReport(item.evIdProc);
+        break;
+      case 'INGEST':
+        logbookService.downloadObject(item.evIdProc);
+        break;
+      case 'EXPORT_DIP':
         logbookService.downloadDIP(item.evIdProc);
-        return;
+        break;
     }
-    logbookService.downloadReport(item.evIdProc);
+
   }
 
 }

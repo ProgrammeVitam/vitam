@@ -68,8 +68,7 @@ import { TreeSearchComponent } from './archive-unit/archive-unit-details/archive
 import { AgenciesComponent } from './referentials/details/agencies/agencies.component';
 import { AuditComponent } from './admin/audit/audit.component';
 import { AuditService } from './admin/audit/audit.service';
-import { LogbookDetailsHeaderComponent } from './admin/logbook-operation/logbook-operation-details/logbook-details-header/logbook-details-header.component';
-import { LogbookDetailsDescriptionComponent } from "./admin/logbook-operation/logbook-operation-details/logbook-details-description/logbook-details-description.component";
+import { LogbookDetailsDescriptionComponent } from './admin/logbook-operation/logbook-operation-details/logbook-details-description/logbook-details-description.component';
 import { LogbookHelperService } from "./common/logbook-operation-events/logbook-helper.service";
 import { AccessionRegisterComponent } from './referentials/details/accession-register/accession-register.component';
 import { OperationComponent } from './admin/traceability/operation/operation.component';
@@ -196,7 +195,6 @@ const appRoutes: Routes = [
     AuditComponent,
     TreeSearchComponent,
     EventDisplayComponent,
-    LogbookDetailsHeaderComponent,
     LogbookDetailsDescriptionComponent,
     AuditComponent,
     AccessionRegisterComponent,
