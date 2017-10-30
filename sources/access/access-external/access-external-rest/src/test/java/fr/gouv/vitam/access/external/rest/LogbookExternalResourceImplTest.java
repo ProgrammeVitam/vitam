@@ -1,6 +1,7 @@
 package fr.gouv.vitam.access.external.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.response.Response;
@@ -9,6 +10,8 @@ import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -88,6 +91,8 @@ public class LogbookExternalResourceImplTest {
 
     private static final String BODY_TEST = "{$query: {$eq: {\"aa\" : \"vv\" }}, $projection: {}, $filter: {}}";
     private static final String BODY_TEST_WITH_ID =
+        "{$projection: {}}";
+    private static final String BODY_TEST_WITH_BAD_REQUEST_FOR_BYID_DSL_REQUEST =
         "{$query: {$eq: {\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\" }}, $projection: {}, $filter: {}}";
     private static String request = "{ $query: {} , $projection: {}, $filter: {} }";
     private static String bad_request = "{ $query: \"bad_request\" , $projection: {}, $filter: {} }";
@@ -511,11 +516,30 @@ public class LogbookExternalResourceImplTest {
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
+
     @Test
-    public void testSelectOperationsById() throws Exception {
+    public void should_return_validation_error_when_selectOperationById_with_bad_request() throws Exception {
         given()
             .contentType(ContentType.JSON)
-            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_BAD_REQUEST_FOR_BYID_DSL_REQUEST))
+            .pathParam("id_op", good_id)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .get(OPERATIONS_URI + OPERATION_ID_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void testSelectOperationsById() throws Exception {
+        final JsonNode bodyQuery = JsonHandler.getFromString(BODY_TEST_WITH_ID);
+        SelectParserSingle selectParserSingle = new SelectParserSingle();
+        selectParserSingle.parse(bodyQuery);
+        Select select = selectParserSingle.getRequest();
+        select.getFinalSelectById();
+
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelectById())
             .pathParam("id_op", good_id)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
@@ -524,7 +548,7 @@ public class LogbookExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON)
-            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .body(select.getFinalSelectById())
             .pathParam("id_op", good_id)
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .when()
@@ -533,7 +557,7 @@ public class LogbookExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON)
-            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .body(select.getFinalSelectById())
             .pathParam("id_op", good_id)
             .when()
             .get(OPERATIONS_URI + OPERATION_ID_URI)
@@ -542,7 +566,7 @@ public class LogbookExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
-            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .body(select.getFinalSelectById())
             .pathParam("id_op", good_id)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
@@ -552,7 +576,7 @@ public class LogbookExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
-            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .body(select.getFinalSelectById())
             .pathParam("id_op", good_id)
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .when()
@@ -562,7 +586,7 @@ public class LogbookExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
-            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .body(select.getFinalSelectById())
             .pathParam("id_op", good_id)
             .when()
             .get(OPERATIONS_URI + OPERATION_ID_URI)
@@ -571,9 +595,17 @@ public class LogbookExternalResourceImplTest {
 
     @Test
     public void testPostSelectOperationsById() throws Exception {
+        final JsonNode bodyQuery = JsonHandler.getFromString(BODY_TEST_WITH_ID);
+        SelectParserSingle selectParserSingle = new SelectParserSingle();
+        selectParserSingle.parse(bodyQuery);
+        Select select = selectParserSingle.getRequest();
+        select.getFinalSelectById();
+
+
+
         given()
             .contentType(ContentType.JSON)
-            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .body(select.getFinalSelectById())
             .pathParam("id_op", good_id)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
@@ -582,7 +614,7 @@ public class LogbookExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON)
-            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .body(select.getFinalSelectById())
             .pathParam("id_op", good_id)
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .when()
@@ -591,7 +623,7 @@ public class LogbookExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON)
-            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .body(select.getFinalSelectById())
             .pathParam("id_op", good_id)
             .when()
             .get(OPERATIONS_URI + OPERATION_ID_URI)
@@ -601,7 +633,7 @@ public class LogbookExternalResourceImplTest {
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .body(select.getFinalSelectById())
             .pathParam("id_op", good_id)
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI)
@@ -611,7 +643,7 @@ public class LogbookExternalResourceImplTest {
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
             .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .body(select.getFinalSelectById())
             .pathParam("id_op", good_id)
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI)
@@ -620,7 +652,7 @@ public class LogbookExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
-            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .body(select.getFinalSelectById())
             .pathParam("id_op", good_id)
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI)
@@ -629,10 +661,17 @@ public class LogbookExternalResourceImplTest {
 
     @Test
     public void testLifeCycleSelect() throws Exception {
+        final JsonNode bodyQuery = JsonHandler.getFromString(BODY_TEST_WITH_ID);
+        SelectParserSingle selectParserSingle = new SelectParserSingle();
+        selectParserSingle.parse(bodyQuery);
+        Select select = selectParserSingle.getRequest();
+        select.getFinalSelectById();
+
+
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
-            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .body(select.getFinalSelectById())
             .param("id_lc", good_id)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
@@ -643,7 +682,7 @@ public class LogbookExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
-            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .body(select.getFinalSelectById())
             .param("id_lc", good_id)
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .when()
@@ -653,7 +692,7 @@ public class LogbookExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
-            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .body(select.getFinalSelectById())
             .param("id_lc", good_id)
             .when()
             .get("/unitlifecycles/" + good_id)
@@ -662,7 +701,7 @@ public class LogbookExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
-            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .body(select.getFinalSelectById())
             .param("id_lc", good_id)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
@@ -672,7 +711,7 @@ public class LogbookExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
-            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .body(select.getFinalSelectById())
             .param("id_lc", good_id)
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .when()
@@ -682,7 +721,7 @@ public class LogbookExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
-            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .body(select.getFinalSelectById())
             .param("id_lc", good_id)
             .when()
             .get("/objectgrouplifecycles/" + good_id)

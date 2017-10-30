@@ -134,7 +134,7 @@ public class IngestStep {
 
     /**
      * call vitam to upload the plan
-     * 
+     *
      * @throws IOException
      * @throws IngestExternalException
      */
@@ -206,8 +206,8 @@ public class IngestStep {
         RequestResponse<LogbookOperation> requestResponse =
             world.getAccessClient()
                 .selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                    .setApplicationSessionId(world.getApplicationSessionId()),
-                    world.getOperationId(), new Select().getFinalSelect());
+                        .setApplicationSessionId(world.getApplicationSessionId()),
+                    world.getOperationId(), new Select().getFinalSelectById());
         if (requestResponse instanceof RequestResponseOK) {
             RequestResponseOK<LogbookOperation> requestResponseOK =
                 (RequestResponseOK<LogbookOperation>) requestResponse;
@@ -227,7 +227,7 @@ public class IngestStep {
     /**
      * check if the status is valid for a list of event type according to logbook operation
      *
-     * @param eventNames list of event
+     * @param eventNames  list of event
      * @param eventStatus status of event
      * @throws VitamClientException
      * @throws InvalidParseOperationException
@@ -238,8 +238,8 @@ public class IngestStep {
         RequestResponse<LogbookOperation> requestResponse =
             world.getAccessClient()
                 .selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                    .setApplicationSessionId(world.getApplicationSessionId()),
-                    world.getOperationId(), new Select().getFinalSelect());
+                        .setApplicationSessionId(world.getApplicationSessionId()),
+                    world.getOperationId(), new Select().getFinalSelectById());
 
         if (requestResponse.isOk()) {
             RequestResponseOK<LogbookOperation> requestResponseOK =
@@ -269,33 +269,34 @@ public class IngestStep {
             Fail.fail("cannot find logbook with id: " + world.getOperationId());
         }
     }
-    
+
     @Then("^l'outcome détail de l'événement (.*) est (.*)$")
     public void the_outcome_detail_is(String eventName, String eventOutDetail) throws Throwable {
         RequestResponse<LogbookOperation> requestResponse =
             world.getAccessClient()
                 .selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                    .setApplicationSessionId(world.getApplicationSessionId()),
-                    world.getOperationId(), new Select().getFinalSelect());
+                        .setApplicationSessionId(world.getApplicationSessionId()),
+                    world.getOperationId(), new Select().getFinalSelectById());
 
         if (requestResponse.isOk()) {
             RequestResponseOK<LogbookOperation> requestResponseOK =
                 (RequestResponseOK<LogbookOperation>) requestResponse;
 
             List<LogbookEventOperation> actual = requestResponseOK.getFirstResult().getEvents();
-            
+
             try (AutoCloseableSoftAssertions softly = new AutoCloseableSoftAssertions()) {
                 List<LogbookEventOperation> events =
                     actual.stream().filter(event -> eventName.equals(event.getEvType()))
                         .filter(event -> !"STARTED".equals(event.getOutcome()))
                         .collect(Collectors.toList());
-                
+
                 softly.assertThat(events).as("event %s is not present or finish.", eventName).hasSize(1);
                 LogbookEventOperation onlyElement = Iterables.getOnlyElement(events);
-                
+
                 String currentOutDetail = onlyElement.getOutDetail();
                 softly.assertThat(currentOutDetail)
-                    .as("event %s has status %s but excepted status is %s.", eventName, currentOutDetail, eventOutDetail)
+                    .as("event %s has status %s but excepted status is %s.", eventName, currentOutDetail,
+                        eventOutDetail)
                     .isEqualTo(eventOutDetail);
             }
         }
@@ -305,7 +306,7 @@ public class IngestStep {
     /**
      * check if the outcome detail is valid for an event type according to logbook operation
      *
-     * @param eventName the event
+     * @param eventName    the event
      * @param eventResults otucome detail of the event
      * @throws VitamClientException
      * @throws InvalidParseOperationException
@@ -316,8 +317,8 @@ public class IngestStep {
         RequestResponse<LogbookOperation> requestResponse =
             world.getAccessClient()
                 .selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                    .setApplicationSessionId(world.getApplicationSessionId()),
-                    world.getOperationId(), new Select().getFinalSelect());
+                        .setApplicationSessionId(world.getApplicationSessionId()),
+                    world.getOperationId(), new Select().getFinalSelectById());
 
         if (requestResponse.isOk()) {
             RequestResponseOK<LogbookOperation> requestResponseOK =
@@ -356,7 +357,7 @@ public class IngestStep {
 
     /**
      * check if the atr is available
-     * 
+     *
      * @throws VitamClientException
      */
     @Then("je peux télécharger son ATR")
@@ -371,14 +372,14 @@ public class IngestStep {
         StreamUtils.closeSilently(inputStream);
         world.getIngestClient().consumeAnyEntityAndClose(response);
     }
-    
+
     /**
      * check if the atr contains the outcome detail
-     * 
+     *
      * @param message
      * @throws VitamClientException
      * @throws XMLStreamException
-     * @throws IOException 
+     * @throws IOException
      */
     @Then("^fichier ATR contient (.*)$")
     public void check_atr(String message) throws VitamClientException, XMLStreamException, IOException {
@@ -388,7 +389,7 @@ public class IngestStep {
                 world.getOperationId(), IngestCollection.ARCHIVETRANSFERREPLY);
         InputStream inputStream = response.readEntity(InputStream.class);
         String result = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-        assertThat(result).contains(message);        
+        assertThat(result).contains(message);
     }
 
     @After

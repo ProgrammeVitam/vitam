@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.database.builder.request.single;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
@@ -36,7 +37,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  */
 public class Select extends RequestSingle {
     /**
-     *
      * @return this Query
      */
     public final Select resetLimitFilter() {
@@ -45,7 +45,6 @@ public class Select extends RequestSingle {
     }
 
     /**
-     *
      * @return this Query
      */
     public final Select resetOrderByFilter() {
@@ -54,7 +53,6 @@ public class Select extends RequestSingle {
     }
 
     /**
-     *
      * @return this Query
      */
     public final Select resetUsedProjection() {
@@ -71,7 +69,7 @@ public class Select extends RequestSingle {
 
     /**
      * @param offset ignored if 0
-     * @param limit ignored if 0
+     * @param limit  ignored if 0
      * @return this Query
      */
     public final Select setLimitFilter(final long offset, final long limit) {
@@ -80,7 +78,6 @@ public class Select extends RequestSingle {
     }
 
     /**
-     *
      * @param filterContent json filter
      * @return this Query
      */
@@ -90,7 +87,6 @@ public class Select extends RequestSingle {
     }
 
     /**
-     *
      * @param filter string filter
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -102,7 +98,6 @@ public class Select extends RequestSingle {
     }
 
     /**
-     *
      * @param variableNames list of key name
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -114,7 +109,6 @@ public class Select extends RequestSingle {
     }
 
     /**
-     *
      * @param variableNames list of key name
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -126,7 +120,6 @@ public class Select extends RequestSingle {
     }
 
     /**
-     *
      * @param filterContent json filter
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -138,7 +131,6 @@ public class Select extends RequestSingle {
     }
 
     /**
-     *
      * @param filter string filter
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -158,7 +150,6 @@ public class Select extends RequestSingle {
     }
 
     /**
-     *
      * @param variableNames list of key name
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -170,7 +161,6 @@ public class Select extends RequestSingle {
     }
 
     /**
-     *
      * @param variableNames list of key name
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -182,7 +172,6 @@ public class Select extends RequestSingle {
     }
 
     /**
-     *
      * @param projectionContent json projection
      * @return this Query
      */
@@ -192,7 +181,6 @@ public class Select extends RequestSingle {
     }
 
     /**
-     *
      * @param projection string projection
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -204,7 +192,6 @@ public class Select extends RequestSingle {
     }
 
     /**
-     *
      * @param projectionContent json projection
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
@@ -216,11 +203,20 @@ public class Select extends RequestSingle {
     }
 
     /**
-     *
      * @return the Final Select containing all 3 parts: query, filter and projection
      */
     public final ObjectNode getFinalSelect() {
         return selectGetFinalSelect();
+    }
+
+    /**
+     * @return the Final Select By Id containing only one parts: projection
+     */
+    public final ObjectNode getFinalSelectById() {
+        final ObjectNode objectNode = selectGetFinalSelect();
+        objectNode.remove(BuilderToken.GLOBAL.FILTER.exactToken());
+        objectNode.remove(BuilderToken.GLOBAL.QUERY.exactToken());
+        return objectNode;
     }
 
     @Override
