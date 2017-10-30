@@ -41,7 +41,7 @@ export class OperationComponent extends PageComponent {
     FieldDefinition.createIdField('TraceabilityId', 'Identifiant de l\'objet', 3, 12),
     FieldDefinition.createDateField('TraceabilityStartDate', 'Date de début', 3, 12),
     FieldDefinition.createDateField('TraceabilityEndDate', 'Date de fin', 3, 12),
-    FieldDefinition.createSelectField('TraceabilityLogType', 'Type de journal sécurisé', '--', this.options, 3, 12)
+    FieldDefinition.createSelectField('TraceabilityLogType', 'Type de journal sécurisé', '', this.options, 3, 12)
   ];
 
   public initialSearch(service: any, responseEvent: EventEmitter<any>, form: any, offset) {
@@ -95,7 +95,7 @@ export class OperationComponent extends PageComponent {
     request.TraceabilityOk = 'true';
     request.orderby = {"field":"evDateTime","sortType":"ASC"};
     for (let i of searchAttribut) {
-      if (!request[i] || request[i] === '' ) {
+      if (!request[i] || request[i] === '') {
         delete request[i];
       }
     }
