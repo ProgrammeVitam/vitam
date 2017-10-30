@@ -13,6 +13,9 @@ export class ArchiveMainDescriptionComponent implements OnInit, OnChanges {
   translate = (x) => x;
   update = false;
   updatedFields = {};
+  saveRunning = false;
+  displayOK = false;
+  displayKO = false;
 
   constructor(public archiveUnitService: ArchiveUnitService, public archiveUnitHelper: ArchiveUnitHelper) { }
 
@@ -41,13 +44,26 @@ export class ArchiveMainDescriptionComponent implements OnInit, OnChanges {
   }
 
   saveUpdate() {
+    this.saveRunning = true;
     let updateStructure = [];
     for(let fieldName in this.updatedFields) {
       updateStructure.push({fieldId: fieldName, newFieldValue: this.updatedFields[fieldName]});
     }
     this.archiveUnitService.updateMetadata(this.archiveUnit['#id'], updateStructure)
       .subscribe((data) => {
-        return data;
+        this.archiveUnitService.getDetails(this.archiveUnit['#id'])
+          .subscribe((data) => {
+            this.archiveUnit = data.$results[0];
+            this.initFields();
+            this.update = false;
+            this.saveRunning = false;
+            this.displayOK = true;
+          }, (error) => {
+            this.saveRunning = false;
+          });
+      }, (error) => {
+        this.saveRunning = false;
+        this.displayKO = true;
       });
   }
 

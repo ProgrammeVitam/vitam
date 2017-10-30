@@ -14,6 +14,9 @@ export class ArchiveExtraDescriptionComponent implements OnInit, OnChanges {
   translate: (field: string) => string;
   update = false;
 
+  saveRunning = false;
+  displayOK = false;
+  displayKO = false;
   updatedFields = {};
 
   constructor(private archiveUnitHelper: ArchiveUnitHelper, public archiveUnitService: ArchiveUnitService) {
@@ -62,6 +65,7 @@ export class ArchiveExtraDescriptionComponent implements OnInit, OnChanges {
 
   saveUpdate() {
     const requestFields = [];
+    this.saveRunning = true;
     for (let field in this.updatedFields) {
       let linkedObject = this.archiveUnit;
       let fieldName = '';
@@ -78,12 +82,12 @@ export class ArchiveExtraDescriptionComponent implements OnInit, OnChanges {
               findArray = true;
               let fieldArray = fieldPart.split('[');
               updatedValue = JSON.parse(JSON.stringify(linkedObject[fieldArray[0]]));
-              fieldName === '' ? fieldName = fieldArray[0] : fieldName += fieldArray[0];
+              fieldName === '' ? fieldName = fieldArray[0] : fieldName += '.' + fieldArray[0];
               let arrayValue = fieldArray[1].split(']')[0];
               updatedField.push(arrayValue);
             } else {
               linkedObject = linkedObject[fieldPart];
-              fieldName === '' ? fieldName = fieldPart : fieldName += fieldPart;
+              fieldName === '' ? fieldName = fieldPart : fieldName += '.' + fieldPart;
             }
           } else {
             if (fieldPart.indexOf('[') !== -1) {
@@ -116,9 +120,21 @@ export class ArchiveExtraDescriptionComponent implements OnInit, OnChanges {
       }
     }
     this.archiveUnitService.updateMetadata(this.archiveUnit['#id'], requestFields)
-     .subscribe((data) => {
-     return data;
-     });
+        .subscribe(() => {
+          this.archiveUnitService.getDetails(this.archiveUnit['#id'])
+              .subscribe((data) => {
+                this.archiveUnit = data.$results[0];
+                this.initFields();
+                this.update = !this.update;
+                this.saveRunning = false;
+                this.displayOK = true;
+              }, () => {
+                this.saveRunning = false;
+              });
+        }, () => {
+          this.saveRunning = false;
+          this.displayKO = true;
+        });
   }
 
 }
