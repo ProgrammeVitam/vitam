@@ -29,6 +29,14 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
   displayMode: string;
   @Output() updatedFieldsChange = new EventEmitter<{}>();
 
+  frLocale = {
+      dayNames: ["Dimanche","Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"],
+      dayNamesShort: ["Dim.", "Lun.", "Mar.", "Mer.", "Jeu.", "Ven.", "Sam."],
+      dayNamesMin: ["Di","Lu","Ma","Me","Je","Ve","Sa"],
+      monthNames: [ "Janvier","Février","Mars","Avril","Mai","Juin","Juiller","Aout","Septembre","Octobre","Novembre","Décembre" ],
+      monthNamesShort: [ "Jan", "Fév", "Mars", "Avr", "Mai", "Juin","Juil", "Aou", "Sep", "Oct", "Nov", "Dec" ],
+      firstDayOfWeek: 1, today: "Aujourd'hui", clear: 'Vider'
+  };
   labelClass: string = 'ui-g-3';
   inputClass: string = 'ui-g-9';
   dateValue: Date;
@@ -37,6 +45,7 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
 
   elementClass = 'ui-g-12';
   arrayValue: any[];
+  displayError = false;
 
   constructor(public archiveUnitHelper: ArchiveUnitHelper, public referentialHelper : ReferentialHelper) { }
 
@@ -132,6 +141,18 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
       this.labelClass = `ui-g-${this.labelSize}`;
       this.inputClass = `ui-g-${12 - this.labelSize}`;
     }
+  }
+
+  checkDateValid() {
+      setTimeout(() => {
+        if ( this.dateValue === null ) {
+          this.displayError = true;
+          this.dateValue = new Date(this.value);
+          if ( isNaN(this.dateValue.getTime()) ) {
+              this.dateValue = null;
+          }
+        }
+      }, 200);
   }
 
   valueChange() {

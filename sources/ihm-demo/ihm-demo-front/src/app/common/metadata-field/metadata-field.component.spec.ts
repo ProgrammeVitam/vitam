@@ -27,4 +27,22 @@ describe('MetadataFieldComponent', () => {
   it('should be created', () => {
     expect(component).toBeTruthy();
   });
+
+  it ('should display error message when date is invalid', (done) => {
+    component.dateValue = null;
+    component.checkDateValid();
+    setTimeout(() => {
+      expect(component.displayError).toBeTruthy();
+      done();
+    }, 250);
+  });
+
+  it ('should not display error message when date is valid', (done) => {
+    component.dateValue = new Date();
+      component.checkDateValid();
+    setTimeout(() => {
+      expect(component.displayError).toBeFalsy();
+      done();
+    }, 250);
+  });
 });
