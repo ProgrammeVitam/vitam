@@ -1,15 +1,11 @@
 {
 	"StorageRule": {
-		"Rules": [
-			{
-				"FinalAction": "Copy"
-			}
-		],
 		"Inheritance": {
 			"PreventRulesId": [
 				"STO-00001"
 			]
-		}
+		},
+		"FinalAction": "Copy"
 	},
 	"DisseminationRule": {
 		"Inheritance": {

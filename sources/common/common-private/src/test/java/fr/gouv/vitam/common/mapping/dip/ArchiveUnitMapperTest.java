@@ -200,10 +200,11 @@ public class ArchiveUnitMapperTest {
 
         switch (type) {
             case SedaConstants.TAG_RULE_STORAGE:
-                rule.setFinalAction("Copy");
+                ruleCategoryModel.setFinalAction("Copy");
                 break;
             case SedaConstants.TAG_RULE_APPRAISAL:
-                rule.setFinalAction("Keep");
+                ruleCategoryModel.setFinalAction("Keep");
+
                 break;
             case SedaConstants.TAG_RULE_ACCESS:
                 rule.setStartDate(null);

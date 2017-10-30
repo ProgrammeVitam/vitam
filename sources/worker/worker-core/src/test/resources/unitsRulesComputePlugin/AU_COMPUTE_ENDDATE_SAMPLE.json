@@ -6,8 +6,7 @@
 				"Rules": [
 					{
 						"Rule": "ID420",
-						"StartDate": "2016-01-10",
-						"FinalAction": "Copy"
+						"StartDate": "2016-01-10"
 					}
 				],
 				"Inheritance": {
@@ -15,14 +14,14 @@
 					"PreventRulesId": [
 						"ID100"
 					]
-				}
+				},
+				"FinalAction": "Copy"
 			},
 			"ClassificationRule": {
 				"Rules": [
 					{
 						"Rule": "ID470",
 						"StartDate": "2016-01-10",
-						"FinalAction": "Copy",
 						"ClassificationLevel": "1",
 						"ClassificationOwner": "2",
 						"ClassificationReassessingDate": "2016-01-10",
@@ -34,7 +33,8 @@
 					"PreventRulesId": [
 						"ID101"
 					]
-				}
+				},
+				"FinalAction": "Copy"
 			},
 			"AccessRule": {
 				"Rules": [

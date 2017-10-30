@@ -71,22 +71,6 @@ public class RuleMapper {
             }
             commonRule.getRuleAndStartDate().addAll(ruleAndStartDate);
 
-            // FinalAction for StorageRuleType and AppraisalRuleType
-            String finalAction = rule.getFinalAction();
-            if (ParametersChecker.isNotEmpty(finalAction)) {
-                try {
-                    if (commonRule instanceof StorageRuleType) {
-                        StorageRuleType srt = (StorageRuleType) commonRule;
-                        srt.setFinalAction(FinalActionStorageCodeType.fromValue(finalAction));
-                    } else if (commonRule instanceof AppraisalRuleType) {
-                        AppraisalRuleType art = (AppraisalRuleType) commonRule;
-                        art.setFinalAction(FinalActionAppraisalCodeType.fromValue(finalAction));
-                    }
-                } catch (IllegalArgumentException e) {
-                    throw new DatatypeConfigurationException(e);
-                }
-            }
-
             // Case ClassificationRuleType manage other fields
             if (commonRule instanceof ClassificationRuleType) {
                 ClassificationRuleType crt = (ClassificationRuleType) commonRule;
@@ -101,6 +85,23 @@ public class RuleMapper {
                 }
             }
         }
+
+        // FinalAction for StorageRuleType and AppraisalRuleType
+        String finalAction = ruleCategory.getFinalAction();
+        if (ParametersChecker.isNotEmpty(finalAction)) {
+            try {
+                if (commonRule instanceof StorageRuleType) {
+                    StorageRuleType srt = (StorageRuleType) commonRule;
+                    srt.setFinalAction(FinalActionStorageCodeType.fromValue(finalAction));
+                } else if (commonRule instanceof AppraisalRuleType) {
+                    AppraisalRuleType art = (AppraisalRuleType) commonRule;
+                    art.setFinalAction(FinalActionAppraisalCodeType.fromValue(finalAction));
+                }
+            } catch (IllegalArgumentException e) {
+                throw new DatatypeConfigurationException(e);
+            }
+        }
+
         return commonRule;
     }
 

@@ -128,15 +128,15 @@
                         "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
                       }
                     ]
-                  },
-                  "FinalAction": {
-                    "enum": [
-                      "Keep",
-                      "Destroy"
-                    ]
                   }
                 }
               }
+            },
+            "FinalAction": {
+              "enum": [
+                "Keep",
+                "Destroy"
+              ]
             },
             "Inheritance": {
               "id": "http://example.com/root.json/ArchiveUnit/Management/AppraisalRule/Inheritance",
@@ -487,16 +487,16 @@
                         "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
                       }
                     ]
-                  },
-                  "FinalAction": {
-                    "enum": [
-                      "RestrictAccess",
-                      "Transfer",
-                      "Copy"
-                    ]
                   }
                 }
               }
+            },
+            "FinalAction": {
+              "enum": [
+                "RestrictAccess",
+                "Transfer",
+                "Copy"
+              ]
             },
             "Inheritance": {
               "id": "http://example.com/root.json/ArchiveUnit/Management/StorageRule/Inheritance",

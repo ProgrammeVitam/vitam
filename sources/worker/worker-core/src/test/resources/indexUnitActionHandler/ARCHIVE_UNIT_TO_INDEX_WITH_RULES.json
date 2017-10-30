@@ -11,20 +11,20 @@
 					{
 						"Rule": "STO-00001",
 						"StartDate": "2016-01-01",
-						"EndDate": "2017-01-01",
-						"FinalAction": "RestrictAccess"
+						"EndDate": "2017-01-01"
 					}
-				]
+				],
+				"FinalAction": "RestrictAccess"
 			},
 			"AppraisalRule": {
 				"Rules": [
 					{
 						"Rule": "APP-00001",
 						"StartDate": "2016-01-01",
-						"EndDate": "2096-01-01",
-						"FinalAction": "Destroy"
+						"EndDate": "2096-01-01"
 					}
-				]
+				],
+				"FinalAction": "Destroy"
 			},
 			"AccessRule": {
 				"Rules": [

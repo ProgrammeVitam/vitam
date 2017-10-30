@@ -9,10 +9,10 @@
 				"Rules": [
 					{
 						"Rule": "STR001",
-						"StartDate": "2012-11-15T14:30:23",
-						"FinalAction": "Copy"
+						"StartDate": "2012-11-15T14:30:23"
 					}
-				]
+				],
+				"FinalAction": "Copy"
 			}
 		},
 		"_v": 1,

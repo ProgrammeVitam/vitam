@@ -14,9 +14,9 @@
 	"AccessRule": {
 		"Rules": [{
 			"Rule": "ACC1",
-			"FinalAction": "Access",
 			"StartDate": "01/01/2017",
 			"EndDate": "01/01/2019"
-		}]
+		}],
+		"FinalAction": "Access"
 	}
 }

@@ -38,20 +38,20 @@ public class UnitInheritedRuleTest {
     private final static String EXPECTED_MULTI_PATH = "UnitInheritedRule/EXPECTED_MULTI_PATH.json";
 
     private final static String EXPECTED_LONG_PATH = "{" + "\"inheritedRule\":{\"StorageRule\":" +
-        "{\"STR1\":{\"AU0\":{\"StartDate\":\"02/01/2019\"," + "\"path\":[[\"AU0\",\"AU2\",\"AU3\",\"AU4\"]]}" + "}}}}";
+        "{\"STR1\":{\"AU0\":{\"StartDate\":\"02/01/2019\",\"FinalAction\":\"Copy\"," + "\"path\":[[\"AU0\",\"AU2\",\"AU3\",\"AU4\"]]}" + "}}}}";
 
     private final static String EXPECTED_CUMUL = "{" + "\"inheritedRule\":{\"StorageRule\":" +
-        "{\"STR2\":{\"AU2\":{\"StartDate\":\"02/01/2019\"," + "\"path\":[[\"AU2\"]]}}," +
-        "\"STR1\":{\"AU1\":{\"StartDate\":\"02/01/2019\"," + "\"path\":[[\"AU1\"]]}" + "}}}}";
+        "{\"STR2\":{\"AU2\":{\"StartDate\":\"02/01/2019\",\"FinalAction\":\"Copy\"," + "\"path\":[[\"AU2\"]]}}," +
+        "\"STR1\":{\"AU1\":{\"StartDate\":\"02/01/2019\",\"FinalAction\":\"Copy\"," + "\"path\":[[\"AU1\"]]}" + "}}}}";
 
     private final static String EXPECTED_REPLACE_SAME_RULE = "{" + "\"inheritedRule\":{\"StorageRule\":" +
-        "{\"STR1\":{\"AU1\":{\"StartDate\":\"02/01/2019\"," + "\"path\":[[\"AU1\"]]}" + "}}}}";
+        "{\"STR1\":{\"AU1\":{\"StartDate\":\"02/01/2019\",\"FinalAction\":\"Copy\"," + "\"path\":[[\"AU1\"]]}" + "}}}}";
 
     private final static String EXPECTED_NEW_RULE_CHILD = "{" + "\"inheritedRule\":{\"StorageRule\":" +
-        "{\"STR1\":{\"AU1\":{\"StartDate\":\"01/01/2019\",\"path\":[[\"AU1\"]]}" + "}}}}";
+        "{\"STR1\":{\"AU1\":{\"StartDate\":\"01/01/2019\",\"FinalAction\":\"Copy\",\"path\":[[\"AU1\"]]}" + "}}}}";
 
     private final static String EXPECTED_NEW_RULE_PARENT = "{" + "\"inheritedRule\":{\"StorageRule\":{" +
-        "\"STR1\":{\"AU0\":{\"StartDate\":\"01/01/2019\",\"path\":[[\"AU0\",\"AU1\"]]}" + "}}}}";
+        "\"STR1\":{\"AU0\":{\"StartDate\":\"01/01/2019\",\"FinalAction\":\"Copy\",\"path\":[[\"AU0\",\"AU1\"]]}" + "}}}}";
 
     private final static String EMPTY = "{}";
 
@@ -108,11 +108,11 @@ public class UnitInheritedRuleTest {
     private final static String EXPECTED_PREVENT_WILE_DECLARE = "UnitInheritedRule/EXPECTED_PREVENT_WILE_DECLARE.json";
 
     private final static String EXPECTED_CHILD_PREVENT_WILE_DECLARE = "{" + "\"inheritedRule\":{\"StorageRule\":{" +
-        "\"STR2\":{\"AU2\":{\"StartDate\":\"02/01/2019\",\"path\":[[\"AU2\",\"AU3\"]]}}," +
-        "\"STR1\":{\"AU3\":{\"StartDate\":\"02/01/2019\",\"path\":[[\"AU3\"]]}}" + "}}}";
+        "\"STR2\":{\"AU2\":{\"StartDate\":\"02/01/2019\",\"FinalAction\":\"Copy\",\"path\":[[\"AU2\",\"AU3\"]]}}," +
+        "\"STR1\":{\"AU3\":{\"StartDate\":\"02/01/2019\",\"FinalAction\":\"Copy\",\"path\":[[\"AU3\"]]}}" + "}}}";
 
     private final static String EXPECTED_FINAL_PREVENT_WHILE_DECLARE = "{" + "\"inheritedRule\":{\"StorageRule\":{" +
-        "\"STR2\":{\"AU2\":{\"StartDate\":\"02/01/2019\",\"path\":[[\"AU2\",\"AU3\"]]}}" + "}}}";
+        "\"STR2\":{\"AU2\":{\"StartDate\":\"02/01/2019\",\"FinalAction\":\"Copy\",\"path\":[[\"AU2\",\"AU3\"]]}}" + "}}}";
 
     private final static String EXPECTED_PREVENTED_RULE = "UnitInheritedRule/EXPECTED_PREVENTED_RULE.json";
 

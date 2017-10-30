@@ -1,90 +1,129 @@
 {
-  "$hint":{
-    "total":"1"
+  "$hint": {
+    "total": "1"
   },
-  "$result":[{
-    "DescriptionLevel": "Fonds",
-    "Title": "Title0",
-    "FilePlanPosition": "FilePlanPosition0",
-    "OriginatingSystemId": "OriginatingSystemId0",
-    "ArchivalAgencyArchiveUnitIdentifier": "ArchivalAgencyArchiveUnitIdentifier0",
-    "OriginatingAgencyArchiveUnitIdentifier": "OriginatingAgencyArchiveUnitIdentifier0",
-    "TransferringAgencyArchiveUnitIdentifier": "TransferringAgencyArchiveUnitIdentifier0",
-    "Description": "Description0",
-    "Description-en-US": "Description1",
-    "DocumentType": "DocumentType0",
-    "Language": "fr-FR",
-    "Tag": ["Tag0", "Tag1", "Tag2"],
-    "OriginatingAgency": {
+  "$result": [
+    {
+      "DescriptionLevel": "Fonds",
+      "Title": "Title0",
+      "FilePlanPosition": "FilePlanPosition0",
+      "OriginatingSystemId": "OriginatingSystemId0",
+      "ArchivalAgencyArchiveUnitIdentifier": "ArchivalAgencyArchiveUnitIdentifier0",
+      "OriginatingAgencyArchiveUnitIdentifier": "OriginatingAgencyArchiveUnitIdentifier0",
+      "TransferringAgencyArchiveUnitIdentifier": "TransferringAgencyArchiveUnitIdentifier0",
+      "Description": "Description0",
+      "Description-en-US": "Description1",
+      "DocumentType": "DocumentType0",
+      "Language": "fr-FR",
+      "Tag": [
+        "Tag0",
+        "Tag1",
+        "Tag2"
+      ],
+      "OriginatingAgency": {
         "Identifier": "Identifier0"
-    },
-    "SubmissionAgency": {
+      },
+      "SubmissionAgency": {
         "Identifier": "Identifier1"
-    },
-    "AuthorizedAgent": {
+      },
+      "AuthorizedAgent": {
         "Corpname": "Corpname0"
-    },
-    "Writer": [{
-        "FirstName": "FirstName0",
-        "BirthName": "BirthName0"
-    }, {
-        "FirstName": "FirstName1",
-        "BirthName": "BirthName1"
-    }],
-    "Addressee": [{
-        "FirstName": "FirstName2",
-        "BirthName": "BirthName2"
-    }, {
-        "FirstName": "FirstName3",
-        "BirthName": "BirthName3"
-    }],
-    "Recipient": [{
-        "Corpname": "Corpname1"
-    }, {
-        "Corpname": "Corpname2"
-    }],
-    "CreatedDate": "2006-05-04",
-    "TransactedDate": "2006-05-04",
-    "AcquiredDate": "2006-05-04",
-    "SentDate": "2006-05-04",
-    "ReceivedDate": "2006-05-04",
-    "RegisteredDate": "2006-05-04",
-    "StartDate": "2006-05-04",
-    "EndDate": "2006-05-04",
-    "_mgt": {
+      },
+      "Writer": [
+        {
+          "FirstName": "FirstName0",
+          "BirthName": "BirthName0"
+        },
+        {
+          "FirstName": "FirstName1",
+          "BirthName": "BirthName1"
+        }
+      ],
+      "Addressee": [
+        {
+          "FirstName": "FirstName2",
+          "BirthName": "BirthName2"
+        },
+        {
+          "FirstName": "FirstName3",
+          "BirthName": "BirthName3"
+        }
+      ],
+      "Recipient": [
+        {
+          "Corpname": "Corpname1"
+        },
+        {
+          "Corpname": "Corpname2"
+        }
+      ],
+      "CreatedDate": "2006-05-04",
+      "TransactedDate": "2006-05-04",
+      "AcquiredDate": "2006-05-04",
+      "SentDate": "2006-05-04",
+      "ReceivedDate": "2006-05-04",
+      "RegisteredDate": "2006-05-04",
+      "StartDate": "2006-05-04",
+      "EndDate": "2006-05-04",
+      "_mgt": {
         "StorageRule": {
-            "Rule": "Rule0",
-            "FinalAction": "RestrictAccess"
+          "Rules": [
+            {
+              "Rule": "Rule0"
+            }
+          ],
+          "FinalAction": "RestrictAccess"
         },
         "AppraisalRule": {
-            "Rule": "Rule2",
-            "FinalAction": "Keep"
+          "Rules": [
+            {
+              "Rule": "Rule2"
+            }
+          ],
+          "FinalAction": "Keep"
         },
         "AccessRule": {
-            "Rule": "Rule4"
+          "Rule": "Rule4"
         },
         "DisseminationRule": {
-            "Rule": "Rule6"
+          "Rule": "Rule6"
         },
         "ReuseRule": {
-            "Rule": ["Rule8", "Rule9"]
+          "Rule": [
+            "Rule8",
+            "Rule9"
+          ]
         },
         "ClassificationRule": {
-            "Rule": ["Rule10", "Rule11"],
-            "ClassificationLevel": "ClassificationLevel0",
-            "ClassificationOwner": "ClassificationOwner0"
+          "Rule": [
+            "Rule10",
+            "Rule11"
+          ],
+          "ClassificationLevel": "ClassificationLevel0",
+          "ClassificationOwner": "ClassificationOwner0"
         },
         "NeedAuthorization": false
-    },
-    "_id": "UnitGuid",
-    "_up": [ "parentId1", "parentId2" ],
-    "_ud": { "parentId1": 1, "parentId2": 1, "parentId3": 2 },
-    "_us": [ "parentId1", "parentId2", "parentId3" ],
-    "_og": "ObjectGroupGuid",
-    "_nb": "nb_fils_immediat",
-    "_dom": "tenantId",
-    "_profil": "DocumentType",
-    "_entry": "entryId"
-  }
-    ]
+      },
+      "_id": "UnitGuid",
+      "_up": [
+        "parentId1",
+        "parentId2"
+      ],
+      "_ud": {
+        "parentId1": 1,
+        "parentId2": 1,
+        "parentId3": 2
+      },
+      "_us": [
+        "parentId1",
+        "parentId2",
+        "parentId3"
+      ],
+      "_og": "ObjectGroupGuid",
+      "_nb": "nb_fils_immediat",
+      "_dom": "tenantId",
+      "_profil": "DocumentType",
+      "_entry": "entryId"
+    }
+  ]
 }

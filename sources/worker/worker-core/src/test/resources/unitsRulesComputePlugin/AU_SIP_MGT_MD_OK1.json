@@ -6,15 +6,14 @@
 			"StorageRule": {
 				"Rules": [
 					{
-						"Rule": "ID017",
-						"FinalAction": "RestrictAccess"
+						"Rule": "ID017"
 					},
 					{
 						"Rule": "ID420",
-						"StartDate": "2016-01-10",
-						"FinalAction": "Copy"
+						"StartDate": "2016-01-10"
 					}
 				],
+				"FinalAction": "Copy",
 				"Inheritance": {
 					"PreventInheritance": false,
 					"PreventRulesId": [
@@ -25,10 +24,10 @@
 			"AppraisalRule": {
 				"Rules": [
 					{
-						"Rule": "ID018",
-						"FinalAction": "Keep"
+						"Rule": "ID018"
 					}
-				]
+				],
+				"FinalAction": "Keep"
 			},
 			"AccessRule": {
 				"Rules": [

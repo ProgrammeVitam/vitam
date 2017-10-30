@@ -94,6 +94,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingUnitNotFoundException
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.mapping.ArchiveUnitMapper;
 import fr.gouv.vitam.worker.core.mapping.DescriptiveMetadataMapper;
+import fr.gouv.vitam.worker.core.mapping.RuleMapper;
 
 /**
  * listener to unmarshall seda
@@ -163,7 +164,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         this.objectMapper = getObjectMapper();
 
         DescriptiveMetadataMapper descriptiveMetadataMapper = new DescriptiveMetadataMapper();
-        archiveUnitMapper = new ArchiveUnitMapper(descriptiveMetadataMapper);
+        RuleMapper ruleMapper = new RuleMapper();
+        archiveUnitMapper = new ArchiveUnitMapper(descriptiveMetadataMapper, ruleMapper);
     }
 
     /**

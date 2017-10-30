@@ -3,16 +3,15 @@
 		"Rules": [
 			{
 				"Rule": "R1",
-				"FinalAction": "RestrictedAccess",
 				"EndDate": "01/01/2019"
 			}
-		]
+		],
+		"FinalAction": "RestrictedAccess"
 	},
 	"AccessRule": {
 		"Rules": [
 			{
 				"Rule": "R2",
-				"FinalAction": "Access",
 				"StartDate": "01/01/2017",
 				"EndDate": "01/01/2019"
 			}

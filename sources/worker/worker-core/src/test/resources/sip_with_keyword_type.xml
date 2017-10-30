@@ -69,6 +69,7 @@
                 <Management>
                     <StorageRule>
                         <PreventInheritance>true</PreventInheritance>
+                        <FinalAction>Copy</FinalAction>
                     </StorageRule>
                 </Management>
 

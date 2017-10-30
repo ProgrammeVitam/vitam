@@ -3,9 +3,9 @@
 		"Rules": [
 			{
 				"Rule": "R2",
-				"FinalAction": "AU3Access",
 				"EndDate": "01/01/2019"
 			}
-		]
+		],
+		"FinalAction": "AU3Access"
 	}
 }

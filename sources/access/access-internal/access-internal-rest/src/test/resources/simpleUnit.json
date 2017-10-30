@@ -22,10 +22,10 @@
         {
           "Rule": "R4",
           "StartDate": "2017-04-01",
-          "FinalAction": "RestrictAccess",
           "EndDate": "2021-04-01"
         }
-      ]
+      ],
+      "FinalAction": "RestrictAccess"
     },
     "OriginatingAgency": "FRAN_NP_009734"
   },
