@@ -262,13 +262,6 @@ public abstract class BuilderToken {
          */
         MATCH_PHRASE_PREFIX("match_phrase_prefix"),
         /**
-         * Selects where field named 'name' matches a phrase as a prefix of the field <br>
-         * $prefix : { name : phrase } <br>
-         * Should not be used externally (but possible) but in replacement of match_phrase_prefix if parameter not
-         * analyzed
-         */
-        PREFIX("prefix"),
-        /**
          * Selects where fields named 'name' are like the one provided, introducing some "fuzzy", which tends to be
          * slower than mlt<br>
          * $flt : { $fields : [ name1, name2 ], $like : like_text }

@@ -27,7 +27,6 @@
 package fr.gouv.vitam.common.database.translators.mongodb;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.mlt;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.prefix;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.search;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -151,13 +150,6 @@ public class QueryToMongodbTest {
     }
 
     @Test(expected = InvalidParseOperationException.class)
-    public void shouldRaiseException_whenPrefixIsNotAllowed()
-        throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Query query = new MatchQuery(QUERY.PREFIX, "var", "val");
-        QueryToMongodb.getCommand(query);
-    }
-
-    @Test(expected = InvalidParseOperationException.class)
     public void shouldRaiseException_whenSearchIsNotAllowed()
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final Query query = new SearchQuery(QUERY.SEARCH, "var", "val");
@@ -179,12 +171,6 @@ public class QueryToMongodbTest {
     public void testGetCommandsThrowInvalidParseOperationExceptionWithMLT()
         throws InvalidCreateOperationException, InvalidParseOperationException {
         QueryToMongodb.getCommand(mlt("value", "var1", "var2"));
-    }
-
-    @Test(expected = InvalidParseOperationException.class)
-    public void testGetCommandsThrowInvalidParseOperationExceptionWithPREFIX()
-        throws InvalidCreateOperationException, InvalidParseOperationException {
-        QueryToMongodb.getCommand(prefix("var1", "var2"));
     }
 
     @Test(expected = InvalidParseOperationException.class)

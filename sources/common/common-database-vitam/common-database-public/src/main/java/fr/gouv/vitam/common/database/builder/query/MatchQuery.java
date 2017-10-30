@@ -61,7 +61,6 @@ public class MatchQuery extends Query {
             case MATCH_ALL:
             case MATCH_PHRASE:
             case MATCH_PHRASE_PREFIX:
-            case PREFIX:
                 createQueryVariableValue(matchQuery, variableName, value);
                 currentTokenQUERY = matchQuery;
                 setReady(true);
@@ -85,7 +84,6 @@ public class MatchQuery extends Query {
             case MATCH_ALL:
             case MATCH_PHRASE:
             case MATCH_PHRASE_PREFIX:
-            case PREFIX:
                 ((ObjectNode) currentObject).put(QUERYARGS.MAX_EXPANSIONS.exactToken(),
                     max);
                 break;

@@ -46,7 +46,6 @@ import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.missi
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.mlt;
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.ne;
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.nin;
-import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.prefix;
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.range;
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.regex;
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.search;
@@ -211,7 +210,6 @@ public abstract class AbstractParser<E extends AbstractRequest> {
             case MATCH_ALL:
             case MATCH_PHRASE:
             case MATCH_PHRASE_PREFIX:
-            case PREFIX:
                 return true;
             default:
                 return false;
@@ -254,7 +252,6 @@ public abstract class AbstractParser<E extends AbstractRequest> {
             case MATCH_ALL:
             case MATCH_PHRASE:
             case MATCH_PHRASE_PREFIX:
-            case PREFIX:
             case NIN:
             case IN:
             case RANGE:
@@ -298,8 +295,6 @@ public abstract class AbstractParser<E extends AbstractRequest> {
                 return matchPhrase(command, adapter);
             case MATCH_PHRASE_PREFIX:
                 return matchPhrasePrefix(command, adapter);
-            case PREFIX:
-                return prefix(command, adapter);
             case NIN:
                 return nin(command, adapter);
             case IN:

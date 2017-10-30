@@ -46,7 +46,6 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.nin;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.not;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.path;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.prefix;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.range;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.regex;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.search;
@@ -296,8 +295,6 @@ public class QueryHelperTest {
             query = matchPhrase("var", "value");
             assertTrue(query.isReady());
             query = matchPhrasePrefix("var", "value");
-            assertTrue(query.isReady());
-            query = prefix("var", "value");
             assertTrue(query.isReady());
             query = regex("var", "value");
             assertTrue(query.isReady());

@@ -76,7 +76,6 @@ public class QueryToElasticsearchTest {
         "{ $match_phrase : { 'mavar20' : 'words'} }," +
         "{ $match_phrase_prefix : { 'mavar21' : 'phrase'} }," +
 
-        "{ $prefix : { 'mavar22' : 'phrase' , '$max_expansions' : 1  }}," +
         "{ $mlt : { $fields : [ 'mavar23', 'mavar24' ], $like : 'like_text' } }," +
         "{ $flt : { $fields : [ 'mavar23', 'mavar24' ], $like : 'like_text' } }," +
         "{ $search : { 'mavar25' : 'searchParameter' } }" +
