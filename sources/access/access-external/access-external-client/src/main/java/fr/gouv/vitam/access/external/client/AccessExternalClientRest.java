@@ -8,6 +8,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -41,6 +42,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     private static final String BLANK_OBJECT_GROUP_ID = "object identifier should be filled";
     private static final String BLANK_USAGE = "usage should be filled";
     private static final String BLANK_VERSION = "usage version should be filled";
+    private static final String BLANK_DIP_ID = "DIP identifier should be filled";
 
     private static final String LOGBOOK_OPERATIONS_URL = "/operations";
     private static final String LOGBOOK_UNIT_LIFECYCLE_URL = "/unitlifecycles";
@@ -339,5 +341,49 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             LOGGER.error("VitamClientInternalException: ", e);
             throw new VitamClientException(e);
         }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> exportDIP(VitamContext vitamContext, JsonNode selectQuery)
+        throws VitamClientException {
+        Response response = null;
+
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.putAll(vitamContext.getHeaders());
+
+        try {
+            response = performRequest(HttpMethod.POST, AccessExtAPI.DIP_API, headers,
+                selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        } catch (IllegalStateException e) {
+            LOGGER.error("Could not parse server response ", e);
+            throw createExceptionFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientException(e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public Response getDIPById(VitamContext vitamContext, String dipId)
+        throws VitamClientException {
+
+        ParametersChecker.checkParameter(BLANK_DIP_ID, dipId);
+
+        Response response = null;
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.putAll(vitamContext.getHeaders());
+
+        try {
+            response = performRequest(HttpMethod.GET, AccessExtAPI.DIP_API + "/" + dipId + "/dip", headers,
+                null, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
+
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientException(e);
+        }
+        return response;
     }
 }

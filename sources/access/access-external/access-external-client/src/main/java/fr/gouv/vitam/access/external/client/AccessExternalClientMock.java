@@ -100,4 +100,17 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 
+    @Override
+    public RequestResponse<JsonNode> exportDIP(VitamContext vitamContext,
+    		JsonNode selectQuery) throws VitamClientException {
+        return ClientMockResultHelper.getDIPSimpleResult(selectQuery);
+    }
+
+    @Override
+    public Response getDIPById(VitamContext vitamContext, String dipId)
+    		throws VitamClientException {
+    	return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+    }
+
 }

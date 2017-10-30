@@ -327,6 +327,14 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
             return expectedResponse.get();
         }
 
+        @POST
+        @Path("/dipexport")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response exportDIP(JsonNode queryJson)
+            throws InvalidParseOperationException {
+            return expectedResponse.post();
+        }
     }
 
     @Test
@@ -759,6 +767,44 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     public void givenSelectLogbookLifeCyclesObjectBadQueryThenPreconditionFailed() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         assertThat(client.selectObjectGroupLifeCycleById(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID, JsonHandler.getFromString(queryDsql)).getHttpCode())
+            .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    /***
+     *
+     * DIP export
+     *
+     ***/
+    @Test
+    @RunWithCustomExecutor
+    public void exportDIP() throws Exception {
+        when(mock.post())
+            .thenReturn(
+                Response.status(Status.OK).entity(ClientMockResultHelper.getLogbookOperationRequestResponse()).build());
+        assertThat(client.exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql))).isNotNull();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenExportDIPNotFoundThenNotFound() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        assertThat(client.exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql)).getHttpCode())
+            .isEqualTo(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenExportDIPNoQueryThen415() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.UNSUPPORTED_MEDIA_TYPE).build());
+        assertThat(client.exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), null).getHttpCode())
+            .isEqualTo(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenExportDIPBadQueryThenPreconditionFailed() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
+        assertThat(client.exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql)).getHttpCode())
             .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
     }
 

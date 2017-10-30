@@ -464,6 +464,55 @@ public class UserInterfaceTransactionManager {
         return result;
     }
 
+    /**
+     * generate a DIP to be exported
+     *
+     * @param query search criteria as DSL query
+     * @param tenantId the working tenant
+     * @param contractId the access contract Id
+     * @param appSessionId the application session id
+     * @return a JsonNode for dip results
+     * @throws InvalidParseOperationException unable to parse query
+     * @throws VitamClientException access client exception
+     */
+    public static RequestResponse<JsonNode> exportDIP(JsonNode query, Integer tenantId, String contractId,
+        String appSessionId) throws InvalidParseOperationException, VitamClientException {
+        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+            return client.exportDIP(new VitamContext(tenantId).setAccessContract(contractId)
+                .setApplicationSessionId(appSessionId), query);
+        }
+    }
 
+    public static boolean downloadDIP(AsyncResponse asyncResponse, String dipId, Integer tenantId,
+        String contractId, String appSessionId) throws UnsupportedEncodingException, VitamClientException {
+        Response response = null;
+        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+            response = client.getDIPById(
+                new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(appSessionId),
+                dipId);
+            final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+            final Response.ResponseBuilder responseBuilder = Response.status(response.getStatus())
+                .header("Content-Disposition", "filename=\"" + URLDecoder.decode("DIP-" + dipId + ".zip", "UTF-8") + "\"")
+                .type(response.getMediaType());
+            helper.writeResponse(responseBuilder);
+        } finally {
+            // close response on error case
+            if (response != null && response.getStatus() != Response.Status.OK.getStatusCode()) {
+                try {
+                    if (response.hasEntity()) {
+                        final Object object = response.getEntity();
+                        if (object instanceof InputStream) {
+                            StreamUtils.closeSilently((InputStream) object);
+                        }
+                    }
+                } catch (final IllegalStateException | ProcessingException e) {
+                    LOGGER.debug(e);
+                } finally {
+                    response.close();
+                }
+            }
+        }
+        return true;
+    }
 
 }

@@ -5,6 +5,7 @@ import { Observable } from "rxjs/Rx";
 import { LogbookService } from './logbook.service';
 import { VitamResponse } from "../common/utils/response";
 import { ResourcesService } from "../common/resources.service";
+import { ArchiveUnitService } from "../archive-unit/archive-unit.service";
 
 const ResourcesServiceStub = {
   get: (url) => Observable.of(new VitamResponse()),
@@ -12,12 +13,17 @@ const ResourcesServiceStub = {
   delete: (url) => Observable.of(new VitamResponse()),
 };
 
+let ArchiveUnitServiceStub = {
+  downloadDIP: (id) => Observable.of(new VitamResponse())
+};
+
 describe('LogbookService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
         LogbookService,
-        { provide: ResourcesService, useValue: ResourcesServiceStub }
+        { provide: ResourcesService, useValue: ResourcesServiceStub },
+        { provide: ArchiveUnitService, useValue: ArchiveUnitServiceStub }
       ],
       schemas: [NO_ERRORS_SCHEMA]
     });

@@ -74,6 +74,7 @@ import { LogbookHelperService } from "./common/logbook-operation-events/logbook-
 import { AccessionRegisterComponent } from './referentials/details/accession-register/accession-register.component';
 import { OperationComponent } from './admin/traceability/operation/operation.component';
 import { HoldingschemeComponent } from './admin/holdingscheme/holdingscheme.component';
+import { ArchiveExportDIPComponent } from './archive-unit/archive-unit-details/archive-export-dip/archive-export-dip.component';
 
 const appRoutes: Routes = [
   {
@@ -200,7 +201,8 @@ const appRoutes: Routes = [
     AuditComponent,
     AccessionRegisterComponent,
     OperationComponent,
-    HoldingschemeComponent
+    HoldingschemeComponent,
+    ArchiveExportDIPComponent
   ],
   imports: [
     RouterModule.forRoot(appRoutes, {useHash: true}),

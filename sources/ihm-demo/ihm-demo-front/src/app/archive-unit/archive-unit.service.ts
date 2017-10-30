@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import {Observable} from "rxjs/Rx";
 import {VitamResponse} from "../common/utils/response";
 import {ResourcesService} from "../common/resources.service";
-import {Headers, Response} from "@angular/http";
+import {Headers, Response, ResponseContentType} from "@angular/http";
 
 @Injectable()
 export class ArchiveUnitService {
@@ -11,6 +11,7 @@ export class ArchiveUnitService {
   ARCHIVE_UPDATE_API = 'archiveupdate';
   UNITS = 'units';
   UNIT = 'unit';
+  EXPORT = 'dipexport';
   OBJECTS = 'objects';
 
   static inputRequest : any;
@@ -35,6 +36,19 @@ export class ArchiveUnitService {
 
     return this.resourceService.post(`${this.ARCHIVE_UNIT_SEARCH_API}/${this.UNITS}`, headers, body)
       .map((res: Response) => res.json());
+  }
+
+  exportDIP(body: any): Observable<VitamResponse> {
+    return this.resourceService.post(`${this.ARCHIVE_UNIT_API}/${this.EXPORT}`, undefined, body)
+      .map((res: Response) =>
+        {
+          console.log('Response: ', res);
+          return res.json()
+        });
+  }
+
+  downloadDIP(id: string) {
+    return this.resourceService.get(`${this.ARCHIVE_UNIT_API}/${this.EXPORT}/${id}`, null, ResponseContentType.ArrayBuffer);
   }
 
   updateMetadata(id: string, updateRequest: any) {

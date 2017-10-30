@@ -11,7 +11,7 @@ import { ArchiveUnitService } from "../archive-unit.service";
 let DefaultResponse = {
   $context: {},
   $hits: {},
-  $results: [{'#object': ''}],
+  $results: [{'#object': '', '#operations': ['operationId']}],
   httpCode: 200
 };
 

@@ -771,4 +771,12 @@ public class ClientMockResultHelper {
             throw new  VitamClientException(e);
         }
     }
+
+
+	public static RequestResponse<JsonNode> getDIPSimpleResult(
+			JsonNode selectQuery) {
+		// TODO Mock for real for DIP !
+		return new RequestResponseOK<JsonNode>(selectQuery).addResult(getUnitSimpleItem())
+	            .setHttpCode(Status.OK.getStatusCode());
+	}
 }

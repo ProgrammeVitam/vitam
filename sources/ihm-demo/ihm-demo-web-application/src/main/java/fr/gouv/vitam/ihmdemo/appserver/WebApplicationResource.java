@@ -87,6 +87,8 @@ import com.google.common.collect.Iterables;
 
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.api.ErrorMessage;
+import fr.gouv.vitam.access.external.client.AccessExternalClient;
+import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
@@ -2810,8 +2812,75 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * Send a queryDSL request in order to select some units and create a matching DIP
+     *
+     * @param headers HTTP Headers
+     * @param criteria queryDSL for criteria
+     */
+    @POST
+    @Path("/archiveunit/dipexport")
+    @Produces(MediaType.APPLICATION_JSON)
+    @RequiresPermissions("dipexport:create")
+    public Response createDIPForExport(@Context HttpHeaders headers, String criteria) {
+        ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, criteria);
+        try {
+        	JsonNode queryDSL = JsonHandler.getFromString(criteria);
+            final RequestResponse<JsonNode> response = UserInterfaceTransactionManager.exportDIP(
+                queryDSL, getTenantId(headers), getAccessContractId(headers), getAppSessionId());
+            return Response.status(Status.OK).entity(response).build();
+        } catch (VitamClientException e) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+		} catch (InvalidParseOperationException e) {
+            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
+            return Response.status(Status.BAD_REQUEST).build();
+		}
+    }
 
+    /**
+     * Send a DIP id request in order to download the matching DIP
+     *
+     * @param headers HTTP Headers
+     * @param asyncResponse request asynchronized response
+     */
+    @GET
+    @Path("/archiveunit/dipexport/{id}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @RequiresPermissions("dipexport:read")
+    public void getDIPAsInputStreamAsync(@Context HttpHeaders headers,
+        @PathParam("id") String id, @Suspended final AsyncResponse asyncResponse) {
+        threadPoolExecutor
+            .execute(() -> asyncGetDIPStream(asyncResponse, id, getTenantId(headers), getAccessContractId(headers),
+                getAppSessionId()));
+    }
 
+    private void asyncGetDIPStream(AsyncResponse asyncResponse, String dipId, Integer tenantId, String contractId,
+    	String appSession ) {
+        try {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(dipId));
+            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, dipId);
+        } catch (final InvalidParseOperationException exc) {
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.BAD_REQUEST).build());
+            return;
+        } catch (final IllegalArgumentException exc) {
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(Status.PRECONDITION_FAILED).build());
+            return;
+        }
+        try {
+            UserInterfaceTransactionManager.downloadDIP(asyncResponse, dipId, tenantId, contractId, appSession);
+        } catch (final VitamClientException exc) {
+            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, exc);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        } catch (final Exception exc) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG, exc);
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        }
+    }
+    
     /**
      * Returns session id for the authenticated user.
      * <p>

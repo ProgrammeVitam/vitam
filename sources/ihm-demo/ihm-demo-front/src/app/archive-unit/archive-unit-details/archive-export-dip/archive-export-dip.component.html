@@ -1,0 +1,28 @@
+<p-panel [header]="'Génération du DIP'" [toggleable]="true" [collapsed]="false" *ngIf="id">
+  <div class="ui-g">
+    <div class="ui-g-4 textAlignLeft">
+      <p-radioButton value="AU" label="Unité archivistique" [(ngModel)]="exportType"></p-radioButton>
+    </div>
+    <div class="ui-g-8"></div>
+    <div class="ui-g-4 textAlignLeft">
+      <p-radioButton value="FULL" label="Unité archivistique et sa descendance" [(ngModel)]="exportType"></p-radioButton>
+    </div>
+    <div class="ui-g-8"></div>
+    <div class="ui-g-4 textAlignLeft">
+      <p-radioButton value="INGEST" label="Ensemble de l'entrée" [(ngModel)]="exportType"></p-radioButton>
+    </div>
+    <div class="ui-g-8"></div>
+    <div class="ui-g-2">
+      <button pButton type="button" (click)="exportDIP()" label="Exporter"></button>
+    </div>
+  </div>
+
+  <p-dialog header="Génération DIP" [(visible)]="display">
+    La génération du DIP est en cours...<br/>
+    Vous pourrez le télécharger dans le journal des opérations.
+    <p-footer>
+      <button pButton type="button" (click)="display = false" label="OK"></button>
+    </p-footer>
+  </p-dialog>
+
+</p-panel>

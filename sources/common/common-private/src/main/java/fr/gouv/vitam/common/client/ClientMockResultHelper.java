@@ -291,6 +291,8 @@ public class ClientMockResultHelper {
             "]" +
             "}";
 
+    private static final String DIP_RESULTS = "{}";
+
     private ClientMockResultHelper() {}
 
     /**
@@ -618,5 +620,9 @@ public class ClientMockResultHelper {
 
     public static RequestResponse getSecurityProfiles() throws InvalidParseOperationException {
         return createReponse(SECURITY_PROFILES);
+    }
+
+    public static RequestResponse getDipInfo() throws InvalidParseOperationException {
+        return createReponse(DIP_RESULTS);
     }
 }

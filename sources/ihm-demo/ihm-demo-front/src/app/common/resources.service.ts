@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import {CookieService} from "angular2-cookie/core";
 import 'rxjs/add/operator/map';
-import {Headers, Http, RequestOptionsArgs, Response} from "@angular/http";
+import {Headers, Http, RequestOptionsArgs, Response, ResponseContentType } from "@angular/http";
 import {Observable} from "rxjs/Observable";
 
 import {VitamResponse} from "./utils/response";
@@ -18,7 +18,7 @@ export class ResourcesService {
 
   constructor(private cookies: CookieService, private http: Http) { }
 
-  get(url, header?: Headers) {
+  get(url, header?: Headers, contentType?: ResponseContentType) {
     const options: RequestOptionsArgs = new RequestOptionsTenant;
     if (!header) {
       header = new Headers();
@@ -27,6 +27,10 @@ export class ResourcesService {
     if ( this.getTenant()) {
       header.append('X-Tenant-Id', this.getTenant());
       header.append('X-Access-Contract-Id', this.getAccessContract());
+    }
+
+    if ( contentType ) {
+      options.responseType = contentType;
     }
 
     options.headers = header;

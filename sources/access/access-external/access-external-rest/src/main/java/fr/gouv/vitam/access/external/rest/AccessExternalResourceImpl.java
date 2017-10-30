@@ -198,15 +198,20 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     public Response exportDIP(JsonNode queryJson) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-
-            client.exportDIP(queryJson);
-            return Response.status(Status.ACCEPTED.getStatusCode()).build();
+        	SanityChecker.checkJsonAll(queryJson);
+            RequestResponse response = client.exportDIP(queryJson);
+            if (response.isOk()) {
+                return Response.status(Status.ACCEPTED.getStatusCode()).entity(response).build();
+            } else {
+            	return response.toResponse();
+            }
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error("Predicate Failed Exception ", e);
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+            return Response.status(Status.PRECONDITION_FAILED).entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage())).build();
+        } catch (final Exception e) {
+            LOGGER.error("Technical Exception ", e);
+        	return Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
         }
     }
 
@@ -226,7 +231,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-
             Response response = client.findDIPByID(id);
             return new VitamAsyncInputStreamResponse(response, Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final AccessInternalClientServerException e) {
