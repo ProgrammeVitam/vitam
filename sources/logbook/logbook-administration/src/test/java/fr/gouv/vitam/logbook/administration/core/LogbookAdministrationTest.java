@@ -1,5 +1,6 @@
 package fr.gouv.vitam.logbook.administration.core;
 
+import static fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory.getInstance;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -23,6 +24,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -190,6 +193,41 @@ public class LogbookAdministrationTest {
         assertThat(archive).exists();
         assertThat(hashCapture.getValue()).hasSize(512 / 8);
         validateFile(archive, 1, "null");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_populate_logbook_evdetdata() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        // Given
+        byte[] hash = {1, 2, 3, 4};
+        File file = folder.newFolder();
+
+        TimestampGenerator timestampGenerator = mock(TimestampGenerator.class);
+        WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+        ArgumentCaptor<byte[]> hashCapture = ArgumentCaptor.forClass(byte[].class);
+
+
+        given(timestampGenerator.generateToken(hashCapture.capture(),
+            eq(DigestType.SHA512), eq(null))).willReturn(hash);
+        given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
+
+        LogbookOperationsImpl logbookOperations = new LogbookOperationsImpl(mongoDbAccess);
+
+        LogbookAdministration logbookAdministration =
+            new LogbookAdministration(logbookOperations, timestampGenerator,
+                workspaceClientFactory, file);
+
+        // When
+        logbookAdministration.generateSecureLogbook();
+        Select select = new Select();
+        select.setQuery(
+            QueryHelper.eq(LogbookMongoDbName.eventTypeProcess.getDbname(), LogbookTypeProcess.TRACEABILITY.name()));
+        List<LogbookOperation> operations = logbookOperations.select(select.getFinalSelect());
+
+        // Then
+        assertThat(operations).extracting("evDetData").doesNotContainNull();
     }
 
     @Test
