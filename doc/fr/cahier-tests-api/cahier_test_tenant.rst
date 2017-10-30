@@ -234,7 +234,7 @@ Rechercher l’opération, par son identifiant, correspondant au versement du SI
 
 Code : #OPLOG01
 
-``API : {{accessServiceUrl}}/access-external/v1/operations``
+``API : {{accessServiceUrl}}/access-external/v1/logbookoperations``
 
 Requête :
 
@@ -282,7 +282,7 @@ Rechercher les logbook opération avec le tenant 0, il retournera la liste des o
 
 Code : #OPLOG03
 
-``API testé: {{accessServiceUrl}}/access-external/v1/operations``
+``API testé: {{accessServiceUrl}}/access-external/v1/logbookoperations``
 
 Opérateurs du DSL:
 
@@ -412,7 +412,7 @@ Accès au journal du cycle de vie d'une unité d’archive  versée par sip1 sur
 
 Code : #AUOG7
 
-``API : {{accessServiceUrl}}/access-external/v1/unitlifecycles/{IdUnit}``
+``API : {{accessServiceUrl}}/access-external/v1/logbookunitlifecycles/{IdUnit}``
 
 Headers:
 
@@ -471,7 +471,7 @@ Accès au journal du cycle de vie d’un groupe d’objet, versé par sip2 sur l
 
 Code : #AUOG10
 
-``API testé: {{accessServiceUrl}}/access-external/v1/objectgrouplifecycles/IdObjectGroup}``
+``API testé: {{accessServiceUrl}}/access-external/v1/logbookobjectslifecycles/IdObjectGroup}``
 
 Headers:
 

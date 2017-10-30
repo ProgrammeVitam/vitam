@@ -28,7 +28,7 @@ documentation:
   - title: API Logbook
     content: !include docs-fr/logbook.md
 
-/operations:
+/logbookoperations:
   displayName: Operations Logbooks
   description: |
     API d'accès aux Journaux d'opérations (Logbooks Operations). Ce point d'entrée permet de chercher une opération (entrée, audit, élimination, préservation, ...).
@@ -55,7 +55,7 @@ documentation:
         Response model for one Logbook operation item. The request is using POST with X-Http-Method-Override: GET
       is: [LogbookTraits.OperationItemResponse, StandardTraits.OverrideGet]
 
-    /unitlifecycles:
+    /logbookunitlifecycles:
       displayName: Unit Life Cycles Logbooks For Operation
       description: |
         **UNSUPPORTED** API d'accès aux Journaux de cycle de vie des Units. Ce point d'entrée permet de chercher un cycle de vie
@@ -117,7 +117,7 @@ documentation:
             **UNSUPPORTED** Response model for one Logbook object life cycle item. The request is using POST with X-Http-Method-Override: GET
           is: [LogbookTraits.ObjectLifeCycleItemResponse, StandardTraits.OverrideGet]
 
-/unitlifecycles:
+/logbookunitlifecycles:
   displayName: Unit Life Cycle Logbook
   description: |
     API d'accès aux Journaux de cycle de vie des Units.

@@ -1272,7 +1272,7 @@ public class WebApplicationResourceTest {
             .thenReturn(result);
 
         given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
-            .get("/unitlifecycles/" + FAKE_UNIT_LF_ID);
+            .get("/logbookunitlifecycles/" + FAKE_UNIT_LF_ID);
     }
 
     @Test
@@ -1285,7 +1285,7 @@ public class WebApplicationResourceTest {
             .thenReturn(result);
 
         given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
-            .get("/objectgrouplifecycles/" + FAKE_OBG_LF_ID);
+            .get("/logbookobjectslifecycles/" + FAKE_OBG_LF_ID);
     }
 
     @SuppressWarnings("unchecked")
@@ -1300,7 +1300,7 @@ public class WebApplicationResourceTest {
         given().param("id_lc", FAKE_UNIT_LF_ID).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when()
-            .get("/unitlifecycles/" + FAKE_UNIT_LF_ID);
+            .get("/logbookunitlifecycles/" + FAKE_UNIT_LF_ID);
     }
 
     @SuppressWarnings("unchecked")
@@ -1316,7 +1316,7 @@ public class WebApplicationResourceTest {
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .when()
-            .get("/unitlifecycles/" + FAKE_UNIT_LF_ID);
+            .get("/logbookunitlifecycles/" + FAKE_UNIT_LF_ID);
     }
 
     @SuppressWarnings("unchecked")
@@ -1331,7 +1331,7 @@ public class WebApplicationResourceTest {
         given().param("id_lc", FAKE_OBG_LF_ID).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when()
-            .get("/objectgrouplifecycles/" + FAKE_OBG_LF_ID);
+            .get("/logbookobjectslifecycles/" + FAKE_OBG_LF_ID);
     }
 
     @SuppressWarnings("unchecked")
@@ -1346,7 +1346,7 @@ public class WebApplicationResourceTest {
         given().param("id_lc", FAKE_OBG_LF_ID).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
-            .get("/objectgrouplifecycles/" + FAKE_OBG_LF_ID);
+            .get("/logbookobjectslifecycles/" + FAKE_OBG_LF_ID);
     }
 
     @Test

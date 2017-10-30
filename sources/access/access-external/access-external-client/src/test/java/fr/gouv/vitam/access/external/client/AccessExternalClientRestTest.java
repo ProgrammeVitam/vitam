@@ -241,7 +241,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
 
         // Logbook operations
         @GET
-        @Path("/operations")
+        @Path("/logbookoperations")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response selectOperation(@PathParam("id_op") String operationId) throws InvalidParseOperationException {
@@ -249,7 +249,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         }
 
         @POST
-        @Path("/operations")
+        @Path("/logbookoperations")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response selectOperationWithPostOverride(@PathParam("id_op") String operationId,
@@ -259,7 +259,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         }
 
         @GET
-        @Path("/operations/{id_op}")
+        @Path("/logbookoperations/{id_op}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response getOperation(@PathParam("id_op") String operationId) throws InvalidParseOperationException {
@@ -267,7 +267,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         }
 
         @POST
-        @Path("/operations/{id_op}")
+        @Path("/logbookoperations/{id_op}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response selectOperationByPost(@PathParam("id_op") String operationId,
@@ -277,7 +277,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         }
 
         @GET
-        @Path("/unitlifecycles/{id_lc}")
+        @Path("/logbookunitlifecycles/{id_lc}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response getUnitLifeCycle(@PathParam("id_lc") String unitLifeCycleId, JsonNode queryDsl) {
@@ -285,7 +285,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         }
 
         @GET
-        @Path("/objectgrouplifecycles/{id_lc}")
+        @Path("/logbookobjectslifecycles/{id_lc}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response getObjectGroupLifeCycle(@PathParam("id_lc") String objectGroupLifeCycleId, JsonNode queryDsl) {

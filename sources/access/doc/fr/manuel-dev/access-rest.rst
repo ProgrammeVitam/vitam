@@ -79,24 +79,24 @@ Rest API
 
 -Operation
 
-| GET https://vitam/access-external/v1/operations
+| GET https://vitam/access-external/v1/logbookoperations
 	récupérer tous les journaux de l'opéraion
 
-| POST https://vitam/access-external/v1/operations (with X-HTTP-METHOD-OVERRIDE GET)
+| POST https://vitam/access-external/v1/logbookoperations (with X-HTTP-METHOD-OVERRIDE GET)
 	récupérer tous les journaux de l'opéraion
 
-| GET https://vitam/access-external/v1/operations/{id_op}
+| GET https://vitam/access-external/v1/logbookoperations/{id_op}
 	récupérer le journal de l'opéraion avec la filtre (le contenu de la requête) et id
 
-| POST https://vitam/access-external/v1/operations/{id_op} (with X-HTTP-METHOD-OVERRIDE GET)
+| POST https://vitam/access-external/v1/logbookoperations/{id_op} (with X-HTTP-METHOD-OVERRIDE GET)
 	récupérer le journal de l'opéraion avec la filtre (le contenu de la requête) et id
 
 -Cycle de vie
 
-| GET https://vitam/access-external/v1/unitlifecycles/{id_lc}
+| GET https://vitam/access-external/v1/logbookunitlifecycles/{id_lc}
 	récupérer le journal sur le cycle de vie d'un unit avec la filtre (le contenu de la requête) et id
 
-| GET https://vitam/access-external/v1/objectgrouplifecycles/{id_lc}
+| GET https://vitam/access-external/v1/logbookobjectslifecycles/{id_lc}
 	récupérer le journal sur le cycle de vie d'un groupe d'objet avec la filtre (le contenu de la requête) et id
 
 

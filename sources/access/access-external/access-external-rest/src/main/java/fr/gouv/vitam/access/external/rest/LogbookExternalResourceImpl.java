@@ -88,7 +88,7 @@ public class LogbookExternalResourceImpl {
      * @return Response contains the list of logbook operations
      */
     @GET
-    @Path("/operations")
+    @Path("/logbookoperations")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "logbookoperations:read", description = "Lister toutes les opérations")
@@ -135,7 +135,7 @@ public class LogbookExternalResourceImpl {
      * @return the response with a specific HTTP status
      */
     @GET
-    @Path("/operations/{id_op}")
+    @Path("/logbookoperations/{id_op}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "logbookoperations:id:read", description = "Récupérer le journal d'une opération donnée")
@@ -205,8 +205,8 @@ public class LogbookExternalResourceImpl {
      * @return the unit life cycle
      */
     @GET
-    @Path("/unitlifecycles/{id_lc}")
-    @Secured(permission = "unitlifecycles:id:read", description = "Récupérer le journal de cycle de vie d'une unité archivistique")
+    @Path("/logbookunitlifecycles/{id_lc}")
+    @Secured(permission = "logbookunitlifecycles:id:read", description = "Récupérer le journal de cycle de vie d'une unité archivistique")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUnitLifeCycleById(@PathParam("id_lc") String unitLifeCycleId,
         @Dsl(value = DslSchema.GET_BY_ID) JsonNode queryDsl) {
@@ -265,8 +265,8 @@ public class LogbookExternalResourceImpl {
      * @return the object group life cycle
      */
     @GET
-    @Path("/objectgrouplifecycles/{id_lc}")
-    @Secured(permission = "objectgrouplifecycles:id:read", description = "Récupérer le journal de cycle de vie d'un groupe d'objet")
+    @Path("/logbookobjectslifecycles/{id_lc}")
+    @Secured(permission = "logbookobjectslifecycles:id:read", description = "Récupérer le journal de cycle de vie d'un groupe d'objet")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectGroupLifeCycleById(@PathParam("id_lc") String objectGroupLifeCycleId,
         @Dsl(value = DslSchema.GET_BY_ID) JsonNode queryDsl) {
