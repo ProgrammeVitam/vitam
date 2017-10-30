@@ -217,25 +217,6 @@ public class IngestExternalResource extends ApplicationStatusResource {
         return downloadObjectAsync(objectId, IngestCollection.MANIFESTS);
     }
 
-    /**
-     * Download report stored by Administration operation (currently administration reports )
-     * <p>
-     * Return the report as stream asynchronously<br/>
-     * <br/>
-     * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
-     *
-     * @param objectId the id of object to download (logbook operation Id)
-     * @return the given response with the report
-     */
-    @GET
-    @Path("/ingests/{objectId}/rules")
-    @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "ingests:id:report:read",
-        description = "Récupérer le rapport pour une opération d'administration donnée")
-    public Response downloadIngestReportAsStream(@PathParam("objectId") String objectId) {
-        return downloadObjectAsync(objectId, IngestCollection.RULES);
-    }
-
     private Response downloadObjectAsync(String objectId, IngestCollection collection) {
         try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
             final Response response = ingestInternalClient.downloadObjectAsync(objectId, collection);

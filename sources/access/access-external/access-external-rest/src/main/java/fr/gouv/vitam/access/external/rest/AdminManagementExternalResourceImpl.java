@@ -61,6 +61,7 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFou
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.dsl.schema.Dsl;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.error.ServiceName;
@@ -109,6 +110,8 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
+import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
+import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 
 /**
@@ -1869,7 +1872,6 @@ public class AdminManagementExternalResourceImpl {
      *
      * @param headers contain X-Action and X-Context-ID
      * @param id operation identifier
-     * @param asyncResponse asyncResponse
      * @return http response
      */
     @Path("operations/{id}")
@@ -1976,4 +1978,63 @@ public class AdminManagementExternalResourceImpl {
         }
     }
 
+    /**
+     * Download report stored by Administration operation (currently administration reports )
+     * <p>
+     * Return the report as stream asynchronously<br/>
+     * <br/>
+     * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
+     *
+     * @param opId the id of logbook operation
+     * @return the given response with the report
+     */
+    @GET
+    @Path("/rulesreport/{opId}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Secured(permission = "rulesreport:id:read ",
+        description = "Récupérer le rapport pour une opération d'import de règles de gestion")
+    public Response downloadRulesReportAsStream(@PathParam("opId") String opId) {
+        return downloadObjectAsync(opId, IngestCollection.RULES);
+    }
+
+    private Response downloadObjectAsync(String objectId, IngestCollection collection) {
+        try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
+            final Response response = ingestInternalClient.downloadObjectAsync(objectId, collection);
+            return new VitamAsyncInputStreamResponse(response);
+        } catch (IllegalArgumentException e) {
+            LOGGER.error("IllegalArgumentException was thrown : ", e);
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorStream(
+                    VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getLocalizedMessage())))
+                .build();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error("Predicates Failed Exception", e);
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorStream(
+                    VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                        e.getLocalizedMessage())))
+                .build();
+        } catch (final IngestInternalClientServerException e) {
+            LOGGER.error("Internal Server Exception ", e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorStream(
+                    VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                        e.getLocalizedMessage())))
+                .build();
+        } catch (final IngestInternalClientNotFoundException e) {
+            LOGGER.error("Request resources does not exits", e);
+            return Response.status(Status.NOT_FOUND)
+                .entity(getErrorStream(
+                    VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getLocalizedMessage())))
+                .build();
+        }
+    }
+
+    private InputStream getErrorStream(VitamError vitamError) {
+        try {
+            return JsonHandler.writeToInpustream(vitamError);
+        } catch (InvalidParseOperationException e) {
+            return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
+        }
+    }
 }

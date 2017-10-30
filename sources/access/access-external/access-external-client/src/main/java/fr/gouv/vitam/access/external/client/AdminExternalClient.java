@@ -670,4 +670,15 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     RequestResponse createSecurityProfiles(VitamContext vitamContext, InputStream securityProfiles, String filename)
         throws AccessExternalClientException, InvalidParseOperationException, VitamClientException;
 
+    /**
+     * Download rules report
+     *
+     * @param vitamContext the vitam context
+     * @param opId the op (logbook) ID
+     * @return
+     * @throws VitamClientException
+     */
+    Response downloadRulesReport(VitamContext vitamContext, String opId)
+        throws VitamClientException;
+
 }

@@ -1265,11 +1265,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
         IngestExternalClientNotFoundException, InvalidParseOperationException {
         File file = null;
         Response response = null;
-        try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
-            response = ingestExternalClient
-                .downloadObjectAsync(
-                    new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()),
-                    guid, IngestCollection.RULES);
+        try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()) {
+            response = adminExternalClient
+                .downloadRulesReport(
+                    new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()), guid);
             InputStream inputStream = response.readEntity(InputStream.class);
             if (inputStream != null) {
                 file = PropertiesUtils.fileFromTmpFolder(guid + ".json");

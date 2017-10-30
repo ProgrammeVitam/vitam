@@ -5,10 +5,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +31,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Assert;
 import org.junit.Test;
@@ -37,9 +40,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
-import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamContext;
@@ -262,6 +265,13 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         @Produces(MediaType.APPLICATION_JSON)
         public Response updateWorkFlowStatus(@PathParam("id") String id) {
             return expectedResponse.put();
+        }
+
+        @GET
+        @Path("/rulesreport/{objectId}")
+        @Produces(MediaType.APPLICATION_OCTET_STREAM)
+        public Response downloadObject(@PathParam("objectId") String objectId) {
+            return expectedResponse.get();
         }
     }
 
@@ -982,6 +992,41 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         RequestResponse<ItemStatus> resp2 = client.updateOperationActionProcess(new VitamContext(0), "NEXT", ID);
         assertFalse(resp2.isOk());
         assertEquals(Status.INTERNAL_SERVER_ERROR.getStatusCode(), resp2.getStatus());
+    }
+
+    @Test
+    public void givenNotFoundWhenDownloadObjectThenReturn404()
+        throws VitamClientException, InvalidParseOperationException, IOException {
+        VitamError error = VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_NOT_FOUND, "NOT FOUND");
+        AbstractMockClient.FakeInboundResponse fakeResponse =
+            new AbstractMockClient.FakeInboundResponse(Status.NOT_FOUND, JsonHandler.writeToInpustream(error),
+                MediaType.APPLICATION_OCTET_STREAM_TYPE, new MultivaluedHashMap<String, Object>());
+        when(mock.get()).thenReturn(fakeResponse);
+        InputStream input =
+            client.downloadRulesReport(new VitamContext(TENANT_ID), "1")
+                .readEntity(InputStream.class);
+        VitamError response = JsonHandler.getFromInputStream(input, VitamError.class);
+        assertEquals(Status.NOT_FOUND.getStatusCode(), response.getHttpCode());
+    }
+
+    @Test
+    public void givenInputstreamWhenDownloadObjectThenReturnOK()
+        throws VitamClientException {
+
+        when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
+
+        final InputStream fakeUploadResponseInputStream =
+            client.downloadRulesReport(new VitamContext(TENANT_ID), "1")
+                .readEntity(InputStream.class);
+        assertNotNull(fakeUploadResponseInputStream);
+
+        try {
+            assertTrue(IOUtils.contentEquals(fakeUploadResponseInputStream,
+                IOUtils.toInputStream("test", CharsetUtils.UTF_8)));
+        } catch (final IOException e) {
+            e.printStackTrace();
+            fail();
+        }
     }
 
 }

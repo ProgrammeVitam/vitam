@@ -104,6 +104,15 @@ documentation:
         X-Http-Method-Override:
           required: true
 
+/rulesreport/{idop}:
+  displayName: Rules report
+  description: |
+     Permet de télécharger un objet représentant le rapport d'import des règles en fonction de l'id de l'opération
+  is: [ RegisterFileItemResponse ]
+  get:
+     description:  |
+      Permet de télécharger un objet représentant le rapport d'import des règles en fonction de l'id de l'opération
+
 /accesscontracts:
   displayName: Access contracts
   description: |

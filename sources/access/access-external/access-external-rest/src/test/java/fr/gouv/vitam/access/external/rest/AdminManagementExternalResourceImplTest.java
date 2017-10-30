@@ -64,6 +64,7 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*", "javax.management.*"})
@@ -1736,6 +1737,16 @@ public class AdminManagementExternalResourceImplTest {
             .when().post(AccessExtAPI.CONTEXTS_API)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json");
 
+    }
+
+    @Test
+    public void downloadIngestReportsAsStream()
+        throws Exception {
+        RestAssured.given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
+            .when().get( AccessExtAPI.RULES_REPORT_API + "/id")
+            .then().statusCode(Status.OK.getStatusCode());
     }
 
 }

@@ -218,6 +218,22 @@ public enum VitamCode {
         Status.BAD_REQUEST,
         "Access external client error in getDataObjectByUnitId method."),
 
+    ADMIN_EXTERNAL_BAD_REQUEST(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "20",
+        Status.BAD_REQUEST,
+        "Admin external bad request error"),
+
+    ADMIN_EXTERNAL_PRECONDITION_FAILED(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "21",
+        Status.PRECONDITION_FAILED,
+        "Admin external precondition failed error"),
+
+    ADMIN_EXTERNAL_NOT_FOUND(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "22",
+        Status.NOT_FOUND,
+        "Admin external not found error"),
+
+    ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "23",
+        Status.INTERNAL_SERVER_ERROR,
+        "Admin external internal server error"),
+
     ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "01",
         Status.BAD_REQUEST,
         "Access internal error while check update on rules"),

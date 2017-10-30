@@ -1439,14 +1439,6 @@ public class WebApplicationResourceTest {
             anyObject());
 
         RestAssured.given()
-            .when().get(INGEST_URI + "/1/" + IngestCollection.REPORTS.getCollectionName())
-            .then().statusCode(Status.OK.getStatusCode());
-
-        Mockito.doReturn(ClientMockResultHelper.getObjectStream()).when(ingestClient).downloadObjectAsync(
-            anyObject(), anyObject(),
-            anyObject());
-
-        RestAssured.given()
             .when().get(INGEST_URI + "/1/" + IngestCollection.MANIFESTS.getCollectionName())
             .then().statusCode(Status.OK.getStatusCode());
 

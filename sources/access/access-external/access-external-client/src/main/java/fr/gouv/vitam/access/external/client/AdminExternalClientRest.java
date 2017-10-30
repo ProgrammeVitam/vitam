@@ -74,6 +74,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     private static final String NOT_FOUND_EXCEPTION = "Not Found Exception";
     private static final String UNAUTHORIZED = "Unauthorized";
 
+    private static final String BLANK_OBJECT_ID = "object identifier should be filled";
+
 
     AdminExternalClientRest(AdminExternalClientFactory factory) {
         super(factory);
@@ -925,6 +927,26 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     public RequestResponse createAccessContracts(VitamContext vitamContext, InputStream accessContracts)
         throws InvalidParseOperationException, AccessExternalClientException {
         return internalCreateContracts(vitamContext, accessContracts, AdminCollections.ACCESS_CONTRACTS);
+    }
+
+    @Override
+    public Response downloadRulesReport(VitamContext vitamContext, String opId)
+        throws VitamClientException {
+
+        ParametersChecker.checkParameter(BLANK_OBJECT_ID, opId);
+
+        Response response;
+        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+        headers.putAll(vitamContext.getHeaders());
+        try {
+            response = performRequest(HttpMethod.GET, AccessExtAPI.RULES_REPORT_API + "/" + opId,
+                headers, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error("VitamClientInternalException: ", e);
+            throw new VitamClientException(e);
+        }
+        return response;
     }
 
 }

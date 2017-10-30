@@ -204,16 +204,6 @@ public class IngestExternalResourceTest {
     }
 
     @Test
-    public void downloadIngestReportsAsStream()
-        throws Exception {
-        RestAssured.given()
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
-            .when().get(INGEST_URI + "/1/" + IngestCollection.ARCHIVETRANSFERREPLY.getCollectionName())
-            .then().statusCode(Status.OK.getStatusCode());
-    }
-
-    @Test
     public void downloadIngestManifestsAsStream()
         throws Exception {
 
