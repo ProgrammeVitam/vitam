@@ -264,12 +264,12 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
                     final String timestampToken3 =
                         findHashByTraceabilityEventExpect(logbookOperationsClient, expectedLogbookId,
                             currentDate.minusYears(1));
-                    final String timestampToken1Digest =
-                        (timestampToken1 == null) ? null : generateTimestampDigest(timestampToken1.getBytes());
-                    final String timestampToken2Digest =
-                        (timestampToken2 == null) ? null : generateTimestampDigest(timestampToken2.getBytes());
-                    final String timestampToken3Digest =
-                        (timestampToken3 == null) ? null : generateTimestampDigest(timestampToken3.getBytes());
+                    final String timestampToken1Base64 =
+                        (timestampToken1 == null) ? null : BaseXx.getBase64(timestampToken1.getBytes());
+                    final String timestampToken2Base64 =
+                        (timestampToken2 == null) ? null : BaseXx.getBase64(timestampToken2.getBytes());
+                    final String timestampToken3Base64 =
+                        (timestampToken3 == null) ? null : BaseXx.getBase64(timestampToken3.getBytes());
 
                     final byte[] timeStampToken =
                         generateTimeStampToken(GUIDReader.getGUID(params.getProcessId()), tenantId, rootHash,
@@ -291,9 +291,9 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
                     }
 
                     traceabilityFile.storeAdditionalInformation(numberOfLifecycles, startDate, endDate);
-                    traceabilityFile.storeHashCalculationInformation(rootHash, timestampToken1Digest,
-                        timestampToken2Digest,
-                        timestampToken3Digest);
+                    traceabilityFile.storeHashCalculationInformation(rootHash, timestampToken1Base64,
+                        timestampToken2Base64,
+                        timestampToken3Base64);
 
                     String previousDate = null;
                     String previousMonthDate = null;
@@ -399,18 +399,6 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
             zipFile.delete();
         }
 
-    }
-
-    /**
-     * Generate a hash for a byte array
-     *
-     * @param bytes the byte array to compute digest for
-     * @return hash of the byte array
-     */
-    private String generateTimestampDigest(byte[] bytes) {
-        final Digest digest = new Digest(timestampDigestType);
-        digest.update(bytes);
-        return digest.digest64();
     }
 
     /**
