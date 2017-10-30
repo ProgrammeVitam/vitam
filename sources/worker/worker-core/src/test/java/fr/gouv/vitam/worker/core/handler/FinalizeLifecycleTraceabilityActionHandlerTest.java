@@ -318,7 +318,7 @@ public class FinalizeLifecycleTraceabilityActionHandlerTest {
         JsonNode evDetData = JsonHandler.getFromString(response.getEvDetailData());
         assertNotNull(evDetData);
         String hash = evDetData.get("Hash").asText();
-        String expectedHash = new Digest(digestType).update(PropertiesUtils.getResourceFile(OBJECT_FILE)).toString();
+        String expectedHash = new Digest(digestType).update(PropertiesUtils.getResourceFile(OBJECT_FILE)).digest64();
         assertTrue(hash.equals(expectedHash));
     }
 

@@ -187,7 +187,7 @@ public class CreateUnitSecureFileActionPluginTest {
         JsonNode jsonNode = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(resource));
         Digest digest = new Digest(digestType);
         digest.update(JsonHandler.unprettyPrint(jsonNode).getBytes());
-        return digest.toString();
+        return digest.digest64();
     }
     
     private void saveWorkspacePutObject(String filename) throws ContentAddressableStorageServerException {

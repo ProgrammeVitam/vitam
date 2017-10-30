@@ -397,6 +397,14 @@ public class Digest {
         return BaseXx.getBase16(finalized);
     }
 
+    /**
+     *
+     * @return the digest in Base64 format
+     */
+    public final String digest64() {
+        return BaseXx.getBase64(digest());
+    }
+
     @Override
     public final String toString() {
         return digestHex();
