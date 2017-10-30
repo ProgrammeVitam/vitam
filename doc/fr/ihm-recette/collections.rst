@@ -1,7 +1,7 @@
 Administration des collections
 ##############################
 
-L'administration des collections permet de supprimer certains ou tous les référentiels / journaux / objets dans le but de recetter VITAM ou de faire des tests variés pour éprouver la stabilité du système.
+L'administration des collections permet de supprimer certains ou tous les référentiels / journaux / objets dans le but de recetter la solution logicielle Vitam ou de faire des tests variés pour éprouver la stabilité du système.
 
 L'utilisateur y accède par le menu, en cliquant sur "Administration des collections."
 
@@ -10,25 +10,25 @@ L'utilisateur y accède par le menu, en cliquant sur "Administration des collect
 Action de suppression
 =====================
 
-Chaque bouton "purger" est situé sous le titre de son action.
-Lors du clic sur ce bouton "purger", une fenêtre modale apparaît et demande de confirmer l'action de suppression.
-Il existe deux types de purge:
+Chaque bouton "Purger" est situé sous le titre de son action.
+Lors du clic sur ce bouton "Purger", une fenêtre modale apparaît et demande de confirmer l'action de suppression.
+Il existe deux types de purges.
 
 
 Purge de toutes les collections de la solution logicielle Vitam
 ===============================================================
 
 La purge de toutes les collections correspond à la suppression de tous les référentiels, de tous les journaux ainsi que de tous les objets et unités archivistiques à l'exception du référentiel des formats.
-Suite à cette opération, chaque IHM correspondante est vide de contenu et plus aucune archive n'est présente dans VITAM.
+Suite à cette opération, chaque IHM correspondante est vide de contenu et plus aucune archive n'est présente dans la solution logicielle Vitam.
 
 Purge des référentiels
 ======================
 
-Il est possible de supprimer isolément un référentiel : 
+Il est possible de supprimer isolément un référentiel. Pour cela, il faut choisir un référentiel et cliquer sur "Purger" :
 
-* Un clic sur la croix de la fenêtre modale ou sur "non", annule la demande de suppression
+* Un clic sur la croix de la fenêtre modale ou sur "Non", annule la demande de suppression
 * Un clic sur "Oui", valide la demande de suppression, la fenêtre modale se ferme et la suppression est effectuée
-  
+
 .. image:: images/administration_purge_pop_up.png
 
 Une fois la suppression effectuée, un message de confirmation s'affiche dans une fenêtre modale.
@@ -41,7 +41,7 @@ Le référentiel des formats de la solution logicielle Vitam est supprimé **pou
 
 **Référentiel des règles de gestion**
 
-Le référentiel des règles de gestion de la solution logicielle Vitam est supprimé pour le tenant séléctionné par l'utilisateur. L'IHM des "règles de gestion" est vide de contenu. Sans référentiel des règles de gestion, aucun SIP ne pourra être importé dans la solution logicielle Vitam.
+Le référentiel des règles de gestion de la solution logicielle Vitam est supprimé pour le tenant sélectionné par l'utilisateur. L'IHM du référentiel des règles de gestion est vide de contenu. Sans référentiel des règles de gestion, aucun SIP ne pourra être importé sur le tenant dans la solution logicielle Vitam.
 
 **Registre des fonds**
 
@@ -68,7 +68,7 @@ Tous les journaux du cycle de vie des unités archivistiques sont supprimés de 
 Tous les journaux du cycle de vie des objets sont supprimés de la solution logicielle Vitam. L'IHM de chaque "Journal du cycle de vie" d'un objet est vide de contenu.
 
 
-**Journaux des Opérations**
+**Journaux des opérations**
 
 Tous les journaux des opérations sont supprimés de la solution logicielle Vitam. Les IHM "Journal des opérations" et "Journal des opérations d'entrées" sont vides de contenu.
 
