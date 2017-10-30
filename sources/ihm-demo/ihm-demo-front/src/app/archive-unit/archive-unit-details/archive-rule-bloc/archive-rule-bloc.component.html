@@ -20,8 +20,7 @@
               icon="fa-save" iconPos="left"></button>
     </div>
   </div>
-
-  <div class="ui-g" *ngIf="management && inheritedRules">
+  <div class="ui-g" *ngIf="management && inheritedRules && !saveRunning">
     <ng-template ngFor let-category [ngForOf]="rulesCategories">
       <p-fieldset [legend]="category.label" class="ui-g-6" [toggleable]="true" [collapsed]="false"
                   *ngIf="!!management[category.rule] || !!inheritedRules[category.rule] || update">
@@ -31,7 +30,7 @@
             <div class="ui-g-3">Identifiant</div>
             <div class="ui-g-3">Début</div>
             <div class="ui-g-2">Fin</div>
-            <div class="ui-g-1" *ngIf="!update">Hérit.</div>
+            <div class="ui-g-1">Hérit.</div>
             <div class="ui-g-2" *ngIf="category.rule === 'StorageRule' || category.rule === 'AppraisalRule'">Sort final</div>
             <div class="ui-g-1" *ngIf="!update">Détail</div>
             <div class="ui-g-1" *ngIf="update">Actions</div>
@@ -93,27 +92,44 @@
             </ng-template>
           </div>
 
-          <div *ngIf="update ">
+          <div *ngIf="update">
             <ng-template ngFor let-rule [ngForOf]="updatedFields[category.rule].Rules" let-i="index">
               <div class="ui-g">
                 <div class="ui-g-3">
-                  <input pInputText *ngIf="!updatedFields[category.rule].Rules[i].oldRule" [(ngModel)]="rule.Rule" style="width: 100%"/>
-                  <span *ngIf="updatedFields[category.rule].Rules[i].oldRule" class="deletedRule">{{rule.Rule}}</span>
+                  <input pInputText *ngIf="!rule.oldRule && !rule.inherited" [(ngModel)]="rule.Rule" style="width: 100%"/>
+                  <span *ngIf="rule.oldRule"
+                       class="deletedRule">{{rule.Rule}}</span>
+                  <span *ngIf="updatedFields[category.rule].Inheritance.PreventRulesId.indexOf(rule.Rule) != -1 && rule.inherited"
+                       class="deletedRule">{{rule.Rule}}</span>
+                  <span *ngIf="rule.inherited && updatedFields[category.rule].Inheritance.PreventRulesId.indexOf(rule.Rule) == -1">{{rule.Rule}}</span>
                 </div>
                 <div class="ui-g-3">
-                  <p-calendar *ngIf="!updatedFields[category.rule].Rules[i].oldRule" [(ngModel)]="rule.StartDate"
+                  <p-calendar *ngIf="!rule.oldRule && !rule.inherited" [(ngModel)]="rule.StartDate"
                               [inputStyle]="{'width':'100%'}"></p-calendar>
-                  <span *ngIf="updatedFields[category.rule].Rules[i].oldRule" class="deletedRule">{{rule.StartDate | date:'dd/MM/yyyy'}}</span>
+                  <span *ngIf="rule.oldRule"
+                        class="deletedRule">{{rule.StartDate | date:'dd/MM/yyyy'}}</span>
+                  <span *ngIf="updatedFields[category.rule].Inheritance.PreventRulesId.indexOf(rule.Rule) != -1 && rule.inherited"
+                        class="deletedRule">{{rule.StartDate | date:'dd/MM/yyyy'}}</span>
+                  <span *ngIf="rule.inherited && updatedFields[category.rule].Inheritance.PreventRulesId.indexOf(rule.Rule) == -1">
+                    {{rule.StartDate | date:'dd/MM/yyyy'}}</span>
                 </div>
-                <div class="ui-g-2" [ngClass]="updatedFields[category.rule].Rules[i].oldRule ? 'deletedRule' : ''">Calculée</div>
-                <div class="ui-g-2" *ngIf="category.rule === 'StorageRule' || category.rule === 'AppraisalRule'">
+                <div class="ui-g-2">Calculée</div>
+                <div class="ui-g-1">{{rule.inherited ? 'Oui': 'Non'}}</div>
+                <div class="ui-g-2" *ngIf="!rule.inherited && (category.rule === 'StorageRule' || category.rule === 'AppraisalRule')">
                   <select [(ngModel)]="updatedFields[category.rule].Rules.FinalAction" style="width: 100%">
                     <option *ngFor="let action of finalActions[category.rule] | keys" value="{{finalActions[category.rule][action].id}}">{{finalActions[category.rule][action].label}}</option>
                   </select>
                 </div>
-                <div class="ui-g-1" (click)="removeRule(category.rule, i)" *ngIf="update">
-                  <i class="fa fa-trash clickableDiv" *ngIf="!updatedFields[category.rule].Rules[i].oldRule"></i>
-                  <i class="fa fa-plus clickableDiv" *ngIf="updatedFields[category.rule].Rules[i].oldRule"></i>
+                <div class="ui-g-2" *ngIf="rule.inherited && (category.rule === 'StorageRule' || category.rule === 'AppraisalRule')">
+                  <span>{{finalActions[category.rule][rule.FinalAction].label}}</span>
+                </div>
+                <div class="ui-g-1" (click)="removeRule(category.rule, i, rule)" *ngIf="update">
+                  <i class="fa fa-trash clickableDiv"
+                     *ngIf="!rule.oldRule && !rule.inherited"></i>
+                  <i class="fa fa-plus clickableDiv"
+                     *ngIf="rule.oldRule"></i>
+                  <i class="fa fa-plus clickableDiv"
+                     *ngIf="updatedFields[category.rule].Inheritance.PreventRulesId.indexOf(rule.Rule) != -1 && rule.inherited"></i>
                 </div>
               </div>
             </ng-template>
@@ -132,4 +148,22 @@
       </p-fieldset>
     </ng-template>
   </div>
+
+  <div *ngIf="saveRunning">
+    Sauvegarde des règles en cours...
+  </div>
 </p-panel>
+
+<p-dialog header="Sauvegarde réussie" [(visible)]="displayOK">
+  Les règles ont bien été sauvegardée.
+  <p-footer>
+    <button pButton type="button" (click)="displayOK = false" label="OK"></button>
+  </p-footer>
+</p-dialog>
+
+<p-dialog header="Sauvegarde: Echec" [(visible)]="displayKO">
+  Echec lors de la mise à jour des règles.
+  <p-footer>
+    <button pButton type="button" (click)="displayKO = false" label="OK"></button>
+  </p-footer>
+</p-dialog>

@@ -23,6 +23,9 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
   public update = false;
   public updatedFields: any = {};
   public saveOriginal = '';
+  public saveRunning = false;
+  public displayOK = false;
+  public displayKO = false;
 
   constructor(public archiveUnitHelper: ArchiveUnitHelper, private archiveUnitService: ArchiveUnitService,
               public confirmationService: ConfirmationService) {
@@ -62,10 +65,25 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
     }
   }
 
-  checkUpdate(category, index, rule) {
+  getMgtRule(category, id) {
+    if (!this.management[category]) {
+      return null;
+    }
+    for (let rule of this.management[category].Rules) {
+      if (rule.Rule == id) {
+        return rule;
+      }
+    }
+    return null;
+  }
+
+  checkUpdate(category, rule) {
     // FIXME Errors with StartDate ?
-    let mgtRule = this.management[category].Rules[index];
-    return rule.ruleId !== mgtRule.Rule ||
+    let mgtRule = this.getMgtRule(category, rule.oldId);
+    if (!this.management[category] || !mgtRule) {
+      return false;
+    }
+    return rule.Rule !== mgtRule.Rule ||
     rule.FinalAction !== mgtRule.FinalAction ||
     rule.StartDate !== mgtRule.StartDate
   }
@@ -90,26 +108,31 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
       for (let i=0, len = this.updatedFields[category].Rules.length; i < len; i++) {
         let rule = this.updatedFields[category].Rules[i];
         rule.StartDate = new DatePipe('fr-FR').transform(rule.StartDate, 'yyyy-MM-dd');
-        if (!rule.StartDate) delete rule.StartDate;
-        if (rule.newRule) {
-          // New Rule
-          isCategoryUpdated = true;
-          let addedRule = JSON.parse(JSON.stringify(rule));
-          delete addedRule.newRule;
-          newRules.push(addedRule);
-          updateInfo.added ++;
-        } else if (rule.oldRule) {
-          // Deleted rule
-          isCategoryUpdated = true;
-          updateInfo.deleted ++;
-        } else if (this.checkUpdate(category, i, rule)) {
-          // Updated rule
-          isCategoryUpdated = true;
-          newRules.push(rule);
-          updateInfo.updated ++;
-        } else {
-          // Non-Updated Old Rule
-          newRules.push(rule);
+        if (!rule.inherited) {
+          if (!rule.StartDate) delete rule.StartDate;
+          if (rule.newRule) {
+            // New Rule
+            isCategoryUpdated = true;
+            let addedRule = JSON.parse(JSON.stringify(rule));
+            delete addedRule.newRule;
+            newRules.push(addedRule);
+            updateInfo.added++;
+          } else if (rule.oldRule) {
+            // Deleted rule
+            isCategoryUpdated = true;
+            updateInfo.deleted++;
+          } else if (this.checkUpdate(category, rule)) {
+            // Updated rule
+            isCategoryUpdated = true;
+            let updatedRule = JSON.parse(JSON.stringify(rule));
+            delete updatedRule.oldId;
+            delete updatedRule.EndDate;
+            newRules.push(updatedRule);
+            updateInfo.updated++;
+          } else {
+            // Non-Updated Old Rule
+            newRules.push(rule);
+          }
         }
       }
       if (isCategoryUpdated) {
@@ -157,54 +180,134 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
       - Modifier ${info.updated} règles,<br />
       - Ajouter ${info.added} règles`,
       accept: () => {
+        this.saveRunning = true;
         let request = [];
         let rules = info.rules;
-        if (rules.length === 0) {
-        } else {
+        if (rules.length > 0) {
           request.push({'UpdatedRules': rules});
-          // TODO Back Request
+          this.archiveUnitService.updateMetadata(this.id, request).subscribe(
+            (value) => {
+              this.archiveUnitService.getDetails(this.id)
+                .subscribe((data) => {
+                  let response = data.$results[0];
+                  this.inheritedRules = response.inheritedRule;
+                  this.management = response['#management'];
+                  this.id = response['#id'];
+                  this.saveOriginal = JSON.stringify(this.management);
+                  this.switchUpdateMode();
+                  this.saveRunning = false;
+                  this.displayOK = true;
+                }, (error) => {
+                  this.saveRunning = false;
+                });
+            },
+            (error) => {
+              this.saveRunning = false;
+              this.displayKO = true;
+            }
+          );
         }
-        this.switchUpdateMode();
       }
     });
 
 
   }
 
-  removeRule(category, index) {
-    if (this.updatedFields[category].Rules[index].newRule) {
+  removeRule(category, index, rule) {
+    if (rule.newRule) {
       this.updatedFields[category].Rules.splice(index, 1);
+    } else if (rule.inherited) {
+      let preventedIndex = this.updatedFields[category].Inheritance.PreventRulesId.indexOf(rule.Rule);
+      if (preventedIndex == -1) {
+        this.updatedFields[category].Inheritance.PreventRulesId.push(rule.Rule);
+      } else {
+        this.updatedFields[category].Inheritance.PreventRulesId.splice(preventedIndex, 1);
+      }
     } else {
-      this.updatedFields[category].Rules[index].oldRule = !this.updatedFields[category].Rules[index].oldRule;
+      rule.oldRule = !rule.oldRule;
     }
   }
 
 
   initUpdatedRules() {
-    for(var category of this.rulesCategories) {
+    for(let category of this.rulesCategories) {
       if (this.management[category.rule]) {
         let rules = [];
-        for (var rule of this.management[category.rule].Rules) {
-          if (rule.StartDate) {
-            rule.StartDate = new Date(rule.StartDate);
+        let ruleIds = [];
+        for (let rule of this.management[category.rule].Rules) {
+          let updatedRule = JSON.parse(JSON.stringify(rule));
+          if (updatedRule.StartDate) {
+            updatedRule.StartDate = new Date(updatedRule.StartDate);
           } else {
-            rule.StartDate = '';
+            updatedRule.StartDate = '';
           }
-          rules.push(rule);
+          updatedRule.oldId = updatedRule.Rule;
+          rules.push(updatedRule);
+          ruleIds.push(updatedRule.Rule);
         }
 
-        //let inheritance = this.management[category.rule].Inheritance;
+        if (this.inheritedRules[category.rule]) {
+          for (let ruleId in this.inheritedRules[category.rule]) {
+            if (ruleIds.indexOf(ruleId) !== -1) {
+              continue;
+            }
+            for (let id in this.inheritedRules[category.rule][ruleId]) {
+              let inheritedRule = this.inheritedRules[category.rule][ruleId][id];
+
+              let rule: any = {
+                Rule: ruleId,
+                StartDate: inheritedRule.StartDate? new Date(inheritedRule.StartDate): '',
+                EndDate: inheritedRule.EndDate,
+                inherited: true,
+              };
+              if (category.rule === 'StorageRule' || category.rule === 'AppraisalRule') {
+                rule.FinalAction = inheritedRule.FinalAction;
+              }
+              rules.push(rule);
+              break;
+            }
+          }
+        }
+
+        let inheritance = this.management[category.rule].Inheritance;
 
         this.updatedFields[category.rule] = {
-          Rules: rules/*,
-           Inheritance: inheritance ? inheritance : {PreventRulesId:[]}*/
+          Rules: rules,
+          Inheritance: inheritance ? JSON.parse(JSON.stringify(inheritance)) : {PreventRulesId:[]}
         };
       } else {
+
+        let rules = [];
+        if (this.inheritedRules[category.rule]) {
+          for (let ruleId in this.inheritedRules[category.rule]) {
+            if (this.inheritedRules[category.rule].hasOwnProperty(ruleId)) {
+              // add rule
+              for (let id in this.inheritedRules[category.rule][ruleId]) {
+                if (this.inheritedRules[category.rule][ruleId].hasOwnProperty(id)) {
+                  let inheritedRule = this.inheritedRules[category.rule][ruleId][id];
+
+                  let rule: any = {
+                    Rule: ruleId,
+                    StartDate: inheritedRule.StartDate ? new Date(inheritedRule.StartDate) : '',
+                    EndDate: inheritedRule.EndDate,
+                    inherited: true
+                  };
+                  if (category.rule === 'StorageRule' || category.rule === 'AppraisalRule') {
+                    rule.FinalAction = inheritedRule.FinalAction;
+                  }
+                  rules.push(rule);
+                  break;
+                }
+              }
+            }
+          }
+        }
+
         this.updatedFields[category.rule] = {
-          Rules: []/*,
+          Rules: rules,
            Inheritance:{
            PreventRulesId:[]
-           }*/
+           }
         }
       }
     }
