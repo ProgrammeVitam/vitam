@@ -617,6 +617,14 @@ public class IngestInternalIT {
             JsonNode logbookOperation =
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
                     .toJsonNode();
+
+
+            logbookOperation.get("$results").get(0).get("events").forEach(event -> {
+                if (event.get("evType").asText().contains("STP_UPLOAD_SIP")) {
+                    assertThat(event.get("outDetail").asText()).contains("STP_UPLOAD_SIP");
+                }
+            });
+
             QueryBuilder query = QueryBuilders.matchQuery("_id", operationGuid.getId());
             SearchResponse elasticSearchResponse =
                 esClient.search(LogbookCollections.OPERATION, tenantId, query, null, null, 0, 25);
