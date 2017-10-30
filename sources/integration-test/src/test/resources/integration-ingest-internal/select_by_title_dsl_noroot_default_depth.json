@@ -1,0 +1,27 @@
+{
+     "$roots": [],
+     "$query": [
+          {
+               "$and": [
+                    {
+                         "$in": {
+                              "#operations": [
+                                   "Operation-Id"
+                              ]
+                         }
+                    }, 
+                    {
+                    	"$eq": {
+                    		"Title": "Archive unit SEDA-ID-UNIT"
+               			}
+                    }
+               ]
+          }
+     ],
+     "$projection": {
+          "$fields": {
+               "#id": 1,
+               "Title": 1
+          }
+     }
+}
