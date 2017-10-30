@@ -131,7 +131,7 @@ export class LogbookComponent extends PageComponent {
 
   // TODO Move me in some utils class ?
   static downloadReports(item, ingestUtilsService) {
-    ingestUtilsService.downloadObject(item.evIdProc, 'reports');
+    ingestUtilsService.downloadObject(item.evIdProc, 'archivetransferreply');
   }
 
   public preSearchFunction(request): Preresult {
