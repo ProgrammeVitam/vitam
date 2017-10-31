@@ -1,5 +1,5 @@
-Cucumber
-##########
+Cucumber (exemples)
+###################
 
 Voici quelques exemples de scénarios de tests réalisables avec Cucumber.
 
@@ -8,7 +8,7 @@ Collection Unit
 
 **Fonctionnalité** Recherche avancée
 
-**Scénario** Recherche avancée d’archives – cas OK d’une recherche multicritères croisant métadonnées métadonnées descriptives et métadonnées de gestion (API)
+**Scénario** Recherche avancée d’archives – cas OK d’une recherche multicritères croisant métadonnées techniques et métadonnées descriptives et métadonnées de gestion (API)
 
 ::
   Etant donné les tests effectués sur le tenant 0

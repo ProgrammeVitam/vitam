@@ -127,10 +127,10 @@ La tâche contient les traitements suivants
   + **Statuts** :
 
       - OK : le profil SEDA déclaré dans le contrat d'entrée et celui déclaré dans le manifeste sont les mêmes (CHECK_HEADER.CHECK_IC_AP_RELATION.OK = Succès de la vérification de la relation entre le contrat et le profil SEDA)
-
-      - KO : 
+      
+      - KO :
     - Cas 1 : le profil déclaré dans le SIP est inexistant (CHECK_HEADER.CHECK_IC_AP_RELATION.UNKNOWN.KO=Échec du contrôle de la présence du profil)
-    - Cas 2 : le profil déclaré dans le SIP est inactif (CHECK_HEADER.CHECK_IC_AP_RELATION.INACTIVE.KO=Échec du contrôle du caractère actif du profil)        
+    - Cas 2 : le profil déclaré dans le SIP est inactif (CHECK_HEADER.CHECK_IC_AP_RELATION.INACTIVE.KO=Échec du contrôle du caractère actif du profil)
     - Cas 3 : le profil déclaré dans le contrat d'entrée et celui déclaré dans le manifeste ne sont pas les mêmes (CHECK_HEADER.CHECK_IC_AP_RELATION.DIFF.KO=Echec du contrôle de cohérence entre le profil déclaré dans le bordereau et celui déclaré dans le contrat)
 
       - FATAL : une erreur technique est survenue lors de la vérification de la relation (CHECK_HEADER.CHECK_IC_AP_RELATION.FATAL = Erreur fatale lors de la vérification de la relation entre le contrat et le profil SEDA)
@@ -138,12 +138,12 @@ La tâche contient les traitements suivants
 * Vérification de la présence et contrôle des services agents (CHECK_AGENT)
 
   + **Règle** : verification du service producteur ainsi que du service versant déclarés dans le SIP par rapport au référentiel des services agents présent dans la solution logicielle VITAM
-    
+
   + **Statuts** :
-    
+
       - OK : le service producteur et/ou le service versant déclaré dans le SIP est valide (service agent existant dans le référentiel des services agents)
-        
-      - KO : le service producteur et/ou le service versant déclaré dans le SIP est invalide (service agent non trouvé dans le référentiel des services agents)  
+
+      - KO : le service producteur et/ou le service versant déclaré dans le SIP est invalide (service agent non trouvé dans le référentiel des services agents)
 
       - FATAL : une erreur technique est survenue lors de la vérification de la présence et du contrôle des services agents
 
@@ -154,8 +154,8 @@ La tâche contient les traitements suivants
   + **Statuts** :
 
     - OK : le contrat déclaré dans le SIP est valide (contrat existant dans le référentiel des contrats et dont le statut est actif)
-
-    - KO : 
+    
+    - KO :
     - Cas 1 : le contrat déclaré dans le SIP est inexistant (CHECK_HEADER.CHECK_CONTRACT_INGEST.INACTIVE.KO=Échec du contrôle du caractère actif du contrat d'entrée)
     - Cas 2 : le contrat déclaré dans le SIP est inactif (CHECK_HEADER.CHECK_CONTRACT_INGEST.INACTIVE.KO=Échec du contrôle du caractère actif du contrat d'entrée)
 
@@ -251,7 +251,7 @@ Vérification de l'intégrité des objets (CHECK_DIGEST)
 
   - OK : tous les objets binaires reçus sont identiques aux objets binaires attendus. Tous les objets binaires disposent désormais d'une empreinte calculée avec l'algorithme SHA-256 (CHECK_DIGEST.OK = Succès de la vérification de l'intégrité des objets binaires)
 
-  - KO : 
+  - KO :
     - Cas 1 : au moins un objet reçu n'a pas d'empreinte dans le bordereau (CHECK_DIGEST.EMPTY.KO=Échec lors de la lecture de l'empreinte du fichier)
     - Cas 2 : au moins une empreinte d'un objet reçu n'est pas conforme à son empreinte dans le bordereau (CHECK_DIGEST.INVALID.KO=Échec lors de la vérification de l'empreinte du fichier)
     - Cas 3 : le SIP soumis à la solution logicielle Vitam contient à la fois le cas 1 et le cas 2 (CHECK_DIGEST.KO=Échec de la vérification de l'intégrité des objets)
@@ -269,7 +269,7 @@ Identification des formats (OG_OBJECTS_FORMAT_CHECK)
 
   - OK : l'identification s'est bien passée, les formats identifiés sont référencés dans le référentiel interne et les informations sont cohérentes avec celles déclarées dans le manifeste (OG_OBJECTS_FORMAT_CHECK.OK = Succès de la vérification des formats)
 
-  - KO : 
+  - KO :
     - Cas 1 : au moins un objet reçu a un format qui n'a pas été trouvé (OG_OBJECTS_FORMAT_CHECK.KO = Échec de la vérification des formats)
     - Cas 2 : au moins un objet reçu a un format qui n'est pas référencé dans le référentiel interne (.OG_OBJECTS_FORMAT_CHECK.FILE_FORMAT.UNCHARTED.KO)
     - Cas 3 : le SIP soumis soumis à la solution logicielle Vitam contient à la fois le cas 1 et le cas 2 (OG_OBJECTS_FORMAT_CHECK.KO = Échec de la vérification des formats)
@@ -279,7 +279,7 @@ Identification des formats (OG_OBJECTS_FORMAT_CHECK)
   - WARNING : l'identification s'est bien passée, les formats identifiés sont référencés dans le référentiel interne mais les informations ne sont pas cohérentes avec celles déclarées dans le manifeste (OG_OBJECTS_FORMAT_CHECK.WARNING = Avertissement lors de la vérification des formats)
 
 
-Contrôle et traitements des unités archivistiques (STP_UNIT_CHECK_AND_TRANSFORME)
+Contrôle et traitements des unités archivistiques (STP_UNIT_CHECK_AND_PROCESS)
 =================================================================================
 
 Vérification globale de l'unité archivistique (CHECK_UNIT_SCHEMA)
@@ -293,7 +293,7 @@ Vérification globale de l'unité archivistique (CHECK_UNIT_SCHEMA)
 
   - OK : tous les champs de l'unité archivistique sont conformes à ce qui est attendu (CHECK_UNIT_SCHEMA.OK = Succès du contrôle additionnel sur la validité des champs de l'unité archivistique)
 
-  - KO : 
+  - KO :
     - Cas 1 : au moins un champ d'une unité archivistique n'est pas conforme dont le schéma n'est pas conforme par rapport au schéma prédéfini du référentiel VITAM (CHECK_UNIT_SCHEMA.INVALID_UNIT.KO=Échec lors du contrôle additionnel sur la validité des champs de l'unité archivistique)
     - Cas 2 : au moins un champ obligatoire d'une unité archivistique est vide(CHECK_UNIT_SCHEMA.EMPTY_REQUIRED_FIELD.KO=Échec lors du contrôle additionnel sur la validité des champs de l'unité archivistique, champs obligatoire)
     - Cas 3 : au moins un champ date d'une unité archivistique est supérieur à 9000 (titre vide, date incorrecte...) ou la date de fin des dates extrêmes est strictement inférieure à la date de début (CHECK_UNIT_SCHEMA.RULE_DATE_THRESHOLD.KO=Échec du calcul des dates d'échéance, la date ne peut être gérée)
@@ -543,7 +543,7 @@ D'une façon synthétique, le workflow est décrit de cette façon :
       - Recherche l'identifiant du service producteur et du service versant dans le SIP
 
       - Vérification de la validité des services agents par rapport au référentiel des services agents présent dans la solution logicielle VITAM
-     
+
     + Contient CHECK_CONTRACT_INGEST (CheckIngestContractActionHandler.java) :
 
       - Recherche l'identifier du contrat d'entrée dans le SIP

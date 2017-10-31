@@ -18,27 +18,26 @@ Elle contient des interfaces utilisateurs permettant, par tenant, de :
   * Sécuriser manuellement les journaux des opérations
   * Consulter les journaux de sécurisation
 
-Accès 
+Accès
 -----
 
 L'accès à l'IHM de recette s'effectue par un chemin différent de l'IHM démo. Par défaut, son adresse est :
 
 **addresse_de_votre_serveur/ihm-recette/#!/login**
 
-Contrairement à l'IHM de démo, la sélection de tenants se fait une foix connecté. La mire de connexion contient donc un champ "Identifiant" et un champ "Mot de passe".
+Contrairement à l'IHM de démo, la sélection de tenants se fait une fois connecté. La page de connexion ne contient donc  qu'un champ "Identifiant" et un champ "Mot de passe".
 
 .. image:: images/RECETTE_Connexion.png
 
-Par soucis de distinction visuelle avec l'interface de démo, la couleur dominante de cette IHM est le rouge.
+Par souci de distinction visuelle avec l'interface de démo, la couleur dominante de cette IHM est le rouge.
 
-.. image:: images/RECETTE_accueil.png
 
 Navigation
 ----------
 
 Par défaut, suite à sa connexion l'utilisateur accède à la page d'administration des collections.
 
-Le menu de navigation contient trois menus
+Le menu de navigation contient trois menus :
 
 .. image:: images/RECETTE_navigation.png
 
@@ -64,7 +63,7 @@ Fil d'Ariane
 
 Le fil d’Ariane est un élément qui permet de visualiser le chemin d’accès à la page affichée. Il est situé sur toutes les pages, en dessous du menu.
 
-Il est est composé d'un symbole "home" du nom du menu dans lequel se trouve la page en cours puis de la page consultée.
+Il est est composé d'un symbole "home", du nom du menu dans lequel se trouve la page en cours puis de la page consultée.
 
 .. image:: images/RECETTE_Fil_Ariane.png
 
@@ -91,10 +90,4 @@ Une fois le tenant sélectionné, les boutons précédement grisés sont activé
 Dans le reste de ce document, il est considéré que l'utilisateur s'est placé dans le tenant sur lequel il veut effectuer ses opérations.
 L'utilisateur peut changer de tenant à tout moment, en réitérant l'opération précédente.
 
-NB : le référentiel des formats est lié à la plateforme et non à un tenant. C'est pour cette raison que l'option de suppression du référentiel des formats est toujours disponible, même si aucun tenant n'est sélectionné.
-
-
-
-
-
-
+**NB :** le référentiel des formats est lié à la plateforme et non à un tenant. C'est pour cette raison que l'option de suppression du référentiel des formats est toujours disponible, même si aucun tenant n'est sélectionné.
