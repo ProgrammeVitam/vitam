@@ -5,8 +5,12 @@ import { Observable } from "rxjs/Rx";
 import { LogbookService } from './logbook.service';
 import { VitamResponse } from "../common/utils/response";
 import { ResourcesService } from "../common/resources.service";
+import { IngestUtilsService } from "../common/utils/ingest-utils.service";
 import { ArchiveUnitService } from "../archive-unit/archive-unit.service";
 
+const IngestUtilsServiceStub = {
+  downloadObject: (objectId, type) => Observable.of(new VitamResponse())
+};
 const ResourcesServiceStub = {
   get: (url) => Observable.of(new VitamResponse()),
   post: (url, header, body) => Observable.of(new VitamResponse()),
@@ -22,6 +26,7 @@ describe('LogbookService', () => {
     TestBed.configureTestingModule({
       providers: [
         LogbookService,
+        { provide: IngestUtilsService, useValue: IngestUtilsServiceStub },
         { provide: ResourcesService, useValue: ResourcesServiceStub },
         { provide: ArchiveUnitService, useValue: ArchiveUnitServiceStub }
       ],

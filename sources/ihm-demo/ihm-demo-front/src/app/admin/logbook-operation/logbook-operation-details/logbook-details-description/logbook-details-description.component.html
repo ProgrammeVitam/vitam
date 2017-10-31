@@ -1,30 +1,14 @@
-<div style="text-align: left;padding: 5px 0 10px 0;">
-  <p-fieldset [legend]="isIngestOperation ? 'Descriptif de l\'opération d\'entrée' : 'Descriptif de l\'opération'" [toggleable]="true">
-    <div class="ui-g" *ngIf="results">
-      <p-dataTable [value]="results">
-          <p-column field="evId" header="Identifiant de la demande d'entrée"></p-column>
-          <p-column field="obIdIn" header="Intitulé"></p-column>
-          <p-column header="Service versant">
-            <ng-template let-item="rowData" pTemplate="body">
-              {{item.agIdExt ? parse(item.agIdExt).submissionAgency : ''}}
-            </ng-template>
-          </p-column>
-          <p-column field="" header="Contrat">
-            <ng-template let-item="rowData" pTemplate="body">
-              {{item.rightsStatementIdentifier ? parse(item.rightsStatementIdentifier).ArchivalAgreement : ''}}
-            </ng-template>
-          </p-column>
-          <p-column field="ArchivalProfile" header="Profil">
-            <ng-template let-item="rowData" pTemplate="body">
-              {{item.rightsStatementIdentifier ? parse(item.rightsStatementIdentifier).Profil : ''}}
-            </ng-template>
-          </p-column>
-          <p-column field="ServiceLevel" header="Niveau de service">
-            <ng-template let-item="rowData" pTemplate="body">
-              {{item.evDetData ? parse(item.evDetData).ServiceLevel : ''}}
-            </ng-template>
-          </p-column>
-      </p-dataTable>
+<p-panel [header]="isIngestOperation ? 'Descriptif de l\'opération entrée' : 'Descriptif de l\'opération'" [toggleable]="true" *ngIf="data && items">
+    <div style="float: left; padding: 5px;" *ngIf="!!extraCols && extraCols.length > 0">
+        <button pButton class="secondaryButton" [icon]="displayOptions ? 'fa-chevron-up' : 'fa-chevron-down'" iconPos="right"
+                (click)="displayOptions=!displayOptions" [label]="'Informations Supplémentaires'"></button>
     </div>
-  </p-fieldset>
-</div>
+    <div style="float: left" *ngIf="displayOptions">
+        <p-listbox [options]="extraColsSelection" [(ngModel)]="extraSelectedCols"
+                   [style]="{'text-align': 'left', 'z-index': 5000, 'position': 'absolute', 'background-color': 'white', 'width': '250px'}"
+                   (onChange)="onRowSelect($event)"
+                   multiple="multiple" checkbox="checkbox" filter="filter"></p-listbox>
+    </div>
+    <div style="clear: both"></div>
+    <vitam-generic-table [items]="displayedItems" [selectedCols]="selectedCols" [path]="path" [getClass]="getClass" [identifier]="identifier"></vitam-generic-table>
+</p-panel>

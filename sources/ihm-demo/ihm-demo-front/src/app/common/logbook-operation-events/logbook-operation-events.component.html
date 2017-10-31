@@ -1,11 +1,9 @@
-<div style="text-align: left">
-  <p-fieldset [legend]="isIngestOperation ? 'Détails de l\'opération d\'entrée' : 'Détails de l\'opération'" [toggleable]="true">
-    <div class="ui-g" *ngIf="results">
-      <div class="ui-g-12">
-        <div *ngFor="let event of events; let i=index">
-          <vitam-event-display [event]="event" [class.bold]="i === events.length - 1"></vitam-event-display>
-        </div>
+<p-panel [header]="isIngestOperation ? 'Détails de l\'opération d\'entrée' : 'Détails de l\'opération'" [toggleable]="true">
+  <div class="ui-g" *ngIf="results">
+    <div class="ui-g-12">
+      <div *ngFor="let event of events; let i=index">
+        <vitam-event-display [event]="event" [class.bold]="i === events.length - 1"></vitam-event-display>
       </div>
     </div>
-  </p-fieldset>
-</div>
+  </div>
+</p-panel>

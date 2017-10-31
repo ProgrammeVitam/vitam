@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
-import {ResourcesService} from "../common/resources.service";
-import {Headers, Response } from "@angular/http";
-import {Observable} from "rxjs/Observable";
+import { ResourcesService } from "../common/resources.service";
+import { Headers, Response } from "@angular/http";
+import { Observable } from "rxjs/Observable";
 import 'rxjs/add/observable/of';
-import {VitamResponse} from "../common/utils/response";
-import {ArchiveUnitService} from '../archive-unit/archive-unit.service';
+import { VitamResponse} from "../common/utils/response";
+import { IngestUtilsService } from "../common/utils/ingest-utils.service";
+import { ArchiveUnitService } from '../archive-unit/archive-unit.service';
 
 @Injectable()
 export class LogbookService {
@@ -12,8 +13,8 @@ export class LogbookService {
   REPORT_DOWNLOAD_API = 'rules/report/download';
   REPORT_TRACEABILITY_DOWNLOAD_API = 'traceability';
 
-
-  constructor(private resourceService: ResourcesService, public archiveUnitService: ArchiveUnitService) { }
+  constructor(private resourceService: ResourcesService, private ingestUtilsService: IngestUtilsService,
+              public archiveUnitService: ArchiveUnitService) { }
 
   getResults(body: any, offset: number = 0): Observable<VitamResponse> {
 
@@ -40,6 +41,10 @@ export class LogbookService {
               }
             }
         );
+  }
+
+  downloadObject(objectId: string) {
+      this.ingestUtilsService.downloadObject(objectId, 'archivetransferreply');
   }
 
   getDetails(id): Observable<VitamResponse> {

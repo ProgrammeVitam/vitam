@@ -9,9 +9,11 @@ import { Observable } from "rxjs";
 import { LogbookService } from "../../../ingest/logbook.service";
 import { LogbookHelperService } from "../../../common/logbook-operation-events/logbook-helper.service";
 import { BreadcrumbService } from "../../../common/breadcrumb.service";
+import { ArchiveUnitHelper } from "../../../archive-unit/archive-unit.helper";
+import { VitamResponse } from "../../../common/utils/response";
 
 const LogbookServiceStub = {
-
+  getDetails: (id) => Observable.of(new VitamResponse)
 };
 const LogbookHelperServiceStub = {
 
@@ -26,6 +28,7 @@ describe('LogbookOperationDetailsComponent', () => {
       declarations: [ LogbookOperationDetailsComponent ],
       providers : [
         BreadcrumbService,
+        ArchiveUnitHelper,
         { provide: LogbookService, useValue: LogbookServiceStub },
         { provide: LogbookHelperService, useValue: LogbookHelperServiceStub },
         { provide: ActivatedRoute, useValue: {params: Observable.of({id: 1})} }
