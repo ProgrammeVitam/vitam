@@ -161,6 +161,9 @@ public class UserInterfaceTransactionManagerTest {
         assertTrue(archiveDetails.getResults().get(0).get("Title").textValue().equals("Archive 1"));
     }
 
+
+    //TODO anpar:  Make Test  for selectOperation respect Dsl validator.
+
     @Test
     @RunWithCustomExecutor
     public void testSuccessUpdateUnits()

@@ -78,7 +78,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 
 /**
  * Manage all the transactions received form the User Interface : a gateway to VITAM intern
- *
  */
 public class UserInterfaceTransactionManager {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(UserInterfaceTransactionManager.class);
@@ -86,9 +85,9 @@ public class UserInterfaceTransactionManager {
     /**
      * Gets search units result
      *
-     * @param parameters search criteria as DSL query
-     * @param tenantId the working tenant
-     * @param contractId the access contract Id
+     * @param parameters   search criteria as DSL query
+     * @param tenantId     the working tenant
+     * @param contractId   the access contract Id
      * @param appSessionId the application session id
      * @return result
      * @throws VitamClientException access client exception
@@ -103,14 +102,13 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
-     *
      * Gets archive unit details
-     * 
+     *
      * @param preparedDslQuery search criteria as DSL query
-     * @param unitId archive unit id to find
-     * @param tenantId the working tenant
-     * @param contractId the contract Id
-     * @param appSessionId the application session id
+     * @param unitId           archive unit id to find
+     * @param tenantId         the working tenant
+     * @param contractId       the contract Id
+     * @param appSessionId     the application session id
      * @return result
      * @throws VitamClientException access client exception
      */
@@ -128,10 +126,10 @@ public class UserInterfaceTransactionManager {
     /**
      * Update units result
      *
-     * @param parameters search criteria as DSL query
-     * @param unitId unitIdentifier
-     * @param tenantId the working tenant
-     * @param contractId the access contract Id
+     * @param parameters   search criteria as DSL query
+     * @param unitId       unitIdentifier
+     * @param tenantId     the working tenant
+     * @param contractId   the access contract Id
      * @param appSessionId the application session id
      * @return result
      * @throws VitamClientException
@@ -150,10 +148,10 @@ public class UserInterfaceTransactionManager {
      * Retrieve an ObjectGroup as Json data based on the provided ObjectGroup id
      *
      * @param preparedDslQuery the query to be executed
-     * @param objectId the Id of the ObjectGroup
-     * @param tenantId the working tenant
-     * @param contractId the access contract Id
-     * @param appSessionId the application session id
+     * @param objectId         the Id of the ObjectGroup
+     * @param tenantId         the working tenant
+     * @param contractId       the access contract Id
+     * @param appSessionId     the application session id
      * @return JsonNode object including DSL queries, context and results
      * @throws VitamClientException if the client encountered an exception
      */
@@ -171,17 +169,17 @@ public class UserInterfaceTransactionManager {
     /**
      * Retrieve an Object data as an input stream
      *
-     * @param asyncResponse the asynchronous response to be used
+     * @param asyncResponse     the asynchronous response to be used
      * @param selectObjectQuery the query to be executed
-     * @param unitId the Id of the ObjectGroup
-     * @param usage the requested usage
-     * @param version the requested version of the usage
-     * @param filename the name od the file
-     * @param tenantId the working tenant
-     * @param appSessionId the application session id
+     * @param unitId            the Id of the ObjectGroup
+     * @param usage             the requested usage
+     * @param version           the requested version of the usage
+     * @param filename          the name od the file
+     * @param tenantId          the working tenant
+     * @param appSessionId      the application session id
      * @return boolean for test purpose (solve mock issue)
      * @throws UnsupportedEncodingException if unsupported encoding error for input file content
-     * @throws VitamClientException if the client encountered an exception
+     * @throws VitamClientException         if the client encountered an exception
      */
     // TODO: review this return (should theoretically be a void) because we got mock issue with this class on
     // web application resource
@@ -225,7 +223,7 @@ public class UserInterfaceTransactionManager {
     /**
      * Build all paths relative to a unit based on its all parents list (_us)
      *
-     * @param unitId the unit Id for which all paths will be constructed
+     * @param unitId     the unit Id for which all paths will be constructed
      * @param allParents unit's all parents (_us field value + the unit id)
      * @return all paths relative to the specified unit
      * @throws VitamException if error when build the tree
@@ -286,12 +284,12 @@ public class UserInterfaceTransactionManager {
 
     /**
      * @param unitLifeCycleId the unit lifecycle id to select
-     * @param tenantId the working tenant
-     * @param contractId the access contract id
-     * @param appSessionId the application session id
+     * @param tenantId        the working tenant
+     * @param contractId      the access contract id
+     * @param appSessionId    the application session id
      * @return JsonNode result
      * @throws InvalidParseOperationException if json data not well-formed
-     * @throws LogbookClientException if the request with illegal parameter
+     * @throws LogbookClientException         if the request with illegal parameter
      * @throws AccessUnauthorizedException
      */
 
@@ -307,8 +305,8 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
-     * @param query the select query
-     * @param tenantId the working tenant
+     * @param query        the select query
+     * @param tenantId     the working tenant
      * @param appSessionId the application session id
      * @return logbook operation result
      * @throws VitamClientException access client exception
@@ -323,9 +321,9 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
-     * @param operationId the operation id
-     * @param tenantId the working tenant
-     * @param contractId the access contract Id
+     * @param operationId  the operation id
+     * @param tenantId     the working tenant
+     * @param contractId   the access contract Id
      * @param appSessionId the application session id
      * @return logbook operation result
      * @throws VitamClientException
@@ -337,15 +335,15 @@ public class UserInterfaceTransactionManager {
             return client.selectOperationbyId(
                 new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(appSessionId),
                 operationId,
-                new Select().getFinalSelect());
+                new Select().getFinalSelectById());
         }
     }
 
     /**
      * @param objectGroupLifeCycleId the object lifecycle id to select
-     * @param tenantId the working tenant
-     * @param contractId the access contract Id
-     * @param appSessionId the application session id
+     * @param tenantId               the working tenant
+     * @param contractId             the access contract Id
+     * @param appSessionId           the application session id
      * @return logbook lifecycle result
      * @throws VitamClientException if the request with illegal parameter
      */
@@ -361,13 +359,13 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
-     * @param options for creating query
-     * @param tenantId the working tenant
-     * @param contractId the access contract Id
+     * @param options      for creating query
+     * @param tenantId     the working tenant
+     * @param contractId   the access contract Id
      * @param appSessionId the application session id
      * @return AccessionRegisterSummaryModel result
-     * @throws VitamClientException if the request with illegal parameter
-     * @throws InvalidParseOperationException if json data not well-formed
+     * @throws VitamClientException            if the request with illegal parameter
+     * @throws InvalidParseOperationException  if json data not well-formed
      * @throws InvalidCreateOperationException if error when create query
      */
     public static RequestResponse<AccessionRegisterSummaryModel> findAccessionRegisterSummary(String options,
@@ -384,16 +382,16 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
-     * @param id the id of accession register
-     * @param options for creating query
-     * @param tenantId the working tenant
-     * @param contractId the access contract Id
+     * @param id           the id of accession register
+     * @param options      for creating query
+     * @param tenantId     the working tenant
+     * @param contractId   the access contract Id
      * @param appSessionId the application session id
      * @return JsonNode result
-     * @throws InvalidParseOperationException if json data not well-formed
-     * @throws AccessExternalClientServerException if access internal server error
+     * @throws InvalidParseOperationException        if json data not well-formed
+     * @throws AccessExternalClientServerException   if access internal server error
      * @throws AccessExternalClientNotFoundException if access external resource not found
-     * @throws InvalidCreateOperationException if error when create query
+     * @throws InvalidCreateOperationException       if error when create query
      * @throws AccessUnauthorizedException
      */
     public static RequestResponse<JsonNode> findAccessionRegisterDetail(String id, String options, Integer tenantId,
@@ -414,10 +412,10 @@ public class UserInterfaceTransactionManager {
 
     /**
      * Starts a Verification process based on a given DSLQuery
-     * 
-     * @param query DSLQuery to execute
-     * @param tenantId Tenant Id
-     * @param contractId the access contract Id
+     *
+     * @param query        DSLQuery to execute
+     * @param tenantId     Tenant Id
+     * @param contractId   the access contract Id
      * @param appSessionId the application session id
      * @return A RequestResponse contains the created logbookOperation for verification process
      * @throws AccessExternalClientServerException
@@ -439,7 +437,7 @@ public class UserInterfaceTransactionManager {
 
     /**
      * Extract information from timestamp
-     * 
+     *
      * @param timestamp the timestamp to be used for extraction
      * @return json node containing genTime and issuer certificate information
      * @throws BadRequestException if the timestamp cant be extracted
@@ -467,13 +465,13 @@ public class UserInterfaceTransactionManager {
     /**
      * generate a DIP to be exported
      *
-     * @param query search criteria as DSL query
-     * @param tenantId the working tenant
-     * @param contractId the access contract Id
+     * @param query        search criteria as DSL query
+     * @param tenantId     the working tenant
+     * @param contractId   the access contract Id
      * @param appSessionId the application session id
      * @return a JsonNode for dip results
      * @throws InvalidParseOperationException unable to parse query
-     * @throws VitamClientException access client exception
+     * @throws VitamClientException           access client exception
      */
     public static RequestResponse<JsonNode> exportDIP(JsonNode query, Integer tenantId, String contractId,
         String appSessionId) throws InvalidParseOperationException, VitamClientException {
@@ -492,7 +490,8 @@ public class UserInterfaceTransactionManager {
                 dipId);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             final Response.ResponseBuilder responseBuilder = Response.status(response.getStatus())
-                .header("Content-Disposition", "filename=\"" + URLDecoder.decode("DIP-" + dipId + ".zip", "UTF-8") + "\"")
+                .header("Content-Disposition",
+                    "filename=\"" + URLDecoder.decode("DIP-" + dipId + ".zip", "UTF-8") + "\"")
                 .type(response.getMediaType());
             helper.writeResponse(responseBuilder);
         } finally {
