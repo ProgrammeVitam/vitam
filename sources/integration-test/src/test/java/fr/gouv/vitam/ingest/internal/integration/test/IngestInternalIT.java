@@ -46,11 +46,16 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.action.SetAction;
+import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.builder.request.single.Update;
+import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
+import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
@@ -278,6 +283,10 @@ public class IngestInternalIT {
 
     private static String SIP_OK_PHYSICAL_ARCHIVE = "integration-ingest-internal/OK_ArchivesPhysiques.zip";
 
+    private static String SIP_OK_PHYSICAL_ARCHIVE_WITH_ATTACHMENT_FROM_CONTARCT = "integration-ingest-internal/" +
+            "OK_ArchivesPhysiques_With_Attachment_Contract.zip";
+    private static String SIP_ARBRE = "integration-ingest-internal/arbre_simple.zip";
+
     private static String SIP_OK_ARBO_RATEAU_GRAPH = "integration-ingest-internal/OK_ARBO_rateau_GRAPH.zip";
 
     private static ElasticsearchTestConfiguration config = null;
@@ -379,17 +388,12 @@ public class IngestInternalIT {
         adminApplication = new AdminManagementMain(CONFIG_FUNCTIONAL_ADMIN_PATH);
         adminApplication.start();
 
-
-
         SystemPropertyUtil.set("jetty.access-internal.port", Integer.toString(PORT_SERVICE_ACCESS_INTERNAL));
         accessInternalApplication =
             new AccessInternalMain(CONFIG_ACCESS_INTERNAL_PATH);
         accessInternalApplication.start();
         SystemPropertyUtil.clear("jetty.access-internal.port");
         AccessInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_ACCESS_INTERNAL);
-
-
-
     }
 
     @AfterClass
@@ -652,21 +656,24 @@ public class IngestInternalIT {
     }
     
     private int checkAndRetrieveLfcVersionForUnit(String unitId,  AccessInternalClient accessClient) throws Exception {
+        return retrieveLfcForUnit(unitId, accessClient).get(LogbookDocument.VERSION).asInt();
+    }
+
+    private JsonNode retrieveLfcForUnit(String unitId,  AccessInternalClient accessClient) throws Exception {
         final SelectParserSingle parser = new SelectParserSingle();
         Select selectLFC = new Select();
         parser.parse(selectLFC.getFinalSelect());
         parser.addCondition(QueryHelper.eq("obId", unitId));
         ObjectNode queryDsl = parser.getRequest().getFinalSelect();
-        
+
         JsonNode lfcResponse = accessClient.selectUnitLifeCycleById(unitId, queryDsl).toJsonNode();
         final JsonNode result = lfcResponse.get("$results");
         assertNotNull(result);
         final JsonNode lfc = result.get(0);
         assertNotNull(lfc);
-        
-        return lfc.get(LogbookDocument.VERSION).asInt();
-    }
 
+        return lfc;
+    }
 
     @RunWithCustomExecutor
     @Test
@@ -747,6 +754,171 @@ public class IngestInternalIT {
         }
     }
 
+    @RunWithCustomExecutor
+    @Test
+    public void testPhysicalArchiveIngestInternalWithAttachmentFomContract() throws Exception {
+        // prepare contract
+        String linkParentId = null;
+        try {
+            // do ingest of a tree and get an AU UUID
+            linkParentId = doIngestOfTreeAndGetOneParentAU();
+            assertNotNull(linkParentId);
+
+            // find and update ingestContract
+            updateIngestContractLinkParentId("ContractWithAttachment", linkParentId);
+        } catch (final Exception e) {
+            fail("should not raized an exception");
+        }
+        
+        // do the ingest
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            tryImportFile();
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+            final InputStream zipInputStreamSipObject =
+                    PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE_WITH_ATTACHMENT_FROM_CONTARCT);
+                    
+            // init default logbook operation
+            final List<LogbookOperationParameters> params = new ArrayList<>();
+            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                    operationGuid, "Process_SIP_unitary", operationGuid,
+                    LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                    operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                    operationGuid);
+            params.add(initParameters);
+            LOGGER.debug(initParameters.toString());
+
+            // call ingest using updated contract
+            IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
+            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+            final Response response2 = client.uploadInitialLogbook(params);
+            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+
+            // init workflow before execution
+            client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+
+            client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
+
+            wait(operationGuid.toString());
+
+            ProcessWorkflow processWorkflow =
+                    ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+
+            // Try to check AU
+            final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
+            SelectMultiQuery select = new SelectMultiQuery();
+            select.addQueries(QueryHelper.eq("Title", "Root AU ATTACHED"));
+            final JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
+            LOGGER.debug(JsonHandler.prettyPrint(node));
+            final JsonNode result = node.get("$results");
+            assertNotNull(result);
+            final JsonNode unit = result.get(0);
+            assertNotNull(unit);
+            
+            // get unit lfc
+            final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+            JsonNode lfc = retrieveLfcForUnit(unit.get("#id").asText(), accessClient);
+            assertNotNull(lfc);
+            // check evDetData of checkManifest event
+            JsonNode checkManifestEvent = lfc.get(LogbookDocument.EVENTS).get(0);
+            assertTrue(checkManifestEvent.get("evType").asText().equals("LFC.CHECK_MANIFEST"));
+            assertTrue(checkManifestEvent.get("evDetData").asText().equals("{\n  \"_up\" : [ \"" + linkParentId + "\" ]\n}"));
+        } catch (final Exception e) {
+            LOGGER.error(e);
+            try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
+                fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
+                        new fr.gouv.vitam.common.database.builder.request.single.Select();
+                selectQuery.setQuery(QueryHelper.eq("evIdProc", operationGuid.getId()));
+                JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
+                LOGGER.error(JsonHandler.prettyPrint(logbookResult));
+            }
+            fail("should not raized an exception");
+        }
+    }
+
+    private String doIngestOfTreeAndGetOneParentAU() throws Exception {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            tryImportFile();
+            // workspace client dezip SIP in workspace
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+            final InputStream zipInputStreamSipObject =
+                    PropertiesUtils.getResourceAsStream(SIP_ARBRE);
+
+            // init default logbook operation
+            final List<LogbookOperationParameters> params = new ArrayList<>();
+            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                    operationGuid, "Process_SIP_unitary", operationGuid,
+                    LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
+                    operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                    operationGuid);
+            params.add(initParameters);
+            LOGGER.error(initParameters.toString());
+
+            // call ingest
+            IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
+            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+            final Response response2 = client.uploadInitialLogbook(params);
+
+            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+
+            // init workflow before execution
+            client.initWorkFlow("HOLDING_SCHEME_RESUME");
+            client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, "HOLDING_SCHEME_RESUME");
+
+            wait(operationGuid.toString());
+
+            ProcessWorkflow processWorkflow =
+                    ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.OK, processWorkflow.getStatus());
+
+            // Try to check AU - arborescence and parents stuff, without roots
+            final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
+            SelectMultiQuery select = new SelectMultiQuery();
+            select.addQueries(QueryHelper.eq("Title", "Arbre simple"));
+            final JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
+            LOGGER.debug(JsonHandler.prettyPrint(node));
+            final JsonNode result = node.get("$results");
+            assertNotNull(result);
+            final JsonNode unit = result.get(0);
+            assertNotNull(unit);
+
+            return unit.get("#id").asText();
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail("should not raized an exception");
+        }
+
+        return null;
+    }
+    
+    private void updateIngestContractLinkParentId(String contractId, String linkParentId) throws Exception {
+        try(AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            final UpdateParserSingle updateParserActive = new UpdateParserSingle(new SingleVarNameAdapter());
+            final SetAction setLinkParentId = UpdateActionHelper.set(IngestContractModel.LINK_PARENT_ID, linkParentId);
+            final Update updateLinkParent = new Update();
+            updateLinkParent.setQuery(QueryHelper.eq("Identifier", contractId));
+            updateLinkParent.addActions(setLinkParentId);
+            updateParserActive.parse(updateLinkParent.getFinalUpdate());
+            JsonNode queryDsl = updateParserActive.getRequest().getFinalUpdate();
+            RequestResponse<IngestContractModel> requestResponse = client.updateIngestContract(contractId, queryDsl);
+            assertTrue(requestResponse.isOk());
+        }
+    }
 
     @RunWithCustomExecutor
     @Test
