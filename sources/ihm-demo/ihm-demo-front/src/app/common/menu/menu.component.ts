@@ -52,33 +52,28 @@ export class MenuComponent implements OnInit {
               icon: 'fa-cogs',
               items: [
                 {
-                  label: 'Référentiels  fonctionnels',
-                  items: [
-                    {label: 'Règles de gestion', routerLink: ['admin/search/rule'], disabled : false},
-                    {label: 'Formats', routerLink: ['admin/search/format']},
-                    {label: 'Profils d\'archivage', routerLink: ['admin/search/profil']},
-                    {label: 'Référentiel des services agents', routerLink: ['admin/search/agencies']}
-                  ]
-                },
-                {
-                  label: 'Référentiels techniques',
+                  label: 'Référentiels',
                   items: [
                     {label: 'Contextes applicatifs', routerLink: ['admin/search/context']},
                     {label: 'Contrats d\'entrée', routerLink: ['admin/search/ingestContract']},
-                    {label: 'Contrats d\'accès', routerLink: ['admin/search/accessContract']}
+                    {label: 'Contrats d\'accès', routerLink: ['admin/search/accessContract']},
+                    {label: 'Formats', routerLink: ['admin/search/format']},
+                    {label: 'Profils d\'archivage', routerLink: ['admin/search/profil']},
+                    {label: 'Règles de gestion', routerLink: ['admin/search/rule'], disabled : false},
+                    {label: 'Services agents', routerLink: ['admin/search/agencies']}
                   ]
                 },
                 {
                   label: 'Import des référentiels',
                   items: [
-                    {label: 'Import des règles de gestion', routerLink: ['admin/import/rule']},
-                    {label: 'Import des formats', routerLink: ['admin/import/format']},
-                    {label: 'Import des profils d\'archivage', routerLink: ['admin/import/profil']},
-                    {label: 'Import des services agents', routerLink: ['admin/import/agencies']},
                     {label: 'Import d\'un arbre de positionnement', routerLink: ['admin/holdingScheme']},
                     {label: 'Import des contextes applicatifs', routerLink: ['admin/import/context']},
                     {label: 'Import des contrats d\'entrée', routerLink: ['admin/import/ingestContract']},
-                    {label: 'Import des contrats d\'accès', routerLink: ['admin/import/accessContract']}
+                    {label: 'Import des contrats d\'accès', routerLink: ['admin/import/accessContract']},
+                    {label: 'Import des formats', routerLink: ['admin/import/format']},
+                    {label: 'Import des profils d\'archivage', routerLink: ['admin/import/profil']},
+                    {label: 'Import des règles de gestion', routerLink: ['admin/import/rule']},
+                    {label: 'Import des services agents', routerLink: ['admin/import/agencies']}
                   ]
                 },
                 {
@@ -122,20 +117,15 @@ export class MenuComponent implements OnInit {
               icon: 'fa-cogs',
               items: [
                 {
-                  label: 'Référentiels  fonctionnels',
-                  items: [
-                    {label: 'Règles de gestion', routerLink: ['admin/search/rule'], disabled : false},
-                    {label: 'Formats', routerLink: ['admin/search/format']},
-                    {label: 'Profils d\'archivage', routerLink: ['admin/search/profil']},
-                    {label: 'Référentiel des services agents', routerLink: ['admin/search/agencies']}
-                  ]
-                },
-                {
-                  label: 'Référentiels techniques',
+                  label: 'Référentiels',
                   items: [
                     {label: 'Contextes applicatifs', routerLink: ['admin/search/context']},
                     {label: 'Contrats d\'entrée', routerLink: ['admin/search/ingestContract']},
-                    {label: 'Contrats d\'accès', routerLink: ['admin/search/accessContract']}
+                    {label: 'Contrats d\'accès', routerLink: ['admin/search/accessContract']},
+                    {label: 'Formats', routerLink: ['admin/search/format']},
+                    {label: 'Profils d\'archivage', routerLink: ['admin/search/profil']},
+                    {label: 'Règles de gestion', routerLink: ['admin/search/rule'], disabled : false},
+                    {label: 'Services agents', routerLink: ['admin/search/agencies']}
                   ]
                 },
                 {

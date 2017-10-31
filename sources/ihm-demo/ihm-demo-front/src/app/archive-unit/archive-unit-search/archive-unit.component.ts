@@ -26,22 +26,22 @@ export class ArchiveUnitComponent extends PageComponent {
   public searchForm: any = {};
   advancedMode = false;
   public archiveUnitFields = [
-    new FieldDefinition('titleCriteria', 'Titre et Description', 12, 4)
+    new FieldDefinition('titleCriteria', 'Intitulé ou description', 12, 4)
   ];
   public advancedSearchFields = [
-    new FieldDefinition('title', 'Titre', 4, 12),
+    new FieldDefinition('title', 'Intitulé', 4, 12),
     new FieldDefinition('description', 'Description', 4, 12),
-    FieldDefinition.createIdField('id', 'ID', 4, 12),
+    FieldDefinition.createIdField('id', 'Identifiant', 4, 12),
     FieldDefinition.createDateField('startDate', 'Date de début', 4, 12),
     FieldDefinition.createDateField('endDate', 'Date de fin', 4, 12),
-    new FieldDefinition('originatingagencies', 'Service producteur', 4, 12)
+    new FieldDefinition('originatingagencies', 'Service producteur d\'entrée', 4, 12)
   ];
 
   public columns = [
     ColumnDefinition.makeStaticColumn('#id', 'Identifiant', undefined, () => ({'width': '325px', 'overflow-wrap': 'break-word'})),
-    ColumnDefinition.makeStaticColumn('Title', 'Titre', undefined, () => ({'width': '200px', 'overflow-wrap': 'break-word'})),
+    ColumnDefinition.makeStaticColumn('Title', 'Intitulé', undefined, () => ({'width': '200px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeStaticColumn('#unitType', 'Type', this.archiveUnitHelper.transformType, () => ({'width': '100px'})),
-    ColumnDefinition.makeStaticColumn('#originating_agency', 'Service Producteur', undefined, () => ({'width': '200px', 'overflow-wrap': 'break-word'})),
+    ColumnDefinition.makeStaticColumn('#originating_agency', 'Service producteur', undefined, () => ({'width': '200px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeSpecialValueColumn('Date de début', this.archiveUnitHelper.getStartDate, this.archiveUnitHelper.handleDate, () => ({'width': '100px'})),
     ColumnDefinition.makeSpecialValueColumn('Date de fin', this.archiveUnitHelper.getEndDate, this.archiveUnitHelper.handleDate, () => ({'width': '100px'})),
     ColumnDefinition.makeSpecialIconColumn('Objet(s) disponible(s)',

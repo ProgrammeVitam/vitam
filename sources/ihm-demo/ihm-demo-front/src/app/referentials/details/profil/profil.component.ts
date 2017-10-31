@@ -16,7 +16,7 @@ const PROFIL_KEY_TRANSLATION = {
   LastUpdate : 'Date de mise à jour',
   ActivationDate : 'Date d\'activation',
   DeactivationDate : 'Date de désactivation',
-  Name : 'Nom',
+  Name : 'Intitulé',
   Status : 'Statut',
   Description : 'Description',
   Path : 'Fichier',
@@ -41,7 +41,7 @@ export class ProfilComponent extends PageComponent {
   constructor(private activatedRoute: ActivatedRoute, private router : Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
               private searchReferentialsService : ReferentialsService) {
-    super('Détail du profil', [], titleService, breadcrumbService);
+    super('Détail du profil d\'archivage', [], titleService, breadcrumbService);
 
   }
 
@@ -51,7 +51,7 @@ export class ProfilComponent extends PageComponent {
       this.getDetail();
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
-        {label: ' Profils', routerLink: 'admin/search/profil'},
+        {label: 'Référentiel des profils d\'archivage', routerLink: 'admin/search/profil'},
         {label: this.id, routerLink: ''}
       ];
 

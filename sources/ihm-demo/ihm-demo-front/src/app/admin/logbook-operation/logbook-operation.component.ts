@@ -34,7 +34,7 @@ export class LogbookOperationComponent extends PageComponent {
     {label : "Sécurisation", value : "traceability"}
   ];
   public logbookData = [
-    FieldDefinition.createIdField('evId', 'ID', 6, 8),
+    FieldDefinition.createIdField('evId', 'Identifiant', 6, 8),
     FieldDefinition.createSelectField('EventType', 'Catégorie d\'opération', '--', this.options, 6, 8)
   ];
 

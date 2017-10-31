@@ -35,7 +35,7 @@ export class AccessionRegisterComponent  extends PageComponent {
               public titleService: Title, public breadcrumbService: BreadcrumbService,
               private searchReferentialsService : ReferentialsService,
               public logbookService: LogbookService) {
-    super('Détail du Fonds', [], titleService, breadcrumbService);
+    super('Détail du fond', [], titleService, breadcrumbService);
 
   }
 
@@ -45,7 +45,7 @@ export class AccessionRegisterComponent  extends PageComponent {
       this.getDetail();
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
-        {label: 'Service agent', routerLink: 'admin/search/agencies'},
+        {label: 'Référentiel du registre des fonds', routerLink: 'admin/search/agencies'},
         {label: this.id, routerLink: ''}
       ];
 
@@ -161,7 +161,7 @@ export class AccessionRegisterComponent  extends PageComponent {
     }
 
     if (detail.Status === 'UNSTORED') {
-      return 'Non stocké';
+      return 'Non stockée';
     }
   }
 }

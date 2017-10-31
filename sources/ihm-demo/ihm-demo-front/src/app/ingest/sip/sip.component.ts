@@ -12,13 +12,13 @@ import {PageComponent} from "../../common/page/page-component";
 export class SipComponent  extends PageComponent {
 
   constructor(public titleService: Title, public breadcrumbService: BreadcrumbService) {
-    super('Transfert SIP', [], titleService, breadcrumbService);
+    super('Transfert SIP et plan de classement', [], titleService, breadcrumbService);
   }
 
   pageOnInit() {
     let newBreadcrumb = [
       {label: 'Entrée', routerLink: ''},
-      {label: 'Transfert SIP', routerLink: 'ingest/sip'}
+      {label: 'Transfert SIP et plan de classement', routerLink: 'ingest/sip'}
     ];
 
     this.setBreadcrumb(newBreadcrumb);
