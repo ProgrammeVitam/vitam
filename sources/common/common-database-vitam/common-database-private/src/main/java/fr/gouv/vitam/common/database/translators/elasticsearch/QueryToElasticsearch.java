@@ -275,7 +275,7 @@ public class QueryToElasticsearch {
     /**
      * $size : { name : length }
      *
-     * @param req QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the size Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -499,7 +499,7 @@ public class QueryToElasticsearch {
     /**
      * $in : { name : [ value1, value2, ... ] }
      *
-     * @param req QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the in Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -508,35 +508,78 @@ public class QueryToElasticsearch {
         throws InvalidParseOperationException {
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
         String key = element.getKey();
-        List<JsonNode> nodes = element.getValue().findValues(ParserTokens.QUERYARGS.DATE.exactToken());
-        if (nodes != null && !nodes.isEmpty()) {
-            key += "." + ParserTokens.QUERYARGS.DATE.exactToken();
-        } else {
-            nodes = new ArrayList<>();
-            JsonNode node = element.getValue();
-            if (node instanceof ArrayNode) {
-                for (JsonNode jsonNode : node) {
-                    nodes.add(jsonNode);
-                }
-            } else {
-                nodes.add(node);
-            }
+
+        // Unsupported command for analyzed field
+        if (!ParserTokens.PROJECTIONARGS.isNotAnalyzed(key)) {
+            return inCommandOverAnalyzedField(query, content);
         }
+
+        List<JsonNode> nodes = new ArrayList<>();
+        JsonNode node = element.getValue();
+        if (node instanceof ArrayNode) {
+
+            logCommand(query, content);
+
+            for (JsonNode jsonNode : node) {
+                nodes.add(jsonNode);
+            }
+        } else {
+
+            // TODO : Check no usages from whitin Vitam & remove this unsupported usecase.
+            logUnsupportedCommand(query, content, "Expecting value list");
+            nodes.add(node);
+        }
+
+        final Set<Object> set = new HashSet<>();
+        for (final JsonNode value : nodes) {
+            set.add(getAsObject(value));
+        }
+        final QueryBuilder query2 = QueryBuilders.termsQuery(key, set);
+        if (query == QUERY.NIN) {
+            return QueryBuilders.boolQuery().mustNot(query2);
+        }
+        return query2;
+    }
+
+    /**
+     * $in : { name : [ value1, value2, ... ] } for analyzed fields. Unsupported use case to be removed later.
+     *
+     * @param query QUERY
+     * @param content JsonNode
+     * @return the in Command
+     * @throws InvalidParseOperationException if check unicity is in error
+     * @deprecated Unsupported cases should/will be removed without prior notice.
+     */
+    private static QueryBuilder inCommandOverAnalyzedField(final QUERY query, final JsonNode content)
+        throws InvalidParseOperationException {
+        final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
+        String key = element.getKey();
+
+        logUnsupportedCommand(query, content, "Analyzed field: '" + key + "'");
+
+        List<JsonNode> nodes = new ArrayList<>();
+        JsonNode node = element.getValue();
+        if (node instanceof ArrayNode) {
+            for (JsonNode jsonNode : node) {
+                nodes.add(jsonNode);
+            }
+        } else {
+            nodes.add(node);
+        }
+
         final Set<Object> set = new HashSet<>();
         for (final JsonNode value : nodes) {
             set.add(getAsObject(value));
         }
         final QueryBuilder query2;
-        if (ParserTokens.PROJECTIONARGS.isNotAnalyzed(key)) {
-            query2 = QueryBuilders.termsQuery(key, set);
-        } else {
-            final BoolQueryBuilder builder = new BoolQueryBuilder().minimumNumberShouldMatch(1);
-            for (final Object object : set) {
-                builder.should(QueryBuilders.matchQuery(key, object).operator(Operator.OR));
-            }
-            VitamCollection.setMatch(true);
-            query2 = builder;
+
+        final BoolQueryBuilder builder = new BoolQueryBuilder().minimumNumberShouldMatch(1);
+        for (final Object object : set) {
+            builder.should(QueryBuilders.matchQuery(key, object).operator(Operator.OR));
         }
+        VitamCollection.setMatch(true);
+        query2 = builder;
+
         if (query == QUERY.NIN) {
             return QueryBuilders.boolQuery().mustNot(query2);
         }
@@ -768,7 +811,7 @@ public class QueryToElasticsearch {
     /**
      * $eq : { name : value }
      *
-     * @param req QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the eq Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -778,28 +821,48 @@ public class QueryToElasticsearch {
         final Entry<String, JsonNode> entry = JsonHandler.checkUnicity(query.exactToken(), content);
 
         String key = entry.getKey();
-        JsonNode node = entry.getValue().findValue(ParserTokens.QUERYARGS.DATE.exactToken());
-        boolean isDate = false;
-        if (node == null) {
-            node = entry.getValue();
-        } else {
-            isDate = true;
-            key += "." + ParserTokens.QUERYARGS.DATE.exactToken();
+        JsonNode node = entry.getValue();
+
+        // Unsupported use case.
+        if (!ParserTokens.PROJECTIONARGS.isNotAnalyzed(key)) {
+            return eqCommandOverAnalyzedField(query, content);
         }
-        if (ParserTokens.PROJECTIONARGS.isNotAnalyzed(entry.getKey()) || isDate) {
-            final QueryBuilder query2 = QueryBuilders.termQuery(key, getAsObject(node));
-            if (query == QUERY.NE) {
-                return QueryBuilders.boolQuery().mustNot(query2);
-            }
-            return query2;
-        } else {
-            final QueryBuilder query2 = QueryBuilders.matchQuery(key, getAsObject(node)).operator(Operator.AND);
-            VitamCollection.setMatch(true);
-            if (query == QUERY.NE) {
-                return QueryBuilders.boolQuery().mustNot(query2);
-            }
-            return query2;
+
+        logCommand(query, content);
+
+        final QueryBuilder query2 = QueryBuilders.termQuery(key, getAsObject(node));
+        if (query == QUERY.NE) {
+            return QueryBuilders.boolQuery().mustNot(query2);
         }
+        return query2;
+    }
+
+    /**
+     * $eq : { name : value } for analyzed fields. Unsupported use case to be removed later.
+     *
+     * @param query QUERY
+     * @param content JsonNode
+     * @return the eq Command
+     * @throws InvalidParseOperationException if check unicity is in error
+     * @deprecated Unsupported cases should/will be removed without prior notice.
+     */
+    private static QueryBuilder eqCommandOverAnalyzedField(QUERY query, JsonNode content)
+        throws InvalidParseOperationException {
+
+        final Entry<String, JsonNode> entry = JsonHandler.checkUnicity(query.exactToken(), content);
+
+        String key = entry.getKey();
+        JsonNode node = entry.getValue();
+
+        // Unsupported eq with analyzed field
+        logUnsupportedCommand(query, content, "Analyzed field: '" + key + "'");
+
+        final QueryBuilder query2 = QueryBuilders.matchQuery(key, getAsObject(node)).operator(Operator.AND);
+        VitamCollection.setMatch(true);
+        if (query == QUERY.NE) {
+            return QueryBuilders.boolQuery().mustNot(query2);
+        }
+        return query2;
     }
 
     /**
@@ -878,7 +941,7 @@ public class QueryToElasticsearch {
 
 
     /**
-     * @param JsonNode
+     * @param value
      * @return JsonNode as Object
      */
 
