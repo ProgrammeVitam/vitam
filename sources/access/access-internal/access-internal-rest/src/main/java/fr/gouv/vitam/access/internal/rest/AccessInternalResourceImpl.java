@@ -132,7 +132,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 @javax.ws.rs.ApplicationPath("webresources")
 public class AccessInternalResourceImpl extends ApplicationStatusResource implements AccessInternalResource {
 
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalResourceImpl.class);
     public static final String EXPORT_DIP = "EXPORT_DIP";
 
@@ -527,8 +526,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
 
     private Response asyncObjectStream(MultivaluedMap<String, String> multipleMap,
-        String idObjectGroup,
-        JsonNode query, boolean post) {
+        String idObjectGroup, boolean post) {
 
         if (post) {
             if (!multipleMap.containsKey(GlobalDataRest.X_HTTP_METHOD_OVERRIDE)) {
@@ -562,9 +560,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         try {
             SanityChecker.checkHeadersMap(multipleMap);
             HttpHeaderHelper.checkVitamHeadersMap(multipleMap);
-            SanityChecker.checkJsonAll(query);
             SanityChecker.checkParameter(idObjectGroup);
-            return accessModule.getOneObjectFromObjectGroup(idObjectGroup, query, xQualifier,
+            return accessModule.getOneObjectFromObjectGroup(idObjectGroup, xQualifier,
                 Integer.valueOf(xVersion));
         } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
             LOGGER.error(exc);
@@ -675,10 +672,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getObjectStreamAsync(@Context HttpHeaders headers,
-        @PathParam("id_object_group") String idObjectGroup,
-        JsonNode query) {
+        @PathParam("id_object_group") String idObjectGroup) {
         MultivaluedMap<String, String> multipleMap = headers.getRequestHeaders();
-        return asyncObjectStream(multipleMap, idObjectGroup, query, false);
+        return asyncObjectStream(multipleMap, idObjectGroup, false);
     }
 
     private VitamError getErrorEntity(Status status, String message) {
@@ -739,4 +735,5 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
         return objectMapper;
     }
+
 }

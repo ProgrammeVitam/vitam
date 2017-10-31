@@ -1145,6 +1145,9 @@ public class AdminManagementExternalResourceImpl {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 final JsonNode result = client.getRuleByID(documentId);
                 return Response.status(Status.OK).entity(result).build();
+            } catch (final FileRulesNotFoundException e) {
+                final Status status = Status.NOT_FOUND;
+                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
             } catch (final ReferentialException e) {
                 LOGGER.error(e);
                 final Status status = Status.INTERNAL_SERVER_ERROR;

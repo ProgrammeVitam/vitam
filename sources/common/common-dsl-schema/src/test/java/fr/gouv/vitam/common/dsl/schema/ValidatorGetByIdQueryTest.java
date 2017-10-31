@@ -92,18 +92,14 @@ public class ValidatorGetByIdQueryTest {
     }
 
     @Test
-    public void should_not_retrieve_errors_when_get_by_id_no_projection_dsl()
+    public void should_retrieve_errors_when_get_by_id_no_projection_dsl()
         throws IOException, InvalidParseOperationException {
         JsonNode test1Json =
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("get_by_id_no_projection.json"));
         final Validator validator =
             loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
-        try {
-            validator.validate(test1Json);
-        } catch (ValidationException e) {
-            e.printStackTrace();
-            fail();
-        }
+        assertThatThrownBy(() -> validator.validate(test1Json))
+            .hasMessageContaining("$projection: PROJECTION ~ MANDATORY");
     }
 
     @Test

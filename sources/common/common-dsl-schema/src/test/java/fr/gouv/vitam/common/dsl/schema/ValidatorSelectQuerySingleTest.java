@@ -61,6 +61,8 @@ public class ValidatorSelectQuerySingleTest {
             System.out.println(queryType.toString());
             TypeDef filterType = schema.getDefinitions().get("FILTER");
             System.out.println(filterType.toString());
+            TypeDef projectionType = schema.getDefinitions().get("PROJECTION");
+            System.out.println(projectionType.toString());
             return new Validator(schema);
         }
     }
@@ -115,12 +117,8 @@ public class ValidatorSelectQuerySingleTest {
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_single_no_projection.json"));
         final Validator validator =
             loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON));
-        try {
-            validator.validate(test1Json);
-        } catch (ValidationException e) {
-            e.printStackTrace();
-            fail();
-        }
+        assertThatThrownBy(() -> validator.validate(test1Json))
+            .hasMessageContaining("$projection: PROJECTION ~ MANDATORY");
     }
 
     @Test

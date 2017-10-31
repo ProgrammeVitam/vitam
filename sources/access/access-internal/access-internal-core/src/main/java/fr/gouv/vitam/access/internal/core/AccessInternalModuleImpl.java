@@ -333,8 +333,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     }
 
     @Override
-    public Response getOneObjectFromObjectGroup(String idObjectGroup,
-        JsonNode queryJson, String qualifier, int version)
+    public Response getOneObjectFromObjectGroup(String idObjectGroup, String qualifier, int version)
         throws MetaDataNotFoundException, StorageNotFoundException, AccessInternalExecutionException,
         InvalidParseOperationException {
         ParametersChecker.checkParameter("ObjectGroup id should be filled", idObjectGroup);
@@ -344,10 +343,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         ParametersChecker.checkParameter("You must specify a valid tenant", tenantId);
         ParametersChecker.checkValue("version", version, 0);
 
-        final SelectParserMultiple selectRequest = new SelectParserMultiple();
-        selectRequest.parse(queryJson);
-        final SelectMultiQuery request = selectRequest.getRequest();
-        request.reset().addRoots(idObjectGroup);
+        
+        final SelectMultiQuery request = new SelectMultiQuery();
+        request.addRoots(idObjectGroup);
         // FIXME P1: we should find a better way to do that than use json, like a POJO.
         request.setProjectionSliceOnQualifier("FormatIdentification", "FileInfo");
 

@@ -15,7 +15,7 @@
         },
         "$projection": {
           "type": "PROJECTION",
-          "optional": true,
+          "optional": false,
           "hint": "Projections to apply on results"
         }
       }

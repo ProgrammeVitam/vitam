@@ -1,10 +1,29 @@
 package fr.gouv.vitam.access.external.rest;
 
+import static com.jayway.restassured.RestAssured.given;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyObject;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.reset;
+
+import javax.ws.rs.core.Response.Status;
+
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.response.Response;
+
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
@@ -20,23 +39,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
-import javax.ws.rs.core.Response.Status;
-
-import static com.jayway.restassured.RestAssured.given;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyObject;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 
 
 @RunWith(PowerMockRunner.class)
@@ -239,6 +242,46 @@ public class LogbookExternalResourceImplTest {
     }
 
     @Test
+    public void testSelect_NotFound() throws Exception {
+        reset(accessInternalClient);
+        when(accessInternalClient.selectUnitLifeCycleById(anyObject(), anyObject()))
+            .thenThrow(new LogbookClientNotFoundException(""));
+        when(accessInternalClient.selectObjectGroupLifeCycleById(anyObject(), anyObject()))
+            .thenThrow(new LogbookClientNotFoundException(""));
+        when(accessInternalClient.selectOperationById(anyObject(), anyObject()))
+            .thenThrow(new LogbookClientNotFoundException(""));
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .when()
+            .get("/logbookoperations/" + bad_id)
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .param("id_lc", bad_id)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .when()
+            .get("/logbookunitlifecycles/" + bad_id)
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .param("id_lc", bad_id)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
+            .when()
+            .get("/logbookobjectgroups/" + bad_id)
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
     public void testSelectLifecycleUnits_PreconditionFailed() throws Exception {
         when(accessInternalClient.selectUnitLifeCycleById(bad_id, JsonHandler.getFromString(BODY_TEST)))
             .thenThrow(new LogbookClientException(""));
@@ -275,7 +318,7 @@ public class LogbookExternalResourceImplTest {
     public void testSelectLifecycleOGById_PreconditionFailed() throws Exception {
         when(accessInternalClient.selectObjectGroupLifeCycleById(bad_id, JsonHandler.getFromString(
             request)))
-            .thenThrow(new LogbookClientException(""));
+                .thenThrow(new LogbookClientException(""));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -338,7 +381,7 @@ public class LogbookExternalResourceImplTest {
     public void testSelectOperationById_InternalServerError() throws Exception {
         when(
             accessInternalClient.selectOperationById(bad_id, JsonHandler.getFromString(request)))
-            .thenThrow(new LogbookClientException(""));
+                .thenThrow(new LogbookClientException(""));
 
         given()
             .contentType(ContentType.JSON)
@@ -413,7 +456,7 @@ public class LogbookExternalResourceImplTest {
             .body(JsonHandler.getFromString(request)).when()
             .get(OPERATIONS_URI).then().statusCode(Status.OK.getStatusCode());
 
-        //Test DSL query Validation code
+        // Test DSL query Validation code
         final Response response = given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)

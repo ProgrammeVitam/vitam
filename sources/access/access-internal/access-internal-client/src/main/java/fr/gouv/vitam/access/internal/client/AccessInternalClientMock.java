@@ -94,7 +94,7 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
-    public Response getObject(JsonNode selectObjectQuery, String objectGroupId, String usage, int version)
+    public Response getObject(String objectGroupId, String usage, int version)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException {
         return new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream(MOCK_GET_FILE_CONTENT),

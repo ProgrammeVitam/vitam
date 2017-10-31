@@ -121,10 +121,8 @@ public interface AccessInternalResource extends VitamResource {
      *
      * @param headers
      * @param idObjectGroup
-     * @param query
      * @return response
      */
-    Response getObjectStreamAsync(@Context HttpHeaders headers, @PathParam("id_object_group") String idObjectGroup,
-        JsonNode query);
+    Response getObjectStreamAsync(@Context HttpHeaders headers, @PathParam("id_object_group") String idObjectGroup);
 
 }

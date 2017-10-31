@@ -135,9 +135,6 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         String unitId)
         throws VitamClientException {
 
-        if (selectObjectQuery == null || selectObjectQuery.size() == 0) {
-            throw new IllegalArgumentException(BLANK_DSL);
-        }
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, unitId);
 
         Response response = null;
@@ -161,15 +158,13 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
 
     @Override
-    public Response getObjectStreamByUnitId(VitamContext vitamContext, JsonNode selectObjectQuery,
+    public Response getObjectStreamByUnitId(VitamContext vitamContext,
         String unitId,
         String usage,
         int version)
         throws VitamClientException {
 
-        if (selectObjectQuery == null || selectObjectQuery.size() == 0) {
-            throw new IllegalArgumentException(BLANK_DSL);
-        }
+        
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, unitId);
         ParametersChecker.checkParameter(BLANK_USAGE, usage);
         ParametersChecker.checkParameter(BLANK_VERSION, version);
@@ -182,7 +177,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
         try {
             response = performRequest(HttpMethod.GET, "/units/" + unitId + "/objects", headers,
-                selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
+                null, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
 
         } catch (final VitamClientInternalException e) {
             LOGGER.error("VitamClientInternalException: ", e);

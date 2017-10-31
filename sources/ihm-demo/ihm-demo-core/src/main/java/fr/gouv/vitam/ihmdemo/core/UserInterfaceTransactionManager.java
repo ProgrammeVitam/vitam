@@ -62,7 +62,6 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.NoWritingPermissionException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -170,7 +169,6 @@ public class UserInterfaceTransactionManager {
      * Retrieve an Object data as an input stream
      *
      * @param asyncResponse     the asynchronous response to be used
-     * @param selectObjectQuery the query to be executed
      * @param unitId            the Id of the ObjectGroup
      * @param usage             the requested usage
      * @param version           the requested version of the usage
@@ -183,7 +181,7 @@ public class UserInterfaceTransactionManager {
      */
     // TODO: review this return (should theoretically be a void) because we got mock issue with this class on
     // web application resource
-    public static boolean getObjectAsInputStream(AsyncResponse asyncResponse, JsonNode selectObjectQuery,
+    public static boolean getObjectAsInputStream(AsyncResponse asyncResponse, 
         String unitId, String usage, int version, String filename, Integer tenantId, String contractId,
         String appSessionId)
         throws UnsupportedEncodingException, VitamClientException {
@@ -191,7 +189,6 @@ public class UserInterfaceTransactionManager {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             response = client.getObjectStreamByUnitId(
                 new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(appSessionId),
-                selectObjectQuery,
                 unitId, usage, version);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             final Response.ResponseBuilder responseBuilder = Response.status(response.getStatus())

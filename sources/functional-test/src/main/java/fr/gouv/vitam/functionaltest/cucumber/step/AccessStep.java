@@ -579,7 +579,7 @@ public class AccessStep {
                     world.getAccessClient().selectObjectMetadatasByUnitId(
                         new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
                             .setApplicationSessionId(world.getApplicationSessionId()),
-                        new SelectMultiQuery().getFinalSelect(),
+                        new SelectMultiQuery().getFinalSelectById(),
                         unitResult.get("#id").asText());
                 if (responseObjectGroup.isOk()) {
                     List<JsonNode> objectGroupResults =
@@ -612,7 +612,7 @@ public class AccessStep {
             world.getAccessClient().selectObjectMetadatasByUnitId(
                 new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
                     .setApplicationSessionId(world.getApplicationSessionId()),
-                new SelectMultiQuery().getFinalSelect(), unitId);
+                new SelectMultiQuery().getFinalSelectById(), unitId);
         if (responseObjectGroup.isOk()) {
             results = ((RequestResponseOK<JsonNode>) responseObjectGroup).getResults();
         } else {

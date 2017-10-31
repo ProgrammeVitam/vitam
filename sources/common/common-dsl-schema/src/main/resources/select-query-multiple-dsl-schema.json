@@ -12,7 +12,8 @@
         },
         "$query": {
           "type": {
-            "array":"ROOT_QUERY"
+            "array":"ROOT_QUERY",
+            "min":1
           },
           "hint": "List of query"
         },
@@ -23,7 +24,7 @@
         },
         "$projection": {
           "type": "PROJECTION",
-          "optional": true,
+          "optional": false,
           "hint": "Projections to apply on results"
         }
       }

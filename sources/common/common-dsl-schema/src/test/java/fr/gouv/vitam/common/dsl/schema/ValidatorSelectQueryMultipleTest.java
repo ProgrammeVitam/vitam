@@ -133,4 +133,15 @@ public class ValidatorSelectQueryMultipleTest {
             .hasMessageContaining("$query: ROOT_QUERY[] ~ INVALID_JSON_FIELD")
             .hasMessageContaining("$query: ROOT_QUERY[] ~ INVALID_JSON_FIELD");
     }
+
+    @Test
+    public void should_retrieve_errors_when_select_empty_query_dsl()
+        throws IOException, InvalidParseOperationException {
+        JsonNode test1Json =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_empty_query.json"));
+        final Validator validator =
+            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        assertThatThrownBy(() -> validator.validate(test1Json))
+            .hasMessageContaining("$query: ROOT_QUERY[] ~ ELEMENT_TOO_SHORT: 0 < 1");
+    }
 }

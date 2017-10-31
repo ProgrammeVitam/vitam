@@ -203,11 +203,11 @@ public class UserInterfaceTransactionManagerTest {
         throws Exception {
         when(accessClient.getObjectStreamByUnitId(
             eq(new VitamContext(TENANT_ID).setAccessContract(CONTRACT_NAME).setApplicationSessionId(APP_SESSION_ID)),
-            eq(JsonHandler.getFromString(OBJECT_GROUP_QUERY)), eq(ID_OBJECT_GROUP), eq("usage"), eq(1)))
+            eq(ID_OBJECT_GROUP), eq("usage"), eq(1)))
                 .thenReturn(new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream("Vitam Test"),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         assertTrue(UserInterfaceTransactionManager.getObjectAsInputStream(asynResponse,
-            JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, "usage", 1, "vitam_test", TENANT_ID,
+            ID_OBJECT_GROUP, "usage", 1, "vitam_test", TENANT_ID,
             CONTRACT_NAME, APP_SESSION_ID));
     }
 

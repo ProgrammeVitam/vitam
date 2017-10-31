@@ -112,7 +112,6 @@ public interface AccessInternalClient extends MockOrRestClient {
     /**
      * Retrieve an Object data as an input stream
      *
-     * @param selectObjectQuery the query to be executed
      * @param objectGroupId     the Id of the ObjectGroup
      * @param usage             the requested usage
      * @param version           the requested version of the usage
@@ -122,7 +121,7 @@ public interface AccessInternalClient extends MockOrRestClient {
      * @throws AccessInternalClientNotFoundException if the requested object does not exist
      * @throws AccessUnauthorizedException
      */
-    Response getObject(JsonNode selectObjectQuery, String objectGroupId, String usage, int version)
+    Response getObject(String objectGroupId, String usage, int version)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException, AccessUnauthorizedException;
 

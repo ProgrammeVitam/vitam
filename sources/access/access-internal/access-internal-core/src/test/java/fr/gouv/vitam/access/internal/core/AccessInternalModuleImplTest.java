@@ -648,7 +648,7 @@ public class AccessInternalModuleImplTest {
             .thenReturn(new ByteArrayInputStream(FAKE_METADATA_RESULT.getBytes()));
         when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
             .thenReturn(responseMock);
-        Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(ID, fromStringToJson(QUERY), "BinaryMaster", 0);
+        Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0);
         assertNotNull(reponseFinal);
 
         final InputStream stream2 = StreamUtils.toInputStream(FAKE_METADATA_RESULT);
@@ -670,7 +670,7 @@ public class AccessInternalModuleImplTest {
             .thenReturn(PropertiesUtils.getResourceAsStream(REAL_DATA_RESULT_PATH));
         when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
             .thenReturn(responseMock);
-        Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(ID, fromStringToJson(QUERY), "BinaryMaster", 0);
+        Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0);
 
         assertNotNull(reponseFinal);
 
@@ -699,7 +699,7 @@ public class AccessInternalModuleImplTest {
             .thenReturn(PropertiesUtils.getResourceAsStream(REAL_DATA_RESULT_MULTI_PATH));
         when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
             .thenReturn(responseMock);
-        Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(ID, fromStringToJson(QUERY), "BinaryMaster", 0);
+        Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0);
         assertNotNull(reponseFinal);
 
         InputStream entity = (InputStream) reponseFinal.getEntity();
@@ -733,7 +733,7 @@ public class AccessInternalModuleImplTest {
             .thenReturn(new ByteArrayInputStream(FAKE_METADATA_RESULT.getBytes()));
         when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
             .thenReturn(responseMock);
-        Response response = accessModuleImpl.getOneObjectFromObjectGroup(ID, fromStringToJson(QUERY), "BinaryMaster", 0);
+        Response response = accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0);
         assertNotNull(response);
         InputStream entity = (InputStream) response.getEntity();
     }
@@ -749,7 +749,7 @@ public class AccessInternalModuleImplTest {
             .thenReturn(new ByteArrayInputStream(FAKE_METADATA_MULTIPLE_RESULT.getBytes()));
         when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
             .thenReturn(responseMock);
-        Response response = accessModuleImpl.getOneObjectFromObjectGroup(ID, fromStringToJson(QUERY), "BinaryMaster", 0);
+        Response response = accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0);
         assertNotNull(response);
         InputStream entity = (InputStream) response.getEntity();
     }
@@ -759,7 +759,7 @@ public class AccessInternalModuleImplTest {
     public void testGetOneObjectFromObjectGroup_With_Result_Null() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString())).thenReturn(null);
-        accessModuleImpl.getOneObjectFromObjectGroup(ID, fromStringToJson(QUERY), "BinaryMaster", 0);
+        accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0);
     }
 
     @Test(expected = AccessInternalExecutionException.class)
@@ -770,7 +770,7 @@ public class AccessInternalModuleImplTest {
             .thenReturn(fromStringToJson(FAKE_METADATA_RESULT));
         when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
             .thenThrow(new StorageServerClientException("Test wanted exception"));
-        accessModuleImpl.getOneObjectFromObjectGroup(ID, fromStringToJson(QUERY), "BinaryMaster", 0);
+        accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0);
     }
 
     @Test

@@ -241,6 +241,11 @@ public class LogbookInternalResourceImpl {
             SanityChecker.checkJsonAll(queryDsl);
             final JsonNode result = client.selectUnitLifeCycleById(unitLifeCycleId, queryDsl);
             return Response.status(Status.OK).entity(result).build();
+
+        } catch (final LogbookClientNotFoundException e) {
+            LOGGER.error(e);
+            status = Status.NOT_FOUND;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
@@ -305,6 +310,10 @@ public class LogbookInternalResourceImpl {
             SanityChecker.checkJsonAll(queryDsl);
             final JsonNode result = client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, queryDsl);
             return Response.status(Status.OK).entity(result).build();
+        } catch (final LogbookClientNotFoundException e) {
+            LOGGER.error(e);
+            status = Status.NOT_FOUND;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         } catch (final LogbookClientException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
@@ -479,7 +488,7 @@ public class LogbookInternalResourceImpl {
             LOGGER.error(e.getMessage(), e);
             // More than operation found return BAD_REQUEST response
             return Response.status(Status.BAD_REQUEST)
-                    .entity(getErrorStream(Status.BAD_REQUEST, "Operation not found")).build();
+                .entity(getErrorStream(Status.BAD_REQUEST, "Operation not found")).build();
         } catch (InvalidParseOperationException | InvalidCreateOperationException | LogbookClientException |
             IllegalArgumentException e) {
             LOGGER.error(e.getMessage(), e);
