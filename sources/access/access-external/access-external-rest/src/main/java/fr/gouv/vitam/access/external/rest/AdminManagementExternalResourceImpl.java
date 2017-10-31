@@ -62,6 +62,10 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServer
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.IngestCollection;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Update;
+import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.dsl.schema.Dsl;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.error.ServiceName;
@@ -121,6 +125,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 @javax.ws.rs.ApplicationPath("webresources")
 public class AdminManagementExternalResourceImpl {
 
+    private static final String IDENTIFIER = "Identifier";
     private static final String ATTACHEMENT_FILENAME = "attachment; filename=rapport.json";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementExternalResourceImpl.class);
     private static final String ACCESS_EXTERNAL_MODULE = "ADMIN_EXTERNAL";
@@ -972,7 +977,6 @@ public class AdminManagementExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "agencies:id:read", description = "Trouver un service producteur avec son identifier")
     public Response findAgencyByID(@PathParam("id_document") String documentId) {
-
         addRequestId();
 
         try {
@@ -1316,112 +1320,147 @@ public class AdminManagementExternalResourceImpl {
     /**
      * Update context
      *
-     * @param id
+     * @param identifier
      * @param queryDsl
      * @return Response
      * @throws AdminManagementClientServerException
      * @throws InvalidParseOperationException
      */
-    @Path("/contexts/{id:.+}")
+    @Path("/contexts/{identifier:.+}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "contexts:id:update", description = "Effectuer une mise à jour sur un contexte")
-    public Response updateContext(@PathParam("id") String id, JsonNode queryDsl)
+    public Response updateContext(@PathParam("identifier") String identifier,
+        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException {
         addRequestId();
-        try {
-            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                SanityChecker.checkJsonAll(queryDsl);
-                RequestResponse response = client.updateContext(id, queryDsl);
-                return getResponse(response);
-            }
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            UpdateParserSingle updateParserSingle = new UpdateParserSingle();
+            updateParserSingle.parse(queryDsl);
+            Update update = updateParserSingle.getRequest();
+            update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
+            RequestResponse response = client.updateContext(identifier, update.getFinalUpdate());
+            return getResponse(response);
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_CONTEXT_ERROR, e.getMessage())
+                .toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
-            return Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_CONTEXT_ERROR, e.getMessage())
+                .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode()).toResponse();
         }
     }
 
-    @Path("/profiles/{id:.+}")
+    /**
+     * Update context
+     *
+     * @param identifier
+     * @param queryDsl
+     * @return Response
+     * @throws AdminManagementClientServerException
+     * @throws InvalidParseOperationException
+     */
+    @Path("/profiles/{identifier:.+}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "profiles:id:update:json", description = "Effectuer une mise à jour sur un profil")
-    public Response updateProfile(@PathParam("id") String id, JsonNode queryDsl)
+    public Response updateProfile(@PathParam("identifier") String identifier,
+        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException {
         addRequestId();
-        try {
-            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                SanityChecker.checkJsonAll(queryDsl);
-                RequestResponse response = client.updateProfile(id, queryDsl);
-                return getResponse(response);
-            }
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            UpdateParserSingle updateParserSingle = new UpdateParserSingle();
+            updateParserSingle.parse(queryDsl);
+            Update update = updateParserSingle.getRequest();
+            update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
+            RequestResponse response = client.updateProfile(identifier, update.getFinalUpdate());
+            return getResponse(response);
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_PROFILE_ERROR, e.getMessage())
+                .toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
-            return Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_PROFILE_ERROR, e.getMessage())
+                .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode()).toResponse();
         }
     }
 
     /**
      * Update access contract
      *
-     * @param id
+     * @param identifier
      * @param queryDsl
      * @return Response
      * @throws AdminManagementClientServerException
      * @throws InvalidParseOperationException
      */
-    @Path("/accesscontracts/{id:.+}")
+    @Path("/accesscontracts/{identifier:.+}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "accesscontracts:id:update", description = "Effectuer une mise à jour sur un contrat d'accès")
-    public Response updateAccessContract(@PathParam("id") String id, JsonNode queryDsl)
+    public Response updateAccessContract(@PathParam("identifier") String identifier,
+        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException {
         addRequestId();
-        try {
-            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                SanityChecker.checkJsonAll(queryDsl);
-                RequestResponse response = client.updateAccessContract(id, queryDsl);
-                return getResponse(response);
-            }
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            UpdateParserSingle updateParserSingle = new UpdateParserSingle();
+            updateParserSingle.parse(queryDsl);
+            Update update = updateParserSingle.getRequest();
+            update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
+            RequestResponse response = client.updateAccessContract(identifier, update.getFinalUpdate());
+            return getResponse(response);
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_ACCESS_CONTRACT_ERROR, e.getMessage())
+                .toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
-            return Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_ACCESS_CONTRACT_ERROR, e.getMessage())
+                .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                .toResponse();
         }
     }
 
     /**
      * Update ingest contract
      *
-     * @param id
+     * @param identifier
      * @param queryDsl
      * @return Response
      * @throws AdminManagementClientServerException
      * @throws InvalidParseOperationException
      */
-    @Path("/ingestcontracts/{id:.+}")
+    @Path("/ingestcontracts/{identifier:.+}")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "ingestcontracts:id:update",
         description = "Effectuer une mise à jour sur un contrat d'entrée")
-    public Response updateIngestContract(@PathParam("id") String id, JsonNode queryDsl)
+    public Response updateIngestContract(@PathParam("identifier") String identifier,
+        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException {
         addRequestId();
-        try {
-            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                SanityChecker.checkJsonAll(queryDsl);
-                RequestResponse response = client.updateIngestContract(id, queryDsl);
-                return getResponse(response);
-            }
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            UpdateParserSingle updateParserSingle = new UpdateParserSingle();
+            updateParserSingle.parse(queryDsl);
+            Update update = updateParserSingle.getRequest();
+            update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
+            RequestResponse response = client.updateIngestContract(identifier, update.getFinalUpdate());
+            return getResponse(response);
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_INGEST_CONTRACT_ERROR, e.getMessage())
+                .toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
-            return Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_INGEST_CONTRACT_ERROR, e.getMessage())
+                .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                .toResponse();
         }
     }
 
@@ -1687,19 +1726,26 @@ public class AdminManagementExternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "securityprofiles:id:update",
         description = "Effectuer une mise à jour sur un profil de sécurité")
-    public Response updateSecurityProfile(@PathParam("identifier") String identifier, JsonNode queryDsl)
+    public Response updateSecurityProfile(@PathParam("identifier") String identifier,
+        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException {
         addRequestId();
-        try {
-            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                SanityChecker.checkJsonAll(queryDsl);
-                RequestResponse response = client.updateSecurityProfile(identifier, queryDsl);
-                return getResponse(response);
-            }
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            UpdateParserSingle updateParserSingle = new UpdateParserSingle();
+            updateParserSingle.parse(queryDsl);
+            Update update = updateParserSingle.getRequest();
+            update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
+            RequestResponse response = client.updateSecurityProfile(identifier, update.getFinalUpdateById());
+            return getResponse(response);
+        } catch (InvalidCreateOperationException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_SECURITY_PROFILE_ERROR, e.getMessage())
+                .toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
-            return Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_SECURITY_PROFILE_ERROR, e.getMessage())
+                .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                .toResponse();
         }
     }
 

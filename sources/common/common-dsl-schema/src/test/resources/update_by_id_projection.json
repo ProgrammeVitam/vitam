@@ -1,5 +1,11 @@
 {
-	"$action": {
+	"$projection": {
+		"$fields": {
+			"#id": 1,
+			"Title": 1
+		}
+	},
+	"$action": [{
 		"$unset": [ "StartDate", "EndDate" ],
 		"$set": { 
 		  "Title" : "Mon nouveau titre", 
@@ -8,5 +14,5 @@
 		  "Boolean" : true,
 		  "Object" : { "Test key" : "Test value"}
 		}
-	}
+	}]
 }

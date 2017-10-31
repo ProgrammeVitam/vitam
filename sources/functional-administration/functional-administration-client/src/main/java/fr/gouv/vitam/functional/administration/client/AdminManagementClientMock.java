@@ -360,16 +360,14 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     public RequestResponse<AccessContractModel> updateAccessContract(String id, JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         LOGGER.debug("uddate access contract");
-        // TODO 2219
-        return null;
+        return new RequestResponseOK<>();
     }
 
     @Override
     public RequestResponse<IngestContractModel> updateIngestContract(String id, JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         LOGGER.debug("uddate ingest contract");
-        // TODO 2195
-        return null;
+        return new RequestResponseOK<>();
     }
 
     @Override

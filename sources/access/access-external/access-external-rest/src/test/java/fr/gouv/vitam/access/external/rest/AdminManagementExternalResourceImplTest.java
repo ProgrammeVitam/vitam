@@ -38,7 +38,7 @@ import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.query.action.AddAction;
+import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
@@ -96,6 +96,7 @@ public class AdminManagementExternalResourceImplTest {
     private static final String TENANT_ID = "0";
 
     private static final String UNEXISTING_TENANT_ID = "25";
+    private static final String CONTEXT_URI = "/contexts";
     private static final String PROFILE_URI = "/profiles";
     private static final String AGENCY_URI = "/agencies";
     private static final String CONTRACT_ID = "NAME";
@@ -1090,8 +1091,6 @@ public class AdminManagementExternalResourceImplTest {
         File fileProfiles = PropertiesUtils.getResourceFile("profiles_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
 
-
-
         given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(PROFILE_URI)
@@ -1491,21 +1490,38 @@ public class AdminManagementExternalResourceImplTest {
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
         final Update update = new Update();
         update.setQuery(QueryHelper.eq("Name", "SEC_PROFILE_1"));
-        final AddAction setActionAddPermission = UpdateActionHelper.add("Permissions", NewPermission);
-        update.addActions(setActionAddPermission);
+        final SetAction setActionPermission = UpdateActionHelper.set("Permissions", NewPermission);
+        update.addActions(setActionPermission);
         updateParser.parse(update.getFinalUpdate());
 
         String securityProfileIdentifier = "SEC_PROFILE-00001";
         AdminManagementClientFactory.changeMode(null);
 
-        // Test OK
+        // valid query
         given()
-            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(update.getFinalUpdateById())
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().put(SECURITY_PROFILES_URI + "/" + GOOD_ID)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        // wrong query
+        given()
+            .contentType(ContentType.JSON)
             .contentType(ContentType.JSON)
             .body(update.getFinalUpdate())
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().put(SECURITY_PROFILES_URI + "/" + securityProfileIdentifier)
-            .then().statusCode(Status.OK.getStatusCode());
+            .when().put(SECURITY_PROFILES_URI + "/" + GOOD_ID)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+
+        // no query
+        given()
+            .contentType(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().put(SECURITY_PROFILES_URI + "/" + GOOD_ID)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         // Test unknown tenant Id
         given()
@@ -1532,17 +1548,178 @@ public class AdminManagementExternalResourceImplTest {
 
         final Update update = new Update();
         update.setQuery(QueryHelper.eq("Name", "aName"));
-        final AddAction setActionAddPermission = UpdateActionHelper.add("Permissions", NewPermission);
+        final SetAction setActionAddPermission = UpdateActionHelper.set("Permissions", NewPermission);
         update.addActions(setActionAddPermission);
         AdminManagementClientFactory.changeMode(null);
 
+        // valid query
+        given()
+            .contentType(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(update.getFinalUpdateById())
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().put(PROFILE_URI + "/" + GOOD_ID)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        // wrong query
         given()
             .contentType(ContentType.JSON)
             .contentType(ContentType.JSON)
             .body(update.getFinalUpdate())
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().put(PROFILE_URI + "/" + GOOD_ID)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+
+        // no query
+        given()
+            .contentType(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().put(PROFILE_URI + "/" + GOOD_ID)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        // no tenant
+        given()
+            .contentType(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(update.getFinalUpdateById())
+            .when().put(PROFILE_URI + "/" + GOOD_ID)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void testUpdateContext()
+        throws InvalidCreateOperationException, InvalidParseOperationException, AdminManagementClientServerException {
+
+        final Update update = new Update();
+        update.setQuery(QueryHelper.eq("Identifier", "CT-000001"));
+        final SetAction setActionDescription = UpdateActionHelper.set("Name", "admin-context");
+        update.addActions(setActionDescription);
+        AdminManagementClientFactory.changeMode(null);
+
+        // valid query
+        given()
+            .contentType(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(update.getFinalUpdateById())
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().put(CONTEXT_URI + "/" + GOOD_ID)
             .then().statusCode(Status.OK.getStatusCode());
+
+        // wrong query
+        given()
+            .contentType(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(update.getFinalUpdate())
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().put(CONTEXT_URI + "/" + GOOD_ID)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+
+        // no query
+        given()
+            .contentType(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().put(CONTEXT_URI + "/" + GOOD_ID)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        // no tenant
+        given()
+            .contentType(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(update.getFinalUpdateById())
+            .when().put(CONTEXT_URI + "/" + GOOD_ID)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void testUpdateAccessContract()
+        throws InvalidCreateOperationException, InvalidParseOperationException, AdminManagementClientServerException {
+
+        final Update update = new Update();
+        update.setQuery(QueryHelper.eq("Identifier", "CT-000001"));
+        final SetAction setActionDescription = UpdateActionHelper.set("Name", "admin-context");
+        update.addActions(setActionDescription);
+        AdminManagementClientFactory.changeMode(null);
+
+        // valid query
+        given()
+            .contentType(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(update.getFinalUpdateById())
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().put(AccessExtAPI.ACCESS_CONTRACT_API_UPDATE + "/" + GOOD_ID)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        // wrong query
+        given()
+            .contentType(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(update.getFinalUpdate())
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().put(AccessExtAPI.ACCESS_CONTRACT_API_UPDATE + "/" + GOOD_ID)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+
+        // no query
+        given()
+            .contentType(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().put(AccessExtAPI.ACCESS_CONTRACT_API_UPDATE + "/" + GOOD_ID)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        // no tenant
+        given()
+            .contentType(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(update.getFinalUpdateById())
+            .when().put(AccessExtAPI.ACCESS_CONTRACT_API_UPDATE + "/" + GOOD_ID)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void testUpdateIngestContract()
+        throws InvalidCreateOperationException, InvalidParseOperationException, AdminManagementClientServerException {
+
+        final Update update = new Update();
+        update.setQuery(QueryHelper.eq("Identifier", "CT-000001"));
+        final SetAction setActionDescription = UpdateActionHelper.set("Name", "admin-context");
+        update.addActions(setActionDescription);
+        AdminManagementClientFactory.changeMode(null);
+
+        // valid query
+        given()
+            .contentType(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(update.getFinalUpdateById())
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().put(AccessExtAPI.INGEST_CONTRACT_API_UPDATE + "/" + GOOD_ID)
+            .then().statusCode(Status.OK.getStatusCode());
+
+        // wrong query
+        given()
+            .contentType(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(update.getFinalUpdate())
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().put(AccessExtAPI.INGEST_CONTRACT_API_UPDATE + "/" + GOOD_ID)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+
+        // no query
+        given()
+            .contentType(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().put(AccessExtAPI.INGEST_CONTRACT_API_UPDATE + "/" + GOOD_ID)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        // no tenant
+        given()
+            .contentType(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .body(update.getFinalUpdateById())
+            .when().put(AccessExtAPI.INGEST_CONTRACT_API_UPDATE + "/" + GOOD_ID)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test

@@ -86,14 +86,14 @@ public class ValidatorTest {
     }
 
     @Test
-    public void should_not_retrieve_errors_when_search_article_request() throws Exception {
+    public void should_not_retrieve_errors_when_send_match_request() throws Exception {
         JsonNode test1Json = mapper.readTree(PropertiesUtils.getResourceFile("operator_match_request.json"));
         final Validator validator = loadSchema(mapper, PropertiesUtils.getResourceFile("dsl.json"));
         validator.validate(test1Json);
     }
 
     @Test
-    public void should_not_retrieve_errors_when_select_by_title_without_root_depth() throws Exception {
+    public void should_not_retrieve_errors_when_send_in_request() throws Exception {
         JsonNode test1Json =
             mapper.readTree(PropertiesUtils.getResourceFile("operator_in_request.json"));
         final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
@@ -223,6 +223,42 @@ public class ValidatorTest {
                 "Validating $roots: guid[] ~ INVALID_VALUE: STRING ~ hint: Tableau d'identifiants d'AU racines ~ found json: \\\"azdazdazdaz\\\" ~ path: [$roots]")
             .hasMessageContaining(
                 "Validating $search: {[key]: anyvalue} ~ ELEMENT_TOO_SHORT: 0 < 1 ~ found json: {} ~ path: [$query, $search]");
+    }
+
+    @Test
+    public void should_retrieve_errors_when_send_wildcard_request_with_invalid_field() throws Exception {
+        JsonNode test1Json =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("operator_wildcard_invalid_request.json"));
+        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
+        assertThatThrownBy(() -> validator.validate(test1Json))
+            .hasMessageContaining(
+                "Validating $wildcard: {[key]: anyvalue} ~ ELEMENT_TOO_SHORT: 0 < 1");
+    }
+
+    @Test
+    public void should_not_retrieve_errors_when_send_regex_request() throws Exception {
+        JsonNode test1Json =
+            mapper.readTree(PropertiesUtils.getResourceFile("operator_regex_request.json"));
+        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
+        validator.validate(test1Json);
+    }
+
+    @Test
+    public void should_retrieve_errors_when_send_regex_request_with_invalid_field() throws Exception {
+        JsonNode test1Json =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("operator_regex_invalid_request.json"));
+        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
+        assertThatThrownBy(() -> validator.validate(test1Json))
+            .hasMessageContaining(
+                "Validating $regex: {[key]: anyvalue} ~ ELEMENT_TOO_SHORT: 0 < 1");
+    }
+
+    @Test
+    public void should_not_retrieve_errors_when_send_wildcard_request() throws Exception {
+        JsonNode test1Json =
+            mapper.readTree(PropertiesUtils.getResourceFile("operator_wildcard_request.json"));
+        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
+        validator.validate(test1Json);
     }
 
     @Test

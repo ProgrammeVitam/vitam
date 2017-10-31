@@ -82,10 +82,8 @@ import org.apache.shiro.util.ThreadContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.collect.Iterables;
 
-import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.api.ErrorMessage;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
@@ -101,7 +99,6 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -788,8 +785,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             }
 
             // Add ID to set root part
-            updateUnitIdMap.put(UiConstants.SELECT_BY_ID.toString(), new TextNode(unitId));
-            final JsonNode preparedQueryDsl = DslQueryHelper.createUpdateDSLQuery(updateUnitIdMap, updateRules);
+            final JsonNode preparedQueryDsl = DslQueryHelper.createUpdateByIdDSLQuery(updateUnitIdMap, updateRules);
             final RequestResponse<JsonNode> archiveDetails =
                 UserInterfaceTransactionManager.updateUnits(preparedQueryDsl, unitId,
                     getTenantId(headers), getAccessContractId(headers), getAppSessionId());
@@ -1906,12 +1902,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 throw new InvalidCreateOperationException("Query not valid");
             }
             Update updateRequest = new Update();
-            updateRequest.setQuery(QueryHelper.eq(IDENTIFIER, contractId));
             updateRequest.addActions(UpdateActionHelper.set((ObjectNode) updateOptions));
             final RequestResponse archiveDetails =
                 adminClient.updateIngestContract(
                     new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()), contractId,
-                    updateRequest.getFinalUpdate());
+                    updateRequest.getFinalUpdateById());
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
@@ -2060,7 +2055,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             Update updateRequest = new Update();
-            updateRequest.setQuery(QueryHelper.eq(IDENTIFIER, contractId));
             if (!updateOptions.isObject()) {
                 throw new InvalidCreateOperationException("Query not valid");
             }
@@ -2068,7 +2062,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final RequestResponse archiveDetails =
                 adminClient.updateAccessContract(
                     new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()),
-                    contractId, updateRequest.getFinalUpdate());
+                    contractId, updateRequest.getFinalUpdateById());
             return Response.status(Status.OK).entity(archiveDetails).build();
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
@@ -2108,7 +2102,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             Update updateRequest = new Update();
-            updateRequest.setQuery(QueryHelper.eq(IDENTIFIER, contextId));
             if (!updateOptions.isObject()) {
                 throw new InvalidCreateOperationException("Query not valid");
             }
@@ -2116,7 +2109,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             final RequestResponse updateResponse =
                 adminClient
                     .updateContext(new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()),
-                        contextId, updateRequest.getFinalUpdate());
+                        contextId, updateRequest.getFinalUpdateById());
             LOGGER.error("update status " + updateResponse.toString());
             return Response.status(Status.OK).entity(updateResponse).build();
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
@@ -2315,16 +2308,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
         JsonNode updateOptions) {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             Update updateRequest = new Update();
-            updateRequest.setQuery(QueryHelper.eq(IDENTIFIER, profileMetadataId));
             if (!updateOptions.isObject()) {
                 throw new InvalidCreateOperationException("Query not valid");
             }
             updateRequest.addActions(UpdateActionHelper.set((ObjectNode) updateOptions));
-
             RequestResponse response =
                 adminClient.updateProfile(
                     new VitamContext(getTenantId(headers)).setApplicationSessionId(getAppSessionId()),
-                    profileMetadataId, updateRequest.getFinalUpdate());
+                    profileMetadataId, updateRequest.getFinalUpdateById());
             if (response != null && response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).entity(response).build();
             }

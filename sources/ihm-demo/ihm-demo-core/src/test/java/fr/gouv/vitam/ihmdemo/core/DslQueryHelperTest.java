@@ -28,6 +28,7 @@ package fr.gouv.vitam.ihmdemo.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -157,11 +158,11 @@ public class DslQueryHelperTest {
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, Object> queryMap = new HashMap();
         queryMap.put("titleAndDescription", "Arch");
-        
+
         final HashMap<String, String> sortSetting = new HashMap();
         sortSetting.put("field", "date");
         sortSetting.put("sortType", "DESC");
-        
+
         queryMap.put("orderby", sortSetting);
         queryMap.put("projection_", "#id");
         queryMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
@@ -181,11 +182,11 @@ public class DslQueryHelperTest {
     public void testCreateSelectDSLQuery() throws InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, Object> queryMap = new HashMap();
         queryMap.put("Title", "Archive2");
-        
+
         final HashMap<String, String> sortSetting = new HashMap();
         sortSetting.put("field", "date");
         sortSetting.put("sortType", "DESC");
-        
+
         queryMap.put("orderby", sortSetting);
         queryMap.put("projection_", "#id");
         queryMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
@@ -254,25 +255,25 @@ public class DslQueryHelperTest {
     }
 
     /**
-     * Tests CreateUpdateDSLQuery mthod : main scenario
+     * Tests CreateUpdateByIdDSLQuery method : main scenario
      *
      * @throws InvalidParseOperationException
      * @throws InvalidCreateOperationException
      */
     @Test
     public void testCreateUpdateDSLQuery() throws InvalidParseOperationException, InvalidCreateOperationException {
-        final Map<String, JsonNode> queryMap = new HashMap();
+        final Map<String, JsonNode> queryMap = new HashMap<>();
         queryMap.put("title", new TextNode("Archive2"));
         queryMap.put("date", new TextNode("09/09/2015"));
-        queryMap.put(UiConstants.SELECT_BY_ID.toString(), new TextNode("#id"));
-        final Map<String, JsonNode> rulesMap = new HashMap();
-        final JsonNode updateRequest = DslQueryHelper.createUpdateDSLQuery(queryMap, rulesMap);
+        final Map<String, JsonNode> rulesMap = new HashMap<>();
+        final JsonNode updateRequest = DslQueryHelper.createUpdateByIdDSLQuery(queryMap, rulesMap);
         assertNotNull(updateRequest);
 
         final RequestParserMultiple updateParser = RequestParserHelper.getParser(updateRequest);
         assertTrue(updateParser instanceof UpdateParserMultiple);
         assertTrue(updateParser.getRequest().getActions().size() == 2);
-        assertTrue(updateParser.getRequest().getRoots().size() == 1);
+        assertTrue(updateParser.getRequest().getQueries().isEmpty());
+        assertTrue(updateParser.getRequest().getRoots().isEmpty());
 
     }
 
@@ -288,7 +289,7 @@ public class DslQueryHelperTest {
         queryMap.put("title", new TextNode("Mosqueteers"));
         final Map<String, JsonNode> rulesMap = new HashMap();
 
-        final JsonNode updateRequest = DslQueryHelper.createUpdateDSLQuery(queryMap, rulesMap);
+        final JsonNode updateRequest = DslQueryHelper.createUpdateByIdDSLQuery(queryMap, rulesMap);
         assertNotNull(updateRequest);
 
         final RequestParserMultiple updateParser = RequestParserHelper.getParser(updateRequest);
@@ -308,7 +309,7 @@ public class DslQueryHelperTest {
         final Map<String, JsonNode> queryMap = new HashMap();
         queryMap.put("", new TextNode("value"));
         final Map<String, JsonNode> rulesMap = new HashMap();
-        DslQueryHelper.createUpdateDSLQuery(queryMap, rulesMap);
+        DslQueryHelper.createUpdateByIdDSLQuery(queryMap, rulesMap);
     }
 
     /**
@@ -421,7 +422,7 @@ public class DslQueryHelperTest {
         assertTrue(selectParser3.getRequest().getRoots().size() == 0);
         assertTrue(selectParser3.getRequest().getFilter().get("$orderby") == null);
     }
-    
+
     /**
      * Tests testTraceabilityDSLQuery: method : main scenario
      *
@@ -445,11 +446,11 @@ public class DslQueryHelperTest {
 
         final Map<String, Object> queryMap2 = new HashMap();
         queryMap2.put(EVENT_TYPE_PROCESS, "traceability");
-        
+
         final HashMap<String, String> sortSetting = new HashMap();
         sortSetting.put("field", "evDateTime");
         sortSetting.put("sortType", "DESC");
-        
+
         queryMap2.put("orderby", sortSetting);
         queryMap2.put("TraceabilityStartDate", "2017-01-01");
         queryMap2.put("TraceabilityEndDate", "2017-02-09");
@@ -462,12 +463,12 @@ public class DslQueryHelperTest {
         assertTrue(selectParser2 instanceof SelectParserMultiple);
         assertTrue(selectParser2.getRequest().getNbQueries() == 1);
         JsonNode query = selectParser2.getRequest().getQueries().get(0).getCurrentQuery();
-        ArrayNode criterias = (ArrayNode)query.get("$and");
+        ArrayNode criterias = (ArrayNode) query.get("$and");
         assertEquals("2017-02-09", criterias.get(0).get("$lte").get("events.evDetData.EndDate").asText());
         assertEquals("traceability", criterias.get(1).get("$eq").get("evTypeProc").asText());
         assertEquals("2017-01-01", criterias.get(2).get("$gte").get("events.evDetData.StartDate").asText());
         assertEquals("OPERATION", criterias.get(3).get("$eq").get("events.evDetData.LogType").asText());
-        
+
         assertTrue(selectParser2.getRequest().getRoots().size() == 0);
         JsonNode orderBy = selectParser2.getRequest().getFilter().get("$orderby");
         assertTrue(orderBy != null);

@@ -234,6 +234,26 @@ public enum VitamCode {
         Status.INTERNAL_SERVER_ERROR,
         "Admin external internal server error"),
 
+    ADMIN_EXTERNAL_UPDATE_PROFILE_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "24",
+        Status.BAD_REQUEST,
+        "Admin external client error in updateProfile method."),
+
+    ADMIN_EXTERNAL_UPDATE_CONTEXT_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "25",
+        Status.BAD_REQUEST,
+        "Admin external client error in updateContext method."),
+
+    ADMIN_EXTERNAL_UPDATE_SECURITY_PROFILE_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "26",
+        Status.BAD_REQUEST,
+        "Admin external client error in updateSecurityProfile method."),
+
+    ADMIN_EXTERNAL_UPDATE_ACCESS_CONTRACT_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "27",
+        Status.BAD_REQUEST,
+        "Admin external client error in updateAccessContract method."),
+
+    ADMIN_EXTERNAL_UPDATE_INGEST_CONTRACT_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "28",
+        Status.BAD_REQUEST,
+        "Admin external client error in updateIngestContract method."),
+
     ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "01",
         Status.BAD_REQUEST,
         "Access internal error while check update on rules"),

@@ -134,6 +134,19 @@ public class UpdateMultiQuery extends RequestMultiple {
 
     /**
      *
+     * @return the Final Update for update one object (by id) containing only 1 part: actions
+     */
+    public final ObjectNode getFinalUpdateById() {
+        final ObjectNode node = getFinalUpdate();
+        node.remove(GLOBAL.QUERY.exactToken());
+        node.remove(GLOBAL.ROOTS.exactToken());
+        node.remove(GLOBAL.FILTER.exactToken());
+        node.remove(GLOBAL.PROJECTION.exactToken());
+        return node;
+    }
+
+    /**
+     *
      * @return the Final Update containing all 4 parts: roots, queries array, filter and actions
      */
     public final ObjectNode getFinalUpdate() {

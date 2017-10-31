@@ -1,0 +1,22 @@
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$regex": {
+        "Title": ".*"
+      },
+      "$depth": 20
+    },
+    {
+      "$regex": {
+        "Title": ".*"
+      },
+      "$depth": 20
+    }
+  ],
+  "$filter": {
+    "$orderby": {
+      "TransactedDate": 1
+    }
+  }
+}

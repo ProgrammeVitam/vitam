@@ -929,6 +929,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                         result = adminExternalClient.updateIngestContract(
                                             new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()),
                                             objectID, criteria);
+                                    } else if (AdminCollections.PROFILE.equals(requestedAdminCollection)) {
+                                        result = adminExternalClient.updateProfile(
+                                            new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()),
+                                            objectID, criteria);
+                                    } else if (AdminCollections.SECURITY_PROFILES.equals(requestedAdminCollection)) {
+                                        result = adminExternalClient.updateSecurityProfile(
+                                            new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()),
+                                            objectID, criteria);
                                     } else {
                                         throw new UnsupportedOperationException(
                                             REQUEST_METHOD_UNDEFINED + " " + requestedCollection);

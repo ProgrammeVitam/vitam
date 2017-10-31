@@ -1,11 +1,5 @@
 {
-	"$projection": {
-		"$fields": {
-			"#id": 1,
-			"Title": 1
-		}
-	},
-	"$action": {
+	"$action": [{
 		"$set": { 
 		  "Title" : "Mon nouveau titre", 
 		  "Description" : "Ma nouvelle description" ,
@@ -13,5 +7,5 @@
 		  "Boolean" : true,
 		  "Object" : { "Test key" : "Test value"}
 		}
-	}
+	}]
 }
