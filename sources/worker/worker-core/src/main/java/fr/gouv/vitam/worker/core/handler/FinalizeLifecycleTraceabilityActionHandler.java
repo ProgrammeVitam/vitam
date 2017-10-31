@@ -138,7 +138,6 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
     private static final String EVENT_ID = eventIdentifier.getDbname();
     private static final String EVENT_DETAIL_DATA = eventDetailData.getDbname();
     private final TimestampGenerator timestampGenerator;
-    private final Joiner joiner;
     private static final String VERIFY_TIMESTAMP_CONF_FILE = "verify-timestamp.conf";
 
     private static final String DEFAULT_STRATEGY = "default";
@@ -171,7 +170,6 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
                 throw new RuntimeException(e);
             }
             timestampGenerator = new TimestampGenerator(timeStampSignature);
-            joiner = Joiner.on("").skipNulls();
         } else {
             LOGGER.error("unable to instanciate TimeStampGenerator");
             throw new RuntimeException("Configuration is null");
@@ -255,24 +253,24 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
             traceabilityFile.closeStoreLifecycleLog();
 
             if (uriListLFCUnitsWorkspace.size() > 0 || uriListLFCObjectsWorkspace.size() > 0) {
-                final String timestampToken1 = extractTimestampToken(lastTraceabilityOperation);
+                final byte [] timestampToken1 = extractTimestampToken(lastTraceabilityOperation);
                 try (final LogbookOperationsClient logbookOperationsClient =
                     LogbookOperationsClientFactory.getInstance().getClient();) {
-                    final String timestampToken2 =
+                    final byte [] timestampToken2 =
                         findHashByTraceabilityEventExpect(logbookOperationsClient, expectedLogbookId,
                             currentDate.minusMonths(1));
-                    final String timestampToken3 =
+                    final byte [] timestampToken3 =
                         findHashByTraceabilityEventExpect(logbookOperationsClient, expectedLogbookId,
                             currentDate.minusYears(1));
                     final String timestampToken1Base64 =
-                        (timestampToken1 == null) ? null : BaseXx.getBase64(timestampToken1.getBytes());
+                        (timestampToken1 == null) ? null : BaseXx.getBase64(timestampToken1);
                     final String timestampToken2Base64 =
-                        (timestampToken2 == null) ? null : BaseXx.getBase64(timestampToken2.getBytes());
+                        (timestampToken2 == null) ? null : BaseXx.getBase64(timestampToken2);
                     final String timestampToken3Base64 =
-                        (timestampToken3 == null) ? null : BaseXx.getBase64(timestampToken3.getBytes());
+                        (timestampToken3 == null) ? null : BaseXx.getBase64(timestampToken3);
 
                     final byte[] timeStampToken =
-                        generateTimeStampToken(GUIDReader.getGUID(params.getProcessId()), tenantId, rootHash,
+                        generateTimeStampToken(rootHash,
                             timestampToken1, timestampToken2, timestampToken3, itemStatus);
                     traceabilityFile.storeTimeStampToken(timeStampToken);
 
@@ -335,7 +333,7 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
                     itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(),
                         JsonHandler.unprettyPrint(traceabilityEvent));
                 } catch (LogbookNotFoundException | LogbookDatabaseException | LogbookClientException |
-                    InvalidCreateOperationException | InvalidGuidOperationException e) {
+                    InvalidCreateOperationException e) {
                     zipFile.delete();
                     LOGGER.error("error with logbook ", e);
                     throw new LogbookException(e);
@@ -442,12 +440,12 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
      * @return
      * @throws InvalidParseOperationException
      */
-    private String extractTimestampToken(LogbookOperation logbookOperation) throws InvalidParseOperationException {
+    private byte [] extractTimestampToken(LogbookOperation logbookOperation) throws InvalidParseOperationException {
         TraceabilityEvent traceabilityEvent = extractEventDetData(logbookOperation);
         if (traceabilityEvent == null) {
             return null;
         }
-        return new String(traceabilityEvent.getTimeStampToken());
+        return traceabilityEvent.getTimeStampToken();
     }
 
     /**
@@ -476,7 +474,7 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
      * @throws InvalidParseOperationException
      * @throws LogbookClientException
      */
-    private String findHashByTraceabilityEventExpect(LogbookOperationsClient logbookOperationsClient,
+    private byte [] findHashByTraceabilityEventExpect(LogbookOperationsClient logbookOperationsClient,
         List<String> expectIds, LocalDateTime date)
         throws InvalidCreateOperationException, InvalidParseOperationException, LogbookClientException {
         try {
@@ -553,16 +551,27 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
         // Nothing to check
     }
 
+    // TODO duplicate code, fix that
     @VisibleForTesting
-    byte[] generateTimeStampToken(GUID eip, Integer tenantId, String rootHash, String hash1, String hash2, String hash3,
+    byte[] generateTimeStampToken(String rootHash, byte[] hash1, byte[] hash2, byte[] hash3,
         ItemStatus itemStatus)
         throws IOException, TraceabilityException {
         final ItemStatus subItemStatusTimestamp = new ItemStatus(HANDLER_SUB_ACTION_TIMESTAMP);
         try {
-            final String hash = joiner.join(rootHash, hash1, hash2, hash3);
+
             final Digest digest = new Digest(timestampDigestType);
-            digest.update(hash);
+            digest.update(rootHash);
+            if (hash1 != null) {
+                digest.update(hash1);
+            }
+            if (hash2 != null) {
+                digest.update(hash2);
+            }
+            if (hash3 != null) {
+                digest.update(hash3);
+            }
             final byte[] hashDigest = digest.digest();
+
             // TODO maybe nonce could be different than null ? If so, think about changing VerifyTimeStampActionHandler
             final byte[] timeStampToken = timestampGenerator.generateToken(hashDigest, timestampDigestType, null);
             itemStatus.setItemsStatus(HANDLER_SUB_ACTION_TIMESTAMP, subItemStatusTimestamp.increment(StatusCode.OK));

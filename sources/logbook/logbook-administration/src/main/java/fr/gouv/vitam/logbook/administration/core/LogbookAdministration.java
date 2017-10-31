@@ -30,7 +30,6 @@ package fr.gouv.vitam.logbook.administration.core;
 import static com.google.common.collect.Lists.newArrayList;
 import static fr.gouv.vitam.common.LocalDateUtil.getString;
 import static fr.gouv.vitam.common.LocalDateUtil.now;
-import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
@@ -53,16 +52,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.commons.compress.archivers.ArchiveException;
-import org.bson.Document;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.mongodb.client.MongoCursor;
-
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -106,6 +99,8 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.bson.Document;
 
 /**
  * Business class for Logbook Administration (traceability)
@@ -236,21 +231,22 @@ public class LogbookAdministration {
 
             final String rootHash = BaseXx.getBase64(merkleTree.getRoot());
 
-            final String timestampToken1 = extractTimestampToken(lastTraceabilityOperation);
-            final String timestampToken2 =
+            final byte[] timestampToken1 = extractTimestampToken(lastTraceabilityOperation);
+            final byte[] timestampToken2 =
                 findHashByTraceabilityEventExpect(expectedLogbookId, currentDate.minusMonths(1));
-            final String timestampToken3 =
+            final byte[] timestampToken3 =
                 findHashByTraceabilityEventExpect(expectedLogbookId, currentDate.minusYears(1));
 
             final String timestampToken1Base64 =
-                (timestampToken1 == null) ? null : BaseXx.getBase64(timestampToken1.getBytes());
+                (timestampToken1 == null) ? null : BaseXx.getBase64(timestampToken1);
             final String timestampToken2Base64 =
-                (timestampToken2 == null) ? null : BaseXx.getBase64(timestampToken2.getBytes());
+                (timestampToken2 == null) ? null : BaseXx.getBase64(timestampToken2);
             final String timestampToken3Base64 =
-                (timestampToken3 == null) ? null : BaseXx.getBase64(timestampToken3.getBytes());
+                (timestampToken3 == null) ? null : BaseXx.getBase64(timestampToken3);
 
             final byte[] timeStampToken =
-                generateTimeStampToken(eip, tenantId, rootHash, timestampToken1, timestampToken2, timestampToken3);
+                generateTimeStampToken(eip, tenantId, merkleTree.getRoot(), timestampToken1, timestampToken2,
+                    timestampToken3);
             traceabilityFile.storeTimeStampToken(timeStampToken);
 
             final long numberOfLine = traceabilityIterator.getNumberOfLine();
@@ -344,7 +340,7 @@ public class LogbookAdministration {
         return eip;
     }
 
-    private String findHashByTraceabilityEventExpect(List<String> expectIds, LocalDateTime date)
+    private byte[] findHashByTraceabilityEventExpect(List<String> expectIds, LocalDateTime date)
         throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException,
         InvalidParseOperationException {
 
@@ -357,12 +353,13 @@ public class LogbookAdministration {
         return extractTimestampToken(logbookOperation);
     }
 
-    private String extractTimestampToken(LogbookOperation logbookOperation) throws InvalidParseOperationException {
+    @VisibleForTesting
+    byte[] extractTimestampToken(LogbookOperation logbookOperation) throws InvalidParseOperationException {
         TraceabilityEvent traceabilityEvent = extractEventDetData(logbookOperation);
         if (traceabilityEvent == null) {
             return null;
         }
-        return new String(traceabilityEvent.getTimeStampToken());
+        return traceabilityEvent.getTimeStampToken();
     }
 
     private TraceabilityEvent extractEventDetData(LogbookOperation logbookOperation)
@@ -380,15 +377,23 @@ public class LogbookAdministration {
     }
 
     @VisibleForTesting
-    byte[] generateTimeStampToken(GUID eip, Integer tenantId, String rootHash, String hash1, String hash2, String hash3)
+    byte[] generateTimeStampToken(GUID eip, Integer tenantId, byte[] rootHash, byte[] hash1, byte[] hash2, byte[] hash3)
         throws IOException, TraceabilityException {
 
         try {
-            final String hash = joiner.join(rootHash, hash1, hash2, hash3);
             final DigestType digestType = VitamConfiguration.getDefaultTimestampDigestType();
 
             final Digest digest = new Digest(digestType);
-            digest.update(hash);
+            digest.update(rootHash);
+            if (hash1 != null) {
+                digest.update(hash1);
+            }
+            if (hash2 != null) {
+                digest.update(hash2);
+            }
+            if (hash3 != null) {
+                digest.update(hash3);
+            }
             final byte[] hashDigest = digest.digest();
 
             // TODO maybe nonce could be different than null ? If so, think about changing VerifyTimeStampActionHandler
