@@ -51,6 +51,8 @@ public class AuditCheckObjectPlugin extends ActionHandler {
         throws ProcessingException, ContentAddressableStorageServerException {
         LOGGER.debug(HANDLER_ID + " in execute");
         handlerIO = handler;
+        
+        String actionType = null;
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
@@ -79,6 +81,7 @@ public class AuditCheckObjectPlugin extends ActionHandler {
         if (auditActions.contains(CheckExistenceObjectPlugin.getId())) {
             try (CheckExistenceObjectPlugin checkExistenceObjectPlugin = new CheckExistenceObjectPlugin()) {
                 final ItemStatus checkExistenceActionStatus = checkExistenceObjectPlugin.execute(param, handler);
+                actionType = CheckExistenceObjectPlugin.getId();
                 itemStatus.setItemsStatus(CheckExistenceObjectPlugin.getId(), checkExistenceActionStatus);
                 if (checkExistenceActionStatus.getGlobalStatus().equals(StatusCode.KO)) {
                     handlerIO.addOuputResult(SHOULD_WRITE_RANK, true, true, false);
@@ -89,6 +92,7 @@ public class AuditCheckObjectPlugin extends ActionHandler {
         } else if (auditActions.contains(CheckIntegrityObjectPlugin.getId())) {
             try (CheckIntegrityObjectPlugin checkIntegrityObjectPlugin = new CheckIntegrityObjectPlugin()) {
                 final ItemStatus checkIntegreityActionStatus = checkIntegrityObjectPlugin.execute(param, handler);
+                actionType = CheckIntegrityObjectPlugin.getId();
                 itemStatus.setItemsStatus(CheckIntegrityObjectPlugin.getId(), checkIntegreityActionStatus);
                 if (checkIntegreityActionStatus.getGlobalStatus().equals(StatusCode.KO)) {
                     handlerIO.addOuputResult(SHOULD_WRITE_RANK, true, true, false);
@@ -98,6 +102,9 @@ public class AuditCheckObjectPlugin extends ActionHandler {
             }
         }
 
+        if (actionType != null) {
+            return new ItemStatus(HANDLER_ID + "." + actionType).setItemsStatus(HANDLER_ID, itemStatus);
+        }
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
