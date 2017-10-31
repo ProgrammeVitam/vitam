@@ -30,6 +30,7 @@ package fr.gouv.vitam.logbook.administration.core;
 import static com.google.common.collect.Lists.newArrayList;
 import static fr.gouv.vitam.common.LocalDateUtil.getString;
 import static fr.gouv.vitam.common.LocalDateUtil.now;
+import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
@@ -52,6 +53,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.bson.Document;
 
@@ -147,9 +150,9 @@ public class LogbookAdministration {
 
     /**
      * Constructor
-     * 
-     * @param logbookOperations logbook operation
-     * @param timestampGenerator to generate timestamp
+     *
+     * @param logbookOperations      logbook operation
+     * @param timestampGenerator     to generate timestamp
      * @param workspaceClientFactory to create workspace client
      */
     public LogbookAdministration(LogbookOperations logbookOperations, TimestampGenerator timestampGenerator,
@@ -162,10 +165,10 @@ public class LogbookAdministration {
      * secure the logbook operation since last securisation.
      *
      * @return the GUID of the operation
-     * @throws TraceabilityException if error on generating secure logbook
-     * @throws LogbookNotFoundException if not found on selecting logbook operation
-     * @throws InvalidParseOperationException if json data is not well-formed
-     * @throws LogbookDatabaseException if error on query logbook collection
+     * @throws TraceabilityException           if error on generating secure logbook
+     * @throws LogbookNotFoundException        if not found on selecting logbook operation
+     * @throws InvalidParseOperationException  if json data is not well-formed
+     * @throws LogbookDatabaseException        if error on query logbook collection
      * @throws InvalidCreateOperationException if error on creating query
      */
     // TODO: use a distributed lock to launch this function only on one server (cf consul)
@@ -197,7 +200,7 @@ public class LogbookAdministration {
         final LocalDateTime currentDate = now();
 
         final String fileName = String.format("%d_LogbookOperation_%s.zip", tenantId, currentDate.format(formatter));
-        createLogbookOperationStructure(eip, tenantId);
+        createLogbookOperationStructure(eip);
 
         final File zipFile = new File(tmpFolder, fileName);
         final String uri = String.format("%s/%s", LOGBOOK, fileName);
@@ -400,7 +403,7 @@ public class LogbookAdministration {
         }
     }
 
-    private void createLogbookOperationStructure(GUID eip, Integer tenantId) throws TraceabilityException {
+    private void createLogbookOperationStructure(GUID eip) throws TraceabilityException {
         final LogbookOperationParameters logbookParameters =
             newLogbookOperationParameters(eip, STP_OP_SECURISATION, eip, TRACEABILITY, STARTED, null, null, eip);
 
@@ -410,8 +413,8 @@ public class LogbookAdministration {
         } catch (LogbookDatabaseException | LogbookAlreadyExistsException e) {
             LOGGER.error("unable to create traceability logbook", e);
             throw new TraceabilityException(e);
-        }        
-        
+        }
+
     }
 
     private void createLogbookOperationEvent(GUID parentEventId, Integer tenantId, String eventType,
@@ -424,8 +427,10 @@ public class LogbookAdministration {
         LogbookOperationsClientHelper.checkLogbookParameters(logbookOperationParameters);
 
         if (traceabilityEvent != null) {
+            String eventdata = unprettyPrint(traceabilityEvent);
             logbookOperationParameters
-                .putParameterValue(LogbookParameterName.eventDetailData, unprettyPrint(traceabilityEvent));
+                .putParameterValue(LogbookParameterName.eventDetailData, eventdata);
+            logbookOperationParameters.putParameterValue(LogbookParameterName.masterData, eventdata);
         }
         try {
             logbookOperations.update(logbookOperationParameters);
