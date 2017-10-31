@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import {CookieService} from "angular2-cookie/core";
-import 'rxjs/add/operator/map';
 import {BehaviorSubject} from "rxjs/BehaviorSubject"
 import {Observable} from "rxjs/Observable";
 import {Headers, Http, RequestOptionsArgs, Response} from "@angular/http";
+import { HttpHeaders } from '@angular/common/http';
 
 import { ResourcesService } from '../resources.service';
 
@@ -51,13 +51,13 @@ export class UploadService {
         }
         if (totalSize < size) {
           component.uploadedSize = totalSize;
-          component.uploadState.next({
+          component.changeUploadState({
             uploadStatus : totalSize,
             ingestStatus : 'NOT_STARTED'
           });
         } else {
           component.uploadedSize = size;
-          component.uploadState.next({
+          component.changeUploadState({
             uploadStatus : size,
             ingestStatus : 'STARTED'
           });
@@ -74,7 +74,7 @@ export class UploadService {
     let start = 0;
     let end = (SIZE < BYTES_PER_CHUNK) ? SIZE : BYTES_PER_CHUNK;
 
-    this.uploadState.next({
+    this.changeUploadState({
       uploadStatus : end,
       ingestStatus : 'NOT_STARTED'
     });
@@ -98,7 +98,7 @@ export class UploadService {
         _self.uploadedSize = end;
         _self.ingestOperationId = requestId;
         if (start >= SIZE) {
-          _self.uploadState.next({
+          _self.changeUploadState({
             uploadStatus : SIZE,
             ingestStatus : 'STARTED'
           });
@@ -115,8 +115,12 @@ export class UploadService {
     xhr.send(blob.slice(start, end));
   }
 
-  getUploadState() : Observable<ingestStatusElement> {
-    return this.uploadState.asObservable();
+  getUploadState() : Observable<ingestStatusElement>  {
+    return this.uploadState;
+  }
+
+  changeUploadState(state : ingestStatusElement) {
+    this.uploadState.next(state);
   }
 
   checkIngestStatus() {
@@ -128,10 +132,10 @@ export class UploadService {
   }
 
   downloadATR(response: any) {
-    let body = response.text();
+    let body = response.body;
     var a = document.createElement("a");
     document.body.appendChild(a);
-    var url = window.URL.createObjectURL(new Blob([body], { type: 'application/xml' }));
+    var url = window.URL.createObjectURL(body);
     a.href = url;
 
     if(response.headers.get('content-disposition')!== undefined && response.headers.get('content-disposition')!== null){
@@ -143,9 +147,8 @@ export class UploadService {
   }
 
   uploadReferentials(collection : string, file: any) {
-    let header = new Headers();
-    header.append('Content-Type', 'application/octet-stream');
-    header.append('X-Filename', file.name);
+    let header = new HttpHeaders();
+    header = header.set('Content-Type', 'application/octet-stream').set('X-Filename', file.name);
     return this.resourcesService.post(collection, header, file);
   }
 

@@ -90,12 +90,18 @@ export class UploadSipComponent implements OnInit {
 
     this.uploadState = this.uploadService.getUploadState().subscribe(
       (uploadProgress) => {
-        if (uploadProgress.ingestStatus === 'STARTED') {
+        if (uploadProgress.ingestStatus === 'NOT_STARTED') {
           setTimeout(() => {
             this.uploadProgress = Math.round(uploadProgress.uploadStatus*100/this.fileUpload.size);
           }, 0);
-          this.ingestInProgess = true;
-          setTimeout( () => {this.checkIngestStatus()}, 2000);
+        } else {
+          setTimeout(() => {
+            this.ingestInProgess = true;
+            this.uploadProgress = 100;
+          }, 0);
+          setTimeout(() => {
+              this.checkIngestStatus()}
+            , 2000);
         }
       }
     );
