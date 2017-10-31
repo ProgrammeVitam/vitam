@@ -15,13 +15,13 @@ export class ImportComponent  extends PageComponent {
 
   referentialType: string;
   referentialTypes : SelectItem[] = [
+    {label:"Contextes applicatifs", value:'context'},
     {label:"Contrats d'accès", value:'accessContract'},
     {label:"Contrats d'entrée", value:'ingestContract'},
     {label:"Formats", value:'format'},
+    {label:"Profils d'archivage", value:'profil'},
     {label:"Règles de gestion", value:'rule'},
-    {label:"Profils", value:'profil'},
-    {label:"Contextes", value:'context'},
-    {label:"Service Agent", value:'agencies'}
+    {label:"Services agents", value:'agencies'}
   ];
   extensions : string[];
   uploadAPI : string;
@@ -53,30 +53,30 @@ export class ImportComponent  extends PageComponent {
         case "format":
           this.extensions = ["xml"];
           this.uploadAPI = 'format/upload';
-          this.importSucessMsg = 'Le réferentiel de formats est bien été importés';
+          this.importSucessMsg = 'Les formats ont bien été importés';
           this.importErrorMsg = "Echec de l'import du fichier.";
-          this.breadcrumbName = "Import du référentiel des formats";
+          this.breadcrumbName = "Import des formats";
           break;
         case "rule":
           this.extensions = ["csv"];
           this.uploadAPI = 'rules/upload';
-          this.importSucessMsg = 'Le référentiel des règles de gestion est bien été importés';
+          this.importSucessMsg = 'Les règles de gestion ont bien été importées';
           this.importErrorMsg = "Echec de l'import du fichier.";
-          this.breadcrumbName = "Import du référentiel des règles de gestion";
+          this.breadcrumbName = "Import des règles de gestion";
           break;
         case "profil":
           this.extensions = ["json"];
           this.uploadAPI = 'profiles';
-          this.importSucessMsg = 'Les profils ont bien été importés';
+          this.importSucessMsg = 'Les profils d\'archivage ont bien été importés';
           this.importErrorMsg = "Echec de l'import du fichier.";
-          this.breadcrumbName = "Import des profils";
+          this.breadcrumbName = "Import des profils d'archivage";
           break;
         case "context":
           this.extensions = ["json"];
           this.uploadAPI = 'contexts';
-          this.importSucessMsg = 'Les contextes ont bien été importés';
+          this.importSucessMsg = 'Les contextes applicatifs ont bien été importés';
           this.importErrorMsg = "Echec de l'import du fichier.";
-          this.breadcrumbName = "Import des contextes";
+          this.breadcrumbName = "Import des contextes applicatifs";
           break;
         case "agencies":
           this.extensions = ["csv"];

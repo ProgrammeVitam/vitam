@@ -25,7 +25,7 @@ export class AgenciesComponent extends PageComponent {
   constructor(private activatedRoute: ActivatedRoute, private router : Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
               private searchReferentialsService : ReferentialsService) {
-    super('Détail du service d\'agent', [], titleService, breadcrumbService);
+    super('Détail du service agent', [], titleService, breadcrumbService);
 
   }
 
@@ -35,7 +35,7 @@ export class AgenciesComponent extends PageComponent {
       this.getDetail();
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
-        {label: 'Service agent', routerLink: 'admin/search/agencies'},
+        {label: 'Référentiel des services agents', routerLink: 'admin/search/agencies'},
         {label: this.id, routerLink: ''}
       ];
 

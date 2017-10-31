@@ -1,5 +1,5 @@
 <p-dataTable [value]="items" (onRowClick)="navigateTo($event)" [sortField]="filter"
-             [selectionMode]="selectionMode" scrollable="true" scrollWidth="100%" [emptyMessage]="'Aucun Résultat'">
+             [selectionMode]="selectionMode" scrollable="true" scrollWidth="100%" [emptyMessage]="'Aucun résultat'">
   <p-column *ngFor="let col of selectedCols" [field]="col.field" [header]="col.label" [style]="col.computeCss()" [styleClass]="clickable(col)" >
     <ng-template let-item="rowData" pTemplate="body">
       <ng-template [ngIf]="col.forceIcon || (col.icons.length > 0 && col.shouldDisplay(item))">

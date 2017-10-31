@@ -17,14 +17,14 @@ const ACCESS_CONTRACT_KEY_TRANSLATION = {
   LastUpdate : 'Date de mise à jour',
   ActivationDate : 'Date d\'activation',
   DeactivationDate : 'Date de désactivation',
-  Name : 'Nom',
+  Name : 'Intitulé',
   Status : 'Statut',
   WritingPermission : 'Droit d\'écriture',
   Description : 'Description',
   DataObjectVersion : 'Usage',
   RootUnits : 'Noeuds de consultation',
   '#tenant' : 'Tenant',
-  OriginatingAgencies : "Service Producteur",
+  OriginatingAgencies : "Service producteur",
   EveryOriginatingAgency : 'Tous les services producteurs',
   EveryDataObjectVersion : 'Tous les usages'
 };
@@ -57,7 +57,7 @@ export class AccessContractComponent  extends PageComponent {
       this.getDetail();
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
-        {label: 'Contrats d\'accès', routerLink: 'admin/search/accessContract'},
+        {label: 'Référentiel des contrats d\'accès', routerLink: 'admin/search/accessContract'},
         {label: this.id, routerLink: ''}
       ];
 

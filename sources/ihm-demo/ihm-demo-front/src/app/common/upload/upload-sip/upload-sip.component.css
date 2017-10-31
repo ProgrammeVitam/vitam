@@ -2,15 +2,17 @@
     background-color: #eaedf2;
     min-height: 310px;
     border: dashed;
+    border-color:#D5D5D5;
 }
 
 .uploadSIPOption {
     min-height: 310px;
+    border:none;
 }
 
 .uploadSIPText {
     word-wrap: break-word;
-    font-size: 150%;
+    font-size: 120%;
     text-align: center;
 }
 
@@ -31,4 +33,8 @@
     margin-bottom:10px;
     text-align: left;
     margin-left: 40px;
+}
+
+.uploadFileMessage {
+    padding-top: 80px;
 }

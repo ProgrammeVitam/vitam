@@ -20,7 +20,7 @@ const RULE_KEY_TRANSLATION = {
   RuleDuration: "Durée"
 };
 const RULE_TYPE_TRANSLATION = {
-  "AppraisalRule" : "Durée d'utilité Administrative",
+  "AppraisalRule" : "Durée d'utilité administrative",
   "AccessRule" : "Délai de communicabilité",
   "StorageRule" : "Durée d'utilité courante",
   "DisseminationRule" : "Délai de diffusion",
@@ -48,7 +48,7 @@ export class RuleComponent extends PageComponent {
   constructor(private activatedRoute: ActivatedRoute, private router : Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
               private searchReferentialsService : ReferentialsService) {
-    super('Détail du règle de gestion', [], titleService, breadcrumbService);
+    super('Détail de la règle de gestion', [], titleService, breadcrumbService);
 
   }
 

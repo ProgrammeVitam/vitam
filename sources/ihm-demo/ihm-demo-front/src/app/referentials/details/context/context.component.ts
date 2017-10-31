@@ -16,7 +16,7 @@ const CONTEXT_KEY_TRANSLATION = {
   LastUpdate : 'Date de mise à jour',
   ActivationDate : 'Date d\'activation',
   DeactivationDate : 'Date de désactivation',
-  Name : 'Nom',
+  Name : 'Intitulé',
   Status : 'Statut',
   Description : 'Description',
   '#tenant' : 'Tenant'
@@ -41,7 +41,7 @@ export class ContextComponent extends PageComponent {
   constructor(private activatedRoute: ActivatedRoute, private router : Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
               private referentialsService : ReferentialsService) {
-    super('Détail du contexte', [], titleService, breadcrumbService);
+    super('Détail du contexte applicatif', [], titleService, breadcrumbService);
 
   }
 
@@ -56,7 +56,7 @@ export class ContextComponent extends PageComponent {
       this.getDetail();
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
-        {label: 'Contextes', routerLink: 'admin/search/context'},
+        {label: 'Référentiel des contextes applicatifs', routerLink: 'admin/search/context'},
         {label: this.id, routerLink: ''}
       ];
 

@@ -45,11 +45,11 @@ export class SearchReferentialsComponent  extends PageComponent {
           this.breadcrumbName = "Contrats d'accès";
           this.referentialData = [
             FieldDefinition.createIdField('ContractID', "Identifiant", 6, 8),
-            new FieldDefinition('ContractName', "Nom du contrat", 6, 8)
+            new FieldDefinition('ContractName', "Intitulé", 6, 8)
           ];
           this.searchForm = {"ContractID":"all","ContractName":"all","orderby":{"field":"Name","sortType":"ASC"}};
           this.columns = [
-            ColumnDefinition.makeStaticColumn('Name', 'Nom', undefined,
+            ColumnDefinition.makeStaticColumn('Name', 'Intitulé', undefined,
               () => ({'width': '325px'})),
             ColumnDefinition.makeStaticColumn('Identifier', 'Identifiant', undefined,
               () => ({'width': '225px'})),
@@ -69,11 +69,11 @@ export class SearchReferentialsComponent  extends PageComponent {
           this.breadcrumbName = "Contrats d'entrée";
           this.referentialData = [
             FieldDefinition.createIdField('ContractID', "Identifiant", 6, 8),
-            new FieldDefinition('ContractName', "Nom du contrat", 6, 8)
+            new FieldDefinition('ContractName', "Intitulé", 6, 8)
           ];
           this.searchForm = {"ContractID":"all","ContractName":"all","orderby":{"field":"Name","sortType":"ASC"}};
           this.columns = [
-            ColumnDefinition.makeStaticColumn('Name', 'Nom', undefined,
+            ColumnDefinition.makeStaticColumn('Name', 'Intitulé', undefined,
               () => ({'width': '325px'})),
             ColumnDefinition.makeStaticColumn('Identifier', 'Identifiant', undefined,
               () => ({'width': '225px'})),
@@ -92,20 +92,20 @@ export class SearchReferentialsComponent  extends PageComponent {
           this.searchReferentialsService.setSearchAPI('admin/formats');
           this.breadcrumbName = "Référentiel des formats";
           this.referentialData = [
-            new FieldDefinition('FormatName', "Nom de format", 6, 8),
+            new FieldDefinition('FormatName', "Intitulé", 6, 8),
             FieldDefinition.createIdField('PUID', "PUID", 6, 8)
           ];
           this.searchForm = {"FormatName":"","PUID":"","orderby":{"field":"Name","sortType":"ASC"},"FORMAT":"all"};
           this.columns = [
             ColumnDefinition.makeStaticColumn('PUID', 'PUID', undefined,
               () => ({'width': '125px'})),
-            ColumnDefinition.makeStaticColumn('Name', 'Nom de format', undefined,
+            ColumnDefinition.makeStaticColumn('Intitulé', 'Intitulé', undefined,
               () => ({'width': '325px'})),
             ColumnDefinition.makeStaticColumn('Version', 'Version', undefined,
               () => ({'width': '125px'})),
             ColumnDefinition.makeStaticColumn('MIMEType', 'MIME', undefined,
               () => ({'width': '125px'})),
-            ColumnDefinition.makeStaticColumn('Extension', 'Extension', undefined,
+            ColumnDefinition.makeStaticColumn('Extension(s)', 'Extension', undefined,
               () => ({'width': '125px'}))
           ];
           this.extraColumns = [];
@@ -117,7 +117,7 @@ export class SearchReferentialsComponent  extends PageComponent {
           this.breadcrumbName = "Référentiel des règles de gestion";
           let options = [
             {label : "Tous", value : "All"},
-            {label : "Durée d'utilité Administrative", value : "AppraisalRule"},
+            {label : "Durée d'utilité aministrative", value : "AppraisalRule"},
             {label : "Délai de communicabilité", value : "AccessRule"},
             {label : "Durée d'utilité courante", value : "StorageRule"},
             {label : "Délai de diffusion", value : "DisseminationRule"},
@@ -147,14 +147,14 @@ export class SearchReferentialsComponent  extends PageComponent {
           break;
         case "profil":
           this.searchReferentialsService.setSearchAPI('profiles');
-          this.breadcrumbName = "Profils";
+          this.breadcrumbName = "Profils d'archivage";
           this.referentialData = [
-            new FieldDefinition('ProfileName', "Nom du profil", 6, 8),
+            new FieldDefinition('ProfileName', "Intitulé", 6, 8),
             FieldDefinition.createIdField('ProfileID', "Identifiant", 6, 8)
           ];
           this.searchForm = {"ProfileID":"all","ProfileName":"all","orderby":{"field":"Name","sortType":"ASC"}};
           this.columns = [
-            ColumnDefinition.makeStaticColumn('Name', 'Nom', undefined,
+            ColumnDefinition.makeStaticColumn('Name', 'Intitulé', undefined,
               () => ({'width': '325px'})),
             ColumnDefinition.makeStaticColumn('Identifier', 'Identifiant', undefined,
               () => ({'width': '125px'})),
@@ -181,14 +181,14 @@ export class SearchReferentialsComponent  extends PageComponent {
           break;
         case "context":
           this.searchReferentialsService.setSearchAPI('contexts');
-          this.breadcrumbName = "Contextes";
+          this.breadcrumbName = "Contextes applicatifs";
           this.referentialData = [
-            new FieldDefinition('ContextName', "Nom du contexte", 6, 8),
+            new FieldDefinition('ContextName', "Intitulé", 6, 8),
             FieldDefinition.createIdField('ContextID', "Identifiant", 6, 8)
           ];
           this.searchForm = {"ContextID":"all","ContextName":"all","orderby":{"field":"Name","sortType":"ASC"}};
           this.columns = [
-            ColumnDefinition.makeStaticColumn('Name', 'Nom', undefined,
+            ColumnDefinition.makeStaticColumn('Name', 'Intitulé', undefined,
               () => ({'width': '325px'})),
             ColumnDefinition.makeStaticColumn('Identifier', 'Identifiant', undefined,
               () => ({'width': '125px'})),
@@ -196,7 +196,7 @@ export class SearchReferentialsComponent  extends PageComponent {
               () => ({'width': '125px'})),
             ColumnDefinition.makeStaticColumn('ActivationDate', "Date d'activation", DateService.handleDate,
               () => ({'width': '125px'})),
-            ColumnDefinition.makeStaticColumn('DeactivationDate', "Date désactivation", DateService.handleDate,
+            ColumnDefinition.makeStaticColumn('DeactivationDate', "Date de désactivation", DateService.handleDate,
               () => ({'width': '125px'})),
             ColumnDefinition.makeStaticColumn('CreationDate', "Date de création", DateService.handleDate,
               () => ({'width': '125px'})),
@@ -219,14 +219,14 @@ export class SearchReferentialsComponent  extends PageComponent {
 
         case "agencies":
           this.searchReferentialsService.setSearchAPI('agencies');
-          this.breadcrumbName = "Service agent";
+          this.breadcrumbName = "Services agents";
           this.referentialData = [
-            new FieldDefinition('AgencyName', "Nom du service agent", 6, 8),
+            new FieldDefinition('AgencyName', "Intitulé", 6, 8),
             FieldDefinition.createIdField('AgencyID', "Identifiant", 6, 8)
           ];
           this.searchForm = {"AgencyID":"all","AgencyName":"all","orderby":{"field":"Name","sortType":"ASC"}};
           this.columns = [
-            ColumnDefinition.makeStaticColumn('Name', 'Nom', undefined,
+            ColumnDefinition.makeStaticColumn('Name', 'Intitulé', undefined,
               () => ({'width': '125px'})),
             ColumnDefinition.makeStaticColumn('Identifier', 'Identifiant', undefined,
               () => ({'width': '125px'})),

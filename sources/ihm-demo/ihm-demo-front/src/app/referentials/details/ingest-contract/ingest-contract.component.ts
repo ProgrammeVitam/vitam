@@ -16,7 +16,7 @@ const INGEST_CONTRACT_KEY_TRANSLATION = {
   LastUpdate : 'Date de mise à jour',
   ActivationDate : 'Date d\'activation',
   DeactivationDate : 'Date de désactivation',
-  Name : 'Nom',
+  Name : 'Intitulé',
   Status : 'Statut',
   Description : 'Description',
   FilingParentId : 'Noeuds de rattachement',
@@ -51,7 +51,7 @@ export class IngestContractComponent extends PageComponent {
       this.getDetail();
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
-        {label: 'Contrats d\'entrée', routerLink: 'admin/search/ingestContract'},
+        {label: 'Référentiel des contrats d\'entrée', routerLink: 'admin/search/ingestContract'},
         {label: this.id, routerLink: ''}
       ];
 

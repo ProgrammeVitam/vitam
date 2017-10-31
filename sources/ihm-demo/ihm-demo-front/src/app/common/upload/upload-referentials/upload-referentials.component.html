@@ -1,19 +1,21 @@
 <div class="ui-grid-col-6 ui-g-offset-3 ui-widget-content uploadSIPBackground"
      [ngClass]="{'file-is-over': fileIsOver}" fileDrop (onFileDrop)="onFileDrop($event)">
   <div class="uploadSIPText">
-    <p>Glissez un fichier ou</p>
+    <p>Glisser un fichier ici</p>
+      <p>ou</p>
     <div style="display: inline-block; color:#0099FF; text-align: center">
-      importez
+      sélectionner un fichier
       <input #file (change)="onChange(file.files) "type="file" class="uploadFileInput"/>
     </div>
     <p *ngIf="fileUpload">Nom du fichier: {{fileUpload.name}}</p>
-    <p *ngIf="!fileUpload">Aucun fichier est choisi</p>
+      <p>&nbsp;</p>
+    <p *ngIf="!fileUpload">Aucun fichier choisi</p>
   </div>
-  <button pButton type="button" (click)="uploadReferential()" label="Valider" [disabled]="!fileUpload" ></button>
+  <button pButton type="button" (click)="uploadReferential()" label="Importer" [disabled]="!fileUpload" ></button>
 </div>
 
 <p-dialog header="Fichier invalide" [(visible)]="displayDialog" modal="modal" [responsive]="true">
-  <p>Votre fichier n'est pas valide : {{fileName}}</p>
+  <p>Le fichier n'est pas valide : {{fileName}}</p>
   <p-footer>
     <button type="button" pButton icon="fa-check" (click)="displayDialog=false" label="OK"></button>
   </p-footer>
