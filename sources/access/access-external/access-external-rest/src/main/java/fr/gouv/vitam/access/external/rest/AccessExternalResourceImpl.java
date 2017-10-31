@@ -373,24 +373,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     }
 
     /**
-     * check existence of an unit
-     *
-     * @param idUnit the archive unit id
-     * @return check result response
-     */
-    @HEAD
-    @Path("/units/{idu}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "units:id:read:status", description = "Vérifier l'existence d'une unité archivistique")
-    public Response checkExitsUnitById(@PathParam("idu") String idUnit) {
-        Integer tenantId = ParameterHelper.getTenantParameter();
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status, NOT_YET_SUPPORTED)).build();
-    }
-
-    /**
      * Retrieve Object group list by query based on identifier of the unit
      *
      * @param headers   the http header defined parameters of request

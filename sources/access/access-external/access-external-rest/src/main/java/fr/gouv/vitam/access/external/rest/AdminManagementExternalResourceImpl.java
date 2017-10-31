@@ -1474,24 +1474,6 @@ public class AdminManagementExternalResourceImpl {
     }
 
     /**
-     * findDocumentByID
-     *
-     * @param documentId the document id to get
-     * @return Response
-     */
-    @POST
-    @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Unsecured()
-    public Response findAccessionRegisterById(@PathParam("id_document") String documentId) {
-        // FIXME : Change @Unsecured to @Secured once implemented
-        addRequestId();
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase(), null)).build();
-    }
-
-
-    /**
      * findAccessionRegisterDetail
      *
      * @param documentId the document id of accession register to get
