@@ -47,6 +47,7 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
 
 import com.mongodb.client.MongoCursor;
 
@@ -334,5 +335,41 @@ public class LogbookOperationsImplWithDatabasesTest {
 
     }
 
+    @Test
+    public void testAuditLogbook() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
+        
+        GUID eventIdentifier = GUIDFactory.newEventGUID(0);
+        String eventType = "AUDIT";
+        GUID eventIdentifierProcess = GUIDFactory.newEventGUID(0);
+        LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.MASTERDATA;
+        StatusCode outcome = StatusCode.STARTED;
+        String outcomeDetailMessage = "AUDIT." + StatusCode.STARTED.name();
+        GUID eventIdentifierRequest = GUIDFactory.newEventGUID(0);
+        
+        final LogbookOperationParameters parametersForCreation =
+            LogbookParametersFactory.newLogbookOperationParameters(eventIdentifier,
+                eventType, eventIdentifierProcess, eventTypeProcess,
+                outcome, outcomeDetailMessage, eventIdentifierRequest);
+        final LogbookOperationParameters parametersForCreation2 =
+            LogbookParametersFactory.newLogbookOperationParameters(eventIdentifier,
+                eventType, eventIdentifierProcess, eventTypeProcess,
+                outcome, outcomeDetailMessage, eventIdentifierRequest);
+        parametersForCreation2.putParameterValue(LogbookParameterName.eventDetailData,
+            "{\"OriginatingAgency\":\"RATP\",\"errors\":[{\"IdObj\":\"aeaaaaaaaaeseksgabgg6ak7gp5wkmqaaaaq\",\"Usage\":\"BinaryMaster_1\"}],\"nbKO\":1}");
+
+        LogbookOperationParameters[] param = new LogbookOperationParameters[2];
+
+        param[0] = parametersForCreation;
+        param[1] = parametersForCreation2;
+        
+        logbookOperationsImpl.createBulkLogbookOperation(param);  
+        
+        MongoCursor<LogbookOperation> curseur;
+        curseur = logbookOperationsImpl.selectAfterDate(LocalDateTime.parse("2021-01-30T12:01:00"));
+        assertFalse(curseur.hasNext());
+        
+    }
 
 }

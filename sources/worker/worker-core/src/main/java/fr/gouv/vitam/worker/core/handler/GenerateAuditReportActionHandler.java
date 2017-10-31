@@ -192,17 +192,28 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
         throws InvalidCreateOperationException, LogbookClientException, InvalidParseOperationException,
         UnsupportedEncodingException {
         Select select = new Select();
-        select.setQuery(QueryHelper.and().add(QueryHelper.eq(EV_ID_PROC, auditOperationId),
-            QueryHelper.eq(EV_TYPE_PROC, AUDIT)));
+        select.setQuery(QueryHelper.and().add(QueryHelper.eq(EV_TYPE_PROC, AUDIT)));
 
-        JsonNode result = jopClient.selectOperation(select.getFinalSelect());
+        JsonNode result = jopClient.selectOperationById(auditOperationId, select.getFinalSelect());
         JsonNode res = result.get(RequestResponseOK.TAG_RESULTS).get(0);
         report.put("DateTime", res.get("evDateTime").textValue());
 
         ArrayNode events = (ArrayNode) res.get(EVENT);
-        JsonNode event = events.get(0);
-        report.put(STATUS, event.get(OUTCOME).textValue());
-        report.put(OUT_MESSAGE, event.get("outMessg").textValue());
+        for (JsonNode event : events) {
+            if (event.get(OUTCOME).textValue().equals("WARNING")) {
+                report.put(STATUS, event.get(OUTCOME).textValue());
+                report.put(OUT_MESSAGE, event.get("outMessg").textValue());
+                break;
+            } else if (event.get(OUTCOME).textValue().equals("KO")) {
+                report.put(STATUS, event.get(OUTCOME).textValue());
+                report.put(OUT_MESSAGE, event.get("outMessg").textValue());
+                break;
+            } else if (event.get(OUTCOME).textValue().equals("KO")) {
+                report.put(STATUS, event.get(OUTCOME).textValue());
+                report.put(OUT_MESSAGE, event.get("outMessg").textValue());
+            }
+        }
+
         if (auditActions.contains(CheckIntegrityObjectPlugin.getId())) {
             report.put("LastEvent", CheckIntegrityObjectPlugin.getId());
         } else {
