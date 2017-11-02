@@ -1,0 +1,6 @@
+<p-dialog header="{{dialogHeader}}" [(visible)]="isDisplay">
+  {{dialogMessage}}
+  <p-footer>
+    <button pButton type="button" (click)="isDisplay = false" label="OK"></button>
+  </p-footer>
+</p-dialog>

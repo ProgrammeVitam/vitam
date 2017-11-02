@@ -8,6 +8,7 @@ import { ReferentialsService } from "../../referentials.service";
 import { DateService } from '../../../common/utils/date.service';
 import { ObjectsService } from '../../../common/utils/objects.service';
 import { PageComponent } from "../../../common/page/page-component";
+import { DialogService } from "../../../common/dialog/dialog.service";
 import { AccessContract } from "./access-contract";
 
 
@@ -46,7 +47,7 @@ export class AccessContractComponent  extends PageComponent {
 
   constructor(private activatedRoute: ActivatedRoute, private router : Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
-              private searchReferentialsService : ReferentialsService) {
+              private searchReferentialsService : ReferentialsService, private dialogService : DialogService) {
     super('Détail du contrat d\'accès', [], titleService, breadcrumbService);
 
   }
@@ -105,6 +106,9 @@ export class AccessContractComponent  extends PageComponent {
       .subscribe((data) => {
         this.getDetail();
         this.switchUpdateMode();
+        this.dialogService.displayMessage('La modification a bien été enregistrée', '');
+      }, (error) => {
+        this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée', '');
       });
   }
 

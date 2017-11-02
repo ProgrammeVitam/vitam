@@ -8,6 +8,7 @@ import { ReferentialsService } from "../../referentials.service";
 import { DateService } from '../../../common/utils/date.service';
 import { ObjectsService } from '../../../common/utils/objects.service';
 import { PageComponent } from "../../../common/page/page-component";
+import { DialogService } from "../../../common/dialog/dialog.service";
 import { Context } from "./context";
 
 const CONTEXT_KEY_TRANSLATION = {
@@ -40,9 +41,8 @@ export class ContextComponent extends PageComponent {
   updatedFields = {};
   constructor(private activatedRoute: ActivatedRoute, private router : Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
-              private referentialsService : ReferentialsService) {
+              private referentialsService : ReferentialsService, private dialogService : DialogService) {
     super('Détail du contexte applicatif', [], titleService, breadcrumbService);
-
   }
 
   pageOnInit() {

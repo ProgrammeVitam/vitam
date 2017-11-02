@@ -7,6 +7,7 @@ import { BreadcrumbService, BreadcrumbElement } from "../../../common/breadcrumb
 import { ReferentialsService } from "../../referentials.service";
 import { DateService } from '../../../common/utils/date.service';
 import { ObjectsService } from '../../../common/utils/objects.service';
+import { DialogService } from "../../../common/dialog/dialog.service";
 import { PageComponent } from "../../../common/page/page-component";
 import { Profil } from "./profil";
 
@@ -40,9 +41,8 @@ export class ProfilComponent extends PageComponent {
 
   constructor(private activatedRoute: ActivatedRoute, private router : Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
-              private searchReferentialsService : ReferentialsService) {
+              private searchReferentialsService : ReferentialsService, private dialogService : DialogService) {
     super('Détail du profil d\'archivage', [], titleService, breadcrumbService);
-
   }
 
   pageOnInit() {
@@ -90,12 +90,20 @@ export class ProfilComponent extends PageComponent {
           this.searchReferentialsService.updateProfilById(this.id, updatedFields)
             .subscribe((data) => {
               this.getDetail();
+              this.dialogService.displayMessage('La modification a bien été enregistrée', '');
+            }, (error) => {
+              this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée', '');
             });
+        }, (error) => {
+          this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée', '');
         });
     } else {
       this.searchReferentialsService.updateProfilById(this.id, this.updatedFields)
         .subscribe((data) => {
           this.getDetail();
+          this.dialogService.displayMessage('La modification a bien été enregistrée', '');
+        }, (error) => {
+          this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée', '');
         });
     }
 
