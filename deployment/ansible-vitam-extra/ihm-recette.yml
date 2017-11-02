@@ -5,8 +5,10 @@
   roles:
     - check_networks
 
+
 - hosts: hosts-ihm-recette
   roles:
+    - ihm-recette-data-sets
     - vitam
   vars:
     vitam_struct: "{{ vitam.ihm_recette }}"
@@ -17,10 +19,10 @@
     cluster_name: elasticsearch-data
     vitam_certificate_client_type: "external"
 
+
 - hosts: hosts-ihm-recette
   roles:
     - ihm-recette-front
-    - ihm-recette-data-sets
     - {role: ihm-recette-clone-tests, when: (vitam_tests_gitrepo_url is defined) and (vitam_tests_gitrepo_url != '')}
     - gatling
 
