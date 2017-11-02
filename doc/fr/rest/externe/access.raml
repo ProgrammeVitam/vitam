@@ -88,12 +88,6 @@ documentation:
       headers:
         X-Http-Method-Override:
           required: true
-    head:
-      description: |
-        **UNSUPPORTED** Test the existence of this Unit
-      is: [StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeadHeader,
-        StandardTraits.StandardHeader204, StandardTraits.StandardHeader404,
-        StandardTraits.StandardHeader417]
     put:
       description: Request that will update a set of Units according to the query and the filter parts. The actions to be applied on the set of Units are specified in the action part of the request. In this case this update is to be applied for only one Unit (the one specified in the URI).
       is: [AccessTraits.AccessUpdateUnitResponse]

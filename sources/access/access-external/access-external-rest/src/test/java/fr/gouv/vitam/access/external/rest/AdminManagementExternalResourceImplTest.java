@@ -747,13 +747,6 @@ public class AdminManagementExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(select.getFinalSelect())
-            .when().post(AccessExtAPI.ACCESSION_REGISTERS_API + "/" + GOOD_ID)
-            .then().statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-
-        given()
-            .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
             .body(select.getFinalSelect())
             .when().post(AccessExtAPI.ACCESSION_REGISTERS_API + "/" + GOOD_ID)
