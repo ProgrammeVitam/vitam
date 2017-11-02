@@ -27,6 +27,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -75,8 +76,6 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
     private static final String _TENANT = "#tenant";
 
     private static final String AUDIT = "AUDIT";
-
-    private static final String OUTCOME = "outcome";
 
     private static final String ID_OBJ = "IdObj";
 
@@ -151,7 +150,8 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
                 auditTypeString = "tenant";
                 originatingAgency = listOriginatingAgency(null);
             } else if (auditType.equals(BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCY.exactToken())){
-                originatingAgency.add(objectId);
+                List<String> listOriginatingAgency = listOriginatingAgency(objectId);
+                originatingAgency.addAll(listOriginatingAgency);
                 auditTypeString = "originatingagency";
             }
 
@@ -200,17 +200,19 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
 
         ArrayNode events = (ArrayNode) res.get(EVENT);
         for (JsonNode event : events) {
-            if (event.get(OUTCOME).textValue().equals("WARNING")) {
-                report.put(STATUS, event.get(OUTCOME).textValue());
-                report.put(OUT_MESSAGE, event.get("outMessg").textValue());
+            if (event.get(LogbookMongoDbName.outcome.getDbname()).textValue().equals("WARNING")) {
+                report.put(STATUS, event.get(LogbookMongoDbName.outcome.getDbname()).textValue());
+                report.put(OUT_MESSAGE, event.get(LogbookMongoDbName.outcomeDetailMessage.getDbname()).textValue());
                 break;
-            } else if (event.get(OUTCOME).textValue().equals("KO")) {
-                report.put(STATUS, event.get(OUTCOME).textValue());
-                report.put(OUT_MESSAGE, event.get("outMessg").textValue());
+            } else if (event.get(LogbookMongoDbName.outcome.getDbname()).textValue().equals("KO")) {
+                report.put(STATUS, event.get(LogbookMongoDbName.outcome.getDbname()).textValue());
+                report.put(OUT_MESSAGE, event.get(LogbookMongoDbName.outcomeDetailMessage.getDbname()).textValue());
                 break;
-            } else if (event.get(OUTCOME).textValue().equals("KO")) {
-                report.put(STATUS, event.get(OUTCOME).textValue());
-                report.put(OUT_MESSAGE, event.get("outMessg").textValue());
+            } else if (event.get(LogbookMongoDbName.outcome.getDbname()).textValue().equals("OK")
+                && event.get(LogbookMongoDbName.outcomeDetail.getDbname()).textValue().contains("AUDIT_CHECK_OBJECT")) {
+                    
+                    report.put(STATUS, event.get(LogbookMongoDbName.outcome.getDbname()).textValue());
+                    report.put(OUT_MESSAGE, event.get(LogbookMongoDbName.outcomeDetailMessage.getDbname()).textValue());
             }
         }
 
@@ -272,7 +274,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
                 JsonNode events = res.get(EVENT);
                 for (JsonNode event : events) {
                     if (event.get(EV_TYPE).asText().equals("LFC.AUDIT_CHECK_OBJECT") &&
-                        event.get(OUTCOME).asText().equals("KO") &&
+                        event.get(LogbookMongoDbName.outcome.getDbname()).asText().equals("KO") &&
                         event.get(EV_ID_PROC).asText().equals(auditOperationId)) {
                         JsonNode evDetData = JsonHandler.getFromString(event.get("evDetData").asText());
                         final String originatingAgency = evDetData.get(ORIGINATING_AGENCY).asText();
