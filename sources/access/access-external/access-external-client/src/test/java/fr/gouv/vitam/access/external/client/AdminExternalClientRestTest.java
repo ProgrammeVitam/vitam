@@ -142,12 +142,12 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
             this.expectedResponse = expectedResponse;
         }
 
-        @PUT
+        @POST
         @Path("{collections}")
         @Consumes(MediaType.APPLICATION_OCTET_STREAM)
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
         public Response checkDocument(@PathParam("collections") String collection, InputStream document) {
-            return expectedResponse.put();
+            return expectedResponse.post();
         }
 
         @POST
@@ -215,9 +215,17 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         }
 
         @GET
-        @Path("/{collections}/{id}")
+        @Path("/traceability/{id}/datafiles")
         @Produces(MediaType.APPLICATION_OCTET_STREAM)
         public Response downloadTraceabilityOperationFile(@PathParam("id") String id)
+            throws InvalidParseOperationException {
+            return expectedResponse.get();
+        }
+
+        @GET
+        @Path("/{collection}/{id}")
+        @Produces(MediaType.APPLICATION_OCTET_STREAM)
+        public Response downloadFile(@PathParam("id") String id)
             throws InvalidParseOperationException {
             return expectedResponse.get();
         }
@@ -278,7 +286,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     @Test
     public void testCheckDocument()
         throws Exception {
-        when(mock.put()).thenReturn(Response.status(Status.OK).build());
+        when(mock.post()).thenReturn(Response.status(Status.OK).build());
         Response checkDocumentsResponse =
             client.checkFormats(new VitamContext(TENANT_ID), new ByteArrayInputStream("test".getBytes()));
         assertEquals(Status.OK.getStatusCode(), checkDocumentsResponse.getStatus());
@@ -292,7 +300,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
         AbstractMockClient.FakeInboundResponse fakeResponse =
             new AbstractMockClient.FakeInboundResponse(Status.NOT_FOUND, JsonHandler.writeToInpustream(error),
                 MediaType.APPLICATION_OCTET_STREAM_TYPE, new MultivaluedHashMap<String, Object>());
-        when(mock.put()).thenReturn(fakeResponse);
+        when(mock.post()).thenReturn(fakeResponse);
         Response response =
             client.checkFormats(new VitamContext(TENANT_ID), new ByteArrayInputStream("test".getBytes()));
         assertNotNull(response);
@@ -304,7 +312,7 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     @Test
     public void testCheckDocumentAccessExternalClientException()
         throws Exception {
-        when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         Response checkDocumentsResponse =
             client.checkFormats(new VitamContext(TENANT_ID), new ByteArrayInputStream("test".getBytes()));
         assertEquals(Status.BAD_REQUEST.getStatusCode(), checkDocumentsResponse.getStatus());

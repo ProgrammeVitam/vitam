@@ -38,6 +38,7 @@ public class AccessExtAPI {
     
     public static final String INGEST_CONTRACT = "ingestcontracts";
     public static final String AGENCIES = "agencies";
+    public static final String AGENCIESCHECK = "agenciesfilecheck";
 
     public static final String INGEST_CONTRACT_API = "/" + INGEST_CONTRACT;
     public static final String INGEST_CONTRACT_API_UPDATE = "/ingestcontracts";
@@ -55,11 +56,14 @@ public class AccessExtAPI {
     public static final String CONTEXTS_API_UPDATE = "contexts";
     
     public static final String FORMATS = "formats";
+    public static final String FORMATSCHECK = "formatsfilecheck";
     
     public static final String RULES = "rules";
+    public static final String RULESCHECK = "rulesfilecheck";
     
     public static final String TRACEABILITY = "traceability";
     public static final String TRACEABILITY_API = "/" + TRACEABILITY;
+    public static final String TRACEABILITYCHECKS = TRACEABILITY + "checks";
     
     public static final String AUDITS = "audits";
     public static final String AUDITS_API = "/" + AUDITS;

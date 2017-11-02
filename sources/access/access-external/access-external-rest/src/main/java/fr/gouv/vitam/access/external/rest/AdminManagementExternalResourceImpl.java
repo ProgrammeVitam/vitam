@@ -165,11 +165,11 @@ public class AdminManagementExternalResourceImpl {
      * @param document the document to check
      * @return Response
      */
-    @Path("/formats")
-    @PUT
+    @Path("/formatsfilecheck")
+    @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "formats:check",
+    @Secured(permission = "formatsfile:check",
         description = "Vérifier si le référentiel des formats que l'on souhaite importer est valide")
     public Response checkDocument(InputStream document) {
         Integer tenantId = ParameterHelper.getTenantParameter();
@@ -186,11 +186,11 @@ public class AdminManagementExternalResourceImpl {
      * @param document the document to check
      * @return Response
      */
-    @Path("/rules")
-    @PUT
+    @Path("/rulesfilecheck")
+    @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "rules:check",
+    @Secured(permission = "rulesfile:check",
         description = "Vérifier si le référentiel de règles de gestions que l'on souhaite importer est valide")
     public Response checkRules(InputStream document) {
         Integer tenantId = ParameterHelper.getTenantParameter();
@@ -208,11 +208,11 @@ public class AdminManagementExternalResourceImpl {
      * @param document
      * @return
      */
-    @Path("/agencies")
-    @PUT
+    @Path("/agenciesfilecheck")
+    @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "agencies:check",
+    @Secured(permission = "agenciesfile:check",
         description = "Vérifier si le référentiel de services producteurs que l'on souhaite importer est valide")
     public Response checkAgencies(InputStream document) {
         Integer tenantId = ParameterHelper.getTenantParameter();
@@ -666,7 +666,7 @@ public class AdminManagementExternalResourceImpl {
      * @param fileId
      */
     @GET
-    @Path("/traceability/{id:.+}")
+    @Path("/traceability/{id}/datafiles")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Secured(permission = "traceability:id:read",
         description = "Télécharger le logbook sécurisé attaché à une opération de sécurisation")
@@ -1519,10 +1519,10 @@ public class AdminManagementExternalResourceImpl {
      * @return The verification report == the logbookOperation
      */
     @POST
-    @Path(AccessExtAPI.TRACEABILITY_API + "/check")
+    @Path(AccessExtAPI.TRACEABILITY_API + "checks")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "traceability:check", description = "Tester l'intégrité d'un journal sécurisé")
+    @Secured(permission = "traceabilitychecks:create", description = "Tester l'intégrité d'un journal sécurisé")
     public Response checkOperationTraceability(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode query) {
 
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
@@ -1565,7 +1565,7 @@ public class AdminManagementExternalResourceImpl {
     @Path(AccessExtAPI.AUDITS_API)
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "audits:check", description = "Lancer un audit de l'existance des objets")
+    @Secured(permission = "audits:create", description = "Lancer un audit de l'existance des objets")
     public Response launchAudit(JsonNode options) {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(options);

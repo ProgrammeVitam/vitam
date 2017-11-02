@@ -79,9 +79,13 @@ public class AdminManagementExternalResourceImplTest {
     private static final String RESOURCE_URI = "/admin-external/v1";
 
     private static final String FORMAT_URI = "/" + AdminCollections.FORMATS.getName();
+    private static final String FORMAT_CHECK_URI = "/" + AdminCollections.FORMATS.getCheckURI();
 
     private static final String RULES_URI = "/" + AdminCollections.RULES.getName();
+    private static final String RULES_CHECK_URI = "/" + AdminCollections.RULES.getCheckURI();
+
     private static final String AGENCIES_URI = "/" + AdminCollections.AGENCIES.getName();
+    private static final String AGENCIES_CHECK_URI = "/" + AdminCollections.AGENCIES.getCheckURI();
 
 
     private static final String DOCUMENT_ID = "/1";
@@ -106,7 +110,7 @@ public class AdminManagementExternalResourceImplTest {
     private static final String ACCESSION_REGISTER_DETAIL_URI = AccessExtAPI.ACCESSION_REGISTERS_API +
         "/FR_ORG_AGEC/" +
         AccessExtAPI.ACCESSION_REGISTERS_DETAIL;
-    private static final String CHECK_TRACEABILITY_OPERATION_URI = AccessExtAPI.TRACEABILITY_API + "/check";
+    private static final String CHECK_TRACEABILITY_OPERATION_URI = AccessExtAPI.TRACEABILITY_API + "checks";
 
     private static final String X_HTTP_METHOD_OVERRIDE = "X-HTTP-Method-Override";
 
@@ -155,52 +159,52 @@ public class AdminManagementExternalResourceImplTest {
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().put(FORMAT_URI)
+            .when().post(FORMAT_CHECK_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-            .when().put(FORMAT_URI)
+            .when().post(FORMAT_CHECK_URI)
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
-            .when().put(FORMAT_URI)
+            .when().post(FORMAT_CHECK_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().put(RULES_URI)
+            .when().post(RULES_CHECK_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-            .when().put(RULES_URI)
+            .when().post(RULES_CHECK_URI)
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
-            .when().put(RULES_URI)
+            .when().post(RULES_CHECK_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().put(AGENCIES_URI)
+            .when().post(AGENCIES_CHECK_URI)
             .then().statusCode(Status.OK.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-            .when().put(AGENCIES_URI)
+            .when().post(AGENCIES_CHECK_URI)
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
-            .when().put(AGENCIES_URI)
+            .when().post(AGENCIES_CHECK_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
@@ -232,18 +236,18 @@ public class AdminManagementExternalResourceImplTest {
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().put(FORMAT_URI)
+            .when().post(FORMAT_CHECK_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-            .when().put(FORMAT_URI)
+            .when().post(FORMAT_CHECK_URI)
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
-            .when().put(FORMAT_URI)
+            .when().post(FORMAT_CHECK_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
@@ -1292,7 +1296,7 @@ public class AdminManagementExternalResourceImplTest {
         given().accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
-            .get(TRACEABILITY_OPERATION_BASE_URI + TRACEABILITY_OPERATION_ID)
+            .get(TRACEABILITY_OPERATION_BASE_URI + TRACEABILITY_OPERATION_ID + "/datafiles")
             .then().statusCode(Status.OK.getStatusCode());
     }
 
@@ -1335,7 +1339,7 @@ public class AdminManagementExternalResourceImplTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().options("/")
             .then().statusCode(Status.OK.getStatusCode())
-            .body(CoreMatchers.containsString("formats:check"));
+            .body(CoreMatchers.containsString("formatsfile:check"));
     }
 
     @Test
