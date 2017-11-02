@@ -15,7 +15,7 @@ Création du Bordereau (STP_CREATE_MANIFEST)
 Création du Bordereau (CREATE_MANIFEST)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** : Création un bordereau contenant les unités archivistiques soumises au service d'export de DIP, ainsi que le groupes d'objets techniques et objets-données qui leurs sont associés
++ **Règle** : création d'un bordereau contenant les unités archivistiques soumises au service d'export de DIP, ainsi que le groupes d'objets techniques et objets-données qui leurs sont associés
 
 + **Type** : bloquant
 
@@ -33,7 +33,7 @@ Déplacement des objets binaires vers le workspace (STP_PUT_BINARY_ON_WORKSPACE)
 Déplacement des objets binaires vers le workspace (PUT_BINARY_ON_WORKSPACE)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** : Déplacement des objets-données mentionnées dans le bordereau vers le workspace
++ **Règle** : déplacement des objets-données mentionnées dans le bordereau vers le workspace
 
 + **Type** : bloquant
 
@@ -44,24 +44,24 @@ Déplacement des objets binaires vers le workspace (PUT_BINARY_ON_WORKSPACE)
   - KO : le déplacement des objet-données vers le workspace a échoué car un ou plusieurs de ces objets étaient introuvables (PUT_BINARY_ON_WORKSPACE.KO=Echec du déplacement des objets binaires de stockage vers workspace)
 
   - FATAL : une erreur technique est survenue lors du déplacement des objets binaires de stockage vers le workspace (PUT_BINARY_ON_WORKSPACE.FATAL=Echec du déplacement des objets binaires de stockage vers workspace)
-    
-Stockage du manifest compressé (STP_STORE_MANIFEST)
+
+Stockage du bordereau compressé (STP_STORE_MANIFEST)
 ===================================================
 
-Stockage du manifest compressé (STORE_MANIFEST)
+Stockage du bordereau compressé (STORE_MANIFEST)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+ **Règle** : Création et enregistrement du DP sur les offres de stockage
++ **Règle** : Création et enregistrement du DIP sur les offres de stockage
 
 + **Type** : bloquant
 
 + **Statuts** :
 
-  - OK : Le DIP a été créé et stocké sur les offres de stockages avec succès (STORE_MANIFEST.OK=Succès du stockage du manifest compressé)
+  - OK : le DIP a été créé et stocké sur les offres de stockages avec succès (STORE_MANIFEST.OK=Succès du stockage du manifest compressé)
 
-  - KO : Pas de cas KO
+  - KO : pas de cas KO
 
-  - FATAL :  une erreur technique est survenue lors du déplacement des objets binaires de stockage vers workspace (STORE_MANIFEST.FATAL=Erreur fatale lors du stockage du manifest compressé)
+  - FATAL :  une erreur technique est survenue lors de la création et de l'enregistrement du DIP sur les offres de stockage déplacement des objets binaires de stockage vers workspace (STORE_MANIFEST.FATAL=Erreur fatale lors du stockage du manifest compressé)
 
 Structure du Workflow d'export de DIP
 =====================================

@@ -1,10 +1,10 @@
 MASTERDATA
 ##########
 
-
 .. toctree::
    :maxdepth: 1
 
+   introduction.rst
    workflow-tree.rst
    rules.rst
    formats.rst

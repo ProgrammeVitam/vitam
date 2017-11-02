@@ -7,3 +7,4 @@ AUDIT
 
    workflow-check-traceability
    workflow_audit_file_existing
+   rapportaudit.rst

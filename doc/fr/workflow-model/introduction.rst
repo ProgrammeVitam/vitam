@@ -79,7 +79,7 @@ Un Workflow est défini en JSON avec la structure suivante :
 
     + ``Behavior`` : modèle d'exécution pouvant avoir les types suivants :
 
-      - BLOCKING : le traitement est bloqué en cas d'erreur, il est nécessaire de recommencer à l'étape en erreur. Les étapes FINALLY (définition ci-dessous) sont tout de même exécutées
+      - BLOCKING : le traitement est bloqué en cas d'erreur, il est nécessaire de recommencer à la tâche en erreur. Les étapes FINALLY (définition ci-dessous) sont tout de même exécutées
 
       - NOBLOCKING : le traitement peut continuer malgré les éventuels erreurs ou avertissements,
 

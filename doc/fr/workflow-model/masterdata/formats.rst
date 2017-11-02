@@ -4,19 +4,21 @@ Workflow d'import d'un référentiel des formats
 Introduction
 ============
 
-Cette section décrit le processus d'import de référentiel des formats
+Cette section décrit le processus (workflow) permettant d'importer un référentiel des formats
 
 Processus d'import d'un référentiel de formats (vision métier)
 ==============================================================
 
-Le processus d'import de référentiel des formats vise à controler que les informations sont formalisée de la bonne manière dans le fichier soumis à la solution logicielle Vitam, et que chaque format contient bien le nombre d'informations minimales attendues
+Le processus d'import du référentiel des formats vise à contrôler que les informations sont formalisées de la bonne manière dans le fichier soumis à la solution logicielle Vitam et que chaque format contient bien le nombre d'informations minimales attendues. Tous les éléments réalisés au cours de ce processus sont exécutés dans une seule étape.
 
 Import d'un référentiel de formats (STP_REFERENTIAL_FORMAT_IMPORT)
 ------------------------------------------------------------------
 
 * Vérification du fichier de référentiel des formats
 
-  + **Règle** : le fichier doit être au format xml et respecter le formalisme du référentiel PRONOM des archives britanniques
+  + **Type** : bloquant
+
+  + **Règle** : le fichier doit être au format xml et respecter le formalisme du référentiel PRONOM publié par the National Archives (UK)
 
   + **Statuts** :
 
