@@ -1,7 +1,8 @@
 import {ChangeDetectorRef, Component, Input, OnInit, SimpleChanges} from '@angular/core';
 import {ColumnDefinition} from '../generic-table/column-definition';
 import {SelectItem} from 'primeng/primeng';
-import {Hits} from "../utils/response";
+import {Hits, VitamResponse} from "../utils/response";
+import {Observable} from "rxjs/Observable";
 
 @Component({
   selector: 'vitam-results',
@@ -12,7 +13,7 @@ export class ResultsComponent implements OnInit {
   @Input() data: any;
   @Input() cols: ColumnDefinition[] = [];
   @Input() extraCols: ColumnDefinition[] = [];
-  @Input() searchFunction;
+  @Input() searchFunction: (service: any, offset: number, rows?: number, searchScope?: any) => Observable<VitamResponse>;
   @Input() path: string;
   @Input() identifier = "#id";
   @Input() getClass: () => string;
@@ -34,7 +35,8 @@ export class ResultsComponent implements OnInit {
   firstPage = 0;
   lastPage = 0;
 
-  constructor(private changeDetectorRef: ChangeDetectorRef) { }
+  constructor(private changeDetectorRef: ChangeDetectorRef) {
+  }
 
   ngOnChanges(changes: SimpleChanges) {
     if (!!this.data) {
@@ -97,13 +99,12 @@ export class ResultsComponent implements OnInit {
     // TODO If unloadedPage reached (See how to trigg) => Call search with offset.
     if (event.page >= this.lastPage || event.page <= this.firstPage) {
       var searchScope = {response: null};
-      this.searchFunction(this.service, this.firstItem, this.nbRows, searchScope).subscribe(
+      this.searchFunction(this.service, this.firstItem, event.rows, searchScope).subscribe(
         (response) => {
-          response.$hits.offset = this.firstItem;
           this.items = Array.from('x'.repeat(event.page * this.nbRows)).concat(response.$results);
           this.firstPage = event.page;
           this.lastPage = this.firstPage + this.hits.limit / this.nbRows;
-          this.displayedItems = this.items.slice(this.firstItem, this.firstItem + this.nbRows);
+          this.displayedItems = this.items.slice(this.firstItem, this.firstItem +  event.rows);
         },
         (error) => console.log('Error: ', error._body));
     } else {
