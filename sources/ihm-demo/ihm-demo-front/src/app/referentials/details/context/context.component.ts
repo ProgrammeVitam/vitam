@@ -125,8 +125,15 @@ export class ContextComponent extends PageComponent {
     }
     this.referentialsService.updateDocumentById('contexts', this.id, this.updatedFields)
       .subscribe((data) => {
+        if (data.httpCode >= 400) {
+          this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée', '');
+        } else {
+          this.dialogService.displayMessage('La modification a bien été enregistrée', '');
+        }
         this.getDetail();
         this.switchUpdateMode();
+      }, (error) => {
+        this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée', '');
       });
   }
 

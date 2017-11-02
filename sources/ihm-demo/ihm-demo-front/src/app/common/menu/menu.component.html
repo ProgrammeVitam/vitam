@@ -14,7 +14,7 @@
       <a id="logout-text">Déconnexion</a>
     </i>
   </div>
-  <div id="accessContract" *ngIf="isAuthenticated" >
+  <div id="accessContract" *ngIf="isAuthenticated">
     <p-dropdown [style]="{'width':'240px'}" placeholder="Sélectionner un contrat" [options]="accessContracts"
                 [(ngModel)]="accessContract" (onChange)="updateContract()"></p-dropdown>
   </div>

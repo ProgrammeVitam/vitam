@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import {CookieService} from "angular2-cookie/core";
 import {BehaviorSubject} from "rxjs/BehaviorSubject"
 import {Observable} from "rxjs/Observable";
-import {Headers, Http, RequestOptionsArgs, Response} from "@angular/http";
 import { HttpHeaders } from '@angular/common/http';
 
 import { ResourcesService } from '../resources.service';
@@ -124,7 +123,7 @@ export class UploadService {
   }
 
   checkIngestStatus() {
-    return this.resourcesService.get('check/' +this.ingestOperationId);
+    return this.resourcesService.get('check/' +this.ingestOperationId, null, 'blob');
   }
 
   clearIngest() {

@@ -89,8 +89,12 @@ export class ProfilComponent extends PageComponent {
         .subscribe((data) => {
           this.searchReferentialsService.updateProfilById(this.id, updatedFields)
             .subscribe((data) => {
+              if (data.httpCode >= 400) {
+                this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée', '');
+              } else {
+                this.dialogService.displayMessage('La modification a bien été enregistrée', '');
+              }
               this.getDetail();
-              this.dialogService.displayMessage('La modification a bien été enregistrée', '');
             }, (error) => {
               this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée', '');
             });
@@ -100,8 +104,12 @@ export class ProfilComponent extends PageComponent {
     } else {
       this.searchReferentialsService.updateProfilById(this.id, this.updatedFields)
         .subscribe((data) => {
+          if (data.httpCode >= 400) {
+            this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée', '');
+          } else {
+            this.dialogService.displayMessage('La modification a bien été enregistrée', '');
+          }
           this.getDetail();
-          this.dialogService.displayMessage('La modification a bien été enregistrée', '');
         }, (error) => {
           this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée', '');
         });

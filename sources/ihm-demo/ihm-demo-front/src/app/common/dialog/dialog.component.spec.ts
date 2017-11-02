@@ -1,6 +1,9 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
+import { NO_ERRORS_SCHEMA } from "@angular/core";
+import {Observable} from 'rxjs/Observable';
 
 import { DialogComponent } from './dialog.component';
+import { DialogService } from "./dialog.service";
 
 describe('DialogComponent', () => {
   let component: DialogComponent;
@@ -8,7 +11,11 @@ describe('DialogComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ DialogComponent ]
+      providers: [
+        { provide: DialogService, useValue: {getdialogState: () => Observable.of('')} }
+      ],
+      declarations: [ DialogComponent ],
+      schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();
   }));

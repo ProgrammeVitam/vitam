@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import {Observable} from "rxjs/Rx";
 import {VitamResponse} from "../common/utils/response";
 import {ResourcesService} from "../common/resources.service";
-import {Headers, Response, ResponseContentType} from "@angular/http";
+import { HttpHeaders } from '@angular/common/http';
 
 @Injectable()
 export class ArchiveUnitService {
@@ -19,36 +19,28 @@ export class ArchiveUnitService {
   constructor(private resourceService: ResourcesService) { }
 
   getDetails(id): Observable<VitamResponse> {
-    return this.resourceService.get(`${this.ARCHIVE_UNIT_SEARCH_API}/${this.UNIT}/${id}`)
-      .map((res: Response) => res.json());
+    return this.resourceService.get(`${this.ARCHIVE_UNIT_SEARCH_API}/${this.UNIT}/${id}`);
   }
 
   getObjects(ogId): Observable<VitamResponse> {
-    return this.resourceService.get(`${this.ARCHIVE_UNIT_API}/${this.OBJECTS}/${ogId}`)
-      .map((res: Response) => res.json());
+    return this.resourceService.get(`${this.ARCHIVE_UNIT_API}/${this.OBJECTS}/${ogId}`);
   }
 
   getResults(body: any, offset: number = 0, limit: number = 125): Observable<VitamResponse> {
 
-    const headers = new Headers();
-    headers.append('X-Limit', '' + limit);
-    headers.append('X-Offset', '' + offset);
+    const headers = new HttpHeaders()
+      .set('X-Limit', '' + limit)
+      .set('X-Offset', '' + offset);
 
-    return this.resourceService.post(`${this.ARCHIVE_UNIT_SEARCH_API}/${this.UNITS}`, headers, body)
-      .map((res: Response) => res.json());
+    return this.resourceService.post(`${this.ARCHIVE_UNIT_SEARCH_API}/${this.UNITS}`, headers, body);
   }
 
   exportDIP(body: any): Observable<VitamResponse> {
-    return this.resourceService.post(`${this.ARCHIVE_UNIT_API}/${this.EXPORT}`, undefined, body)
-      .map((res: Response) =>
-        {
-          console.log('Response: ', res);
-          return res.json()
-        });
+    return this.resourceService.post(`${this.ARCHIVE_UNIT_API}/${this.EXPORT}`, undefined, body);
   }
 
   downloadDIP(id: string) {
-    return this.resourceService.get(`${this.ARCHIVE_UNIT_API}/${this.EXPORT}/${id}`, null, ResponseContentType.ArrayBuffer);
+    return this.resourceService.get(`${this.ARCHIVE_UNIT_API}/${this.EXPORT}/${id}`, null, 'blob');
   }
 
   updateMetadata(id: string, updateRequest: any) {

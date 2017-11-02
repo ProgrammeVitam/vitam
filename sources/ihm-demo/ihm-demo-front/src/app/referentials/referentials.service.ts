@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {Headers, Response} from "@angular/http";
+import { HttpHeaders } from '@angular/common/http';
 import {Observable} from "rxjs/Observable";
 
 import {VitamResponse} from "../common/utils/response";
@@ -14,7 +14,7 @@ export class ReferentialsService {
 
   getResults(body: any): Observable<VitamResponse> {
 
-    const headers = new Headers();
+    const headers = new HttpHeaders();
 
     if (this.searchAPI === 'admin/formats') {
       body.FORMAT = 'all';
@@ -86,8 +86,7 @@ export class ReferentialsService {
       body.orderby = {"field":"Name","sortType":"ASC"};
     }
 
-    return this.resourceService.post(this.searchAPI, headers, body)
-      .map((res: Response) => res.json());
+    return this.resourceService.post(this.searchAPI, headers, body);
   }
 
   setSearchAPI(api : string) {
@@ -95,14 +94,13 @@ export class ReferentialsService {
   }
 
   downloadProfile(id) {
-    let header = new Headers();
-    header.append('Accept', 'application/octet-stream');
-    this.resourceService.get('profiles/' + id, header).subscribe(
+    let header = new HttpHeaders().set('Accept', 'application/octet-stream');
+    this.resourceService.get('profiles/' + id, header, 'blob').subscribe(
       (response) => {
         const a = document.createElement('a');
         document.body.appendChild(a);
 
-        a.href = URL.createObjectURL(new Blob([response.text()], {type: 'application/xml'}));
+        a.href = URL.createObjectURL(response.body);
 
         if (response.headers.get('content-disposition') !== undefined && response.headers.get('content-disposition') !== null) {
           a.download = response.headers.get('content-disposition').split('filename=')[1];
@@ -113,54 +111,43 @@ export class ReferentialsService {
   }
 
   uploadProfile(id : string, file : File) {
-    let header = new Headers();
-    header.append('Content-Type', 'application/octet-stream');
+    let header = new HttpHeaders().set('Content-Type', 'application/octet-stream');
     return this.resourceService.put('profiles/' + id, header, file);
   }
 
   getFormatById(id : string) : Observable<VitamResponse> {
-    return this.resourceService.post('admin/formats/' + id, null, {})
-      .map((res: Response) => res.json())
+    return this.resourceService.post('admin/formats/' + id, null, {});
   }
 
   getRuleById(id : string) : Observable<VitamResponse> {
-    return this.resourceService.post('admin/rules/' + id, null, {})
-      .map((res: Response) => res.json())
+    return this.resourceService.post('admin/rules/' + id, null, {});
   }
   getAccessContractById(id : string) : Observable<VitamResponse> {
-    return this.resourceService.get('accesscontracts/' + id)
-      .map((res: Response) => res.json())
+    return this.resourceService.get('accesscontracts/' + id);
   }
   getIngestContractById(id : string) : Observable<VitamResponse> {
-    return this.resourceService.get('contracts/' + id)
-      .map((res: Response) => res.json())
+    return this.resourceService.get('contracts/' + id);
   }
   getProfileById(id : string) : Observable<VitamResponse> {
-    return this.resourceService.get('profiles/' + id)
-      .map((res: Response) => res.json())
+    return this.resourceService.get('profiles/' + id);
   }
 
   getFundRegisterById(id : string) : Observable<VitamResponse> {
     let searchForm = {"OriginatingAgency":id};
-    return this.resourceService.post('admin/accession-register', null, searchForm)
-      .map((res: Response) => res.json())
+    return this.resourceService.post('admin/accession-register', null, searchForm);
   }
   getFundRegisterDetailById(id : string) : Observable<VitamResponse> {
     let searchForm = {"OriginatingAgency":id};
-    return this.resourceService.post('admin/accession-register/'+ id +'/accession-register-detail', null, searchForm)
-      .map((res: Response) => res.json())
+    return this.resourceService.post('admin/accession-register/'+ id +'/accession-register-detail', null, searchForm);
   }
   getContextById(id : string) : Observable<VitamResponse> {
-    return this.resourceService.get('contexts/' + id)
-      .map((res: Response) => res.json())
+    return this.resourceService.get('contexts/' + id);
   }
   getAgenciesById(id : string) : Observable<VitamResponse> {
-    return this.resourceService.get('agencies/' + id)
-      .map((res: Response) => res.json())
+    return this.resourceService.get('agencies/' + id);
   }
   updateDocumentById(collection : string,id : string, body : any) : Observable<VitamResponse> {
-    return this.resourceService.post(collection + '/' + id, null, body)
-      .map((res: Response) => res.json())
+    return this.resourceService.post(collection + '/' + id, null, body);
   }
 
   updateProfilById(id : string, body : any) {

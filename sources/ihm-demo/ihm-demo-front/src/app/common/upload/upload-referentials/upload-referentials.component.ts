@@ -82,7 +82,6 @@ export class UploadReferentialsComponent implements OnInit {
       this.importError = true;
       this.displayUploadMessage = true;
     });
-
   }
 
 }

@@ -12,7 +12,7 @@
                 (onBlur)="checkDateValid()" [dateFormat]="'dd/mm/yy'" [yearNavigator]="true" [yearRange]="'1970:2500'" [locale]="frLocale"></p-calendar>
     <textarea pInputTextarea *ngIf="displayMode === 'TextArea'" [(ngModel)]="value" class="allDiv" (change)="valueChange()" rows="3"></textarea>
     <p-dropdown *ngIf="displayMode === 'DropDown'" [options]="options" [(ngModel)]="value" (onChange)="valueChange()"></p-dropdown>
-    <input pInputText *ngIf="displayMode === 'TextInput'" [(ngModel)]="value" class="allDiv" (change)="valueChange()" />
+    <input pInputText *ngIf="displayMode === 'TextInput'" [(ngModel)]="value" class="allDiv" (change)="valueChange()" (blur)="valueChange()"/>
     <p-toggleButton *ngIf="displayMode === 'SwitchButton'" onLabel="Oui" offLabel="Non" [(ngModel)]="value" (onChange)="valueChange()"></p-toggleButton>
     <p-chips [disabled]="disabled" *ngIf="displayMode === 'Chips'" [(ngModel)]="value" (onAdd)="valueChange()" (onRemove)="valueChange()"></p-chips>
     <p-multiSelect [disabled]="disabled"  *ngIf="displayMode === 'MultiSelect'" [options]="options" [(ngModel)]="value" (onChange)="valueChange()"></p-multiSelect>

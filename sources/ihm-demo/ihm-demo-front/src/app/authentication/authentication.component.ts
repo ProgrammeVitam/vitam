@@ -28,6 +28,8 @@ export class AuthenticationComponent implements OnInit {
   ngOnInit() {
     if (this.authenticationService.isLoggedIn()) {
       this.router.navigate(["ingest/sip"]);
+    } else {
+      this.authenticationService.loggedOut();
     }
     this.authenticationService.getTenants()
       .subscribe((tenants: Array<string>) => {

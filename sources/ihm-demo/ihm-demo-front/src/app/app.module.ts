@@ -3,6 +3,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { CookieService } from 'angular2-cookie/core';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 
 import { ButtonModule, CalendarModule, MenubarModule, BreadcrumbModule, DropdownModule,
   ProgressBarModule, PaginatorModule, PanelModule, ListboxModule, GrowlModule, RadioButtonModule, TabViewModule,
@@ -22,7 +23,6 @@ import { LogbookService } from './ingest/logbook.service';
 import { IngestService } from './ingest/ingest.service';
 import { HomeComponent } from './home/home.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HttpModule } from '@angular/http';
 import { FileDropModule } from 'angular2-file-drop';
 
 import { LogbookComponent } from './ingest/logbook/logbook.component';
@@ -74,6 +74,10 @@ import { AccessionRegisterComponent } from './referentials/details/accession-reg
 import { OperationComponent } from './admin/traceability/operation/operation.component';
 import { HoldingschemeComponent } from './admin/holdingscheme/holdingscheme.component';
 import { ArchiveExportDIPComponent } from './archive-unit/archive-unit-details/archive-export-dip/archive-export-dip.component';
+import { DialogComponent } from './common/dialog/dialog.component';
+import { DialogService } from './common/dialog/dialog.service';
+import { VitamInterceptor } from './common/http-interceptor';
+
 
 const appRoutes: Routes = [
   {
@@ -200,7 +204,8 @@ const appRoutes: Routes = [
     AccessionRegisterComponent,
     OperationComponent,
     HoldingschemeComponent,
-    ArchiveExportDIPComponent
+    ArchiveExportDIPComponent,
+    DialogComponent
   ],
   imports: [
     RouterModule.forRoot(appRoutes, {useHash: true}),
@@ -228,7 +233,7 @@ const appRoutes: Routes = [
     ReactiveFormsModule,
     CalendarModule,
     FieldsetModule,
-    HttpModule,
+    HttpClientModule,
     DialogModule,
     ConfirmDialogModule,
     InputSwitchModule,
@@ -240,6 +245,12 @@ const appRoutes: Routes = [
     CheckboxModule
   ],
   providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: VitamInterceptor,
+      multi: true,
+    },
+    AuthenticationService,
     ResourcesService,
     CookieService,
     BreadcrumbService,
@@ -248,7 +259,6 @@ const appRoutes: Routes = [
     IngestService,
     IngestUtilsService,
     UploadService,
-    AuthenticationService,
     ArchiveUnitHelper,
     ReferentialHelper,
     ArchiveUnitService,
@@ -257,7 +267,8 @@ const appRoutes: Routes = [
     AccessContractService,
     ConfirmationService,
     ObjectsService,
-    AuditService
+    AuditService,
+    DialogService
   ],
   bootstrap: [AppComponent]
 })
