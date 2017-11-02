@@ -134,8 +134,8 @@ export class SearchReferentialsComponent  extends PageComponent {
               () => ({'width': '325px'})),
             ColumnDefinition.makeStaticColumn('RuleType', 'Type', undefined,
               () => ({'width': '125px'})),
-            ColumnDefinition.makeStaticColumn('RuleDuration', 'Durée', undefined,
-              () => ({'width': '125px'})),
+            ColumnDefinition.makeSpecialValueColumn('Durée', SearchReferentialsComponent.appendUnitToRuleDuration,
+                undefined, () => ({'width': '125px'})),
             ColumnDefinition.makeStaticColumn('RuleDescription', 'Description', undefined,
               () => ({'width': '325px'})),
             ColumnDefinition.makeStaticColumn('RuleId', 'Identifiant', undefined,
@@ -293,6 +293,19 @@ export class SearchReferentialsComponent  extends PageComponent {
 
   static handleStatus(status): string {
     return (status === 'ACTIVE' || status === true) ? 'Actif' : 'Inactif';
+  }
+
+  static appendUnitToRuleDuration(item): string {
+    switch (item.RuleMeasurement.toUpperCase()) {
+      case "YEAR":
+        return item.RuleDuration <= 1 ? item.RuleDuration + ' année' : item.RuleDuration + ' années';
+      case "MONTH":
+        return item.RuleDuration + ' mois';
+      case "DAY":
+        return item.RuleDuration <= 1 ? item.RuleDuration + ' jour' : item.RuleDuration + ' jours';
+      default :
+        return item.RuleDuration;
+    }
   }
 
   static checkAccessContract(item): string {
