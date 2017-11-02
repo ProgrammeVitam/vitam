@@ -50,7 +50,7 @@ export class FormatComponent  extends PageComponent {
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
         {label: 'Référentiel des formats', routerLink: 'admin/search/format'},
-        {label: this.id, routerLink: ''}
+        {label: 'Détail du format' + this.id, routerLink: ''}
       ];
 
       this.setBreadcrumb(newBreadcrumb);

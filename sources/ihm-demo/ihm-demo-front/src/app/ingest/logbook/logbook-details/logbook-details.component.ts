@@ -10,7 +10,7 @@ import {ArchiveUnitHelper} from "../../../archive-unit/archive-unit.helper";
 import {VitamResponse} from "../../../common/utils/response";
 
 const breadcrumb: BreadcrumbElement[] = [
-  {label: 'Ingest', routerLink: ''},
+  {label: 'Entrée', routerLink: ''},
   {label: 'Suivi des opérations d\'entrée', routerLink: 'ingest/logbook'},
   {label: 'Détail d\'une opération d\'entrée', routerLink: 'ingest/logbook/:id'}
 ];
