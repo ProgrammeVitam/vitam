@@ -8,7 +8,10 @@ import { ResourcesService } from '../../common/resources.service';
 import { PageComponent } from '../../common/page/page-component';
 import {TenantService} from "../../common/tenant.service";
 
-const defaultMethods = [
+const defaultMethod = [
+  {label: 'Rechercher', value: 'GET'},
+];
+const defaultAndUpdateMethods = [
   {label: 'Rechercher', value: 'GET'},
   {label: 'Mettre à jour', value: 'PUT'}
 ];
@@ -50,7 +53,7 @@ const breadcrumb: BreadcrumbElement[] = [
 
 export class QueryDSLComponent extends PageComponent {
   collections: SelectItem[] = defaultCollections;
-  methods: SelectItem[] = defaultMethods;
+  methods: SelectItem[] = defaultMethod;
   selectedContract: Contract;
   selectedCollection: string;
   selectedMethod: string;
@@ -117,8 +120,20 @@ export class QueryDSLComponent extends PageComponent {
   }
 
   updateMethods() {
-    this.methods =
-      this.selectedCollection === 'OPERATIONS' ? operationsMethods : defaultMethods;
+    switch (this.selectedCollection.toUpperCase()) {
+      case 'UNIT':
+      case 'ACCESS_CONTRACTS':
+      case 'INGEST_CONTRACTS':
+      case 'CONTEXTS':
+      case 'PROFILE':
+        this.methods = defaultAndUpdateMethods;
+        break;
+      case 'OPERATIONS':
+        this.methods = operationsMethods;
+        break;
+      default:
+        this.methods = defaultMethod;
+    }
   }
 
 }
