@@ -99,13 +99,13 @@ export class SearchReferentialsComponent  extends PageComponent {
           this.columns = [
             ColumnDefinition.makeStaticColumn('PUID', 'PUID', undefined,
               () => ({'width': '125px'})),
-            ColumnDefinition.makeStaticColumn('Intitulé', 'Intitulé', undefined,
+            ColumnDefinition.makeStaticColumn('Name', 'Intitulé', undefined,
               () => ({'width': '325px'})),
             ColumnDefinition.makeStaticColumn('Version', 'Version', undefined,
               () => ({'width': '125px'})),
             ColumnDefinition.makeStaticColumn('MIMEType', 'MIME', undefined,
               () => ({'width': '125px'})),
-            ColumnDefinition.makeStaticColumn('Extension(s)', 'Extension', undefined,
+            ColumnDefinition.makeStaticColumn('Extension', 'Extension(s)', undefined,
               () => ({'width': '125px'}))
           ];
           this.extraColumns = [];
