@@ -151,8 +151,8 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
                 auditTypeString = "tenant";
                 originatingAgency = listOriginatingAgency(null);
             } else if (auditType.equals(BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCY.exactToken())){
-                List<String> listOriginatingAgency = listOriginatingAgency(objectId);
-                originatingAgency.addAll(listOriginatingAgency);
+                listOriginatingAgency(objectId);
+                originatingAgency.add(objectId);
                 auditTypeString = "originatingagency";
             }
 
@@ -377,6 +377,11 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
             result.set(sp.getKey(),
                 JsonHandler.createObjectNode().put("OK", sp.getValue() - nbKO)
                     .put("KO", nbKO));
+            
+            if (serviceProducteurWarning.has(sp.getKey())) {
+                result.set(sp.getKey(),
+                    JsonHandler.createObjectNode().put("OK", 0).put("KO", 0).put("WARNING", 1));
+            }            
         }
         return JsonHandler.unprettyPrint(result);
     }
