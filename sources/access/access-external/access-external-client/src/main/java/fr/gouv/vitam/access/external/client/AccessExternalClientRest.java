@@ -245,7 +245,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     /* Logbook external */
 
     @Override
-    public RequestResponse<LogbookOperation> selectOperation(VitamContext vitamContext,
+    public RequestResponse<LogbookOperation> selectOperations(VitamContext vitamContext,
         JsonNode select)
         throws VitamClientException {
         Response response = null;

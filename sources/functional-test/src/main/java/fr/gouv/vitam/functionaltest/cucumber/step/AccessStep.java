@@ -630,7 +630,7 @@ public class AccessStep {
     public void search_logbook_operation() throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(query);
         RequestResponse<LogbookOperation> requestResponse =
-            world.getAccessClient().selectOperation(
+            world.getAccessClient().selectOperations(
                 new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
                     .setApplicationSessionId(world.getApplicationSessionId()),
                 queryJSON);

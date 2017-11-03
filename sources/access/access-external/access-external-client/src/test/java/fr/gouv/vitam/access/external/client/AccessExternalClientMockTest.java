@@ -62,7 +62,7 @@ public class AccessExternalClientMockTest {
     @Test
     public void givenMockConfExistWhenAccessExternal_selectOperationLogbook_ThenRetururnResult()
         throws Exception {
-        assertNotNull(client.selectOperation(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql)));
+        assertNotNull(client.selectOperations(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql)));
     }
 
     @Test

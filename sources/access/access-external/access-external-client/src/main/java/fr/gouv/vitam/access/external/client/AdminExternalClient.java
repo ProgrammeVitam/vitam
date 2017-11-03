@@ -62,26 +62,26 @@ import fr.gouv.vitam.common.model.processing.WorkFlow;
 public interface AdminExternalClient extends BasicClient, OperationStatusClient {
 
     /**
-     * checkRules
-     *
+     * checkRules<br>
+     * <br>
+     * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
      * @param vitamContext the vitam context
-     * @param documentType
-     * @param rules
-     * @return response
+     * @param rules the input stream to be checked
+     * @return response including InputStream
      * @throws VitamClientException
      */
     Response checkRules(VitamContext vitamContext, InputStream rules)
         throws VitamClientException;
 
     /**
-     * checkFormats
-     *
+     * checkFormats<br>
+     * <br>
+     * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
      * @param vitamContext the vitam context
-     * @param documentType
-     * @param formats
-     * @return response
+     * @param formats the input stream to be checked
+     * @return response including InputStream
      * @throws VitamClientException
      */
     Response checkFormats(VitamContext vitamContext, InputStream formats)
@@ -164,12 +164,12 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
         throws VitamClientException;
 
     /**
-     * Find accessing registers.
+     * Find accession registers.
      * 
      *
      * @param vitamContext the vitam context
      * @param select select query
-     * @return list of accessing registers
+     * @return list of accession registers
      * @throws VitamClientException
      */
     RequestResponse<AccessionRegisterSummaryModel> findAccessionRegister(
@@ -195,8 +195,8 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
         AccessExternalClientNotFoundException;
 
     /**
-     * create a set of ingest contracts after passing the validation steps. If all the contracts are valid, they are stored in
-     * the collection and indexed. </BR>
+     * create a set of ingest contracts after passing the validation steps. If all the contracts are valid, they are
+     * stored in the collection and indexed. </BR>
      * The input is invalid in the following situations : </BR>
      * <ul>
      * <li>The json is invalid</li>
@@ -215,10 +215,10 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      */
     RequestResponse createIngestContracts(VitamContext vitamContext, InputStream ingestContracts)
         throws InvalidParseOperationException, AccessExternalClientException;
-    
+
     /**
-     * create a set of access contracts after passing the validation steps. If all the contracts are valid, they are stored in
-     * the collection and indexed. </BR>
+     * create a set of access contracts after passing the validation steps. If all the contracts are valid, they are
+     * stored in the collection and indexed. </BR>
      * The input is invalid in the following situations : </BR>
      * <ul>
      * <li>The json is invalid</li>
@@ -243,13 +243,13 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * 
      *
      * @param vitamContext the vitam context
-     * @param id the given id of the access contract
+     * @param accessContractId the given id of the access contract
      * @param queryDsl the given dsl query
      * @return Response status ok or vitam error
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException
      */
-    RequestResponse updateAccessContract(VitamContext vitamContext, String id,
+    RequestResponse updateAccessContract(VitamContext vitamContext, String accessContractId,
         JsonNode queryDsl)
         throws InvalidParseOperationException, AccessExternalClientException;
 
@@ -258,13 +258,13 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * 
      *
      * @param vitamContext the vitam context
-     * @param id the given id of the ingest contract
+     * @param ingestContractId the given id of the ingest contract
      * @param queryDsl the given dsl query
      * @return Response status ok or vitam error
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException
      */
-    RequestResponse updateIngestContract(VitamContext vitamContext, String id,
+    RequestResponse updateIngestContract(VitamContext vitamContext, String ingestContractId,
         JsonNode queryDsl)
         throws InvalidParseOperationException, AccessExternalClientException;
 
@@ -322,7 +322,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
         throws AccessExternalClientException, AccessExternalNotFoundException;
 
     /**
-     * create a set of context
+     * create a set of contexts
      * 
      *
      * @param vitamContext the vitam context
@@ -339,13 +339,13 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * 
      *
      * @param vitamContext the vitam context
-     * @param id
+     * @param contextId the context id
      * @param queryDsl
      * @return Vitam response
      * @throws AccessExternalClientException
      * @throws InvalidParseOperationException
      */
-    RequestResponse updateContext(VitamContext vitamContext, String id, JsonNode queryDsl)
+    RequestResponse updateContext(VitamContext vitamContext, String contextId, JsonNode queryDsl)
         throws AccessExternalClientException, InvalidParseOperationException;
 
     /**
@@ -478,21 +478,21 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
         throws VitamClientException;
 
     /**
-     * Find an entry contract by its id.
+     * Find agencies
      *
      * @param vitamContext the vitam context
      * @param query select query
-     * @return an ingest contract
+     * @return list of agencies
      * @throws VitamClientException
      */
     RequestResponse<AgenciesModel> findAgencies(VitamContext vitamContext, JsonNode query) throws VitamClientException;
 
     /**
-     * Find an accession register by its id.
+     * Find an agency by its id.
      *
      * @param vitamContext the vitam context
      * @param agencyById the agency id
-     * @return an accession register
+     * @return an agency
      * @throws VitamClientException
      */
     RequestResponse<AgenciesModel> findAgencyByID(
@@ -503,12 +503,12 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Updates the given security profile by query dsl
      *
      * @param vitamContext the vitam context
-     * @param identifier the identifier of the security profile to update
+     * @param securityProfileId the identifier of the security profile to update
      * @param queryDsl the given dsl query
      * @return Response status ok or vitam error
      * @throws VitamClientException
      */
-    RequestResponse updateSecurityProfile(VitamContext vitamContext, String identifier,
+    RequestResponse updateSecurityProfile(VitamContext vitamContext, String securityProfileId,
         JsonNode queryDsl)
         throws VitamClientException;
 
@@ -529,12 +529,12 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      *
      *
      * @param vitamContext the vitam context
-     * @param identifier the identifier of the security profile
+     * @param securityProfileId the identifier of the security profile
      * @return a security profile
      * @throws VitamClientException
      */
     RequestResponse<SecurityProfileModel> findSecurityProfileById(VitamContext vitamContext,
-        String identifier)
+        String securityProfileId)
         throws VitamClientException;
 
     /**
@@ -563,29 +563,29 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
         throws VitamClientException;
 
     /**
-     * Update the oprration according to the action
+     * Update the operation according to the requested action
      * 
      *
      * @param vitamContext the vitam context
-     * @param actionId
+     * @param action
      * @param operationId
      * @return the status
      * @throws VitamClientException
      */
     RequestResponse<ItemStatus> updateOperationActionProcess(VitamContext vitamContext,
-        String actionId, String operationId)
+        String action, String operationId)
         throws VitamClientException;
 
     /**
      * 
      *
      * @param vitamContext the vitam context
-     * @param id
+     * @param operationId
      * @return the details of the operation
      * @throws VitamClientException
      */
     RequestResponse<ItemStatus> getOperationProcessExecutionDetails(
-        VitamContext vitamContext, String id)
+        VitamContext vitamContext, String operationId)
         throws VitamClientException;
 
     /**
@@ -593,19 +593,20 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * 
      *
      * @param vitamContext the vitam context
-     * @param id
+     * @param operationId
      * @return the status
      * @throws VitamClientException
      * @throws IllegalArgumentException
      */
     RequestResponse<ItemStatus> cancelOperationProcessExecution(VitamContext vitamContext,
-        String id)
+        String operationId)
         throws VitamClientException, IllegalArgumentException;
 
     /**
      * 
      *
      * @param vitamContext the vitam context@return the Workflow definitions
+     * @return the pool of workflows
      * @throws VitamClientException
      */
     RequestResponse<WorkFlow> getWorkflowDefinitions(VitamContext vitamContext) throws VitamClientException;
@@ -674,7 +675,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      *
      * @param vitamContext the vitam context
      * @param opId the op (logbook) ID
-     * @return
+     * @return the rulesReport
      * @throws VitamClientException
      */
     Response downloadRulesReport(VitamContext vitamContext, String opId)

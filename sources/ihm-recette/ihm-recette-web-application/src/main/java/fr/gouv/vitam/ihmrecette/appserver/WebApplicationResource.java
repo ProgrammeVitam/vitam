@@ -667,7 +667,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                 switch (requestMethod) {
                                     case HTTP_GET:
                                         if (StringUtils.isBlank(objectID)) {
-                                            result = client.selectOperation(
+                                            result = client.selectOperations(
                                                 new VitamContext(tenantId).setAccessContract(contractId)
                                                     .setApplicationSessionId(getAppSessionId()),
                                                 criteria);
