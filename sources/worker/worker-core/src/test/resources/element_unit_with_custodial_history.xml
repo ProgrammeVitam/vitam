@@ -1,0 +1,12 @@
+
+<ArchiveUnit xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:pr="info:lc/xmlns/premis-v2" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 seda-2.0-main.xsd" id="ID3">
+    <Content>
+        <DescriptionLevel>RecordGrp</DescriptionLevel>
+        <Title>SIP_Djamel</Title>
+        <CustodialHistory>
+            <CustodialHistoryItem>La collection de cartes postales présentée ici provient des nombreux prêts.</CustodialHistoryItem>
+            <CustodialHistoryItem>Dans le cas présent : Collecte 14-18.  Prêt Nerrière, 2013</CustodialHistoryItem>
+            <CustodialHistoryFile><DataObjectGroupReferenceId>ID0007</DataObjectGroupReferenceId></CustodialHistoryFile>
+        </CustodialHistory>
+    </Content>
+</ArchiveUnit>
