@@ -1,5 +1,5 @@
 <p-panel [header]="'Détail du profil'">
-  <div class="ui-g">
+  <div class="ui-g" *ngIf="!saveRunning">
     <div class="ui-g-8"></div>
     <div class="ui-g-2" *ngIf="!update"></div>
     <div class="ui-g-2" *ngIf="!update">
@@ -65,4 +65,9 @@
       </div>
     </div>
   </div>
+
+  <div *ngIf="saveRunning">
+    Sauvegarde des métadonnées en cours...
+  </div>
+
 </p-panel>
