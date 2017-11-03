@@ -42,7 +42,7 @@
                          class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
     <vitam-metadata-field [title]="'Description'" [originalTitle]="'Description'" [value]="dataToDisplay.Description" [translate]="translate" [labelSize]="2"
                          class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
-    <vitam-metadata-field [title]="'Type d\'archive'" [originalTitle]="'#unitType'" [value]="archiveUnitHelper.transformType(dataToDisplay['#unitType'])" [translate]="translate"
+    <vitam-metadata-field [title]="'Type d\'unité'" [originalTitle]="'#unitType'" [value]="archiveUnitHelper.transformType(dataToDisplay['#unitType'])" [translate]="translate"
                          class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields" [canUpdate]="false"></vitam-metadata-field>
   </div>
   <div *ngIf="saveRunning">

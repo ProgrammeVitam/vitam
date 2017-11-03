@@ -32,11 +32,12 @@ export class OperationComponent extends PageComponent {
   public searchForm: any = {};
   public options = [
     {label : "--", value : ""},
+    {label : "Journal des écritures", value : "WRITE"},
     {label : "Journal des opérations", value : "OPERATION"},
-    {label : "Cycle de vie Unité Archivistique", value : "LFC_UNIT"},
     {label : "Cycle de vie Groupe d'Objets", value : "LFC_OG"},
-    {label : "Journal des écritures", value : "WRITE"}];
-
+    {label : "Cycle de vie Unité Archivistique", value : "LFC_UNIT"}
+  ];
+    
   public logbookData = [
     FieldDefinition.createIdField('TraceabilityId', 'Identifiant de l\'objet', 3, 12),
     FieldDefinition.createDateField('TraceabilityStartDate', 'Date de début', 3, 12),

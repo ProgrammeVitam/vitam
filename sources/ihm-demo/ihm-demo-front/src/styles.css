@@ -541,6 +541,12 @@ p-togglebutton.ng-dirty.ng-invalid .ui-button {
   -webkit-border-radius: 3px;
   border-radius: 3px; }
 
+ul li.ui-chips-input-token {
+  display: block; }
+
+ul li.ui-chips-input-token input {
+  width: 100%; }
+
 /* roboto-regular - latin */
 @font-face {
   font-family: 'Roboto';
