@@ -56,10 +56,7 @@ export class LogbookOperationDetailsComponent extends PageComponent {
         () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeStaticColumn('obId', 'Identifiant de l\'opération', undefined,
         () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
-    ColumnDefinition.makeSpecialIconColumn('Rapport', (item) => {
-      if (item.evTypeProc.toUpperCase() === 'AUDIT' || item.evTypeProc.toUpperCase() === 'INGEST') {
-        return  ['fa-download']
-      } else {return []}},
+    ColumnDefinition.makeSpecialIconColumn('Rapport', LogbookOperationComponent.handleReports,
       () => ({'width': '75px', 'overflow-wrap': 'break-word'}),
       LogbookOperationComponent.downloadReports, this.logbookService)
   ];
