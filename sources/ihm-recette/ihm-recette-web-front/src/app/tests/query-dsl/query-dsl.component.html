@@ -40,7 +40,7 @@
   </div>
 
   <div class="ui-g-6">
-    <textarea class="textarea-dsl" rows="25" pInputTextarea>{{requestResponse | json}}</textarea>
+    <textarea class="textarea-dsl" rows="25" pInputTextarea [(ngModel)]="requestResponse" disabled></textarea>
   </div>
 </div>
 

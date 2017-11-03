@@ -114,8 +114,14 @@ export class QueryDSLComponent extends PageComponent {
     }
     this.queryDslService.executeRequest(this.jsonRequest, this.selectedContract.Name,
       this.selectedCollection, this.selectedMethod, this.selectedAction, this.objectId).subscribe(
-      (response) => this.requestResponse = response.json(),
-      (error) => this.requestResponse = error._body
+      (response) => this.requestResponse = JSON.stringify(response.json(), null, 2),
+      (error) => {
+        try {
+          this.requestResponse = JSON.stringify(JSON.parse(error._body), null, 2);
+        } catch (e) {
+          this.requestResponse = error._body;
+        }
+      }
     );
   }
 

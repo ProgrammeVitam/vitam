@@ -147,11 +147,13 @@ describe('QueryDSLComponent', () => {
     };
     component.sendRequest();
     let response: any = component.requestResponse;
-    expect(response.ok).toBeTruthy();
+    let parsedResponse = JSON.parse(response);
+    expect(parsedResponse.ok).toBeTruthy();
 
     component.selectedContract.Name = null;
     component.sendRequest();
     response = component.requestResponse;
-    expect(response.ok).toBeFalsy();
+    parsedResponse = JSON.parse(response);
+    expect(parsedResponse.ok).toBeFalsy();
   });
 });
