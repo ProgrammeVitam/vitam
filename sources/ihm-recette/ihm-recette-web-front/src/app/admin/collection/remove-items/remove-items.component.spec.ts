@@ -7,9 +7,16 @@ import 'rxjs/add/observable/of';
 import 'rxjs/add/observable/throw';
 import {DialogModule, PanelModule} from "primeng/primeng";
 import {BrowserAnimationsModule} from "@angular/platform-browser/animations";
+import {TenantService} from "../../../common/tenant.service";
 
 let CollectionServiceStub = {
   removeItemsInCollection: (api) => Observable.of('OK'),
+};
+
+
+const TenantServiceStub = {
+  changeState:  (myChange: string) => Observable.of('OK'),
+  getState: () => Observable.of('OK')
 };
 
 describe('RemoveItemsComponent', () => {
@@ -21,7 +28,8 @@ describe('RemoveItemsComponent', () => {
     TestBed.configureTestingModule({
       declarations: [ RemoveItemsComponent ],
       providers: [
-        { provide: CollectionService, useValue: CollectionServiceStub }
+        { provide: CollectionService, useValue: CollectionServiceStub },
+        { provide: TenantService, useValue: TenantServiceStub  }
       ],
       imports: [PanelModule, DialogModule, BrowserAnimationsModule]
     }).compileComponents();

@@ -1,5 +1,6 @@
-<p-panel header="{{label}}" *ngIf="label" >
-  <button pButton label="Purger" icon="fa-trash" (click)="removeItems()" ></button>
+<p-panel header="{{label}}" *ngIf="label">
+  <button pButton label="Purger" icon="fa-trash" (click)="removeItems()"
+          [disabled]="!isTenantDefine()"></button>
 </p-panel>
 <p-dialog header="Suppression des {{name}} ?" [(visible)]="displayCheck">
   <p>Êtes-vous certain de vouloir vider la collection des {{name}} ?</p>
