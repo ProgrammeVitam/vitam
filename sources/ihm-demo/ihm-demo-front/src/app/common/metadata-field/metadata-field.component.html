@@ -3,11 +3,11 @@
   <div [ngClass]="labelClass" class="ui-g-nopad" *ngIf="!noTitle">
     <label class="label fieldLabel">{{title}}</label>
   </div>
-  <div [ngClass]="inputClass" class="ui-g-nopad" *ngIf="!updateMode || !canUpdate">
+  <div [ngClass]="inputClass" class="ui-g-nopad value" *ngIf="!updateMode || !canUpdate">
     <span *ngIf="!dateValue" class="overflow-break-words" >{{value}}</span>
     <span *ngIf="dateValue" class="overflow-break-words" >{{value | date:'dd/MM/yyyy'}}</span>
   </div>
-  <div [ngClass]="inputClass" class="ui-g-nopad" *ngIf="updateMode && canUpdate">
+  <div [ngClass]="inputClass" class="ui-g-nopad value" *ngIf="updateMode && canUpdate">
     <p-calendar *ngIf="displayMode === 'Date'" [(ngModel)]="dateValue" [inputStyle]="{'width':'100%'}" (onSelect)="valueChange()"
                 (onBlur)="checkDateValid()" [dateFormat]="'dd/mm/yy'" [yearNavigator]="true" [yearRange]="'1970:2500'" [locale]="frLocale"></p-calendar>
     <textarea pInputTextarea *ngIf="displayMode === 'TextArea'" [(ngModel)]="value" class="allDiv" (change)="valueChange()" rows="3"></textarea>
@@ -28,7 +28,7 @@
       <ng-template ngFor let-field [ngForOf]="fields">
         <vitam-metadata-field [title]="field.title" [value]="value[field.value]" [originalTitle]="field.originalTitle"
                              [labelSize]="3" [translate]="translate" class="ui-g-12" style="text-align: left" [fieldCode]="field.fieldCode"
-                             [(updatedFields)]="updatedFields" [updateMode]="updateMode"></vitam-metadata-field>
+                             [(updatedFields)]="updatedFields" [updateMode]="updateMode" [canUpdate]="canUpdate"></vitam-metadata-field>
       </ng-template>
     </div>
 
@@ -48,7 +48,7 @@
       <ng-template ngFor let-field [ngForOf]="arrayValue">
         <vitam-metadata-field [value]="field.value" [originalTitle]="originalTitle" [fieldCode]="field.fieldCode"
                              class="ui-g-12 ui-g-nopad" style="text-align: left" [translate]="translate" *ngIf="!field.isObject"
-                             [(updatedFields)]="updatedFields" [updateMode]="updateMode" [noTitle]="true"></vitam-metadata-field>
+                             [(updatedFields)]="updatedFields" [updateMode]="updateMode" [noTitle]="true" [canUpdate]="canUpdate"></vitam-metadata-field>
 
 
         <div [ngClass]="elementClass" *ngIf="field.isObject">
@@ -56,7 +56,7 @@
             <ng-template ngFor let-innerField [ngForOf]="field.value" let-i="index">
               <vitam-metadata-field [title]="innerField.title" [value]="innerField.value" [originalTitle]="innerField.originalTitle"
                                    [labelSize]="4" class="ui-g-6 ui-g-nopad" style="text-align: left" [translate]="translate" [fieldCode]="innerField.fieldCode"
-                                   [(updatedFields)]="updatedFields" [updateMode]="updateMode"></vitam-metadata-field>
+                                   [(updatedFields)]="updatedFields" [updateMode]="updateMode" [canUpdate]="canUpdate"></vitam-metadata-field>
             </ng-template>
           </div>
         </div >
