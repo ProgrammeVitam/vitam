@@ -1579,9 +1579,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @return the unit life cycle
      */
     @GET
-    @Path("/unitlifecycles/{id_lc}")
+    @Path("/logbookunitlifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
-    @RequiresPermissions("unitlifecycles:read")
+    @RequiresPermissions("logbookunitlifecycles:read")
     public Response getUnitLifeCycleById(@Context HttpHeaders headers, @PathParam("id_lc") String unitLifeCycleId) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitLifeCycleId);
         RequestResponse<LogbookLifecycle> result = null;
@@ -1606,9 +1606,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @return the object group life cycle
      */
     @GET
-    @Path("/objectgrouplifecycles/{id_lc}")
+    @Path("/logbookobjectslifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
-    @RequiresPermissions("objectgrouplifecycles:read")
+    @RequiresPermissions("logbookobjectslifecycles:read")
     public Response getObjectGroupLifeCycleById(@Context HttpHeaders headers,
         @PathParam("id_lc") String objectGroupLifeCycleId) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, objectGroupLifeCycleId);

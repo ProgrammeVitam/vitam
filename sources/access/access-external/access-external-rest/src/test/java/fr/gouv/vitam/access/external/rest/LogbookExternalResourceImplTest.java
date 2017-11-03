@@ -64,7 +64,7 @@ public class LogbookExternalResourceImplTest {
     private static final String TENANT_ID = "0";
     private static final String UNEXISTING_TENANT_ID = "25";
 
-    private static final String OPERATIONS_URI = "/operations";
+    private static final String OPERATIONS_URI = "/logbookoperations";
     private static final String OPERATION_ID_URI = "/{id_op}";
 
     private static final String CHECK_TRACEABILITY_OPERATION_URI = AccessExtAPI.TRACEABILITY_API + "/check";
@@ -250,7 +250,7 @@ public class LogbookExternalResourceImplTest {
             .param("id_lc", bad_id)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
-            .get("/unitlifecycles/" + bad_id)
+            .get("/logbookunitlifecycles/" + bad_id)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
@@ -259,7 +259,7 @@ public class LogbookExternalResourceImplTest {
             .param("id_lc", bad_id)
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .when()
-            .get("/unitlifecycles/" + bad_id)
+            .get("/logbookunitlifecycles/" + bad_id)
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
@@ -267,7 +267,7 @@ public class LogbookExternalResourceImplTest {
             .accept(ContentType.JSON)
             .param("id_lc", bad_id)
             .when()
-            .get("/unitlifecycles/" + bad_id)
+            .get("/logbookunitlifecycles/" + bad_id)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
@@ -282,7 +282,7 @@ public class LogbookExternalResourceImplTest {
             .param("id_lc", bad_id)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
-            .get("/objectgrouplifecycles/" + bad_id)
+            .get("/logbookobjectslifecycles/" + bad_id)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
@@ -291,7 +291,7 @@ public class LogbookExternalResourceImplTest {
             .param("id_lc", bad_id)
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .when()
-            .get("/objectgrouplifecycles/" + bad_id)
+            .get("/logbookobjectslifecycles/" + bad_id)
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
@@ -299,7 +299,7 @@ public class LogbookExternalResourceImplTest {
             .accept(ContentType.JSON)
             .param("id_lc", bad_id)
             .when()
-            .get("/objectgrouplifecycles/" + bad_id)
+            .get("/logbookobjectslifecycles/" + bad_id)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
@@ -675,7 +675,7 @@ public class LogbookExternalResourceImplTest {
             .param("id_lc", good_id)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
-            .get("/unitlifecycles/" + good_id)
+            .get("/logbookunitlifecycles/" + good_id)
             .then().statusCode(Status.OK.getStatusCode());
 
 
@@ -686,7 +686,7 @@ public class LogbookExternalResourceImplTest {
             .param("id_lc", good_id)
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .when()
-            .get("/unitlifecycles/" + good_id)
+            .get("/logbookunitlifecycles/" + good_id)
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
@@ -695,7 +695,7 @@ public class LogbookExternalResourceImplTest {
             .body(select.getFinalSelectById())
             .param("id_lc", good_id)
             .when()
-            .get("/unitlifecycles/" + good_id)
+            .get("/logbookunitlifecycles/" + good_id)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
@@ -705,7 +705,7 @@ public class LogbookExternalResourceImplTest {
             .param("id_lc", good_id)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
-            .get("/objectgrouplifecycles/" + good_id)
+            .get("/logbookobjectslifecycles/" + good_id)
             .then().statusCode(Status.OK.getStatusCode());
 
         given()
@@ -715,7 +715,7 @@ public class LogbookExternalResourceImplTest {
             .param("id_lc", good_id)
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .when()
-            .get("/objectgrouplifecycles/" + good_id)
+            .get("/logbookobjectslifecycles/" + good_id)
             .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
@@ -724,7 +724,7 @@ public class LogbookExternalResourceImplTest {
             .body(select.getFinalSelectById())
             .param("id_lc", good_id)
             .when()
-            .get("/objectgrouplifecycles/" + good_id)
+            .get("/logbookobjectslifecycles/" + good_id)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 

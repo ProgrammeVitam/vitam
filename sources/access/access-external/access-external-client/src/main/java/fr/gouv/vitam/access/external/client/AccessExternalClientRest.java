@@ -44,9 +44,9 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     private static final String BLANK_VERSION = "usage version should be filled";
     private static final String BLANK_DIP_ID = "DIP identifier should be filled";
 
-    private static final String LOGBOOK_OPERATIONS_URL = "/operations";
-    private static final String LOGBOOK_UNIT_LIFECYCLE_URL = "/unitlifecycles";
-    private static final String LOGBOOK_OBJECT_LIFECYCLE_URL = "/objectgrouplifecycles";
+    private static final String LOGBOOK_OPERATIONS_URL = "/logbookoperations";
+    private static final String LOGBOOK_UNIT_LIFECYCLE_URL = "/logbookunitlifecycles";
+    private static final String LOGBOOK_OBJECT_LIFECYCLE_URL = "/logbookobjectslifecycles";
 
     AccessExternalClientRest(AccessExternalClientFactory factory) {
         super(factory);

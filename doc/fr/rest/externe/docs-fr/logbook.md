@@ -28,7 +28,7 @@ Chaque étape au sein d'une opération est subdivisée sous la forme de 2 enregi
 
 # UnitLifeCycles
 
-**unitlifecycles** est le point d'entrée pour tous les journaux de cycle de vie des units dans Vitam.
+**logbookunitlifecycles** est le point d'entrée pour tous les journaux de cycle de vie des units dans Vitam.
 Le rôle des journaux de cycles de vie des units est de conserver l'ensemble des événements associés à une Unit.
 Les événements associés sont du type :
 - création

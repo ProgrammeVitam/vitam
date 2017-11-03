@@ -27,10 +27,10 @@ Rest API
 | https://vitam/access-external/v1/accessionregisters
 | https://vitam/access-external/v1/accessionregisters/document_id
 | https://vitam/access-external/v1/accessionregisters/document_id/accessionregisterdetail
-| https://vitam/access-external/v1/operations
-| https://vitam/access-external/v1/operations/operation_id
-| https://vitam/access-external/v1/unitlifecycles/lifecycle_id
-| https://vitam/access-external/v1/objectgrouplifecycles/lifecycle_id
+| https://vitam/access-external/v1/logbookoperations
+| https://vitam/access-external/v1/logbookoperations/operation_id
+| https://vitam/access-external/v1/logbookunitlifecycles/lifecycle_id
+| https://vitam/access-external/v1/logbookobjectslifecycles/lifecycle_id
 | https://vitam/admin-external/v1/collection_id
 | https://vitam/admin-external/v1/collection_id/document_id
 
@@ -227,7 +227,7 @@ la classe contient actuellement 6 méthodes :
 .. code-block:: java
 
  	@GET
-    @Path("/operations/{id_op}")
+    @Path("/logbookoperations/{id_op}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getOperationById(@PathParam("id_op") String operationId) {
@@ -286,7 +286,7 @@ la classe contient actuellement 6 méthodes :
 .. code-block:: java
 
  	@GET
-    @Path("/unitlifecycles/{id_lc}")
+    @Path("/logbookunitlifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUnitLifeCycle(@PathParam("id_lc") String unitLifeCycleId)
      ...
@@ -298,7 +298,7 @@ la classe contient actuellement 6 méthodes :
 .. code-block:: java
 
  	@GET
-    @Path("/objectgrouplifecycles/{id_lc}")
+    @Path("/logbookobjectslifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectGroupLifeCycle(@PathParam("id_lc") String objectGroupLifeCycleId)
      ...
