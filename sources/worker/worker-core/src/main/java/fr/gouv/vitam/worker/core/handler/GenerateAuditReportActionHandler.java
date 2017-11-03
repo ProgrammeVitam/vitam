@@ -271,6 +271,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
             JsonNode result = lfcClient.selectObjectGroupLifeCycle(selectQuery.getFinalSelect());
 
             for (JsonNode res : result.get(RequestResponseOK.TAG_RESULTS)) {
+                String idOp = res.get(EV_ID_PROC).asText();
                 JsonNode events = res.get(EVENT);
                 for (JsonNode event : events) {
                     if (event.get(EV_TYPE).asText().equals("LFC.AUDIT_CHECK_OBJECT") &&
@@ -279,7 +280,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
                         JsonNode evDetData = JsonHandler.getFromString(event.get("evDetData").asText());
                         final String originatingAgency = evDetData.get(ORIGINATING_AGENCY).asText();
                         for (JsonNode error : evDetData.get("errors")) {
-                            reportKO.add(JsonHandler.createObjectNode().put("IdOp", event.get(EV_ID_PROC).asText())
+                            reportKO.add(JsonHandler.createObjectNode().put("IdOp", idOp)
                                 .put(ID_GOT, event.get("obId").asText())
                                 .put(ID_OBJ, error.get(ID_OBJ).asText())
                                 .put(USAGE, error.get(USAGE).asText())
