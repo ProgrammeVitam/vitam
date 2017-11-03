@@ -36,11 +36,13 @@
 
 <div class="ui-g-12">
   <div class="ui-g-6">
-    <textarea class="textarea-dsl" rows="25" pInputTextarea [(ngModel)]="jsonRequest"></textarea>
+    <label for="requete">Requête DSL (format JSON)</label>
+    <textarea class="textarea-dsl" id="requete" rows="25" pInputTextarea [(ngModel)]="jsonRequest"></textarea>
   </div>
 
   <div class="ui-g-6">
-    <textarea class="textarea-dsl" rows="25" pInputTextarea [(ngModel)]="requestResponse" disabled></textarea>
+    <label for="reponse">Réponse</label>
+    <textarea class="textarea-dsl" id="reponse" rows="25" pInputTextarea [(ngModel)]="requestResponse" disabled></textarea>
   </div>
 </div>
 
@@ -49,7 +51,7 @@
     <div class="ui-g-1"></div>
     <div class="ui-g-7">
       <button pButton type="button" label="Valider JSON" (click)="checkJson()"></button>
-      <button pButton type="button" label="Envoyer requête" (click)="sendRequest()"></button>
+      <button pButton type="button" label="Envoyer la requête" (click)="sendRequest()"></button>
     </div>
     <div class="ui-g-3 margin-top-5" [ngClass]="validRequest ? validRequest.css : ''">
       {{validRequest ? "JSON " + validRequest.valid : ""}}
