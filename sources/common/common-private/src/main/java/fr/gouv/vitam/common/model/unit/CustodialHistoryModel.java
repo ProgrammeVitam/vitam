@@ -35,6 +35,7 @@ import java.util.List;
 public class CustodialHistoryModel {
 
     private List<String> custodialHistoryItem = new ArrayList<>();
+    private DataObjectReference custodialHistoryFile;
 
     public List<String> getCustodialHistoryItem() {
         return custodialHistoryItem;
@@ -42,5 +43,13 @@ public class CustodialHistoryModel {
 
     public void setCustodialHistoryItem(List<String> custodialHistoryItem) {
         this.custodialHistoryItem = custodialHistoryItem;
+    }
+
+    public DataObjectReference getCustodialHistoryFile() {
+        return custodialHistoryFile;
+    }
+
+    public void setCustodialHistoryFile(DataObjectReference custodialHistoryFile) {
+        this.custodialHistoryFile = custodialHistoryFile;
     }
 }
