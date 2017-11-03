@@ -1,14 +1,14 @@
 <p-panel [header]="'Audit'">
   <div class="ui-g">
     <div class="ui-g-12 textAlignLeft">
-      <div class="ui-g-4">
+      <div class="ui-g-3">
         <label class="label labelAudit">
           Sélectionner le type
         </label>
       </div>
       <div class="ui-g-4" *ngIf="auditType != 'tenant'">
         <label class="label labelAudit">
-          Sélectionner l'identifiant
+          Sélectionner un service producteur
         </label>
       </div>
       <div class="ui-g-4" *ngIf="auditType === 'tenant'">
@@ -41,10 +41,18 @@
       <p-checkbox [disabled]="disableAuditExistence" name="groupname"  binary="true" label="Audit de l'existence des objets" [(ngModel)]="auditExistence" (onChange)="validAuditAction()"></p-checkbox>
     </div>
     <div class="ui-g-12 textAlignLeft">
-      <p-checkbox name="groupname"  binary="true" label="Audit de l'integrité des objets" [(ngModel)]="auditIntegrity" (onChange)="validAuditAction()"></p-checkbox>
+      <p-checkbox name="groupname"  binary="true" label="Audit de l'intégrité des objets" [(ngModel)]="auditIntegrity" (onChange)="validAuditAction()"></p-checkbox>
     </div>
     <div class="ui-g-12">
-      <button  pButton type="button" (click)="launchAudit()" label="Lancer audit" [disabled]="!auditAction"></button>
+      <button  pButton type="button" (click)="launchAudit()" label="Lancer l'audit" [disabled]="!auditAction"></button>
     </div>
   </div>
+
+  <p-dialog header="Lancement de l'audit" [(visible)]="displayLaunchMessage">
+    Le processus d'audit est lancé.
+    <p-footer>
+      <button pButton type="button" (click)="displayLaunchMessage = false" label="Fermer"></button>
+    </p-footer>
+  </p-dialog>
+
 </p-panel>

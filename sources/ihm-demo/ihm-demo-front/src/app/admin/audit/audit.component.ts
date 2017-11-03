@@ -26,6 +26,7 @@ export class AuditComponent extends PageComponent {
   disableAuditExistence : boolean;
   auditIntegrity : boolean;
   auditAction : string;
+  displayLaunchMessage = false;
 
   constructor(public titleService: Title, private searchReferentialsService : ReferentialsService,
               public breadcrumbService: BreadcrumbService, private auditService : AuditService) {
@@ -61,8 +62,8 @@ export class AuditComponent extends PageComponent {
       auditType : this.auditType,
       objectId : (this.auditType === 'tenant') ? this.tenantCurrent : this.objectId
     }).subscribe(
-      (response) => {
-        console.log(response)
+      () => {
+        this.displayLaunchMessage = true;
       },
       (error) =>
         console.log(error)
