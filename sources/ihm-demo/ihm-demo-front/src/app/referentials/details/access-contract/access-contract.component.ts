@@ -58,7 +58,7 @@ export class AccessContractComponent  extends PageComponent {
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
         {label: 'Référentiel des contrats d\'accès', routerLink: 'admin/search/accessContract'},
-        {label: this.id, routerLink: ''}
+        {label: 'Détail du contrat d\'accès' + this.id, routerLink: ''}
       ];
 
       this.setBreadcrumb(newBreadcrumb);

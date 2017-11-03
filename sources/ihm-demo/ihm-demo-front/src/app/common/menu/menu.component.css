@@ -26,8 +26,11 @@ a {
 
 .logout-icon {
     color: #AD9FFF;
-    margin-left: 40px;
     cursor: pointer;
+}
+.tenant-text {
+    float: left;
+    padding-left: 10px;
 }
 
 #accessContract {
@@ -37,6 +40,6 @@ a {
 
 .userInfo {
     float: right;
-    width: 180px;
+    width: 220px;
     padding-bottom: 10px;
 }

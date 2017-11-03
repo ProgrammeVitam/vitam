@@ -9,7 +9,7 @@
     </a>
   </div>
   <div class="userInfo" *ngIf="isAuthenticated" >
-    Tenant: <b>{{tenantChosen ? tenantChosen : '-'}}</b>
+    <span class="tenant-text">Tenant: <b>{{tenantChosen ? tenantChosen : '-'}}</b></span>
     <i class="fa fa-power-off logout-icon" (click)="logOut()">
       <a id="logout-text">Déconnexion</a>
     </i>

@@ -70,7 +70,7 @@ export class RuleComponent extends PageComponent {
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
         {label: 'Référentiel des règles de gestion', routerLink: 'admin/search/rule'},
-        {label: this.id, routerLink: ''}
+        {label: 'Détail de la règle de gestion' + this.id, routerLink: ''}
       ];
 
       this.setBreadcrumb(newBreadcrumb);

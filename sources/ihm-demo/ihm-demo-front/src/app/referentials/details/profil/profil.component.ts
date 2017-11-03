@@ -52,7 +52,7 @@ export class ProfilComponent extends PageComponent {
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
         {label: 'Référentiel des profils d\'archivage', routerLink: 'admin/search/profil'},
-        {label: this.id, routerLink: ''}
+        {label: 'Détail du profil d\'archivage' + this.id, routerLink: ''}
       ];
 
       this.setBreadcrumb(newBreadcrumb);
