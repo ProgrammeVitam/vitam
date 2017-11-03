@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBContext;
@@ -1032,8 +1033,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
             final String unitId = element.getKey();
             boolean isRootArchive = true;
 
-            // 1- Update created Unit life cycles
-            addFinalStatusToUnitLifeCycle(unitGuid, unitId, containerId, logbookLifeCycleClient);
+            // 1- create Unit life cycles
+            createUnitLifeCycle(unitGuid, containerId);
 
             // 2- Update temporary files
             final File unitTmpFileForRead = handlerIO.getNewLocalFile(ARCHIVE_UNIT_TMP_FILE_PREFIX + unitGuid);
@@ -1046,7 +1047,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 // Management rules id to add
                 Set<String> globalMgtIdExtra = new HashSet<>();
 
-                addWorkInformation(archiveUnit, unitId, unitGuid, isRootArchive, archiveUnitTree, globalMgtIdExtra);
+                isRootArchive = addWorkInformation(archiveUnit, unitId, unitGuid, archiveUnitTree, globalMgtIdExtra);
 
                 updateManagementAndAppendGlobalMgtRule(archiveUnit, globalMgtIdExtra);
 
@@ -1063,6 +1064,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     }
                 }
             }
+
+            // 3- Update created Unit life cycles
+            addFinalStatusToUnitLifeCycle(unitGuid, unitId, isRootArchive);
 
             uuids.add(unitGuid);
 
@@ -1212,7 +1216,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     }
 
-    private void addWorkInformation(ObjectNode archiveUnit, String unitId, String unitGuid, boolean isRootArchive,
+    private boolean addWorkInformation(ObjectNode archiveUnit, String unitId, String unitGuid,
         ObjectNode archiveUnitTree, Set<String> globalMgtIdExtra)
         throws XMLStreamException {
 
@@ -1220,7 +1224,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         // Get parents list
         ArrayNode upNode = JsonHandler.createArrayNode();
-        isRootArchive = addParentsToTmpFile(upNode, unitId, archiveUnitTree);
+        boolean isRootArchive = addParentsToTmpFile(upNode, unitId, archiveUnitTree);
 
         if (upNode.isEmpty(null)) {
             linkToArchiveUnitDeclaredInTheIngestContract(upNode);
@@ -1249,19 +1253,27 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
 
         archiveUnit.set(SedaConstants.PREFIX_WORK, workNode);
+        
+        return isRootArchive;
     }
 
-    private void addFinalStatusToUnitLifeCycle(String unitGuid, String unitId, String containerId,
-        LogbookLifeCyclesClient logbookLifeCycleClient)
-        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+    private void createUnitLifeCycle(String unitGuid, String containerId)
+            throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+        
         if (guidToLifeCycleParameters.get(unitGuid) != null) {
             if (!existingUnitGuids.contains(unitGuid)) {
                 LogbookLifeCycleUnitParameters unitLifeCycle =
-                    createUnitLifeCycle(unitGuid, containerId, LogbookTypeProcess.INGEST);
+                        createUnitLifeCycle(unitGuid, containerId, LogbookTypeProcess.INGEST);
 
                 handlerIO.getHelper().updateDelegate(unitLifeCycle);
             }
+        }
+    }
 
+    private void addFinalStatusToUnitLifeCycle(String unitGuid, String unitId, boolean isRootArchive)
+            throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+        
+        if (guidToLifeCycleParameters.get(unitGuid) != null) {
             final LogbookLifeCycleParameters llcp = guidToLifeCycleParameters.get(unitGuid);
             String eventId = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString();
             LogbookLifeCycleParameters subLlcp = null;
@@ -1281,7 +1293,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
             // set status for task
             llcp.setFinalStatus(HANDLER_ID, null, StatusCode.OK, null);
 
-            List<String> parentAttachments = existAttachmentUnitAsParentOnTree(unitId);
+            Set<String> parentAttachments = existAttachmentUnitAsParentOnTree(unitId);
+            
+            if(isRootArchive && linkParentId != null){
+                parentAttachments.add(linkParentId);
+            }
 
             ObjectNode evDetData = JsonHandler.createObjectNode();
 
@@ -1330,8 +1346,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
 
-    private List<String> existAttachmentUnitAsParentOnTree(String unitId) {
-        List<String> parents = new ArrayList<>();
+    private Set<String> existAttachmentUnitAsParentOnTree(String unitId) {
+        Set<String> parents = new HashSet<>();
         if (archiveUnitTree.has(unitId)) {
             JsonNode archiveNode = archiveUnitTree.get(unitId);
             if (archiveNode.has(IngestWorkflowConstants.UP_FIELD)) {
@@ -2177,7 +2193,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         }
                     }
 
-                    if (linkParentId != null && !linkParentId.equals("")) {
+                    if (linkParentId != null && !linkParentId.isEmpty()) {
                         final Select select = new Select();
                         String[] schemaArray = new String[] {UnitType.FILING_UNIT.name(), UnitType.HOLDING_UNIT.name()};
                         select.setQuery(QueryHelper.in(UNITTYPE.exactToken(), schemaArray).setDepthLimit(0));
