@@ -27,6 +27,8 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -50,8 +52,12 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.CharsetUtils;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -74,6 +80,9 @@ public class CheckObjectsNumberActionHandlerTest {
     private CheckObjectsNumberActionHandler checkObjectsNumberActionHandler;
     private static final String HANDLER_ID = "CHECK_MANIFEST_OBJECTNUMBER";
 
+    private static final String SUBTASK_MANIFEST_INFERIOR_BDO = "MANIFEST_INFERIOR_BDO";
+    private static final String SUBTASK_MANIFEST_SUPERIOR_BDO = "MANIFEST_SUPERIOR_BDO";
+    
     private WorkerParameters workParams;
 
     private SedaUtils sedaUtils;
@@ -233,7 +242,7 @@ public class CheckObjectsNumberActionHandlerTest {
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseKOAndOutNumberManifest()
-            throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
+            throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException, InvalidParseOperationException {
 
         checkObjectsNumberActionHandler =
                 new CheckObjectsNumberActionHandler();
@@ -252,11 +261,17 @@ public class CheckObjectsNumberActionHandlerTest {
                 .isEqualTo(1);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel()))
                 .isEqualTo(2);
+        JsonNode evDetData = JsonHandler.getFromString((String) response.getData("eventDetailData"));
+        assertNotNull(evDetData);
+        assertNotNull(evDetData.get("evDetTechData"));
+        assertNotNull(evDetData.get("evDetTechData").asText().contains("manifestError"));
+        assertEquals(SUBTASK_MANIFEST_SUPERIOR_BDO, response.getItemsStatus().get(HANDLER_ID).getGlobalOutcomeDetailSubcode().toString());
+        
     }
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseKOAndOutNumberWorkspace()
-            throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
+            throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException, InvalidParseOperationException {
 
         checkObjectsNumberActionHandler =
                 new CheckObjectsNumberActionHandler();
@@ -274,6 +289,7 @@ public class CheckObjectsNumberActionHandlerTest {
                 .isEqualTo(1);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel()))
                 .isEqualTo(2);
+        assertEquals(SUBTASK_MANIFEST_INFERIOR_BDO, response.getItemsStatus().get(HANDLER_ID).getGlobalOutcomeDetailSubcode().toString());        
     }
 
     @Test

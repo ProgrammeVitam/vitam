@@ -136,12 +136,12 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
                         // Update logbook OG lifecycle
                         final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
                             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
-                        logbookLifecycleObjectGroupParameters.setFinalStatus(SUBTASK_ORPHAN, null, StatusCode.KO, 
-                                null);
+                        logbookLifecycleObjectGroupParameters.setFinalStatus(SUBTASK_ORPHAN, null, StatusCode.KO,
+                            null);
                         LogbookLifecycleWorkerHelper.updateLifeCycleStep(handlerIO.getHelper(),
-                                logbookLifecycleObjectGroupParameters, params, HANDLER_ID, params.getLogbookTypeProcess(),
-                                StatusCode.KO, objectGroupToGuidStoredMap.get(objectGroup.getKey()).toString());
-                        
+                            logbookLifecycleObjectGroupParameters, params, HANDLER_ID, params.getLogbookTypeProcess(),
+                            StatusCode.KO, objectGroupToGuidStoredMap.get(objectGroup.getKey()).toString());
+
                         final String objectID = logbookLifecycleObjectGroupParameters
                             .getParameterValue(LogbookParameterName.objectIdentifier);
                         handlerIO.getLifecyclesClient().bulkUpdateObjectGroup(params.getContainerName(),
@@ -158,11 +158,11 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
                         final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
                             LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
                         logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, StatusCode.OK,
-                                null);
+                            null);
                         LogbookLifecycleWorkerHelper.updateLifeCycleStep(handlerIO.getHelper(),
-                                logbookLifecycleObjectGroupParameters, params, HANDLER_ID, params.getLogbookTypeProcess(),
-                                StatusCode.OK, objectGroupToGuidStoredMap.get(objectGroup.getKey()).toString());
-                        
+                            logbookLifecycleObjectGroupParameters, params, HANDLER_ID, params.getLogbookTypeProcess(),
+                            StatusCode.OK, objectGroupToGuidStoredMap.get(objectGroup.getKey()).toString());
+
                         final String objectID = logbookLifecycleObjectGroupParameters
                             .getParameterValue(LogbookParameterName.objectIdentifier);
                         handlerIO.getLifecyclesClient().bulkUpdateObjectGroup(params.getContainerName(),

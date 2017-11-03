@@ -33,7 +33,9 @@ import static org.mockito.Mockito.mock;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.assertj.core.util.Lists;
 import org.junit.After;
@@ -85,7 +87,7 @@ public class CheckVersionActionHandlerTest {
     @Test
     public void givenWorkspaceExistWhenCheckIsTrueThenReturnResponseOK()
             throws ProcessingException, IOException, URISyntaxException {
-        final List<String> invalidVersionList = new ArrayList<>();
+        final Map<String, String> invalidVersionList = new HashMap<>();
         Mockito.doReturn(invalidVersionList).when(sedaUtils).checkSupportedDataObjectVersion(anyObject());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final ItemStatus response = handlerVersion.execute(params, handlerIO);
@@ -95,8 +97,8 @@ public class CheckVersionActionHandlerTest {
     @Test
     public void givenWorkspaceExistWhenCheckIsFalseThenReturnResponseWarning()
             throws ProcessingException, IOException, URISyntaxException {
-        final List<String> invalidVersionList = new ArrayList<>();
-        invalidVersionList.add("PhysicalMaste");
+        final Map<String, String> invalidVersionList = new HashMap<>();
+        invalidVersionList.put("PhysicalMaste", "PhysicalMaste");
         Mockito.doReturn(invalidVersionList).when(sedaUtils).checkSupportedDataObjectVersion(anyObject());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final ItemStatus response = handlerVersion.execute(params, handlerIO);

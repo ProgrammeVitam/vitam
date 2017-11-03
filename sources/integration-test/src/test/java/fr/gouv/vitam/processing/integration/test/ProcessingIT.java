@@ -180,6 +180,9 @@ public class ProcessingIT {
     private static final long SLEEP_TIME = 100l;
     private static final long NB_TRY = 4800; // equivalent to 4 minutes
     private static final String SIP_FILE_WRONG_DATE = "integration-processing/SIP_INGEST_WRONG_DATE.zip";
+    private static final String SIP_KO_AU_REF_OBJ =
+        "integration-processing/KO_SIP_1986_unit_declare_IDobjet_au_lieu_IDGOT.zip";
+    private static final String SIP_KO_MANIFEST_URI = "integration-processing/KO_MANIFESTE-URI.zip";
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     static MongoClient mongoClient;
@@ -486,8 +489,7 @@ public class ProcessingIT {
 
                 File fileProfiles = PropertiesUtils.getResourceFile("integration-processing/OK_profil.json");
                 List<ProfileModel> profileModelList =
-                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {
-                    });
+                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {});
                 RequestResponse improrResponse = client.createProfiles(profileModelList);
 
                 RequestResponseOK<ProfileModel> response =
@@ -499,16 +501,14 @@ public class ProcessingIT {
                 File fileContracts =
                     PropertiesUtils.getResourceFile("integration-processing/referential_contracts_ok.json");
                 List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
-                    new TypeReference<List<IngestContractModel>>() {
-                    });
+                    new TypeReference<List<IngestContractModel>>() {});
 
                 Status importStatus = client.importIngestContracts(IngestContractModelList);
 
                 // import access contract
                 File fileAccessContracts = PropertiesUtils.getResourceFile(ACCESS_CONTRACT);
                 List<AccessContractModel> accessContractModelList = JsonHandler
-                    .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
-                    });
+                    .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {});
                 client.importAccessContracts(accessContractModelList);
             } catch (final Exception e) {
                 LOGGER.error(e);
@@ -602,8 +602,7 @@ public class ProcessingIT {
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
-                });
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
 
             functionalClient.importIngestContracts(IngestContractModelList);
 
@@ -628,7 +627,8 @@ public class ProcessingIT {
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
 
             // as logbookClient.selectOperation returns last two events and after removing STARTED from events
-            // the order is main-event > sub-events, so events[0] will be "ROLL_BACK.OK" and not "STP_INGEST_FINALISATION.OK"
+            // the order is main-event > sub-events, so events[0] will be "ROLL_BACK.OK" and not
+            // "STP_INGEST_FINALISATION.OK"
             assertEquals(logbookResult.get("$results").get(0).get("events").get(0).get("outDetail").asText(),
                 "ROLL_BACK.OK");
             assertEquals(logbookResult.get("$results").get(0).get("events").get(1).get("outDetail").asText(),
@@ -2722,7 +2722,8 @@ public class ProcessingIT {
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
 
             // as logbookClient.selectOperation returns last two events and after removing STARTED from events
-            // the order is main-event > sub-events, so events[0] will be "ROLL_BACK.OK" and not "STP_INGEST_FINALISATION.OK"
+            // the order is main-event > sub-events, so events[0] will be "ROLL_BACK.OK" and not
+            // "STP_INGEST_FINALISATION.OK"
             assertEquals(logbookResult.get("$results").get(0).get("events").get(0).get("outDetail").asText(),
                 "ROLL_BACK.OK");
             assertEquals(logbookResult.get("$results").get(0).get("events").get(1).get("outDetail").asText(),
@@ -3184,8 +3185,7 @@ public class ProcessingIT {
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
-                });
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
 
             functionalClient.importIngestContracts(IngestContractModelList);
 
@@ -3292,4 +3292,88 @@ public class ProcessingIT {
 
 
     }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestWithAURefObjShouldEndWithKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+        final String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
+
+        // workspace client dezip SIP in workspace
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_KO_AU_REF_OBJ);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+            zipInputStreamSipObject);
+
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
+        // wait a little bit
+
+        RequestResponse<JsonNode> resp = processingClient
+            .executeOperationProcess(containerName, WORFKLOW_NAME, LogbookTypeProcess.INGEST.toString(),
+                ProcessAction.RESUME.getValue());
+        // wait a little bit
+        assertNotNull(resp);
+        assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
+
+        wait(containerName);
+
+        ProcessWorkflow processWorkflow =
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, tenantId);
+
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.KO, processWorkflow.getStatus());
+
+
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestWithWrongUriShouldEndWithKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+        final String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
+
+        // workspace client dezip SIP in workspace
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_KO_MANIFEST_URI);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+            zipInputStreamSipObject);
+
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
+        // wait a little bit
+
+        RequestResponse<JsonNode> resp = processingClient
+            .executeOperationProcess(containerName, WORFKLOW_NAME, LogbookTypeProcess.INGEST.toString(),
+                ProcessAction.RESUME.getValue());
+        // wait a little bit
+        assertNotNull(resp);
+        assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
+
+        wait(containerName);
+
+        ProcessWorkflow processWorkflow =
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, tenantId);
+
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.KO, processWorkflow.getStatus());
+        
+    }
+
 }

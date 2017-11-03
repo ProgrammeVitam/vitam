@@ -28,15 +28,15 @@ package fr.gouv.vitam.common;
 
 import com.google.common.base.Strings;
 
-/**
- * Checker for Parameters <br>
- * <br>
- * Can be used for String (testing also emptiness) and for general Object.<br>
- * For null String only, use the special method.
- *
- *
- */
-public final class ParametersChecker {
+    /**
+     * Checker for Parameters <br>
+     * <br>
+     * Can be used for String (testing also emptiness) and for general Object.<br>
+     * For null String only, use the special method.
+     *
+     *
+     */
+    public final class ParametersChecker {
 
     private ParametersChecker() {
         // empty

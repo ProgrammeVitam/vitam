@@ -60,6 +60,19 @@ public class SedaVersion {
     }
 
     /**
+     * @param type
+     * @return
+     */
+    public List<String> getVersionForOtherType(String type) {
+        if (SedaConstants.TAG_BINARY_DATA_OBJECT.equals(type)) {
+            return physicalDataObjectVersions;
+        } else if (SedaConstants.TAG_PHYSICAL_DATA_OBJECT.equals(type)) {
+            return binaryDataObjectVersions;
+        }
+        return null;
+    }
+    
+    /**
      * @param binaryDataObjectVersions
      */
     public void setBinaryDataObjectVersions(String[] binaryDataObjectVersions) {

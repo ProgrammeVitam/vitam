@@ -28,8 +28,18 @@ package fr.gouv.vitam.worker.core.handler;
 
 
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.core.api.WorkerAction;
 
@@ -48,6 +58,9 @@ import fr.gouv.vitam.worker.core.api.WorkerAction;
  */
 public abstract class ActionHandler implements WorkerAction, VitamAutoCloseable {
 
+    
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ActionHandler.class);
+    
     /**
      * Check mandatory parameters
      *
@@ -62,4 +75,34 @@ public abstract class ActionHandler implements WorkerAction, VitamAutoCloseable 
     public void close() {
         // nothing;
     }
+    
+    /**
+     * Update a detail item status
+     * 
+     * @param globalCompositeItemStatus
+     * @param value
+     * @param globalOutcomeDetailSubcode
+     */
+    public void updateDetailItemStatus(final ItemStatus globalCompositeItemStatus, final String value,
+        final String globalOutcomeDetailSubcode) {
+        try {
+            if (value != null) {
+                ObjectNode evDetData =
+                    (ObjectNode) JsonHandler.getFromString(globalCompositeItemStatus.getEvDetailData());
+                String oldValue = "";
+                if (evDetData.has(SedaConstants.EV_DET_TECH_DATA)) {
+                    oldValue = evDetData.get(SedaConstants.EV_DET_TECH_DATA).textValue() + " \n";
+                }
+                evDetData.put(SedaConstants.EV_DET_TECH_DATA, oldValue + value);
+                globalCompositeItemStatus.setEvDetailData(JsonHandler.unprettyPrint(evDetData));
+                globalCompositeItemStatus.setMasterData(LogbookParameterName.eventDetailData.name(),
+                    JsonHandler.unprettyPrint(evDetData));
+            }
+            globalCompositeItemStatus.setGlobalOutcomeDetailSubcode(globalOutcomeDetailSubcode);
+        } catch (InvalidParseOperationException e1) {
+            LOGGER.error("Unexpected exception : evDetData invalid", e1);
+            globalCompositeItemStatus.increment(StatusCode.FATAL);
+        }
+    }
+    
 }

@@ -53,6 +53,8 @@ public class ProcessingUnitNotFoundException extends ProcessingException {
 
     /**
      * @param message associated message
+     * @param unitId 
+     * @param unitGuid 
      */
     public ProcessingUnitNotFoundException(String message, String unitId, String unitGuid) {
         super(message);
