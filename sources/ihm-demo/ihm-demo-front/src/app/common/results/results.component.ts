@@ -106,7 +106,7 @@ export class ResultsComponent implements OnInit {
           this.lastPage = this.firstPage + this.hits.limit / this.nbRows;
           this.displayedItems = this.items.slice(this.firstItem, this.firstItem +  event.rows);
         },
-        (error) => console.log('Error: ', error._body));
+        (error) => console.log('Error: ', error.body));
     } else {
       this.displayedItems = this.items.slice(this.firstItem, this.firstItem + this.nbRows);
     }

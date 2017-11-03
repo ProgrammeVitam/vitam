@@ -14,7 +14,7 @@ export class IngestUtilsService {
               const a = document.createElement('a');
               document.body.appendChild(a);
 
-              a.href = URL.createObjectURL(new Blob([response.text()], {type: 'application/xml'}));
+              a.href = URL.createObjectURL(response.body);
 
               if (response.headers.get('content-disposition') !== undefined && response.headers.get('content-disposition') !== null) {
                 a.download = response.headers.get('content-disposition').split('filename=')[1];

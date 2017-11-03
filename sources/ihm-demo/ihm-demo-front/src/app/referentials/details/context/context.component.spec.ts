@@ -7,6 +7,7 @@ import { ContextComponent } from './context.component';
 import { BreadcrumbService } from "../../../common/breadcrumb.service";
 import { ReferentialsService } from "../../referentials.service";
 import { VitamResponse } from "../../../common/utils/response";
+import { DialogService } from "../../../common/dialog/dialog.service";
 
 const ReferentialsServiceStub = {
   getContextById: (id) => Observable.of({'$results': [{
@@ -33,7 +34,8 @@ describe('ContextComponent', () => {
       imports: [ RouterTestingModule ],
       providers: [
         BreadcrumbService,
-        { provide: ReferentialsService, useValue: ReferentialsServiceStub }
+        { provide: ReferentialsService, useValue: ReferentialsServiceStub },
+        { provide: DialogService, useValue: {} }
       ],
       declarations: [ ContextComponent ],
       schemas: [NO_ERRORS_SCHEMA]

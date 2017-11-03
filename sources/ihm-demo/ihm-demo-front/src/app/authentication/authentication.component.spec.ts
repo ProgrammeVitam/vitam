@@ -16,7 +16,8 @@ const AuthenticationServiceStub = {
   getTenants : () => {
     return Observable.of([0, 1, 2]);
   },
-  isLoggedIn : () => false
+  isLoggedIn : () => false,
+  loggedOut : () => {}
 };
 
 describe('AuthenticationComponent', () => {

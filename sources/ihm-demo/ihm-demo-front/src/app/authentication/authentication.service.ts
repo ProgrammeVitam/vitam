@@ -1,8 +1,6 @@
 import { Injectable } from '@angular/core';
 import {CookieService} from "angular2-cookie/core";
-import { Response } from "@angular/http";
 import {Router} from '@angular/router';
-import 'rxjs/add/operator/map';
 import { BehaviorSubject } from "rxjs/BehaviorSubject"
 
 import { ResourcesService } from '../common/resources.service';
@@ -42,8 +40,7 @@ export class AuthenticationService {
 
   logIn(id : string, password: string) {
     this.resourceService.removeSessionInfo();
-    return this.resourceService.post('login', null, {"token":{"principal":id,"credentials":password}})
-      .map((res: Response) => res.json());
+    return this.resourceService.post('login', null, {"token":{"principal":id,"credentials":password}});
   }
 
   loggedOut() {

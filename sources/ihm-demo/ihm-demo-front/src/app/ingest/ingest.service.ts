@@ -8,7 +8,7 @@ export class IngestService {
   constructor(private resourceService: ResourcesService) { }
 
   getObject(id, type) {
-    return this.resourceService.get(`${this.INGEST_API}/${id}/${type}`);
+    return this.resourceService.get(`${this.INGEST_API}/${id}/${type}`, null, 'blob');
   }
 
 }

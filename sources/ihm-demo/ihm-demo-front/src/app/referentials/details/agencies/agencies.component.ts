@@ -6,9 +6,7 @@ import { Title } from '@angular/platform-browser';
 import { BreadcrumbService, BreadcrumbElement } from "../../../common/breadcrumb.service";
 import { ReferentialsService } from "../../referentials.service";
 import { DateService } from '../../../common/utils/date.service';
-
 import { ArchiveUnitService } from '../../../archive-unit/archive-unit.service';
-
 import { PageComponent } from "../../../common/page/page-component";
 import { Agency } from './agency';
 

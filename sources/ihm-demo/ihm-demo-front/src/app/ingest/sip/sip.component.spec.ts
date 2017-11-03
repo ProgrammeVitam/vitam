@@ -4,8 +4,6 @@ import { TabViewModule, RadioButtonModule, ProgressBarModule } from 'primeng/pri
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { CookieService } from 'angular2-cookie/core';
 import { FormsModule }   from '@angular/forms';
-import { MockBackend } from '@angular/http/testing';
-import { BaseRequestOptions, Http, RequestOptions } from '@angular/http';
 import {Observable} from 'rxjs/Observable';
 import { NO_ERRORS_SCHEMA } from "@angular/core";
 
@@ -43,14 +41,6 @@ describe('SipComponent', () => {
         BreadcrumbService,
         ResourcesService,
         CookieService,
-        MockBackend,
-        BaseRequestOptions,
-        {
-          provide: Http,
-          useFactory: (mockBackend: MockBackend, defaultOptions: RequestOptions) => {
-            return new Http(mockBackend, defaultOptions);
-          },
-          deps: [MockBackend, BaseRequestOptions]         },
         {provide: UploadService, useValue : UploadServiceStub},
         {provide: AuthenticationService, useValue : {isAdmin : () => {return true;}}}
       ],

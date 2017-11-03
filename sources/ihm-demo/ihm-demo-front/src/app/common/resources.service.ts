@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import {CookieService} from "angular2-cookie/core";
-import 'rxjs/add/operator/map';
-import {Headers, Http, RequestOptionsArgs, Response, ResponseContentType } from "@angular/http";
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import {Observable} from "rxjs/Observable";
 
 import {VitamResponse} from "./utils/response";
@@ -11,77 +10,48 @@ const CONTRACT_COOKIE = 'accessContract';
 const BASE_URL = '/ihm-demo/v1/api/';
 const TENANTS = 'tenants';
 
-export class RequestOptionsTenant implements RequestOptionsArgs {}
-
 @Injectable()
 export class ResourcesService {
 
-  constructor(private cookies: CookieService, private http: Http) { }
+  constructor(private cookies: CookieService, private http: HttpClient) { }
 
-  get(url, header?: Headers, contentType?: ResponseContentType) {
-    const options: RequestOptionsArgs = new RequestOptionsTenant;
-    if (!header) {
-      header = new Headers();
+  get(url, header?: HttpHeaders, responsetype? : any): Observable<any> {
+    header = this.setDefaultHeader(header);
+
+    if (responsetype && responsetype != 'json') {
+      return this.http.get(`${BASE_URL}${url}`, {
+        headers : header,
+        responseType : responsetype,
+        observe: 'response'
+      });
+    } else {
+      return this.http.get(`${BASE_URL}${url}`, { headers : header,
+        responseType : 'json'});
     }
 
-    if ( this.getTenant()) {
-      header.append('X-Tenant-Id', this.getTenant());
-      header.append('X-Access-Contract-Id', this.getAccessContract());
-    }
-
-    if ( contentType ) {
-      options.responseType = contentType;
-    }
-
-    options.headers = header;
-    return this.http.get(`${BASE_URL}${url}`, options);
   }
 
-  post(url, header?: Headers, body?: any) {
-    const options: RequestOptionsArgs = new RequestOptionsTenant;
-    if (!header) {
-      header = new Headers();
-    }
-    if (this.getTenant()) {
-      header.append('X-Tenant-Id', this.getTenant());
-      header.append('X-Access-Contract-Id', this.getAccessContract());
-    }
-    options.headers = header;
-    return this.http.post(`${BASE_URL}${url}`, body, options);
+  post(url, header?: HttpHeaders, body?: any): Observable<any>  {
+    header = this.setDefaultHeader(header);
+    return this.http.post(`${BASE_URL}${url}`, body, {headers : header});
   }
 
-  put(url, header?: Headers, body?: any) {
-    const options: RequestOptionsArgs = new RequestOptionsTenant;
-    if (!header) {
-      header = new Headers();
-    }
-    if (this.getTenant()) {
-      header.append('X-Tenant-Id', this.getTenant());
-      header.append('X-Access-Contract-Id', this.getAccessContract());
-    }
-    options.headers = header;
-    return this.http.put(`${BASE_URL}${url}`, body, options);
+  put(url, header?: HttpHeaders, body?: any): Observable<any>  {
+    header = this.setDefaultHeader(header);
+    return this.http.put(`${BASE_URL}${url}`, body, {headers : header});
   }
 
-  delete(url) {
-    const options: RequestOptionsArgs = new RequestOptionsTenant;
-    const headers: Headers = new Headers();
-    if ( this.getTenant()) {
-      headers.append('X-Tenant-Id', this.getTenant());
-      headers.append('X-Access-Contract-Id', this.getAccessContract());
-    }
-    options.headers = headers;
-    return this.http.delete(`${BASE_URL}${url}`, options);
+  delete(url): Observable<any> {
+    let header = this.setDefaultHeader(null);
+    return this.http.delete(`${BASE_URL}${url}`, {headers : header});
   }
 
   getTenants() {
-    return this.get(TENANTS)
-      .map((res: Response) => res.json());
+    return this.get(TENANTS);
   }
 
   getAccessContrats() : Observable<VitamResponse> {
-    return this.post('accesscontracts', null, {"ContractName":"all","Status":"ACTIVE"})
-      .map((res: Response) => res.json());
+    return this.post('accesscontracts', null, {"ContractName":"all","Status":"ACTIVE"});
   }
 
   setAccessContract(contractName: string) {
@@ -103,6 +73,19 @@ export class ResourcesService {
   removeSessionInfo() {
     this.cookies.remove(TENANT_COOKIE);
     this.cookies.remove(CONTRACT_COOKIE);
+  }
+
+  private setDefaultHeader(header?: HttpHeaders) {
+    if (!header) {
+      header = new HttpHeaders();
+    }
+    if (this.getTenant()) {
+      header = header.set('X-Tenant-Id', this.getTenant());
+    }
+    if (this.getAccessContract()) {
+      header = header.set('X-Access-Contract-Id', this.getAccessContract());
+    }
+    return header;
   }
 
 }

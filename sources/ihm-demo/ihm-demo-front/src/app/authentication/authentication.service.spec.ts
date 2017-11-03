@@ -1,16 +1,14 @@
 import { TestBed, inject } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import {CookieService} from 'angular2-cookie/core';
-import {MockBackend} from '@angular/http/testing';
-import {BaseRequestOptions, Http, RequestOptions} from '@angular/http';
 import { NO_ERRORS_SCHEMA } from "@angular/core";
+import { HttpClient } from '@angular/common/http';
 
 import { AuthenticationService } from './authentication.service';
 import { ResourcesService } from '../common/resources.service';
 
 describe('AuthenticationService', () => {
   let authenticationService: AuthenticationService;
-  let backend: MockBackend;
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [ RouterTestingModule],
@@ -18,20 +16,14 @@ describe('AuthenticationService', () => {
         AuthenticationService,
         ResourcesService,
         CookieService,
-        MockBackend,
-        BaseRequestOptions,
         {
-          provide: Http,
-          useFactory: (mockBackend: MockBackend, defaultOptions: RequestOptions) => {
-            return new Http(mockBackend, defaultOptions);
-          },
-          deps: [MockBackend, BaseRequestOptions]         }
+          provide: HttpClient,
+          useValue: {} }
         ]
     });
   });
 
-  beforeEach(inject([MockBackend, AuthenticationService], (mockBackend, service: AuthenticationService) => {
-    backend = mockBackend;
+  beforeEach(inject([AuthenticationService], (mockBackend, service: AuthenticationService) => {
     authenticationService = service;
   }));
 
