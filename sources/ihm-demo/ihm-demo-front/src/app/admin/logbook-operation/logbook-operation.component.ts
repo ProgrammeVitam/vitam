@@ -59,7 +59,7 @@ export class LogbookOperationComponent extends PageComponent {
     ColumnDefinition.makeStaticColumn('evDateTime', 'Date', this.archiveUnitHelper.handleDateWithTime,
         () => ({'width': '100px'})),
     ColumnDefinition.makeSpecialValueColumn('Statut',
-        (item) => item.events[1] ? item.events[1].outcome.toUpperCase() : '', LogbookOperationComponent.handleStatus,
+        LogbookOperationComponent.handleValue, LogbookOperationComponent.handleStatus,
         () => ({'width': '125px'})),
     ColumnDefinition.makeStaticColumn('outMessg', 'Message', undefined,
         () => ({'width': '175px', 'overflow-wrap': 'break-word'}))
@@ -107,7 +107,7 @@ export class LogbookOperationComponent extends PageComponent {
 
   static handleReports(item): string[] {
     const evType = item.evTypeProc.toUpperCase();
-    if (['AUDIT','EXPORT_DIP','INGEST'].indexOf(evType) > -1) {
+    if (['AUDIT','EXPORT_DIP','INGEST'].indexOf(evType) > -1 || item.evType.toUpperCase() === 'STP_IMPORT_RULES') {
       return ['fa-download']
     }else {
       return [];
@@ -121,6 +121,11 @@ export class LogbookOperationComponent extends PageComponent {
       case 'KO': case 'FATAL': return 'Erreur';
       default: return 'Avertissement';
     }
+  }
+
+  static handleValue(item): string {
+    const lastItem = item.events.length -1;
+    return item.events[lastItem] ? item.events[lastItem].outcome.toUpperCase() : ''
   }
 
   public preSearchFunction(request): Preresult {
@@ -163,6 +168,11 @@ export class LogbookOperationComponent extends PageComponent {
         break;
       case 'EXPORT_DIP':
         logbookService.downloadDIP(item.evIdProc);
+        break;
+      case 'MASTERDATA':
+        if(item.evType.toUpperCase() == 'STP_IMPORT_RULES') {
+          logbookService.downloadReport(item.evIdProc);
+        }
         break;
     }
 
