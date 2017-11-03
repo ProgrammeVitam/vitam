@@ -116,7 +116,7 @@
                 <div class="ui-g-2">Calculée</div>
                 <div class="ui-g-1">{{rule.inherited ? 'Oui': 'Non'}}</div>
                 <div class="ui-g-2" *ngIf="!rule.inherited && (category.rule === 'StorageRule' || category.rule === 'AppraisalRule')">
-                  <select [(ngModel)]="updatedFields[category.rule].Rules.FinalAction" style="width: 100%">
+                  <select [(ngModel)]="rule.FinalAction" style="width: 100%">
                     <option *ngFor="let action of finalActions[category.rule] | keys" value="{{finalActions[category.rule][action].id}}">{{finalActions[category.rule][action].label}}</option>
                   </select>
                 </div>
