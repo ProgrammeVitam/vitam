@@ -1535,7 +1535,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             groupGuid = GUIDFactory.newObjectGroupGUID(ParameterHelper.getTenantParameter())
                                 .toString();
                             final String groupId = reader.getElementText();
-                            // Having DataObjectGroupID after a DataObjectGroupReferenceID in the XML flow .
+                            // Having DataObjectGroupID after a DataObjectGroupReferenceID in the XML flow.
                             // We get the GUID defined earlier during the DataObjectGroupReferenceID analysis
                             if (objectGroupIdToGuidTmp.get(groupId) != null) {
                                 groupGuid = objectGroupIdToGuidTmp.get(groupId);
@@ -1577,7 +1577,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
                                 dataOjectList.add(dataObjectId);
                                 objectGroupIdToDataObjectId.put(groupId, dataOjectList);
                                 objectGroupIdToGuidTmp.put(groupId, groupGuidTmp);
-
                             }
 
                             // Create new startElement for group with new guid
