@@ -2,7 +2,7 @@
               [submitFunction]="initialSearch" (responseEvent)="onNotify($event)" [panelButtonlabel]="searchButtonLabel"
               (panelButtonEvent)="onNotifyPanelButton($event)"></vitam-search>
 
-<vitam-results [data]="response" [cols]="columns" [extraCols]="extraColumns" [service]="logbookService"
+<vitam-results [data]="response" [cols]="columns" [extraCols]="extraColumns" [service]="searchReferentialsService"
                [searchFunction]="paginationSearch" [searchForm]="searchForm" [path]="referentialPath" [identifier]="referentialIdentifier"></vitam-results>
 
 

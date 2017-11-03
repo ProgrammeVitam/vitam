@@ -333,4 +333,8 @@ export class SearchReferentialsComponent  extends PageComponent {
   onNotifyPanelButton() {
     this.router.navigate(['admin/import/' + this.referentialType]);
   }
+
+  public paginationSearch(service: any, offset) {
+    return service.getResults(this.searchForm, offset);
+  }
 }
