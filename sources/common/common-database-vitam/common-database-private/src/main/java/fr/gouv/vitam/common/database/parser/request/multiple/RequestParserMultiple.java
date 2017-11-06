@@ -488,4 +488,34 @@ public abstract class RequestParserMultiple extends AbstractParser<RequestMultip
         return FILTERARGS.UNITS;
     }
 
+
+
+    /**
+     * get ScrollId
+     *
+     * @return the limit
+     */
+    public String getFinalScrollId() {
+        final JsonNode node = request.getFilter()
+            .get(SELECTFILTER.SCROLL_ID.exactToken());
+        if (node != null) {
+            return node.asText();
+        }
+        return "";
+    }
+
+    /**
+     * get ScrollTimeout
+     *
+     * @return ScrollTimeout
+     */
+    public int getFinalScrollTimeout() {
+        final JsonNode node = request.getFilter()
+            .get(SELECTFILTER.SCROLL_TIMEOUT.exactToken());
+        if (node != null) {
+            return node.asInt();
+        }
+        return 0;
+    }
+
 }

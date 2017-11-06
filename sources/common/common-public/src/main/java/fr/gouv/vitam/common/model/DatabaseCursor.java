@@ -44,6 +44,8 @@ public class DatabaseCursor {
     private long limit;
     @JsonProperty("size")
     private long size;
+    @JsonProperty("scrollId")
+    private String scrollId;
 
 
     /**
@@ -80,6 +82,23 @@ public class DatabaseCursor {
         this.offset = offset;
         this.limit = limit;
         this.size = size;
+    }
+
+    /**
+     * DatabaseCursor constructor
+     *
+     * @param total total of inserted/modified/selected items
+     * @param offset the offset of items in database
+     * @param limit number limit of items per response
+     * @param size size of the current response
+     * @param scrollId cursorId of the current response
+     */
+    public DatabaseCursor(long total, long offset, long limit, long size, String scrollId) {
+        this.total = total;
+        this.offset = offset;
+        this.limit = limit;
+        this.size = size;
+        this.scrollId = scrollId;
     }
 
     /**
@@ -146,6 +165,24 @@ public class DatabaseCursor {
      */
     public DatabaseCursor setSize(long size) {
         this.size = size;
+        return this;
+    }
+
+
+    /**
+     * @return the scrollId as current response size
+     */
+    public String getScrollId() {
+        return this.scrollId;
+    }
+
+    /**
+     * @param scrollId the cursorId as current response size
+     *
+     * @return this
+     */
+    public DatabaseCursor setScrollId(String scrollId) {
+        this.scrollId = scrollId;
         return this;
     }
 }

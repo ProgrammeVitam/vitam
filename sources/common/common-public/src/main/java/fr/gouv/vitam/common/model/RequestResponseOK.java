@@ -163,6 +163,20 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
         return this;
     }
 
+
+    /**
+     * @param total of units inserted/modified as integer
+     * @param offset of unit in database as integer
+     * @param limit of unit per response as integer
+     * @param size of unit per response
+     * @param scrollId of response
+     * @return the RequestReponseOK with the hits are setted
+     */
+    public RequestResponseOK<T> setHits(long total, int offset, int limit, int size, String scrollId) {
+        hits = new DatabaseCursor(total, offset, limit, size, scrollId);
+        return this;
+    }
+
     /**
      * @param total of units inserted/modified as integer
      * @param offset of unit in database as integer
@@ -185,6 +199,19 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
     public RequestResponseOK<T> setTotal(long total) {
         if (hits != null) {
             hits.setTotal(total);
+        }
+        return this;
+    }
+
+    /**
+     * When activate scroll
+     *
+     * @param scrollId
+     * @return
+     */
+    public RequestResponseOK<T> setScrollId(String scrollId) {
+        if (hits != null) {
+            hits.setScrollId(scrollId);
         }
         return this;
     }

@@ -41,6 +41,7 @@ import java.util.List;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.MarshalException;
 
+import fr.gouv.vitam.common.model.DatabaseCursor;
 import org.bson.Document;
 import org.jhades.JHades;
 import org.junit.After;
@@ -343,13 +344,13 @@ public class MetaDataResourceTest {
 
     @Test
     public void shouldReturnResponseOKIfDocumentCreated() throws Exception {
+        String responseOK = JsonHandler.getFromFile(PropertiesUtils.findFile("reponseCreated.json")).toString();
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions("", DATA)).when()
             .post("/units").then()
-            .body(equalTo(
-                new RequestResponseOK(buildDSLWithOptions("", DATA)).setHits(1, 0, 1).setHttpCode(Status.CREATED.getStatusCode()).toString()))
+            .body(equalTo(responseOK))
             .statusCode(Status.CREATED.getStatusCode());
     }
 

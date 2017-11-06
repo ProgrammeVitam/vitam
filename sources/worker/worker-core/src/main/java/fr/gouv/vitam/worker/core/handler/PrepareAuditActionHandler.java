@@ -60,6 +60,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFo
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -118,22 +119,32 @@ public class PrepareAuditActionHandler extends ActionHandler {
                 selectQuery.setQuery(QueryHelper.eq(auditType,
                     mapParameters.get(WorkerParameterName.objectId)));
             }
-
+            final int scrollSize = GlobalDatas.LIMIT_LOAD;
             selectQuery.setProjection(JsonHandler.getFromString("{\"$fields\": { \"#id\": 1}}"));
+            selectQuery.setScrollFilter(
+                GlobalDatasDb.SCROLL_ACTIVATE_KEYWORD,
+                GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT,
+                scrollSize);
             JsonNode searchResults = metadataClient.selectObjectGroups(selectQuery.getFinalSelect());
-            if (searchResults.get(HITS) != null) {
-                JsonNode total = searchResults.get(HITS).get("total");
+            JsonNode hitsNode = searchResults.get(HITS);
+            if (hitsNode != null) {
+                JsonNode total = hitsNode.get("total");
                 if (total != null) {
                     long ogTotalNumber = total.asLong();
-                    addToOgIdList(ogIdList, searchResults);
-                    int offset = GlobalDatas.LIMIT_LOAD;
-                    if (ogTotalNumber > GlobalDatas.LIMIT_LOAD) {
+                    int offset = scrollSize;
+                    JsonNode scrollNode = hitsNode.get("scrollId");
+                    if (scrollNode != null) {
+                        final String scrollId = scrollNode.asText();
+                        addToOgIdList(ogIdList, searchResults);
                         while (offset < ogTotalNumber) {
-                            selectQuery.setLimitFilter(offset, GlobalDatas.LIMIT_LOAD);
+                            selectQuery.setScrollFilter(
+                                scrollId,
+                                GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT,
+                                GlobalDatas.LIMIT_LOAD);
                             final JsonNode nextSearchResults =
                                 metadataClient.selectObjectGroups(selectQuery.getFinalSelect());
                             addToOgIdList(ogIdList, nextSearchResults);
-                            offset += GlobalDatas.LIMIT_LOAD;
+                            offset += scrollSize;
                         }
                     }
                 }

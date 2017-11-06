@@ -91,6 +91,11 @@ public abstract class Result<T> {
     protected List<T> finalResult;
 
     /**
+     * The scrollId
+     */
+    protected String scrollId;
+
+    /**
      * Constructor for empty result
      *
      * @param type of filter
@@ -191,6 +196,28 @@ public abstract class Result<T> {
             nbResult = currentIds.size();
         }
         return this;
+    }
+
+
+    /**
+     * Add ScrollId to Result
+     *
+     * @param scrollId the scrollid as String adding to current result
+     * @return this
+     */
+    public Result<T> setScrollId(String scrollId) {
+        this.scrollId = scrollId;
+        return this;
+    }
+
+
+    /**
+     * Return ScrollId of Result
+     *
+     * @return ScrollId
+     */
+    public String getScrollId() {
+        return this.scrollId;
     }
 
     /**

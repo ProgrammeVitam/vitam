@@ -326,4 +326,16 @@ public class SelectMultiQuery extends RequestMultiple {
         return builder.toString();
     }
 
+
+    /**
+     * @param scrollId ignored if empty or null
+     * @param scrollTimeout ignored if 0
+     * @param limit ignored if 0
+     * @return this Query
+     */
+    public final SelectMultiQuery setScrollFilter(final String scrollId, final long scrollTimeout, final long limit) {
+        selectSetScrollFilter(scrollId, scrollTimeout, limit);
+        return this;
+    }
+
 }

@@ -109,4 +109,19 @@ public class GlobalDatasDb extends GlobalDatasParser {
      */
     public static final boolean USEREDIS = false;
 
+    /**
+     * KEYWORD to activate scroll
+     */
+    public static final String SCROLL_ACTIVATE_KEYWORD = "START";
+
+    /**
+     * default limit scroll size
+     */
+    public static final int DEFAULT_LIMIT_SCROLL = 100;
+
+    /**
+     * default limit scroll timeout
+     */
+    public static final int DEFAULT_SCROLL_TIMEOUT = 60000;
+
 }

@@ -28,6 +28,7 @@ package fr.gouv.vitam.common.database.builder.request;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -276,6 +277,29 @@ public abstract class AbstractRequest {
     }
 
     /**
+     * @param scrollId ignored if empty or null
+     * @param scrollTimeout ignored if 0
+     * @param limit ignored if 0
+     * @return this Query
+     */
+    protected final AbstractRequest selectSetScrollFilter(final String scrollId, final long scrollTimeout, final long limit) {
+        if (filter == null) {
+            filter = JsonHandler.createObjectNode();
+        }
+        selectResetLimitFilter();
+        if (scrollId != null && !scrollId.isEmpty()) {
+            filter.put(SELECTFILTER.SCROLL_ID.exactToken(), scrollId);
+        }
+        if (limit > 0) {
+            filter.put(SELECTFILTER.LIMIT.exactToken(), limit);
+        }
+        if (scrollTimeout > 0) {
+            filter.put(SELECTFILTER.SCROLL_TIMEOUT.exactToken(), scrollTimeout);
+        }
+        return this;
+    }
+
+    /**
      * @param offset ignored if 0
      * @param limit ignored if 0
      * @return this Query
@@ -302,6 +326,8 @@ public abstract class AbstractRequest {
     protected final AbstractRequest selectSetLimitFilter(final JsonNode filterContent) {
         long offset = 0;
         long limit = GlobalDatas.LIMIT_LOAD;
+        String scrollId = null;
+        long timeout = 0;
         if (filterContent.has(SELECTFILTER.LIMIT.exactToken())) {
             /*
              * $limit : n $maxScan: <number> / cursor.limit(n) "filter" : { "limit" : {"value" : n} } ou "from" : start,
@@ -316,6 +342,20 @@ public abstract class AbstractRequest {
              */
             offset = filterContent.get(SELECTFILTER.OFFSET.exactToken()).asLong(0);
         }
+        if (filterContent.has(SELECTFILTER.SCROLL_ID.exactToken())) {
+            /*
+             * $offset : start cursor.skip(start) "from" : start, "size" : n
+             */
+            scrollId = filterContent.get(SELECTFILTER.SCROLL_ID.exactToken()).asText();
+            if (filterContent.has(SELECTFILTER.SCROLL_TIMEOUT.exactToken())) {
+            /*
+             * $offset : start cursor.skip(start) "from" : start, "size" : n
+             */
+                timeout = filterContent.get(SELECTFILTER.SCROLL_TIMEOUT.exactToken()).asLong(0);
+            }
+            selectSetScrollFilter(scrollId, timeout, limit);
+        }
+
         return selectSetLimitFilter(offset, limit);
     }
 
