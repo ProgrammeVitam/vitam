@@ -222,7 +222,7 @@ public class ValidatorTest {
             .hasMessageContaining(
                 "Validating $roots: guid[] ~ INVALID_VALUE: STRING ~ hint: Tableau d'identifiants d'AU racines ~ found json: \\\"azdazdazdaz\\\" ~ path: [$roots]")
             .hasMessageContaining(
-                "Validating $search: {[key]: anyvalue} ~ ELEMENT_TOO_SHORT: 0 < 1 ~ found json: {} ~ path: [$query, $search]");
+                "Validating $search: {[key]: string} ~ ELEMENT_TOO_SHORT: 0 < 1 ~ found json: {} ~ path: [$query, $search]");
     }
 
     @Test
@@ -232,7 +232,7 @@ public class ValidatorTest {
         final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
         assertThatThrownBy(() -> validator.validate(test1Json))
             .hasMessageContaining(
-                "Validating $wildcard: {[key]: anyvalue} ~ ELEMENT_TOO_SHORT: 0 < 1");
+                "Validating $wildcard: {[key]: string} ~ ELEMENT_TOO_SHORT: 0 < 1");
     }
 
     @Test
@@ -250,7 +250,7 @@ public class ValidatorTest {
         final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
         assertThatThrownBy(() -> validator.validate(test1Json))
             .hasMessageContaining(
-                "Validating $regex: {[key]: anyvalue} ~ ELEMENT_TOO_SHORT: 0 < 1");
+                "Validating $regex: {[key]: string} ~ ELEMENT_TOO_SHORT: 0 < 1");
     }
 
     @Test

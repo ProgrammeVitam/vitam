@@ -46,49 +46,49 @@
       "keychoice": {
         "$match": {
           "type": {
-            "anykey": "anyvalue",
+            "anykey": "string",
             "min": 1,
             "max": 1
           }
         },
         "$search": {
           "type": {
-            "anykey": "anyvalue",
+            "anykey": "string",
             "min": 1,
             "max": 1
           }
         },
         "$match_all": {
           "type": {
-            "anykey": "anyvalue",
+            "anykey": "string",
             "min": 1,
             "max": 1
           }
         },
         "$match_phrase": {
           "type": {
-            "anykey": "anyvalue",
+            "anykey": "string",
             "min": 1,
             "max": 1
           }
         },
         "$match_phrase_prefix": {
           "type": {
-            "anykey": "anyvalue",
+            "anykey": "string",
             "min": 1,
             "max": 1
           }
         },
         "$wildcard": {
           "type": {
-            "anykey": "anyvalue",
+            "anykey": "string",
             "min": 1,
             "max": 1
           }
         },
         "$regex": {
           "type": {
-            "anykey": "anyvalue",
+            "anykey": "string",
             "min": 1,
             "max": 1
           }

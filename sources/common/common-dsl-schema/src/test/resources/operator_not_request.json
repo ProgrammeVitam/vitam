@@ -15,7 +15,7 @@
     },
     {
       "$match": {
-        "toto": 12
+        "toto": "toto"
       }
     }
   ],
