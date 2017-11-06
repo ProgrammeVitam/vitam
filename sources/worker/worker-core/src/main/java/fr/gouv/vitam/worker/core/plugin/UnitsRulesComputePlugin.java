@@ -73,6 +73,7 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesExcepti
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.InvalidRuleException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.common.model.unit.ManagementModel;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -100,7 +101,6 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     private static final int UNIT_INPUT_RANK = 0;
     private HandlerIO handlerIO;
     private boolean asyncIO = false;
-    private UnitRulesComputeStatus unitRulesComputeStatus;
 
     /**
      * Empty constructor UnitsRulesComputePlugin
@@ -115,9 +115,23 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         final long time = System.currentTimeMillis();
         handlerIO = handler;
         final ItemStatus itemStatus = new ItemStatus(CHECK_RULES_TASK_ID);
+        boolean invalidRule = false;
+        
         try {
             calculateMaturityDate(params, itemStatus);
             itemStatus.increment(StatusCode.OK);
+        } catch (InvalidRuleException e) {
+            invalidRule = true;
+            itemStatus.increment(StatusCode.KO);
+            switch (e.getUnitRulesComputeStatus()) {
+                case UNKNOWN:
+                    itemStatus.setItemId(CHECK_RULES_TASK_ID + "." + UnitRulesComputeStatus.UNKNOWN.toString());
+                    break;
+                case REF_INCONSISTENCY:
+                    itemStatus.setItemId(CHECK_RULES_TASK_ID + "." + UnitRulesComputeStatus.REF_INCONSISTENCY.toString());
+                    break;
+            }
+
         } catch (final ProcessingException e) {
             LOGGER.debug(e);
             final ObjectNode object = JsonHandler.createObjectNode();
@@ -126,16 +140,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
             itemStatus.increment(StatusCode.KO);
         }
 
-        if (itemStatus.getGlobalStatus().equals(StatusCode.KO)) {
-            switch (unitRulesComputeStatus) {
-                case UNKNOWN:
-                    itemStatus.setItemId(CHECK_RULES_TASK_ID + "." + UnitRulesComputeStatus.UNKNOWN.toString());
-                    break;
-                case REF_INCONSISTENCY:
-                    itemStatus.setItemId(CHECK_RULES_TASK_ID + "." + UnitRulesComputeStatus.REF_INCONSISTENCY.toString());
-                    break;
-            }
-        } else {
+        if (!invalidRule) {
             itemStatus.setItemId(CHECK_RULES_TASK_ID);
         }
 
@@ -369,8 +374,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
 
         final String errors = report.toString();
         if (ParametersChecker.isNotEmpty(errors)) {
-            unitRulesComputeStatus = UnitRulesComputeStatus.REF_INCONSISTENCY;
-            throw new ProcessingException(errors);
+            throw new InvalidRuleException(UnitRulesComputeStatus.REF_INCONSISTENCY, errors);
         }
     }
 
@@ -431,14 +435,13 @@ public class UnitsRulesComputePlugin extends ActionHandler {
      * @throws ParseException
      */
     private void computeRuleNode(ObjectNode ruleNode, JsonNode rulesResults, String ruleType)
-        throws FileRulesException, InvalidParseOperationException, ProcessingException, ParseException {
+        throws FileRulesException, InvalidParseOperationException, InvalidRuleException, ParseException, ProcessingException {
         String ruleId = ruleNode.get(SedaConstants.TAG_RULE_RULE).asText();
         String startDate = "";
 
         if (getRuleNodeByID(ruleId, ruleType, rulesResults) == null) {
-            unitRulesComputeStatus = UnitRulesComputeStatus.UNKNOWN;
             String errorMessage = String.format(NON_EXISTING_RULE, ruleId);
-            throw new ProcessingException(errorMessage);            
+            throw new InvalidRuleException(UnitRulesComputeStatus.UNKNOWN, errorMessage);            
         }
 
         if (ruleNode.get(SedaConstants.TAG_RULE_START_DATE) != null) {
