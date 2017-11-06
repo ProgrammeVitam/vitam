@@ -265,8 +265,7 @@ public class AccessStep {
         String auId = "";
         SelectMultiQuery searchQuery = new SelectMultiQuery();
         searchQuery.addQueries(
-            and().add(eq(TITLE, auTitle)).add(in(VitamFieldsHelper.operations(), world.getOperationId()))
-                .setDepthLimit(20));
+            and().add(eq(TITLE, auTitle)).add(in(VitamFieldsHelper.operations(), world.getOperationId())));
         RequestResponse requestResponse =
             world.getAccessClient().selectUnits(
                 new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())

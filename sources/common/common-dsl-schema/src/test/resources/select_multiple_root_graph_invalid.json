@@ -1,16 +1,16 @@
 {
-	"$roots": [],
+	"$roots": ["aeaqaaaaaagdmvr3abnwoak7fzjq75qaaaca"],
 	"$query": [
         {
           "$match": {
             "Title": "assemblée"
-          }
+          },
+          "$depth": 0
         },
         {
          "$match": {
             "Title": "discours"
-         },
-         "$depth": 20
+         }
         },
         {
          "$in": {

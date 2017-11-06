@@ -1,10 +1,10 @@
 {
-	"$roots": [],
 	"$query": [
         {
           "$match": {
             "Title": "assemblée"
-          }
+          },
+         "$depth": 0
         },
         {
          "$match": {
