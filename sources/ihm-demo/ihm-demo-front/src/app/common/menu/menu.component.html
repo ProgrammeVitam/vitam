@@ -1,22 +1,21 @@
 <p-growl [(value)]="msgs" life="2000"></p-growl>
-<p-menubar [model]="items">
-  <div class="fixed" >
-    <a routerLink="/admin/collection">
-      <!-- FIXME may be missed in dev build -->
-      <img src="assets/images/logoIHMPurpleR5.png"
-           class="logo" alt="Vitam" title="Vitam"/>
-      <span class="title">vitam</span>
-    </a>
+<div class="fixed">
+  <a routerLink="/admin/collection" class="vitam_logo">
+    <!-- FIXME may be missed in dev build -->
+    <img src="assets/images/logoIHMPurpleR5.png"
+         class="logo" alt="Vitam" title="Vitam"/>
+    <span class="title">vitam</span>
+  </a>
+</div>
+<p-menubar [model]="items" [style]="{ 'text-align': 'left', 'padding-left': '200px'}">
+  <div id="accessContract" *ngIf="isAuthenticated">
+    <p-dropdown [style]="{'width':'200px'}" placeholder="Sélectionner un contrat" [options]="accessContracts"
+                [(ngModel)]="accessContract" (onChange)="updateContract()"></p-dropdown>
   </div>
-  <div class="userInfo" *ngIf="isAuthenticated" >
-    <span class="tenant-text">Tenant: <b>{{tenantChosen ? tenantChosen : '-'}}</b></span>
+  <div class="userInfo" *ngIf="isAuthenticated">
+    <span class="tenant-text">Tenant : <b>{{tenantChosen ? tenantChosen : '-'}}</b></span>
     <i class="fa fa-power-off logout-icon" (click)="logOut()">
       <a id="logout-text">Déconnexion</a>
     </i>
   </div>
-  <div id="accessContract" *ngIf="isAuthenticated">
-    <p-dropdown [style]="{'width':'240px'}" placeholder="Sélectionner un contrat" [options]="accessContracts"
-                [(ngModel)]="accessContract" (onChange)="updateContract()"></p-dropdown>
-  </div>
-
 </p-menubar>

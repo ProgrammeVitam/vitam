@@ -10,7 +10,7 @@ import { DateService } from '../../../common/utils/date.service';
 import { PageComponent } from "../../../common/page/page-component";
 
 const FORMAT_KEY_TRANSLATION = {
-  Name: 'Nom du fomat',
+  Name: 'Intitulé',
   HasPriorityOverFileFormatID : 'Priorité sur les versions précédentes',
   MIMEType : 'MIME types',
   VersionPronom : 'Version de Pronom',
@@ -32,7 +32,7 @@ export class FormatComponent  extends PageComponent {
   constructor(private activatedRoute: ActivatedRoute, private router : Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
               private searchReferentialsService : ReferentialsService) {
-    super('Détail du format', [], titleService, breadcrumbService);
+    super('Détail du format ', [], titleService, breadcrumbService);
   }
 
   pageOnInit() {
@@ -50,7 +50,7 @@ export class FormatComponent  extends PageComponent {
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
         {label: 'Référentiel des formats', routerLink: 'admin/search/format'},
-        {label: 'Détail du format' + this.id, routerLink: ''}
+        {label: 'Détail du format ' + this.id, routerLink: ''}
       ];
 
       this.setBreadcrumb(newBreadcrumb);

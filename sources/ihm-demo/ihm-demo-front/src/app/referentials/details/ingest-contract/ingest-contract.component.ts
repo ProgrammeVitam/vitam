@@ -43,7 +43,7 @@ export class IngestContractComponent extends PageComponent {
   constructor(private activatedRoute: ActivatedRoute, private router : Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
               private searchReferentialsService : ReferentialsService, private dialogService : DialogService) {
-    super('Détail du contrat d\'entrée', [], titleService, breadcrumbService);
+    super('Détail du contrat d\'entrée ', [], titleService, breadcrumbService);
 
   }
 
@@ -54,7 +54,7 @@ export class IngestContractComponent extends PageComponent {
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
         {label: 'Référentiel des contrats d\'entrée', routerLink: 'admin/search/ingestContract'},
-        {label: 'Détail du contrat d\'entrée' + this.id, routerLink: ''}
+        {label: 'Détail du contrat d\'entrée ' + this.id, routerLink: ''}
       ];
 
       this.setBreadcrumb(newBreadcrumb);

@@ -1,25 +1,25 @@
-import { Component } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { plainToClass } from 'class-transformer';
-import { Title } from '@angular/platform-browser';
+import {Component} from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
+import {plainToClass} from 'class-transformer';
+import {Title} from '@angular/platform-browser';
 
-import { BreadcrumbService } from "../../../common/breadcrumb.service";
-import { ReferentialsService } from "../../referentials.service";
-import { ObjectsService } from '../../../common/utils/objects.service';
-import { PageComponent } from "../../../common/page/page-component";
-import { DialogService } from "../../../common/dialog/dialog.service";
-import { Context } from "./context";
+import {BreadcrumbService} from "../../../common/breadcrumb.service";
+import {ReferentialsService} from "../../referentials.service";
+import {ObjectsService} from '../../../common/utils/objects.service';
+import {PageComponent} from "../../../common/page/page-component";
+import {DialogService} from "../../../common/dialog/dialog.service";
+import {Context} from "./context";
 
 const CONTEXT_KEY_TRANSLATION = {
   Identifier: 'Identifiant',
-  CreationDate : 'Date de création',
-  LastUpdate : 'Date de mise à jour',
-  ActivationDate : 'Date d\'activation',
-  DeactivationDate : 'Date de désactivation',
-  Name : 'Intitulé',
-  Status : 'Statut',
-  Description : 'Description',
-  '#tenant' : 'Tenant'
+  CreationDate: 'Date de création',
+  LastUpdate: 'Date de mise à jour',
+  ActivationDate: 'Date d\'activation',
+  DeactivationDate: 'Date de désactivation',
+  Name: 'Intitulé',
+  Status: 'Statut',
+  Description: 'Description',
+  '#tenant': 'Tenant'
 };
 
 @Component({
@@ -30,20 +30,20 @@ const CONTEXT_KEY_TRANSLATION = {
 
 export class ContextComponent extends PageComponent {
 
-  context : Context;
-  modifiedContext : Context;
-  arrayOfKeys : string[];
-  tenants : number[];
-  selectedTenant : string;
+  context: Context;
+  modifiedContext: Context;
+  arrayOfKeys: string[];
+  tenants: number[];
+  selectedTenant: string;
   id: string;
-  update : boolean;
+  update: boolean;
   updatedFields = {};
   saveRunning = false;
 
-  constructor(private activatedRoute: ActivatedRoute, private router : Router,
+  constructor(private activatedRoute: ActivatedRoute, private router: Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
-              private referentialsService : ReferentialsService,  private dialogService : DialogService) {
-    super('Détail du contexte applicatif', [], titleService, breadcrumbService);
+              private referentialsService: ReferentialsService, private dialogService: DialogService) {
+    super('Détail du contexte applicatif ', [], titleService, breadcrumbService);
   }
 
   pageOnInit() {
@@ -52,13 +52,13 @@ export class ContextComponent extends PageComponent {
         this.tenants = tenants;
       });
 
-    this.activatedRoute.params.subscribe( params => {
+    this.activatedRoute.params.subscribe(params => {
       this.id = params['id'];
       this.getDetail();
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
         {label: 'Référentiel des contextes applicatifs', routerLink: 'admin/search/context'},
-        {label: 'Détail du contexte applicatif' + this.id, routerLink: ''}
+        {label: 'Détail du contexte applicatif ' + this.id, routerLink: ''}
       ];
 
       this.setBreadcrumb(newBreadcrumb);
@@ -74,7 +74,7 @@ export class ContextComponent extends PageComponent {
     return CONTEXT_KEY_TRANSLATION[key] || key;
   }
 
-  translate(field : string) {
+  translate(field: string) {
     if (field.indexOf('_tenant') >= 0) {
       return 'Tenant';
     }
@@ -87,7 +87,7 @@ export class ContextComponent extends PageComponent {
     return field;
   }
 
-  isUpdatable(key : string) {
+  isUpdatable(key: string) {
     if (['CreationDate', 'LastUpdate', 'Identifier', '#tenant', '_id'].indexOf(key) > -1) {
       return false;
     } else {
@@ -95,7 +95,7 @@ export class ContextComponent extends PageComponent {
     }
   }
 
-  valueChange(key : string) {
+  valueChange(key: string) {
     this.updatedFields[key] = this.modifiedContext[key];
   }
 
@@ -119,7 +119,7 @@ export class ContextComponent extends PageComponent {
       this.dialogService.displayMessage('Aucune modification effectuée', '');
       return;
     }
-    
+
     this.saveRunning = true;
     this.updatedFields['LastUpdate'] = new Date();
 
@@ -167,9 +167,9 @@ export class ContextComponent extends PageComponent {
     }
     let newTenant = parseInt(this.selectedTenant);
     let newPermission = {
-      _tenant : newTenant,
+      _tenant: newTenant,
       AccessContracts: [],
-      IngestContracts : []
+      IngestContracts: []
     };
     this.modifiedContext.Permissions.push(newPermission);
     let position = this.tenants.indexOf(newTenant);
