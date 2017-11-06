@@ -1,10 +1,10 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
-import { IntervalObservable } from "rxjs/observable/IntervalObservable";
-import { NavigationStart, Router } from '@angular/router';
-import { Observable } from "rxjs";
+import {Component, OnInit, OnDestroy, Input} from '@angular/core';
+import {IntervalObservable} from "rxjs/observable/IntervalObservable";
+import {NavigationStart, Router} from '@angular/router';
+import {Observable} from "rxjs";
 
-import { ResourcesService } from '../../resources.service';
-import { UploadService, ingestStatusElement } from '../upload.service';
+import {ResourcesService} from '../../resources.service';
+import {UploadService, ingestStatusElement} from '../upload.service';
 
 
 @Component({
@@ -16,8 +16,8 @@ import { UploadService, ingestStatusElement } from '../upload.service';
 export class UploadReferentialsComponent implements OnInit {
 
   fileUpload: File;
-  fileName : string;
-  contextId : string;
+  fileName: string;
+  contextId: string;
   action = 'RESUME';
   displayDialog = false;
   displayUploadMessage = false;
@@ -30,9 +30,9 @@ export class UploadReferentialsComponent implements OnInit {
   @Input() uploadAPI: string;
   @Input() extensions: string[];
 
-  constructor(private uploadService : UploadService, private router: Router) {
+  constructor(private uploadService: UploadService, private router: Router) {
     this.router.events.subscribe(event => {
-      if(event instanceof NavigationStart) {
+      if (event instanceof NavigationStart) {
         delete this.fileName;
         delete this.fileUpload;
       }
@@ -49,7 +49,7 @@ export class UploadReferentialsComponent implements OnInit {
   ngOnDestroy() {
   }
 
-  checkFileExtension(fileName : string) : boolean {
+  checkFileExtension(fileName: string): boolean {
     this.fileName = fileName;
     let extension = fileName.split('.').pop();
     if (this.extensions.indexOf(extension) >= 0) {
@@ -78,7 +78,7 @@ export class UploadReferentialsComponent implements OnInit {
     this.uploadService.uploadReferentials(this.uploadAPI, this.fileUpload).subscribe((response) => {
       this.importError = false;
       this.displayUploadMessage = true;
-    }, () => {
+    }, (error) => {
       this.importError = true;
       this.displayUploadMessage = true;
     });

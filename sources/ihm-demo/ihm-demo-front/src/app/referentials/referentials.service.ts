@@ -112,7 +112,7 @@ export class ReferentialsService {
 
   uploadProfile(id : string, file : File) {
     let header = new HttpHeaders().set('Content-Type', 'application/octet-stream');
-    return this.resourceService.put('profiles/' + id, header, file);
+    return this.resourceService.put('profiles/' + id, header, file, 'text');
   }
 
   getFormatById(id : string) : Observable<VitamResponse> {
@@ -151,7 +151,7 @@ export class ReferentialsService {
   }
 
   updateProfilById(id : string, body : any) {
-    return this.resourceService.put('profiles/' + id, null, body);
+    return this.resourceService.put('profiles/' + id, null, body, 'text');
   }
 
   getTenants() {

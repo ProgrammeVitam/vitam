@@ -31,14 +31,14 @@ export class ResourcesService {
 
   }
 
-  post(url, header?: HttpHeaders, body?: any): Observable<any>  {
+  post(url, header?: HttpHeaders, body?: any, responsetype? : any): Observable<any>  {
     header = this.setDefaultHeader(header);
-    return this.http.post(`${BASE_URL}${url}`, body, {headers : header});
+    return this.http.post(`${BASE_URL}${url}`, body, {headers : header, responseType: responsetype || 'json'});
   }
 
-  put(url, header?: HttpHeaders, body?: any): Observable<any>  {
+  put(url, header?: HttpHeaders, body?: any, responsetype? : any): Observable<any>  {
     header = this.setDefaultHeader(header);
-    return this.http.put(`${BASE_URL}${url}`, body, {headers : header});
+    return this.http.put(`${BASE_URL}${url}`, body, {headers : header, responseType : responsetype || 'json'});
   }
 
   delete(url): Observable<any> {
