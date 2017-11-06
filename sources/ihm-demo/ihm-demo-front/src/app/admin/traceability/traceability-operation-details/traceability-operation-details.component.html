@@ -1,0 +1,44 @@
+<p-panel [header]="'Vérification de l\'opération de sécurisation - ' + id" *ngIf="item">
+
+  <div class="ui-g">
+    <div class="ui-g-12 partDiv">
+      <span class="label">Opération:</span> <br />
+      <div class="arrayDiv">
+        <vitam-generic-table [items]="[item]" [selectedCols]="columns['operation']"></vitam-generic-table>
+      </div>
+    </div>
+
+    <div class="ui-g-12 partDiv">
+      <span class="label">Fichier:</span> <br />
+      <div class="arrayDiv">
+        <vitam-generic-table [items]="[item]" [selectedCols]="columns['file']"></vitam-generic-table>
+      </div>
+    </div>
+
+    <div class="ui-g-12 partDiv">
+      <span class="label">Sécurisation:</span> <br />
+      <div class="arrayDiv">
+        <vitam-generic-table [items]="[item]" [selectedCols]="columns['traceability']"></vitam-generic-table>
+      </div>
+    </div>
+
+    <div class="ui-g-12 partDiv">
+      <span class="label">Hash arbre Merkle</span>: {{ item.hash }}
+    </div>
+    <div class="ui-g-12 partDiv">
+      <button pButton class="ui-button" (click)="runVerification()" label="Lancer la vérification"></button>
+    </div>
+  </div>
+</p-panel>
+<p-panel [header]="'Vérification de l\'opération de sécurisation'" *ngIf="!item">
+  Réccupération des données en cours...
+</p-panel>
+<p-panel [header]="'Rapport de vérification'" *ngIf="reportGenerated && reportItems">
+  <p-paginator [(rows)]="nbRows" (onPageChange)="paginate($event)" [(first)]="firstItem"></p-paginator>
+  <vitam-generic-table [items]="displayedItems" [selectedCols]="selectedCols" [getClass]="getClass" [identifier]="identifier"></vitam-generic-table>
+  <br />
+  <button pButton class="ui-button" (click)="downloadReport()" label="Télécharger" [icon]="'fa-download'" [iconPos]="'right'"></button>
+</p-panel>
+<p-panel [header]="'Rapport de vérification'" *ngIf="reportGenerated && !reportItems">
+  Vérification en cours...
+</p-panel>

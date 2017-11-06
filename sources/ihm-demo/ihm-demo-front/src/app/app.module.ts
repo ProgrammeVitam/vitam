@@ -3,15 +3,14 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { CookieService } from 'angular2-cookie/core';
-import { HTTP_INTERCEPTORS, HttpClientModule, HttpClient } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule, } from '@angular/common/http';
 import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
-import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 
 import { ButtonModule, CalendarModule, MenubarModule, BreadcrumbModule, DropdownModule,
   ProgressBarModule, PaginatorModule, PanelModule, ListboxModule, GrowlModule, RadioButtonModule, TabViewModule,
   InputTextModule, DataTableModule, SharedModule, DialogModule, FieldsetModule, ToggleButtonModule,
   ConfirmDialogModule, ConfirmationService, OverlayPanelModule, InputSwitchModule, ChipsModule, MultiSelectModule,
-  CheckboxModule, DataGridModule, ChartModule} from 'primeng/primeng';
+  CheckboxModule, DataGridModule } from 'primeng/primeng';
 
 import { AppComponent } from './app.component';
 import { MenuComponent } from './common/menu/menu.component';
@@ -81,8 +80,8 @@ import { DialogService } from './common/dialog/dialog.service';
 import { VitamInterceptor } from './common/http-interceptor';
 import { LifecycleComponent } from './archive-unit/archive-unit-details/lifecycle/lifecycle.component';
 import {CustomLoader} from "./common/translate/custom-loader";
-
-
+import { TraceabilityOperationDetailsComponent } from './admin/traceability/traceability-operation-details/traceability-operation-details.component';
+import { TraceabilityOperationService } from './admin/traceability/traceability-operation.service';
 
 const appRoutes: Routes = [
   {
@@ -123,6 +122,9 @@ const appRoutes: Routes = [
   },
   {
     path: 'admin/traceabilityOperation', component: OperationComponent, data : {permission : 'logbook:operations:read'}
+  },
+  {
+    path: 'admin/traceabilityOperation/:id', component: TraceabilityOperationDetailsComponent, data : {permission : 'logbook:operations:read'}
   },
   {
     path: 'admin/import/:referentialType', component: ImportComponent, data : { permission : 'format:create' }
@@ -218,7 +220,8 @@ const appRoutes: Routes = [
     HoldingschemeComponent,
     ArchiveExportDIPComponent,
     DialogComponent,
-    LifecycleComponent
+    LifecycleComponent,
+    TraceabilityOperationDetailsComponent
   ],
   imports: [
     RouterModule.forRoot(appRoutes, {useHash: true}),
@@ -285,7 +288,8 @@ const appRoutes: Routes = [
     ConfirmationService,
     ObjectsService,
     AuditService,
-    DialogService
+    DialogService,
+    TraceabilityOperationService
   ],
   bootstrap: [AppComponent]
 })

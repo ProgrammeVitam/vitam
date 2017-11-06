@@ -5,7 +5,7 @@
       <ng-template [ngIf]="col.forceIcon || (col.icons.length > 0 && col.shouldDisplay(item))">
         <i *ngFor="let icon of col.getIcons(item, col.icons); let i = index" [ngClass]="'fa ' + icon + ' clickableDiv'" (click)="col.onClick(item, i)"></i>
       </ng-template>
-      <span *ngIf="col.icons.length === 0" (click)="col.onClick(item)" [ngClass]="col.computeCss()"
+      <span *ngIf="col.icons.length === 0 && !col.forceIcon" (click)="col.onClick(item)" [ngClass]="col.computeCss()"
             title="{{col.transform(col.getValue(item)) }}"> {{col.transform(col.getValue(item)) | translate}}
       </span>
     </ng-template>

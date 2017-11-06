@@ -21,9 +21,10 @@
           <p-dropdown class="ui-g-12 ui-g-nopad ui-fluid" formControlName="{{field.name}}" id="{{field.name}}"
                       [(ngModel)]="field.placeholder"
                       [options]="field.options" [autoWidth]="false" *ngIf="field.type === 'select'"></p-dropdown>
-          <p-listbox class="ui-g-12" [style]="{'width':'100%', 'text-align':'left', 'max-height': '90px'}"
+          <p-listbox class="ui-g-12" [style]="{'width':'100%', 'text-align':'left'}"
                      *ngIf="field.type === 'selectMultiple'" [options]="field.options" formControlName="{{field.name}}"
                      id="{{field.name}}"
+                     [listStyle]="{'max-height': '90px'}"
                      multiple="multiple"></p-listbox>
         </div>
       </div>
@@ -59,7 +60,7 @@
               <p-listbox class="ui-g-12" [style]="{'width':'100%', 'text-align':'left'}"
                          *ngIf="field.type === 'selectMultiple'" [options]="field.options"
                          formControlName="{{field.name}}" id="{{field.name}}"
-                         multiple="multiple"></p-listbox>
+                         [listStyle]="{'max-height': '90px'}" multiple="multiple"></p-listbox>
             </div>
           </div>
           <div class="ui-g-12">
