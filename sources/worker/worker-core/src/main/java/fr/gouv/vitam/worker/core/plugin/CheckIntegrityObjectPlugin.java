@@ -96,13 +96,11 @@ public class CheckIntegrityObjectPlugin extends ActionHandler {
                         nbObjectOK += 1;
                     } else {
                         nbObjectKO += 1;
+                        ObjectNode objectError = JsonHandler.createObjectNode();
+                        objectError.put("IdObj", version.get("_id").textValue());
+                        objectError.put("Usage", version.get("DataObjectVersion").textValue());
+                        errors.add(objectError);
                     }
-                    
-                    ObjectNode objectError = JsonHandler.createObjectNode();
-                    
-                    objectError.put("IdObj", version.get("_id").textValue());
-                    objectError.put("Usage", version.get("DataObjectVersion").textValue());
-                    errors.add(objectError);
                 }
                 evDetData.set("errors", errors);
             }
