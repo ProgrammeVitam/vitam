@@ -5,7 +5,6 @@
       "object": {
         "$projection": {
           "type": "PROJECTION",
-          "optional": true,
           "hint": "Projections to apply on results"
         }
       }

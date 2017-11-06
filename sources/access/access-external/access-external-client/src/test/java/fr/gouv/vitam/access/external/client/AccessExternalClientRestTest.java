@@ -18,8 +18,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,6 +29,8 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFou
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
@@ -53,7 +53,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     final String queryDsql =
-        "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ] }";
+        "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ], \"$projection\" : {} }";
     final String MOCK_LOGBOOK_RESULT =
         "{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
             "    \"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
@@ -536,10 +536,12 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
             .isEqualTo(Status.UNAUTHORIZED.getStatusCode());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    
     @RunWithCustomExecutor
     public void givenQueryNullWhenSelectObjectByIdThenRaiseAnInvalidParseOperationException() throws Exception {
-        client.selectObjectMetadatasByUnitId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), null, ID);
+        assertThat(client.selectObjectMetadatasByUnitId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
+            null, ID).getHttpCode())
+        .isEqualTo(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test

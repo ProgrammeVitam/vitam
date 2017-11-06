@@ -121,7 +121,6 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
@@ -161,11 +160,9 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 public class IngestInternalIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalIT.class);
     private static final int DATABASE_PORT = 12346;
-    private static final String DATABASE_NAME = "Vitam";
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     private static LogbookElasticsearchAccess esClient;
-    private static ElasticsearchAccessFunctionalAdmin elasticsearchAccessFunctionalAdmin;
     private static final Integer tenantId = 0;
     private static final String contractId = "aName3";
 
@@ -612,7 +609,7 @@ public class IngestInternalIT {
             assertTrue(size > 1000);
 
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
-            responseStorage = accessClient.getObject(new SelectMultiQuery().getFinalSelect(), og, "BinaryMaster", 1);
+            responseStorage = accessClient.getObject(og, "BinaryMaster", 1);
             inputStream = responseStorage.readEntity(InputStream.class);
 
             // get initial lfc version

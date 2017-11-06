@@ -290,6 +290,7 @@ public class DbRequest {
         if (!newRoots.containsAll(roots)) {
             LOGGER.debug("Not all roots are preserved");
         }
+        // FIXME bug when root does not exists : create a result with total 0
         return MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS, newRoots);
     }
 

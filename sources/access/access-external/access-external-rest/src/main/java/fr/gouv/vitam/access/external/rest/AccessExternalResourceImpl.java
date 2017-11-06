@@ -48,7 +48,6 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
@@ -58,8 +57,8 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServer
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
+import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.dsl.schema.Dsl;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
@@ -77,6 +76,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseError;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.EndpointInfo;
@@ -201,23 +201,25 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "dipexport:create", description = "Générer le DIP à partir d'un DSL")
-    public Response exportDIP(JsonNode queryJson) {
+    public Response exportDIP(@Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode queryJson) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-        	SanityChecker.checkJsonAll(queryJson);
+            SanityChecker.checkJsonAll(queryJson);
             RequestResponse response = client.exportDIP(queryJson);
             if (response.isOk()) {
                 return Response.status(Status.ACCEPTED.getStatusCode()).entity(response).build();
             } else {
-            	return response.toResponse();
+                return response.toResponse();
             }
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error("Predicate Failed Exception ", e);
-            return Response.status(Status.PRECONDITION_FAILED).entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage())).build();
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage())).build();
         } catch (final Exception e) {
             LOGGER.error("Technical Exception ", e);
-        	return Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
         }
     }
 
@@ -251,7 +253,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * get units list by query based on identifier
      *
      * @param queryJson query as String
-     * @param idUnit    the id of archive unit to get
+     * @param idUnit the id of archive unit to get
      * @return Archive Unit
      */
     @GET
@@ -263,7 +265,6 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     public Response getUnitById(@Dsl(value = DslSchema.GET_BY_ID) JsonNode queryJson, @PathParam("idu") String idUnit) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
-        Status status;
         ParametersChecker.checkParameter("unit id is required", idUnit);
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkParameter(idUnit);
@@ -273,35 +274,29 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             selectMultiQuery.addRoots(idUnit);
             RequestResponse<JsonNode> result = client.selectUnitbyId(selectMultiQuery.getFinalSelect(), idUnit);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+            // FIXME hack for bug in Metadata when DSL contains unexisting root id without query
+            if (((RequestResponseOK<JsonNode>) result).getResults() == null ||
+                ((RequestResponseOK<JsonNode>) result).getResults().size() == 0) {
+                throw new AccessInternalClientNotFoundException("Unit not found");
+            }
+
             return Response.status(st).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status)
-                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR,
-                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
-                .build();
+            return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR,
+                e.getLocalizedMessage()).setHttpCode(Status.PRECONDITION_FAILED.getStatusCode()).toResponse();
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error("Unauthorized request Exception ", e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR,
-                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
-                .build();
+            return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR,
+                e.getLocalizedMessage()).setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).toResponse();
         } catch (final AccessInternalClientNotFoundException e) {
             LOGGER.error("Request resources does not exits", e);
-            status = Status.NOT_FOUND;
-            return Response.status(status)
-                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR,
-                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
-                .build();
+            return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR,
+                e.getLocalizedMessage()).setHttpCode(Status.NOT_FOUND.getStatusCode()).toResponse();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
-            status = Status.UNAUTHORIZED;
-            return Response.status(status)
-                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR,
-                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
-                .build();
+            return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR,
+                e.getLocalizedMessage()).setHttpCode(Status.UNAUTHORIZED.getStatusCode()).toResponse();
         }
     }
 
@@ -309,7 +304,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * update archive units by Id with Json query
      *
      * @param queryJson the update query (null not allowed)
-     * @param idUnit    units identifier
+     * @param idUnit units identifier
      * @return a archive unit result list
      */
     @PUT
@@ -322,7 +317,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            // FIXME P1 add of idUnit as roots should be made in metadata as it is an internal concern 
+            // FIXME P1 add of idUnit as roots should be made in metadata as it is an internal concern
             UpdateParserMultiple updateParserMultiple = new UpdateParserMultiple();
             updateParserMultiple.parse(queryJson);
             UpdateMultiQuery updateMultiQuery = updateParserMultiple.getRequest();
@@ -375,8 +370,8 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     /**
      * Retrieve Object group list by query based on identifier of the unit
      *
-     * @param headers   the http header defined parameters of request
-     * @param unitId    the id of archive unit
+     * @param headers the http header defined parameters of request
+     * @param unitId the id of archive unit
      * @param queryJson the query to get object
      * @return Response
      */
@@ -387,15 +382,24 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Secured(permission = "units:id:objects:read:json",
         description = "Télécharger le groupe d'objet technique de l'unité archivistique donnée")
     public Response getObjectGroupMetadataByUnitId(@Context HttpHeaders headers, @PathParam("idu") String unitId,
-        JsonNode queryJson) {
+        @Dsl(value = DslSchema.GET_BY_ID) JsonNode queryJson) {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(queryJson);
             String idObjectGroup = idObjectGroup(unitId);
+            if (idObjectGroup == null) {
+                throw new AccessInternalClientNotFoundException("ObjectGroup of Unit not found");
+            }
             RequestResponse<JsonNode> result = client.selectObjectbyId(queryJson, idObjectGroup);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+            // FIXME hack for bug in Metadata when DSL contains unexisting root id without query
+            if (((RequestResponseOK<JsonNode>) result).getResults() == null ||
+                ((RequestResponseOK<JsonNode>) result).getResults().size() == 0) {
+                throw new AccessInternalClientNotFoundException("Unit not found");
+            }
+            
             return Response.status(st).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
@@ -433,8 +437,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
      * @param headers the http header defined parameters of request
-     * @param unitId  the id of archive unit
-     * @param query   the query to get object
+     * @param unitId the id of archive unit
      * @return response
      */
     @GET
@@ -442,20 +445,21 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Secured(permission = "units:id:objects:read:binary", description = "Télecharger un objet")
-    public Response getDataObjectByUnitId(@Context HttpHeaders headers, @PathParam("idu") String unitId,
-        JsonNode query) {
+    public Response getDataObjectByUnitId(@Context HttpHeaders headers, @PathParam("idu") String unitId) {
 
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         VitamThreadUtils.getVitamSession().setRequestId(guid);
 
         Status status;
         try {
-            SanityChecker.checkJsonAll(query);
             String idObjectGroup = idObjectGroup(unitId);
+            if (idObjectGroup == null) {
+                throw new AccessInternalClientNotFoundException("ObjectGroup of Unit not found");
+            }
             Integer tenantId = ParameterHelper.getTenantParameter();
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
             MultivaluedMap<String, String> multipleMap = headers.getRequestHeaders();
-            return asyncObjectStream(multipleMap, idObjectGroup, query);
+            return asyncObjectStream(multipleMap, idObjectGroup);
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             status = Status.PRECONDITION_FAILED;
@@ -499,15 +503,22 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SelectMultiQuery select = new SelectMultiQuery();
             select.addUsedProjection("#object");
-            RequestResponse<JsonNode> result = client.selectUnitbyId(select.getFinalSelect(), idu);
-            JsonNode jsonNode = result.toJsonNode();
-            SanityChecker.checkJsonAll(jsonNode);
-            return jsonNode.findValue("#object").textValue();
+            RequestResponse<JsonNode> response = client.selectUnitbyId(select.getFinalSelect(), idu);
+            SanityChecker.checkJsonAll(response.toJsonNode());
+            if (response.isOk()) {
+                JsonNode unit = ((RequestResponseOK<JsonNode>) response).getFirstResult();
+                if (unit == null || unit.findValue("#object") == null) {
+                    throw new AccessInternalClientNotFoundException("Unit with objectGroup not found");
+                } else {
+                    return unit.findValue("#object").textValue();
+                }
+            } else {
+                throw new AccessInternalClientNotFoundException("Unit not found");
+            }
         }
     }
 
-    private Response asyncObjectStream(MultivaluedMap<String, String> multipleMap, String idObjectGroup,
-        JsonNode query) {
+    private Response asyncObjectStream(MultivaluedMap<String, String> multipleMap, String idObjectGroup) {
 
         try {
             if (!multipleMap.containsKey(GlobalDataRest.X_QUALIFIER) ||
@@ -534,11 +545,9 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
         final String xQualifier = multipleMap.get(GlobalDataRest.X_QUALIFIER).get(0);
         final String xVersion = multipleMap.get(GlobalDataRest.X_VERSION).get(0);
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            SanityChecker.checkJsonAll(query);
             HttpHeaderHelper.checkVitamHeadersMap(multipleMap);
             final Response response =
-                client.getObject(query, idObjectGroup, xQualifier,
-                    Integer.valueOf(xVersion));
+                client.getObject(idObjectGroup, xQualifier, Integer.valueOf(xVersion));
             Map<String, String> headers = VitamAsyncInputStreamResponse.getDefaultMapFromResponse(response);
             headers.put(GlobalDataRest.X_QUALIFIER, xQualifier);
             headers.put(GlobalDataRest.X_VERSION, xVersion);

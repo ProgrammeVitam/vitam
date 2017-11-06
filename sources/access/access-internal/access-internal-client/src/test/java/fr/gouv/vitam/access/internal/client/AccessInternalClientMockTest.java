@@ -123,8 +123,7 @@ public class AccessInternalClientMockTest {
         final AccessInternalClient client =
             AccessInternalClientFactory.getInstance().getClient();
         assertNotNull(client);
-        final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
-        final InputStream stream = client.getObject(queryJson, ID, "usage", 1).readEntity(InputStream.class);
+        final InputStream stream = client.getObject(ID, "usage", 1).readEntity(InputStream.class);
         final InputStream stream2 = StreamUtils.toInputStream(AccessInternalClientMock.MOCK_GET_FILE_CONTENT);
         assertNotNull(stream);
         assertTrue(IOUtils.contentEquals(stream, stream2));

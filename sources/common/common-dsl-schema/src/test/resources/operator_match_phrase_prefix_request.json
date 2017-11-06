@@ -18,5 +18,11 @@
     "$orderby": {
       "TransactedDate": 1
     }
+  },
+  "$projection": {
+    "$fields": {
+      "#id": 1,
+      "Title": 1
+    }
   }
 }

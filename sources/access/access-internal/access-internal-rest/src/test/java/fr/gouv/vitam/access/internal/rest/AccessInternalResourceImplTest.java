@@ -487,40 +487,30 @@ public class AccessInternalResourceImplTest {
     public void getObjectStreamPreconditionFailed() {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .header(GlobalDataRest.X_QUALIFIER, "qualif").header(GlobalDataRest.X_VERSION, 1).body(BODY_TEST).when()
+            .header(GlobalDataRest.X_QUALIFIER, "qualif").header(GlobalDataRest.X_VERSION, 1).when()
             .get(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .header(GlobalDataRest.X_QUALIFIER, "qualif").header(GlobalDataRest.X_TENANT_ID, "0").body(BODY_TEST).when()
+            .header(GlobalDataRest.X_QUALIFIER, "qualif").header(GlobalDataRest.X_TENANT_ID, "0").when()
             .get(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .header(GlobalDataRest.X_TENANT_ID, "0").header(GlobalDataRest.X_VERSION, 1).body(BODY_TEST).when()
+            .header(GlobalDataRest.X_TENANT_ID, "0").header(GlobalDataRest.X_VERSION, 1).when()
             .get(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all").body(BODY_TEST)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .when().get(OBJECTS_URI + OBJECT_ID).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
     public void getObjectStreamPostMethodNotAllowed() throws InvalidParseOperationException {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "TEST").body(JsonHandler.getFromString(QUERY_TEST)).when()
+            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "TEST").when()
             .post(OBJECTS_URI + OBJECT_ID)
             .then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
-    }
-
-    @Test
-    public void getObjectStreamDataRequiredThenPreconditionFailed() throws InvalidParseOperationException {
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster_1")
-            .headers(getStreamHeaders()).when().get(OBJECTS_URI + OBJECT_ID)
-            .then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -531,22 +521,22 @@ public class AccessInternalResourceImplTest {
         reset(mock);
 
         doThrow(new StorageNotFoundException("test")).when(mock)
-            .getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt());
+            .getOneObjectFromObjectGroup(anyObject(), anyString(), anyInt());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster_1")
-            .headers(getStreamHeaders()).body(BODY_TEST).when().get(OBJECTS_URI + OBJECT_ID).then()
+            .headers(getStreamHeaders()).when().get(OBJECTS_URI + OBJECT_ID).then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
 
         reset(mock);
         doThrow(new MetaDataNotFoundException("test")).when(mock)
-            .getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt());
+            .getOneObjectFromObjectGroup(anyObject(), anyString(), anyInt());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster_1")
-            .headers(getStreamHeaders()).body(BODY_TEST).when().get(OBJECTS_URI + OBJECT_ID).then()
+            .headers(getStreamHeaders()).when().get(OBJECTS_URI + OBJECT_ID).then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
 
     }
@@ -558,13 +548,13 @@ public class AccessInternalResourceImplTest {
 
         reset(mock);
         doThrow(new AccessInternalExecutionException("Wanted exception")).when(mock)
-            .getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt());
+            .getOneObjectFromObjectGroup(anyObject(), anyString(), anyInt());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster_1")
             .headers(getStreamHeaders())
-            .body(BODY_TEST).when().get(OBJECTS_URI + OBJECT_ID).then()
+            .when().get(OBJECTS_URI + OBJECT_ID).then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
@@ -584,12 +574,12 @@ public class AccessInternalResourceImplTest {
         doAnswer(invocation -> {
             return null;
         }).when(mock)
-            .getOneObjectFromObjectGroup(anyString(), anyObject(), anyString(), anyInt());
+            .getOneObjectFromObjectGroup(anyObject(), anyString(), anyInt());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders())
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .body(BODY_TEST).when().get(OBJECTS_URI + OBJECT_ID).then()
+            .when().get(OBJECTS_URI + OBJECT_ID).then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
     }
 

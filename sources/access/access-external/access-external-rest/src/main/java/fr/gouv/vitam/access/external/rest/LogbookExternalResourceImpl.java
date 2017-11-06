@@ -131,7 +131,7 @@ public class LogbookExternalResourceImpl {
 
     /**
      * @param operationId the operation id
-     * @param queryDsl    the query
+     * @param queryDsl the query
      * @return the response with a specific HTTP status
      */
     @GET
@@ -157,19 +157,14 @@ public class LogbookExternalResourceImpl {
         } catch (LogbookClientNotFoundException e) {
             LOGGER.error("Client exception while trying to get operation by id: ", e);
             status = Status.NOT_FOUND;
-            return Response.status(status)
-                .entity(VitamCodeHelper
-                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
-                    .setHttpCode(status.getStatusCode()))
-                .build();
+            return VitamCodeHelper
+                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
+                .setHttpCode(Status.NOT_FOUND.getStatusCode()).toResponse();
         } catch (final LogbookClientException e) {
             LOGGER.error("Client exception while trying to get operation by id: ", e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(VitamCodeHelper
-                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
-                    .setHttpCode(status.getStatusCode()))
-                .build();
+            return VitamCodeHelper
+                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
+                .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).toResponse();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Invalid argument: " + e);
             status = Status.PRECONDITION_FAILED;
@@ -180,20 +175,14 @@ public class LogbookExternalResourceImpl {
                 .build();
         } catch (InvalidCreateOperationException e) {
             LOGGER.error("Could not modify search query: ", e);
-            status = Status.BAD_REQUEST;
-            return Response.status(status)
-                .entity(VitamCodeHelper
-                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
-                    .setHttpCode(status.getStatusCode()))
-                .build();
+            return VitamCodeHelper
+                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
+                .setHttpCode(Status.BAD_REQUEST.getStatusCode()).toResponse();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
-            status = Status.UNAUTHORIZED;
-            return Response.status(status)
-                .entity(VitamCodeHelper
-                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
-                    .setHttpCode(status.getStatusCode()))
-                .build();
+            return VitamCodeHelper
+                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OPERATION_BY_ID_ERROR, e.getLocalizedMessage())
+                .setHttpCode(Status.UNAUTHORIZED.getStatusCode()).toResponse();
         }
     }
 
@@ -201,7 +190,7 @@ public class LogbookExternalResourceImpl {
      * gets the unit life cycle based on its id
      *
      * @param unitLifeCycleId the unit life cycle id
-     * @param queryDsl        the query
+     * @param queryDsl the query
      * @return the unit life cycle
      */
     @GET
@@ -213,7 +202,6 @@ public class LogbookExternalResourceImpl {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
-        Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             final SelectParserSingle parser = new SelectParserSingle();
             parser.parse(queryDsl);
@@ -222,38 +210,31 @@ public class LogbookExternalResourceImpl {
             RequestResponse<JsonNode> result = client.selectUnitLifeCycleById(unitLifeCycleId, select.getFinalSelect());
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
+        } catch (LogbookClientNotFoundException e) {
+            LOGGER.error("Client exception while trying to get lifecycle unit by id: ", e);
+            return VitamCodeHelper
+                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
+                .setHttpCode(Status.NOT_FOUND.getStatusCode()).toResponse();
         } catch (final LogbookClientException e) {
             LOGGER.error("Client exception while trying to get lifecycle unit by id: ", e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(VitamCodeHelper
-                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
-                    .setHttpCode(status.getStatusCode()))
-                .build();
+            return VitamCodeHelper
+                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
+                .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).toResponse();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Invalid argument: " + e);
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status)
-                .entity(VitamCodeHelper
-                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
-                    .setHttpCode(status.getStatusCode()))
-                .build();
+            return VitamCodeHelper
+                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
+                .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode()).toResponse();
         } catch (InvalidCreateOperationException e) {
             LOGGER.error("Could not modify search query: ", e);
-            status = Status.BAD_REQUEST;
-            return Response.status(status)
-                .entity(VitamCodeHelper
-                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
-                    .setHttpCode(status.getStatusCode()))
-                .build();
+            return VitamCodeHelper
+                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
+                .setHttpCode(Status.BAD_REQUEST.getStatusCode()).toResponse();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
-            status = Status.UNAUTHORIZED;
-            return Response.status(status)
-                .entity(VitamCodeHelper
-                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
-                    .setHttpCode(status.getStatusCode()))
-                .build();
+            return VitamCodeHelper
+                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
+                .setHttpCode(Status.UNAUTHORIZED.getStatusCode()).toResponse();
         }
     }
 
@@ -261,7 +242,7 @@ public class LogbookExternalResourceImpl {
      * gets the object group life cycle based on its id
      *
      * @param objectGroupLifeCycleId the object group life cycle id
-     * @param queryDsl               the query
+     * @param queryDsl the query
      * @return the object group life cycle
      */
     @GET
@@ -273,7 +254,6 @@ public class LogbookExternalResourceImpl {
         Integer tenantId = ParameterHelper.getTenantParameter();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
 
-        Status status;
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             final SelectParserSingle parser = new SelectParserSingle();
             parser.parse(queryDsl);
@@ -283,42 +263,36 @@ public class LogbookExternalResourceImpl {
                 client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, select.getFinalSelect());
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
+        } catch (LogbookClientNotFoundException e) {
+            LOGGER.error("Client exception while trying to get object group lifecycle by id: ", e);
+            return VitamCodeHelper
+                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
+                    e.getLocalizedMessage())
+                .setHttpCode(Status.NOT_FOUND.getStatusCode()).toResponse();
         } catch (final LogbookClientException e) {
             LOGGER.error("Client exception while trying to get object group lifecycle by id: ", e);
-            status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(VitamCodeHelper
-                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
-                        e.getLocalizedMessage())
-                    .setHttpCode(status.getStatusCode()))
-                .build();
+            return VitamCodeHelper
+                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
+                    e.getLocalizedMessage())
+                .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).toResponse();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Invalid argument: " + e);
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status)
-                .entity(VitamCodeHelper
-                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
-                        e.getLocalizedMessage())
-                    .setHttpCode(status.getStatusCode()))
-                .build();
+            return VitamCodeHelper
+                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
+                    e.getLocalizedMessage())
+                .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode()).toResponse();
         } catch (InvalidCreateOperationException e) {
             LOGGER.error("Could not modify search query: ", e);
-            status = Status.BAD_REQUEST;
-            return Response.status(status)
-                .entity(VitamCodeHelper
-                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
-                        e.getLocalizedMessage())
-                    .setHttpCode(status.getStatusCode()))
-                .build();
+            return VitamCodeHelper
+                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
+                    e.getLocalizedMessage())
+                .setHttpCode(Status.BAD_REQUEST.getStatusCode()).toResponse();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
-            status = Status.UNAUTHORIZED;
-            return Response.status(status)
-                .entity(VitamCodeHelper
-                    .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
-                        e.getLocalizedMessage())
-                    .setHttpCode(status.getStatusCode()))
-                .build();
+            return VitamCodeHelper
+                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
+                    e.getLocalizedMessage())
+                .setHttpCode(Status.UNAUTHORIZED.getStatusCode()).toResponse();
         }
     }
 

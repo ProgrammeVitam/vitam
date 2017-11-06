@@ -131,7 +131,6 @@ public interface AccessExternalClient extends BasicClient {
      *
      *
      * @param vitamContext the vitam context
-     * @param selectQuery the select query
      * @param unitId the unit id for getting the object
      * @param usage kind of usage
      * @param version the version
@@ -141,8 +140,7 @@ public interface AccessExternalClient extends BasicClient {
      * @throws AccessExternalClientNotFoundException
      * @throws AccessUnauthorizedException
      */
-    Response getObjectStreamByUnitId(VitamContext vitamContext, JsonNode selectQuery, String unitId,
-        String usage,
+    Response getObjectStreamByUnitId(VitamContext vitamContext, String unitId, String usage,
         int version)
         throws VitamClientException;
 

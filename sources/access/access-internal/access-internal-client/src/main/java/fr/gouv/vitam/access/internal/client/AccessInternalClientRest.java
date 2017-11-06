@@ -234,10 +234,9 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public Response getObject(JsonNode selectObjectQuery, String objectGroupId, String usage, int version)
+    public Response getObject(String objectGroupId, String usage, int version)
         throws InvalidParseOperationException, AccessInternalClientServerException,
         AccessInternalClientNotFoundException, AccessUnauthorizedException {
-        ParametersChecker.checkParameter(BLANK_DSL, selectObjectQuery);
         ParametersChecker.checkParameter(BLANK_OBJECT_GROUP_ID, objectGroupId);
         ParametersChecker.checkParameter(BLANK_USAGE, usage);
         ParametersChecker.checkParameter(BLANK_VERSION, version);
@@ -248,7 +247,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_QUALIFIER, usage);
             headers.add(GlobalDataRest.X_VERSION, version);
-            response = performRequest(HttpMethod.GET, OBJECTS + objectGroupId, headers, selectObjectQuery,
+            response = performRequest(HttpMethod.GET, OBJECTS + objectGroupId, headers, null,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             status = Status.fromStatusCode(response.getStatus());
             switch (status) {

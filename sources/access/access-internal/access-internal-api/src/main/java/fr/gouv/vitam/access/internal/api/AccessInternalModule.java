@@ -100,7 +100,6 @@ public interface AccessInternalModule {
      * Retrieve an object as InputStream based on the associated ObjectGroupId and qualifier + version requested
      *
      * @param idObjectGroup The Object Group Id
-     * @param queryJson the DSL query
      * @param qualifier the qualifier to be retrieve (ie: Dissemination etc.)
      * @param version the version number to get
      * @return response
@@ -110,7 +109,7 @@ public interface AccessInternalModule {
      * @throws InvalidParseOperationException when a query is badly structured
      * @throws AccessInternalExecutionException For other technical errors
      */
-    Response getOneObjectFromObjectGroup(String idObjectGroup, JsonNode queryJson,
+    Response getOneObjectFromObjectGroup(String idObjectGroup,
         String qualifier, int version)
         throws MetaDataNotFoundException, StorageNotFoundException, InvalidParseOperationException,
         AccessInternalExecutionException;
