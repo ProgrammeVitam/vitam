@@ -101,14 +101,14 @@ export class ResultsComponent implements OnInit {
       var searchScope = {response: null};
       this.searchFunction(this.service, this.firstItem, event.rows, searchScope).subscribe(
         (response) => {
-          this.items = Array.from('x'.repeat(event.page * this.nbRows)).concat(response.$results);
+          this.items = Array.from('x'.repeat(event.page * event.rows)).concat(response.$results);
           this.firstPage = event.page;
-          this.lastPage = this.firstPage + this.hits.limit / this.nbRows;
+          this.lastPage = this.firstPage + this.hits.limit / event.rows;
           this.displayedItems = this.items.slice(this.firstItem, this.firstItem +  event.rows);
         },
         (error) => console.log('Error: ', error.body));
     } else {
-      this.displayedItems = this.items.slice(this.firstItem, this.firstItem + this.nbRows);
+      this.displayedItems = this.items.slice(this.firstItem, this.firstItem + event.rows);
     }
   }
 }
