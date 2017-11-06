@@ -26,7 +26,50 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.dsl.schema.meta;
 
-public interface TDArray {
-    TypeDef getArray();
-}
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.dsl.schema.ValidationErrorMessage;
 
+import java.util.Iterator;
+import java.util.Map;
+import java.util.function.Consumer;
+
+public class AnyKeyFormat extends Format {
+
+    @Override protected void resolve(Schema schema) {
+        itemType.setReportingType(this);
+    }
+
+    private Format itemType;
+
+    /**
+     * Accessor for Jackson
+     */
+    public void setItemtype(Format keyType) {
+        this.itemType = keyType;
+    }
+
+    @Override public void validate(JsonNode node, Consumer<String> fieldReport, ValidatorEngine validator) {
+        if (!node.isObject()) {
+            validator.reportError(this, node, ValidationErrorMessage.Code.WRONG_JSON_TYPE, node.getNodeType().name());
+            return;
+        }
+
+        for (Iterator<Map.Entry<String, JsonNode>> it = node.fields(); it.hasNext();) {
+            Map.Entry<String, JsonNode> item = it.next();
+            String name = item.getKey();
+            validator.pushContext(name);
+            fieldReport.accept(name);
+            validator.validate(itemType, item.getValue(), null);
+            validator.popContext();
+        }
+    }
+
+    @Override public void walk(Consumer<Format> consumer) {
+        consumer.accept(this);
+        itemType.walk(consumer);
+    }
+
+    @Override public String debugInfo() {
+        return "{[key]: " + itemType.debugInfo() + "}";
+    }
+}

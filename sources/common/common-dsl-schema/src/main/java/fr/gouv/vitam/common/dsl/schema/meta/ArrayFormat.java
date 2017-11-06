@@ -27,10 +27,43 @@
 package fr.gouv.vitam.common.dsl.schema.meta;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.dsl.schema.ValidationErrorMessage;
 
-import java.util.List;
+import java.util.function.Consumer;
 
-public interface TDEnum {
-    List<JsonNode> getEnum();
+public class ArrayFormat extends Format {
+
+    @Override protected void resolve(Schema schema) {
+        itemType.setReportingType(this);
+    }
+
+    private Format itemType;
+
+    /**
+     * Accessor for Jackson
+     */
+    public void setItemtype(Format itemType) {
+        this.itemType = itemType;
+    }
+
+    @Override public void validate(JsonNode node, Consumer<String> fieldReport, ValidatorEngine validator) {
+        if (!node.isArray()) {
+            validator.reportError(this, node, ValidationErrorMessage.Code.WRONG_JSON_TYPE, node.getNodeType().name());
+            return;
+        }
+
+        for (JsonNode item : node) {
+            validator.validate(itemType, item, null);
+        }
+    }
+
+    @Override public void walk(Consumer<Format> consumer) {
+        consumer.accept(this);
+        itemType.walk(consumer);
+    }
+
+    @Override public String debugInfo() {
+        return itemType.debugInfo() + "[]";
+    }
 }
 

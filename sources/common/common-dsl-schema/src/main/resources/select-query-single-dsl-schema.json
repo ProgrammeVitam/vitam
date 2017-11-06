@@ -1,215 +1,206 @@
 {
-  "root": "DSL",
-  "definitions": {
-    "DSL": {
-      "object": {
-        "$query": {
-          "type": "QUERY",
-          "optional": false,
-          "hint": "Single query"
-        },
-        "$filter": {
-          "type": "FILTER",
-          "optional": true,
-          "hint": "Filters"
-        },
-        "$projection": {
-          "type": "PROJECTION",
-          "optional": false,
-          "hint": "Projections to apply on results"
-        }
-      }
-    },
-    "QUERY": {
-      "keychoice": {
-        "$match": {
-          "type": {
-            "anykey": "string",
-            "min": 1,
-            "max": 1
-          }
-        },
-        "$search": {
-          "type": {
-            "anykey": "string",
-            "min": 1,
-            "max": 1
-          }
-        },
-        "$match_all": {
-          "type": {
-            "anykey": "string",
-            "min": 1,
-            "max": 1
-          }
-        },
-        "$match_phrase": {
-          "type": {
-            "anykey": "string",
-            "min": 1,
-            "max": 1
-          }
-        },
-        "$match_phrase_prefix": {
-          "type": {
-            "anykey": "string",
-            "min": 1,
-            "max": 1
-          }
-        },
-        "$wildcard": {
-          "type": {
-            "anykey": "string",
-            "min": 1,
-            "max": 1
-          }
-        },
-        "$regex": {
-          "type": {
-            "anykey": "string",
-            "min": 1,
-            "max": 1
-          }
-        },
-        "$eq": {
-          "type": {
-            "anykey": "anyvalue",
-            "min": 1,
-            "max": 1
-          }
-        },
-        "$exists": {
-          "type": "string"
-        },
-        "$ne": {
-          "type": {
-            "anykey": "anyvalue",
-            "min": 1,
-            "max": 1
-          }
-        },
-        "$or": {
-          "type": {
-            "array": "QUERY",
-            "min": 1
-          },
-          "hint": "Disjonction de sous-requêtes"
-        },
-        "$and": {
-          "type": {
-            "array": "QUERY",
-            "min": 1
-          },
-          "hint": "Conjonction de sous-requêtes"
-        },
-        "$not": {
-          "type": {
-            "array": "QUERY",
-            "min": 1
-          },
-          "hint": "Négation de sous-requêtes"
-        },
-        "$in": {
-          "type": {
-            "anykey": {
-              "array": "anyvalue"
-            },
-            "min": 1,
-            "max": 1
-          },
-          "hint": "recherche  de sous-requêtes"
-        },
-        "$nin": {
-          "type": {
-            "anykey": {
-              "array": "anyvalue"
-            },
-            "min": 1,
-            "max": 1
-          },
-          "hint": "négation de recherche de sous-requêtes"
-        },
-        "$range": {
-          "type": {
-            "anykey": {
-              "anykey": "anyvalue",
-              "min": 2,
-              "max": 2
-            }
-          },
-          "hint": "intervalle de sous-requêtes"
-        },
-        "$gt": {
-          "type": {
-            "anykey": "anyvalue",
-            "min": 1,
-            "max": 1
-          }
-        },
-        "$lt": {
-          "type": {
-            "anykey": "anyvalue",
-            "min": 1,
-            "max": 1
-          }
-        },
-        "$lte": {
-          "type": {
-            "anykey": "anyvalue",
-            "min": 1,
-            "max": 1
-          }
-        },
-        "$gte": {
-          "type": {
-            "anykey": "anyvalue",
-            "min": 1,
-            "max": 1
-          }
-        }
+  "DSL": {
+    "format": "object",
+    "elements": {
+      "$query": {
+        "format": "ref",
+        "type": "QUERY",
+        "optional": false,
+        "hint": "Single query"
       },
-      "min": 0,
-      "max": 1
-    },
-    "FILTER": {
-      "object": {
-        "$offset": {
-          "type": "posinteger",
-          "optional": true,
-          "hint": "Position of results"
+      "$filter": {
+        "format": "ref",
+        "type": "FILTER",
+        "optional": true,
+        "hint": "Filters"
+      },
+      "$projection": {
+        "format": "ref",
+        "type": "PROJECTION",
+        "optional": false,
+        "hint": "Projections to apply on results"
+      }
+    }
+  },
+  "QUERY": {
+    "format": "keychoice",
+    "choices": {
+      "$match": {
+        "format": "anykey",
+        "itemtype": "string",
+        "min": 1,
+        "max": 1
+      },
+      "$search": {
+        "format": "anykey",
+        "itemtype": "string",
+        "min": 1,
+        "max": 1
+      },
+      "$match_all": {
+        "format": "anykey",
+        "itemtype": "string",
+        "min": 1,
+        "max": 1
+      },
+      "$match_phrase": {
+        "format": "anykey",
+        "itemtype": "string",
+        "min": 1,
+        "max": 1
+      },
+      "$match_phrase_prefix": {
+        "format": "anykey",
+        "itemtype": "string",
+        "min": 1,
+        "max": 1
+      },
+      "$wildcard": {
+        "format": "anykey",
+        "itemtype": "string",
+        "min": 1,
+        "max": 1
+      },
+      "$regex": {
+        "format": "anykey",
+        "itemtype": "string",
+        "min": 1,
+        "max": 1
+      },
+      "$eq": {
+        "format": "anykey",
+        "itemtype": "anyvalue",
+        "min": 1,
+        "max": 1
+      },
+      "$exists": {
+        "format": "ref",
+        "type": "string"
+      },
+      "$ne": {
+        "format": "anykey",
+        "itemtype": "anyvalue",
+        "min": 1,
+        "max": 1
+      },
+      "$or": {
+        "format": "array",
+        "itemtype": "QUERY",
+        "min": 1,
+        "hint": "Disjonction de sous-requêtes"
+      },
+      "$and": {
+        "format": "array",
+        "itemtype": "QUERY",
+        "min": 1,
+        "hint": "Conjonction de sous-requêtes"
+      },
+      "$not": {
+        "format": "array",
+        "itemtype": "QUERY",
+        "min": 1,
+        "hint": "Négation de sous-requêtes"
+      },
+      "$in": {
+        "format": "anykey",
+        "itemtype": {
+          "format": "array",
+          "itemtype": "anyvalue"
         },
-        "$limit": {
-          "type": "posinteger",
-          "optional": true,
-          "hint": "Max number of results"
+        "min": 1,
+        "max": 1,
+        "hint": "recherche  de sous-requêtes"
+      },
+      "$nin": {
+        "format": "anykey",
+        "itemtype": {
+          "format": "array",
+          "itemtype": "anyvalue"
         },
-        "$orderby": {
-          "type": {
-            "anykey": {
-              "enum": [
-                -1,
-                1
-              ]
-            }
-          },
-          "optional": true,
-          "hint": "Sorts on result"
-        }
+        "min": 1,
+        "max": 1,
+        "hint": "négation de recherche de sous-requêtes"
+      },
+      "$range": {
+        "format": "anykey",
+        "itemtype": {
+          "format": "anykey",
+          "itemtype": "anyvalue",
+          "min": 2,
+          "max": 2
+        },
+        "hint": "intervalle de sous-requêtes"
+      },
+      "$gt": {
+        "format": "anykey",
+        "itemtype": "anyvalue",
+        "min": 1,
+        "max": 1
+      },
+      "$lt": {
+        "format": "anykey",
+        "itemtype": "anyvalue",
+        "min": 1,
+        "max": 1
+      },
+      "$lte": {
+        "format": "anykey",
+        "itemtype": "anyvalue",
+        "min": 1,
+        "max": 1
+      },
+      "$gte": {
+        "format": "anykey",
+        "itemtype": "anyvalue",
+        "min": 1,
+        "max": 1
       }
     },
-    "PROJECTION": {
-      "object": {
-        "$fields": {
-          "type": {
-            "anykey": {
-              "enum": [
-                1
-              ]
-            }
-          },
-          "optional": true,
-          "hint": "Fields to retrieve in the result"
-        }
+    "min": 0,
+    "max": 1
+  },
+  "FILTER": {
+    "format": "object",
+    "elements": {
+      "$offset": {
+        "format": "ref",
+        "type": "posinteger",
+        "optional": true,
+        "hint": "Position of results"
+      },
+      "$limit": {
+        "format": "ref",
+        "type": "posinteger",
+        "optional": true,
+        "hint": "Max number of results"
+      },
+      "$orderby": {
+        "format": "anykey",
+        "itemtype": {
+          "format": "enum",
+          "values": [
+            -1,
+            1
+          ]
+        },
+        "optional": true,
+        "hint": "Sorts on result"
+      }
+    }
+  },
+  "PROJECTION": {
+    "format": "object",
+    "elements": {
+      "$fields": {
+        "format": "anykey",
+        "itemtype": {
+          "format": "enum",
+          "values": [
+            1
+          ]
+        },
+        "optional": true,
+        "hint": "Fields to retrieve in the result"
       }
     }
   }

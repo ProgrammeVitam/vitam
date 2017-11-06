@@ -26,36 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.dsl.schema.meta;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.node.JsonNodeType;
+/**
+ * Enum for check if is a primitive value or is not a primitive value.
+ */
+public enum PrimitiveAnalysis {
+    NOT_PRIMITIVE, PRIMITIVE_OK, PRIMITIVE_KO;
 
-import java.util.Map;
-
-public interface TDTypeChoice {
-    enum TypeName {
-        @JsonProperty("object")
-        OBJECT,
-        @JsonProperty("array")
-        ARRAY,
-        @JsonProperty("value")
-        VALUE;
-
-        public String toString() {
-            return super.toString().toLowerCase();
+    public static PrimitiveAnalysis fromBoolean(boolean ok) {
+        if (ok) {
+            return PRIMITIVE_OK;
+        } else {
+            return PRIMITIVE_KO;
         }
     }
-
-    static TypeName fromJsonNodeType(JsonNodeType type) {
-        switch (type) {
-            case OBJECT:
-                return TypeName.OBJECT;
-            case ARRAY:
-                return TypeName.ARRAY;
-            default:
-                return TypeName.VALUE;
-        }
-    }
-
-    Map<TypeName, TypeDef> getTypechoice();
-
 }

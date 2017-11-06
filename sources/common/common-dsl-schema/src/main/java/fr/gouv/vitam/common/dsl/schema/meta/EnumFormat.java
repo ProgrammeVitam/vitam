@@ -26,6 +26,56 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.dsl.schema.meta;
 
-public interface TDAnyKey {
-    TypeDef getAnykey();
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.dsl.schema.ValidationErrorMessage;
+
+import java.util.List;
+import java.util.function.Consumer;
+
+public class EnumFormat extends Format {
+
+    @Override protected void resolve(Schema schema) {
+    }
+
+    private List<JsonNode> values;
+
+    /**
+     * Accessor for Jackson
+     */
+    public void setValues(List<JsonNode> values) {
+        this.values = values;
+    }
+
+
+    @Override public void setMax(int max) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override public void setMin(Integer min) {
+        throw new UnsupportedOperationException();
+    }
+
+
+    @Override public void validate(JsonNode node, Consumer<String> fieldReport, ValidatorEngine validator) {
+        if (!values.contains(node)) {
+            validator.reportError(this, node, ValidationErrorMessage.Code.INVALID_VALUE, node.getNodeType().name());
+        }
+    }
+
+    @Override public void walk(Consumer<Format> consumer) {
+        consumer.accept(this);
+    }
+
+    @Override public String debugInfo() {
+        StringBuilder builder = new StringBuilder();
+        boolean notFirst = false;
+        for (JsonNode item : values) {
+            if (notFirst)
+                builder.append(" | ");
+            builder.append(item);
+            notFirst = true;
+        }
+        return builder.toString();
+    }
 }
+

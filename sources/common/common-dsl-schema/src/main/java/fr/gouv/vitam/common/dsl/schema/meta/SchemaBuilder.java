@@ -24,62 +24,45 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+
 package fr.gouv.vitam.common.dsl.schema.meta;
 
-public class Property {
-    private String name;
-    private TypeDef type;
-    private boolean optional = false;
-    private String hint;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-    /** Type to use for error reporting */
-    private TypeDef reportingType;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
-    public String getName() {
-        return name;
+public class SchemaBuilder {
+
+    private ObjectMapper mapper;
+
+    protected SchemaBuilder(ObjectMapper mapper) {
+        this.mapper = mapper;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    private Map<String, Format> types = new HashMap<>();
 
-    public TypeDef getType() {
-        return type;
-    }
+    public SchemaBuilder loadTypes(InputStream schemaStream) throws IOException {
+        Map<String,Format> loaded = mapper.readValue(schemaStream, new TypeReference<Map<String,Format>>(){});
 
-    public void setType(TypeDef type) {
-        this.type = type;
-    }
+        for (Map.Entry<String, Format> entry : loaded.entrySet()) {
+            Format format = entry.getValue();
+            String name = entry.getKey();
 
-    public boolean isOptional() {
-        return optional;
-    }
-
-    public void setOptional(boolean optional) {
-        this.optional = optional;
-    }
-
-    public String getHint() {
-        return hint;
-    }
-
-    public void setHint(String hint) {
-        this.hint = hint;
-    }
-
-    public String toString() {
-        return name + (optional ? "?" : "") + ": " + type;
-    }
-
-    public void setReportingType(TypeDef outerType) {
-        this.reportingType = outerType;
-    }
-
-    public TypeDef getReportingType() {
-        if (this.reportingType != null) {
-            return this.reportingType;
-        } else {
-            return this.type;
+            format.setName(name);
+            Format oldType = types.put(name, format);
+            if (oldType != null) {
+                throw new IllegalArgumentException("Schema type "+ name +" already loaded into schema");
+            }
         }
+
+        return this;
+    }
+
+    public Schema build() {
+        return new Schema(types);
     }
 }

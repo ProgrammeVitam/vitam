@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.dsl.schema.ValidationException;
 import fr.gouv.vitam.common.dsl.schema.Validator;
+import fr.gouv.vitam.common.dsl.schema.meta.ValidatorEngine;
 import fr.gouv.vitam.common.dsl.schema.meta.Schema;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -61,12 +62,12 @@ public class SelectSingleSchemaValidator implements DslValidator {
             DslSchema.SELECT_SINGLE.getFilename());
         try (final InputStream schemaSource =
             PropertiesUtils.getResourceAsStream(DslSchema.SELECT_SINGLE.getFilename())) {
-            schema = Schema.load(objectMapper, schemaSource);
+            schema = Schema.withMapper(objectMapper).loadTypes(schemaSource).build();
         }
     }
 
     @Override
     public void validate(JsonNode dsl) throws ValidationException {
-        new Validator(schema).validate(dsl);
+        Validator.validate(schema, "DSL", dsl);
     }
 }

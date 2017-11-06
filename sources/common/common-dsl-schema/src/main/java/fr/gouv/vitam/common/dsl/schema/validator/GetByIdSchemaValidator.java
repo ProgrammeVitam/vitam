@@ -61,13 +61,13 @@ public class GetByIdSchemaValidator implements DslValidator {
             DslSchema.GET_BY_ID.getFilename());
         try (final InputStream schemaSource =
             PropertiesUtils.getResourceAsStream(DslSchema.GET_BY_ID.getFilename())) {
-            schema = Schema.load(objectMapper, schemaSource);
+            schema = Schema.withMapper(objectMapper).loadTypes(schemaSource).build();
         }
     }
 
     @Override
     public void validate(JsonNode dsl) throws ValidationException {
-        new Validator(schema).validate(dsl);
+        Validator.validate(schema, "DSL", dsl);
     }
 
 }

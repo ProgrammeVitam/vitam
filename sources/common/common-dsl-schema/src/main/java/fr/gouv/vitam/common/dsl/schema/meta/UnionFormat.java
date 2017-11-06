@@ -26,13 +26,50 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.dsl.schema.meta;
 
-import java.util.Map;
+import com.fasterxml.jackson.databind.JsonNode;
 
-public interface TDObject {
+import java.util.List;
+import java.util.function.Consumer;
+
+public class UnionFormat extends Format {
+
+    @Override protected void resolve(Schema schema) {
+        for (Format format : types) {
+            format.setReportingType(this);
+        }
+    }
+
+    private List<Format> types;
+
     /**
-     * @return the map of the properties allowed for the object.
-     *
-     *         Note: the name of the method comes from the DSL Schema definition.
+     * Accessor for Jackson
      */
-    Map<String, Property> getObject();
+    public void setTypes(List<Format> types) {
+        this.types = types;
+    }
+
+    @Override public void validate(JsonNode node, Consumer<String> fieldReport, ValidatorEngine validator) {
+        for (Format format : types) {
+            validator.validate(format, node, fieldReport);
+        }
+    }
+
+    @Override public void walk(Consumer<Format> consumer) {
+        consumer.accept(this);
+        for (Format type : types) {
+            type.walk(consumer);
+        }
+    }
+
+    @Override public String debugInfo() {
+        StringBuilder builder = new StringBuilder();
+        boolean notFirst = false;
+        for (Format item : types) {
+            if (notFirst)
+                builder.append(" & ");
+            builder.append(item.debugInfo());
+            notFirst = true;
+        }
+        return builder.toString();
+    }
 }

@@ -26,35 +26,26 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.dsl.schema.meta;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Schema {
-    private Map<String, TypeDef> definitions;
-    private String root;
+    private Map<String, Format> definitions;
 
-    public Map<String, TypeDef> getDefinitions() {
-        return definitions;
-    }
-
-    public void setDefinitions(Map<String, TypeDef> definitions) {
+    protected Schema(Map<String, Format> definitions) {
         this.definitions = definitions;
+
+        for (Format format : definitions.values()) {
+            format.walk(innerFormat -> innerFormat.resolve(this));
+        }
     }
 
-    public String getRoot() {
-        return root;
+    public Format getType(String typeName) {
+        return definitions.get(typeName);
     }
 
-    public void setRoot(String root) {
-        this.root = root;
-    }
-
-    public static Schema load(ObjectMapper mapper, InputStream dslSource) throws IOException {
-        return mapper.readValue(dslSource, Schema.class);
+    public static SchemaBuilder withMapper(ObjectMapper mapper) {
+        return new SchemaBuilder(mapper);
     }
 }
-
-
