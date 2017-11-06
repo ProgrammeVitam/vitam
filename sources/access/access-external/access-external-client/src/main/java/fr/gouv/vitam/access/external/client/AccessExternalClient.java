@@ -157,7 +157,7 @@ public interface AccessExternalClient extends BasicClient {
      * @throws InvalidParseOperationException
      * @throws AccessUnauthorizedException
      */
-    RequestResponse<LogbookOperation> selectOperation(VitamContext vitamContext,
+    RequestResponse<LogbookOperation> selectOperations(VitamContext vitamContext,
         JsonNode select)
         throws VitamClientException;
 
@@ -166,13 +166,13 @@ public interface AccessExternalClient extends BasicClient {
      *
      *
      * @param vitamContext the vitam context
-     * @param processId the process id
+     * @param operationId the operation id
      * @param select the select query
      * @return logbookOperation representation
      * @throws VitamClientException
      */
     RequestResponse<LogbookOperation> selectOperationbyId(VitamContext vitamContext,
-        String processId, JsonNode select)
+        String operationId, JsonNode select)
         throws VitamClientException;
 
     /**
@@ -180,13 +180,13 @@ public interface AccessExternalClient extends BasicClient {
      *
      *
      * @param vitamContext the vitam context
-     * @param idUnit the unit id
+     * @param unitLifeCycleId the unit LFC id
      * @param select the select query
      * @return logbooklifecycle representation
      * @throws VitamClientException
      */
     RequestResponse<LogbookLifecycle> selectUnitLifeCycleById(VitamContext vitamContext,
-        String idUnit, JsonNode select)
+        String unitLifeCycleId, JsonNode select)
         throws VitamClientException;
 
     /**
@@ -194,32 +194,36 @@ public interface AccessExternalClient extends BasicClient {
      *
      *
      * @param vitamContext the vitam context
-     * @param idObject the object id
+     * @param objectGroupLifeCycleId the objectGroup LFC id
      * @param select the select query
      * @return logbooklifecycle representation
      * @throws VitamClientException
      */
     RequestResponse<LogbookLifecycle> selectObjectGroupLifeCycleById(
-        VitamContext vitamContext, String idObject, JsonNode select)
+        VitamContext vitamContext, String objectGroupLifeCycleId, JsonNode select)
         throws VitamClientException;
 
-	/**
-	 * @param vitamContext the vitam context
-	 * @param selectQuery the DSL query used to select unit to export as DIP
-	 * @return the 
-	 * @throws VitamClientException
-	 */
-	RequestResponse<JsonNode> exportDIP(VitamContext vitamContext,
-			JsonNode selectQuery) throws VitamClientException;
+    /**
+     * @param vitamContext the vitam context
+     * @param selectQuery the DSL query used to select unit to export as DIP
+     * @return the result of the information obtained in the DIP
+     * @throws VitamClientException
+     */
+    RequestResponse<JsonNode> exportDIP(VitamContext vitamContext,
+        JsonNode selectQuery) throws VitamClientException;
 
-	/**
-	 * @param vitamContext the vitam context
-	 * @param dipId the previously generated DIP id to download the DIP
-	 * @return
-	 * @throws VitamClientException
-	 */
-	Response getDIPById(VitamContext vitamContext, String dipId)
-			throws VitamClientException;
+    /**
+     * getDIPById<br>
+     * <br>
+     * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
+     * 
+     * @param vitamContext the vitam context
+     * @param dipId the previously generated DIP id to download the DIP
+     * @return Response including InputStream
+     * @throws VitamClientException
+     */
+    Response getDIPById(VitamContext vitamContext, String dipId)
+        throws VitamClientException;
 }
 
 

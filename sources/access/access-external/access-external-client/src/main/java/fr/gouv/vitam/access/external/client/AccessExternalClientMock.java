@@ -1,19 +1,13 @@
 package fr.gouv.vitam.access.external.client;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.apache.commons.io.IOUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -64,7 +58,7 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     }
 
     @Override
-    public RequestResponse<LogbookOperation> selectOperation(VitamContext vitamContext,
+    public RequestResponse<LogbookOperation> selectOperations(VitamContext vitamContext,
         JsonNode select)
         throws VitamClientException {
         return ClientMockResultHelper.getLogbookOperationsRequestResponse();
@@ -102,14 +96,14 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
 
     @Override
     public RequestResponse<JsonNode> exportDIP(VitamContext vitamContext,
-    		JsonNode selectQuery) throws VitamClientException {
+        JsonNode selectQuery) throws VitamClientException {
         return ClientMockResultHelper.getDIPSimpleResult(selectQuery);
     }
 
     @Override
     public Response getDIPById(VitamContext vitamContext, String dipId)
-    		throws VitamClientException {
-    	return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
+        throws VitamClientException {
+        return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
 

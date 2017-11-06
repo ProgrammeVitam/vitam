@@ -315,7 +315,7 @@ public class UserInterfaceTransactionManager {
         String appSessionId)
         throws VitamClientException {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
-            return client.selectOperation(new VitamContext(tenantId).setAccessContract(contractId)
+            return client.selectOperations(new VitamContext(tenantId).setAccessContract(contractId)
                 .setApplicationSessionId(appSessionId), query);
         }
     }
