@@ -323,7 +323,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         }
 
         try {
-            this.transferInputStreamToWorkspace(workspacePath, Files.newInputStream(sourceFile.toPath()),
+            transferInputStreamToWorkspace(workspacePath, Files.newInputStream(sourceFile.toPath()),
                 Paths.get(sourceFile.toURI()), asyncIO);
         } catch (final IOException e) {
             throw new ProcessingException("Cannot found or read source file: " + sourceFile, e);
