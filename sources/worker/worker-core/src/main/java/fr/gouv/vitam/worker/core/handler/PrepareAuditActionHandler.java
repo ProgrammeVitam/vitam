@@ -157,9 +157,6 @@ public class PrepareAuditActionHandler extends ActionHandler {
         } catch (ContentAddressableStorageAlreadyExistException e) {
             LOGGER.error("Workspace errors : ", e);
             itemStatus.increment(StatusCode.FATAL);
-        } catch (ReferentialNotFoundException e) {
-            LOGGER.error("No Accession Register found ");
-            itemStatus.increment(StatusCode.WARNING);
         } catch (ReferentialException | AccessUnauthorizedException e) {
             LOGGER.error("Functional admin errors : ", e);
             itemStatus.increment(StatusCode.FATAL);
@@ -201,6 +198,8 @@ public class PrepareAuditActionHandler extends ActionHandler {
                     }
                 }
             }
+        } catch (ReferentialNotFoundException e) {
+            LOGGER.error("No Accession Register found ");
         }
 
         return originatingAgency;

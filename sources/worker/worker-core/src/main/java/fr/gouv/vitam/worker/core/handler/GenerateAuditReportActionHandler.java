@@ -24,6 +24,7 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -191,10 +192,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
         List<String> auditActions)
         throws InvalidCreateOperationException, LogbookClientException, InvalidParseOperationException,
         UnsupportedEncodingException {
-        Select select = new Select();
-        select.setQuery(QueryHelper.and().add(QueryHelper.eq(EV_TYPE_PROC, AUDIT)));
-
-        JsonNode result = jopClient.selectOperationById(auditOperationId, select.getFinalSelect());
+        JsonNode result = jopClient.selectOperationById(auditOperationId, null);
         JsonNode res = result.get(RequestResponseOK.TAG_RESULTS).get(0);
         report.put("DateTime", res.get("evDateTime").textValue());
 
@@ -333,6 +331,8 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
                     }
                 }
             }
+        } catch (ReferentialNotFoundException e) {
+            LOGGER.error("No Accession Register found ");
         }
 
         return originatingAgency;
