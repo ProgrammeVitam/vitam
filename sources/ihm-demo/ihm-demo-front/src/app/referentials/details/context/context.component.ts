@@ -1,11 +1,10 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { plainToClass } from 'class-transformer';
 import { Title } from '@angular/platform-browser';
 
-import { BreadcrumbService, BreadcrumbElement } from "../../../common/breadcrumb.service";
+import { BreadcrumbService } from "../../../common/breadcrumb.service";
 import { ReferentialsService } from "../../referentials.service";
-import { DateService } from '../../../common/utils/date.service';
 import { ObjectsService } from '../../../common/utils/objects.service';
 import { PageComponent } from "../../../common/page/page-component";
 import { DialogService } from "../../../common/dialog/dialog.service";
@@ -39,9 +38,11 @@ export class ContextComponent extends PageComponent {
   id: string;
   update : boolean;
   updatedFields = {};
+  saveRunning = false;
+
   constructor(private activatedRoute: ActivatedRoute, private router : Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
-              private referentialsService : ReferentialsService, private dialogService : DialogService) {
+              private referentialsService : ReferentialsService,  private dialogService : DialogService) {
     super('Détail du contexte applicatif', [], titleService, breadcrumbService);
   }
 
@@ -108,16 +109,18 @@ export class ContextComponent extends PageComponent {
 
   getDetail() {
     this.referentialsService.getContextById(this.id).subscribe((value) => {
-      this.context = plainToClass(Context, value.$results)[0];
-      this.modifiedContext = ObjectsService.clone(this.context);
-
-      for (let permission of this.modifiedContext.Permissions) {
-        this.tenants.splice(this.tenants.indexOf(permission._tenant), 1);
-      }
+      this.initData(value);
     });
   }
 
   saveUpdate() {
+    if (Object.keys(this.updatedFields).length == 0) {
+      this.switchUpdateMode();
+      this.dialogService.displayMessage('Aucune modification effectuée', '');
+      return;
+    }
+    
+    this.saveRunning = true;
     this.updatedFields['LastUpdate'] = new Date();
 
     if (JSON.stringify(this.modifiedContext.Permissions) != JSON.stringify(this.context.Permissions.toString)) {
@@ -125,15 +128,22 @@ export class ContextComponent extends PageComponent {
     }
     this.referentialsService.updateDocumentById('contexts', this.id, this.updatedFields)
       .subscribe((data) => {
-        if (data.httpCode >= 400) {
-          this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée', '');
-        } else {
-          this.dialogService.displayMessage('La modification a bien été enregistrée', '');
-        }
-        this.getDetail();
-        this.switchUpdateMode();
+        this.referentialsService.getContextById(this.id).subscribe((value) => {
+          this.initData(value);
+          this.switchUpdateMode();
+          this.saveRunning = false;
+          if (data.httpCode >= 400) {
+            this.dialogService.displayMessage('Erreur de modification. Aucune révision effectuée.', '');
+          } else {
+            this.dialogService.displayMessage('Les modifications ont bien été enregistrées.', '');
+          }
+        }, (error) => {
+          this.saveRunning = false;
+          this.dialogService.displayMessage('Erreur de modification. Aucune révision effectuée.', '');
+        });
       }, (error) => {
-        this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée', '');
+        this.saveRunning = false;
+        this.dialogService.displayMessage('Erreur de modification. Aucune révision effectuée.', '');
       });
   }
 
@@ -165,6 +175,15 @@ export class ContextComponent extends PageComponent {
     let position = this.tenants.indexOf(newTenant);
     this.tenants.splice(position, 1);
     this.selectedTenant = this.tenants[0].toString();
+  }
+
+  initData(value) {
+    this.context = plainToClass(Context, value.$results)[0];
+    this.modifiedContext = ObjectsService.clone(this.context);
+
+    for (let permission of this.modifiedContext.Permissions) {
+      this.tenants.splice(this.tenants.indexOf(permission._tenant), 1);
+    }
   }
 
 }

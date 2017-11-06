@@ -1,14 +1,13 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { plainToClass } from 'class-transformer';
 import { Title } from '@angular/platform-browser';
 
-import { BreadcrumbService, BreadcrumbElement } from "../../../common/breadcrumb.service";
+import { BreadcrumbService } from "../../../common/breadcrumb.service";
 import { ReferentialsService } from "../../referentials.service";
-import { DateService } from '../../../common/utils/date.service';
 import { ObjectsService } from '../../../common/utils/objects.service';
-import { DialogService } from "../../../common/dialog/dialog.service";
 import { PageComponent } from "../../../common/page/page-component";
+import { DialogService } from "../../../common/dialog/dialog.service";
 import { Profil } from "./profil";
 
 const PROFIL_KEY_TRANSLATION = {
@@ -38,6 +37,7 @@ export class ProfilComponent extends PageComponent {
   isActif : boolean;
   update: boolean;
   updatedFields = {};
+  saveRunning = false;
 
   constructor(private activatedRoute: ActivatedRoute, private router : Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
@@ -79,9 +79,11 @@ export class ProfilComponent extends PageComponent {
   saveUpdate() {
     if (Object.keys(this.updatedFields).length == 0 && this.file == null) {
       this.switchUpdateMode();
+      this.dialogService.displayMessage('Aucune modification effectuée', '');
       return;
     }
 
+    this.saveRunning = true;
     this.updatedFields['LastUpdate'] = new Date();
     if (this.file != null) {
       let updatedFields = this.updatedFields;
@@ -89,29 +91,41 @@ export class ProfilComponent extends PageComponent {
         .subscribe((data) => {
           this.searchReferentialsService.updateProfilById(this.id, updatedFields)
             .subscribe((data) => {
-              if (data.httpCode >= 400) {
-                this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée', '');
-              } else {
-                this.dialogService.displayMessage('La modification a bien été enregistrée', '');
-              }
-              this.getDetail();
+              this.searchReferentialsService.getProfileById(this.id).subscribe((value) => {
+                this.initData(value);
+                this.saveRunning = false;
+                if (data.httpCode >= 400) {
+                  this.dialogService.displayMessage('Erreur de modification. Aucune révision effectuée.', '');
+                } else {
+                  this.dialogService.displayMessage('Les modifications ont bien été enregistrées.', '');
+                }
+              }, (error) => {
+                this.saveRunning = false;
+                this.dialogService.displayMessage('Erreur de modification. Aucune révision effectuée.', '');
+              });
             }, (error) => {
-              this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée', '');
+              this.saveRunning = false;
+              this.dialogService.displayMessage('Erreur de modification. Aucune révision effectuée.', '');
             });
-        }, (error) => {
-          this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée', '');
         });
     } else {
       this.searchReferentialsService.updateProfilById(this.id, this.updatedFields)
         .subscribe((data) => {
-          if (data.httpCode >= 400) {
-            this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée', '');
-          } else {
-            this.dialogService.displayMessage('La modification a bien été enregistrée', '');
-          }
-          this.getDetail();
+          this.searchReferentialsService.getProfileById(this.id).subscribe((value) => {
+            this.initData(value);
+            this.saveRunning = false;
+            if (data.httpCode >= 400) {
+              this.dialogService.displayMessage('Erreur de modification. Aucune révision effectuée.', '');
+            } else {
+              this.dialogService.displayMessage('Les modifications ont bien été enregistrées.', '');
+            }
+          }, (error) => {
+            this.saveRunning = false;
+            this.dialogService.displayMessage('Erreur de modification. Aucune révision effectuée.', '');
+          });
         }, (error) => {
-          this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée', '');
+          this.saveRunning = false;
+          this.dialogService.displayMessage('Erreur de modification. Aucune révision effectuée.', '');
         });
     }
 
@@ -120,13 +134,7 @@ export class ProfilComponent extends PageComponent {
 
   getDetail() {
     this.searchReferentialsService.getProfileById(this.id).subscribe((value) => {
-      this.profil = plainToClass(Profil, value.$results)[0];
-      this.modifiedProfil =  ObjectsService.clone(this.profil);
-      if (this.modifiedProfil.Status === 'ACTIVE') {
-        this.isActif = true;
-      } else {
-        this.isActif = false;
-      }
+      this.initData(value);
     });
   }
 
@@ -140,5 +148,11 @@ export class ProfilComponent extends PageComponent {
 
   onChange(file) {
     this.file = file[0];
+  }
+
+  initData(value) {
+    this.profil = plainToClass(Profil, value.$results)[0];
+    this.modifiedProfil =  ObjectsService.clone(this.profil);
+    this.isActif = this.modifiedProfil.Status === 'ACTIVE' ? true : false;
   }
 }

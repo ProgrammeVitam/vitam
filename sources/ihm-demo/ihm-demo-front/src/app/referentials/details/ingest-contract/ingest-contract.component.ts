@@ -1,11 +1,10 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { plainToClass } from 'class-transformer';
 import { Title } from '@angular/platform-browser';
 
-import { BreadcrumbService, BreadcrumbElement } from "../../../common/breadcrumb.service";
+import { BreadcrumbService } from "../../../common/breadcrumb.service";
 import { ReferentialsService } from "../../referentials.service";
-import { DateService } from '../../../common/utils/date.service';
 import { ObjectsService } from '../../../common/utils/objects.service';
 import { PageComponent } from "../../../common/page/page-component";
 import { DialogService } from "../../../common/dialog/dialog.service";
@@ -39,6 +38,8 @@ export class IngestContractComponent extends PageComponent {
   isActif :boolean;
   update : boolean;
   updatedFields = {};
+  saveRunning = false;
+  
   constructor(private activatedRoute: ActivatedRoute, private router : Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
               private searchReferentialsService : ReferentialsService, private dialogService : DialogService) {
@@ -93,33 +94,42 @@ export class IngestContractComponent extends PageComponent {
   saveUpdate() {
     if (Object.keys(this.updatedFields).length == 0) {
       this.switchUpdateMode();
+      this.dialogService.displayMessage('Aucune modification effectuée', '');
       return;
     }
 
+    this.saveRunning = true;
     this.updatedFields['LastUpdate'] = new Date();
     this.searchReferentialsService.updateDocumentById('contracts', this.id, this.updatedFields)
       .subscribe((data) => {
-        if (data.httpCode >= 400) {
-          this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée', '');
-        } else {
-          this.dialogService.displayMessage('La modification a bien été enregistrée', '');
-        }
-        this.getDetail();
-        this.switchUpdateMode();
+        this.searchReferentialsService.getIngestContractById(this.id).subscribe((value) => {
+          this.initData(value);
+          this.switchUpdateMode();
+          this.saveRunning = false;
+          if (data.httpCode >= 400) {
+            this.dialogService.displayMessage('Erreur de modification. Aucune révision effectuée.', '');
+          } else {
+            this.dialogService.displayMessage('Les modifications ont bien été enregistrées.', '');
+          }
+        }, (error) => {
+          this.saveRunning = false;
+          this.dialogService.displayMessage('Erreur de modification. Aucune révision effectuée.', '');
+        });
       }, (error) => {
-        this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée', '');
+        this.saveRunning = false;
+        this.dialogService.displayMessage('Erreur de modification. Aucune révision effectuée.', '');
       });
   }
 
   getDetail() {
     this.searchReferentialsService.getIngestContractById(this.id).subscribe((value) => {
-      this.contract = plainToClass(IngestContract, value.$results)[0];
-      this.modifiedContract =  ObjectsService.clone(this.contract);
-      if (this.modifiedContract.Status === 'ACTIVE') {
-        this.isActif = true;
-      } else {
-        this.isActif = false;
-      }
+      this.initData(value);
     });
+  }
+
+  initData(value) {
+    this.contract = plainToClass(IngestContract, value.$results)[0];
+    this.modifiedContract =  ObjectsService.clone(this.contract);
+    this.isActif = this.modifiedContract.Status === 'ACTIVE' ? true : false;
   }
 }
