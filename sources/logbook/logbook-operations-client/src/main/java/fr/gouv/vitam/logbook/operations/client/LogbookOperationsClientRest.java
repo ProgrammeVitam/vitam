@@ -170,7 +170,6 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, OPERATIONS_URL + "/" + processId, null,
-                queryDsl, MediaType.APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
 
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {

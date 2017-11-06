@@ -108,19 +108,19 @@
           "properties": {
             "originatingAgency": {
               "type": "string",
-              "index": "analyzed"
+              "index": "not_analyzed"
             },
             "TransferringAgency": {
               "type": "string",
-              "index": "analyzed"
+              "index": "not_analyzed"
             },
             "ArchivalAgency": {
               "type": "string",
-              "index": "analyzed"
+              "index": "not_analyzed"
             },
             "submissionAgency": {
               "type": "string",
-              "index": "analyzed"
+              "index": "not_analyzed"
             }
           }
         },
