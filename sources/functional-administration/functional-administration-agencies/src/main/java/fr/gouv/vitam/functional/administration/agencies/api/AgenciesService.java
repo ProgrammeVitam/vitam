@@ -717,7 +717,7 @@ public class AgenciesService implements VitamAutoCloseable {
         guidmasterNode.put("evId", eip.toString());
 
         for (AgenciesModel fileRulesModel : agenciesToInsert) {
-            insertAgenciesNode.add(fileRulesModel.toString());
+            insertAgenciesNode.add(fileRulesModel.getIdentifier());
         }
         for (AgenciesModel ageciesModel : agenciesToUpdate) {
             updateAgenciesNode.add(ageciesModel.getIdentifier());
