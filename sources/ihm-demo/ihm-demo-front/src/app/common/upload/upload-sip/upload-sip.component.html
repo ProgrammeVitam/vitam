@@ -41,7 +41,7 @@
   </div>
   <div class="ui-g">
     <div class="ui-g-4">{{fileUpload.name}}</div>
-    <div class="ui-g-4">{{fileUpload.size}} kB</div>
+    <div class="ui-g-4">{{computeSize(fileUpload.size)}}</div>
     <div class="ui-g-4" *ngIf="ingestInProgess"><img src="assets/images/loading_36.gif"/></div>
     <div class="ui-g-4" *ngIf="!ingestInProgess"><i class="fa"  [ngClass]="ingestIcon" aria-hidden="true"></i></div>
   </div>

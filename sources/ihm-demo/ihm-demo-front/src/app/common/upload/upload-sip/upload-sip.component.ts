@@ -84,6 +84,16 @@ export class UploadSipComponent implements OnInit {
     this.resetUpload();
   }
 
+  computeSize(size) {
+    let units = [' octets', ' ko', ' Mo', ' Go', ' To'];
+    let indice = 0;
+    while (size >= 1000 || indice >=4) {
+      size = Math.round(size/1000);
+      indice++;
+    }
+    return size + units[indice];
+  }
+  
   uploadFile() {
     this.uploadInProgess = true;
     this.uploadService.uploadFile(this.fileUpload, this.contextId, this.action);
