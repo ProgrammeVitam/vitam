@@ -33,58 +33,61 @@ public enum AdminCollections {
     /**
      * Formats Collection
      */
-    FORMATS(AccessExtAPI.FORMATS),
+    FORMATS(AccessExtAPI.FORMATS, AccessExtAPI.FORMATSCHECK),
 
     /**
      * Rules Collection
      */
-    RULES(AccessExtAPI.RULES),
+    RULES(AccessExtAPI.RULES, AccessExtAPI.RULESCHECK),
     
     /**
      * Ingest contracts collection
      */
-    INGEST_CONTRACTS(AccessExtAPI.INGEST_CONTRACT),
+    INGEST_CONTRACTS(AccessExtAPI.INGEST_CONTRACT, null),
 
     /**
      * Access contracts collection
      */
-    ACCESS_CONTRACTS(AccessExtAPI.ACCESS_CONTRACT),
+    ACCESS_CONTRACTS(AccessExtAPI.ACCESS_CONTRACT, null),
 
     /**
      * Agencies collection
      */
-    AGENCIES(AccessExtAPI.AGENCIES),
+    AGENCIES(AccessExtAPI.AGENCIES, AccessExtAPI.AGENCIESCHECK),
 
 
     /**
      * Profile collection
      */
-    PROFILE(AccessExtAPI.PROFILES),
+    PROFILE(AccessExtAPI.PROFILES, null),
     
     /**
      * Context collection
      */
-    CONTEXTS(AccessExtAPI.CONTEXTS),
+    CONTEXTS(AccessExtAPI.CONTEXTS, null),
 
     /**
      * Accession register collection
      */
-    ACCESSION_REGISTERS(AccessExtAPI.ACCESSION_REGISTERS),
+    ACCESSION_REGISTERS(AccessExtAPI.ACCESSION_REGISTERS, null),
     
     /**
      * Traceability collection
      */
-    TRACEABILITY(AccessExtAPI.TRACEABILITY),
+    TRACEABILITY(AccessExtAPI.TRACEABILITY, AccessExtAPI.TRACEABILITYCHECKS),
 
     /**
      * Security profile collection
      */
-    SECURITY_PROFILES(AccessExtAPI.SECURITY_PROFILES);
+    SECURITY_PROFILES(AccessExtAPI.SECURITY_PROFILES, null);
 
     private String name;
 
-    private AdminCollections(final String collection) {
+    private String checkURI;
+
+    AdminCollections(final String collection, final String checkURI) {
         name = collection;
+        this.checkURI = checkURI;
     }
 
     /**
@@ -93,6 +96,10 @@ public enum AdminCollections {
      */
     public String getName() {
         return name;
+    }
+
+    public String getCheckURI() {
+        return checkURI;
     }
 
     /**

@@ -180,12 +180,7 @@ documentation:
              description: |
                Un problème interne a empêché l'opération de se dérouler.
 
-        /check:
-           post:
-             description: Permet de vérifier une opération de sécurisation des journaux
-             is: [LogbookTraits.TraceabilityCheckResponse]
-
-        /{idOperation}/content:
+        /{idOperation}/datafiles:
            get:
              description: Permet de télécharger le fichier sécurisé des journaux d'opération
              is: [LogbookTraits.TraceabilityDownloadResponse]
@@ -196,6 +191,10 @@ documentation:
              headers:
                 X-Http-Method-Override:
                   required: true
+    /traceabilitychecks:
+             post:
+                description: Permet de vérifier une opération de sécurisation des journaux
+                is: [LogbookTraits.TraceabilityCheckResponse]
 
     /unitlifecycles:
       displayName: Unit Life Cycles Logbooks For Operation

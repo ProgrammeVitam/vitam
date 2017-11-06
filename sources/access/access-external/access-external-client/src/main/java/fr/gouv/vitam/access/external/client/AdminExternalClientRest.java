@@ -419,7 +419,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.putAll(vitamContext.getHeaders());
 
-            response = performRequest(HttpMethod.POST, LOGBOOK_CHECK, headers, query, MediaType.APPLICATION_JSON_TYPE,
+            response = performRequest(HttpMethod.POST, AdminCollections.TRACEABILITY.getCheckURI(), headers, query, MediaType
+                    .APPLICATION_JSON_TYPE,
                 MediaType.APPLICATION_JSON_TYPE);
             final Status status = Status.fromStatusCode(response.getStatus());
 
@@ -468,7 +469,9 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.putAll(vitamContext.getHeaders());
 
-            response = performRequest(HttpMethod.GET, AccessExtAPI.TRACEABILITY_API + "/" + operationId, headers, null,
+            response = performRequest(HttpMethod.GET, AccessExtAPI.TRACEABILITY_API + "/" + operationId +
+                    "/datafiles", headers,
+                null,
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             final Status status = Status.fromStatusCode(response.getStatus());
@@ -882,7 +885,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.putAll(vitamContext.getHeaders());
         try {
-            return performRequest(HttpMethod.PUT, documentType.getName(), headers,
+            return performRequest(HttpMethod.POST, documentType.getCheckURI(), headers,
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE,
                 MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final VitamClientInternalException e) {
