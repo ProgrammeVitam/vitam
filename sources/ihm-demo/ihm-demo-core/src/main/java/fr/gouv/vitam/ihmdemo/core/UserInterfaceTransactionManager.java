@@ -296,7 +296,7 @@ public class UserInterfaceTransactionManager {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.selectUnitLifeCycleById(
                 new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(appSessionId),
-                unitLifeCycleId, new Select().getFinalSelect());
+                unitLifeCycleId, new Select().getFinalSelectById());
 
         }
     }
@@ -351,7 +351,7 @@ public class UserInterfaceTransactionManager {
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             return client.selectObjectGroupLifeCycleById(
                 new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(appSessionId),
-                objectGroupLifeCycleId, new Select().getFinalSelect());
+                objectGroupLifeCycleId, new Select().getFinalSelectById());
         }
     }
 

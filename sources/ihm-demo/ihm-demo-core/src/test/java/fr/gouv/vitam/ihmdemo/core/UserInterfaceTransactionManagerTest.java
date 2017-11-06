@@ -27,9 +27,11 @@
 package fr.gouv.vitam.ihmdemo.core;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.InputStream;
@@ -37,14 +39,13 @@ import java.io.InputStream;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.common.client.VitamContext;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -57,12 +58,14 @@ import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.junit.AsyncResponseJunitTest;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -128,7 +131,7 @@ public class UserInterfaceTransactionManagerTest {
     public void setupTests() throws Exception {
         PowerMockito.mockStatic(AccessExternalClientFactory.class);
         accessClientFactory = PowerMockito.mock(AccessExternalClientFactory.class);
-        accessClient = org.mockito.Mockito.mock(AccessExternalClient.class);
+        accessClient = org.mockito.Mockito.spy(AccessExternalClient.class);
         PowerMockito.when(AccessExternalClientFactory.getInstance()).thenReturn(accessClientFactory);
         PowerMockito.when(AccessExternalClientFactory.getInstance().getClient()).thenReturn(accessClient);
     }
@@ -150,8 +153,7 @@ public class UserInterfaceTransactionManagerTest {
         throws Exception {
         when(accessClient.selectUnitbyId(
             eq(new VitamContext(TENANT_ID).setAccessContract(CONTRACT_NAME).setApplicationSessionId(APP_SESSION_ID)),
-            eq(JsonHandler.getFromString(SELECT_ID_DSL_QUERY)), eq(ID_UNIT)
-        ))
+            eq(JsonHandler.getFromString(SELECT_ID_DSL_QUERY)), eq(ID_UNIT)))
                 .thenReturn(unitDetails);
         // Test method
         final RequestResponseOK<JsonNode> archiveDetails =
@@ -162,8 +164,41 @@ public class UserInterfaceTransactionManagerTest {
     }
 
 
-    //TODO anpar:  Make Test  for selectOperation respect Dsl validator.
+    // TODO anpar: Make Test for selectOperation respect Dsl validator.
 
+    @Test
+    @RunWithCustomExecutor
+    public void testgetLifecycleUnit()
+        throws Exception {
+        when(accessClient.selectUnitLifeCycleById(anyObject(), anyObject(), anyObject())).thenReturn(searchResult);
+
+        // Test method
+        final RequestResponseOK results = (RequestResponseOK) UserInterfaceTransactionManager
+            .selectUnitLifeCycleById("1", TENANT_ID, CONTRACT_NAME, APP_SESSION_ID);
+
+        ArgumentCaptor<JsonNode> selectArgument = ArgumentCaptor.forClass(JsonNode.class);
+        verify(accessClient).selectUnitLifeCycleById(anyObject(), anyObject(), selectArgument.capture());
+        assertFalse(selectArgument.getValue().has("$filter"));
+        assertFalse(selectArgument.getValue().has("$query"));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testgetLifecycleObjectGroup()
+        throws Exception {
+        when(accessClient.selectObjectGroupLifeCycleById(anyObject(), anyObject(), anyObject())).thenReturn(searchResult);
+
+        // Test method
+        final RequestResponseOK results = (RequestResponseOK) UserInterfaceTransactionManager
+            .selectObjectGroupLifeCycleById("1", TENANT_ID, CONTRACT_NAME, APP_SESSION_ID);
+
+        ArgumentCaptor<JsonNode> selectArgument = ArgumentCaptor.forClass(JsonNode.class);
+        verify(accessClient).selectObjectGroupLifeCycleById(anyObject(), anyObject(), selectArgument.capture());
+        assertFalse(selectArgument.getValue().has("$filter"));
+        assertFalse(selectArgument.getValue().has("$query"));
+    }
+
+    
     @Test
     @RunWithCustomExecutor
     public void testSuccessUpdateUnits()
@@ -184,9 +219,9 @@ public class UserInterfaceTransactionManagerTest {
                 "{$hits: {'total':'1'}, $results:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}],$context :" +
                     SEARCH_UNIT_DSL_QUERY + "}",
                 RequestResponseOK.class, JsonNode.class);
-        when(accessClient.selectObjectMetadatasByUnitId(eq(new VitamContext(TENANT_ID).setAccessContract(CONTRACT_NAME).setApplicationSessionId(APP_SESSION_ID)),
-            eq(JsonHandler.getFromString(OBJECT_GROUP_QUERY)), eq(ID_OBJECT_GROUP)
-        ))
+        when(accessClient.selectObjectMetadatasByUnitId(
+            eq(new VitamContext(TENANT_ID).setAccessContract(CONTRACT_NAME).setApplicationSessionId(APP_SESSION_ID)),
+            eq(JsonHandler.getFromString(OBJECT_GROUP_QUERY)), eq(ID_OBJECT_GROUP)))
                 .thenReturn(result);
         // Test method
         final RequestResponseOK<JsonNode> objectGroup =
