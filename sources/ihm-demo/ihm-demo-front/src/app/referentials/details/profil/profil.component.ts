@@ -42,7 +42,7 @@ export class ProfilComponent extends PageComponent {
   constructor(private activatedRoute: ActivatedRoute, private router : Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
               private searchReferentialsService : ReferentialsService, private dialogService : DialogService) {
-    super('Détail du profil d\'archivage', [], titleService, breadcrumbService);
+    super('Détail du profil d\'archivage ', [], titleService, breadcrumbService);
   }
 
   pageOnInit() {
@@ -52,7 +52,7 @@ export class ProfilComponent extends PageComponent {
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
         {label: 'Référentiel des profils d\'archivage', routerLink: 'admin/search/profil'},
-        {label: 'Détail du profil d\'archivage' + this.id, routerLink: ''}
+        {label: 'Détail du profil d\'archivage ' + this.id, routerLink: ''}
       ];
 
       this.setBreadcrumb(newBreadcrumb);

@@ -1,8 +1,8 @@
 import {Component} from '@angular/core';
 import {ActivatedRoute, ParamMap, Router, NavigationEnd} from '@angular/router';
 import {PageComponent} from "../../common/page/page-component";
-import { Title } from '@angular/platform-browser';
-import { BreadcrumbService } from '../../common/breadcrumb.service';
+import {Title} from '@angular/platform-browser';
+import {BreadcrumbService} from '../../common/breadcrumb.service';
 import 'rxjs/add/operator/switchMap';
 import {ArchiveUnitService} from "../archive-unit.service";
 
@@ -18,7 +18,7 @@ export class ArchiveUnitDetailsComponent extends PageComponent {
 
   constructor(private route: ActivatedRoute, public titleService: Title, public breadcrumbService: BreadcrumbService,
               private archiveUnitService: ArchiveUnitService, private router: Router) {
-    super('Détails de l\'unitée archivistique', [], titleService, breadcrumbService);
+    super('Détails de l\'unité archivistique', [], titleService, breadcrumbService);
     router.events.subscribe((val) => {
       if (val instanceof NavigationEnd) {
         this.pageOnInit();
@@ -29,16 +29,20 @@ export class ArchiveUnitDetailsComponent extends PageComponent {
   pageOnInit() {
     this.route.paramMap
       .switchMap((params: ParamMap) => {
-        this.id =  params.get('id');
+        this.id = params.get('id');
         let newBreadcrumb = [
           {label: 'Recherche', routerLink: ''},
           {label: 'Recherche d\'archives', routerLink: 'search/archiveUnit'},
-          {label: 'Détails de l\'unité archivistique ' + this.id, routerLink: 'search/archiveUnit/' + this.id}
+          {
+            label: 'Détails de l\'unité archivistique ' + this.id,
+            routerLink: 'search/archiveUnit/' + this.id
+          }
         ];
         this.setBreadcrumb(newBreadcrumb);
         return [];
       })
-      .subscribe(() => {/* Need a Subscribe to trigger switchMap */});
+      .subscribe(() => {/* Need a Subscribe to trigger switchMap */
+      });
 
     this.archiveUnitService.getDetails(this.id).subscribe(
       (data) => {
