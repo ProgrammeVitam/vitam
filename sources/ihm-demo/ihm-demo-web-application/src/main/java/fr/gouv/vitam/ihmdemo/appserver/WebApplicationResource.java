@@ -274,9 +274,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 result = UserInterfaceTransactionManager.searchUnits(preparedQueryDsl,
                     getTenantId(headers), getAccessContractId(headers), getAppSessionId());
 
-                LOGGER.error(result.toString());
-                LOGGER.error(JsonHandler.prettyPrint(result.toJsonNode()));
-
                 if (!result.isOk()) {
                     return result.toResponse();
                 }
