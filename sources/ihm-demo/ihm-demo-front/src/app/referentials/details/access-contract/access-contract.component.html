@@ -101,6 +101,11 @@
         <vitam-metadata-field [title]="'Noeuds de consultation'"  [originalTitle]="'RootUnits'" [value]="modifiedContract.RootUnits" [labelSize]="5"
                               class="ui-g-4 " [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
       </div>
+    <div class="ui-g-12">
+           <div class="ui-g-nopad ui-g-12" *ngIf="update">
+            <span class="overflow-break-words"><i>Afin que la modification soit prise en compte, veuillez appuyer sur "Entrer" après l'ajout de chaque identifiant.</i></span>
+          </div>
+      </div>
     </div>
   </div>
 

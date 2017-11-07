@@ -1,7 +1,7 @@
 <p-panel [header]="'Détail des fonds'">
   <div class="ui-g"  *ngIf="register">
     <div class="ui-g-12 ui-md-6">
-      <p-panel [header]="'Fonds propre'">
+      <p-panel [header]="'Fonds propres'">
         <div class="ui-g">
           <p-dataTable [value]="mainRegisters">
             <p-column *ngFor="let col of registersCols" [field]="col.field">
@@ -17,9 +17,9 @@
 
     </div>
     <div class="ui-g-12 ui-md-6">
-      <p-panel [header]="'Fonds symbolique'">
+      <p-panel [header]="'Fonds symboliques'">
         <div class="ui-g">
-          <p-dataTable [value]="attachedRegisters">
+          <p-dataTable [value]="attachedRegisters" [emptyMessage]="'Aucun résultat'">
             <p-column *ngFor="let col of registersCols" [field]="col.field" [header]="col.header">
             </p-column>
           </p-dataTable>
@@ -37,14 +37,14 @@
     <div class="ui-g-12">
       <p-panel [header]="'Liste par opération'" [styleClass]="'overflow-wrap-content'">
         <div class="ui-g">
-          <p-dataTable #dt [value]="registerDetails">
+          <p-dataTable #dt [value]="registerDetails" [emptyMessage]="'Aucun résultat'">
             <p-column field="Symbolic" header="Fond propre">
               <ng-template let-detail="rowData" pTemplate="body">
                 <i [ngClass]="getDetailIcon(detail)" aria-hidden="true"></i>
               </ng-template>
             </p-column>
             <p-column field="_id" header="Identifiant"></p-column>
-            <p-column field="SubmissionAgency" header="Service Versant"></p-column>
+            <p-column field="SubmissionAgency" header="Service versant"></p-column>
             <p-column field="LastUpdate" header="Date d'entrée">
               <ng-template let-detail="rowData" pTemplate="body">
                 {{getDate(detail)}}
