@@ -140,6 +140,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -748,6 +749,14 @@ public class ProcessingIT {
             assertNotNull(processAuditWorkflow);
             assertEquals(ProcessState.COMPLETED, processAuditWorkflow.getState());
             assertEquals(StatusCode.OK, processAuditWorkflow.getStatus());
+            
+            fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
+                new fr.gouv.vitam.common.database.builder.request.single.Select();
+            selectQuery.setQuery(QueryHelper.eq("evTypeProc", "AUDIT"));
+            JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
+            JsonNode logbookNode = logbookResult.get("$results").get(0);
+            assertEquals(logbookNode.get(LogbookMongoDbName.eventDetailData.getDbname()).asText(),
+                "{\n  \"Vitam\" : {\n    \"OK\" : 1,\n    \"KO\" : 0\n  }\n}");
         } catch (final Exception e) {
             LOGGER.error(e);
             fail("should not raized an exception" + e);
