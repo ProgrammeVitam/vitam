@@ -675,7 +675,12 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             return (contract, contractName) -> {
                 Set<String> rootUnits = contract.getRootUnits();
 
-                if (null == rootUnits || rootUnits.isEmpty()) {
+                if (null == rootUnits) {
+                    return Optional.empty();
+                }
+                
+                rootUnits.removeIf(unit -> unit.trim().isEmpty());
+                if (rootUnits.isEmpty()) {
                     return Optional.empty();
                 }
 

@@ -774,6 +774,24 @@ public class AccessContractImplTest {
             .contains("aName1");
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void givenAccessContractsTestEmptyRootUnitsOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_empty_root_units.json");
+
+        final List<AccessContractModel> accessContractModelList =
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
+                });
+        final RequestResponse response = accessContractService.createContracts(accessContractModelList);
+
+        assertThat(response.isOk()).isTrue();
+        assertThat(((RequestResponseOK) response).getResults()).hasSize(2);
+        assertThat(((RequestResponseOK<AccessContractModel>) response).getResults().get(0).getName()).contains("aName");
+        assertThat(((RequestResponseOK<AccessContractModel>) response).getResults().get(1).getName())
+                .contains("aName1");
+    }
+
 
     @Test
     @RunWithCustomExecutor
