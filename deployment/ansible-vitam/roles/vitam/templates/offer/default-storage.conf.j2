@@ -1,10 +1,9 @@
 provider: {{ vitam_offers[offer_conf]["provider"] }}
 {% if vitam_offers[offer_conf]["provider"] != "openstack-swift" %}
 storagePath: {{vitam_folder_data}}
-{% else %}
-keystoneEndPoint: {{ vitam_offers[offer_conf]["keystone_auth_url"] }}
-swiftUid: {{ vitam_offers[offer_conf]["swift_uid"] }}
-swiftSubUser: {{ vitam_offers[offer_conf]["swift_subuser"] }}
-credential: {{ vitam_offers[offer_conf]["swift_password"] }}
-cephMode: {{  vitam_offers[offer_conf]["ceph_mode"] | default(true) }}
 {% endif %}
+keystoneEndPoint: {{ vitam_offers[offer_conf]["keystone_auth_url"] | default("") }}
+swiftUid: {{ vitam_offers[offer_conf]["swift_uid"] | default("") }}
+swiftSubUser: {{ vitam_offers[offer_conf]["swift_subuser"] | default("") }}
+credential: {{ vitam_offers[offer_conf]["swift_password"] | default("") }}
+cephMode: {{  vitam_offers[offer_conf]["ceph_mode"] | default(true) }}
