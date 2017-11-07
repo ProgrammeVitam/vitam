@@ -97,27 +97,6 @@ vitam:
         baseuri_v2: "ihm-demo-v2"
         https_enabled: false
         secret_platform: "false"
-    ihm_recette:
-        vitam_component: ihm-recette
-        host: "ihm-recette.service.{{ consul_domain }}"
-        port_http: 8204
-        port_https: 8445
-        port_admin: 28204
-        baseurl: /ihm-recette
-        static_content: "{{ vitam_defaults.folder.root_path }}/app/ihm-recette"
-        baseuri: "ihm-recette"
-        vitam_ihm_recette_secure_mode: "authc"
-        https_enabled: true
-        secret_platform: "false"
-        cluster_name: "{{ elasticsearch.data.cluster_name }}"
-    library:
-        vitam_component: library
-        host: "library.service.{{consul_domain}}"
-        port_http: 8090
-        port_admin: 28090
-        baseuri: "doc"
-        https_enabled: false
-        secret_platform: "false"
     logbook:
         vitam_component: logbook
         host: "logbook.service.{{consul_domain}}"
