@@ -54,10 +54,12 @@ export class SearchReferentialsComponent  extends PageComponent {
             ColumnDefinition.makeStaticColumn('Identifier', 'Identifiant', undefined,
               () => ({'width': '225px'})),
             ColumnDefinition.makeStaticColumn('#tenant', 'Tenant', undefined,
-              () => ({'width': '125px'})),
+              () => ({'width': '63px'})),
             ColumnDefinition.makeStaticColumn('Status', 'Statut', SearchReferentialsComponent.handleStatus,
-              () => ({'width': '125px'})),
+              () => ({'width': '62px'})),
             ColumnDefinition.makeStaticColumn('CreationDate', 'Date de création', DateService.handleDate,
+              () => ({'width': '125px'})),
+            ColumnDefinition.makeStaticColumn('LastUpdate', 'Dernière modification', DateService.handleDate,
               () => ({'width': '125px'}))
           ];
           this.extraColumns = [];
@@ -78,10 +80,12 @@ export class SearchReferentialsComponent  extends PageComponent {
             ColumnDefinition.makeStaticColumn('Identifier', 'Identifiant', undefined,
               () => ({'width': '225px'})),
             ColumnDefinition.makeStaticColumn('#tenant', 'Tenant', undefined,
-              () => ({'width': '125px'})),
+              () => ({'width': '63px'})),
             ColumnDefinition.makeStaticColumn('Status', 'Statut', SearchReferentialsComponent.handleStatus,
-              () => ({'width': '125px'})),
+              () => ({'width': '62px'})),
             ColumnDefinition.makeStaticColumn('CreationDate', 'Date de création', DateService.handleDate,
+              () => ({'width': '125px'})),
+            ColumnDefinition.makeStaticColumn('LastUpdate', 'Dernière modification', DateService.handleDate,
               () => ({'width': '125px'}))
           ];
           this.extraColumns = [];
@@ -90,7 +94,7 @@ export class SearchReferentialsComponent  extends PageComponent {
           break;
         case "format":
           this.searchReferentialsService.setSearchAPI('admin/formats');
-          this.breadcrumbName = "Référentiel des formats";
+          this.breadcrumbName = "Formats";
           this.referentialData = [
             new FieldDefinition('FormatName', "Intitulé", 6, 8),
             FieldDefinition.createIdField('PUID', "PUID", 6, 8)
@@ -114,7 +118,7 @@ export class SearchReferentialsComponent  extends PageComponent {
           break;
         case "rule":
           this.searchReferentialsService.setSearchAPI('admin/rules');
-          this.breadcrumbName = "Référentiel des règles de gestion";
+          this.breadcrumbName = "Règles de gestion";
           let options = [
             {label : "Tous", value : "All"},
             {label : "Durée d'utilité aministrative", value : "AppraisalRule"},
@@ -158,24 +162,17 @@ export class SearchReferentialsComponent  extends PageComponent {
               () => ({'width': '325px'})),
             ColumnDefinition.makeStaticColumn('Identifier', 'Identifiant', undefined,
               () => ({'width': '125px'})),
-            ColumnDefinition.makeStaticColumn('Description', 'Description', undefined,
-              () => ({'width': '325px'})),
             ColumnDefinition.makeStaticColumn('Status', 'Statut', SearchReferentialsComponent.handleStatus,
-              () => ({'width': '125px'})),
+              () => ({'width': '60px'})),
+            ColumnDefinition.makeStaticColumn('CreationDate', 'Date de création', DateService.handleDate,
+              () => ({'width': '100px'})),
+            ColumnDefinition.makeStaticColumn('LastUpdate', 'Dernière modification', DateService.handleDate,
+              () => ({'width': '100px'})),
             ColumnDefinition.makeIconColumn('Profil', ['fa-download'],
               SearchReferentialsComponent.downloadProfil, SearchReferentialsComponent.checkProfil,
               () => ({'width': '50px'}), this.searchReferentialsService)
           ];
-          this.extraColumns = [
-            ColumnDefinition.makeStaticColumn('CreationDate', 'Date de création', DateService.handleDate,
-              () => ({'width': '125px'})),
-            ColumnDefinition.makeStaticColumn('LastUpdate', 'Dernière modification', DateService.handleDate,
-              () => ({'width': '125px'})),
-            ColumnDefinition.makeStaticColumn('ActivationDate', "Date d'activation", DateService.handleDate,
-              () => ({'width': '125px'})),
-            ColumnDefinition.makeStaticColumn('DeactivationDate', 'Date de désactivation', DateService.handleDate,
-              () => ({'width': '125px'}))
-          ];
+          this.extraColumns = [];
           this.referentialPath = 'admin/profil';
           this.referentialIdentifier = 'Identifier';
           break;
@@ -194,9 +191,11 @@ export class SearchReferentialsComponent  extends PageComponent {
               () => ({'width': '125px'})),
             ColumnDefinition.makeStaticColumn('Status', 'Statut', SearchReferentialsComponent.handleStatus,
               () => ({'width': '125px'})),
-            ColumnDefinition.makeStaticColumn('ActivationDate', "Date d'activation", DateService.handleDate,
+            ColumnDefinition.makeSpecialIconColumn("Contrat d'accès",
+              SearchReferentialsComponent.checkAccessContract, undefined,
               () => ({'width': '125px'})),
-            ColumnDefinition.makeStaticColumn('DeactivationDate', "Date de désactivation", DateService.handleDate,
+            ColumnDefinition.makeSpecialIconColumn("Contrat d'entrée",
+              SearchReferentialsComponent.checkIngestContract, undefined,
               () => ({'width': '125px'})),
             ColumnDefinition.makeStaticColumn('CreationDate', "Date de création", DateService.handleDate,
               () => ({'width': '125px'})),
@@ -205,13 +204,7 @@ export class SearchReferentialsComponent  extends PageComponent {
           ];
           this.extraColumns = [
             ColumnDefinition.makeStaticColumn('#id', 'GUID', undefined,
-              () => ({'width': '325px'})),
-            ColumnDefinition.makeSpecialValueColumn("Contrat d'accès",
-              SearchReferentialsComponent.checkAccessContract, undefined,
-              () => ({'width': '175px'})),
-            ColumnDefinition.makeSpecialValueColumn("Contrat d'entrée",
-              SearchReferentialsComponent.checkIngestContract, undefined,
-              () => ({'width': '200px'}))
+              () => ({'width': '325px'}))
           ];
           this.referentialPath = 'admin/context';
           this.referentialIdentifier = 'Identifier';
@@ -308,26 +301,26 @@ export class SearchReferentialsComponent  extends PageComponent {
     }
   }
 
-  static checkAccessContract(item): string {
+  static checkAccessContract(item): string[] {
     if (item.Permissions instanceof Array) {
       for (let pem in item.Permissions) {
         if (item.Permissions[pem].AccessContracts &&  item.Permissions[pem].AccessContracts.length > 0) {
-          return 'V';
+          return ['fa-check'];
         }
       }
     }
-    return 'X';
+    return ['fa-close greyColor'];
   }
 
-  static checkIngestContract(item): string {
+  static checkIngestContract(item): string[] {
     if (item.Permissions instanceof Array) {
       for (let pem in item.Permissions) {
         if (item.Permissions[pem].IngestContracts &&  item.Permissions[pem].IngestContracts.length > 0) {
-          return 'V';
+          return ['fa-check'];
         }
       }
     }
-    return 'X';
+    return ['fa-close greyColor'];
   }
 
   onNotifyPanelButton() {

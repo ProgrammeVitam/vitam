@@ -16,7 +16,7 @@ const RULE_KEY_TRANSLATION = {
   RuleType : 'Type',
   CreationDate : 'Date de creation',
   RuleMeasurement : 'Mesure',
-  UpdateDate : 'Date de mise à jour',
+  UpdateDate : 'Dernière modification',
   RuleDuration: "Durée"
 };
 const RULE_TYPE_TRANSLATION = {
