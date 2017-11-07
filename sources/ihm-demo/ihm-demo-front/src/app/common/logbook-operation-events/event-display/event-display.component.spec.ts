@@ -1,8 +1,12 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-import { NO_ERRORS_SCHEMA } from "@angular/core";
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {NO_ERRORS_SCHEMA} from "@angular/core";
 
-import { EventDisplayComponent } from './event-display.component';
-import { Event } from '../event';
+import {EventDisplayComponent} from './event-display.component';
+import {Event} from '../event';
+import {TranslateLoader, TranslateModule} from "@ngx-translate/core";
+import {CustomLoader} from "../../translate/custom-loader";
+import {HttpClient} from "@angular/common/http";
+import {RouterTestingModule} from "@angular/router/testing";
 
 describe('EventDisplayComponent', () => {
   let component: EventDisplayComponent;
@@ -10,10 +14,14 @@ describe('EventDisplayComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ EventDisplayComponent ],
+      imports: [
+        RouterTestingModule,
+        TranslateModule.forRoot({})
+    ],
+      declarations: [EventDisplayComponent],
       schemas: [NO_ERRORS_SCHEMA]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {
@@ -24,6 +32,7 @@ describe('EventDisplayComponent', () => {
   });
 
   it('should be created', () => {
+    console.log(component)
     expect(component).toBeTruthy();
   });
 });
