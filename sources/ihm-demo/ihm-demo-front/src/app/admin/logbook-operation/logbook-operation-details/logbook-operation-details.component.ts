@@ -29,6 +29,8 @@ export class LogbookOperationDetailsComponent extends PageComponent {
       () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeStaticColumn('evType', 'Opération', undefined,
       () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
+    ColumnDefinition.makeStaticColumn('agIdExt', 'Acteur de l\'opération', undefined,
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeStaticColumn('rightsStatementIdentifier', 'Contrat associé', undefined,
       () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeStaticColumn('evDateTime', 'Date de début',
@@ -37,16 +39,13 @@ export class LogbookOperationDetailsComponent extends PageComponent {
       this.archiveUnitHelper.handleDateWithTime, () => ({'width': '125px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeSpecialValueColumn('Statut', (item) => item.events[item.events.length - 1].outcome,
       undefined, () => ({'width': '125px', 'overflow-wrap': 'break-word'})),
-    ColumnDefinition.makeSpecialValueColumn('Message', (item) => item.events[item.events.length - 1].outMessg,
-      undefined, () => ({'width': '125px', 'overflow-wrap': 'break-word'})),
-    ColumnDefinition.makeStaticColumn('agIdExt', 'Acteur de l\'opération', undefined,
+
+    ColumnDefinition.makeStaticColumn('evDetData', 'Informations complémentaires sur l\'opération', undefined,
       () => ({'width': '175px', 'overflow-wrap': 'break-word'}))
   ];
 
   public extraColumns = [
     ColumnDefinition.makeStaticColumn('evId', 'Identifiant de l\'opération', undefined,
-      () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
-    ColumnDefinition.makeStaticColumn('evDetData', 'Informations sur l\'opération', undefined,
       () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeStaticColumn('agId', 'Acteur(s) internes', undefined,
       () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
@@ -56,6 +55,8 @@ export class LogbookOperationDetailsComponent extends PageComponent {
       () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeStaticColumn('obId', 'Identifiant de l\'opération', undefined,
       () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
+    ColumnDefinition.makeSpecialValueColumn('Message', (item) => item.events[item.events.length - 1].outMessg,
+      undefined, () => ({'width': '125px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeSpecialIconColumn('Rapport', LogbookOperationComponent.handleReports,
       () => ({'width': '75px', 'overflow-wrap': 'break-word'}),
       LogbookOperationComponent.downloadReports, this.logbookService)
