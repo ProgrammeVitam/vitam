@@ -32,3 +32,7 @@ vitam_users:
     login: techadmin
     password: techadmin1234
     role: admin
+vitam_offers:
+  offer_swift_1:
+    swift_password: password
+
