@@ -10,3 +10,7 @@
 .allDiv {
     width: 100%;
 }
+
+.value {
+    padding-left: 5px;
+}
