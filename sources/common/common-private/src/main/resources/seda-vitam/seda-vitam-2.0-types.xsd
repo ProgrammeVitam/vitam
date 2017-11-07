@@ -88,7 +88,8 @@
         <xsd:annotation>
             <xsd:documentation>Identifiant servant aux relations des objets-données.</xsd:documentation>
         </xsd:annotation>
-        <xsd:restriction base="xsd:IDREF"/>
+        <!--<xsd:restriction base="xsd:IDREF"/>-->
+        <xsd:restriction  base="NonEmptyTokenType"/>
     </xsd:simpleType>
     <xsd:simpleType name="GroupIdType">
         <xsd:annotation>
@@ -104,7 +105,8 @@
         <xsd:annotation>
             <xsd:documentation>Identifiant utilisé pour référencer les groupes d'objets-données.</xsd:documentation>
         </xsd:annotation>
-        <xsd:restriction base="xsd:IDREF"/>
+        <!--<xsd:restriction base="xsd:IDREF"/>-->
+        <xsd:restriction  base="NonEmptyTokenType"/>
     </xsd:simpleType>
     <xsd:complexType name="DataObjectRefType">
         <xsd:annotation>

@@ -68,8 +68,6 @@ import org.junit.Test;
 
 public class ObjectGroupMapperTest {
 
-    private static final String SIMPLE_OBJECT_GROUP_DBREQUEST_RESULT_WITH_BINARY_AND_PHYSICAL =
-        "simple_objectGroup_with_phisical_and_objectGroup.json";
     private static final String SIMPLE_OBJECT_GROUP_DBREQUEST_RESULT_WITH_METADATA =
         "objectGroup.json";
     private static JAXBContext jaxbContext;
@@ -94,10 +92,10 @@ public class ObjectGroupMapperTest {
         ObjectGroupMapper objectGroupMapper = new ObjectGroupMapper();
         final DataObjectPackageType dataObjectPackageType = objectGroupMapper.map(objectGroup);
         Marshaller marshaller = jaxbContext.createMarshaller();
+
         StringWriter writer = new StringWriter();
         marshaller.marshal(dataObjectPackageType, writer);
 
-        System.out.println(writer.toString());
         final List<MinimalDataObjectType> binaryDataObjectOrPhysicalDataObject =
             dataObjectPackageType.getBinaryDataObjectOrPhysicalDataObject();
         if (binaryDataObjectOrPhysicalDataObject.get(1) instanceof BinaryDataObjectType) {
@@ -137,7 +135,7 @@ public class ObjectGroupMapperTest {
                 binaryDataObjectType.getMessageDigest().getAlgorithm());
             final MinimalDataObjectType minimalDataObjectType = binaryDataObjectOrPhysicalDataObject.get(1);
             assertEquals(versionsModel.getId(), minimalDataObjectType.getId());
-            assertEquals(versionsModel.getDataObjectGroupId(), minimalDataObjectType.getDataObjectGroupId());
+            assertEquals(versionsModel.getDataObjectGroupId(), minimalDataObjectType.getDataObjectGroupReferenceId());
             assertEquals(versionsModel.getDataObjectVersion(), minimalDataObjectType.getDataObjectVersion());
 
         }
@@ -149,21 +147,21 @@ public class ObjectGroupMapperTest {
                 (PhysicalDataObjectType) binaryDataObjectOrPhysicalDataObject.get(0);
             final DimensionsType dimensionsType = physicalDataObjectType.getPhysicalDimensions();
 
-            check_Equality_Beatween_MeasurementModel_And_DimensionType(physicalDimensionsModel.getDepth(),
+            check_equality_between_measurementModel_and_dimensionType(physicalDimensionsModel.getDepth(),
                 dimensionsType.getDepth());
-            check_Equality_Beatween_MeasurementModel_And_DimensionType(physicalDimensionsModel.getDiameter(),
+            check_equality_between_measurementModel_and_dimensionType(physicalDimensionsModel.getDiameter(),
                 dimensionsType.getDiameter());
-            check_Equality_Beatween_MeasurementModel_And_DimensionType(physicalDimensionsModel.getHeight(),
+            check_equality_between_measurementModel_and_dimensionType(physicalDimensionsModel.getHeight(),
                 dimensionsType.getHeight());
-            check_Equality_Beatween_MeasurementModel_And_DimensionType(physicalDimensionsModel.getLength(),
+            check_equality_between_measurementModel_and_dimensionType(physicalDimensionsModel.getLength(),
                 dimensionsType.getLength());
             assertEquals(physicalDimensionsModel.getNumberOfPage(), dimensionsType.getNumberOfPage());
             assertEquals(physicalDimensionsModel.getShape(), dimensionsType.getShape());
-            check_Equality_Beatween_MeasurementModel_And_DimensionType(physicalDimensionsModel.getThickness(),
+            check_equality_between_measurementModel_and_dimensionType(physicalDimensionsModel.getThickness(),
                 dimensionsType.getThickness());
             check_Equality_Beatween_MeasurementWeightType_And_DimensionType(physicalDimensionsModel.getWeight(),
                 dimensionsType.getWeight());
-            check_Equality_Beatween_MeasurementModel_And_DimensionType(physicalDimensionsModel.getWidth(),
+            check_equality_between_measurementModel_and_dimensionType(physicalDimensionsModel.getWidth(),
                 dimensionsType.getWidth());
         }
     }
@@ -174,7 +172,7 @@ public class ObjectGroupMapperTest {
      * @param measurementModel measurementModel
      * @param measurementType  measurementType
      */
-    private void check_Equality_Beatween_MeasurementModel_And_DimensionType(MeasurementModel measurementModel,
+    private void check_equality_between_measurementModel_and_dimensionType(MeasurementModel measurementModel,
         MeasurementType measurementType) {
         if (measurementModel != null) {
             assertEquals(measurementModel.getUnit(), measurementType.getUnit());
