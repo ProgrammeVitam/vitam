@@ -79,6 +79,12 @@ A titre informatif, le positionnement des variables ainsi que des dérivations d
      :language: yaml
      :linenos:
 
+** |repertoire_inventory| ``/group_vars/all/offers_opts.yml``, décrivantles paramètres liés à chaque offre de stockage,comme suit :
+
+  .. literalinclude:: ../../../../deployment/environments/group_vars/all/offers_opts.yml
+     :language: yaml
+     :linenos:
+
 Le fichier ``vault-vitam.yml`` est également présent sous |repertoire_inventory| ``/group_vars/all/all`` et contient les secrets ; ce fichier est encrypté par ``ansible-vault`` et doit être paramétré avant le lancement de l'orchestration de déploiement.
 
 .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-vitam.txt

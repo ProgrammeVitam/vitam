@@ -13,13 +13,7 @@ package_name: "vitam-{{ vitam_struct.vitam_component }}"
 days_to_delete_logback_logfiles: 30
 days_to_delete_access_local: 7
 vitam_worker_capacity: 1
-# Possible values are : filesystem OR openstack-swift
-vitam_provider_offer: ""
-vitam_keystone_auth_url: ""
-vitam_swift_uid: ""
-vitam_swift_subuser: ""
-vitam_keystone_passwd: ""
-vitam_ceph_mode: true
+
 vitam_site_id: 1
 
 # Trust X-SSL-CLIENT-CERT header for external api auth ? (true | false)

@@ -1,0 +1,15 @@
+# This list can and has to be completed if more offers are necessary
+# DON'T forget to add associated passwords in vault-vitam.yml with same tree when using provider openstack-swift
+
+vitam_offers:
+  offer_fs_1:
+    # param can be filesystem or filesystem-hash
+    provider: filesystem
+  offer_swift_1:
+    provider: openstack-swift
+    # keystone URL
+    keystone_auth_url: http://hostname-rados-gw:port/auth/1.0 
+    #
+    swift_uid: tenant$user
+    #
+    swift_subuser: subuser 
