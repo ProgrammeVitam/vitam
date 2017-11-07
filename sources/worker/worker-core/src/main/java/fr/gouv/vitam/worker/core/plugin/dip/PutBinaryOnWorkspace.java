@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.worker.core.plugin.dip;
 
+import static java.lang.String.format;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -35,6 +37,8 @@ import javax.ws.rs.core.Response;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -53,10 +57,13 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
  */
 public class PutBinaryOnWorkspace extends ActionHandler {
 
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PutBinaryOnWorkspace.class);
+
     private static final String PUT_BINARY_ON_WORKSPACE = "PUT_BINARY_ON_WORKSPACE";
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
 
     private static final int GUID_TO_PATH_RANK = 0;
+    public static final int NUMBER_OF_RETRY = 3;
 
     /**
      * factory of a storage client
@@ -71,8 +78,7 @@ public class PutBinaryOnWorkspace extends ActionHandler {
     }
 
     /**
-     *
-     * @param param {@link WorkerParameters}
+     * @param param   {@link WorkerParameters}
      * @param handler
      * @return
      * @throws ProcessingException
@@ -84,24 +90,40 @@ public class PutBinaryOnWorkspace extends ActionHandler {
 
         final ItemStatus itemStatus = new ItemStatus(PUT_BINARY_ON_WORKSPACE);
 
-        try (
-            InputStream inputStream = new FileInputStream((File) handler.getInput(GUID_TO_PATH_RANK));
-            StorageClient storageClient = storageClientFactory.getClient()) {
+        Map<String, Object> guidToPath;
+        try (InputStream inputStream = new FileInputStream((File) handler.getInput(GUID_TO_PATH_RANK))) {
 
-            Map<String, Object> guidToPath = JsonHandler.getMapFromInputStream(inputStream);
+            guidToPath = JsonHandler.getMapFromInputStream(inputStream);
+
+        } catch (IOException | InvalidParseOperationException e) {
+            itemStatus.increment(StatusCode.FATAL);
+            return new ItemStatus(PUT_BINARY_ON_WORKSPACE).setItemsStatus(PUT_BINARY_ON_WORKSPACE, itemStatus);
+        }
+
+        for (int i = 0; i < NUMBER_OF_RETRY; i++) {
+            try {
+                transferFile(param, handler, guidToPath);
+
+                itemStatus.increment(StatusCode.OK);
+                return new ItemStatus(PUT_BINARY_ON_WORKSPACE).setItemsStatus(PUT_BINARY_ON_WORKSPACE, itemStatus);
+            } catch (StorageNotFoundException | StorageServerClientException e) {
+                LOGGER.error(format("unable to transfer file from offer to workspace, retry: %d", i), e);
+            }
+        }
+
+        itemStatus.increment(StatusCode.FATAL);
+        return new ItemStatus(PUT_BINARY_ON_WORKSPACE).setItemsStatus(PUT_BINARY_ON_WORKSPACE, itemStatus);
+    }
+
+    private void transferFile(WorkerParameters param, HandlerIO handler, Map<String, Object> guidToPath)
+        throws ProcessingException, StorageNotFoundException, StorageServerClientException {
+        try (StorageClient storageClient = storageClientFactory.getClient()) {
 
             Response response = storageClient
                 .getContainerAsync(DEFAULT_STORAGE_STRATEGY, param.getObjectName(), StorageCollectionType.OBJECTS);
 
             handler.transferInputStreamToWorkspace((String) guidToPath.get(param.getObjectName()),
-                (InputStream) response.getEntity(),
-                null, false);
-            itemStatus.increment(StatusCode.OK);
-            return new ItemStatus(PUT_BINARY_ON_WORKSPACE).setItemsStatus(PUT_BINARY_ON_WORKSPACE, itemStatus);
-
-        } catch (StorageServerClientException | IOException | InvalidParseOperationException |
-            StorageNotFoundException e) {
-            throw new ProcessingException(e);
+                (InputStream) response.getEntity(), null, false);
         }
     }
 
