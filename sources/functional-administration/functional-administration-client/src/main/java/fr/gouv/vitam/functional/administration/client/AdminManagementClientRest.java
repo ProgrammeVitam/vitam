@@ -274,6 +274,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             throw new AdminManagementClientServerException("Internal Server Error", e);
         }
     }
+
     @Override
     public Status importRulesFile(InputStream stream, String filename)
         throws ReferentialException, DatabaseConflictException {
@@ -960,9 +961,9 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             consumeAnyEntityAndClose(response);
         }
     }
-    
+
     @Override
-    public RequestResponse<ProfileModel> updateProfile(String id, JsonNode queryDsl) 
+    public RequestResponse<ProfileModel> updateProfile(String id, JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
         Response response = null;
@@ -1042,6 +1043,14 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 ContextModelList, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE,
                 false);
             final Status status = Status.fromStatusCode(response.getStatus());
+
+            if (Response.Status.BAD_REQUEST.equals(status)) {
+                String reason = (response.hasEntity()) ? response.readEntity(String.class) :
+                    Response.Status.BAD_REQUEST.getReasonPhrase();
+                LOGGER.error(reason);
+                throw new ReferentialException("Referential Error: " + reason);
+            }
+
 
             return status;
         } catch (VitamClientInternalException e) {
