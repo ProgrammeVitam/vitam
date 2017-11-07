@@ -245,8 +245,6 @@ public class DbRequestResult implements VitamAutoCloseable {
         final RequestResponseOK<T> response = new RequestResponseOK<>(query);
         // Save before addAll
         DatabaseCursor currentCursor = getDatabaseCursor();
-        currentCursor = new DatabaseCursor(currentCursor.getTotal(), currentCursor.getOffset(), 
-            currentCursor.getLimit(), currentCursor.getLimit());
         response.addAllResults(getDocuments(cls)).setHits(currentCursor);
         close();
         return response;
@@ -301,8 +299,6 @@ public class DbRequestResult implements VitamAutoCloseable {
         final RequestResponseOK<V> response = new RequestResponseOK<>(query);
         // Save before addAll
         DatabaseCursor currentCursor = getDatabaseCursor();
-        currentCursor = new DatabaseCursor(currentCursor.getTotal(), currentCursor.getOffset(), 
-            currentCursor.getLimit(), currentCursor.getLimit());
         response.addAllResults(getDocuments(cls, clsFromJson)).setHits(currentCursor);
         close();
         return response;

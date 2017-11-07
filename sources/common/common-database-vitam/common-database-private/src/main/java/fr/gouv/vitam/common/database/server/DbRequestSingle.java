@@ -449,6 +449,13 @@ public class DbRequestSingle {
             limit = limit2;
         }
 
+        if (offset < total) {
+            count = total - offset;
+            if (count > limit) {
+                count = limit;
+            }
+        }
+
         return find.iterator();
     }
 
