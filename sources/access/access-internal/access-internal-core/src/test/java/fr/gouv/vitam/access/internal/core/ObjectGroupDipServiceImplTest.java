@@ -83,6 +83,9 @@ public class ObjectGroupDipServiceImplTest {
         assertThat(fromString(entity), hasXPath("//vitam:DataObjectPackage/vitam:BinaryDataObject/vitam:FileInfo/vitam:LastModified",
             equalTo("2006-05-04T18:13:51.0"))
             .withNamespaceContext(prefix2Uri));
+        assertThat(fromString(entity), hasXPath("//vitam:DataObjectPackage/vitam:BinaryDataObject/vitam:OtherMetadata/vitam:testMD",
+                equalTo("test value"))
+                .withNamespaceContext(prefix2Uri));
     }
 
 }
