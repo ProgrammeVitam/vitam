@@ -131,7 +131,7 @@ export class UploadService {
   }
 
   downloadATR(response: any) {
-    let body = response.body;
+    let body = response.body ? response.body : response.error;
     var a = document.createElement("a");
     document.body.appendChild(a);
     var url = window.URL.createObjectURL(body);
