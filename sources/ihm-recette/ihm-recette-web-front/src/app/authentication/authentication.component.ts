@@ -1,6 +1,8 @@
-import { Component, OnInit } from '@angular/core';
-import { AuthenticationService } from './authentication.service';
-import { Router } from '@angular/router';
+import {Component, OnInit} from '@angular/core';
+import {AuthenticationService} from './authentication.service';
+import {Router} from '@angular/router';
+import {ResourcesService} from "../common/resources.service";
+import {TenantService} from "../common/tenant.service";
 
 @Component({
   selector: 'vitam-authentication',
@@ -14,7 +16,9 @@ export class AuthenticationComponent implements OnInit {
   showLoginErrorMessage = false;
   username: string;
   password: string;
-  constructor(private authenticationService: AuthenticationService, private router: Router) { }
+
+  constructor(private authenticationService: AuthenticationService, private router: Router) {
+  }
 
   ngOnInit() {
 

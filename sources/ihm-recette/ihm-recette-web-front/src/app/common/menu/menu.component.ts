@@ -1,7 +1,7 @@
-import { Component, OnInit, Input } from '@angular/core';
-import { Message } from 'primeng/primeng';
-import { ResourcesService } from '../resources.service';
-import { AuthenticationService } from '../../authentication/authentication.service';
+import {Component, OnInit, Input} from '@angular/core';
+import {Message} from 'primeng/primeng';
+import {ResourcesService} from '../resources.service';
+import {AuthenticationService} from '../../authentication/authentication.service';
 import {Router} from '@angular/router';
 import {TenantService} from "../tenant.service";
 
@@ -17,7 +17,7 @@ export class MenuComponent implements OnInit {
   msgs: Message[] = [];
   tenantChosen: string;
   tenants: Array<string>;
-  tenantId = '-';
+  tenantId = '';
   items = [];
 
   constructor(private resourcesService: ResourcesService, private authenticationService: AuthenticationService,
@@ -26,10 +26,17 @@ export class MenuComponent implements OnInit {
   }
 
   ngOnInit() {
+
     const tenant = this.resourcesService.getTenant();
     if (tenant) {
       this.tenantChosen = tenant;
     }
+
+    this.tenantService.getState().subscribe((value) => {
+      this.tenantId = value;
+      this.tenantChosen = value;
+    })
+
 
     this.authenticationService.getState().subscribe((value) => {
       if (value) {
@@ -56,9 +63,11 @@ export class MenuComponent implements OnInit {
           }
         ];
         this.isAuthenticated = true;
-        this.resourcesService.getTenants()
-          .subscribe((tenants: Array<string>) => {console.log("ok "); this.tenants = tenants;},
-          (error) => {console.log("ok ");});
+        this.resourcesService.getTenants().subscribe((tenants: Array<string>) => {
+            this.tenants = tenants;
+          },
+          (error) => {
+          });
       } else {
         this.items = [];
         this.isAuthenticated = false;

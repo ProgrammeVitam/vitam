@@ -1,5 +1,6 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {CollectionService} from '../collection.service';
+import {TenantService} from "../../../common/tenant.service";
 
 @Component({
   selector: 'vitam-remove-items',
@@ -14,8 +15,21 @@ export class RemoveItemsComponent implements OnInit {
   public displayCheck = false;
   public displayResult = false;
   public success = false;
+  public tenant;
 
-  constructor(private collectionService: CollectionService) { }
+  isTenantDefine = function () {
+    if (this.name !== 'formats' && this.name !== 'contextes') {
+      return this.tenant !== '';
+    } else {
+      return true;
+    }
+  };
+
+  constructor(private collectionService: CollectionService, tenantService: TenantService) {
+    tenantService.getState().subscribe((value) => {
+      this.tenant = value;
+    });
+  }
 
   ngOnInit() {
   }

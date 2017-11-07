@@ -9,6 +9,7 @@ import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/observable/of';
 import {CollectionService} from './collection.service';
 import {ResourcesService} from '../../common/resources.service';
+import {TenantService} from "../../common/tenant.service";
 
 const CollectionServiceStub = {
   removeItemsInCollection: (api) => Observable.of('OK'),
@@ -32,6 +33,11 @@ const ResourcesServiceStub = {
   getTenant: () => cookies['tenant']
 };
 
+const TeantServiceStub = {
+  changeState:  (myChange: string) => Observable.of('OK'),
+  getState: () => Observable.of('OK')
+};
+
 describe('CollectionComponent', () => {
   let component: CollectionComponent;
   let fixture: ComponentFixture<CollectionComponent>;
@@ -43,7 +49,8 @@ describe('CollectionComponent', () => {
       providers: [
         { provide: CollectionService, useValue: CollectionServiceStub },
         { provide: BreadcrumbService, useValue: BreadcrumbServiceStub },
-        { provide: ResourcesService, useValue: ResourcesServiceStub}
+        { provide: ResourcesService, useValue: ResourcesServiceStub},
+        { provide: TenantService, useValue: TeantServiceStub}
       ]
     })
       .compileComponents();
