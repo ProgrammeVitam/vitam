@@ -34,8 +34,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.MatchQueryBuilder.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -64,6 +62,8 @@ import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Elasticsearch Translator
@@ -284,6 +284,9 @@ public class QueryToElasticsearch {
         throws InvalidParseOperationException {
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
         final Script script = new Script("doc['" + element.getKey() + "'].values.length == " + element.getValue());
+        if (element.getKey().equals(VitamDocument.ID)) {
+            logWarnCommand(query, content);
+        }
         return QueryBuilders.scriptQuery(script);
     }
 
@@ -303,6 +306,7 @@ public class QueryToElasticsearch {
         // special case of _id
         boolean isId = false;
         if (key.equals(VitamDocument.ID)) {
+            logWarnCommand(query, content);
             key = _UID;
             isId = true;
         }
@@ -355,6 +359,9 @@ public class QueryToElasticsearch {
         final String[] names = new String[fields.size()];
         int i = 0;
         for (final JsonNode name : fields) {
+            if (VitamDocument.ID.equals(name.toString())) {
+                logWarnCommand(query, content);
+            }
             names[i++] = name.toString();
         }
         switch (query) {
@@ -450,7 +457,8 @@ public class QueryToElasticsearch {
      * @throws InvalidParseOperationException if check unicity is in error
      * @deprecated Unsupported case. Should/will be removed without prior notice.
      */
-    private static QueryBuilder matchCommandWithMaxExpansions(QUERY query, JsonNode content, JsonNode max, Entry<String, JsonNode> element) throws InvalidParseOperationException {
+    private static QueryBuilder matchCommandWithMaxExpansions(QUERY query, JsonNode content, JsonNode max,
+        Entry<String, JsonNode> element) throws InvalidParseOperationException {
 
         logUnsupportedCommand(query, content, "Unsupported max_expansions operator");
 
@@ -481,7 +489,8 @@ public class QueryToElasticsearch {
      * @throws InvalidParseOperationException if check unicity is in error
      * @deprecated Unsupported cases. Should/will be removed without prior notice.
      */
-    private static QueryBuilder matchCommandOverNonAnalyzedField(QUERY query, JsonNode content, Entry<String, JsonNode> element, String attribute) {
+    private static QueryBuilder matchCommandOverNonAnalyzedField(QUERY query, JsonNode content,
+        Entry<String, JsonNode> element, String attribute) {
 
         logUnsupportedCommand(query, content, "Not_analyzed field: '" + attribute + "'");
 
@@ -600,6 +609,9 @@ public class QueryToElasticsearch {
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
 
         String key = element.getKey();
+        if (VitamDocument.ID.equals(key)) {
+            logWarnCommand(query, content);
+        }
         JsonNode node = element.getValue().findValue(ParserTokens.QUERYARGS.DATE.exactToken());
         if (node != null) {
             key += "." + ParserTokens.QUERYARGS.DATE.exactToken();
@@ -671,7 +683,7 @@ public class QueryToElasticsearch {
     }
 
     /**
-     * Handles  $regex : { name : regex } for _id field. Unsupported use case to be removed later.
+     * Handles $regex : { name : regex } for _id field. Unsupported use case to be removed later.
      *
      * @param query QUERY
      * @param content JsonNode
@@ -687,14 +699,15 @@ public class QueryToElasticsearch {
 
         logUnsupportedCommand(query, content, "Unsupported ID field");
 
-        String value = entry.getValue().asText().replaceAll("[\\.\\?\\+\\*\\|\\{\\}\\[\\]\\(\\)\\\"\\\\\\#\\@\\&\\<\\>\\~]", " ");
+        String value =
+            entry.getValue().asText().replaceAll("[\\.\\?\\+\\*\\|\\{\\}\\[\\]\\(\\)\\\"\\\\\\#\\@\\&\\<\\>\\~]", " ");
         value = removeAllDoubleSpace(value);
         return QueryBuilders.termsQuery(key, value.split(" "));
     }
 
 
     /**
-     * Handles  $regex : { name : regex } for analyzed fields. Unsupported use case to be removed later.
+     * Handles $regex : { name : regex } for analyzed fields. Unsupported use case to be removed later.
      *
      * @param query QUERY
      * @param content JsonNode
@@ -735,6 +748,9 @@ public class QueryToElasticsearch {
         for (final Iterator<Entry<String, JsonNode>> iterator = content.fields(); iterator.hasNext();) {
             final Entry<String, JsonNode> requestItem = iterator.next();
             String key = requestItem.getKey();
+            if (VitamDocument.ID.equals(key)) {
+                logWarnCommand(query, content);
+            }
             JsonNode node = requestItem.getValue().findValue(ParserTokens.QUERYARGS.DATE.exactToken());
             boolean isDate = false;
             if (node == null) {
@@ -770,7 +786,7 @@ public class QueryToElasticsearch {
     /**
      * $wildcard : { name : expression }
      *
-     * @param query   QUERY
+     * @param query QUERY
      * @param content JsonNode
      * @return the wildcard Command
      */
@@ -808,6 +824,7 @@ public class QueryToElasticsearch {
         }
         return newValue;
     }
+
     /**
      * $eq : { name : value }
      *
@@ -877,7 +894,8 @@ public class QueryToElasticsearch {
         throws InvalidParseOperationException {
 
         String fieldname = content.asText();
-        if (fieldname.equals(VitamDocument.ID)) {
+        if (VitamDocument.ID.equals(fieldname)) {
+            logWarnCommand(query, content);
             fieldname = _UID;
         }
         final QueryBuilder queryBuilder = QueryBuilders.existsQuery(fieldname);
@@ -901,7 +919,8 @@ public class QueryToElasticsearch {
     private static QueryBuilder isNullCommand(final QUERY query, final JsonNode content)
         throws InvalidParseOperationException {
         String fieldname = content.asText();
-        if (fieldname.equals(VitamDocument.ID)) {
+        if (VitamDocument.ID.equals(fieldname)) {
+            logWarnCommand(query, content);
             fieldname = _UID;
         }
         return QueryBuilders.boolQuery().mustNot(QueryBuilders.existsQuery(fieldname));
@@ -959,6 +978,7 @@ public class QueryToElasticsearch {
 
     /**
      * Helper method for logging/dumping supported queries
+     * 
      * @param query
      * @param content
      */
@@ -967,8 +987,20 @@ public class QueryToElasticsearch {
     }
 
     /**
+     * Helper method for logging tricky queries dealing with "id" field Aim of this log is to check if search based on
+     * id field is used with other operator than eq, ne, in, nin
+     * 
+     * @param query
+     * @param content
+     */
+    private static void logWarnCommand(QUERY query, JsonNode content) {
+        LOGGER.warn(String.format("Command #QUERY: %s using id is not recommended. Content: %s", query, content));
+    }
+
+    /**
      * Logs a warning message for unsupported cases. Unsupported cases should/will be removed without prior notice.
-     * @param query   the query
+     * 
+     * @param query the query
      * @param content the json content
      * @param message the error message
      * @deprecated Used to dump unsupported usages for queries.
