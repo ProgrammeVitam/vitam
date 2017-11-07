@@ -139,6 +139,7 @@ public class AccessStep {
     @Then("^les metadonnées sont$")
     public void metadata_are(DataTable dataTable) throws Throwable {
 
+
         JsonNode firstJsonNode = Iterables.get(results, 0);
 
         List<List<String>> raws = dataTable.raw();
@@ -949,7 +950,8 @@ public class AccessStep {
 
     @When("^je veux faire l'audit des objets du service producteur \"([^\"]*)\"$")
     public void je_lance_l_audit_en_service_producteur(String originatingAgnecy) throws Throwable {
-        String QUERY = "{auditType:\"originatingAgency\",objectID:\"" + originatingAgnecy + "\"}";
+        String QUERY = "{auditType:\"originatingAgency\",objectId:\"" + originatingAgnecy +
+            "\"}";
         JsonNode auditOption = JsonHandler.getFromString(QUERY);
 
         assertThat(world.getAdminClient().launchAudit(
@@ -960,7 +962,8 @@ public class AccessStep {
 
     @When("^je veux faire l'audit des objets de tenant (\\d+)$")
     public void je_veux_faire_l_audit_des_objets_de_tenant(int tenant) throws Throwable {
-        String QUERY = "{auditType:\"originatingAgency\",objectID:\"" + tenant + "\"}";
+        String QUERY =
+            "{auditType:\"tenant\",objectId:\"" + tenant + "\"}";
         JsonNode auditOption = JsonHandler.getFromString(QUERY);
 
         assertThat(world.getAdminClient().launchAudit(
