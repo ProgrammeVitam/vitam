@@ -42,15 +42,6 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     }
 
     @Override
-    public Response getObject(VitamContext vitamContext, JsonNode selectQuery,
-        String objectId,
-        String usage, int version)
-        throws InvalidParseOperationException {
-        return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
-    }
-
-    @Override
     public RequestResponse<JsonNode> selectObjectMetadatasByUnitId(VitamContext vitamContext, JsonNode selectQuery,
         String unitId)
         throws VitamClientException {

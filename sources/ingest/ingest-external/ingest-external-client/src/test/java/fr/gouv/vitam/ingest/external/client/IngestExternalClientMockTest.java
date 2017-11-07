@@ -61,7 +61,7 @@ public class IngestExternalClientMockTest {
         final IngestExternalClient client =
             IngestExternalClientFactory.getInstance().getClient();
         assertTrue(client instanceof IngestExternalClientMock);
-        client.upload(new VitamContext(TENANT_ID), null, CONTEXT_ID, EXECUTION_MODE);
+        client.ingest(new VitamContext(TENANT_ID), null, CONTEXT_ID, EXECUTION_MODE);
     }
 
 
@@ -75,7 +75,7 @@ public class IngestExternalClientMockTest {
 
         final InputStream firstStream = IOUtils.toInputStream(MOCK_INPUT_STREAM, CharsetUtils.UTF8);
         RequestResponse<Void> requestResponse =
-            client.upload(new VitamContext(TENANT_ID), firstStream, CONTEXT_ID, EXECUTION_MODE);
+            client.ingest(new VitamContext(TENANT_ID), firstStream, CONTEXT_ID, EXECUTION_MODE);
 
         assertEquals(requestResponse.getHttpCode(), 202);
     }

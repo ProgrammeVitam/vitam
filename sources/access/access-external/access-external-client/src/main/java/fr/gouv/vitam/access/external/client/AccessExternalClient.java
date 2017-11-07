@@ -86,31 +86,6 @@ public interface AccessExternalClient extends BasicClient {
         throws VitamClientException;
 
     /**
-     * getObjectAsInputStream<br>
-     * <br>
-     * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
-     *
-     *
-     * @param vitamContext the vitam context
-     * @param selectQuery the select query
-     * @param objectId the object id to get
-     * @param usage kind of usage
-     * @param version the version
-     * @return Response including InputStream
-     * @throws InvalidParseOperationException
-     * @throws AccessExternalClientServerException
-     * @throws AccessExternalClientNotFoundException
-     * @throws AccessUnauthorizedException
-     * @deprecated use getObjectByUnit
-     */
-    @Deprecated
-    Response getObject(VitamContext vitamContext, JsonNode selectQuery, String objectId,
-        String usage,
-        int version)
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, AccessUnauthorizedException;
-
-    /**
      * selectObjectById
      *
      *

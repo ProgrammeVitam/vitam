@@ -228,7 +228,7 @@ public class PerformanceService {
                 StandardOpenOption.READ)) {
 
             RequestResponse<Void> response =
-                client.upload(new VitamContext(tenantId), sipInputStream, DEFAULT_WORKFLOW.name(), RESUME.name());
+                client.ingest(new VitamContext(tenantId), sipInputStream, DEFAULT_WORKFLOW.name(), RESUME.name());
 
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
@@ -267,7 +267,7 @@ public class PerformanceService {
 
             RequestResponse<Void> response =
                 client
-                    .upload(new VitamContext(tenantId), sipInputStream, DEFAULT_WORKFLOW.name(), RESUME.name());
+                    .ingest(new VitamContext(tenantId), sipInputStream, DEFAULT_WORKFLOW.name(), RESUME.name());
 
             return response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
         } catch (final Exception e) {

@@ -55,7 +55,7 @@ class IngestExternalClientMock extends AbstractMockClient implements IngestExter
     protected StatusCode globalStatus;
 
     @Override
-    public RequestResponse<Void> upload(VitamContext vitamContext, InputStream stream,
+    public RequestResponse<Void> ingest(VitamContext vitamContext, InputStream stream,
         String contextId,
         String action)
         throws IngestExternalException {

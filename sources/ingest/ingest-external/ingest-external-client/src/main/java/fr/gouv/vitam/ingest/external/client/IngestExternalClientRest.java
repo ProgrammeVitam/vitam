@@ -68,7 +68,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
-    public RequestResponse<Void> upload(VitamContext vitamContext, InputStream stream,
+    public RequestResponse<Void> ingest(VitamContext vitamContext, InputStream stream,
         String contextId,
         String action)
         throws IngestExternalException {

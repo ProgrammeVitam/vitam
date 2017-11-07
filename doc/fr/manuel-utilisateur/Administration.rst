@@ -331,7 +331,7 @@ Les contrats permettent de gérer les droits donnés aux utilisateurs et applica
 * Contrats d'entrée
 
 Accès au menu de gestion des contrats
---------------------------------------
+-------------------------------------
 
 Les sous-menus permettant d'accéder aux interfaces de recherche et d’import de contrat sont disponibles dans le menu "Administration".
 
@@ -559,7 +559,7 @@ Une fenêtre modale s'ouvre alors pour indiquer soit :
 Cette opération est journalisée et disponible dans le Journal des Opérations.
 
 Rechercher un contexte
----------------------------------
+----------------------
 
 Pour accéder à la recherche des contextes, l’utilisateur clique sur le menu “Administration”, puis sur le sous-menu “Contextes applicatifs”.
 
@@ -589,7 +589,7 @@ En cliquant sur une ligne, l’utilisateur ouvre le détail du contexte dans un 
 .. image:: images/context_search.png
 
 Consulter le détail d'un contexte
---------------------------------------------
+---------------------------------
 
 La page "Détail d'un contexte applicatif" contient les informations suivantes :
 
@@ -611,7 +611,7 @@ Puis, un bloc par tenant. Chaque bloc contenant :
 .. image:: images/context_detail.png
 
 Modifier un contexte
---------------------------------------------
+--------------------
 Il est possible de modifier un contexte depuis son l'écran de son détail en cliquant sur le bouton "Modifier" sur l'écran de détail d'un contexte. L'interface permet la modification d'une partie des champs du contexte, ainsi que de changer son statut (actif/inactif).
 Il est possible d'ajouter ou supprimer des tenants concernés par le contexte en sélectionnant un nom de tenant en haut à droite et en cliquant sur "Ajouter". Il est impossible d'ajouter un tenant qui se trouve déjà dans la liste des tenants de ce contexte.
 Pour supprimer un tenant, il suffit de cliquer sur le bouton supprimer correspondant au tenant à retirer, et de valider cette suppression en utilisant le bouton "enregistrer".
@@ -624,14 +624,14 @@ Profils d'archivage
 ===================
 
 Accès aux menus de gestion des profils d'archivage
----------------------------------------------------
+--------------------------------------------------
 
 Les sous-menus permettant d’accéder aux interfaces de recherche et d’import de profils d'archivage sont disponibles dans le menu “Administration”.
 
 .. image:: images/profil_acces.png
 
 Importer un profil d'archivage
---------------------------------
+------------------------------
 
 Pour importer un profil d'archivage, l'utilisateur clique sur le menu "Administration" puis sur le sous-menu "importer des profils".
 
@@ -660,7 +660,7 @@ Une fenêtre modale indique alors soit :
 Cette opération est journalisée et disponible dans le Journal des opérations.
 
 Rechercher un profil d'archivage
----------------------------------
+--------------------------------
 
 Pour accéder à la recherche de profils d'archivage, l’utilisateur clique sur le menu “Administration”, puis sur le sous-menu “Référentiel des profils”.
 
@@ -691,7 +691,7 @@ Lorsqu'un profil SEDA de règle a été associé au profil, une flèche indiquan
 .. image:: images/profil_search.png
 
 Consulter le détail d'un profil d'archivage
---------------------------------------------
+-------------------------------------------
 
 La page "Détail d'un profil d'archivage" contient les informations suivantes :
 
@@ -710,7 +710,7 @@ La page "Détail d'un profil d'archivage" contient les informations suivantes :
 .. image:: images/profil_detail.png
 
 Associer un fichier de règles à un profil d'archivage
--------------------------------------------------------
+-----------------------------------------------------
 
 Pour importer un profil SEDA de règles à associer à un profil d'archivage, l'utilisateur clique sur le bouton "Parcourir" à côté du champ "Fichier" puis clique sur "Importer". Le format du fichier doit correspondre au format attendu, indiqué dans le champ format.
 
@@ -724,7 +724,7 @@ L'opération est journalisée et disponible depuis l'écran de consultation du j
 En cas de succès de l'import du profil SEDA de règle, la date de mise à jour du profil est ajustée en conséquence. Si l'utilisateur importe un profil SEDA alors qu'un autre profil SEDA a déjà été importé, alors le nouveau fichier remplace l'ancien.
 
 Import d'un arbre de positionnement
-====================================
+===================================
 
 L'import d'un arbre de positionnement dans la solution logicielle Vitam s'effectue depuis l'écran "Import de l'arbre de positionnement", accessible depuis le menu "Administration" puis en cliquant sur le sous-menu du même nom.
 
@@ -792,7 +792,7 @@ Cette partie décrit les fonctionnalités de la page “Gestion des opérations�
 
 
 Recherche d'une opération
---------------------------
+-------------------------
 
 Pour accéder à la page de recherche d'une opération, l’utilisateur clique sur le menu “Administration”, puis sur le sous-menu “Gestion des opérations”.
 
@@ -812,7 +812,7 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
 .. image:: images/GESTION_VERSEMENT_recherche.png
 
 Affichage des résultats
-------------------------
+-----------------------
 
 Par défaut, la solution logicielle Vitam affiche toutes les opérations non terminées dans la liste de résultats et l’affine en fonction de la recherche effectuée. La liste des résultats est composée des colonnes suivantes :
 
@@ -851,11 +851,12 @@ Les boutons disponibles sont :
 
 * Suivant : permet de passer à l’étape suivante du workflow - lorsqu’une étape est terminée, il faut cliquer sur “suivant” pour continuer l’entrée
 * Pause : permet de mettre l’opération d’entrée en pause
+* Replay : permet de rejouer l'étape dernièrement exécutée du workflow - lorsque cette étape est terminée, il faut cliquer sur “suivant” pour continuer l’entrée
 * Reprise : permet de reprendre une entrée en pause
 * Arrêt : permet d’arrêter complètement une opération d’entrée. Elle passera alors en statut “terminée” et il sera impossible de la redémarrer
 
 Recherche et vérification des opérations de sécurisation
-=========================================================
+========================================================
 
 La sécurisation des journaux permet de garantir la valeur probante des archives prises en charge dans la solution logicielle Vitam.
 

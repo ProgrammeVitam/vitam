@@ -477,7 +477,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("ingest:create")
-    public Response upload(@Context HttpServletRequest request, @Context HttpServletResponse response,
+    public Response ingest(@Context HttpServletRequest request, @Context HttpServletResponse response,
         @Context HttpHeaders headers, byte[] stream) {
         String operationGuid;
         String chunkOffset = headers.getHeaderString(X_CHUNK_OFFSET);
@@ -557,7 +557,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
                 final RequestResponse<Void> finalResponse =
-                    client.upload(new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()),
+                    client.ingest(new VitamContext(tenantId).setApplicationSessionId(getAppSessionId()),
                         new FileInputStream(temporarSipFile), contextId, action);
 
                 int responseStatus = finalResponse.getHttpCode();

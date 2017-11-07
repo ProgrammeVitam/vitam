@@ -1,7 +1,6 @@
 package fr.gouv.vitam.access.external.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
 import javax.ws.rs.Consumes;
@@ -25,9 +24,6 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
@@ -38,7 +34,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
-import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -162,44 +157,6 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         @Produces(MediaType.APPLICATION_JSON)
         public Response updateUnitById(String queryDsl, @PathParam("id_unit") String id_unit) {
             return expectedResponse.put();
-        }
-
-
-        @GET
-        @Path("/objects/{id_object_group}")
-        @Consumes(MediaType.APPLICATION_JSON)
-        // @Produces(MediaType.APPLICATION_OCTET_STREAM)
-        public Response getUnitObject(@PathParam("id_object_group") String idObjectGroup, String query) {
-            return expectedResponse.get();
-        }
-
-
-        @POST
-        @Path("/objects/{id_object_group}")
-        @Consumes(MediaType.APPLICATION_JSON)
-        // @Produces(MediaType.APPLICATION_OCTET_STREAM)
-        public Response getUnitObject(@HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xHttpOverride,
-            @PathParam("id_object_group") String idObjectGroup, String query) {
-            return expectedResponse.post();
-        }
-
-
-        @GET
-        @Path("/objects/{id_object_group}")
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_OCTET_STREAM)
-        public Response getObjectGroup(@PathParam("id_object_group") String idObjectGroup, String query) {
-            return expectedResponse.get();
-        }
-
-
-        @POST
-        @Path("/objects/{id_object_group}")
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_OCTET_STREAM)
-        public Response getObjectGroup(@HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xHttpOverride,
-            @PathParam("id_object_group") String idObjectGroup, String query) {
-            return expectedResponse.post();
         }
 
         @GET
@@ -363,7 +320,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         assertThat(client
             .selectUnits(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql))
             .getHttpCode())
-            .isEqualTo(Status.UNAUTHORIZED.getStatusCode());
+                .isEqualTo(Status.UNAUTHORIZED.getStatusCode());
     }
 
     @Test
@@ -379,7 +336,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         assertThat(client
             .selectUnits(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql))
             .getHttpCode())
-            .isEqualTo(Status.NOT_FOUND.getStatusCode());
+                .isEqualTo(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
@@ -390,7 +347,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         assertThat(client
             .selectUnits(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql))
             .getHttpCode())
-            .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
+                .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @RunWithCustomExecutor
@@ -416,7 +373,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
                 " }";
         assertThat(client.selectUnitbyId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
             createDslQueryById(queryDsql), ID).getHttpCode())
-            .isEqualTo(Status.UNAUTHORIZED.getStatusCode());
+                .isEqualTo(Status.UNAUTHORIZED.getStatusCode());
     }
 
     @Test
@@ -432,7 +389,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
 
         assertThat(client.selectUnitbyId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
             createDslQueryById(queryDsql), ID).getHttpCode())
-            .isEqualTo(Status.NOT_FOUND.getStatusCode());
+                .isEqualTo(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
@@ -442,7 +399,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         assertThat(client.selectUnitbyId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
             createDslQueryById(queryDsql), ID).getHttpCode())
-            .isEqualTo(Status.BAD_REQUEST.getStatusCode());
+                .isEqualTo(Status.BAD_REQUEST.getStatusCode());
     }
 
     private JsonNode createDslQueryById(String queryDsl) throws Exception {
@@ -485,7 +442,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         when(mock.put()).thenReturn(Response.status(Status.NOT_FOUND).build());
         assertThat(client.updateUnitbyId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
             JsonHandler.getFromString(queryDsql), ID).getHttpCode())
-            .isEqualTo(Status.NOT_FOUND.getStatusCode());
+                .isEqualTo(Status.NOT_FOUND.getStatusCode());
     }
 
 
@@ -513,7 +470,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         when(mock.put()).thenReturn(Response.status(Status.UNSUPPORTED_MEDIA_TYPE).build());
         assertThat(client.updateUnitbyId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
             JsonHandler.createObjectNode(), ID).getHttpCode())
-            .isEqualTo(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+                .isEqualTo(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
     @Test
@@ -523,7 +480,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         assertThat(client.updateUnitbyId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
             JsonHandler.getFromString(queryDsql), ID).getHttpCode())
-            .isEqualTo(Status.BAD_REQUEST.getStatusCode());
+                .isEqualTo(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
@@ -533,15 +490,15 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         when(mock.put()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
         assertThat(client.updateUnitbyId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
             JsonHandler.getFromString(queryDsql), ID).getHttpCode())
-            .isEqualTo(Status.UNAUTHORIZED.getStatusCode());
+                .isEqualTo(Status.UNAUTHORIZED.getStatusCode());
     }
 
-    
+
     @RunWithCustomExecutor
     public void givenQueryNullWhenSelectObjectByIdThenRaiseAnInvalidParseOperationException() throws Exception {
         assertThat(client.selectObjectMetadatasByUnitId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
             null, ID).getHttpCode())
-        .isEqualTo(Status.BAD_REQUEST.getStatusCode());
+                .isEqualTo(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
@@ -550,7 +507,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
         assertThat(client.selectObjectMetadatasByUnitId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
             JsonHandler.getFromString(queryDsql), ID).getHttpCode())
-            .isEqualTo(Status.UNAUTHORIZED.getStatusCode());
+                .isEqualTo(Status.UNAUTHORIZED.getStatusCode());
     }
 
     @Test
@@ -559,7 +516,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         assertThat(client.selectObjectMetadatasByUnitId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
             JsonHandler.getFromString(queryDsql), ID).getHttpCode())
-            .isEqualTo(Status.BAD_REQUEST.getStatusCode());
+                .isEqualTo(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
@@ -568,7 +525,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         assertThat(client.selectObjectMetadatasByUnitId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
             JsonHandler.getFromString(queryDsql), ID).getHttpCode())
-            .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
+                .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -577,7 +534,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         assertThat(client.selectObjectMetadatasByUnitId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
             JsonHandler.getFromString(queryDsql), ID).getHttpCode())
-            .isEqualTo(Status.NOT_FOUND.getStatusCode());
+                .isEqualTo(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
@@ -586,55 +543,6 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(ClientMockResultHelper.getEmptyResult()).build());
         assertThat(client.selectObjectMetadatasByUnitId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
             JsonHandler.getFromString(queryDsql), ID)).isNotNull();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    @RunWithCustomExecutor
-    public void givenQueryNullWhenGetObjectAsInputStreamThenRaiseAnInvalidParseOperationException() throws Exception {
-        client.getObject(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), null, ID, USAGE, VERSION);
-    }
-
-    @Test(expected = AccessExternalClientServerException.class)
-    @RunWithCustomExecutor
-    public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaiseInternalServerError() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.getObject(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql),
-            ID, USAGE, VERSION);
-    }
-
-    @Test(expected = InvalidParseOperationException.class)
-    @RunWithCustomExecutor
-    public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaiseBadRequest() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        client.getObject(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql),
-            ID, USAGE, VERSION);
-    }
-
-    @Test(expected = AccessExternalClientServerException.class)
-    @RunWithCustomExecutor
-    public void givenQueryCorrectWhenGetObjectAsInputStreamThenRaisePreconditionFailed() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.getObject(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql),
-            ID, USAGE, VERSION);
-    }
-
-    @Test(expected = AccessExternalClientNotFoundException.class)
-    @RunWithCustomExecutor
-    public void givenQueryCorrectWhenGetObjectAsInputStreamThenNotFound() throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.getObject(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql),
-            ID, USAGE, VERSION);
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void givenQueryCorrectWhenGetObjectAsInputStreamThenOK() throws Exception {
-        when(mock.post())
-            .thenReturn(Response.status(Status.OK).entity(StreamUtils.toInputStream("Vitam test")).build());
-        final Response response =
-            client.getObject(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
-                JsonHandler.getFromString(queryDsql), ID, USAGE, VERSION);
-        assertNotNull(response);
     }
 
     /***
@@ -659,7 +567,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         assertThat(client.selectOperations(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
             JsonHandler.getFromString(queryDsql)).getHttpCode())
-            .isEqualTo(Status.NOT_FOUND.getStatusCode());
+                .isEqualTo(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
@@ -668,7 +576,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         assertThat(client.selectOperations(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
             JsonHandler.getFromString(queryDsql)).getHttpCode())
-            .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
+                .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     /***
@@ -692,7 +600,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         assertThat(client.selectOperationbyId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID,
             JsonHandler.getFromString(queryDsql)).getHttpCode())
-            .isEqualTo(Status.NOT_FOUND.getStatusCode());
+                .isEqualTo(Status.NOT_FOUND.getStatusCode());
     }
 
 
@@ -702,7 +610,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.UNSUPPORTED_MEDIA_TYPE).build());
         assertThat(
             client.selectOperationbyId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID, null).getHttpCode())
-            .isEqualTo(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+                .isEqualTo(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
     @Test
@@ -711,7 +619,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         assertThat(client.selectOperationbyId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID,
             JsonHandler.getFromString(queryDsql)).getHttpCode())
-            .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
+                .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     /***
@@ -735,7 +643,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         assertThat(client.selectUnitLifeCycleById(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID,
             JsonHandler.getFromString(queryDsql)).getHttpCode())
-            .isEqualTo(Status.NOT_FOUND.getStatusCode());
+                .isEqualTo(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
@@ -744,7 +652,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.UNSUPPORTED_MEDIA_TYPE).build());
         assertThat(client.selectUnitLifeCycleById(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID, null)
             .getHttpCode())
-            .isEqualTo(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+                .isEqualTo(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
     @Test
@@ -753,7 +661,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         assertThat(client.selectUnitLifeCycleById(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID,
             JsonHandler.getFromString(queryDsql)).getHttpCode())
-            .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
+                .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     /***
@@ -777,7 +685,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         assertThat(client.selectObjectGroupLifeCycleById(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID,
             JsonHandler.getFromString(queryDsql)).getHttpCode())
-            .isEqualTo(Status.NOT_FOUND.getStatusCode());
+                .isEqualTo(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
@@ -787,7 +695,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         assertThat(
             client.selectObjectGroupLifeCycleById(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID, null)
                 .getHttpCode())
-            .isEqualTo(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+                    .isEqualTo(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
     @Test
@@ -796,7 +704,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         assertThat(client.selectObjectGroupLifeCycleById(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID,
             JsonHandler.getFromString(queryDsql)).getHttpCode())
-            .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
+                .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     /***
@@ -810,15 +718,18 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         when(mock.post())
             .thenReturn(
                 Response.status(Status.OK).entity(ClientMockResultHelper.getLogbookOperationRequestResponse()).build());
-        assertThat(client.exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql))).isNotNull();
+        assertThat(client.exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
+            JsonHandler.getFromString(queryDsql))).isNotNull();
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenExportDIPNotFoundThenNotFound() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        assertThat(client.exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql)).getHttpCode())
-            .isEqualTo(Status.NOT_FOUND.getStatusCode());
+        assertThat(client
+            .exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql))
+            .getHttpCode())
+                .isEqualTo(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
@@ -833,8 +744,10 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     public void givenExportDIPBadQueryThenPreconditionFailed() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        assertThat(client.exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql)).getHttpCode())
-            .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
+        assertThat(client
+            .exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), JsonHandler.getFromString(queryDsql))
+            .getHttpCode())
+                .isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
 }

@@ -588,7 +588,7 @@ public class WebApplicationResourceTest {
 
         Mockito.doReturn("Atr").when(mockResponse).getHeaderString(anyObject());
         Mockito.doReturn(200).when(mockResponse).getStatus();
-        Mockito.doReturn(mockResponse).when(ingestClient).upload(anyObject(), anyObject(), anyObject(), anyObject());
+        Mockito.doReturn(mockResponse).when(ingestClient).ingest(anyObject(), anyObject(), anyObject(), anyObject());
 
         final InputStream stream = PropertiesUtils.getResourceAsStream("SIP.zip");
         // Need for test
@@ -617,7 +617,7 @@ public class WebApplicationResourceTest {
 
         Mockito.doReturn("Atr").when(mockResponse).getHeaderString(anyObject());
         Mockito.doReturn(200).when(mockResponse).getStatus();
-        Mockito.doReturn(mockResponse).when(ingestClient).upload(anyObject(), anyObject(), anyObject(), anyObject());
+        Mockito.doReturn(mockResponse).when(ingestClient).ingest(anyObject(), anyObject(), anyObject(), anyObject());
 
         final InputStream stream = PropertiesUtils.getResourceAsStream("SIP.zip");
         // Need for test
@@ -741,7 +741,7 @@ public class WebApplicationResourceTest {
 
         final IngestExternalClient ingestClient = PowerMockito.mock(IngestExternalClient.class);
         final IngestExternalClientFactory ingestFactory = PowerMockito.mock(IngestExternalClientFactory.class);
-        doThrow(new IngestExternalException("IngestExternalException")).when(ingestClient).upload(
+        doThrow(new IngestExternalException("IngestExternalException")).when(ingestClient).ingest(
             anyObject(), anyObject(),
             anyObject(), anyObject());
         PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);

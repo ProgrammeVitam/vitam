@@ -127,7 +127,7 @@ public class PerformanceServiceTest {
         given(ingestClientFactory.getClient()).willReturn(mock);
         RequestResponseOK<Void> requestResponseOK = new RequestResponseOK<>();
         requestResponseOK.getVitamHeaders().put(GlobalDataRest.X_REQUEST_ID, "operationId");
-        given(mock.upload(any(VitamContext.class), any(FileInputStream.class), anyString(),
+        given(mock.ingest(any(VitamContext.class), any(FileInputStream.class), anyString(),
             anyString())).willReturn(requestResponseOK);
 
         // When

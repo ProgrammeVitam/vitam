@@ -336,8 +336,6 @@ documentation:
   displayName: Opérations
   description: |
     Administration des Workflows Asynchrones (opérations). Certaines opérations devraient être limitées aux seuls administrateurs car elles impactent le back-office.
-
-    **DEPRECATED** Les fonctions sensibles (PAUSE, CANCEL, NEXT) seront déplacées sur une ressources spécifique d'administration pour la V1.
   is: [ StandardTraits.StandardOptionalHeader,
   StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
   StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
@@ -356,15 +354,16 @@ documentation:
         Permet de récupérer le statut de l'opération dont l'identifiant est passée en paramètre
     put:
       description: |
-       **DEPRECATED** : ne sera plus supporté en V1 car déplacé dans functional-administration.
-
        Permet de mettre à jour une opération lancée en précisant l'action à exécuter dans le header X-Action-Id; PAUSE pour la mettre en pause,
        NEXT pour exécuter l'étape suivante, RESUME pour continuer l'exécution de l'opération jusqu'au bout.
        **Cette opération ne devrait être ouverte qu'aux administrateurs**
       headers:
        X-Action:
+       	description: |
+       		Permet d'influer sur le workflow. RESUME permet de poursuivre le workflow jusqu'à la fin. NEXT permet d'exécuter la prochaine étape pour ensuite se mettre en pause.
+       		PAUSE permet de demander la mise en pause du workflow à la fin de l'étape en cours. REPLAY permet de rejouer la dernière étape exécutée.
         required: true
-        enum: [ "RESUME", "NEXT", "PAUSE" ]
+        enum: [ "RESUME", "NEXT", "PAUSE", "REPLAY" ]
     delete:
      description: |
        **DEPRECATED** : ne sera plus supporté en V1 car déplacé dans functional-administration.

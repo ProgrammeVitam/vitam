@@ -65,7 +65,6 @@ import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -884,36 +883,6 @@ public class AccessStep {
         }
     }
 
-
-    @When("^je télécharge le fichier binaire de l'unité archivistique nommé \"([^\"]*)\" à l'usage \"([^\"]*)\" version (\\d+)$")
-    public void je_télécharge_le_fichier_binaire_à_l_usage_version(String title, String usage, int version)
-        throws Throwable {
-        final fr.gouv.vitam.common.database.builder.request.single.Select select =
-            new fr.gouv.vitam.common.database.builder.request.single.Select();
-        JsonNode queryDsl = select.getFinalSelect();
-        try {
-            Response response = world.getAccessClient().getObject(
-                new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                    .setApplicationSessionId(world.getApplicationSessionId()),
-                queryDsl, replaceTitleByGUID(title), usage, version);
-            statusCode = StatusCode.parseFromHttpStatus(response.getStatus());
-        } catch (AccessExternalClientServerException | AccessExternalClientNotFoundException |
-            AccessUnauthorizedException | InvalidParseOperationException e) {
-            statusCode = StatusCode.parseFromHttpStatus(
-                Response.status(Status.UNAUTHORIZED).build().getStatus());
-        }
-    }
-
-    @Then("^le status de la réponse est (.*)$")
-    public void checkStatut(String status) throws Throwable {
-        if (status.equals("UNAUTHORIZED")) {
-            assertThat(Response.Status.UNAUTHORIZED.getStatusCode() == statusCode.getEquivalentHttpStatus()
-                .getStatusCode());
-        } else if (status.equals("OK")) {
-            assertThat(Response.Status.OK.getStatusCode() == statusCode.getEquivalentHttpStatus().getStatusCode());
-        }
-
-    }
 
     @When("^je modifie le contrat d'accès (.*) avec le fichier de requête suivant (.*)$")
     public void je_modifie_le_contrat_d_accès(String name, String queryFilename) throws Throwable {
