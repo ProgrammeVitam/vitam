@@ -963,6 +963,17 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         assertEquals(resp, Status.CREATED);
     }
 
+    @Test(expected = ReferentialException.class)
+    @RunWithCustomExecutor
+    public void importContextsWithNoCorrectJsonReturnCreated()
+        throws ReferentialException, FileNotFoundException, InvalidParseOperationException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST)
+            .entity(new RequestResponseOK<ContextModel>().addAllResults(getContexts())).build());
+        Status resp = client.importContexts(new ArrayList<>());
+    }
+
+
     @Test
     @RunWithCustomExecutor
     public void launchAuditWithCorrectJsonReturnAccepted()
