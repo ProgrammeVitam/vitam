@@ -45,8 +45,8 @@ export class AccessionRegisterComponent  extends PageComponent {
       this.getDetail();
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
-        {label: 'Référentiel du registre des fonds', routerLink: 'admin/search/agencies'},
-        {label: this.id, routerLink: ''}
+        {label: 'Référentiel des services agents', routerLink: 'admin/search/agencies'},
+        {label: 'Détail du fond ' + this.id, routerLink: ''}
       ];
 
       this.setBreadcrumb(newBreadcrumb);
@@ -145,9 +145,13 @@ export class AccessionRegisterComponent  extends PageComponent {
   getDetailsType(detail : AccessionRegisterDetail) {
     for (let opId of detail.OperationIds) {
       if (this.registerDetailType[opId] === 'PROCESS_SIP_UNITARY') {
-        return 'Archive';
-      } else {
-        return 'Plan';
+        return 'Standard';
+      } else if (this.registerDetailType[opId] === 'FILINGSCHEME'){
+        return 'Plan de classement';
+      } else if (this.registerDetailType[opId] === 'HOLDINGSCHEME'){  
+        return 'Arbre de positionnement';
+      }else{
+       return '';
       }
     }
   }
