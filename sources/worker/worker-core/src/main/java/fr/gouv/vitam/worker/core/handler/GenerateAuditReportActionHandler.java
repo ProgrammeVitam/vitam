@@ -61,6 +61,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.stream.StreamSupport;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 
@@ -272,7 +274,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
                 String idOp = res.get(EV_ID_PROC).asText();
                 JsonNode events = res.get(EVENT);
                 for (JsonNode event : events) {
-                    if (event.get(EV_TYPE).asText().equals("LFC.AUDIT_CHECK_OBJECT") &&
+                    if (event.get(EV_TYPE).asText().contains("LFC.AUDIT_CHECK_OBJECT") &&
                         event.get(LogbookMongoDbName.outcome.getDbname()).asText().equals("KO") &&
                         event.get(EV_ID_PROC).asText().equals(auditOperationId)) {
                         JsonNode evDetData = JsonHandler.getFromString(event.get("evDetData").asText());
@@ -377,11 +379,11 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
             result.set(sp.getKey(),
                 JsonHandler.createObjectNode().put("OK", sp.getValue() - nbKO)
                     .put("KO", nbKO));
-            
-            if (serviceProducteurWarning.has(sp.getKey())) {
-                result.set(sp.getKey(),
-                    JsonHandler.createObjectNode().put("OK", 0).put("KO", 0).put("WARNING", 1));
-            }            
+
+            Optional<JsonNode> opt = StreamSupport.stream(serviceProducteurWarning.spliterator(), false)
+                .filter(s -> s.textValue().equals(sp.getKey())).findFirst();
+            opt.ifPresent(jsonNode -> result.set(jsonNode.textValue(),
+                    JsonHandler.createObjectNode().put("OK", 0).put("KO", 0).put("WARNING", 1)));         
         }
         return JsonHandler.unprettyPrint(result);
     }
