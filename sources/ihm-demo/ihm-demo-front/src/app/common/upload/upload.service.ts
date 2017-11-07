@@ -148,7 +148,7 @@ export class UploadService {
   uploadReferentials(collection : string, file: any) {
     let header = new HttpHeaders();
     header = header.set('Content-Type', 'application/octet-stream').set('X-Filename', file.name);
-    return this.resourcesService.post(collection, header, file);
+    return this.resourcesService.post(collection, header, file, 'text');
   }
 
   checkReferentials(collection : string) {
