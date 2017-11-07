@@ -30,11 +30,11 @@ export class ReferentialHelper {
 
   public selectionOptions = {
     'DataObjectVersion': [
-      {label: 'BinaryMaster', value: 'BinaryMaster'},
-      {label: 'Dissemination', value: 'Dissemination'},
-      {label: 'Thumbnail', value: 'Thumbnail'},
-      {label: 'TextContent', value: 'TextContent'},
-      {label: 'PhysicalMaster', value: 'PhysicalMaster'}
+      {label: 'BinaryMaster', value: 'Original numérique'},
+      {label: 'Dissemination', value: 'Diffusion'},
+      {label: 'Thumbnail', value: 'Vignette'},
+      {label: 'TextContent', value: 'Contenu brut'},
+      {label: 'PhysicalMaster', value: 'Original papier'}
     ]
   };
 
