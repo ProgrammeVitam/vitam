@@ -186,7 +186,7 @@ Voici quelques exemples :
 
 
 2/ Pour effectuer cette recherche uniquement sur les enfants directs des unités de $roots
-::
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
     {
       "$roots": [
@@ -260,34 +260,34 @@ Opérateur $query
 
 Une query peut être exprimée avec des opérateurs :
 
-+-------------------+---------------------------------------------------------+--------------------------------------------+----------------------------------+--------------------------------------+-----------------------------------------------------------------------------+
-| Catégorie         | Opérateurs                                              | Arguments                                  | Utilisable sur champs analysés ? | Utilisable sur champs non analysés ? | Commentaire                                                                 |
-+===================+=========================================================+============================================+==================================+======================================+=============================================================================+
-| Booléens          | $and, $or, $not                                         | opérateurs                                 | NA                               | NA                                   | Combinaison logique d'opérateurs                                            |
-+-------------------+---------------------------------------------------------+--------------------------------------------+----------------------------------+--------------------------------------+-----------------------------------------------------------------------------+
-| Comparaison       | $eq, $lt, $lte, $gt, $gte                               | Champ et valeur                            | Non                              | **Oui**                              | Comparaison de la valeur d'un champ et la valeur passée en argument         |
-+-------------------+---------------------------------------------------------+--------------------------------------------+----------------------------------+--------------------------------------+-----------------------------------------------------------------------------+
-|                   | $range                                                  | Champ, $lt, $lte, $gt, $gte et valeurs     | Non                              | **Oui**                              | Comparaison de la valeur d'un champ avec l'intervalle passé en argument     |
-+-------------------+---------------------------------------------------------+--------------------------------------------+----------------------------------+--------------------------------------+-----------------------------------------------------------------------------+
-| Existence         | $exists                                                 | Champ                                      | **Oui**                          | **Oui**                              |                                                                             |
-+-------------------+---------------------------------------------------------+--------------------------------------------+----------------------------------+--------------------------------------+-----------------------------------------------------------------------------+
-| Tableau           | $in                                                     | Champ et valeurs                           | Non                              | **Oui**                              | Présence de valeurs dans un tableau                                         |
-+-------------------+---------------------------------------------------------+--------------------------------------------+----------------------------------+--------------------------------------+-----------------------------------------------------------------------------+
-| Textuel           | $wildcard                                               | Champ, mot clef                            | Non                              | **Oui**                              | Comparaison de champs mots-clefs à valeur exacte                            |
-+-------------------+---------------------------------------------------------+--------------------------------------------+----------------------------------+--------------------------------------+-----------------------------------------------------------------------------+
-|                   | $match, $match_all, $match_phrase, $match_phrase_prefix | Champ, phrase, $max_expansions (optionnel) | **Oui**                          | Non                                  | Recherche plein texte soit sur des mots, des phrases ou un préfixe de phrase|
-+-------------------+---------------------------------------------------------+--------------------------------------------+----------------------------------+--------------------------------------+-----------------------------------------------------------------------------+
-|                   | $regex                                                  | Champ, Expression régulière                | Non                              | **Oui**                              | Recherche via une expression régulière                                      |
-+-------------------+---------------------------------------------------------+--------------------------------------------+----------------------------------+--------------------------------------+-----------------------------------------------------------------------------+
-|                   | $search                                                 | Champ, string avec opérateur du $search    | **Oui**                          | Non                                  | Recherche du type moteur de recherche                                       |
-+-------------------+---------------------------------------------------------+--------------------------------------------+----------------------------------+--------------------------------------+-----------------------------------------------------------------------------+
-| Parcours de graphe| $depth                                                  | entier positif ou nul                      | NA                               | NA                                   | Recherche jusqu'à un niveau de profondeur                                   |
-+-------------------+---------------------------------------------------------+--------------------------------------------+----------------------------------+--------------------------------------+-----------------------------------------------------------------------------+
++--------------------+---------------------------------------------------------+--------------------------------------------+----------------------------------+--------------------------------------+------------------------------------------------------------------------------+
+| Catégorie          | Opérateurs                                              | Arguments                                  | Utilisable sur champs analysés ? | Utilisable sur champs non analysés ? | Commentaire                                                                  |
++====================+=========================================================+============================================+==================================+======================================+==============================================================================+
+| Booléens           | $and, $or, $not                                         | opérateurs                                 | NA                               | NA                                   | Combinaison logique d'opérateurs                                             |
++--------------------+---------------------------------------------------------+--------------------------------------------+----------------------------------+--------------------------------------+------------------------------------------------------------------------------+
+| Comparaison        | $eq, $lt, $lte, $gt, $gte                               | Champ et valeur                            | Non                              | **Oui**                              | Comparaison de la valeur d'un champ et la valeur passée en argument          |
++--------------------+---------------------------------------------------------+--------------------------------------------+----------------------------------+--------------------------------------+------------------------------------------------------------------------------+
+|                    | $range                                                  | Champ, $lt, $lte, $gt, $gte et valeurs     | Non                              | **Oui**                              | Comparaison de la valeur d'un champ avec l'intervalle passé en argument      |
++--------------------+---------------------------------------------------------+--------------------------------------------+----------------------------------+--------------------------------------+------------------------------------------------------------------------------+
+| Existence          | $exists                                                 | Champ                                      | **Oui**                          | **Oui**                              |                                                                              |
++--------------------+---------------------------------------------------------+--------------------------------------------+----------------------------------+--------------------------------------+------------------------------------------------------------------------------+
+| Tableau            | $in                                                     | Champ et valeurs                           | Non                              | **Oui**                              | Présence de valeurs dans un tableau                                          |
++--------------------+---------------------------------------------------------+--------------------------------------------+----------------------------------+--------------------------------------+------------------------------------------------------------------------------+
+| Textuel            | $wildcard                                               | Champ, mot clef                            | Non                              | **Oui**                              | Comparaison de champs mots-clefs à valeur exacte                             |
++--------------------+---------------------------------------------------------+--------------------------------------------+----------------------------------+--------------------------------------+------------------------------------------------------------------------------+
+|                    | $match, $match_all, $match_phrase, $match_phrase_prefix | Champ, phrase, $max_expansions (optionnel) | **Oui**                          | Non                                  | Recherche plein texte soit sur des mots, des phrases ou un préfixe de phrase |
++--------------------+---------------------------------------------------------+--------------------------------------------+----------------------------------+--------------------------------------+------------------------------------------------------------------------------+
+|                    | $regex                                                  | Champ, Expression régulière                | Non                              | **Oui**                              | Recherche via une expression régulière                                       |
++--------------------+---------------------------------------------------------+--------------------------------------------+----------------------------------+--------------------------------------+------------------------------------------------------------------------------+
+|                    | $search                                                 | Champ, string avec opérateur du $search    | **Oui**                          | Non                                  | Recherche du type moteur de recherche                                        |
++--------------------+---------------------------------------------------------+--------------------------------------------+----------------------------------+--------------------------------------+------------------------------------------------------------------------------+
+| Parcours de graphe | $depth                                                  | entier positif ou nul                      | NA                               | NA                                   | Recherche jusqu'à un niveau de profondeur                                    |
++--------------------+---------------------------------------------------------+--------------------------------------------+----------------------------------+--------------------------------------+------------------------------------------------------------------------------+
 
 
 
 $and, $or, $not : combinaison logique d'opérateurs
----------------
+--------------------------------------------------
 
 Format :
 
@@ -296,7 +296,7 @@ Format :
 - **$not : [ expression1, expression2, ... ]**  où chaque expression est une commande et *aucune* ne doit être vérifiée ($not[condition A, condition B] peut donc s'écrire sous une forme plus explicite de : $or[$not(condition A), $not(condition B)]).
 
 - Exemple :
-::
+:::::::::::
 
   {
   	"$roots": [],
@@ -345,15 +345,15 @@ $eq, $ne, $lt, $lte, $gt, $gte : recherche par comparateurs d'égalité
 Comparaison de la valeur d'un champ et la valeur passée en argument
 
 Format :
-- { **"$eq" : { name : value }** } : où name est le nom du champ, et valeur est la valeur recherchée (Equals)
-- { **"$ne" : { name : value }** } : où name est le nom du champ, et valeur est la valeur recherchée (Not Equals)
+- { **"$eq" : { name : value }** } : où name est le nom du champ, et value est la valeur recherchée (Equals)
+- { **"$ne" : { name : value }** } : où name est le nom du champ, et value est la valeur recherchée (Not Equals)
 - { **"$lt" : { name : value }** } : où name est le nom du champ, et value est la valeur à comparer (Less Than)
 - { **"$lte" : { name : value }**} : où name est le nom du champ, et value est la valeur à comparer (Less Than or Equal)
 - { **"$gt" : { name : value }** } : où name est le nom du champ, et value est la valeur à comparer (Greater Than)
 - { **"$gte" : { name : value }**} : où name est le nom du champ, et value est la valeur à comparer (Greater Than or Equal)
 
 Exemples :
-::
+::::::::::
 
   { "$eq" : { "Identifier" : "CT-000001" } }
   { "$eq" : { "StartDate" : "2014-03-25" } }
@@ -361,8 +361,8 @@ Exemples :
   { "$ne" : { "Status" : true } }
   { "$lt" : { "Identifier" : "CT-000001" } }
   { "$lte" : { "StartDate" : "2014-03-25" } }
-  { "$qt" : { "PI" : 3.14 } }
-  { "$qte" : { "Count" : 3 } }
+  { "$gt" : { "PI" : 3.14 } }
+  { "$gte" : { "Count" : 3 } }
 
 
 
@@ -388,7 +388,7 @@ Format :
 { **$range** : { name : { minOperator : minValue, maxOperator : maxValue } } } : où name est le nom du champ, minOperator est l'opérateur de comparaison ($gt ou $gte),  minValue est la valeur de comparaison minimale, maxOperator est l'opérateur de comparaison ($lt ou $lte),  maxValue est la valeur de comparaison maximale.
 
 Exemples :
-::
+::::::::::
 
   { "$range" : { "Identifier" : { "$gte" : "CT-000001", "$lte" : "CT-000009" } } }
   { "$range" : { "StartDate" : { "$gt" : "2014-03-25", "$lt" : "2014-04-25" } } }
@@ -398,6 +398,8 @@ Exemples :
 Notes :
   - Cet opérateur ne doit être utilisé que pour les champs de type chaîne non analysée, dates, nombres et booléens. Le comportement dans le cas d'un champ de type texte analysé ou null est non supporté.
   - La comparaison doit se faire entre le même type. Le comportement dans le cas de types de données différents (par exemple comparer une date et un booléen) est non supporté.
+  - Aucune vérification n'est effectuée quant aux valeurs passées dans les *$gt* et *$lt* (ou encore *$gte* et *$lte*), ce qui signifie qu'en cas de mauvais range (ex: "$gt" : "2014-04-25", "$lt" : "2014-04-24") la query sera considérée correcte, mais aucun résultat ne sera retourné.
+  - Les dates dans VITAM étant la plupart du temps au format ISO, pour rechercher des Units ayant leur StartDate sur un jour donné, il convient donc d'utiliser une Query range.
 
 
 $exists : test d'existence d'au moins une valeur non nulle dans un champ.
@@ -408,7 +410,7 @@ Format:
 { **"$exists" : name** } : où name est le nom du champ à vérifier.
 
 Exemples :
-::
+::::::::::
 
   L'application de la requête suivante : { "$exists" : "Data" } sélectionne les documents suivants :
   { "Data": false }            : Booléen
@@ -420,7 +422,7 @@ Exemples :
 
 
 **$exists** n'est pas prévu pour interroger des champs existant mais vides. L'application de la même requête ( { "$exists" : "Data" } ) ne sélectionne pas les documents suivants :
-::
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
   { "Data": null }             : Champ null
   { "Data": [ ] }              : Tableau vide
@@ -432,10 +434,10 @@ $in : recherche dans une liste de valeurs
 -----------------------------------------
 
 Format :
-{ **$in** : { name : [ value1, value2, ... ] } } : où name est le nom du champ, valueN les valeurs recherchées. Il suffit d une seule valeur présente dans le tableau pour qu'il soit sélectionné.
+{ **$in** : { name : [ value1, value2, ... ] } } : où name est le nom du champ, valueN les valeurs recherchées. Il suffit d'une seule valeur présente dans le tableau pour qu'il soit sélectionné.
 
 Exemples :
-::
+::::::::::
 
   { $in : { "Identifier" : [ "CT-000001", "CT-000002" ] } }
   { $in : { "StartDate" : [ "2014-03-25", "2014-03-26" ] } }
@@ -464,7 +466,7 @@ Exemples :
   - { "$wildcard" : { "Champ" : "vo?re" } } : Retourne les chaînes qui commencent pas anti par "vo" suivi d'un caractère et se terminant par "re". (Ex: voire, votre)
 
 Recherche de toutes les unités archivistique dont le DescriptionLevel commence par "re" et se termine par "grp"
-::
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
   {
   "$query": [
@@ -488,7 +490,7 @@ Notes :
 
 
 $match, $match_all, $match_phrase, $match_phrase_prefix : recherche full-text
-------------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 
 Recherche plein texte utilisant la recherche approchante du moteur d'indexation.
 
@@ -510,7 +512,7 @@ Exemples :
 Recherche dans un champ "Title": "Voyez ce koala fou qui mange des journaux et des photos dans un bungalow"
 
 Pour $match :
-::
+:::::::::::::
 
   { "$match" : { "Title" : "koala fou" } } : OK
   { "$match" : { "Title" : "fou koala" } } : OK (pas d'ordre des mots)
@@ -520,7 +522,7 @@ Pour $match :
 
 
 Pour $match_all :
-::
+:::::::::::::::::
 
   { "$match_all" : { "Title" : "koala fou" } } : OK
   { "$match_all" : { "Title" : "fou koala" } } : OK (pas d'ordre des mots)
@@ -530,7 +532,7 @@ Pour $match_all :
 
 
 Pour $match\_phrase :
-::
+:::::::::::::::::::::
 
   { "$match_phrase" : { "Title" : "koala fou" } } : OK
   { "$match" : { "Title" : "koalas fous" } } : OK (la recherche approchante trouve les pluriels)
@@ -539,7 +541,7 @@ Pour $match\_phrase :
 
 
 Pour $match\_phrase\_prefix :
-::
+:::::::::::::::::::::::::::::
 
   { "$match_phrase_prefix" : { "Title" : "koala fou" } } : OK (Correspondance complète)
   { "$match_phrase_prefix" : { "Title" : "koala f" } } : OK (Correspondance avec préfixe sur le dernier terme)
@@ -602,6 +604,20 @@ Note :
 - Cet opérateur ne doit être utilisé que pour les champs de type chaîne analysée. Le comportement dans le cas d'un champ de type texte analysé ou null est non supporté.
 
 
+Cas particulièr : recherches par #id
+------------------------------------
+
+Un cas particulier est traité dans ce paragraphe, il s'agit de la recherche par identifiant technique.
+Sur les différentes collections, le champ #id est un champ obligatoire peuplé par Vitam. Il s'agit de l'identifiant unique du document (unité archivistique, groupe d'objets, différents référentiels...) représentée sous la forme d'une chaîne de 36 caractères correspondant à un GUID.
+Il est possible de faire des requêtes sur ce champ, voici les opérateurs à privilégier dans ce cadre : 
+- { **"$eq" : { "#id" : value }** } : où value est la valeur recherchée sous forme d'un GUID
+- { **"$in" : { "#id" : [ value1, value2, ... ] }** } : où valueN sont les valeurs recherchées sous forme de GUID.
+
+Il est aussi possible, mais moins recommandé, de faire : 
+- { **"$ne" : { "#id" : value }** } : étant la recherche eq inversée
+- { **"$nin" : { "#id" : [ value1, value2, ... ] }** } : étant la recherche in inversée
+
+
 Opérateur $filter
 =================
 
@@ -661,7 +677,7 @@ Exemples
 --------
 
 Réponse pour Units
-++++++++++++++++++++++++++++
+++++++++++++++++++
 
 ::
 
@@ -709,7 +725,7 @@ Réponse pour Units
 
 
 Réponse pour Objects
-++++++++++++++++++++++++++++
+++++++++++++++++++++
 
 ::
 
@@ -763,7 +779,7 @@ En cas d'erreur, Vitam retourne un message d'erreur dont le format est :
 - **description** : explication de l'erreur
 
 Exemple
-++++++++++++++
++++++++
 ::
 
   {

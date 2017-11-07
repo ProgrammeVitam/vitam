@@ -108,9 +108,9 @@ pour toute StartDate plus grande que le 25 mars 2014 et inférieure ou égale au
 
     - **$gt : { name : value }** où *name* est le nom du champ et *value* la valeur avec laquelle on compare le champ
     - $eq : égalité, marche également avec les champs non analysés (codes). **Attention** : pour les champs analysés, il s'agit d'un $match_all.
-    - $ne : le champ n'a pas la valeur dournie
-    - $lt, $lte : le champs a une valeur inférieure ou égale avec la valeur fournie
-    - $gt, $gte : le champs a une valeur supérieure ou égale avec la valeur fournie
+    - $ne : le champ n'a pas la valeur fournie
+    - $lt, $lte : le champ a une valeur inférieure ou égale à la valeur fournie
+    - $gt, $gte : le champ a une valeur supérieure ou égale à la valeur fournie
     - Exemple :
 
 ```json
@@ -127,7 +127,19 @@ pour toute StartDate plus grande que le 25 mars 2014
 - $range
     - Comparaison de la valeur d'un champ avec l'intervalle passé en argument
     - **$range : { name : { $gte : value, $lte : value } }** est un raccourci pour chercher sur un seul champ nommé *name* les Units dont la valeur est comprise entre la partie *$gt* ou *$gte* et la partie *$lt* ou *$lte*
-    - Exemple :
+    - Aucune vérification n'est effectuée quant aux valeurs passées dans les *$gt* et *$lt* (ou encore *$gte* et *$lte*), ce qui signifie qu'en cas de mauvais range, aucun résultat ne sera retourné (que l'on cherche des dates ou non).
+    - Les dates dans VITAM étant la plupart du temps au format ISO, pour rechercher des Units ayant leur StartDate sur un jour donné, il convient donc d'utiliser une Query range.
+    - Exemples :
+
+```json
+{ "$range" : { "StartDate" : { "$gte" : "2014-04-25", "$lt" : "2014-03-26" } } }
+```
+pour toute StartDate plus grande ou égale au 25 avril 2014 mais inférieure au 26 avril 2014. Correspond à une recherche sur un jour précis.
+
+```json
+{ "$range" : { "StartDate" : { "$gte" : "2014-04-25", "$lte" : "2014-04-25" } } }
+```
+pour toute StartDate plus grande ou égale au 25 avril 2014 mais inférieure ou égale au 25 mars 2014. Bien que correcte syntaxiquement, cette Query ne retournera aucun résultat.
 
 ```json
 { "$range" : { "StartDate" : { "$gte" : "2014-03-25", "$lte" : "2014-04-25" } } }
@@ -158,7 +170,7 @@ pour tout Unit contenant le champ StartDate
 
 - $in, $nin
      - Présence de valeurs dans un champ (ce champ peut être un tableau ou un simple champ avec une seule valeur)
-     - **$in : { name : [ value1, value2, ... ] }** où *name* est le nom du tableau et le tableau de valeurs ce que peut contenir le tableau. Il suffit d une seule valeur présente dans le tableau pour qu il soit sélectionné.
+     - **$in : { name : [ value1, value2, ... ] }** où *name* est le nom du tableau et le tableau de valeurs ce que peut contenir le tableau. Il suffit d'une seule valeur présente dans le tableau pour qu'il soit sélectionné.
        - **Attention** : pour les champs analysés, il s'agit d'un $match multiple via $or.
      - **$nin** est l opérateur inverse, le tableau ne doit contenir aucune des valeurs spécifiées
      - Exemple :
@@ -172,10 +184,10 @@ static include fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.*;
 static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
 Query query = in(unitups(), "id1", "id2");
 ```
-pour rechercher les Units qui ont pour parents immédiats au moins l un des deux Id spécifiés
+pour rechercher les Units qui ont pour parents immédiats au moins l'un des deux Id spécifiés
 
 - $size
-     - Taille d un tableau
+     - Taille d'un tableau
      - **$size : { name : length }** où *name* est le nom du tableau et *length* la taille attendue (égalité)
      - Exemple :
 
@@ -191,8 +203,8 @@ Query query = size(unitups(), 2);
 pour rechercher les Units qui ont 2 parents immédiats exactement
 
 - $term
-    - Comparaison de champs avec une valeur exacte (non analysé)#type
-    - **$term : { name : term, name : term }** où l on fait une recherche exacte sur les différents champs indiqués
+    - Comparaison de champs avec une valeur exacte (non analysé)
+    - **$term : { name : term, name : term }** où l'on fait une recherche exacte sur les différents champs indiqués
     - **Attention** : pour les champs analysés, il s'agit d'un $match_all.
     - Exemple :
 
@@ -313,6 +325,20 @@ static include fr.gouv.vitam.common.database.builder.query.QueryHelper.*;
 Query query = mlt("Il était une fois", "Title", "Description");
 ```
 pour chercher les Units qui ont dans le titre ou la description un contenu qui s'approche de la phrase spécifiée dans $like.
+
+- #id
+Un cas particulier est traité dans ce paragraphe, il s'agit de la recherche par identifiant technique.
+Sur les différentes collections, le champ #id est un champ obligatoire peuplé par Vitam. Il s'agit de l'identifiant unique du document (unité archivistique, groupe d'objets, différents référentiels...) représentée sous la forme d'une chaîne de 36 caractères correspondant à un GUID.
+Il est possible de faire des requêtes sur ce champ, voici les opérateurs à privilégier dans ce cadre :
+ 
+    - { **"$eq" : { "#id" : value }** } : où value est la valeur recherchée sous forme d'un GUID
+    - { **"$in" : { "#id" : [ value1, value2, ... ] }** } : où valueN sont les valeurs recherchées sous forme de GUID.
+
+Il est aussi possible, mais moins recommandé, de faire : 
+
+    - { **"$ne" : { "#id" : value }** } : étant la recherche eq inversée
+    - { **"$nin" : { "#id" : [ value1, value2, ... ] }** } : étant la recherche in inversée
+
 
 ## Partie $action dans la fonction Update
 
