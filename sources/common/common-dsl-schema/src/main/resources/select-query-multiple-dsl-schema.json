@@ -13,7 +13,7 @@
         "$query": {
           "type": {
             "array":"ROOT_QUERY",
-            "min":1
+            "min":0
           },
           "hint": "List of query"
         },
