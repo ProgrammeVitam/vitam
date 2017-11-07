@@ -1003,6 +1003,9 @@ ul li.ui-chips-input-token input {
 .fa.greyColor {
   color: lightgrey; }
 
+.fa.darkgreyColor {
+  color: #666; }
+
 .ui-menubar {
   min-height: 50px; }
 

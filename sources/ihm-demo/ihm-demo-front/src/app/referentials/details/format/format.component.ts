@@ -49,7 +49,7 @@ export class FormatComponent  extends PageComponent {
       });
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
-        {label: 'Référentiel des formats', routerLink: 'admin/search/format'},
+        {label: 'Formats', routerLink: 'admin/search/format'},
         {label: 'Détail du format ' + this.id, routerLink: ''}
       ];
 

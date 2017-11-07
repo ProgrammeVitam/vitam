@@ -1,13 +1,13 @@
 <p-panel header="Résultats ({{hits.total}})" *ngIf="data && hits && items">
     <div style="float: left; padding: 5px;" *ngIf="!!extraCols && extraCols.length > 0">
-        <button pButton class="secondaryButton" [icon]="displayOptions ? 'fa-chevron-up' : 'fa-chevron-down'" iconPos="right"
-                (click)="displayOptions=!displayOptions" [label]="'Informations Supplémentaires'"></button>
+        <button pButton class="secondaryButton" [icon]="displayOptions ? 'fa-close darkgreyColor' : 'fa-chevron-down'" iconPos="right"
+                (click)="displayOptions=!displayOptions" [label]="'Informations supplémentaires'"></button>
     </div>
     <div style="float: left" *ngIf="displayOptions">
         <p-listbox [options]="extraColsSelection" [(ngModel)]="extraSelectedCols"
                    [style]="{'text-align': 'left', 'z-index': 5000, 'position': 'absolute', 'background-color': 'white', 'width': '250px'}"
                    (onChange)="onRowSelect($event)"
-                   multiple="multiple" checkbox="checkbox" filter="filter"></p-listbox>
+                   multiple="multiple" checkbox="checkbox"></p-listbox>
     </div>
     <div style="clear: both"></div>
     <p-paginator [(rows)]="nbRows" [rowsPerPageOptions]="[5, 25, 125]" (onPageChange)="paginate($event)" [totalRecords]="hits.total" [(first)]="firstItem"></p-paginator>
