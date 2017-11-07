@@ -3,20 +3,23 @@
   <form class="w-100" [formGroup]="searchForm" (ngSubmit)="onSubmit()">
     <div class="ui-g">
       <div class="ui-g-4">
-        <label style="font-weigth: bold" class="ui-g-12" >Titre et Description</label>
+        <label style="font-weigth: bold" class="ui-g-12">Titre et Description</label>
         <input pInputText class="ui-g-12" formControlName="titleAndDescription" name="titleAndDescription">
       </div>
       <div class="ui-g-4">
-        <label style="font-weigth: bold" class="ui-g-12" >Date de début</label>
-        <p-calendar class="ui-g-12 ui-g-nopad" formControlName="startDate" type="date"></p-calendar>
+        <label style="font-weigth: bold" class="ui-g-12">Date de début</label>
+        <p-calendar class="ui-g-12 ui-g-nopad" formControlName="startDate" type="date" [dateFormat]="'dd/mm/yy'"
+                    [yearNavigator]="true" [yearRange]="'1970:2500'" [locale]="frLocale"></p-calendar>
       </div>
       <div class="ui-g-4">
-        <label style="font-weigth: bold" class="ui-g-12" >Date de fin</label>
-        <p-calendar class="ui-g-12 ui-g-nopad" formControlName="endDate" type="date" ></p-calendar>
+        <label style="font-weigth: bold" class="ui-g-12">Date de fin</label>
+        <p-calendar class="ui-g-12 ui-g-nopad" formControlName="endDate" type="date" [dateFormat]="'dd/mm/yy'"
+                    [yearNavigator]="true" [yearRange]="'1970:2500'" [locale]="frLocale"></p-calendar>
       </div>
 
       <div class="ui-g-12">
-        <button pButton type="button" class="secondaryButton" icon="fa-times" label="Effacer" (click)="clearFields()"></button>
+        <button pButton type="button" class="secondaryButton" icon="fa-times" label="Effacer"
+                (click)="clearFields()"></button>
         <button pButton icon="fa-search" label="Rechercher"></button>
       </div>
     </div>
@@ -26,7 +29,8 @@
 
 <p-panel header="Résultats ({{hits.total}})" *ngIf="data && hits">
 
-  <p-paginator [rows]="nbRows" (onPageChange)="paginate($event)" [totalRecords]="hits.total" [(first)]="firstItem"></p-paginator>
+  <p-paginator [rows]="nbRows" (onPageChange)="paginate($event)" [totalRecords]="hits.total"
+               [(first)]="firstItem"></p-paginator>
 
   <p-dataTable [value]="displayedItems" (onRowClick)="switchSelected($event)" [emptyMessage]="'Aucun Résultat'">
     <p-column [header]="'Selectioné'">
@@ -36,7 +40,8 @@
       </ng-template>
     </p-column>
 
-    <p-column *ngFor="let col of columns" [field]="col.field" [header]="col.label" [style]="col.computeCss()" [styleClass]="'clickableDiv'" >
+    <p-column *ngFor="let col of columns" [field]="col.field" [header]="col.label" [style]="col.computeCss()"
+              [styleClass]="'clickableDiv'">
       <ng-template let-item="rowData" pTemplate="body">
       <span [ngClass]="col.computeCss()" title="{{col.transform(col.getValue(item))}}">
         {{col.transform(col.getValue(item)) }}
