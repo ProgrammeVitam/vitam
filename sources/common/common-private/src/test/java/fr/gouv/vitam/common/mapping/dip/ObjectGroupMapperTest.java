@@ -27,11 +27,13 @@
 package fr.gouv.vitam.common.mapping.dip;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.FileNotFoundException;
 import java.io.StringWriter;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Map;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -44,6 +46,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.gouv.culture.archivesdefrance.seda.v2.BinaryDataObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectPackageType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveTechnicalMetadataType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DimensionsType;
 import fr.gouv.culture.archivesdefrance.seda.v2.FileInfoType;
 import fr.gouv.culture.archivesdefrance.seda.v2.FormatIdentificationType;
@@ -62,6 +65,7 @@ import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.PhysicalDimensionsModel;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
+import org.apache.xerces.dom.ElementNSImpl;
 import org.junit.Test;
 
 
@@ -138,6 +142,16 @@ public class ObjectGroupMapperTest {
             assertEquals(versionsModel.getDataObjectGroupId(), minimalDataObjectType.getDataObjectGroupReferenceId());
             assertEquals(versionsModel.getDataObjectVersion(), minimalDataObjectType.getDataObjectVersion());
 
+            Map<String, Object> otherMetadataFromVersionModel =  versionsModel.getOtherMetadata();
+            DescriptiveTechnicalMetadataType otherMetadadata = ((BinaryDataObjectType) minimalDataObjectType).getOtherMetadata();
+            assertNotNull(otherMetadadata);
+            assertEquals(otherMetadadata.getAny().size(), otherMetadataFromVersionModel.size());
+            assertEquals(otherMetadadata.getAny().size(), 1);
+            ElementNSImpl eleNsImplObject = ((ElementNSImpl)otherMetadadata.getAny().get(0));
+            String optionalMDkey = otherMetadataFromVersionModel.keySet().iterator().next();
+            Object optionalMDValue = otherMetadataFromVersionModel.get(optionalMDkey);
+            assertEquals(eleNsImplObject.getNodeName(), optionalMDkey);
+            assertEquals(eleNsImplObject.getTextContent(),optionalMDValue);
         }
         if (binaryDataObjectOrPhysicalDataObject.get(0) instanceof PhysicalDataObjectType) {
             final QualifiersModel qualifiersModel = objectGroup.getQualifiers().get(0);

@@ -86,6 +86,9 @@ public class VersionsModel {
     @JsonProperty("PhysicalId")
     private String physicalId;
 
+    @JsonProperty("OtherMetadata")
+    private Map<String, Object> otherMetadata = new HashMap<>();
+
     @JsonIgnore
     private Map<String, Object> any = new HashMap<>();
 
@@ -97,6 +100,14 @@ public class VersionsModel {
     @JsonAnySetter
     public void setAny(String key, Object value) {
         this.any.put(key, value);
+    }
+
+    public Map<String, Object> getOtherMetadata() {
+        return otherMetadata;
+    }
+
+    public void setOtherMetadata(Map<String, Object> otherMetadata) {
+        this.otherMetadata = otherMetadata;
     }
 
     public String getPhysicalId() {

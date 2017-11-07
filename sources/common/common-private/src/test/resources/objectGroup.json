@@ -73,6 +73,9 @@
               "ColorDepth": 24
             }
           },
+          "OtherMetadata": {
+            "testMD": "test value"
+          },
           "Size": 8067,
           "Uri": "Content/1NUM_4.JPG",
           "MessageDigest": "3adb5ccfef14423678c2fb6a437ec104a6ee053f34b1c6a7755abc22eb54fb95133bef03fb142c6182377dbdadc9fa8ae8dd31dc3bb0fb038d93f51cafd90239",

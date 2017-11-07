@@ -29,12 +29,14 @@ package fr.gouv.vitam.common.mapping.dip;
 import static java.util.Collections.singletonList;
 
 import java.math.BigInteger;
+import java.util.Map;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.BinaryDataObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectPackageType;
+import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveTechnicalMetadataType;
 import fr.gouv.culture.archivesdefrance.seda.v2.FileInfoType;
 import fr.gouv.culture.archivesdefrance.seda.v2.FormatIdentificationType;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
@@ -158,6 +160,14 @@ public class ObjectGroupMapper {
             binaryDataObjectType.setMessageDigest(messageDigestBinaryObjectType);
             mapCommonInformations(version, binaryDataObjectType);
             binaryDataObjectType.setMetadata(coreMetadataMapper.map(version.getMetadata()));
+
+            // other metadata 
+            final DescriptiveTechnicalMetadataType otherMetadata = new DescriptiveTechnicalMetadataType();
+            Map<String, Object> otherMetadataMap = version.getOtherMetadata();
+            if (otherMetadataMap != null && !otherMetadataMap.isEmpty()) {
+                otherMetadata.getAny().addAll(TransformJsonTreeToListOfXmlElement.mapJsonToElement(singletonList(otherMetadataMap)));
+                binaryDataObjectType.setOtherMetadata(otherMetadata);
+            }
         }
         return binaryDataObjectType;
     }
