@@ -57,7 +57,7 @@ export class ContextComponent extends PageComponent {
       this.getDetail();
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
-        {label: 'Référentiel des contextes applicatifs', routerLink: 'admin/search/context'},
+        {label: 'Contextes applicatifs', routerLink: 'admin/search/context'},
         {label: 'Détail du contexte applicatif ' + this.id, routerLink: ''}
       ];
 

@@ -59,8 +59,11 @@ export class UploadSipComponent implements OnInit {
 
   checkFileExtension(fileName : string) : boolean {
     this.fileName = fileName;
-    let extension = fileName.split('.').pop();
-    if (this.extensions.indexOf(extension) >= 0) {
+    let extension = fileName.split('.');
+    let extensionRev = fileName.split('.').reverse();
+    if (this.extensions.indexOf(extension.pop()) >= 0) {
+      return true;
+    }else if(this.extensions.indexOf(extensionRev[1]) >= 0){
       return true;
     } else {
       this.displayDialog = true;

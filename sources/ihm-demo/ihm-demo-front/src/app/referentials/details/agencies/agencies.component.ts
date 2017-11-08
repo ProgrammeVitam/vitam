@@ -33,7 +33,7 @@ export class AgenciesComponent extends PageComponent {
       this.getDetail();
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
-        {label: 'Référentiel des services agents', routerLink: 'admin/search/agencies'},
+        {label: 'Services agents', routerLink: 'admin/search/agencies'},
         {label: 'Détail du service agent ' + this.id, routerLink: ''}
       ];
 

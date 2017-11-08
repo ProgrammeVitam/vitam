@@ -53,7 +53,7 @@ export class IngestContractComponent extends PageComponent {
       this.getDetail();
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
-        {label: 'Référentiel des contrats d\'entrée', routerLink: 'admin/search/ingestContract'},
+        {label: 'Contrats d\'entrée', routerLink: 'admin/search/ingestContract'},
         {label: 'Détail du contrat d\'entrée ' + this.id, routerLink: ''}
       ];
 
