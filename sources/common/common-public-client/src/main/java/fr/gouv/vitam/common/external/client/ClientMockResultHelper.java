@@ -323,6 +323,7 @@ public class ClientMockResultHelper {
             }
         });
         contract.setEveryDataObjectVersion(false);
+        contract.setEveryOriginatingAgency(false);
         return contract;
     }
 

@@ -1,6 +1,7 @@
 import { Component, OnInit, OnChanges, Input } from '@angular/core';
-import {ArchiveUnitService} from "../../archive-unit.service";
-import {ArchiveUnitHelper} from "../../archive-unit.helper";
+import { ArchiveUnitService } from "../../archive-unit.service";
+import { ArchiveUnitHelper } from "../../archive-unit.helper";
+import { Router, ActivatedRoute } from "@angular/router";
 
 @Component({
   selector: 'vitam-archive-main-description',
@@ -16,8 +17,10 @@ export class ArchiveMainDescriptionComponent implements OnInit, OnChanges {
   saveRunning = false;
   displayOK = false;
   displayKO = false;
+  id: string;
 
-  constructor(public archiveUnitService: ArchiveUnitService, public archiveUnitHelper: ArchiveUnitHelper) { }
+  constructor(public archiveUnitService: ArchiveUnitService, public archiveUnitHelper: ArchiveUnitHelper,
+              private activatedRoute: ActivatedRoute, private router : Router) { }
 
   ngOnChanges(change) {
     if(change.archiveUnit) {
@@ -26,6 +29,9 @@ export class ArchiveMainDescriptionComponent implements OnInit, OnChanges {
   }
 
   ngOnInit() {
+    this.activatedRoute.params.subscribe( params => {
+      this.id = params['id'];
+    });
     this.initFields();
   }
 
@@ -65,6 +71,10 @@ export class ArchiveMainDescriptionComponent implements OnInit, OnChanges {
         this.saveRunning = false;
         this.displayKO = true;
       });
+  }
+
+  goToUnitLifecycles() {
+    this.router.navigate(['search/archiveUnit/' + this.id + '/unitlifecycle']);
   }
 
 

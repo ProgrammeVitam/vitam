@@ -32,6 +32,8 @@ import static com.mongodb.client.model.Filters.or;
 import static com.mongodb.client.model.Indexes.hashed;
 import static com.mongodb.client.model.Updates.combine;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.TENANT_ID;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.VERSION;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,6 +45,7 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Lists;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.ErrorCategory;
@@ -85,7 +88,6 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleModel;
-import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
@@ -139,7 +141,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     private static final String ROLLBACK_ISSUE = "Rollback issue";
     private static final String INIT_UPDATE_LIFECYCLE = "Initialize update lifeCycle process";
 
-
     /**
      * Quick projection for ID Only
      */
@@ -156,11 +157,11 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         for (final LogbookMongoDbName name : LogbookMongoDbName.values()) {
             DEFAULT_ALLKEYS.put(name.getDbname(), 1);
         }
+        DEFAULT_ALLKEYS.put(TENANT_ID, 1);
+        DEFAULT_ALLKEYS.put(VERSION, 1);
     }
 
-
     private final LogbookElasticsearchAccess esClient;
-
 
     /**
      * Constructor
@@ -632,7 +633,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         return selectExecute(collection, parser);
     }
 
-    @SuppressWarnings("rawtypes") final VitamDocument getDocument(LogbookParameters item) {
+    final VitamDocument<?> getDocument(LogbookParameters item) {
         if (item instanceof LogbookOperationParameters) {
             return new LogbookOperation((LogbookOperationParameters) item);
         } else if (item instanceof LogbookLifeCycleUnitParameters) {
@@ -642,7 +643,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         }
     }
 
-    @SuppressWarnings("rawtypes") final VitamDocument getDocumentForUpdate(LogbookParameters item) {
+    final VitamDocument getDocumentForUpdate(LogbookParameters item) {
         if (item instanceof LogbookOperationParameters) {
             return new LogbookOperation((LogbookOperationParameters) item, true);
         } else if (item instanceof LogbookLifeCycleUnitParameters) {
@@ -652,11 +653,16 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         }
     }
 
-    @SuppressWarnings("unchecked") final void createLogbook(LogbookCollections collection, LogbookParameters item)
+    @SuppressWarnings("unchecked")
+    final void createLogbook(LogbookCollections collection, LogbookParameters item)
         throws LogbookDatabaseException, LogbookAlreadyExistsException {
         ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, item);
         try {
-            VitamDocument vitamDocument = getDocument(item);
+            VitamDocument<?> vitamDocument = getDocument(item);
+
+            vitamDocument.append(TENANT_ID, ParameterHelper.getTenantParameter());
+            vitamDocument.append(VERSION, 0);
+
             collection.getCollection().insertOne(vitamDocument);
 
             // FIXME : to be refactor when other collection are indexed in ES
@@ -925,15 +931,9 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         if (items == null || items.length == 0) {
             throw new IllegalArgumentException(AT_LEAST_ONE_ITEM_IS_NEEDED);
         }
-        int i = 0;
-        final VitamDocument document = getDocument(items[i]);
-        final List<VitamDocument> events = new ArrayList<>(items.length - 1);
-        for (i = 1; i < items.length; i++) {
-            final VitamDocument currentEvent = getDocumentForUpdate(items[i]);
-            removeDuplicatedInformation(currentEvent);
-            events.add(currentEvent);
-        }
-        document.append(LogbookDocument.EVENTS, events);
+
+        final VitamDocument document = initializeVitamDocument(Lists.newArrayList(items));
+
         try {
             collection.getCollection().insertOne(document);
             // FIXME : to be refactor when other collection are indexed in ES
@@ -1419,7 +1419,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         String id = vitamDocument.getId();
         vitamDocument.remove(VitamDocument.ID);
         vitamDocument.remove(VitamDocument.SCORE);
-        tranformDataForElastic(vitamDocument);
+        transformDataForElastic(vitamDocument);
         final String mongoJson = vitamDocument.toJson(new JsonWriterSettings(JsonMode.STRICT));
         vitamDocument.clear();
         final String esJson = ((DBObject) com.mongodb.util.JSON.parse(mongoJson)).toString();
@@ -1444,7 +1444,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         LOGGER.debug("updateIntoElasticsearch");
         String id = (String) existingDocument.remove(VitamDocument.ID);
         existingDocument.remove(VitamDocument.SCORE);
-        tranformDataForElastic(existingDocument);
+        transformDataForElastic(existingDocument);
         final String mongoJson = existingDocument.toJson(new JsonWriterSettings(JsonMode.STRICT));
         existingDocument.clear();
         final String esJson = ((DBObject) com.mongodb.util.JSON.parse(mongoJson)).toString();
@@ -1460,7 +1460,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      *
      * @param vitamDocument logbook vitam document
      */
-    private void tranformDataForElastic(VitamDocument<?> vitamDocument) {
+    private void transformDataForElastic(VitamDocument<?> vitamDocument) {
         if (vitamDocument.get(LogbookMongoDbName.eventDetailData.getDbname()) != null) {
             String evDetDataString = (String) vitamDocument.get(LogbookMongoDbName.eventDetailData.getDbname());
             LOGGER.debug(evDetDataString);
@@ -1588,7 +1588,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     private void removeDuplicatedInformation(VitamDocument document) {
         document.remove(LogbookDocument.EVENTS);
         document.remove(LogbookDocument.ID);
-        document.remove(LogbookDocument.TENANT_ID);
+        document.remove(TENANT_ID);
         if (document.get(LogbookMongoDbName.rightsStatementIdentifier.getDbname()) == null ||
             ((String) document.get(LogbookMongoDbName.rightsStatementIdentifier.getDbname())).isEmpty()) {
             document.remove(LogbookMongoDbName.rightsStatementIdentifier.getDbname());
@@ -1634,15 +1634,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             .map(item -> {
                 List<? extends LogbookLifeCycleParameters> items =
                     new ArrayList<>(item.getLogbookLifeCycleParameters());
-                int i = 0;
-                final VitamDocument document = getDocument(items.get(i));
-                final List<VitamDocument> events = new ArrayList<>(items.size() - 1);
-                for (i = 1; i < items.size(); i++) {
-                    final VitamDocument currentEvent = getDocumentForUpdate(items.get(i));
-                    removeDuplicatedInformation(currentEvent);
-                    events.add(currentEvent);
-                }
-                document.append(LogbookDocument.EVENTS, events);
+                final VitamDocument document = initializeVitamDocument(items);
+
                 return new InsertOneModel<>(document);
             }).collect(Collectors.toList());
 
@@ -1653,6 +1646,26 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * create a Vitam Document for logbook lifecycle, add tenantId and version field
+     * @param items
+     * @return
+     */
+    private VitamDocument initializeVitamDocument(List<? extends LogbookParameters> items) {
+        int i = 0;
+        final VitamDocument document = getDocument(items.get(i));
+        final List<VitamDocument> events1 = new ArrayList<>(items.size() - 1);
+        for (i = 1; i < items.size(); i++) {
+            final VitamDocument currentEvent = getDocumentForUpdate(items.get(i));
+            removeDuplicatedInformation(currentEvent);
+            events1.add(currentEvent);
+        }
+        document.append(LogbookDocument.EVENTS, events1);
+        document.append(TENANT_ID, ParameterHelper.getTenantParameter());
+        document.append(VERSION, 0);
+        return document;
     }
 
 }

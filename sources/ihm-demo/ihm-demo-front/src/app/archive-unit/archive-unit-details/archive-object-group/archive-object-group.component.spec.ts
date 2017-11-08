@@ -8,6 +8,7 @@ import { ArchiveUnitHelper } from "../../archive-unit.helper";
 import { ArchiveUnitService } from "../../archive-unit.service";
 import { VitamResponse } from "../../../common/utils/response";
 import { KeysPipe, BytesPipe } from '../../../common/utils/pipes';
+import { RouterTestingModule } from "@angular/router/testing";
 
 let ArchiveUnitServiceStub = {
   getDetails: (id) => Observable.of(new VitamResponse()),
@@ -22,6 +23,7 @@ describe('ArchiveObjectGroupComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
+      imports: [ RouterTestingModule ],
       providers: [
         ArchiveUnitHelper,
         { provide: ArchiveUnitService, useValue: ArchiveUnitServiceStub }

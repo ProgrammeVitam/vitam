@@ -174,7 +174,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         manager.logStarted();
 
         final Set<String> contractNames = new HashSet<>();
-        ArrayNode contractsToPersist = null;
+        ArrayNode contractsToPersist;
 
         final VitamError error = new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem())
             .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
@@ -230,6 +230,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             for (final AccessContractModel acm : contractModelList) {
 
                 setIdentifier(slaveMode, acm);
+                acm.initializeDefaultValue();
 
                 final ObjectNode accessContractNode = (ObjectNode) JsonHandler.toJsonNode(acm);
                 JsonNode hashId = accessContractNode.remove(VitamFieldsHelper.id());

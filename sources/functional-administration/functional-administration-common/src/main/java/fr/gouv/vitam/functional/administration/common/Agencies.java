@@ -82,11 +82,6 @@ public class Agencies extends VitamDocument<Agencies> {
         return new Agencies(content);
     }
 
-    @Override
-    protected boolean isMultTenant() {
-        return false;
-    }
-
     /**
      * Get the Agency description
      *

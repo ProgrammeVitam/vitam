@@ -740,8 +740,7 @@ public class ProcessingIT {
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient.initVitamProcess(Contexts.AUDIT_WORKFLOW.name(), entry);
 
-            RequestResponse<ItemStatus> auditResponse =
-                processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), auditId);
+            processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), auditId);
 
             wait(auditId);
 

@@ -2,5 +2,5 @@
 <vitam-archive-main-description [archiveUnit]="data"></vitam-archive-main-description>
 <vitam-archive-extra-description [archiveUnit]="data"></vitam-archive-extra-description>
 <vitam-archive-rule-bloc *ngIf="data" [inheritedRules]="data.inheritedRule" [management]="data['#management']" [id]="data['#id']"></vitam-archive-rule-bloc>
-<vitam-archive-object-group *ngIf="objects" [objects]="objects"></vitam-archive-object-group>
+<vitam-archive-object-group *ngIf="objects" [objects]="objects" [objectGroupId]="data['#object']"></vitam-archive-object-group>
 <vitam-archive-export-dip *ngIf="data" [id]="data['#id']" [operation]="data['#operations'][0]"></vitam-archive-export-dip>

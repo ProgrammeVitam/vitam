@@ -17,18 +17,17 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import fr.gouv.vitam.common.model.ModelConstants;
 
 /**
  * Data Transfer Object Model of Profile (DTO).
  */
-
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ProfileModel {
 
-    public static final String TAG_ID = "id";
-    public static final String TAG_TENANT = "tenant";
-    public static final String HASH = "#";
-    public static final String UNDERSCORE = "_";
     public static final String IDENTIFIER = "Identifier";
     public static final String NAME = "Name";
     public static final String DESCRIPTION = "Description";
@@ -94,7 +93,7 @@ public class ProfileModel {
     /**
      * @return id
      */
-    @JsonProperty(HASH + TAG_ID)
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     public String getId() {
         return id;
     }
@@ -103,7 +102,7 @@ public class ProfileModel {
      * @param id value to set field
      * @return this
      */
-    @JsonProperty(UNDERSCORE + TAG_ID)
+    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_ID)
     public ProfileModel setId(String id) {
         this.id = id;
         return this;
@@ -113,7 +112,7 @@ public class ProfileModel {
      * @param id value to set field
      * @return this
      */
-    @JsonProperty(HASH + TAG_ID)
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     public ProfileModel setIdExt(String id) {
         this.id = id;
         return this;
@@ -122,7 +121,7 @@ public class ProfileModel {
     /**
      * @return tenant
      */
-    @JsonProperty(HASH + TAG_TENANT)
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
     public Integer getTenant() {
         return tenant;
     }
@@ -131,7 +130,7 @@ public class ProfileModel {
      * @param tenant value to set working tenant
      * @return this
      */
-    @JsonProperty(UNDERSCORE + TAG_TENANT)
+    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_TENANT)
     public ProfileModel setTenant(Integer tenant) {
         this.tenant = tenant;
         return this;
@@ -141,7 +140,7 @@ public class ProfileModel {
      * @param tenant value to set working tenant
      * @return this
      */
-    @JsonProperty(HASH + TAG_TENANT)
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
     public ProfileModel setTenantExt(Integer tenant) {
         this.tenant = tenant;
         return this;

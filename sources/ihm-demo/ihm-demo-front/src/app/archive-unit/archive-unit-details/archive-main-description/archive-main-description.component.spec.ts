@@ -7,6 +7,8 @@ import { ArchiveMainDescriptionComponent } from './archive-main-description.comp
 import { ArchiveUnitHelper } from "../../archive-unit.helper";
 import { ArchiveUnitService } from "../../archive-unit.service";
 import { VitamResponse } from "../../../common/utils/response";
+import { ActivatedRoute } from "@angular/router";
+import { RouterTestingModule } from "@angular/router/testing";
 
 let ArchiveUnitServiceStub = {
   getDetails: (id) => Observable.of({$results: [{ test: 'newValue', '#management': {SubmissionAgency: 'id'} }]}),
@@ -21,9 +23,11 @@ describe('ArchiveMainDescriptionComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
+      imports: [ RouterTestingModule ],
       providers: [
         ArchiveUnitHelper,
-        { provide: ArchiveUnitService, useValue: ArchiveUnitServiceStub }
+        { provide: ArchiveUnitService, useValue: ArchiveUnitServiceStub },
+        { provide: ActivatedRoute, useValue: {params: Observable.of({id: 1})} }
       ],
       declarations: [ ArchiveMainDescriptionComponent ],
       schemas: [ NO_ERRORS_SCHEMA ]

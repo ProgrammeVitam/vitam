@@ -54,8 +54,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
  */
 public abstract class VitamDocument<E> extends Document {
     private static final long serialVersionUID = 4051636259488359930L;
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(VitamDocument.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamDocument.class);
     /**
      * ID of each line: different for each sub type
      */
@@ -92,7 +91,6 @@ public abstract class VitamDocument<E> extends Document {
      */
     public VitamDocument(String content) {
         super(Document.parse(content));
-        initFields();
         checkId();
     }
 
@@ -104,7 +102,6 @@ public abstract class VitamDocument<E> extends Document {
      */
     public VitamDocument(JsonNode content) {
         super(Document.parse(JsonHandler.unprettyPrint(content)));
-        initFields();
         checkId();
     }
 
@@ -116,7 +113,6 @@ public abstract class VitamDocument<E> extends Document {
      */
     public VitamDocument(Document content) {
         super(content);
-        initFields();
         checkId();
     }
 
@@ -145,58 +141,7 @@ public abstract class VitamDocument<E> extends Document {
         } catch (final InvalidGuidOperationException e) {
             throw new IllegalArgumentException("ID is not a GUID: " + id, e);
         }
-        if (isMultTenant()) {
-            final int tenantId = getTenantFixJunit();
-            append(TENANT_ID, tenantId);
-        }
         return this;
-    }
-
-
-    /**
-     * Method to be compatible with bad JUnit
-     * 
-     * @return the TENANT
-     */
-    public int getTenantFixJunit() {
-        if (get(TENANT_ID) != null) {
-            final int tenant = getInteger(TENANT_ID);
-            try {
-                final int currentTenant = VitamThreadUtils.getVitamSession().getTenantId();
-                if (currentTenant != tenant) {
-                    LOGGER.warn("Current Tenant {} is not the same as the Entity {}", currentTenant, tenant);
-                }
-            } catch (final VitamThreadAccessException | NullPointerException e) {
-                // Junit only !!!
-                LOGGER.error("JUNIT ONLY!!! Let TENANT to current value {}", tenant, e);
-            }
-            return tenant;
-        }
-        try {
-            return ParameterHelper.getTenantParameter();
-        } catch (final IllegalArgumentException | VitamThreadAccessException e) {
-            // Junit only !!!
-            LOGGER.error("JUNIT ONLY!!! Set TENANT to GUID value or 0 since not in VitamThreads!");
-        }
-        final String id = getId();
-        if (id != null) {
-            try {
-                return GUIDReader.getGUID(id).getTenantId();
-            } catch (final InvalidGuidOperationException e1) {
-                LOGGER.debug(e1);
-            }
-        }
-        return 0;
-    }
-
-
-    /**
-     * Is this kind of data Multi-Tenant
-     * 
-     * @return True if multitenant
-     */
-    protected boolean isMultTenant() {
-        return true;
     }
 
     /**
@@ -204,12 +149,6 @@ public abstract class VitamDocument<E> extends Document {
      *
      * @return this
      */
-    public VitamDocument<E> initFields() {
-        if (get(VERSION) == null) {
-            append(VERSION, 0);
-        }
-        return this;
-    }
 
     /**
      *
@@ -223,7 +162,7 @@ public abstract class VitamDocument<E> extends Document {
      *
      * @return the TenantId
      */
-    public final int getTenantId() {
+    public final Integer getTenantId() {
         return getInteger(TENANT_ID);
     }
 
@@ -231,7 +170,7 @@ public abstract class VitamDocument<E> extends Document {
      *
      * @return the version
      */
-    public final int getVersion() {
+    public final Integer getVersion() {
         return getInteger(VERSION);
     }
 

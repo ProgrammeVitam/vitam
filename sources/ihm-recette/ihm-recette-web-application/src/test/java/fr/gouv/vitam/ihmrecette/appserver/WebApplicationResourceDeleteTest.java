@@ -550,6 +550,7 @@ public class WebApplicationResourceDeleteTest {
     public GUID addData(MetadataCollections collection) {
         final GUID guid = GUIDFactory.newGUID();
         final ObjectNode data1 = JsonHandler.createObjectNode().put("_id", guid.getId());
+        data1.put(VitamDocument.TENANT_ID, TENANT_ID);
         MetadataDocument document;
         if (collection.equals(MetadataCollections.C_OBJECTGROUP)) {
             document = new ObjectGroup(data1);
@@ -567,6 +568,7 @@ public class WebApplicationResourceDeleteTest {
     public GUID addData(LogbookCollections collection) {
         final GUID guid = GUIDFactory.newGUID();
         final ObjectNode data1 = JsonHandler.createObjectNode().put("_id", guid.getId());
+        data1.put(VitamDocument.TENANT_ID, TENANT_ID);
         VitamDocument document;
         if (collection.equals(LogbookCollections.OPERATION)) {
             document = new LogbookOperation(data1);

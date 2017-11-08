@@ -10,6 +10,8 @@ import { ArchiveUnitService } from '../archive-unit/archive-unit.service';
 @Injectable()
 export class LogbookService {
   LOGBOOK_API = 'logbook/operations';
+  LOGBOOK_LIFECYCLE_UNIT_API = 'logbookunitlifecycles';
+  LOGBOOK_LIFECYCLE_OBJECT_GROUP_API = 'logbookobjectslifecycles';
   REPORT_DOWNLOAD_API = 'rules/report/download';
   REPORT_TRACEABILITY_DOWNLOAD_API = 'traceability';
 
@@ -46,6 +48,14 @@ export class LogbookService {
 
   getDetails(id): Observable<VitamResponse> {
     return this.resourceService.post(`${this.LOGBOOK_API}/${id}`, null, {});
+  }
+
+  getLifecycleLogbook(id: string, type: string): Observable<VitamResponse> {
+    if (type.toUpperCase() === 'UNIT') {
+      return this.resourceService.get(`${this.LOGBOOK_LIFECYCLE_UNIT_API}/${id}`, null, 'json');
+    } else if (type.toUpperCase() === 'OBJECTGROUP') {
+      return this.resourceService.get(`${this.LOGBOOK_LIFECYCLE_OBJECT_GROUP_API}/${id}`, null, 'json');
+    }
   }
 
   downloadTraceabilityReport(objectId : string) {

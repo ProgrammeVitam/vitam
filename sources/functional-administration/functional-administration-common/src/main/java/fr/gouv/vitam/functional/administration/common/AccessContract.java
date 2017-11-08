@@ -85,8 +85,6 @@ public class AccessContract extends VitamDocument<AccessContract> {
      * Empty Constructor
      */
     public AccessContract() {
-        // Empty
-        append(TENANT_ID, ParameterHelper.getTenantParameter());
     }
 
     /**
@@ -96,7 +94,6 @@ public class AccessContract extends VitamDocument<AccessContract> {
      */
     public AccessContract(Document document) {
         super(document);
-        append(TENANT_ID, ParameterHelper.getTenantParameter());
     }
 
     /**
@@ -104,7 +101,6 @@ public class AccessContract extends VitamDocument<AccessContract> {
      */
     public AccessContract(JsonNode content) {
         super(content);
-        append(TENANT_ID, ParameterHelper.getTenantParameter());
     }
 
     /**
@@ -112,7 +108,6 @@ public class AccessContract extends VitamDocument<AccessContract> {
      */
     public AccessContract(String content) {
         super(content);
-        append(TENANT_ID, ParameterHelper.getTenantParameter());
     }
 
     /**

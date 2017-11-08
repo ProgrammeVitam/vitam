@@ -156,6 +156,7 @@ public class ClientMockResultHelper {
         "\"CreationDate\":\"2016-11-02\", " +
         "\"LastUpdate\":\"2016-11-02\", " +
         "\"ActivationDate\":\"2016-11-02\", " +
+        "\"EveryOriginatingAgency\": \"false\", " +
         "\"DeactivationDate\":\"2016-11-02\"}";
 
     public static final String PROFILES = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +

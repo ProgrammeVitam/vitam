@@ -27,6 +27,8 @@
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -522,7 +524,7 @@ public class LogbookMongoDbAccessFactoryTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testFunctionalLifeCycleUnit() throws VitamException {
+    public void testFunctionalLifeCycleUnit() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(mongoDbAccess);
         assertEquals("vitam-test", ((LogbookMongoDbAccessImpl) mongoDbAccess).getMongoDatabase().getName());
@@ -559,11 +561,9 @@ public class LogbookMongoDbAccessFactoryTest {
             LocalDateUtil.now().toString());
         parametersWrong.setTypeProcess(LogbookTypeProcess.INGEST);
 
-        try {
-            mongoDbAccess.updateLogbookLifeCycleUnit(
-                parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess), parameters);
-            fail("Should throw an exception");
-        } catch (final VitamException e) {}
+        assertThatThrownBy(() -> mongoDbAccess.updateLogbookLifeCycleUnit(
+            parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess), parameters))
+            .isInstanceOf(LogbookNotFoundException.class);
 
         commitUnit(oi, true, parameters);
         assertEquals(nbl + 1, mongoDbAccess.getLogbookLifeCyleUnitSize());
@@ -591,12 +591,12 @@ public class LogbookMongoDbAccessFactoryTest {
             parameters2.getParameterValue(LogbookParameterName.eventIdentifierProcess), parameters2);
 
         // check current lfc version
-        assertEquals(mongoDbAccess.getLogbookLifeCycleUnit(oi2).get(LogbookDocument.VERSION), 0);
+        assertThat(mongoDbAccess.getLogbookLifeCycleUnit(oi2).get(LogbookDocument.VERSION)).isEqualTo(0);
         // Commit the last update
         commitUnit(oi2, false, parameters2);
-        assertEquals(nbl + 1, mongoDbAccess.getLogbookLifeCyleUnitSize());
+        assertThat(mongoDbAccess.getLogbookLifeCyleUnitSize()).isEqualTo(nbl + 1);
         // check version increment
-        assertEquals(mongoDbAccess.getLogbookLifeCycleUnit(oi2).get(LogbookDocument.VERSION), 1);
+        assertThat(mongoDbAccess.getLogbookLifeCycleUnit(oi2).get(LogbookDocument.VERSION)).isEqualTo(1);
 
         try {
             mongoDbAccess.updateLogbookLifeCycleUnit(
