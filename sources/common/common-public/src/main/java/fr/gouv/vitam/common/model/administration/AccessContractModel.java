@@ -26,18 +26,14 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
-import static com.google.common.base.MoreObjects.firstNonNull;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Set;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
 
 /**
  * Data Transfer Object Model of access contract (DTO).
  */
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
+
 public class AccessContractModel extends AbstractContractModel {
 
     /**
@@ -61,7 +57,7 @@ public class AccessContractModel extends AbstractContractModel {
     public static final String EVERY_DATA_OBJECT_VERSION = "EveryDataObjectVersion";
 
     /**
-     * Work for all originating agencies
+     * Work for all originating agencies 
      */
     public static final String EVERY_ORIGINATINGAGENCY = "EveryOriginatingAgency";
 
@@ -70,15 +66,15 @@ public class AccessContractModel extends AbstractContractModel {
 
     @JsonProperty(ORIGINATING_AGENCIES)
     private Set<String> originatingAgencies;
-
+    
     @JsonProperty("WritingPermission")
-    private Boolean writingPermission;
+    private boolean writingPermission;
 
     @JsonProperty(EVERY_ORIGINATINGAGENCY)
-    private Boolean everyOriginatingAgency;
-
+    private boolean everyOriginatingAgency;
+    
     @JsonProperty(EVERY_DATA_OBJECT_VERSION)
-    private Boolean everyDataObjectVersion;
+    private boolean everyDataObjectVersion;
 
     @JsonProperty(ROOT_UNITS)
     private Set<String> rootUnits;
@@ -93,8 +89,7 @@ public class AccessContractModel extends AbstractContractModel {
 
 
     /**
-     * Get the collection of originating agency
-     *
+     *  Get the collection of originating agency
      * @return originatingAgencies collection
      */
     public Set<String> getOriginatingAgencies() {
@@ -103,7 +98,6 @@ public class AccessContractModel extends AbstractContractModel {
 
     /**
      * Set the collection of originating agency
-     *
      * @param originatingAgencies
      */
     public AccessContractModel setOriginatingAgencies(Set<String> originatingAgencies) {
@@ -128,11 +122,11 @@ public class AccessContractModel extends AbstractContractModel {
         this.dataObjectVersion = dataObjectVersion;
         return this;
     }
-
+    
     /**
      * @return writingPermission
      */
-    public Boolean getWritingPermission() {
+    public boolean getWritingPermission() {
         return writingPermission;
     }
 
@@ -140,52 +134,53 @@ public class AccessContractModel extends AbstractContractModel {
      * @param writingPermission
      * @return AccessContractModel
      */
-    public AccessContractModel setWritingPermission(Boolean writingPermission) {
+    public AccessContractModel setWritingPermission(boolean writingPermission) {
         this.writingPermission = writingPermission;
         return this;
     }
 
 
-    /**
-     * @return true if all originatingAgencies are enabled for this contract
-     */
-    public Boolean getEveryOriginatingAgency() {
-        return everyOriginatingAgency;
-    }
+	/**
+	 * @return true if all originatingAgencies are enabled for this contract
+	 */
+	public boolean getEveryOriginatingAgency() {
+		return everyOriginatingAgency;
+	}
 
 
-    /**
-     * Set the 'everyOriginatingAgency' flag on the contract.
-     *
-     * @param everyOriginatingAgency If true, all originatingAgencies are enabled for this contract
-     * @return the contract
-     */
-    public AccessContractModel setEveryOriginatingAgency(Boolean everyOriginatingAgency) {
-        this.everyOriginatingAgency = everyOriginatingAgency;
-        return this;
-    }
+	/**
+	 * Set the 'everyOriginatingAgency' flag on the contract.
+	 *
+	 * @param everyOriginatingAgency If true, all originatingAgencies are enabled for this contract
+	 * @return the contract
+	 */
+	public AccessContractModel setEveryOriginatingAgency(boolean everyOriginatingAgency) {
+		this.everyOriginatingAgency = everyOriginatingAgency;
+		return this;
+	}
 
 
     /**
      * @return true if all data object version are enabled for this contract
      */
-    public Boolean isEveryDataObjectVersion() {
+    public boolean isEveryDataObjectVersion() {
         return everyDataObjectVersion;
     }
 
 
     /**
      * Set the 'everyDataObjectVersion' flag on the contract.
-     *
+     * 
      * @param everyDataObjectVersion if true, all data object version are enabled for this contract
      * @return this
      */
-    public AccessContractModel setEveryDataObjectVersion(Boolean everyDataObjectVersion) {
+    public AccessContractModel setEveryDataObjectVersion(boolean everyDataObjectVersion) {
         this.everyDataObjectVersion = everyDataObjectVersion;
         return this;
     }
 
     /**
+     *
      * @return the root units
      */
     public Set<String> getRootUnits() {
@@ -196,7 +191,6 @@ public class AccessContractModel extends AbstractContractModel {
      * Collection of GUID of archive units. If not empty, access is restricted only to the given rootUnits
      * and there childs. Access not permitted to parent units of the rootUnits
      * Access not permitted to parent units of the rootUnits
-     *
      * @param rootUnits collection of guid of units (can be empty)
      * @return this
      */
@@ -204,11 +198,4 @@ public class AccessContractModel extends AbstractContractModel {
         this.rootUnits = rootUnits;
         return this;
     }
-
-    public void initializeDefaultValue() {
-        writingPermission = firstNonNull(writingPermission, false);
-        everyOriginatingAgency = firstNonNull(everyOriginatingAgency, false);
-        everyDataObjectVersion = firstNonNull(everyDataObjectVersion, false);
-    }
-
 }

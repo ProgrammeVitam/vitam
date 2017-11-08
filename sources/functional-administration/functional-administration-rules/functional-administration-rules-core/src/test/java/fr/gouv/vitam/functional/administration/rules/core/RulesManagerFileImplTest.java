@@ -27,7 +27,6 @@
 package fr.gouv.vitam.functional.administration.rules.core;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
@@ -45,10 +44,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import fr.gouv.vitam.functional.administration.common.FilesSecurisator;
+import org.bson.Document;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import org.bson.Document;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Matchers;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -58,7 +72,6 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
@@ -69,6 +82,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
@@ -78,7 +92,6 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileRules;
-import fr.gouv.vitam.functional.administration.common.FilesSecurisator;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesCsvException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesDeleteException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
@@ -98,19 +111,6 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.bson.Document;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.Matchers;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
 
 
 /**
@@ -137,9 +137,6 @@ public class RulesManagerFileImplTest {
     @ClassRule
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
     private static ElasticsearchTestConfiguration esConfig = null;
@@ -147,6 +144,7 @@ public class RulesManagerFileImplTest {
 
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
+    static MongoClient mongoClient;
     static JunitHelper junitHelper;
     static final String DATABASE_HOST = "localhost";
     static final String DATABASE_NAME = "vitamtest";
@@ -154,22 +152,13 @@ public class RulesManagerFileImplTest {
     static int port;
     static RulesManagerFileImpl rulesFileManager;
     private static MongoDbAccessAdminImpl dbImpl;
+    static Map<Integer, List<String>> externalIdentifiers;
 
-    @Mock
-    private LogbookOperationsClientFactory logbookOperationsClientFactory;
-
-    @Mock
-    private WorkspaceClientFactory workspaceClientFactory;
-
-    @Mock
-    private StorageClientFactory storageClientFactory;
-
-    @Mock
-    private FilesSecurisator securisator;
-
-    private static List<MongoDbNode> nodes = new ArrayList<>();
-
+    private static LogbookOperationsClientFactory logbookOperationsClientFactory;
+    private static WorkspaceClientFactory workspaceClientFactory;
+    private static StorageClientFactory storageClientFactory;
     public final ExpectedException exception = ExpectedException.none();
+
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -195,6 +184,7 @@ public class RulesManagerFileImplTest {
             .net(new Net(port, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
+        final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, port));
 
         LogbookOperationsClientFactory.changeMode(null);
@@ -205,19 +195,19 @@ public class RulesManagerFileImplTest {
 
         vitamCounterService = new VitamCounterService(dbImpl, tenants, null);
 
-        ElasticsearchAccessAdminFactory.create(
-            new AdminManagementConfiguration(nodes, DATABASE_NAME, CLUSTER_NAME, esNodes));
+        logbookOperationsClientFactory = mock(LogbookOperationsClientFactory.class);
+        storageClientFactory = mock(StorageClientFactory.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        FilesSecurisator securisator = mock(FilesSecurisator.class);
 
-    }
-
-    @Before
-    public void setUp() throws Exception {
         rulesFileManager =
             new RulesManagerFileImpl(
                 MongoDbAccessAdminFactory.create(
                     new DbConfigurationImpl(nodes, DATABASE_NAME)),
                 vitamCounterService, securisator,
                 logbookOperationsClientFactory, storageClientFactory, workspaceClientFactory);
+        ElasticsearchAccessAdminFactory.create(
+            new AdminManagementConfiguration(nodes, DATABASE_NAME, CLUSTER_NAME, esNodes));
 
     }
 
@@ -295,7 +285,7 @@ public class RulesManagerFileImplTest {
 
         assertEquals(file.getRuleid(), fileList.getResults().get(0).getRuleid());
 
-        assertThat(file.getVersion()).isEqualTo(1);
+        assertEquals(file.getVersion(), 1);
         client.close();
     }
 
@@ -546,7 +536,7 @@ public class RulesManagerFileImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void shouldDoNothingOnFileRulesReferential() throws Exception {
+    public void shouldDoNothingOnFileRulesReferential() {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final Select select = new Select();
         WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
@@ -554,14 +544,10 @@ public class RulesManagerFileImplTest {
 
         StorageClient storageClient = mock(StorageClient.class);
         when(storageClientFactory.getClient()).thenReturn(storageClient);
-
-        LogbookOperationsClient client = mock(LogbookOperationsClient.class);
-        when(logbookOperationsClientFactory.getClient()).thenReturn(client);
-        when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(STP_IMPORT_RULES, TENANT_ID));
-
         try {
+            List<FileRules> fileRules = new ArrayList<FileRules>();
             select.setQuery(eq("#tenant", TENANT_ID));
-            List<FileRules> fileRules = convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
+            fileRules = convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
 
             if (fileRules.size() == 0) {
                 rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
@@ -575,7 +561,7 @@ public class RulesManagerFileImplTest {
             List<FileRules> fileRulesAfterInsert =
                 convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
             assertEquals(22, fileRulesAfterInsert.size());
-            assertEquals(fileRulesAfterInsert.stream().findAny().get().get(VitamFieldsHelper.version()),
+            assertEquals(fileRulesAfterInsert.stream().findAny().get().get(VitamDocument.VERSION),
                 vitamCounterService.getSequence(TENANT_ID, "RULE"));
 
         } catch (ReferentialException | InvalidParseOperationException | IOException |

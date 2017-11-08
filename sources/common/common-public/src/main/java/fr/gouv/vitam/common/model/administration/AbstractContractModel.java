@@ -26,15 +26,12 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import fr.gouv.vitam.common.model.ModelConstants;
 
 /**
  * Data Transfer Object Model of access contract (DTO).
  */
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
+
 public class AbstractContractModel {
 
     public static final String TAG_DESCRIPTION = "Description";
@@ -43,7 +40,14 @@ public class AbstractContractModel {
 
     public static final String TAG_IDENTIFIER = "Identifier";
 
+    private static final String TAG_TENANT = "tenant";
+
+    public static final String TAG_ID = "id";
+
     public static final String TAG_STATUS = "Status";
+
+    public static final String HASH = "#";
+    public static final String UNDERSCORE = "_";
 
     /**
      * unique identifier
@@ -90,7 +94,7 @@ public class AbstractContractModel {
     /**
      * @return id
      */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
+    @JsonProperty(HASH + TAG_ID)
     public String getId() {
         return id;
     }
@@ -99,7 +103,7 @@ public class AbstractContractModel {
      * @param id value to set field
      * @return this
      */
-    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_ID)
+    @JsonProperty(UNDERSCORE + TAG_ID)
     public AbstractContractModel setId(String id) {
         this.id = id;
         return this;
@@ -109,7 +113,7 @@ public class AbstractContractModel {
      * @param id value to set
      * @return this
      */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
+    @JsonProperty(HASH + TAG_ID)
     public AbstractContractModel setIdExt(String id) {
         this.id = id;
         return this;
@@ -117,7 +121,7 @@ public class AbstractContractModel {
     /**
      * @return tenant
      */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
+    @JsonProperty(HASH + TAG_TENANT)
     public Integer getTenant() {
         return tenant;
     }
@@ -126,7 +130,7 @@ public class AbstractContractModel {
      * @param tenant value to set working tenant
      * @return this
      */
-    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_TENANT)
+    @JsonProperty(UNDERSCORE + TAG_TENANT)
     public AbstractContractModel setTenant(Integer tenant) {
         this.tenant = tenant;
         return this;
@@ -136,7 +140,7 @@ public class AbstractContractModel {
      * @param tenant value to set working tenant
      * @return this
      */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
+    @JsonProperty(HASH + TAG_TENANT)
     public AbstractContractModel setTenantEXT(Integer tenant) {
         this.tenant = tenant;
         return this;

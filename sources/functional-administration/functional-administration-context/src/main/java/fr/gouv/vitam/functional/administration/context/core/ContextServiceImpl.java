@@ -28,8 +28,6 @@ package fr.gouv.vitam.functional.administration.context.core;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.common.database.parser.request.adapter.SimpleVarNameAdapter.change;
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.TENANT_ID;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,7 +40,6 @@ import java.util.stream.Collectors;
 import javax.ws.rs.core.Response;
 
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.database.parser.request.adapter.SimpleVarNameAdapter;
 import org.apache.commons.lang.StringUtils;
 import org.bson.conversions.Bson;
 
@@ -152,11 +149,12 @@ public class ContextServiceImpl implements ContextService {
         manager.logStarted();
 
         final List<ContextModel> contextsListToPersist = new ArrayList<>();
+        ArrayNode contextsToPersist = null;
         final Set<String> contextNames = new HashSet<>();
         final VitamError error = new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
             .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
-        ArrayNode contextsToPersist = JsonHandler.createArrayNode();
+        contextsToPersist = JsonHandler.createArrayNode();
 
         try {
             for (final ContextModel cm : contextModelList) {
@@ -198,9 +196,6 @@ public class ContextServiceImpl implements ContextService {
                         contextNode.set("_id", jsonNode);
                     }
 
-                    // change field permission.#tenantId by permission._tenantId
-                    change(contextNode, VitamFieldsHelper.tenant(), TENANT_ID);
-
                     contextsToPersist.add(contextNode);
                     final ContextModel ctxt = JsonHandler.getFromJsonNode(contextNode, ContextModel.class);
                     contextsListToPersist.add(ctxt);
@@ -221,6 +216,7 @@ public class ContextServiceImpl implements ContextService {
                 manager.logValidationError(errorsDetails, CONTEXTS_IMPORT_EVENT);
                 return error;
             }
+
 
             mongoAccess.insertDocuments(contextsToPersist, FunctionalAdminCollections.CONTEXT).close();
         } catch (final Exception exp) {
@@ -639,7 +635,7 @@ public class ContextServiceImpl implements ContextService {
                 ContextValidator.ContextRejectionCause rejection = null;
                 final int tenant = ParameterHelper.getTenantParameter();
                 final Bson clause =
-                    and(eq(TENANT_ID, tenant), eq(AccessContract.IDENTIFIER, context.getIdentifier()));
+                    and(eq(VitamDocument.TENANT_ID, tenant), eq(AccessContract.IDENTIFIER, context.getIdentifier()));
                 final boolean exist = FunctionalAdminCollections.CONTEXT.getCollection().count(clause) > 0;
                 if (exist) {
                     rejection =

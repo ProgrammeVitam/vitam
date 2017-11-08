@@ -59,8 +59,8 @@ public class UnitTest {
         assertTrue(unit.isEmpty());
         assertEquals("Unit: Document{{}}", unit.toStringDirect());
         assertEquals("Unit: null", unit.toStringDebug());
-        assertEquals("Unit: Document{{_id=id1, title=title1}}", unit2.toString());
-        assertEquals("Unit: Document{{_id=id1, title=title1}}", unit3.toString());
+        assertEquals("Unit: Document{{_id=id1, title=title1, _v=0, _tenant=0}}", unit2.toString());
+        assertEquals("Unit: Document{{_id=id1, title=title1, _v=0, _tenant=0}}", unit3.toString());
     }
 
     @Test
@@ -85,7 +85,7 @@ public class UnitTest {
         final Unit unit = new Unit(s1);
         unit.load("{\"_tenant\": 2}");
         final String s = unit.toString();
-        assertEquals("Unit: Document{{_id=id1, title=title1, _tenant=2}}", s);
+        assertEquals("Unit: Document{{_id=id1, title=title1, _v=0, _tenant=2}}", s);
     }
 
     @Test
@@ -100,7 +100,7 @@ public class UnitTest {
         final Map<String, Object> map2 = new HashMap<>();
         map2.put("_uds", map);
         unit.putAll(map2);
-        assertEquals("Unit: Document{{_id=id1, title=title1, _uds={UUID2=3, UUID1=4}}}",
+        assertEquals("Unit: Document{{_id=id1, title=title1, _v=0, _tenant=0, _uds={UUID2=3, UUID1=4}}}",
             unit.toString());
         assertEquals("{ \"UUID2\" : 4 , \"UUID1\" : 5 , \"id1\" : 1}", unit.getSubDepth().toString());
     }

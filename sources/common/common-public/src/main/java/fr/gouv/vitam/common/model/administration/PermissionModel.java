@@ -2,15 +2,12 @@ package fr.gouv.vitam.common.model.administration;
 
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import fr.gouv.vitam.common.model.ModelConstants;
-
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class PermissionModel {
 
-    private Integer tenant;
+    @JsonProperty("_tenant")
+    private int tenant;
 
     @JsonProperty("AccessContracts")
     private Set<String> accessContract;
@@ -33,18 +30,11 @@ public class PermissionModel {
 
     public PermissionModel() {}
 
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
-    public void setTenantExt(Integer tenant) {
-        this.tenant = tenant;
-    }
-
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
-    public Integer getTenant() {
+    public int getTenant() {
         return tenant;
     }
 
-    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_TENANT)
-    public void setTenant(Integer tenant) {
+    public void setTenant(int tenant) {
         this.tenant = tenant;
     }
 

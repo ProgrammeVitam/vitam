@@ -716,7 +716,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 if (contract == null) {
                     throw new AccessUnauthorizedException("Contract Not Found");
                 }
-                Boolean isEveryOriginatingAgency = contract.getEveryOriginatingAgency();
+                boolean isEveryOriginatingAgency = contract.getEveryOriginatingAgency();
                 Set<String> prodServices = contract.getOriginatingAgencies();
 
                 if (!isEveryOriginatingAgency && !prodServices.contains(documentId)) {
@@ -805,7 +805,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         }
     }
 
-    private AccessContractModel getContractDetails(String contractId)
+    private AccessContractModel getContractDetails(String contratId)
         throws InvalidParseOperationException,
         InvalidCreateOperationException, AdminManagementClientServerException {
 
@@ -813,7 +813,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
             vitamCounterService)) {
 
             final RequestResponseOK<AccessContractModel> accessContractModelList =
-                accessContract.findContracts(getQueryDsl(contractId)).setQuery(JsonHandler.createObjectNode());
+                accessContract.findContracts(getQueryDsl(contratId)).setQuery(JsonHandler.createObjectNode());
             return Iterables.getOnlyElement(accessContractModelList.getResults(), null);
 
         } catch (ReferentialException | InvalidParseOperationException e) {

@@ -27,13 +27,11 @@
 package fr.gouv.vitam.common.model.administration;
 
 import com.google.common.collect.Sets;
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -84,34 +82,4 @@ public class AccessContractModelTest {
         assertTrue(contract.getEveryOriginatingAgency());
     }
 
-    @Test
-    public void should_initialize_default_value() throws Exception {
-        // Given
-        AccessContractModel accessContractModel = new AccessContractModel();
-
-        // When
-        accessContractModel.initializeDefaultValue();
-
-        // Then
-        assertThat(accessContractModel.getEveryOriginatingAgency()).isFalse();
-        assertThat(accessContractModel.getWritingPermission()).isFalse();
-        assertThat(accessContractModel.isEveryDataObjectVersion()).isFalse();
-    }
-
-    @Test
-    public void should_not_initialize_default_value_if_already_present() throws Exception {
-        // Given
-        AccessContractModel accessContractModel = new AccessContractModel();
-        accessContractModel.setEveryOriginatingAgency(true);
-        accessContractModel.setEveryDataObjectVersion(true);
-        accessContractModel.setWritingPermission(true);
-
-        // When
-        accessContractModel.initializeDefaultValue();
-
-        // Then
-        assertThat(accessContractModel.getEveryOriginatingAgency()).isTrue();
-        assertThat(accessContractModel.getWritingPermission()).isTrue();
-        assertThat(accessContractModel.isEveryDataObjectVersion()).isTrue();
-    }
 }

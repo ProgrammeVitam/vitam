@@ -97,4 +97,9 @@ public class SecurityProfile extends VitamDocument<SecurityProfile> {
         return new SecurityProfile(content);
     }
 
+    @Override
+    protected boolean isMultTenant() {
+        return false;
+    }
+
 }

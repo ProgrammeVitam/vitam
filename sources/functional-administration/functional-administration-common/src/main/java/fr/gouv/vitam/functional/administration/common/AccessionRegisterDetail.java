@@ -65,6 +65,8 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      * Empty Constructor
      */
     public AccessionRegisterDetail() {
+        // Empty
+        append(TENANT, ParameterHelper.getTenantParameter());
     }
 
     /**
@@ -74,6 +76,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      */
     public AccessionRegisterDetail(Document document) {
         super(document);
+        append(TENANT, ParameterHelper.getTenantParameter());
     }
 
     /**
@@ -81,6 +84,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      */
     public AccessionRegisterDetail(JsonNode content) {
         super(content);
+        append(TENANT, ParameterHelper.getTenantParameter());
     }
 
     /**
@@ -88,6 +92,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      */
     public AccessionRegisterDetail(String content) {
         super(content);
+        append(TENANT, ParameterHelper.getTenantParameter());
     }
 
     /**
