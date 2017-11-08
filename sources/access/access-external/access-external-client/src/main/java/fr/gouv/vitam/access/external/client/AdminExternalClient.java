@@ -567,7 +567,8 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * 
      *
      * @param vitamContext the vitam context
-     * @param action
+     * @param action an action as a string among "RESUME" (resume workflow till the end), "NEXT" (launch next step),
+     *        "REPLAY" (replay the step) and PAUSE" (pause the workflow)
      * @param operationId
      * @return the status
      * @throws VitamClientException

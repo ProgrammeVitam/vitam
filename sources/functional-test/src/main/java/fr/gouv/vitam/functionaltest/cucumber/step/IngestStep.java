@@ -116,7 +116,7 @@ public class IngestStep {
     public void upload_this_sip() throws IOException, VitamException, IOException {
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
             RequestResponse response = world.getIngestClient()
-                .upload(
+                .ingest(
                     new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                     inputStream, DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
@@ -143,7 +143,7 @@ public class IngestStep {
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
 
             RequestResponse<Void> response = world.getIngestClient()
-                .upload(
+                .ingest(
                     new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                     inputStream, FILING_SCHEME.name(), ProcessAction.RESUME.name());
 
@@ -173,7 +173,7 @@ public class IngestStep {
     public void upload_this_tree() throws IOException, VitamException {
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
             RequestResponse response = world.getIngestClient()
-                .upload(
+                .ingest(
                     new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
                     inputStream, HOLDING_SCHEME.name(), ProcessAction.RESUME.name());
 

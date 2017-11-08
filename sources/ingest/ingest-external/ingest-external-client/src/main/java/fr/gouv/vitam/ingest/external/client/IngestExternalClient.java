@@ -42,18 +42,20 @@ import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
  */
 public interface IngestExternalClient extends MockOrRestClient {
     /**
-     * ingest upload file in local
+     * ingest upload file in local and launch an ingest workflow
      *
      *
      * @param vitamContext the vitam context
-     * @param stream
-     * @param contextId
-     * @param action
+     * @param stream 
+     * @param contextId a type of ingest among "DEFAULT_WORKFLOW" (Sip ingest), "HOLDING_SCHEME" (tree) 
+     *        "FILING_SCHEME" (plan) and "BLANK_TEST" (Sip ingest test)
+     * @param action an action as a string among "RESUME" (launch workflow entirely) and "NEXT" (launch ingest in step
+     *        by step mode)
      * @return response
      * @throws IngestExternalException
      */
     // TODO P0 : add file name
-    RequestResponse<Void> upload(VitamContext vitamContext, InputStream stream,
+    RequestResponse<Void> ingest(VitamContext vitamContext, InputStream stream,
         String contextId,
         String action)
         throws IngestExternalException;

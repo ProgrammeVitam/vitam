@@ -48,13 +48,15 @@ documentation:
             body:
     headers:
       X-Action:
-        enum: [ "RESUME", "PAUSE" ]
+      	description: |
+      		Il indique le type de workflow à exécuter : RESUME correspond au mode nominal, NEXT correspond au mode pas à pas
+        enum: [ "RESUME", "NEXT" ]
         required: true
       X-Context-Id:
         required: false
         description: |
-            Il indique le workflow à exécuter DefaultIngestWorkflow pour lancer le workflow INGEST (avec toutes les étapes) ou DefaultIngestWorkflowBlankTest pour lancer le workflow INGEST-TEST (test à blanc sans les étapes de stockage d'objets et d'indéxation des UA et des GOT)
-        enum: [ "DefaultIngestWorkflow", "DefaultIngestWorkflowBlankTest", "DefaultFilingSchemeWorkflow", "DefaultHoldingSchemeWorkflow" ]
+            Il indique le workflow à exécuter DEFAULT_WORKFLOW pour lancer le workflow INGEST (avec toutes les étapes) ou BLANK_TEST pour lancer le workflow INGEST-TEST (test à blanc sans les étapes de stockage d'objets et d'indéxation des UA et des GOT) ou encore FILING_SCHEME pour les plans de classements et enfin HOLDING_SCHEME pour les arbres de positionnement
+        enum: [ "DEFAULT_WORKFLOW", "BLANK_TEST", "FILING_SCHEME", "HOLDING_SCHEME" ]
 
   /{objectId}/{type}:
       displayName: IngestsType

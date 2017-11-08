@@ -177,7 +177,7 @@ public class IngestExternalClientRestTest extends VitamJerseyTest {
 
         final InputStream streamToUpload = IOUtils.toInputStream(MOCK_INPUTSTREAM_CONTENT, CharsetUtils.UTF_8);
         RequestResponse<Void> resp =
-            client.upload(new VitamContext(TENANT_ID), streamToUpload, CONTEXT_ID, EXECUTION_MODE);
+            client.ingest(new VitamContext(TENANT_ID), streamToUpload, CONTEXT_ID, EXECUTION_MODE);
         assertEquals(resp.getHttpCode(), Status.ACCEPTED.getStatusCode());
     }
 

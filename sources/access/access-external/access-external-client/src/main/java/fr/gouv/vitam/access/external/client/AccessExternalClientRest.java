@@ -4,18 +4,13 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.external.client.DefaultClient;
@@ -24,7 +19,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
-import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 
 /**
  * Rest client implementation for Access External
@@ -164,7 +158,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         int version)
         throws VitamClientException {
 
-        
+
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, unitId);
         ParametersChecker.checkParameter(BLANK_USAGE, usage);
         ParametersChecker.checkParameter(BLANK_VERSION, version);
@@ -184,57 +178,6 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
             throw new VitamClientException(e);
         }
         return response;
-    }
-
-    @Override
-    @Deprecated
-    public Response getObject(VitamContext vitamContext, JsonNode selectObjectQuery,
-        String objectId,
-        String usage, int version)
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, AccessUnauthorizedException {
-
-        if (selectObjectQuery == null || selectObjectQuery.size() == 0) {
-            throw new IllegalArgumentException(BLANK_DSL);
-        }
-        ParametersChecker.checkParameter(BLANK_OBJECT_GROUP_ID, objectId);
-        ParametersChecker.checkParameter(BLANK_USAGE, usage);
-        ParametersChecker.checkParameter(BLANK_VERSION, version);
-
-        Response response = null;
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, HttpMethod.GET);
-        headers.add(GlobalDataRest.X_QUALIFIER, usage);
-        headers.add(GlobalDataRest.X_VERSION, version);
-        headers.putAll(vitamContext.getHeaders());
-
-
-        try {
-            response = performRequest(HttpMethod.POST, OBJECTS + objectId, headers,
-                selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-            if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                LOGGER.error("Internal Server Error" + " : " + status.getReasonPhrase());
-                throw new AccessExternalClientServerException("Internal Server Error");
-            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new AccessExternalClientNotFoundException(status.getReasonPhrase());
-            } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
-            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new AccessExternalClientServerException(response.getStatusInfo().getReasonPhrase());
-            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new AccessUnauthorizedException(response.getStatusInfo().getReasonPhrase());
-            }
-
-            return response;
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new AccessExternalClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
-                consumeAnyEntityAndClose(response);
-            }
-        }
     }
 
     /* Logbook external */
