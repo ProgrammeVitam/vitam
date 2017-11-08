@@ -94,9 +94,4 @@ public class Context extends VitamDocument<Context> {
         return new Context(content);
     }
 
-    @Override
-    protected boolean isMultTenant() {
-        return false;
-    }
-
 }

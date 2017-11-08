@@ -273,6 +273,7 @@ public class LogBookLifeCycleObjectGroupTest {
 
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, tenantId)
             .body(logbookLifeCyclesObjectGroupParametersStart.toString())
             .when()
             .post(LIFE_OBJECT_GROUP_ID_URI,
@@ -283,9 +284,10 @@ public class LogBookLifeCycleObjectGroupTest {
 
 
 
-        // already exsits
+        // already exists
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, tenantId)
             .body(logbookLifeCyclesObjectGroupParametersStart.toString())
             .when()
             .post(LIFE_OBJECT_GROUP_ID_URI, operationId,
@@ -296,6 +298,7 @@ public class LogBookLifeCycleObjectGroupTest {
         // incoherence parameters ; response bad_request
         given()
             .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, tenantId)
             .body(logbookLifeCyclesObjectGroupParametersStart.toString())
             .when()
             .post(LIFE_OBJECT_GROUP_ID_URI, operationId,

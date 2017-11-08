@@ -31,14 +31,12 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import fr.gouv.vitam.common.model.ModelConstants;
+
 /**
  * POJO java use for mapping @{@link fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail}
  */
 public class AccessionRegisterDetailModel {
-    public static final String TAG_ID = "id";
-    public static final String TAG_TENANT = "tenant";
-    public static final String HASH = "#";
-    public static final String UNDERSCORE = "_";
 
     /**
      * unique identifier
@@ -48,7 +46,7 @@ public class AccessionRegisterDetailModel {
     /**
      * tenant id
      */
-    private int tenant;
+    private Integer tenant;
 
     /**
      * originating agency
@@ -141,7 +139,7 @@ public class AccessionRegisterDetailModel {
      * @param id value to set
      * @return this
      */
-    @JsonProperty(UNDERSCORE + TAG_ID)
+    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_ID)
     public AccessionRegisterDetailModel setId(String id) {
         this.id = id;
         return this;
@@ -151,7 +149,7 @@ public class AccessionRegisterDetailModel {
      * @param id value to set
      * @return this
      */
-    @JsonProperty(HASH + TAG_ID)
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     public AccessionRegisterDetailModel setIdExt(String id) {
         this.id = id;
         return this;
@@ -161,7 +159,7 @@ public class AccessionRegisterDetailModel {
      * @param tenant the working tenant to set
      * @return this
      */
-    @JsonProperty(HASH + TAG_TENANT)
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
     public AccessionRegisterDetailModel setTenantExt(int tenant) {
         this.tenant = tenant;
         return this;
@@ -170,8 +168,8 @@ public class AccessionRegisterDetailModel {
     /**
      * @return tenant
      */
-    @JsonProperty(HASH + TAG_TENANT)
-    public int getTenant() {
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
+    public Integer getTenant() {
         return tenant;
     }
 
@@ -179,7 +177,7 @@ public class AccessionRegisterDetailModel {
      * @param tenant the working tenant to set
      * @return this
      */
-    public AccessionRegisterDetailModel setTenant(int tenant) {
+    public AccessionRegisterDetailModel setTenant(Integer tenant) {
         this.tenant = tenant;
         return this;
     }

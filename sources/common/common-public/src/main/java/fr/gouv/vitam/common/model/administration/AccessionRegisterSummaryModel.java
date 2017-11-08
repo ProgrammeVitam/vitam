@@ -26,16 +26,16 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import fr.gouv.vitam.common.model.ModelConstants;
 
 /**
  * POJO java use for mapping @{@link fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary}
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class AccessionRegisterSummaryModel {
-    public static final String TAG_ID = "id";
-    public static final String TAG_TENANT = "tenant";
-    public static final String HASH = "#";
-    public static final String UNDERSCORE = "_";
 
     /**
      * unique identifier
@@ -45,7 +45,7 @@ public class AccessionRegisterSummaryModel {
     /**
      * tenant id
      */
-    private int tenant;
+    private Integer tenant;
 
     /**
      * originating agency (aggregation key for {@link AccessionRegisterDetailModel})
@@ -87,7 +87,7 @@ public class AccessionRegisterSummaryModel {
     /**
      * @return id
      */
-    @JsonProperty(HASH + TAG_ID)
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     public String getId() {
         return id;
     }
@@ -96,7 +96,7 @@ public class AccessionRegisterSummaryModel {
      * @param id value to set
      * @return this
      */
-    @JsonProperty(UNDERSCORE + TAG_ID)
+    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_ID)
     public AccessionRegisterSummaryModel setId(String id) {
         this.id = id;
         return this;
@@ -106,7 +106,7 @@ public class AccessionRegisterSummaryModel {
      * @param id value to set
      * @return this
      */
-    @JsonProperty(HASH + TAG_ID)
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     public AccessionRegisterSummaryModel setIdExt(String id) {
         this.id = id;
         return this;
@@ -117,8 +117,8 @@ public class AccessionRegisterSummaryModel {
     /**
      * @return tenant
      */
-    @JsonProperty(HASH + TAG_TENANT)
-    public int getTenant() {
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
+    public Integer getTenant() {
         return tenant;
     }
 
@@ -126,8 +126,8 @@ public class AccessionRegisterSummaryModel {
      * @param tenant the working tenant to set
      * @return this
      */
-    @JsonProperty(UNDERSCORE + TAG_TENANT)
-    public AccessionRegisterSummaryModel setTenant(int tenant) {
+    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_TENANT)
+    public AccessionRegisterSummaryModel setTenant(Integer tenant) {
         this.tenant = tenant;
         return this;
     }
@@ -137,7 +137,7 @@ public class AccessionRegisterSummaryModel {
      * @param tenant the working tenant to set
      * @return this
      */
-    @JsonProperty(HASH + TAG_TENANT)
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
     public AccessionRegisterSummaryModel setTenantExt(int tenant) {
         this.tenant = tenant;
         return this;

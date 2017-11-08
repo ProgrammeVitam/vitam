@@ -87,8 +87,6 @@ public class Profile extends VitamDocument<Profile> {
      * Empty Constructor
      */
     public Profile() {
-        // Empty
-        append(TENANT_ID, ParameterHelper.getTenantParameter());
     }
 
     /**
@@ -98,7 +96,6 @@ public class Profile extends VitamDocument<Profile> {
      */
     public Profile(Document document) {
         super(document);
-        append(TENANT_ID, ParameterHelper.getTenantParameter());
     }
 
     /**
@@ -106,7 +103,6 @@ public class Profile extends VitamDocument<Profile> {
      */
     public Profile(JsonNode content) {
         super(content);
-        append(TENANT_ID, ParameterHelper.getTenantParameter());
     }
 
     /**
@@ -114,7 +110,6 @@ public class Profile extends VitamDocument<Profile> {
      */
     public Profile(String content) {
         super(content);
-        append(TENANT_ID, ParameterHelper.getTenantParameter());
     }
 
     /**

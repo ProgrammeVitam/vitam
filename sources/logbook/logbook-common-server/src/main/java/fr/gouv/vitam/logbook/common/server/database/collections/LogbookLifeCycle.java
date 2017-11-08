@@ -31,16 +31,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import org.bson.Document;
-import org.bson.conversions.Bson;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObject;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 
 /**
  * Abstract class for Logbook LifeCycle item

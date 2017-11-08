@@ -306,10 +306,4 @@ public class FileFormat extends VitamDocument<FileFormat> {
         return this;
     }
 
-    @Override
-    protected boolean isMultTenant() {
-        return false;
-    }
-
-
 }

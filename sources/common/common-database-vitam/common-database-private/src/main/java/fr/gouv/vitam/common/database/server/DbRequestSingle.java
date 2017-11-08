@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import org.bson.conversions.Bson;
 import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
@@ -212,12 +213,12 @@ public class DbRequestSingle {
         throws InvalidParseOperationException, DatabaseException {
         final List<VitamDocument<?>> vitamDocumentList = new ArrayList<>();
         for (final JsonNode objNode : arrayNode) {
-            // TODO : How to add _v in all VitamDocuments make by JsonHandler ?
+
             VitamDocument<?> obj = (VitamDocument<?>) JsonHandler.getFromJsonNode(objNode, vitamCollection.getClasz());
-            obj.append(VitamDocument.VERSION, version);
             obj.remove(VitamDocument.SCORE);
+            obj.append(VitamDocument.VERSION, version);
             if (vitamCollection.isMultiTenant()) {
-                obj.append(VitamDocument.TENANT_ID, obj.getTenantFixJunit());
+                obj.append(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter());
             }
             vitamDocumentList.add(obj);
         }

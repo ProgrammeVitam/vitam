@@ -1,16 +1,19 @@
 package fr.gouv.vitam.common.model.administration;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import fr.gouv.vitam.common.model.ModelConstants;
 
 /**
  * POJO java use for mapping @{@link fr.gouv.vitam.functional.administration.common.FileRules}
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class FileRulesModel {
-    @JsonProperty("_id")
+
     private String id;
 
-    @JsonProperty("_tenant")
-    private int tenant;
+    private Integer tenant;
 
     @JsonProperty("RuleId")
     private String ruleId;
@@ -36,14 +39,13 @@ public class FileRulesModel {
     @JsonProperty("UpdateDate")
     private String updateDate;
 
-    @JsonProperty("_v")
-    private int version;
+    @JsonProperty("#version")
+    private Integer version;
 
     public FileRulesModel() {}
 
     public FileRulesModel(String ruleId, String ruleType, String ruleValue, String ruleDescription,
         String ruleDuration, String ruleMeasurement) {
-        super();
         this.ruleId = ruleId;
         this.ruleType = ruleType;
         this.ruleValue = ruleValue;
@@ -52,38 +54,33 @@ public class FileRulesModel {
         this.ruleMeasurement = ruleMeasurement;
     }
 
-    public FileRulesModel(String id, int tenant, String ruleId, String ruleType, String ruleValue,
-        String ruleDescription, String ruleDuration, String ruleMeasurement, String creationDate, String updateDate,
-        int version) {
-        super();
-        this.id = id;
-        this.tenant = tenant;
-        this.ruleId = ruleId;
-        this.ruleType = ruleType;
-        this.ruleValue = ruleValue;
-        this.ruleDescription = ruleDescription;
-        this.ruleDuration = ruleDuration;
-        this.ruleMeasurement = ruleMeasurement;
-        this.creationDate = creationDate;
-        this.updateDate = updateDate;
-        this.version = version;
-    }
-
-
-
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     public String getId() {
         return id;
     }
 
+    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_ID)
     public void setId(String id) {
         this.id = id;
     }
 
-    public int getTenant() {
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
+    public void setIdExt(String id) {
+        this.id = id;
+    }
+
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
+    public Integer getTenant() {
         return tenant;
     }
 
-    public void setTenant(int tenant) {
+    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_TENANT)
+    public void setTenant(Integer tenant) {
+        this.tenant = tenant;
+    }
+
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
+    public void setTenantExt(int tenant) {
         this.tenant = tenant;
     }
 
@@ -143,11 +140,11 @@ public class FileRulesModel {
         this.updateDate = updateDate;
     }
 
-    public int getVersion() {
+    public Integer getVersion() {
         return version;
     }
 
-    public void setVersion(int version) {
+    public void setVersion(Integer version) {
         this.version = version;
     }
 
