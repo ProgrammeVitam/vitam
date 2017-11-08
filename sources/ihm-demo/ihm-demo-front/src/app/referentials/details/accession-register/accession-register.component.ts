@@ -139,7 +139,7 @@ export class AccessionRegisterComponent  extends PageComponent {
   }
 
   getDate(detail : AccessionRegisterDetail) {
-    return DateService.handleDate(detail.EndDate);
+    return DateService.handleDateWithTime(detail.EndDate);
   }
 
   getDetailsType(detail : AccessionRegisterDetail) {
