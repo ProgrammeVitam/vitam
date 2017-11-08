@@ -2764,7 +2764,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @return Response
      */
     @GET
-    @Path("/agencies/{id}")
+    @Path("/agencies/{id:.+}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("agencies:read")
