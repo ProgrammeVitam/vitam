@@ -1,14 +1,16 @@
 #%RAML 1.0
 
-title: API-Vitam Version Alpha - Administration Management
+title: API-Vitam - Administration Management
 version: v1
 baseUri: https://api.vitam.gouv.fr/admin-external/{version}
 protocols: [ HTTPS ]
 
 uses:
   StandardTypes: libraries/StandardTypes.raml
+  AccessTypes: libraries/AccessTypes.raml
   StandardTraits: libraries/StandardTraits.raml
   RegisterTraits: libraries/RegisterTraits.raml
+  AdminTraits: libraries/AdminTraits.raml
   IngestTypes: libraries/IngestTypes.raml
   IngestTraits: libraries/IngestTraits.raml
   DslTypes: libraries/DslTypes.raml
@@ -26,13 +28,16 @@ documentation:
   - title: Licence
     content: !include docs-fr/license.md
 
+  - title: API Registre des fonds
+    content: !include docs-fr/access-register.md
+
   - title: API Administration
     content: !include docs-fr/admin-functional.md
 
 /formats:
   displayName: FileFormats
   description: |
-   API qui définit les requêtes pour accéder au référentiels des Formats.
+   API qui définit les requêtes pour accéder au référentiel des Formats.
    La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste de formats selon le DSL Vitam en cas de succès.
   get:
     description: |
@@ -48,7 +53,12 @@ documentation:
       X-Http-Method-Override:
         required: false
 
-  /{idu}:
+  /{idf}:
+    uriParameters:
+        idf:
+          required: true
+          description: |
+            Identifiant du format
     displayName: FileFormat
     description: |
      API qui définit les requêtes pour accéder à un format dans le référentiel des Formats.
@@ -64,6 +74,9 @@ documentation:
           required: true
 
 /formatsfilecheck:
+  displayName: FileFormats check
+  description: |
+   API qui permet de vérifier que le fichier est correct, et peut être importé.
   post:
     description: |
       This allow to submit a new Referential from a PRONOM source file (see TNA) to check if this could be imported.
@@ -72,7 +85,7 @@ documentation:
 /rules:
   displayName: Rules
   description: |
-   API qui définit les requêtes pour accéder au référentiels des Règles de gestion.
+   API qui définit les requêtes pour accéder au référentiel des Règles de gestion.
    La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste de règles selon le DSL Vitam en cas de succès.
   get:
     description: |
@@ -87,8 +100,13 @@ documentation:
       X-Http-Method-Override:
         required: false
 
-  /{idu}:
+  /{idr}:
     displayName: Rule
+    uriParameters:
+        idr:
+          required: true
+          description: |
+            Identifiant de la règle de gestion
     description: |
      API qui définit les requêtes pour accéder à une Règle dans le référentiel des Règles de gestion.
     get:
@@ -103,6 +121,9 @@ documentation:
           required: true
 
 /rulesfilecheck:
+  displayName: FileRules check
+  description: |
+   API qui permet de vérifier que le fichier est correct, et peut être importé.
   put:
     description: |
       This allow to submit a new Referential from a CSV source file containing Rules definitions to check if this could be imported.
@@ -110,9 +131,14 @@ documentation:
 
 /rulesreport/{idop}:
   displayName: Rules report
+  uriParameters:
+        idop:
+          required: true
+          description: |
+            Identifiant de l'opération concernée
   description: |
      Permet de télécharger un objet représentant le rapport d'import des règles en fonction de l'id de l'opération
-  is: [ RegisterFileItemResponse ]
+  is: [ RegisterTraits.RegisterFileItemResponse ]
   get:
      description:  |
       Permet de télécharger un objet représentant le rapport d'import des règles en fonction de l'id de l'opération
@@ -134,8 +160,13 @@ documentation:
       X-Http-Method-Override:
         required: true
 
-  /{idu}:
+  /{idar}:
     displayName: AccessionRegister
+    uriParameters:
+        idar:
+          required: true
+          description: |
+            Identifiant du registre des fonds
     description: |
      API qui définit les requêtes pour accéder à 1 Résumé d'un Fond dans le Registre des Fonds.
     get:
@@ -169,7 +200,7 @@ documentation:
 /accesscontracts:
   displayName: Access contracts
   description: |
-     API qui définit les requêtes pour accéder au contracts d'accès
+     API qui définit les requêtes pour accéder aux contracs d'accès
      La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste de contrats d'accès selon le DSL Vitam en cas de succès.
   get:
     description: |
@@ -178,29 +209,34 @@ documentation:
   post:
     description: |
       Request that will return results composed of AccessContracts if the request is using POST with X-Http-Method-Override: GET.
-      Importe un ensemble des contrats d'accès qui sont sauvegardés et indexés en cas de succès
+      Importe un ensemble de contrats d'accès qui sont sauvegardés et indexés en cas de succès
     is: [RegisterTraits.RegisterListingResponse, StandardTraits.OverrideGet, RegisterTraits.RegisterUpload]
     headers:
       X-Http-Method-Override:
         required: false
 
-  /{id}:
-    displayName: Access contract Modifier
+  /{idac}:
+    uriParameters:
+        idac:
+          required: true
+          description: |
+            Identifiant du contrat d'accès
+    displayName: Access contract
     description: |
-     API qui permet de mettre à jour un contrat d'accès via une requête de mise à jour
+     API qui permet de mettre à jour un contrat d'accès via une requête de mise à jour ou d'accéder à un contrat d'accès
     get:
       description: |
          API qui définit les requêtes pour accéder à un contrat d'accès
       is: [RegisterTraits.RegisterListingResponse]
     put:
       description: |
-         Update the given access contract
+         Mise à jour du contrat d'accès
       is: [RegisterTraits.RegisterUpload]
 
 /ingestcontracts:
   displayName: Ingest contracts
   description: |
-     API qui définit les requêtes pour accéder au contracts d'entrée
+     API qui définit les requêtes pour accéder aux contrats d'entrée
      La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste de contrats d'entrée selon le DSL Vitam en cas de succès.
   get:
     description: |
@@ -209,16 +245,21 @@ documentation:
   post:
     description: |
       Request that will return results composed of ingest contracts if the request is using POST with X-Http-Method-Override: GET.
-      Importe un ensemble des contrats d'entrée qui sont sauvegardés et indexés en cas de succès
+      Importe un ensemble de contrats d'entrée qui sont sauvegardés et indexés en cas de succès
     is: [RegisterTraits.RegisterListingResponse, StandardTraits.OverrideGet, RegisterTraits.RegisterUpload]
     headers:
       X-Http-Method-Override:
         required: false
 
-  /{id}:
-    displayName: Ingest contract Modifier
+  /{idic}:
+    uriParameters:
+        idic:
+          required: true
+          description: |
+            Identifiant du contrat d'entrée
+    displayName: Ingest Contract
     description: |
-      API qui permet de mettre à jour un contrat d'entrées via une requête de mise à jour
+      API qui permet de mettre à jour un contrat d'entrée via une requête de mise à jour ou d'accéder à un contrat d'entrée
     get:
       description: |
          API qui définit les requêtes pour accéder à un contrat d'entrée
@@ -229,7 +270,7 @@ documentation:
        is: [RegisterTraits.RegisterUpload]
 
 /contexts:
-  displayName: External Application contexts
+  displayName: Contexts
   description: |
      API qui définit les requêtes pour accéder aux contextes d'applications externes
      La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste de contextes selon le DSL Vitam en cas de succès.
@@ -240,16 +281,21 @@ documentation:
   post:
     description: |
       Request that will return results composed of Contexts if the request is using POST with X-Http-Method-Override: GET.
-      Importe un ensemble des contextes qui sont sauvegardés et indexés en cas de succès
+      Importe un ensemble de contextes qui sont sauvegardés et indexés en cas de succès
     is: [RegisterTraits.RegisterListingResponse, StandardTraits.OverrideGet, RegisterTraits.RegisterUpload]
     headers:
       X-Http-Method-Override:
         required: false
 
-  /{id}:
-    displayName: Context Modifier
+  /{idc}:
+    uriParameters:
+        idc:
+          required: true
+          description: |
+            Identifiant du contexte
+    displayName: Context
     description: |
-      API qui permet de mettre à jour un contexte via une requête de mise à jour
+      API qui permet de mettre à jour un contexte via une requête de mise à jour ou d'accéder à un contexte
     get:
       description: |
          API qui définit les requêtes pour accéder à un contrat d'entrée
@@ -260,10 +306,10 @@ documentation:
        is: [RegisterTraits.RegisterUpload]
 
 /profiles:
-  displayName: profil
+  displayName: Profiles
   description: |
-    API qui définit les requêtes pour accéder au profil
-    La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste de profil selon le DSL Vitam en cas de succès.
+    API qui définit les requêtes pour accéder aux profils
+    La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste de profils selon le DSL Vitam en cas de succès.
   get:
     description: |
        API qui définit les requêtes pour accéder aux profils
@@ -271,16 +317,21 @@ documentation:
   post:
     description: |
       Request that will return results composed of Profiles if the request is using POST with X-Http-Method-Override: GET.
-      Importe un ensemble des profils qui sont sauvegardés et indexés en cas de succès
+      Importe un ensemble de profils qui sont sauvegardés et indexés en cas de succès
     is: [RegisterTraits.RegisterItemResponse, StandardTraits.OverrideGet, RegisterTraits.RegisterUpload]
     headers:
       X-Http-Method-Override:
         required: false
 
-  /{id}:
-    displayName: profil Modifier
+  /{idp}:
+    uriParameters:
+        idp:
+          required: true
+          description: |
+            Identifiant du profil
+    displayName: Profil
     description: |
-      API qui permet de mettre à jour un profil via une requête de mise à jour
+      API qui permet de mettre à jour un profil via une requête de mise à jour ou d'accéder à un profil
     get:
       description: |
          API qui définit les requêtes pour accéder à un profil ou à son schéma XSD ou RNG
@@ -297,8 +348,8 @@ documentation:
 /securityprofiles:
   displayName: Security Profiles
   description: |
-     API qui définit les requêtes pour accéder aux Profiles de Sécurité.
-     La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste de profiles de sécurité selon le DSL Vitam en cas de succès.
+     API qui définit les requêtes pour accéder aux Profils de Sécurité.
+     La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste de profils de sécurité selon le DSL Vitam en cas de succès.
   get:
     description: |
       Request that will return results composed of Security Profiles
@@ -313,9 +364,14 @@ documentation:
         required: false
 
   /{identifier}:
+    uriParameters:
+        identifier:
+          required: true
+          description: |
+            Identifiant du profil de sécurité
     displayName: Security Profiles
     description: |
-     API qui définit les requêtes pour accéder aux Profiles de Sécurité.
+     API qui permet de mettre à jour un profil de sécurité via une requête de mise à jour ou d'accéder à un profil de sécurité
     get:
       description: Request that will return a Security Profile
       is: [RegisterTraits.RegisterItemResponse]
@@ -331,9 +387,57 @@ documentation:
         X-Http-Method-Override:
           required: true
 
+/agencies:
+  displayName: Agencies
+  description: |
+   API qui définit les requêtes pour accéder au référentiel des Agencies.
+   La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste d'agencies selon le DSL Vitam en cas de succès.
+  get:
+    description: |
+      Request that will return results composed of Agencies
+    is: [RegisterTraits.RegisterListingResponse]
+  post:
+    description: |
+      Request that will return results composed of Agencies if the request is using POST with X-Http-Method-Override: GET.
+      If there is no X-Http-Method-Override, this allow to push a new Referential.
+    is: [RegisterTraits.RegisterListingResponse, StandardTraits.OverrideGet,
+       RegisterTraits.RegisterUpload, StandardTraits.UploadFileOptionalHeader]
+    headers:
+      X-Http-Method-Override:
+        required: false
+
+  /{ida}:
+    uriParameters:
+        ida:
+          required: true
+          description: |
+            Identifiant de l'agency
+    displayName: Agency
+    description: |
+     API qui définit les requêtes pour accéder à un Agency dans le référentiel des Agencies.
+    get:
+      description: Request that will return result composed of 1 Agency
+      is: [RegisterTraits.RegisterItemResponse]
+    post:
+      description: |
+        Request that will return result of 1 Agency. The request is using POST with X-Http-Method-Override: GET
+      is: [RegisterTraits.RegisterItemResponse, StandardTraits.OverrideGet]
+      headers:
+        X-Http-Method-Override:
+          required: true
+
+/agenciesfilecheck:
+  displayName: FileAgencies check
+  description: |
+   API qui permet de vérifier que le fichier est correct, et peut être importé.
+  post:
+    description: |
+      This allow to submit a new Agencies Referential from a file (see TNA) to check if this could be imported.
+    is: [RegisterTraits.RegisterUpload]
+
 /operations:
   # root endpoint request
-  displayName: Opérations
+  displayName: Operations
   description: |
     Administration des Workflows Asynchrones (opérations). Certaines opérations devraient être limitées aux seuls administrateurs car elles impactent le back-office.
   is: [ StandardTraits.StandardOptionalHeader,
@@ -344,7 +448,12 @@ documentation:
       Request that will return a listing of ingests operations
     is: [IngestTraits.IngestListingResponse ]
 
-  /{id}:
+  /{idop}:
+    uriParameters:
+        idop:
+          required: true
+          description: |
+            Identifiant de l'opération
     displayName: Operation
     is: [ StandardTraits.StandardOptionalHeader,
     StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
@@ -358,16 +467,14 @@ documentation:
        NEXT pour exécuter l'étape suivante, RESUME pour continuer l'exécution de l'opération jusqu'au bout.
        **Cette opération ne devrait être ouverte qu'aux administrateurs**
       headers:
-       X-Action:
-       	description: |
-       		Permet d'influer sur le workflow. RESUME permet de poursuivre le workflow jusqu'à la fin. NEXT permet d'exécuter la prochaine étape pour ensuite se mettre en pause.
-       		PAUSE permet de demander la mise en pause du workflow à la fin de l'étape en cours. REPLAY permet de rejouer la dernière étape exécutée.
-        required: true
-        enum: [ "RESUME", "NEXT", "PAUSE", "REPLAY" ]
+        X-Action:
+          required: true
+          description: |
+            Permet d'influer sur le workflow. RESUME permet de poursuivre le workflow jusqu'à la fin. NEXT permet d'exécuter la prochaine étape pour ensuite se mettre en pause. PAUSE permet de demander la mise en pause du workflow à la fin de l'étape en cours. REPLAY permet de rejouer la dernière étape exécutée.
+          enum: [ "RESUME", "NEXT", "PAUSE", "REPLAY" ]
+
     delete:
      description: |
-       **DEPRECATED** : ne sera plus supporté en V1 car déplacé dans functional-administration.
-
        Permet d'annuler un workflow lancé.
        **Cette opération ne devrait être ouverte qu'aux administrateurs**
     head:
@@ -386,7 +493,7 @@ documentation:
 
 /workflows:
   # root endpoint request
-  displayName: Définitions de workflow
+  displayName: Workflows
   description: |
     Gestion des définitions des Workflows disponibles.
 
@@ -397,6 +504,49 @@ documentation:
     description: |
      Request that will return a listing of ingests operations
     is: [IngestTraits.IngestWorkflowsResponse ]
+
+/audits:
+  # root endpoint request
+  displayName: Audits
+  description: |
+    API d'audits (Ingest). Ce point d'entrée permet de créer une opération d'audit.
+    Une opération d'audit est volatile, c'est à dire qu'elle disparaîtra dès qu'elle sera terminée.
+    Sa terminaison est liée à la production du rapport et sa récupération par le service ayant effectué l'opération.
+
+  is: [ StandardTraits.StandardOptionalHeader,
+    StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+    StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
+  post:
+    description: |
+        response : JSON asynchronous state / HTTP CODE 200 or  500 for KO
+    is: [AdminTraits.AuditCreationResponseAsync]
+
+/traceability/:
+  displayName: Traceability
+  description: |
+    API de sécurisation des journaux. Ce point d'entrée permet de vérifier et télécharger une opération de sécurisation des journaux
+  /{idop}/datafiles:
+    displayName: Téléchargement de la sécurisation des journaux
+    uriParameters:
+          idop:
+            required: true
+            description: |
+              Identifiant de l'opération concernée
+    description: |
+       Permet de télécharger un objet représentant la sécurisation des journaux d'opérations
+    is: [ RegisterTraits.RegisterFileItemResponse ]
+    get:
+       description:  |
+        Permet de télécharger un objet représentant la sécurisation des journaux d'opérations en fonction de l'identificant de l'opération à l'origine.
+
+  /checks:
+    displayName: Vérification de la sécurisation des journaux
+    description: |
+       Permet de lancer un processus de vérification d'une opération de sécurisation
+    post:
+     description: |
+         response : JSON asynchronous state / HTTP CODE 200 or  500 for KO
+     is: [AdminTraits.TraceabilityCheckResponseAsync]
 
 /:
   displayName: Endpoints

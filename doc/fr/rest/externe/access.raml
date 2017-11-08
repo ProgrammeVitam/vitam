@@ -1,6 +1,6 @@
 #%RAML 1.0
 
-title: API-Vitam Version Beta - Access
+title: API-Vitam - Access
 version: v1
 baseUri: https://api.vitam.gouv.fr/access-external/{version}
 protocols: [ HTTPS ]
@@ -28,9 +28,6 @@ documentation:
 
   - title: API Access
     content: !include docs-fr/access.md
-
-  - title: API Registre des fonds
-    content: !include docs-fr/access-register.md
 
   - title: Champs d'application sur les Units
     content: |
@@ -74,6 +71,10 @@ documentation:
         required: true
 
   /{idu}:
+    uriParameters:
+        idu:
+          required: true
+          description: Identifiant de l'unité d'archive.
     displayName: ArchiveUnit
     description: |
      API qui définit les requêtes pour accéder aux Unités d'archives à partir d'une Unité donnée (racine).
@@ -100,23 +101,62 @@ documentation:
       get:
         description: |
           Request that will return results composed of Objects (generally 1).
-          **SUPPORTED** 'Accept' header is 'application/octet-stream' or 'application/json', other values are **UNSUPPORTED**.
+          'Accept' header is 'application/octet-stream' or 'application/json'
         is: [AccessTraits.AccessUniqueObjectQualifierResponse, AccessTraits.AccessUniqueObjectResponse]
+        headers:
+          Accept:
+            required: true
+            enum: [ "application/octet-stream", "application/json" ]
       post:
         description: |
           Request that will return results composed of Objects (generally 1).
-          **SUPPORTED** 'Accept' header is 'application/octet-stream' or 'application/json', other values are **UNSUPPORTED**.
+          'Accept' header is 'application/octet-stream' or 'application/json'
           The request is using POST with X-Http-Method-Override: GET.
         is: [AccessTraits.AccessUniqueObjectQualifierResponse, AccessTraits.AccessUniqueObjectResponse, StandardTraits.OverrideGet]
         headers:
           X-Http-Method-Override:
             required: true
-      head:
-        description: |
-          **UNSUPPORTED** Test the existence of this Object
-        is: [AccessTraits.AccessUniqueObjectQualifierHeadResponse, StandardTraits.StandardHeadHeader,
-        StandardTraits.StandardHeader204,
-        StandardTraits.StandardHeader417]
+          Accept:
+            required: true
+            enum: [ "application/octet-stream", "application/json" ]
+
+/dipexport:
+  displayName: DIP Export
+  description: |
+    API qui définit les requêtes pour générer un DIP (Dissemination Information Package : ZIP contenant les métadonnées et les objets) pour une sélection d'Unités d'archives.
+    La requête utilise le langage de requête (DSL) de Vitam en entrée et va lancer un processus générant le DIP selon le DSL passé.
+    Une autre requête pourra être exécutée par la suite pour télécharger le fichier Zip généré.
+  post:
+    description: |
+          response : JSON asynchronous state / HTTP CODE 202 or  500 for KO
+    is: [AccessTraits.DipCreationResponseAsync]
+
+  /{id}/dip/:
+    uriParameters:
+        id:
+          required: true
+          description: Identifiant de l'opération d'export DIP.
+    displayName: DIP Download
+    description: |
+      Télécharger le DIP généré par l'opération passée en paramètre
+    get:
+      headers:
+        Accept:
+          required: true
+          enum: [ "application/octet-stream" ]
+      description: |
+        Request that will return results composed of metadata and objects in a zip file
+        'Accept' header is 'application/octet-stream'
+      responses:
+        200:
+          description: Returns the generated zip file
+          body:
+            application/octet-stream:
+              description: Binary object as a zip file
+        412:
+          description: Precondition Failed, some predicates are incorrect, therefore the operation is not possible
+          body:
+            application/json:
 
 /:
   displayName: Endpoints

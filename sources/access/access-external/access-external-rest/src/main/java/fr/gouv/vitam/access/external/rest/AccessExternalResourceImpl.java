@@ -34,7 +34,6 @@ import java.util.Map;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -399,7 +398,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
                 ((RequestResponseOK<JsonNode>) result).getResults().size() == 0) {
                 throw new AccessInternalClientNotFoundException("Unit not found");
             }
-            
+
             return Response.status(st).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);

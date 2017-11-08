@@ -1,0 +1,59 @@
+#%RAML 1.0 Library
+
+usage: |
+  Use to define global headers for Access
+uses:
+  StandardTypes: StandardTypes.raml
+  StandardTraits: StandardTraits.raml
+  AccessTypes: AccessTypes.raml
+  DslTypes: DslTypes.raml
+
+traits:
+
+  AuditCreationResponseAsync:
+    description: Request for an Audit creation
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AsynchronousHeader,
+      StandardTraits.StandardHeader202 ]
+    body:
+      application/json:
+        description: Body contains in JSON format the VITAM DSL request part
+        schema: AccessTypes.AccessQuery
+        example: !include examples/accessUnitQuery.json
+    responses:
+      202:
+        description: |
+          Returns the status of Audit creation accepted
+        body:
+          application/json:
+            description: Audit operation accepted
+            schema: StandardTypes.AsyncStatus
+            example: !include examples/audit.json
+      500:
+        description: Returns the final result of the Audit operation in KO status
+        body:
+          application/json:
+            description: Final Audit report
+
+  TraceabilityCheckResponseAsync:
+    description: Request for an Traceability Check
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AsynchronousHeader,
+      StandardTraits.StandardHeader202 ]
+    body:
+      application/json:
+        description: Body contains in JSON format the VITAM DSL request part
+        schema: DslTypes.DslQuery
+        example: !include examples/dslQuery.json
+    responses:
+      202:
+        description: |
+          Returns the status of Traceability check accepted
+        body:
+          application/json:
+            description: Traceability operation accepted
+            schema: StandardTypes.AsyncStatus
+            example: !include examples/traceability.json
+      500:
+        description: Returns the final result of the Traceability operation in KO status
+        body:
+          application/json:
+            description: Final Traceability report
