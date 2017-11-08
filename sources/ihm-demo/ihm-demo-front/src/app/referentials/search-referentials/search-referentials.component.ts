@@ -121,7 +121,7 @@ export class SearchReferentialsComponent  extends PageComponent {
           this.breadcrumbName = "Règles de gestion";
           let options = [
             {label : "Tous", value : "All"},
-            {label : "Durée d'utilité aministrative", value : "AppraisalRule"},
+            {label : "Durée d'utilité administrative", value : "AppraisalRule"},
             {label : "Délai de communicabilité", value : "AccessRule"},
             {label : "Durée d'utilité courante", value : "StorageRule"},
             {label : "Délai de diffusion", value : "DisseminationRule"},
