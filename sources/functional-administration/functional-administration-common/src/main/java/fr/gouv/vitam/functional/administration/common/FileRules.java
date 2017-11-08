@@ -31,7 +31,6 @@ import org.bson.Document;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 
 /**
  * FileRules create the template of FileRules from VitamDocument
@@ -74,8 +73,6 @@ public class FileRules extends VitamDocument<FileRules> {
      */
 
     public FileRules() {
-        // Empty
-        append(TENANT, ParameterHelper.getTenantParameter());
     }
 
     /**
@@ -85,7 +82,6 @@ public class FileRules extends VitamDocument<FileRules> {
      */
     public FileRules(Document document) {
         super(document);
-        append(TENANT, ParameterHelper.getTenantParameter());
     }
 
     /**
@@ -93,7 +89,6 @@ public class FileRules extends VitamDocument<FileRules> {
      */
     public FileRules(JsonNode content) {
         super(content);
-        append(TENANT, ParameterHelper.getTenantParameter());
     }
 
     /**
@@ -101,7 +96,6 @@ public class FileRules extends VitamDocument<FileRules> {
      */
     public FileRules(String content) {
         super(content);
-        append(TENANT, ParameterHelper.getTenantParameter());
     }
 
     /**

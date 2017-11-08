@@ -142,7 +142,7 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
 
             // EnableControl should be enabled in the context
             // We also skip all uri that match tenant url and status url
-            if (contextModel.isEnablecontrol() &&
+            if (contextModel.isEnablecontrol() != null && contextModel.isEnablecontrol() &&
                     !uri.endsWith(VitamConfiguration.STATUS_URL) && !uri.endsWith(VitamConfiguration.TENANTS_URL)) {
 
                 if (uri.contains(ACCESS_EXTERNAL)) {

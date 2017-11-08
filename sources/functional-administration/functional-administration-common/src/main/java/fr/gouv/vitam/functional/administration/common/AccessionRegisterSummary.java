@@ -105,9 +105,6 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
      * Empty Constructor
      */
     public AccessionRegisterSummary() {
-        // Empty
-        // FIXME P1
-        append(TENANT, ParameterHelper.getTenantParameter());
     }
 
 
@@ -118,8 +115,6 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
      */
     public AccessionRegisterSummary(Document document) {
         super(document);
-        // FIXME P1
-        append(TENANT, ParameterHelper.getTenantParameter());
     }
 
     /**
@@ -127,8 +122,6 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
      */
     public AccessionRegisterSummary(JsonNode content) {
         super(content);
-        // FIXME P1
-        append(TENANT, ParameterHelper.getTenantParameter());
     }
 
 
@@ -137,8 +130,6 @@ public class AccessionRegisterSummary extends VitamDocument<AccessionRegisterSum
      */
     public AccessionRegisterSummary(String content) {
         super(content);
-        // FIXME P1
-        append(TENANT, ParameterHelper.getTenantParameter());
     }
 
     @Override

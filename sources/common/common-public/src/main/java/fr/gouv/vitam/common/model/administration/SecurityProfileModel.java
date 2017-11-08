@@ -26,18 +26,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.administration;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Set;
 
+import fr.gouv.vitam.common.model.ModelConstants;
+
 /**
  * Data Transfer Object Model of security profile (DTO).
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class SecurityProfileModel {
-
-    public static final String TAG_ID = "id";
-    public static final String HASH = "#";
-    public static final String UNDERSCORE = "_";
 
     private static final String TAG_IDENTIFIER = "Identifier";
     private static final String TAG_NAME = "Name";
@@ -62,7 +62,7 @@ public class SecurityProfileModel {
      * Flag defining full permission set mode (super admin)
      */
     @JsonProperty(TAG_FULL_ACCESS)
-    private boolean fullAccess;
+    private Boolean fullAccess;
 
     /**
      * Permission set
@@ -96,7 +96,7 @@ public class SecurityProfileModel {
     /**
      * @return id
      */
-    @JsonProperty(HASH + TAG_ID)
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     public String getId() {
         return id;
     }
@@ -105,13 +105,13 @@ public class SecurityProfileModel {
      * @param id value to set
      * @return this
      */
-    @JsonProperty(UNDERSCORE + TAG_ID)
+    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_ID)
     public void setId(String id) {
         this.id = id;
     }
 
 
-    @JsonProperty(HASH + TAG_ID)
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     public void setIdExt(String id) {
         this.id = id;
     }
@@ -158,7 +158,7 @@ public class SecurityProfileModel {
      * @return true if security profile has full access to all permissions. false otherwise.
      * When set to true, all permissions are granted and "Permissions" set is ignored and should not be set.
      */
-    public boolean getFullAccess() {
+    public Boolean getFullAccess() {
         return fullAccess;
     }
 
@@ -167,7 +167,7 @@ public class SecurityProfileModel {
      * When set to true, all permissions are granted and "Permissions" set is ignored and should not be set.
      * @param fullAccess
      */
-    public void setFullAccess(boolean fullAccess) {
+    public void setFullAccess(Boolean fullAccess) {
         this.fullAccess = fullAccess;
     }
 

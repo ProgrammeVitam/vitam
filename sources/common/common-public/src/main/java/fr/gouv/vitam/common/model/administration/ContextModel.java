@@ -26,20 +26,19 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.gouv.vitam.common.model.ModelConstants;
+
 /**
  * Data Transfer Object Model of Context
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ContextModel {
-
-    public static final String TAG_ID = "id";
-    public static final String HASH = "#";
-    public static final String UNDERSCORE = "_";
-
 
     public static final String TAG_SECURITY_PROFILE = "SecurityProfile";
 
@@ -71,10 +70,10 @@ public class ContextModel {
     private String name;
 
     @JsonProperty(TAG_STATUS)
-    private boolean status;
+    private Boolean status;
 
     @JsonProperty(TAG_ENABLE_CONTROL)
-    private boolean enablecontrol = false;
+    private Boolean enablecontrol;
 
     @JsonProperty(TAG_IDENTIFIER)
     private String identifier;
@@ -107,7 +106,7 @@ public class ContextModel {
     /**
      * @return id
      */
-    @JsonProperty(HASH + TAG_ID)
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     public String getId() {
         return id;
     }
@@ -116,13 +115,13 @@ public class ContextModel {
      * @param id
      * @return ContextModel
      */
-    @JsonProperty(UNDERSCORE + TAG_ID)
+    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_ID)
     public ContextModel setId(String id) {
         this.id = id;
         return this;
     }
 
-    @JsonProperty(HASH + TAG_ID)
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     public ContextModel setIdExt(String id) {
         this.id = id;
         return this;
@@ -147,14 +146,14 @@ public class ContextModel {
     /**
      * @return status
      */
-    public boolean isStatus() {
+    public Boolean isStatus() {
         return status;
     }
 
     /**
      * @param status
      */
-    public void setStatus(boolean status) {
+    public void setStatus(Boolean status) {
         this.status = status;
     }
 
@@ -162,14 +161,14 @@ public class ContextModel {
     /**
      * @return enableControle true we must check contract given contract exists in the current context, false else
      */
-    public boolean isEnablecontrol() {
+    public Boolean isEnablecontrol() {
         return enablecontrol;
     }
 
     /**
      * @param enablecontrol
      */
-    public void setEnablecontrol(boolean enablecontrol) {
+    public void setEnablecontrol(Boolean enablecontrol) {
         this.enablecontrol = enablecontrol;
     }
 

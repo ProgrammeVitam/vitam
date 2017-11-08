@@ -92,7 +92,6 @@ public class IngestContract extends VitamDocument<IngestContract> {
      */
     public IngestContract() {
         // Empty
-        append(TENANT_ID, ParameterHelper.getTenantParameter());
     }
 
     /**
@@ -102,7 +101,6 @@ public class IngestContract extends VitamDocument<IngestContract> {
      */
     public IngestContract(Document document) {
         super(document);
-        append(TENANT_ID, ParameterHelper.getTenantParameter());
     }
 
     /**
@@ -110,7 +108,6 @@ public class IngestContract extends VitamDocument<IngestContract> {
      */
     public IngestContract(JsonNode content) {
         super(content);
-        append(TENANT_ID, ParameterHelper.getTenantParameter());
     }
 
     /**
@@ -118,7 +115,6 @@ public class IngestContract extends VitamDocument<IngestContract> {
      */
     public IngestContract(String content) {
         super(content);
-        append(TENANT_ID, ParameterHelper.getTenantParameter());
     }
 
     /**

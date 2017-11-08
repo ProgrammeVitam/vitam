@@ -105,8 +105,7 @@ public abstract class LogbookDocument<E> extends Document {
             id = getString(ID);
         }
         try {
-            final int tenantId = GUIDReader.getGUID(id).getTenantId();
-            append(TENANT_ID, tenantId).append(ID, id);
+            GUIDReader.getGUID(id);
         } catch (final InvalidGuidOperationException e) {
             throw new IllegalArgumentException("ID is not a GUID: " + id, e);
         }

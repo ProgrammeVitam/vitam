@@ -77,6 +77,7 @@ import { ArchiveExportDIPComponent } from './archive-unit/archive-unit-details/a
 import { DialogComponent } from './common/dialog/dialog.component';
 import { DialogService } from './common/dialog/dialog.service';
 import { VitamInterceptor } from './common/http-interceptor';
+import { LifecycleComponent } from './archive-unit/archive-unit-details/lifecycle/lifecycle.component';
 
 
 const appRoutes: Routes = [
@@ -88,6 +89,12 @@ const appRoutes: Routes = [
   },
   {
     path: 'search/archiveUnit/:id', component: ArchiveUnitDetailsComponent, data : {permission : 'archivesearch:units:read'}
+  },
+  {
+    path: 'search/archiveUnit/:id/unitlifecycle', component: LifecycleComponent, data : {permission : 'archivesearch:units:read'}
+  },
+  {
+    path: 'search/archiveUnit/:id/objectgrouplifecycle', component: LifecycleComponent, data : {permission : 'archivesearch:units:read'}
   },
   {
     path: 'login', component: AuthenticationComponent
@@ -205,7 +212,8 @@ const appRoutes: Routes = [
     OperationComponent,
     HoldingschemeComponent,
     ArchiveExportDIPComponent,
-    DialogComponent
+    DialogComponent,
+    LifecycleComponent
   ],
   imports: [
     RouterModule.forRoot(appRoutes, {useHash: true}),

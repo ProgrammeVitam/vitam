@@ -1,5 +1,6 @@
-import {Component, OnInit, Input} from '@angular/core';
-import {ArchiveUnitHelper} from "../../archive-unit.helper";
+import { Component, OnInit, Input } from '@angular/core';
+import { ArchiveUnitHelper } from "../../archive-unit.helper";
+import { Router } from "@angular/router";
 
 @Component({
   selector: 'vitam-archive-object-group',
@@ -8,11 +9,12 @@ import {ArchiveUnitHelper} from "../../archive-unit.helper";
 })
 export class ArchiveObjectGroupComponent implements OnInit {
   @Input() objects;
+  @Input() objectGroupId;
   translations;
   translate: (x) => string;
   displayObject = {};
 
-  constructor(private archiveUnitHelper: ArchiveUnitHelper) {
+  constructor(private archiveUnitHelper: ArchiveUnitHelper, private router : Router) {
     this.translations = this.archiveUnitHelper.getObjectGroupTranslations();
     this.translate = (field: string) => {
       const value = this.translations[field];
@@ -24,8 +26,7 @@ export class ArchiveObjectGroupComponent implements OnInit {
     }
   }
 
-  ngOnInit() {
-  }
+  ngOnInit() {}
 
   toogleDetails(id) {
     this.displayObject[id] = !this.displayObject[id];
@@ -38,6 +39,10 @@ export class ArchiveObjectGroupComponent implements OnInit {
   isDownloadable(version) {
     // FIXME: userContract.DataObjectVersion.indexOf(version.split('_')[0]) < 0
     return version.indexOf('BinaryMaster') !== -1;
+  }
+
+  goToUnitLifecycles() {
+    this.router.navigate(['search/archiveUnit/' + this.objectGroupId + '/objectgrouplifecycle']);
   }
 
 }

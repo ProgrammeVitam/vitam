@@ -25,20 +25,16 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import fr.gouv.vitam.common.model.ModelConstants;
 
 /**
  * Data Transfer Object Model of Agency
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class AgenciesModel {
-
-    public static final String TAG_ID = "id";
-    public static final String TAG_TENANT = "tenant";
-    public static final String HASH = "#";
-    public static final String UNDERSCORE = "_";
-
-
-
     public static final String TAG_NAME = "Name";
 
     public static final String TAG_IDENTIFIER = "Identifier";
@@ -89,7 +85,7 @@ public class AgenciesModel {
     /**
      * @return tenant
      */
-    @JsonProperty(HASH + TAG_TENANT)
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
     public Integer getTenant() {
         return tenant;
     }
@@ -98,7 +94,7 @@ public class AgenciesModel {
      * @param tenant value to set working tenant
      * @return this
      */
-    @JsonProperty(UNDERSCORE + TAG_TENANT)
+    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_TENANT)
     public AgenciesModel setTenant(Integer tenant) {
         this.tenant = tenant;
         return this;
@@ -109,7 +105,7 @@ public class AgenciesModel {
      * @param tenant value to set working tenant
      * @return this
      */
-    @JsonProperty(HASH + TAG_TENANT)
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
     public AgenciesModel setTenantExt(Integer tenant) {
         this.tenant = tenant;
         return this;
@@ -119,7 +115,7 @@ public class AgenciesModel {
      * @return id
      */
 
-    @JsonProperty(HASH + TAG_ID)
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     public String getId() {
         return id;
     }
@@ -128,7 +124,7 @@ public class AgenciesModel {
      * @param id
      * @return AgencyModel
      */
-    @JsonProperty(UNDERSCORE + TAG_ID)
+    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_ID)
     public AgenciesModel setId(String id) {
         this.id = id;
         return this;
@@ -138,7 +134,7 @@ public class AgenciesModel {
      * @param id
      * @return AgencyModel
      */
-    @JsonProperty(HASH + TAG_ID)
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     public AgenciesModel setIdExt(String id) {
         this.id = id;
         return this;
