@@ -45,7 +45,7 @@ export class AccessionRegisterComponent  extends PageComponent {
       this.getDetail();
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
-        {label: 'Référentiel des services agents', routerLink: 'admin/search/agencies'},
+        {label: 'Services agents', routerLink: 'admin/search/agencies'},
         {label: 'Détail du fond ' + this.id, routerLink: ''}
       ];
 
