@@ -15,7 +15,9 @@
           <input pInputText class="ui-g-12" formControlName="{{field.name}}" name="{{field.name}}"
                  *ngIf="field.type === 'text'" (keyup)="disableOthers(field)">
           <p-calendar class="ui-g-12 ui-g-nopad" formControlName="{{field.name}}" type="date" placeholder="jj/mm/aaaa"
-                      *ngIf="field.type === 'date'"></p-calendar>
+                      *ngIf="field.type === 'date'"
+                      [dateFormat]="'dd/mm/yy'" [yearNavigator]="true"
+                      [yearRange]="'1970:2500'" [locale]="frLocale"></p-calendar>
           <p-dropdown class="ui-g-12 ui-g-nopad ui-fluid" formControlName="{{field.name}}" id="{{field.name}}"
                       [(ngModel)]="field.placeholder"
                       [options]="field.options" [autoWidth]="false" *ngIf="field.type === 'select'"></p-dropdown>
@@ -49,7 +51,8 @@
               <input pInputText class="ui-g-12" formControlName="{{field.name}}" name="{{field.name}}"
                      *ngIf="field.type === 'text'" (keyup)="disableOthers(field)">
               <p-calendar class="ui-g-12" formControlName="{{field.name}}" type="date" placeholder="jj/mm/aaaa"
-                          *ngIf="field.type === 'date'"></p-calendar>
+                          *ngIf="field.type === 'date'" [dateFormat]="'dd/mm/yy'" [yearNavigator]="true"
+                          [yearRange]="'1970:2500'" [locale]="frLocale"></p-calendar>
               <p-dropdown class="ui-g-12 ui-g-nopad ui-fluid" formControlName="{{field.name}}" id="{{field.name}}"
                           [(ngModel)]="field.placeholder"
                           [options]="field.options" [autoWidth]="false" *ngIf="field.type === 'select'"></p-dropdown>
@@ -82,7 +85,8 @@
               <input pInputText class="ui-g-12" formControlName="{{field.name}}" name="{{field.name}}"
                      *ngIf="field.type === 'text'" (keyup)="disableOthers(field)">
               <p-calendar class="ui-g-12" formControlName="{{field.name}}" type="date" placeholder="jj/mm/aaaa"
-                          *ngIf="field.type === 'date'"></p-calendar>
+                          *ngIf="field.type === 'date'" [dateFormat]="'dd/mm/yy'" [yearNavigator]="true"
+                          [yearRange]="'1970:2500'" [locale]="frLocale"></p-calendar>
               <p-dropdown class="ui-g-12" formControlName="{{field.name}}" id="{{field.name}}"
                           placeholder="{{field.placeholder}}"
                           [options]="field.options" *ngIf="field.type === 'select'"></p-dropdown>
