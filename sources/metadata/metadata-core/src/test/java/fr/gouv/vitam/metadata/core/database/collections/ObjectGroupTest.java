@@ -26,13 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.TENANT_ID;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -47,7 +45,6 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 public class ObjectGroupTest {
-
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -87,7 +84,6 @@ public class ObjectGroupTest {
     public void givenObjectGroupWhenGetGuid() {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         final ObjectGroup group = new ObjectGroup(go);
-        group.append(TENANT_ID, 0);
         assertNotNull(group.newObjectGuid());
         assertEquals(2, ObjectGroup.getGUIDObjectTypeId());
     }

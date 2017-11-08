@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.SingletonUtils;
 
@@ -35,7 +34,7 @@ import java.util.Set;
 /**
  * Data Transfer Object Model of contract (DTO).
  */
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
+
 public class IngestContractModel extends AbstractContractModel {
 
     public static final String ARCHIVE_PROFILES = "ArchiveProfiles";

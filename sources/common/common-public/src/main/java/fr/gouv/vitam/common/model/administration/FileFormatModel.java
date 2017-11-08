@@ -26,22 +26,20 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import fr.gouv.vitam.common.model.ModelConstants;
-
 /**
- * POJO java use for mapping FileFormat
+ * POJO java use for mapping @{@link fr.gouv.vitam.functional.administration.common.FileFormat}
  */
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class FileFormatModel {
 
     /**
      * unique id
      */
+    @JsonProperty("_id")
     private String id;
 
     // TODO: P3 use a date object
@@ -49,64 +47,64 @@ public class FileFormatModel {
      * creation date
      */
     @JsonProperty("CreatedDate")
-    private String createdDate;
+    private String createdDate = "";
 
     /**
      * version pronom
      */
     @JsonProperty("VersionPronom")
-    private String versionPronom;
+    private String versionPronom = "";
 
     /**
      * version
      */
     @JsonProperty("Version")
-    private String version;
+    private String version = "";
 
     /**
      * list of FileFormat with lower priority
      */
     @JsonProperty("HasPriorityOverFileFormatID")
-    private List<String> hasPriorityOverFileFormatIDs;
+    private List<String> hasPriorityOverFileFormatIDs = new ArrayList<>();
 
     /**
      * mime type
      */
     @JsonProperty("MIMEType")
-    private String mimeType;
+    private String mimeType = "";
 
     /**
      * name
      */
     @JsonProperty("Name")
-    private String name;
+    private String name = "";
 
     /**
      * group
      */
     @JsonProperty("Group")
-    private String group;
+    private String group = "";
 
     @JsonProperty("Alert")
-    private Boolean alert;
+    private boolean alert;
 
     /**
      * comment
      */
     @JsonProperty("Comment")
-    private String comment;
+    private String comment = "";
 
     /**
      * extensions
      */
     @JsonProperty("Extension")
-    private List<String> extensions;
+    private List<String> extensions = new ArrayList<>();
 
     /**
      * puid
      */
     @JsonProperty("PUID")
-    private String puid;
+    private String puid = "";
 
     /**
      * Constructor without fields
@@ -118,7 +116,6 @@ public class FileFormatModel {
     /**
      * @return id
      */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     public String getId() {
         return id;
     }
@@ -127,14 +124,7 @@ public class FileFormatModel {
      * @param id value to set
      * @return this
      */
-    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_ID)
     public FileFormatModel setId(String id) {
-        this.id = id;
-        return this;
-    }
-
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
-    public FileFormatModel setIdExt(String id) {
         this.id = id;
         return this;
     }
@@ -268,7 +258,7 @@ public class FileFormatModel {
      *
      * @return alert
      */
-    public Boolean isAlert() {
+    public boolean isAlert() {
         return alert;
     }
 
@@ -277,7 +267,7 @@ public class FileFormatModel {
      * @param alert value to set
      * @return this
      */
-    public FileFormatModel setAlert(Boolean alert) {
+    public FileFormatModel setAlert(boolean alert) {
         this.alert = alert;
         return this;
     }

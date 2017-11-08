@@ -28,7 +28,6 @@ package fr.gouv.vitam.metadata.core.database.collections;
 
 import static com.mongodb.client.model.Filters.eq;
 
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -145,6 +144,7 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
      * @return this MetadataDocument
      */
     public MetadataDocument<E> checkId() {
+        append(TENANT_ID, getTenantFixJunit());
         return this;
     }
 
@@ -256,9 +256,47 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
     protected final MetadataDocument<E> insert() throws MetaDataExecutionException {
         checkId();
         try {
-            append(VERSION, 0);
-            append(TENANT_ID, ParameterHelper.getTenantParameter());
             getCollection().insertOne((E) this);
+        } catch (final MongoException | IllegalArgumentException e) {
+            throw new MetaDataExecutionException(e);
+        }
+        return this;
+    }
+
+    /**
+     * Save the document if new, update it (keeping non set fields, replacing set fields)
+     *
+     * @return this
+     * @throws MetaDataExecutionException if mongo exception query or illegal argument of query
+     */
+    @SuppressWarnings("unchecked")
+    protected final MetadataDocument<E> updateOrSave()
+        throws MetaDataExecutionException {
+        checkId();
+        final String id = this.getId();
+        try {
+            if (MongoDbMetadataHelper.exists(getMetadataCollections(), id)) {
+                getCollection().replaceOne(eq(ID, id), (E) this);
+            } else {
+                getCollection().insertOne((E) this);
+            }
+        } catch (final MongoException | IllegalArgumentException e) {
+            throw new MetaDataExecutionException(e);
+        }
+        return this;
+    }
+
+    /**
+     * Force the save (insert) of this document (no putBeforeSave done)
+     *
+     * @return this
+     * @throws MetaDataExecutionException
+     */
+    protected final MetadataDocument<E> forceSave()
+        throws MetaDataExecutionException {
+        checkId();
+        try {
+            getCollection().updateOne(eq(ID, getId()), this, new UpdateOptions().upsert(true));
         } catch (final MongoException | IllegalArgumentException e) {
             throw new MetaDataExecutionException(e);
         }

@@ -37,7 +37,6 @@ import java.util.List;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.jhades.JHades;
@@ -90,6 +89,7 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
  *
  */
 public class LogBookLifeCycleUnitTest {
+
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogBookLifeCycleUnitTest.class);
 
@@ -290,7 +290,6 @@ public class LogBookLifeCycleUnitTest {
             ServerIdentity.getInstance().getJsonIdentity());
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(logbookLifeCyclesUnitParametersStart.toString())
             .when()
             .post(LIFE_UNIT_ID_URI,
@@ -302,7 +301,6 @@ public class LogBookLifeCycleUnitTest {
         // already exsits
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(logbookLifeCyclesUnitParametersStart.toString())
             .when()
             .post(LIFE_UNIT_ID_URI,
@@ -414,6 +412,7 @@ public class LogBookLifeCycleUnitTest {
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
+
     @Test
     public final void given_lifeCycleUnitWithoutMandotoryParams_when_Update_thenReturn_BAD_RESUEST() {
         final GUID guidTest = GUIDFactory.newWriteLogbookGUID(0);
@@ -452,7 +451,6 @@ public class LogBookLifeCycleUnitTest {
             ServerIdentity.getInstance().getJsonIdentity());
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(logbookLifeCyclesUnitParametersStart.toString())
             .when()
             .post(LIFE_UNIT_ID_URI,
@@ -533,7 +531,6 @@ public class LogBookLifeCycleUnitTest {
             ServerIdentity.getInstance().getJsonIdentity());
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(LogbookLifeCycleObjectGroupParametersStart.toString())
             .when()
             .post(LIFE_OG_ID_URI,

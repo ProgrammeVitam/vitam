@@ -345,8 +345,6 @@ public class AdminManagementResourceTest {
         contractModel.setName(contractId);
         contractModel.setStatus(ContractStatus.ACTIVE.name());
 
-        contractModel.initializeDefaultValue();
-
         mongoDbAccess.insertDocument(JsonHandler.toJsonNode(contractModel), FunctionalAdminCollections.ACCESS_CONTRACT)
             .close();
 

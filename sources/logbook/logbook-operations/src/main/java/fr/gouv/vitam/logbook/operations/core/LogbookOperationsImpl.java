@@ -35,6 +35,7 @@ import java.util.List;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Iterators;
 import com.mongodb.client.MongoCursor;
+
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -98,9 +99,9 @@ public class LogbookOperationsImpl implements LogbookOperations {
 
                     break;
                 //FIXE ME check if _v is necessary
-                case VERSION:
-                    replace(document, VitamDocument.VERSION, VitamFieldsHelper.version());
-                    break;
+                //                case VERSION:
+                //                    replace(document, VitamDocument.VERSION, VitamFieldsHelper.version());
+                //                    break;
                 default:
                     break;
 

@@ -26,13 +26,11 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * POJO java use for mapping @{@link fr.gouv.vitam.functional.administration.common.RegisterValueDetail}
  */
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class RegisterValueDetailModel {
 
     @JsonProperty("ingested")

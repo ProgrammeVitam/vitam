@@ -201,11 +201,11 @@ public class ContextServiceImplTest {
     public void givenContextImportAndUpdateTest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileIngest = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
-        final List<IngestContractModel> ingestContractModels =
+        final List<IngestContractModel> IngestContractModelList =
             JsonHandler.getFromFileAsTypeRefence(fileIngest, new TypeReference<List<IngestContractModel>>() {
             });
 
-        ingestContractService.createContracts(ingestContractModels);
+        ingestContractService.createContracts(IngestContractModelList);
         ingestContractService.findContracts(new Select().getFinalSelect());
         final File fileContexts = PropertiesUtils.getResourceFile("contexts_empty.json");
         final List<ContextModel> ModelList =
