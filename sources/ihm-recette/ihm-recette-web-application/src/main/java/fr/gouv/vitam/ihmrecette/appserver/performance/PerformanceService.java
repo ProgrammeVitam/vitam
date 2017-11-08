@@ -26,23 +26,8 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.performance;
 
-import fr.gouv.vitam.access.external.client.AdminExternalClient;
-import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
-import fr.gouv.vitam.access.external.client.VitamPoolingClient;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ProcessState;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.logbook.LogbookOperation;
-import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
-import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
-import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
-import io.reactivex.Flowable;
-import io.reactivex.schedulers.Schedulers;
+import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -63,8 +48,23 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
-import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
+import fr.gouv.vitam.access.external.client.AdminExternalClient;
+import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
+import fr.gouv.vitam.access.external.client.VitamPoolingClient;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
+import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
+import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
+import io.reactivex.Flowable;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  *
@@ -134,32 +134,31 @@ public class PerformanceService {
     }
 
     private void launchTestInSequence(PerformanceModel model, String fileName, int tenantId) throws IOException {
-        try (ReportGenerator reportGenerator = new ReportGenerator(performanceReportDirectory.resolve(fileName));) {
-            int numberOfRetry = model.getNumberOfRetry() == null ? NUMBER_OF_RETRY : model.getNumberOfRetry();
+        ReportGenerator reportGenerator = new ReportGenerator(performanceReportDirectory.resolve(fileName));
+        int numberOfRetry = model.getNumberOfRetry() == null ? NUMBER_OF_RETRY : model.getNumberOfRetry();
 
-            performanceTestInProgress.set(true);
+        performanceTestInProgress.set(true);
 
-            Flowable.interval(0, model.getDelay(), TimeUnit.MILLISECONDS)
-                .take(model.getNumberOfIngest())
-                .map(i -> upload(model, tenantId))
-                .flatMap(
-                    operationId -> Flowable.just(operationId)
-                        .observeOn(Schedulers.io())
-                        .map(id -> waitEndOfIngest(tenantId, numberOfRetry, id)))
-                .subscribe(operationId -> generateReport(reportGenerator, operationId, tenantId),
-                    throwable -> {
-                        LOGGER.error("end performance test with error", throwable);
+        Flowable.interval(0, model.getDelay(), TimeUnit.MILLISECONDS)
+            .take(model.getNumberOfIngest())
+            .map(i -> upload(model, tenantId))
+            .flatMap(
+                operationId -> Flowable.just(operationId)
+                    .observeOn(Schedulers.io())
+                    .map(id -> waitEndOfIngest(tenantId, numberOfRetry, id)))
+            .subscribe(operationId -> generateReport(reportGenerator, operationId, tenantId),
+                throwable -> {
+                    LOGGER.error("end performance test with error", throwable);
+                    performanceTestInProgress.set(false);
+                }, () -> {
+                    try {
+                        reportGenerator.close();
                         performanceTestInProgress.set(false);
-                    }, () -> {
-                        try {
-                            reportGenerator.close();
-                            performanceTestInProgress.set(false);
-                            LOGGER.info("end performance test");
-                        } catch (IOException e) {
-                            LOGGER.error("unable to close report", e);
-                        }
-                    });
-        }
+                        LOGGER.info("end performance test");
+                    } catch (IOException e) {
+                        LOGGER.error("unable to close report", e);
+                    }
+                });
     }
 
     private void launchTestInParallel(PerformanceModel model, String fileName, int tenantId) throws IOException {
@@ -168,36 +167,35 @@ public class PerformanceService {
 
         LOGGER.info("start performance test");
 
-        try (ReportGenerator reportGenerator = new ReportGenerator(performanceReportDirectory.resolve(fileName));) {
+        ReportGenerator reportGenerator = new ReportGenerator(performanceReportDirectory.resolve(fileName));
 
-            performanceTestInProgress.set(true);
+        performanceTestInProgress.set(true);
 
-            List<CompletableFuture<Void>> collect = IntStream.range(0, model.getNumberOfIngest())
-                .mapToObj(
-                    i -> CompletableFuture.supplyAsync(() -> uploadSIP(model, tenantId), launcherPerformanceExecutor))
-                .map(
-                    future -> future.thenAcceptAsync((id) -> generateReport(reportGenerator, id, tenantId),
-                        reportExecutor))
-                .collect(Collectors.toList());
+        List<CompletableFuture<Void>> collect = IntStream.range(0, model.getNumberOfIngest())
+            .mapToObj(
+                i -> CompletableFuture.supplyAsync(() -> uploadSIP(model, tenantId), launcherPerformanceExecutor))
+            .map(
+                future -> future.thenAcceptAsync((id) -> generateReport(reportGenerator, id, tenantId),
+                    reportExecutor))
+            .collect(Collectors.toList());
 
-            CompletableFuture<List<Void>> allDone = sequence(collect);
+        CompletableFuture<List<Void>> allDone = sequence(collect);
 
-            allDone.thenRun(() -> {
-                try {
-                    reportGenerator.close();
-                    launcherPerformanceExecutor.shutdown();
-                    reportExecutor.shutdown();
-                    performanceTestInProgress.set(false);
-                    LOGGER.info("end performance test");
-                } catch (IOException e) {
-                    LOGGER.error("unable to close report", e);
-                }
-            }).exceptionally((e) -> {
-                LOGGER.error("end performance test with error", e);
+        allDone.thenRun(() -> {
+            try {
+                reportGenerator.close();
+                launcherPerformanceExecutor.shutdown();
+                reportExecutor.shutdown();
                 performanceTestInProgress.set(false);
-                return null;
-            });
-        }
+                LOGGER.info("end performance test");
+            } catch (IOException e) {
+                LOGGER.error("unable to close report", e);
+            }
+        }).exceptionally((e) -> {
+            LOGGER.error("end performance test with error", e);
+            performanceTestInProgress.set(false);
+            return null;
+        });
     }
 
     private void generateReport(ReportGenerator reportGenerator, String operationId, int tenantId) {
