@@ -13,7 +13,6 @@ mongoFunctionalAdminPassword: azerty
 mongoSecurityInternalUser: security-internal
 mongoSecurityInternalPassword: azerty
 mongoPassPhrase: mongogo
-vitam_keystone_passwd: 2kwRWUKXyjR65VtUCma1vd5TS8DFZjQnpeJ0sLbN
 consul_encrypt: Biz14ohqN4HtvZmrXp3N4A==
 vitam_users:
   - vitam_aadmin:
