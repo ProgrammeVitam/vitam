@@ -1,6 +1,6 @@
 [main]
 
-{% if vitam_struct.vitam_ihm_recette_secure_mode == 'x509' %}
+{% if vitam_struct.secure_mode == 'x509' %}
 x509 = fr.gouv.vitam.common.auth.web.filter.X509AuthenticationFilter
 
 x509.useHeader = {{vitam_ssl_user_header}}
