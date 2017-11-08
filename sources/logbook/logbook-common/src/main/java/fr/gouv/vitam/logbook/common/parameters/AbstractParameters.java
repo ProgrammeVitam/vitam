@@ -178,7 +178,7 @@ abstract class AbstractParameters implements LogbookParameters {
         StatusCode code, String additionnalMessage, String... params) {
         if(subTaskId != null){
             putParameterValue(LogbookParameterName.eventType,
-                    VitamLogbookMessages.getSubTaskEventTypeLfc(handlerId, subTaskId));
+                    VitamLogbookMessages.getSubTaskEventTypeOp(handlerId, subTaskId));
         } else {
             putParameterValue(LogbookParameterName.eventType, handlerId);
         }
