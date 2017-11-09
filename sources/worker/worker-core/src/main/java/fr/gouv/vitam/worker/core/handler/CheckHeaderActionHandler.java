@@ -77,18 +77,18 @@ public class CheckHeaderActionHandler extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO)  {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) {
         checkMandatoryParameters(params);
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
-        Map<String, Object> madatoryValueMap = new HashMap<>();      
+        Map<String, Object> madatoryValueMap = new HashMap<>();
         ObjectNode infoNode = JsonHandler.createObjectNode();
-        final boolean shouldCheckContract  = Boolean.valueOf((String) handlerIO.getInput(CHECK_CONTRACT_RANK));
-        final boolean shouldCheckOriginatingAgency = 
+        final boolean shouldCheckContract = Boolean.valueOf((String) handlerIO.getInput(CHECK_CONTRACT_RANK));
+        final boolean shouldCheckOriginatingAgency =
             Boolean.valueOf((String) handlerIO.getInput(CHECK_ORIGINATING_AGENCY_RANK));
-        final boolean shouldCheckProfile = 
+        final boolean shouldCheckProfile =
             Boolean.valueOf((String) handlerIO.getInput(CHECK_PROFILE_RANK));
-        
+
         try {
             madatoryValueMap = sedaUtils.getMandatoryValues(params);
         } catch (final ProcessingException e) {
@@ -105,36 +105,36 @@ public class CheckHeaderActionHandler extends ActionHandler {
                 madatoryValueMap.get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
         }
 
-        updateSedaInfo( madatoryValueMap, infoNode );
-        String evDevDetailData = JsonHandler.unprettyPrint( infoNode );
-        itemStatus.setEvDetailData( evDevDetailData );
-        itemStatus.setMasterData( LogbookParameterName.eventDetailData.name(), evDevDetailData );
+        updateSedaInfo(madatoryValueMap, infoNode);
+        String evDevDetailData = JsonHandler.unprettyPrint(infoNode);
+        itemStatus.setEvDetailData(evDevDetailData);
+        itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(), evDevDetailData);
 
-        if (shouldCheckOriginatingAgency)  {
-            if (!Strings.isNullOrEmpty((String) madatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER))) {
-                Set<String> serviceAgentList = new HashSet<String>();
+        if (shouldCheckOriginatingAgency) {
+            Set<String> serviceAgentList = new HashSet<String>();
+            if (madatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER) != null &&
+                !Strings.isNullOrEmpty((String) madatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER))) {
                 serviceAgentList.add((String) madatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
-                if (!Strings.isNullOrEmpty((String) madatoryValueMap.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER))) {
-                    serviceAgentList.add((String) madatoryValueMap.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
-                }
-                handlerIO.getInput().clear();
-                handlerIO.getInput().add(serviceAgentList);
-                CheckOriginatingAgencyHandler checkOriginatingAgencyHandler = new CheckOriginatingAgencyHandler();
-                final ItemStatus checkOriginatingAgencyStatus = checkOriginatingAgencyHandler.execute(params, handlerIO);
-                itemStatus.setItemsStatus(CheckOriginatingAgencyHandler.getId(), checkOriginatingAgencyStatus);
-                checkOriginatingAgencyHandler.close();
-                if (checkOriginatingAgencyStatus.shallStop(true)) {
-                    return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-                }                
-            } else {
-                itemStatus.increment(StatusCode.KO);
+            }
+
+            if (madatoryValueMap.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER) != null &&
+                !Strings.isNullOrEmpty((String) madatoryValueMap.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER))) {
+                serviceAgentList.add((String) madatoryValueMap.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
+            }
+            handlerIO.getInput().clear();
+            handlerIO.getInput().add(serviceAgentList);
+            CheckOriginatingAgencyHandler checkOriginatingAgencyHandler = new CheckOriginatingAgencyHandler();
+            final ItemStatus checkOriginatingAgencyStatus = checkOriginatingAgencyHandler.execute(params, handlerIO);
+            itemStatus.setItemsStatus(CheckOriginatingAgencyHandler.getId(), checkOriginatingAgencyStatus);
+            checkOriginatingAgencyHandler.close();
+            if (checkOriginatingAgencyStatus.shallStop(true)) {
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             }
         }
 
         if (madatoryValueMap.get(SedaConstants.TAG_COMMENT) != null) {
-            itemStatus.setMasterData(LogbookParameterName.objectIdentifierIncome.name(), madatoryValueMap.get
-                (SedaConstants.TAG_COMMENT));
+            itemStatus.setMasterData(LogbookParameterName.objectIdentifierIncome.name(),
+                madatoryValueMap.get(SedaConstants.TAG_COMMENT));
         }
 
         if (shouldCheckContract) {
@@ -142,23 +142,26 @@ public class CheckHeaderActionHandler extends ActionHandler {
                 final String contractIdentifier = (String) madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
                 handlerIO.getInput().clear();
                 handlerIO.getInput().add(contractIdentifier);
-                CheckIngestContractActionHandler checkIngestContractActionHandler = new CheckIngestContractActionHandler();
+                CheckIngestContractActionHandler checkIngestContractActionHandler =
+                    new CheckIngestContractActionHandler();
                 final ItemStatus checkContratItemStatus = checkIngestContractActionHandler.execute(params, handlerIO);
                 itemStatus.setItemsStatus(CheckIngestContractActionHandler.getId(), checkContratItemStatus);
                 checkIngestContractActionHandler.close();
                 if (checkContratItemStatus.shallStop(true)) {
                     return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
                 }
-            }            
+            }
         }
         if (shouldCheckProfile) {
-            if (madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE) != null) {               
+            if (madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE) != null) {
                 handlerIO.getInput().clear();
                 handlerIO.getInput().add(madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE));
                 handlerIO.getInput().add(madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT));
-                CheckArchiveProfileRelationActionHandler checkProfileRelation = new CheckArchiveProfileRelationActionHandler();
+                CheckArchiveProfileRelationActionHandler checkProfileRelation =
+                    new CheckArchiveProfileRelationActionHandler();
                 final ItemStatus checkProfilRelationItemStatus = checkProfileRelation.execute(params, handlerIO);
-                itemStatus.setItemsStatus(CheckArchiveProfileRelationActionHandler.getId(), checkProfilRelationItemStatus);
+                itemStatus.setItemsStatus(CheckArchiveProfileRelationActionHandler.getId(),
+                    checkProfilRelationItemStatus);
                 checkProfileRelation.close();
                 if (checkProfilRelationItemStatus.shallStop(true)) {
                     return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
@@ -172,17 +175,18 @@ public class CheckHeaderActionHandler extends ActionHandler {
                 checkArchiveProfile.close();
                 if (checkProfilItemStatus.shallStop(true)) {
                     return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-                } 
+                }
 
             } else {
                 // Return ok in case of missing profile
-                
-               ItemStatus checkProfileStatus = new ItemStatus(CheckArchiveProfileActionHandler.getId());
-               checkProfileStatus.increment(StatusCode.OK);
-               ItemStatus checkProfileRelationStatus = new ItemStatus(CheckArchiveProfileRelationActionHandler.getId());
-               checkProfileRelationStatus.increment(StatusCode.OK);
-               itemStatus.setItemsStatus(CheckArchiveProfileRelationActionHandler.getId(), checkProfileRelationStatus);
-               itemStatus.setItemsStatus(CheckArchiveProfileActionHandler.getId(), checkProfileStatus);
+
+                ItemStatus checkProfileStatus = new ItemStatus(CheckArchiveProfileActionHandler.getId());
+                checkProfileStatus.increment(StatusCode.OK);
+                ItemStatus checkProfileRelationStatus =
+                    new ItemStatus(CheckArchiveProfileRelationActionHandler.getId());
+                checkProfileRelationStatus.increment(StatusCode.OK);
+                itemStatus.setItemsStatus(CheckArchiveProfileRelationActionHandler.getId(), checkProfileRelationStatus);
+                itemStatus.setItemsStatus(CheckArchiveProfileActionHandler.getId(), checkProfileStatus);
             }
         } else {
             itemStatus.increment(StatusCode.OK);
@@ -200,7 +204,7 @@ public class CheckHeaderActionHandler extends ActionHandler {
             final String contractName = (String) madatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
             infoNode.put(SedaConstants.TAG_ARCHIVAL_AGREEMENT, contractName);
         }
-        if (madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE) != null) {               
+        if (madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE) != null) {
             final String profileName = (String) madatoryValueMap.get(SedaConstants.TAG_ARCHIVE_PROFILE);
             infoNode.put(SedaConstants.TAG_ARCHIVE_PROFILE, profileName);
         }
@@ -208,7 +212,7 @@ public class CheckHeaderActionHandler extends ActionHandler {
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-        //do nothing
+        // do nothing
     }
 
 }

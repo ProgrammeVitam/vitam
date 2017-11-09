@@ -1,6 +1,8 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -55,7 +57,7 @@ public class CheckOriginatingAgencyHandlerTest {
     private GUID guid;
     private static final Integer TENANT_ID = 0;
     private static final String FAKE_URL = "http://localhost:8083";
-    private static final String ORIGINATING_AGENCY_NAME = "AG-0000001";
+    private static final String ORIGINATING_AGENCY_IDENTIFIER = "AG-0000001";
     
     private static final String AGENCY = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
         "\"_tenant\":\"0\", " +
@@ -85,7 +87,7 @@ public class CheckOriginatingAgencyHandlerTest {
     public void givenOriginatingAgencyOKThenReturnOK() throws AdminManagementClientServerException, ReferentialException, InvalidParseOperationException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         Set<String> serviceAgent = new HashSet<String>();
-        serviceAgent.add(ORIGINATING_AGENCY_NAME);
+        serviceAgent.add(ORIGINATING_AGENCY_IDENTIFIER);
 
         when(handlerIO.getInput(0)).thenReturn(serviceAgent);
 
@@ -107,7 +109,7 @@ public class CheckOriginatingAgencyHandlerTest {
     public void givenOriginatingAgencyKOThenReturnKO() throws AdminManagementClientServerException, ReferentialException, InvalidParseOperationException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         Set<String> serviceAgent = new HashSet<String>();
-        serviceAgent.add(ORIGINATING_AGENCY_NAME);
+        serviceAgent.add(ORIGINATING_AGENCY_IDENTIFIER);
 
         when(handlerIO.getInput(0)).thenReturn(serviceAgent);
 
@@ -117,6 +119,33 @@ public class CheckOriginatingAgencyHandlerTest {
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
                     .setObjectNameList(Lists.newArrayList("objectName.json"))
                     .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        handler = new CheckOriginatingAgencyHandler();
+        assertEquals(CheckOriginatingAgencyHandler.getId(), HANDLER_ID);
+
+        ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(response.getGlobalStatus(), StatusCode.KO);
+
+        String evDetData = response.getItemsStatus().get("CHECK_AGENT").getEvDetailData();
+        assertTrue(evDetData.contains("AG-000000"));
+        assertTrue(evDetData.contains("error originating agency validation"));
+
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenNoOriginatingAgencyThenReturnKO()
+        throws AdminManagementClientServerException, ReferentialException, InvalidParseOperationException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        Set<String> serviceAgent = new HashSet<String>();
+
+        when(handlerIO.getInput(0)).thenReturn(serviceAgent);
+
+        when(adminClient.getAgencies(anyObject())).thenReturn(createReponse(AGENCY).toJsonNode());
+
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
+                .setObjectNameList(Lists.newArrayList("objectName.json"))
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         handler = new CheckOriginatingAgencyHandler();
         assertEquals(CheckOriginatingAgencyHandler.getId(), HANDLER_ID);
 
