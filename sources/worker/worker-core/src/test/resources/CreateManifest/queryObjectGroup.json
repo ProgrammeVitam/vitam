@@ -1,0 +1,13 @@
+{
+  "$query": {
+    "$in": {
+      "#id": [
+        "aebaaaaaaadf6mc4aathcak7tmtgc7qaaaaq",
+        "aebaaaaaaadf6mc4aathcak7tmtgc7yaaaaq",
+        "aebaaaaaaadf6mc4aathcak7tmtgc6yaaaaq"
+      ]
+    }
+  },
+  "$filter": {},
+  "$projection": {}
+}

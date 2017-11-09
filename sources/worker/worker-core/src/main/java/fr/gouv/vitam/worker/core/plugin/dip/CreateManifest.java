@@ -108,9 +108,9 @@ public class CreateManifest extends ActionHandler {
 
     private static final String CREATE_MANIFEST = "CREATE_MANIFEST";
 
-    private static final int MANIFEST_XML_RANK = 0;
-    private static final int GUID_TO_PATH_RANK = 1;
-    private static final int BINARIES_RANK = 2;
+    static final int MANIFEST_XML_RANK = 0;
+    static final int GUID_TO_PATH_RANK = 1;
+    static final int BINARIES_RANK = 2;
 
     private static JAXBContext jaxbContext;
 
@@ -122,7 +122,6 @@ public class CreateManifest extends ActionHandler {
         }
     }
 
-
     private ObjectMapper objectMapper;
 
     private ArchiveUnitMapper archiveUnitMapper;
@@ -133,11 +132,17 @@ public class CreateManifest extends ActionHandler {
     private ObjectFactory objectFactory;
 
     public CreateManifest() {
-        archiveUnitMapper = new ArchiveUnitMapper();
-        objectGroupMapper = new ObjectGroupMapper();
-        objectMapper = buildObjectMapper();
-        metaDataClientFactory = MetaDataClientFactory.getInstance();
+        this(new ArchiveUnitMapper(), new ObjectGroupMapper(), MetaDataClientFactory.getInstance());
+    }
+
+    CreateManifest(ArchiveUnitMapper archiveUnitMapper,
+        ObjectGroupMapper objectGroupMapper,
+        MetaDataClientFactory metaDataClientFactory) {
+        this.archiveUnitMapper = archiveUnitMapper;
+        this.objectGroupMapper = objectGroupMapper;
+        this.metaDataClientFactory = metaDataClientFactory;
         this.objectFactory = new ObjectFactory();
+        this.objectMapper = buildObjectMapper();
     }
 
     @Override
@@ -237,9 +242,9 @@ public class CreateManifest extends ActionHandler {
         writer.writeAttribute("xsi", XSI_URI, "schemaLocation", NAMESPACE_URI + " seda-2.0-main.xsd");
 
         writer.writeStartElement(TAG_DATA_OBJECT_PACKAGE);
-        Map<String, String> idGOTWithFileName = writeGOT(objects, writer, marshaller);
+        Map<String, String> idBinaryWithFileName = writeGOT(objects, writer, marshaller);
 
-        storeBinaryInformationOnWorkspace(handlerIO, idGOTWithFileName);
+        storeBinaryInformationOnWorkspace(handlerIO, idBinaryWithFileName);
 
         writeArchiveUnits(results, multimap, ogs, writer, marshaller);
 
@@ -287,7 +292,12 @@ public class CreateManifest extends ActionHandler {
                 for (MinimalDataObjectType minimalDataObjectType : binaryDataObjectOrPhysicalDataObject) {
                     if (minimalDataObjectType instanceof BinaryDataObjectType) {
                         BinaryDataObjectType binaryDataObjectType = (BinaryDataObjectType) minimalDataObjectType;
-                        maps.put(minimalDataObjectType.getId(), binaryDataObjectType.getUri());
+
+                        String binaryId = binaryDataObjectType.getId();
+
+                        String fileName = StoreDIP.CONTENT + "/" + binaryId;
+                        binaryDataObjectType.setUri(fileName);
+                        maps.put(minimalDataObjectType.getId(), fileName);
                     }
                     marshaller.marshal(minimalDataObjectType, writer);
                 }

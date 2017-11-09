@@ -1,0 +1,9 @@
+{
+  "$query": {
+    "$eq": {
+      "#operations": "aedaaaaaacdf6mc4aathcak7tmtfxiiaaaba"
+    }
+  },
+  "$filter": {},
+  "$projection": {}
+}
