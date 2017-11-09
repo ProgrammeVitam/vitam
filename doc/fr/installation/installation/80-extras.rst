@@ -1,0 +1,63 @@
+.. _extrainstall:
+
+.. |repertoire_deploiement| replace:: ``deployment``
+.. |repertoire_inventory| replace:: ``environments``
+.. |repertoire_playbook ansible| replace:: ``ansible-vitam``
+
+Elements extras de l'installation
+#################################
+
+.. caution:: Les élements décrits dans cette section sont des élements "extras" ; il ne sont pas officiellement supportés, et ne sont par conséquence pas inclus dans l'installation de base. Cependant, ils peuvent s'avérer utile, notamment pour les installation sur des environnements hors production.
+
+Configuration des extra
+=======================
+
+Le fichier |repertoire_inventory| ``/group_vars/all/extra_vars.yml`` contient la configuration des extra :
+
+.. literalinclude:: ../../../../deployment/environments/group_vars/all/extra_vars.yml
+     :language: yaml
+     :linenos:
+
+Le fichier |repertoire_inventory| ``/group_vars/all/all/vault-extra.yml`` contient les secrets supplémentaires des extra ; ce fichier est encrypté par ``ansible-vault`` et doit être paramétré avant le lancement de l'orchestration de déploiement, si le composant ihm-recette est déployé avec récupération des TNR.
+
+.. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-extra.txt
+   :language: ini
+   :linenos:
+
+.. note:: Pour ce fichier, l'encrypter avec le même mot de passe que ``vault-vitam.yml``.
+
+
+Déploiement des extra
+=====================
+
+Plusieurs playbook d'extra sont fournis pour usage "tel quel".
+
+ihm-recette
+-----------
+
+Ce playbook permet d'installer également le composant :term:`VITAM` ihm-recette.
+
+.. code-block:: console
+
+   ansible-playbook ansible-vitam-extra/ihm-recette.yml -i environments/<ficher d'inventaire> --ask-vault-pass
+
+
+extra complet
+-------------
+
+Ce playbook permet d'installer :
+  - des éléments de monitoring système
+  - un serveur Apache pour naviguer sur le ``/vitam``  des différentes machines hébergeant :term:`VITAM`
+  - mongo-express (en docker ; une connexion internet est alors nécessaire)
+  - le composant :term:`VITAM` library, hébergeant la documentation du projet
+  - le composant :term:`VITAM` ihm-recette (utilise si configuré des dépôts de jeux de tests)
+  - un reverse proxy, afin de fournir une page d'accueil pour les environnements de test
+  - l'outillage de tests de performance
+
+
+.. code-block:: console
+
+   ansible-playbook ansible-vitam-extra/extra.yml -i environments/<ficher d'inventaire> --ask-vault-pass
+
+
+

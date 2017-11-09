@@ -238,8 +238,6 @@ days_to_delete_logback_logfiles=
 days_to_delete_logstash_indexes=
 #	Days before closing "old" indexes on log management cluster; 30 for production environment
 days_to_close_logstash_indexes=
-#	Days before deletion for topbeat index only on log management cluster; 365 for production environment
-
 
 # ===============================
 # EXTRA

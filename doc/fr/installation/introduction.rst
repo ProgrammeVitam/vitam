@@ -1,14 +1,14 @@
 Introduction
 ############
 
-But de cette documentation
-=============================
+Objectif de ce document
+=======================
 
 Ce document a pour but de permettre de fournir à une équipe d'exploitants de VITAM les procédures et informations utiles et nécessaires pour l'installation de la solution logicielle.
 
-Destinataires de ce document
-============================
+Il s'adresse aux personnes suivantes :
 
-Ce document s'adresse à des exploitants du secteur informatique ayant de bonnes connaissances en environnement Linux.
+* Les architectes techniques des projets désirant intégrer la solution logicielle VITAM ;
+* Les exploitants devant installer la solution logicielle VITAM.
 
 .. include:: ../commons/include-preamble.rst

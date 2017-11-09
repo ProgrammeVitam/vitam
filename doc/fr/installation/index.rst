@@ -2,21 +2,19 @@
 |doc_title|
 ###########
 
+
 .. toctree::
    :maxdepth: 2
+   :glob:
    :numbered:
 
    introduction
-   architecture
-   prerequis
-   10-it-services.rst
-   fiche_type
-   get_version
-   certificats/_toc
-   packages/_toc
-   validation_deploiement
-   troubleshooting
-   extras
+   pre_install/_toc
+   installation/_toc
+   update/_toc
+   post_install/_toc
+   annexes/_toc
+
 
 .. only:: latex
 
