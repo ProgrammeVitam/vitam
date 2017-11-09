@@ -1,6 +1,20 @@
-<vitam-archive-tree-view *ngIf="data" [unitId]="data['#id']" [title]="data.Title" [unitUps]="data['#unitups']"></vitam-archive-tree-view>
+<vitam-archive-tree-view *ngIf="data" [unitId]="data['#id']" [title]="data.Title"
+                         [unitUps]="data['#unitups']"></vitam-archive-tree-view>
 <vitam-archive-main-description [archiveUnit]="data"></vitam-archive-main-description>
 <vitam-archive-extra-description [archiveUnit]="data"></vitam-archive-extra-description>
-<vitam-archive-rule-bloc *ngIf="data" [inheritedRules]="data.inheritedRule" [management]="data['#management']" [id]="data['#id']"></vitam-archive-rule-bloc>
-<vitam-archive-object-group *ngIf="objects" [unitId]="data['#id']" [objects]="objects" [objectGroupId]="data['#object']"></vitam-archive-object-group>
-<vitam-archive-export-dip *ngIf="data" [id]="data['#id']" [operation]="data['#operations'][0]"></vitam-archive-export-dip>
+<vitam-archive-rule-bloc *ngIf="data" [inheritedRules]="data.inheritedRule" [management]="data['#management']"
+                         [id]="data['#id']"></vitam-archive-rule-bloc>
+<vitam-archive-object-group *ngIf="objects" [unitId]="data['#id']" [objects]="objects"
+                            [objectGroupId]="data['#object']"></vitam-archive-object-group>
+
+<p-panel *ngIf="objectDisplayable" [toggleable]="true" [collapsed]="false">
+  <p-header>
+    <div class="ui-g-5"></div>
+    <span class="ui-g-2" style="padding: 0">Groupe d'Objets</span>
+  </p-header>
+  <div>
+    <p>En cours de chargement</p>
+  </div>
+</p-panel>
+<vitam-archive-export-dip *ngIf="data" [id]="data['#id']"
+                          [operation]="data['#operations'][0]"></vitam-archive-export-dip>

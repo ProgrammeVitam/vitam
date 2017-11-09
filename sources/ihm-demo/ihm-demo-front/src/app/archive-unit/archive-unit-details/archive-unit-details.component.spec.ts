@@ -7,6 +7,7 @@ import { ArchiveUnitDetailsComponent } from './archive-unit-details.component';
 import { BreadcrumbService } from '../../common/breadcrumb.service';
 import { VitamResponse } from "../../common/utils/response";
 import { ArchiveUnitService } from "../archive-unit.service";
+import {DialogService} from "../../common/dialog/dialog.service";
 
 let DefaultResponse = {
   $context: {},
@@ -32,7 +33,8 @@ describe('ArchiveUnitDetailsComponent', () => {
       declarations: [ ArchiveUnitDetailsComponent ],
       providers: [
         BreadcrumbService,
-        { provide: ArchiveUnitService, useValue: ArchiveUnitServiceStub }
+        { provide: ArchiveUnitService, useValue: ArchiveUnitServiceStub },
+        DialogService
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })
