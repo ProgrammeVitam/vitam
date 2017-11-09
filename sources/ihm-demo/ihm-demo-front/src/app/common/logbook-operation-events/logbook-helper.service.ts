@@ -27,15 +27,21 @@ export class LogbookHelperService {
               tasks.push(task);
               task = null;
             }
-            if (tasks.length > 0) {
+            if (event.evParentId === events[eventIndex].end.evId) {
+              task = new Event('', this.eventData, []);
+              tasks.push(task);
               events[eventIndex].subEvents = tasks;
-              eventIndex = events.length;
-            }
-            tasks = [];
-            if (events[eventIndex] && events[eventIndex].end) {
-              events[eventIndex].end = this.eventData;
             } else {
-              events.push(new Event('', this.eventData, []));
+              if (tasks.length > 0) {
+                events[eventIndex].subEvents = tasks;
+                eventIndex = events.length;
+              }
+              tasks = [];
+              if (events[eventIndex] && events[eventIndex].end) {
+                events[eventIndex].end = this.eventData;
+              } else {
+                events.push(new Event('', this.eventData, []));
+              }
             }
           } else {
             if (event.evParentId === events[eventIndex].end.evId) {
@@ -69,11 +75,13 @@ export class LogbookHelperService {
                 events[eventIndex].end = this.eventData;
               } else {
                 events.push(new Event('', this.eventData, []));
-                eventIndex = events.length;
+                if (eventIndex > 0) {
+                  eventIndex = events.length;
+                }
               }
             }
           } else {
-            if (event.evParentId === events[eventIndex].end.evId) {
+            if (events[eventIndex] && event.evParentId === events[eventIndex].end.evId) {
               if (task) {
                 tasks.push(task);
                 task = null;
@@ -88,7 +96,7 @@ export class LogbookHelperService {
         }
       }
     } else {
-      if (logbook.event > 0) {
+      if (logbook.events.length > 0) {
         events.push(new Event(logbook, logbook.events[0], []));
       } else {
         // If logbook has no event then process must have failed
