@@ -32,6 +32,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -220,6 +221,17 @@ public class ItemStatus {
             itemStatus1.getGlobalStatus().compareTo(itemStatus2.getGlobalStatus()) >= 1 ? itemStatus1.getGlobalStatus()
                 : itemStatus2.getGlobalStatus());
         
+        // update itemStatus
+        Set<String> keySet1 = itemStatus1.getItemsStatus().keySet();
+        Set<String> keySet2 = itemStatus2.getItemsStatus().keySet();
+        for (String key : keySet2) {
+            if (keySet1.contains(key) && !key.equals(itemStatus1.getItemId())) {
+                itemStatus1.getItemsStatus().put(key, increment(
+                    itemStatus1.getItemsStatus().get(key),
+                    itemStatus2.getItemsStatus().get(key)
+                ));
+            }
+        }
 
         if (itemStatus2.getGlobalOutcomeDetailSubcode() != null && itemStatus1.getGlobalOutcomeDetailSubcode() == null) {
             itemStatus1.setGlobalOutcomeDetailSubcode(itemStatus2.getGlobalOutcomeDetailSubcode());
