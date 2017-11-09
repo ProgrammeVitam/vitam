@@ -23,9 +23,6 @@ vitam_defaults:
     #package_version: "*"
     ### Trust X-SSL-CLIENT-CERT header for external api auth ? (true | false) ###
     vitam_ssl_user_header: true
-    ### clamav ###
-    # TODO : has it to be here ???
-    installation_clamav: "true"
     # syslog_facility
     syslog_facility: local0
 
@@ -77,6 +74,7 @@ vitam:
         baseuri: "ingest-external"
         https_enabled: true
         secret_platform: "false"
+        antivirus: "clamav"
     ingestinternal:
         vitam_component: ingest-internal
         host: "ingest-internal.service.{{consul_domain}}"

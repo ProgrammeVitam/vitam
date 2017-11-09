@@ -10,6 +10,7 @@
     "enableTagOverride": false,
     "checks": [
       {
+         "name": "{{ vitam_struct.vitam_component }}: business service check",
 {% if vitam_struct.https_enabled==true %}
         "notes": "HTTPS port opened",
         "tcp": "{{ip_service}}:{{ vitam_struct.port_https }}",
@@ -20,32 +21,29 @@
         "interval": "1s"
       },
       {
+        "name": "{{ vitam_struct.vitam_component }} : admin service check",
         "notes": "Status admin : /admin/v1/status",
         "http": "http://{{ip_admin}}:{{ vitam_struct.port_admin }}/admin/v1/status",
         "interval": "1s"
       }
-{% if vitam_struct.vitam_component == 'worker'  %}
+{% if (vitam_struct.vitam_component == 'worker') or (vitam_struct.vitam_component =='ingest-external')  %}
       ,
       {
+        "name": "Siegfried check",
         "notes": "Is siegfried running ?",
         "tcp": "localhost:{{ siegfried.port }}",
-        "interval": "1s"
-      }
-{% elif vitam_struct.vitam_component =='ingest-external' %}
-      ,
-      {
-        "notes": "Is siegfried running ?",
-        "tcp": "localhost:{{ siegfried.port }}",
-        "interval": "1s"
-      }
-{% if vitam_defaults.installation_clamav == "true" %}
-      ,
-      {
-        "notes": "Is ClamAV daemon running ?",
-        "tcp": "localhost:{{ clamav.port }}",
         "interval": "1s"
       }
 {% endif %}
+{% if vitam_struct.antivirus is defined %}
+      ,
+      {
+        "name": "Antivirus check",
+        "notes": "Is {{ vitam_struct.antivirus }} running ?",
+        "args": ["{{ vitam_folder_conf }}/scan-{{ vitam_struct.antivirus}}.sh","{{ vitam_folder_conf }}/scan-{{ vitam_struct.antivirus}}.sh"],
+        "interval": "30s",
+        "timeout": "5s"
+      }
 {% endif %}
     ]
   }

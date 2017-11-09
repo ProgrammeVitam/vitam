@@ -256,8 +256,9 @@
 - hosts: hosts-ingest-external
   roles:
     - siegfried
+    - antivirus
     - vitam
-    - {role: clamav, when: vitam_defaults.installation_clamav=="true"}
+   #- {role: clamav, when: vitam_struct.antivirus=='clamav' }
   vars:
     vitam_struct: "{{ vitam.ingestexternal }}"
     password_keystore: "{{keystores.server.ingest_external}}"

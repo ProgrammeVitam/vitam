@@ -10,6 +10,7 @@
     "enableTagOverride": false,
     "checks": [
       {
+        "name": "{{ composant.cluster_name }} : HTTP check",
         "notes": "Statut HTTP {{ composant.cluster_name }}",
         {% if composant.groupe=='log' %}
         "http": "http://{{ ip_admin }}:{{ composant.port_http }}",
@@ -19,6 +20,7 @@
         "interval": "2s"
       },
       {
+        "name": "{{ composant.cluster_name }} : TCP check",
         "notes": "Statut TCP {{ composant.cluster_name }}",
         {% if composant.groupe=='log' %}
         "tcp": "{{ ip_admin }}:{{ composant.port_tcp }}",

@@ -33,25 +33,20 @@ Paramétrage de l'antivirus (ingest-externe)
 
 L'antivirus utilisé par ingest-externe est modifiable (par défaut, ClamAV) ; pour cela :
 
-* Créer un autre shell (dont l'extension doit être ``.sh.j2``) sous ``ansible-vitam/roles/vitam/templates/ingest-external`` ; prendre comme modèle le fichier ``scan-clamav.sh.j2``. Ce fichier est un template Jinja2, et peut donc contenir des variables qui seront interprétées lors de l'installation.
-* Modifier le fichier ``ansible-vitam/roles/vitam/templates/ingest-external/ingest-external.conf.j2`` en pointant sur le nouveau fichier.
+* Modifier le fichier ``environments/group_vars/all/vitam_vars.yml`` pour indiquer le nom de l'antivirus qui sera utilisé (norme : scan-<nom indiqué dans vitam-vars.yml>.sh)
+* Créer un shell (dont l'extension doit être ``.sh``) sous ``environments/antivirus/`` (norme : scan-<nom indiqué dans vitam-vars.yml>.sh) ; prendre comme modèle le fichier ``scan-clamav.sh``. Ce script shell doit respecter le contrat suivant :
 
+    * Argument : chemin absolu du fichier à analyser
+    * Sémantique des codes de retour
+        - 0 : Analyse OK - pas de virus
+        - 1 : Analyse OK - virus trouvé et corrigé
+        - 2 : Analyse OK - virus trouvé mais non corrigé
+        - 3 : Analyse NOK
+    * Contenu à écrire dans stdout / stderr
+        - stdout : Nom des virus trouvés, un par ligne ; Si échec (code 3) : raison de l’échec
+        - stderr : Log « brut » de l’antivirus
 
-Ce script shell doit respecter le contrat suivant :
-
-* Argument : chemin absolu du fichier à analyser
-* Sémantique des codes de retour
-
-    - 0 : Analyse OK - pas de virus
-    - 1 : Analyse OK - virus trouvé et corrigé
-    - 2 : Analyse OK - virus trouvé mais non corrigé
-    - 3 : Analyse NOK
-
-* Contenu à écrire dans stdout / stderr
-
-    - stdout : Nom des virus trouvés, un par ligne ; Si échec (code 3) : raison de l’échec
-    - stderr : Log « brut » de l’antivirus
-
+.. caution:: En cas de remplacement de clamAV par un autre antivirus, l'installation de celui-ci devient dès lors un prérequis de l'installation et le script doit être testé.
 
 Paramétrage des certificats externes (\*-externe)
 -------------------------------------------------

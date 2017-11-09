@@ -6,6 +6,7 @@
     "enableTagOverride": false,
     "checks": [
       {
+        name: "{{ kibana_service_name }} : HTTP check",
         "notes": "Kibana home page access",
         "http": "http://{{ ip_service }}:{{ composant.port }}/app/kibana",
         "interval": "1s"

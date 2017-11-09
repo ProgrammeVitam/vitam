@@ -1,3 +1,5 @@
 ip_service: 172.17.0.2
 ip_admin: 172.17.0.2
-
+vitam:
+    ingestexternal:
+        antivirus: "dev"
