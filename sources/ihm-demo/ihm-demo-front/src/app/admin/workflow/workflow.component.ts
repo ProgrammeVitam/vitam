@@ -303,7 +303,7 @@ export class WorkflowComponent extends PageComponent {
     }
   }
 
-  onClickOnIcon(item, workflowService, iconType, thisWorkflow) {
+  onClickOnIcon(item, workflowService, iconType) {
     if (!!iconType) {
       iconType = iconType.split(' ')[0];
     }

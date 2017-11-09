@@ -124,15 +124,23 @@ public class PaginationHelper {
         throws InvalidParseOperationException {
 
         final ObjectNode jsonResult = (ObjectNode) JsonHandler.toJsonNode(result);
-        final JsonNode resultsPagination = JsonHandler.getSubArrayNode((ArrayNode) jsonResult.get(JSON_NODE_RESULT),
-            pagination.getOffset(), pagination.getLimit());
+        JsonNode resultsPagination;
+        if (pagination != null) {
+            resultsPagination = JsonHandler.getSubArrayNode((ArrayNode) jsonResult.get(JSON_NODE_RESULT),
+                pagination.getOffset(), pagination.getLimit());
+        } else {
+            resultsPagination = jsonResult.get(JSON_NODE_RESULT);
+        }
         jsonResult.replace(JSON_NODE_RESULT, resultsPagination);
 
         final ObjectNode hits = (ObjectNode) jsonResult.get(JSON_NODE_HITS);
-
-        hits.put(JSON_NODE_OFFSET, pagination.getOffset());
-        hits.put(JSON_NODE_LIMIT, pagination.getLimit());
-
+        if (pagination != null) {
+            hits.put(JSON_NODE_OFFSET, pagination.getOffset());
+            hits.put(JSON_NODE_LIMIT, pagination.getLimit());
+        } else {
+            hits.put(JSON_NODE_OFFSET, 0);
+            hits.put(JSON_NODE_LIMIT, 10000);
+        }
         jsonResult.replace(JSON_NODE_HITS, hits);
 
         return jsonResult;

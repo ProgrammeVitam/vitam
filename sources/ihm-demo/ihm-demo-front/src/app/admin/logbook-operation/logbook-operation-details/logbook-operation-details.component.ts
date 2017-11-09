@@ -26,41 +26,41 @@ export class LogbookOperationDetailsComponent extends PageComponent {
 
   public columns = [
     ColumnDefinition.makeStaticColumn('evTypeProc', 'Catégorie d\'opération', undefined,
-      () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('evType', 'Opération', undefined,
-      () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('agIdExt', 'Acteur de l\'opération', undefined,
-      () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('rightsStatementIdentifier', 'Contrat associé', undefined,
-      () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('evDateTime', 'Date de début',
-      this.archiveUnitHelper.handleDateWithTime, () => ({'width': '125px', 'overflow-wrap': 'break-word'})),
+      this.archiveUnitHelper.handleDateWithTime, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeSpecialValueColumn('Date de fin',
-        (item) => item.events.length > 0 ? item.events[item.events.length - 1].evDateTime : item.evDateTime,
-      this.archiveUnitHelper.handleDateWithTime, () => ({'width': '125px', 'overflow-wrap': 'break-word'})),
+      (item) => item.events.length > 0 ? item.events[item.events.length - 1].evDateTime : item.evDateTime,
+      this.archiveUnitHelper.handleDateWithTime, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeSpecialValueColumn('Statut',
-        (item) => item.events.length > 0 ? item.events[item.events.length - 1].outcome : 'KO',
-        undefined, () => ({'width': '125px', 'overflow-wrap': 'break-word'})),
+      (item) => item.events.length > 0 ? item.events[item.events.length - 1].outcome : 'KO',
+      undefined, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('evDetData', 'Informations complémentaires sur l\'opération', undefined,
-      () => ({'width': '175px', 'overflow-wrap': 'break-word'}))
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false)
   ];
 
   public extraColumns = [
     ColumnDefinition.makeStaticColumn('evId', 'Identifiant de l\'opération', undefined,
-      () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('agId', 'Acteur(s) internes', undefined,
-      () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('agIdApp', 'Identifiant de l\'application demandée', undefined,
-      () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('evIdReq', 'Numéro de transaction', undefined,
-      () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('obId', 'Identifiant de l\'opération', undefined,
-      () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeSpecialValueColumn('Message', (item) => item.events[item.events.length - 1].outMessg,
-      undefined, () => ({'width': '125px', 'overflow-wrap': 'break-word'})),
+      undefined, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeSpecialIconColumn('Rapport', LogbookOperationComponent.handleReports,
       () => ({'width': '75px', 'overflow-wrap': 'break-word'}),
-      LogbookOperationComponent.downloadReports, this.logbookService)
+      LogbookOperationComponent.downloadReports, this.logbookService, false)
   ];
 
   constructor(private route: ActivatedRoute, public logbookService: LogbookService,

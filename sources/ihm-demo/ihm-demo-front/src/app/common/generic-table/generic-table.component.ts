@@ -6,7 +6,7 @@ import {Router} from '@angular/router';
   selector: 'vitam-generic-table',
   templateUrl: './generic-table.component.html',
   styleUrls: ['./generic-table.component.css'],
-  changeDetection:ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class GenericTableComponent implements OnInit {
   @Input() items: any[] = [];
@@ -16,6 +16,9 @@ export class GenericTableComponent implements OnInit {
   @Input() selectionMode: string = null;
   @Input() selectedCols: ColumnDefinition[] = [];
   @Input() getClass: () => string = () => '';
+
+
+
 
   clickable(col: ColumnDefinition): string {
     return col.icons.length ? '' : 'clickableDiv';
@@ -30,9 +33,10 @@ export class GenericTableComponent implements OnInit {
   navigateTo(event) {
     const htmlPath = event.originalEvent.target;
     if (this.path !== '' && (htmlPath.tagName === 'SPAN' ||
-        (htmlPath.tagName === 'TD' && htmlPath.getElementsByTagName('i').length === 0))) {
+      (htmlPath.tagName === 'TD' && htmlPath.getElementsByTagName('i').length === 0))) {
       this.router.navigate([this.path, event.data[this.identifier]]);
     }
   }
+
 
 }

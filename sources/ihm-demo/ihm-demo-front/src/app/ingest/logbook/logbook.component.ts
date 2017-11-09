@@ -1,3 +1,4 @@
+
 import { Component, EventEmitter } from '@angular/core';
 import { ColumnDefinition } from '../../common/generic-table/column-definition';
 import { LogbookService } from '../logbook.service';
@@ -41,10 +42,10 @@ export class LogbookComponent extends PageComponent {
 
   public initialSearch(service: any, responseEvent: EventEmitter<any>, form: any, offset) {
     service.getResults(form, offset).subscribe(
-        (response) => {
-          responseEvent.emit({response: response, form: form});
-        },
-        (error) => console.log('Error: ', error)
+      (response) => {
+        responseEvent.emit({response: response, form: form});
+      },
+      (error) => console.log('Error: ', error)
     );
   }
 
@@ -54,43 +55,45 @@ export class LogbookComponent extends PageComponent {
 
   public columns = [
     ColumnDefinition.makeStaticColumn('obIdIn', 'Identifiant de la demande d\'entrée',
-        undefined, () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
+      undefined, () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeSpecialValueColumn('Intitulé',
-        (item) => (!!item.evDetData && JSON.parse(item.evDetData).EvDetailReq) ? JSON.parse(item.evDetData).EvDetailReq : '', undefined,
-        () => ({'width': '200px', 'overflow-wrap': 'break-word'})),
+
+  (item) => (!!item.evDetData && JSON.parse(item.evDetData).EvDetailReq) ? JSON.parse(item.evDetData).EvDetailReq : '', undefined,
+      () => ({'width': '200px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeSpecialValueColumn('Statut',
-        (item) => item.events[1], LogbookComponent.handleStatus,
-        () => ({'width': '125px'})),
+      (item) => item.events[1], LogbookComponent.handleStatus,
+      () => ({'width': '125px'}), false),
     ColumnDefinition.makeSpecialValueColumn('Service versant',
         (item) => (!!item.evDetData && JSON.parse(item.evDetData).AgIfTrans) ? JSON.parse(item.evDetData).AgIfTrans : '', undefined,
-        () => ({'width': '125px', 'overflow-wrap': 'break-word'})),
+        () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeSpecialValueColumn('Contrat',
         (item) => (!!item.evDetData && JSON.parse(item.evDetData).ArchivalAgreement) ? JSON.parse(item.evDetData).ArchivalAgreement : '', undefined,
-        () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
+        () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('evDateTime', 'Début opération', this.archiveUnitHelper.handleDateWithTime,
-        () => ({'width': '100px'})),
+      () => ({'width': '100px'}), false),
     ColumnDefinition.makeSpecialValueColumn('Fin opération',
-        (item) => item.events[1].evDateTime, this.archiveUnitHelper.handleDateWithTime,
-        () => ({'width': '100px'})),
+      (item) => item.events[1].evDateTime, this.archiveUnitHelper.handleDateWithTime,
+      () => ({'width': '100px'}), false),
     ColumnDefinition.makeIconColumn('Bordereau', ['fa-download'],
-        LogbookComponent.downloadManifest, LogbookComponent.displayManifestDownload,
-        () => ({'width': '100px'}), this.ingestUtilsService),
+      LogbookComponent.downloadManifest, LogbookComponent.displayManifestDownload,
+      () => ({'width': '100px'}), this.ingestUtilsService, false),
     ColumnDefinition.makeIconColumn('AR', ['fa-download'],
-        LogbookComponent.downloadReports, LogbookComponent.displayReportDownload,
-        () => ({'width': '50px'}), this.ingestUtilsService)
+      LogbookComponent.downloadReports, LogbookComponent.displayReportDownload,
+      () => ({'width': '50px'}), this.ingestUtilsService, false)
   ];
   public extraColumns = [
     ColumnDefinition.makeStaticColumn('evIdProc', 'Identifiant de l\'entrée', undefined,
-        () => ({'width': '325px'})),
+        () => ({'width': '325px'}), false),
     ColumnDefinition.makeSpecialValueColumn('Profil d\'archivage',
             (item) => !!item.ArchivalProfile ? item.ArchivalProfile : '', undefined,
-        () => ({'width': '125px'})),
+        () => ({'width': '125px'}), false),
+
     ColumnDefinition.makeStaticColumn('EvDateTimeReq', 'Date', this.archiveUnitHelper.handleDate,
-        () => ({'width': '100px'})),
+      () => ({'width': '100px'}), false),
     ColumnDefinition.makeStaticColumn('ServiceLevel', 'Niveau de service', undefined,
-        () => ({'width': '125px'})),
+      () => ({'width': '125px'}), false),
     ColumnDefinition.makeStaticColumn('Signature', 'Signature', undefined,
-        () => ({'width': '125px'}))
+      () => ({'width': '125px'}), false)
   ];
 
   constructor(public logbookService: LogbookService, private ingestUtilsService: IngestUtilsService,
@@ -101,8 +104,10 @@ export class LogbookComponent extends PageComponent {
   pageOnInit() {
     this.searchForm = this.preSearchFunction({}).request;
     this.logbookService.getResults(this.searchForm, 0).subscribe(
-        data => {this.response = data;},
-        error => console.log('Error - ', this.response));
+      data => {
+        this.response = data;
+      },
+      error => console.log('Error - ', this.response));
   }
 
   // TODO Move me in some utils class ?
@@ -110,10 +115,15 @@ export class LogbookComponent extends PageComponent {
     let status = event.outcome.toUpperCase();
     if (event.evType === 'PROCESS_SIP_UNITARY' || event.evType === 'FILINGSCHEME') {
       switch (status) {
-        case 'OK': return 'Succès';
-        case 'STARTED': return 'En cours';
-        case 'KO': case 'FATAL': return 'Erreur';
-        default: return 'Avertissement';
+        case 'OK':
+          return 'Succès';
+        case 'STARTED':
+          return 'En cours';
+        case 'KO':
+        case 'FATAL':
+          return 'Erreur';
+        default:
+          return 'Avertissement';
       }
     } else {
       if (status === 'KO' || status === 'FATAL') {
