@@ -3,6 +3,7 @@ import { Router, NavigationStart, NavigationEnd, ActivatedRoute } from '@angular
 import 'rxjs/add/operator/filter';
 
 import { AuthenticationService } from './authentication/authentication.service';
+import { TranslateService } from '@ngx-translate/core';
 
 
 @Component({
@@ -13,7 +14,7 @@ import { AuthenticationService } from './authentication/authentication.service';
 export class AppComponent {
   title = 'vitam';
   constructor(private router : Router, private authenticationService : AuthenticationService,
-              private activatedRoute : ActivatedRoute) {
+              private activatedRoute : ActivatedRoute, private translate: TranslateService) {
     router.events
       .filter(event => event instanceof NavigationEnd)
       .subscribe((event : NavigationStart) => {
@@ -22,5 +23,11 @@ export class AppComponent {
           this.router.navigate(['ingest/sip']);
         }
       });
+    translate.setDefaultLang('fr');
   }
+
+  switchLanguage(language: string) {
+    this.translate.use(language);
+  }
+
 }

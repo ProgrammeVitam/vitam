@@ -2,7 +2,7 @@
   <div *ngIf="childLevel > 0" [ngClass]="indentChildClass" style="height: 100%; background-color: white"></div>
   <div class="logbookRowBorder no-padding" [ngClass]="[stepMessageClass, logbookRowStyle]">
     <div class="ui-g-6" style="height: 100%">
-      {{event.end.evType}}
+      {{event.end.evType | translate}}
     </div>
 
     <div class="ui-g-6">

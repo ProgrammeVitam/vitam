@@ -1,19 +1,21 @@
-import { TestBed, async } from '@angular/core/testing';
+import {TestBed, async} from '@angular/core/testing';
 import {RouterTestingModule} from '@angular/router/testing';
-import { AppComponent } from './app.component';
+import {AppComponent} from './app.component';
 import {NO_ERRORS_SCHEMA} from '@angular/core';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/observable/of';
 
-import { AuthenticationService } from './authentication/authentication.service';
-
+import {AuthenticationService} from './authentication/authentication.service';
+import {TranslateLoader, TranslateModule} from "@ngx-translate/core";
 
 
 const AuthenticationServiceStub = {
   getLoginState: () => Observable.of(''),
-  logIn: () => Observable.of({ status : 200 }),
-  loggedIn: () => {},
-  loggedOut: () => {},
+  logIn: () => Observable.of({status: 200}),
+  loggedIn: () => {
+  },
+  loggedOut: () => {
+  },
   logOut: () => Observable.of('')
 };
 
@@ -25,11 +27,11 @@ describe('AppComponent', () => {
       ],
       imports: [
         RouterTestingModule.withRoutes([
-          { path: 'login', component: AppComponent }
-        ])
+        ]),
+        TranslateModule.forRoot({})
       ],
       providers: [
-        { provide: AuthenticationService, useValue: AuthenticationServiceStub }
+        {provide: AuthenticationService, useValue: AuthenticationServiceStub}
       ],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();

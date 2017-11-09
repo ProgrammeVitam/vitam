@@ -3,7 +3,9 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { CookieService } from 'angular2-cookie/core';
-import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClientModule, HttpClient } from '@angular/common/http';
+import { TranslateModule, TranslateLoader } from '@ngx-translate/core';
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 
 import { ButtonModule, CalendarModule, MenubarModule, BreadcrumbModule, DropdownModule,
   ProgressBarModule, PaginatorModule, PanelModule, ListboxModule, GrowlModule, RadioButtonModule, TabViewModule,
@@ -78,6 +80,8 @@ import { DialogComponent } from './common/dialog/dialog.component';
 import { DialogService } from './common/dialog/dialog.service';
 import { VitamInterceptor } from './common/http-interceptor';
 import { LifecycleComponent } from './archive-unit/archive-unit-details/lifecycle/lifecycle.component';
+import {CustomLoader} from "./common/translate/custom-loader";
+
 
 
 const appRoutes: Routes = [
@@ -157,6 +161,7 @@ const appRoutes: Routes = [
     path: '**', redirectTo: 'ingest/sip', pathMatch: 'full'
   }
 ];
+
 
 @NgModule({
   declarations: [
@@ -241,7 +246,6 @@ const appRoutes: Routes = [
     ReactiveFormsModule,
     CalendarModule,
     FieldsetModule,
-    HttpClientModule,
     DialogModule,
     ConfirmDialogModule,
     InputSwitchModule,
@@ -250,7 +254,12 @@ const appRoutes: Routes = [
     MultiSelectModule,
     CheckboxModule,
     DataGridModule,
-    CheckboxModule
+    CheckboxModule,
+    BrowserModule,
+    HttpClientModule,
+    TranslateModule.forRoot({
+      loader: {provide: TranslateLoader, useClass: CustomLoader}
+    })
   ],
   providers: [
     {
@@ -280,4 +289,5 @@ const appRoutes: Routes = [
   ],
   bootstrap: [AppComponent]
 })
+
 export class AppModule { }
