@@ -6,6 +6,7 @@ import { HttpHeaders } from '@angular/common/http';
 
 @Injectable()
 export class ArchiveUnitService {
+  ARCHIVE_OBJECT_GROUP_DOWNLOAD_URL = 'archiveunit/objects/download';
   ARCHIVE_UNIT_SEARCH_API = 'archivesearch';
   ARCHIVE_UNIT_API = 'archiveunit';
   ARCHIVE_UPDATE_API = 'archiveupdate';
@@ -24,6 +25,13 @@ export class ArchiveUnitService {
 
   getObjects(ogId): Observable<VitamResponse> {
     return this.resourceService.get(`${this.ARCHIVE_UNIT_API}/${this.OBJECTS}/${ogId}`);
+  }
+
+  getObjectURL(ogId, options) {
+    let tenant = this.resourceService.getTenant();
+    let accessContract = this.resourceService.getAccessContract();
+    return `${this.resourceService.getBaseURL()}${this.ARCHIVE_OBJECT_GROUP_DOWNLOAD_URL}/${ogId}` +
+      `?usage=${options.usage}&filename=${options.filename}&tenantId=${tenant}&contractId=${accessContract}`;
   }
 
   getResults(body: any, offset: number = 0, limit: number = 125): Observable<VitamResponse> {

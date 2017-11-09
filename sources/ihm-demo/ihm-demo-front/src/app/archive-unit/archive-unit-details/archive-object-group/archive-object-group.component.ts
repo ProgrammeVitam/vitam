@@ -1,5 +1,8 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { ArchiveUnitHelper } from "../../archive-unit.helper";
+import { ReferentialsService } from "../../../referentials/referentials.service";
+import { ResourcesService } from "../../../common/resources.service";
+import { ArchiveUnitService } from "../../archive-unit.service";
 import { Router } from "@angular/router";
 
 @Component({
@@ -10,11 +13,15 @@ import { Router } from "@angular/router";
 export class ArchiveObjectGroupComponent implements OnInit {
   @Input() objects;
   @Input() objectGroupId;
+  @Input() unitId;
   translations;
   translate: (x) => string;
   displayObject = {};
+  userContract;
 
-  constructor(private archiveUnitHelper: ArchiveUnitHelper, private router : Router) {
+  constructor(private archiveUnitHelper: ArchiveUnitHelper, private referentialsService: ReferentialsService,
+              private resourceService: ResourcesService, private archiveUnitService: ArchiveUnitService,
+              private router : Router) {
     this.translations = this.archiveUnitHelper.getObjectGroupTranslations();
     this.translate = (field: string) => {
       const value = this.translations[field];
@@ -23,22 +30,46 @@ export class ArchiveObjectGroupComponent implements OnInit {
       } else {
         return field;
       }
-    }
+    };
+
+
+
+    const contractName = this.resourceService.getAccessContract();
+    const criteria = {
+      ContractName: contractName
+    };
+
+    this.referentialsService.getAccessContract(criteria).subscribe(
+      (response) => {
+      if (response.httpCode == 200 && response.$results && response.$results.length > 0) {
+        response.$results.forEach((contract) => {
+          if (contract.Name == contractName) {
+            this.userContract = contract;
+          }
+        });
+      }
+    }, function (error) {
+      console.log('Error while get tenant. Set default list : ', error);
+    });
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+  }
 
   toogleDetails(id) {
     this.displayObject[id] = !this.displayObject[id];
   }
 
-  downloadObject(object) {
-    // TODO DEVME
+  downloadObject(usage, fileName) {
+    const options = {
+      usage: usage,
+      filename: fileName
+    };
+    window.open(this.archiveUnitService.getObjectURL(this.unitId, options), '_blank');
   }
 
   isDownloadable(version) {
-    // FIXME: userContract.DataObjectVersion.indexOf(version.split('_')[0]) < 0
-    return version.indexOf('BinaryMaster') !== -1;
+    return this.userContract.DataObjectVersion.indexOf(version.split('_')[0]) !== -1;
   }
 
   goToUnitLifecycles() {

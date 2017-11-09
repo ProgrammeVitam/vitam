@@ -88,4 +88,8 @@ export class ResourcesService {
     return header;
   }
 
+  getBaseURL(): string {
+    return BASE_URL;
+  }
+
 }

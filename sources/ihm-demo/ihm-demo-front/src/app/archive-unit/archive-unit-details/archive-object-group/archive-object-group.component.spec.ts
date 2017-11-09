@@ -8,6 +8,8 @@ import { ArchiveUnitHelper } from "../../archive-unit.helper";
 import { ArchiveUnitService } from "../../archive-unit.service";
 import { VitamResponse } from "../../../common/utils/response";
 import { KeysPipe, BytesPipe } from '../../../common/utils/pipes';
+import { ReferentialsService } from "../../../referentials/referentials.service";
+import { ResourcesService } from "../../../common/resources.service";
 import { RouterTestingModule } from "@angular/router/testing";
 
 let ArchiveUnitServiceStub = {
@@ -15,6 +17,14 @@ let ArchiveUnitServiceStub = {
   getObjects: (id) => Observable.of(new VitamResponse()),
   getResults: (body, offset, limit) => Observable.of(new VitamResponse()),
   updateMetadata: (id, updateRequest) => Observable.of(new VitamResponse())
+};
+
+let ReferentialsServiceStub = {
+  getAccessContract: (criteria) => Observable.of(new VitamResponse())
+};
+
+let ResourcesServiceStub = {
+  getAccessContract: () => "ContractName"
 };
 
 describe('ArchiveObjectGroupComponent', () => {
@@ -26,7 +36,9 @@ describe('ArchiveObjectGroupComponent', () => {
       imports: [ RouterTestingModule ],
       providers: [
         ArchiveUnitHelper,
-        { provide: ArchiveUnitService, useValue: ArchiveUnitServiceStub }
+        { provide: ArchiveUnitService, useValue: ArchiveUnitServiceStub },
+        { provide: ReferentialsService, useValue: ReferentialsServiceStub },
+        { provide: ResourcesService, useValue: ResourcesServiceStub}
       ],
       declarations: [ ArchiveObjectGroupComponent, BytesPipe, KeysPipe ],
       schemas: [ NO_ERRORS_SCHEMA ]
@@ -42,5 +54,26 @@ describe('ArchiveObjectGroupComponent', () => {
 
   it('should be created', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should have access to object download', () => {
+    component.userContract = {
+      'DataObjectVersion': [
+        "PhysicalMaster",
+        "Dissemination"
+      ]
+    };
+    expect(component.isDownloadable('PhysicalMaster_0')).toBeTruthy();
+
+  });
+
+  it('should not have access to object download', () => {
+    component.userContract = {
+      'DataObjectVersion': [
+        "PhysicalMaster",
+        "Dissemination"
+      ]
+    };
+    expect(component.isDownloadable('BinaryMaster_0')).toBeFalsy();
   });
 });

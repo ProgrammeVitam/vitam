@@ -9,6 +9,7 @@ import {ResourcesService} from "../common/resources.service";
 export class ReferentialsService {
 
   searchAPI : string;
+  ACCESS_CONTRACT = 'accesscontracts';
 
   constructor(private resourceService: ResourcesService) { }
 
@@ -160,5 +161,9 @@ export class ReferentialsService {
 
   getTenantCurrent() {
     return this.resourceService.getTenant();
+  }
+
+  getAccessContract(criteria) {
+    return this.resourceService.post(`${this.ACCESS_CONTRACT}`, new HttpHeaders(), criteria);
   }
 }

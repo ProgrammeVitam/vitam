@@ -1,4 +1,4 @@
-<p-panel *ngIf="objects" [toggleable]="true" [collapsed]="false">
+<p-panel *ngIf="objects && userContract" [toggleable]="true" [collapsed]="false">
     <p-header>
         <div class="ui-g-5"></div>
         <span class="ui-g-2" style="padding: 0">Groupe d'Objets</span>
@@ -14,7 +14,8 @@
             <span class="ui-g-5">{{object.FormatLitteral}}</span>
             <span class="ui-g-2">{{object.LastModified | date:'dd/MM/yyyy'}}</span>
             <div class="ui-g-1">
-                <i class="fa fa-download clickableDiv" (click)="downloadObject(object['#id'])" *ngIf="isDownloadable(object.DataObjectVersion)"></i>
+                <i class="fa fa-download clickableDiv" (click)="downloadObject(object.DataObjectVersion, object.FileName)"
+                   *ngIf="isDownloadable(object.DataObjectVersion)"></i>
             </div>
             <div class="ui-g-1">
                 <i class="fa fa-toggle-down clickableDiv" (click)="toogleDetails(object['#id'])" *ngIf="!displayObject[object['#id']]"></i>
