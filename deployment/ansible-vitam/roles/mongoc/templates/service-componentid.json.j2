@@ -5,6 +5,7 @@
     "enableTagOverride": false,
     "checks": [
       {
+        "name": "mongoc : TCP check",
         "notes": "Status mongoc",
         "tcp": "localhost:{{ mongodb.mongoc_port }}",
         "interval": "1s"

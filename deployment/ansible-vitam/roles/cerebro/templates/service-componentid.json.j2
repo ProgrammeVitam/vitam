@@ -6,7 +6,8 @@
     "enableTagOverride": false,
     "checks": [
       {
-        "notes": "Status check",
+        "name": "cerebro : HTTP check",
+        "notes": "HTTP status check",
         "http": "http://{{ ip_service }}:{{ cerebro.port }}/{{ cerebro.baseuri }}/",
         "interval": "1s"
       }
