@@ -35,9 +35,11 @@ export class LogbookOperationDetailsComponent extends PageComponent {
       () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeStaticColumn('evDateTime', 'Date de début',
       this.archiveUnitHelper.handleDateWithTime, () => ({'width': '125px', 'overflow-wrap': 'break-word'})),
-    ColumnDefinition.makeSpecialValueColumn('Date de fin', (item) => item.events[item.events.length - 1].evDateTime,
+    ColumnDefinition.makeSpecialValueColumn('Date de fin',
+        (item) => item.events.length > 0 ? item.events[item.events.length - 1].evDateTime : item.evDateTime,
       this.archiveUnitHelper.handleDateWithTime, () => ({'width': '125px', 'overflow-wrap': 'break-word'})),
-    ColumnDefinition.makeSpecialValueColumn('Statut', (item) => item.events[item.events.length - 1].outcome,
+    ColumnDefinition.makeSpecialValueColumn('Statut',
+        (item) => item.events.length > 0 ? item.events[item.events.length - 1].outcome : item.outcome,
       undefined, () => ({'width': '125px', 'overflow-wrap': 'break-word'})),
 
     ColumnDefinition.makeStaticColumn('evDetData', 'Informations complémentaires sur l\'opération', undefined,
