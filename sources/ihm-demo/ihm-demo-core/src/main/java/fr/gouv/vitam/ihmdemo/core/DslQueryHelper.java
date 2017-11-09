@@ -51,7 +51,6 @@ import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -141,7 +140,7 @@ public final class DslQueryHelper {
      *
      * @param searchCriteriaMap the map containing the criteria
      * @return DSL request
-     * @throws InvalidParseOperationException  if a parse exception is encountered
+     * @throws InvalidParseOperationException if a parse exception is encountered
      * @throws InvalidCreateOperationException if an Invalid create operation is encountered
      */
     @SuppressWarnings("unchecked")
@@ -340,7 +339,7 @@ public final class DslQueryHelper {
     /**
      * @param searchCriteriaMap Criteria received from The IHM screen Empty Keys or Value is not allowed
      * @return the JSONDSL File
-     * @throws InvalidParseOperationException  thrown when an error occurred during parsing
+     * @throws InvalidParseOperationException thrown when an error occurred during parsing
      * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
 
@@ -382,7 +381,11 @@ public final class DslQueryHelper {
         }
 
         if (booleanQueries.isReady()) {
-            booleanQueries.setDepthLimit(DEPTH_LIMIT);
+            boolean noRoots = select.getRoots() == null || select.getRoots().isEmpty();
+            // do no set depth when no root and first query
+            if (!(noRoots && select.getNbQueries() == 0)) {
+                booleanQueries.setDepthLimit(DEPTH_LIMIT);
+            }
             select.addQueries(booleanQueries);
         }
 
@@ -394,7 +397,7 @@ public final class DslQueryHelper {
      *
      * @param projectionCriteriaMap the given projection parameters
      * @return request with projection
-     * @throws InvalidParseOperationException  null key or value parameters
+     * @throws InvalidParseOperationException null key or value parameters
      * @throws InvalidCreateOperationException queryDsl create operation
      */
     public static JsonNode createGetByIdDSLSelectMultipleQuery(Map<String, String> projectionCriteriaMap)
@@ -424,7 +427,7 @@ public final class DslQueryHelper {
     /**
      * @param searchCriteriaMap Criteria received from The IHM screen Empty Keys or Value is not allowed
      * @return the JSONDSL File
-     * @throws InvalidParseOperationException  thrown when an error occurred during parsing
+     * @throws InvalidParseOperationException thrown when an error occurred during parsing
      * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
     @SuppressWarnings("unchecked")
@@ -531,29 +534,38 @@ public final class DslQueryHelper {
             andQuery.add(createSearchUntisQueryByDate(startDate, endDate));
         }
 
+        boolean noRoots = select.getRoots() == null || select.getRoots().isEmpty();
+
         if (advancedSearchFlag.equalsIgnoreCase(YES)) {
             if (andQuery.isReady()) {
-                andQuery.setDepthLimit(DEPTH_LIMIT);
+                // do no set depth when no root and first query
+                if (!(noRoots && select.getNbQueries() == 0)) {
+                    andQuery.setDepthLimit(DEPTH_LIMIT);
+                }
                 select.addQueries(andQuery);
             }
         } else {
             if (booleanQueries.isReady()) {
-                booleanQueries.setDepthLimit(DEPTH_LIMIT);
+                // do no set depth when no root and first query
+                if (!(noRoots && select.getNbQueries() == 0)) {
+                    booleanQueries.setDepthLimit(DEPTH_LIMIT);
+                }
                 select.addQueries(booleanQueries);
             }
         }
 
         return select.getFinalSelect();
     }
-    
+
     /**
      * @param searchCriteriaMap Criteria received from The IHM screen Empty Keys or Value is not allowed
-     * @param updateRules       rules that must be updated in the AU.
+     * @param updateRules rules that must be updated in the AU.
      * @return the JSONDSL File
-     * @throws InvalidParseOperationException  thrown when an error occurred during parsing
+     * @throws InvalidParseOperationException thrown when an error occurred during parsing
      * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
-    public static JsonNode createUpdateByIdDSLQuery(Map<String, JsonNode> searchCriteriaMap, Map<String, JsonNode> updateRules)
+    public static JsonNode createUpdateByIdDSLQuery(Map<String, JsonNode> searchCriteriaMap,
+        Map<String, JsonNode> updateRules)
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
         final UpdateMultiQuery update = new UpdateMultiQuery();
@@ -589,10 +601,10 @@ public final class DslQueryHelper {
     /**
      * Creates Select Query to retrieve all parents relative to the unit specified by its id
      *
-     * @param unitId           the unit id
+     * @param unitId the unit id
      * @param immediateParents immediate parents (_up field value)
      * @return DSL Select Query
-     * @throws InvalidParseOperationException  if error when parse json data for creating query
+     * @throws InvalidParseOperationException if error when parse json data for creating query
      * @throws InvalidCreateOperationException if exception occurred when create query
      */
     public static JsonNode createSelectUnitTreeDSLQuery(String unitId, List<String> immediateParents)
@@ -620,10 +632,15 @@ public final class DslQueryHelper {
         final String[] allParentsArray = immediateParents.stream().toArray(size -> new String[size]);
 
         final BooleanQuery inParentsIdListQuery = and();
-        inParentsIdListQuery.add(in(UiConstants.ID.getResultCriteria(), allParentsArray))
-            .setDepthLimit(DEPTH_LIMIT);
-
+        inParentsIdListQuery.add(in(UiConstants.ID.getResultCriteria(), allParentsArray));
+        
         if (inParentsIdListQuery.isReady()) {
+            
+            boolean noRoots = selectParentsDetails.getRoots() == null || selectParentsDetails.getRoots().isEmpty();
+            // do no set depth when no root and first query
+            if (!(noRoots && selectParentsDetails.getNbQueries() == 0)) {
+                inParentsIdListQuery.setDepthLimit(DEPTH_LIMIT);
+            }
             selectParentsDetails.addQueries(inParentsIdListQuery);
         }
 

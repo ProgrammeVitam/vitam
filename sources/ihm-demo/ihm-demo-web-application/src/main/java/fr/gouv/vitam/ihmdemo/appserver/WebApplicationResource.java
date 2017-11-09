@@ -271,6 +271,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
                 final Map<String, Object> criteriaMap = JsonHandler.getMapFromString(criteria);
                 final JsonNode preparedQueryDsl = DslQueryHelper.createSelectElasticsearchDSLQuery(criteriaMap);
+                
                 result = UserInterfaceTransactionManager.searchUnits(preparedQueryDsl,
                     getTenantId(headers), getAccessContractId(headers), getAppSessionId());
 

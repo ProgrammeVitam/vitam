@@ -111,6 +111,32 @@ public class ValidatorSelectQueryMultipleTest {
     }
 
     @Test
+    public void should_not_retrieve_errors_when_select_multiple_empty_query_dsl()
+        throws IOException, InvalidParseOperationException {
+        JsonNode test1Json =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_root_empty_query.json"));
+        final Validator validator =
+            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        try {
+            validator.validate(test1Json);
+        } catch (ValidationException e) {
+            e.printStackTrace();
+            fail();
+        }
+    }
+
+    @Test
+    public void should_retrieve_errors_when_select_multiple_no_query_dsl()
+        throws IOException, InvalidParseOperationException {
+        JsonNode test1Json =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_no_query.json"));
+        final Validator validator =
+            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+        assertThatThrownBy(() -> validator.validate(test1Json))
+            .hasMessageContaining("$query: ROOT_QUERY[] ~ MANDATORY");
+    }
+
+    @Test
     public void should_retrieve_errors_when_select_multiple_wrong_root_dsl()
         throws IOException, InvalidParseOperationException {
         JsonNode test1Json =

@@ -33,6 +33,7 @@ import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
@@ -160,6 +161,7 @@ public class SelectMultiQueryTest {
                 new ExistsQuery(QUERY.EXISTS, "varB").setExactDepthLimit(10));
             select.addQueries(new PathQuery("path3"));
             assertEquals(4, select.getQueries().size());
+            
             select.setLimitFilter(10, 10);
             try {
                 select.addHintFilter(FILTERARGS.CACHE.exactToken());
