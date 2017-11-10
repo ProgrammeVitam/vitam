@@ -12,7 +12,7 @@ Collection Certificate
 Utilisation de la collection Certificate
 ----------------------------------------
 
-La collection IngestContract permet de référencer et décrire unitairement les certificats utilisé par les contextes.
+La collection Certificate permet de référencer et décrire unitairement les certificats utilisés par les contextes.
 
 Exemple de JSON stocké en base comprenant l'exhaustivité des champs
 -------------------------------------------------------------------
@@ -29,23 +29,25 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
     
         [...]
     
-    kbE4KM08yV1dIRlJMWnpQRWZ4eXlxMm1TbVdsaUUvUzZUbzJVVEswamxobStpbThPa29mZmlLbXlodVpWS3VNUXNYMQorN29jZUs1YVV3VW1uZ0FiZE1TYmY0NFZXcHQ5RlkvZ0V5UlZ3SnpKd3AxK2R6VGlkVXM9Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0="
+    kbE4KM08yV1dIRlJMWnpQRWZ4eXlxMm1TbVdsaUUvUzZUbzJVVEswamxobStpbThPa29mZmlLbXlodVpWS3
+    S0tRU5EIENFUlRJRklDQVRFLS0tLS0="
  }
 
 Détail des champs du JSON stocké dans la collection
-----------------------------------------------------
+---------------------------------------------------
 
-**"_id": Champs obligatoire peuplé par Vitam** identifiant unique du certificat
+**"_id":** identifiant unique du certificat
 
+  * Champ peuplé par Vitam
   * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
   * Cardinalité : 1-1
   
-**"SubjectDN":** Distinguished Name du certificat
+**"SubjectDN":** Identifiant unique (Distinguished Name) du certificat
 
   * Il s'agit d'une chaîne de caractères
   * Cadinalité : 1-1
 
-**"ContextId":** Identifier du contexte utilisant le certificat
+**"ContextId":** Identifiant signifiant (Identifier) du contexte utilisant le certificat
 
   * Il s'agit d'une chaîne de caractères
   * Cadinalité : 1-1
@@ -55,7 +57,7 @@ Détail des champs du JSON stocké dans la collection
   * Il s'agit d'un entier
   * Cadinalité : 1-1
 
-**"IssuerDN":** Distinguished Name de l'autorité de certification
+**"IssuerDN":** Identifiant unique (Distinguished Name) de l'autorité de certification
 
   * Il s'agit d'une chaîne de caractères
   * Cadinalité : 1-1
