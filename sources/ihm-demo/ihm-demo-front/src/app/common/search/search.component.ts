@@ -131,6 +131,7 @@ export class SearchComponent implements OnInit {
       this.advancedSearchForm.enable();
     }
     this.preSearchReturn = new Preresult();
+    this.onSubmit();
   }
 
   disableOthers(field: FieldDefinition) {

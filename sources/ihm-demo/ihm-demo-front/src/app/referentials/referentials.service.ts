@@ -86,6 +86,14 @@ export class ReferentialsService {
       body.orderby = {"field":"Name","sortType":"ASC"};
     }
 
+    if (this.searchAPI === 'admin/accession-register') {
+      if (!body.OriginatingAgency) {
+        body.ACCESSIONREGISTER = 'ACCESSIONREGISTER';
+        delete body.OriginatingAgency;
+      }
+      body.orderby = {"field":"OriginatingAgency","sortType":"ASC"};
+    }
+
     return this.resourceService.post(this.searchAPI, headers, body);
   }
 

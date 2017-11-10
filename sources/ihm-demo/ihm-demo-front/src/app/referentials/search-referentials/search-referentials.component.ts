@@ -38,6 +38,7 @@ export class SearchReferentialsComponent  extends PageComponent {
     super('Recherche du référentiel', [], titleService, breadcrumbService);
     this.activatedRoute.params.subscribe( params => {
       this.referentialType = params['referentialType'];
+      let newBreadcrumb = [];
       switch (this.referentialType)
       {
         case "accessContract":
@@ -230,16 +231,43 @@ export class SearchReferentialsComponent  extends PageComponent {
           this.referentialIdentifier = 'Identifier';
           break;
 
+        case "accession-register":
+          this.searchReferentialsService.setSearchAPI('admin/accession-register');
+          this.breadcrumbName = "Recherche par service producteur";
+          this.referentialData = [
+            new FieldDefinition('OriginatingAgency', "Service producteur", 12, 4),
+          ];
+          this.searchForm = {"ACCESSIONREGISTER":"ACCESSIONREGISTER","orderby":{"field":"OriginatingAgency","sortType":"ASC"}};
+          this.columns = [
+            ColumnDefinition.makeStaticColumn('OriginatingAgency', 'Service producteur', undefined,
+              () => ({'width': '125px'})),
+            ColumnDefinition.makeStaticColumn('creationDate', 'Date de la première opération d\'entrée', DateService.handleDateWithTime,
+              () => ({'width': '125px'}))
+          ];
+          this.referentialPath = 'admin/agencies';
+          this.referentialIdentifier = 'OriginatingAgency';
+          newBreadcrumb = [
+            {label: 'Recherche', routerLink: ''},
+            {label: 'Recherche par service producteur', routerLink: ''}
+          ];
+          break;
+
         default:
           this.router.navigate(['ingest/sip']);
       }
+
       if (this.referentialType != "accession-register") {
         this.searchButtonLabel =  'Accèder à l\'import des référentiels';
+      } else {
+        this.searchButtonLabel = '';
       }
-      let newBreadcrumb = [
-        {label: 'Administration', routerLink: ''},
-        {label: this.breadcrumbName, routerLink: 'admin/search/' + this.referentialType}
-      ];
+
+      if (newBreadcrumb.length == 0) {
+        newBreadcrumb = [
+          {label: 'Administration', routerLink: ''},
+          {label: this.breadcrumbName, routerLink: 'admin/search/' + this.referentialType}
+        ];
+      }
 
       this.setBreadcrumb(newBreadcrumb);
 
