@@ -35,6 +35,7 @@ import java.io.InputStream;
 import java.util.Map;
 import javax.ws.rs.core.Response;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -62,7 +63,7 @@ public class PutBinaryOnWorkspace extends ActionHandler {
     private static final String PUT_BINARY_ON_WORKSPACE = "PUT_BINARY_ON_WORKSPACE";
     private static final String DEFAULT_STORAGE_STRATEGY = "default";
 
-    private static final int GUID_TO_PATH_RANK = 0;
+    static final int GUID_TO_PATH_RANK = 0;
     public static final int NUMBER_OF_RETRY = 3;
 
     /**
@@ -74,7 +75,11 @@ public class PutBinaryOnWorkspace extends ActionHandler {
      * empty constructor
      */
     public PutBinaryOnWorkspace() {
-        this.storageClientFactory = StorageClientFactory.getInstance();
+        this(StorageClientFactory.getInstance());
+    }
+
+    @VisibleForTesting PutBinaryOnWorkspace(StorageClientFactory storageClientFactory) {
+        this.storageClientFactory = storageClientFactory;
     }
 
     /**
@@ -106,7 +111,7 @@ public class PutBinaryOnWorkspace extends ActionHandler {
 
                 itemStatus.increment(StatusCode.OK);
                 return new ItemStatus(PUT_BINARY_ON_WORKSPACE).setItemsStatus(PUT_BINARY_ON_WORKSPACE, itemStatus);
-            } catch (StorageNotFoundException | StorageServerClientException e) {
+            } catch (StorageNotFoundException | StorageServerClientException | ProcessingException e) {
                 LOGGER.error(format("unable to transfer file from offer to workspace, retry: %d", i), e);
             }
         }
