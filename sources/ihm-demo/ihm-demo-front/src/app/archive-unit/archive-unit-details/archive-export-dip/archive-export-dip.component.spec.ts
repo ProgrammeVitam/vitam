@@ -49,12 +49,10 @@ describe('ArchiveExportDIPComponent', () => {
     query = component.getQuery();
 
     expect(query.$query[0].$eq['#operations']).toBe(component.operation);
-    expect(query.$query[0].$depth).toBe(20);
 
     component.exportType = 'FULL';
     query = component.getQuery();
     expect(query.$query[0].$or[0].$eq['#id']).toBe(component.id);
     expect(query.$query[0].$or[1].$in['#allunitups'][0]).toBe(component.id);;
-    expect(query.$query[0].$depth).toBe(0);
   })
 });

@@ -23,13 +23,11 @@ export class ArchiveExportDIPComponent implements OnInit {
     let query: any;
     if (this.exportType === 'AU') {
       query = {
-        "$roots": [],
         "$query": [
           {
             "$eq": {
               "#id": this.id
-            },
-            "$depth": 0
+            }
           }
         ],
         "$filter": {},
@@ -41,15 +39,13 @@ export class ArchiveExportDIPComponent implements OnInit {
           {
             "$eq": {
               "#operations": this.operation
-            },
-            "$depth": 20
+            }
           }
         ],
         "$projection": {}
       };
     } else {
       query = {
-        "$roots": [],
         "$query": [
           {
             "$or": [
@@ -65,8 +61,7 @@ export class ArchiveExportDIPComponent implements OnInit {
                   ]
                 }
               }
-            ],
-            "$depth": 0
+            ]
           }
         ],
         "$filter": {},
