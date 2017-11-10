@@ -23,8 +23,8 @@
         </div>
         <div class="ui-g" *ngIf="displayObject[object['#id']]">
             <ng-template ngFor let-field [ngForOf]="object.metadatas | keys">
-                <vitam-metadata-field [title]="translate(field)" [originalTitle]="field" [value]="object.metadatas[field]"
-                                     class="ui-g-12 pullLeft" [translate]="translate" [collapse]="false"></vitam-metadata-field>
+                <vitam-metadata-field [title]="keyToLabel(field)" [originalTitle]="field" [value]="object.metadatas[field]"
+                                      class="ui-g-12 pullLeft" [keyToLabel]="keyToLabel" [collapse]="false"></vitam-metadata-field>
             </ng-template>
         </div>
     </ng-template>

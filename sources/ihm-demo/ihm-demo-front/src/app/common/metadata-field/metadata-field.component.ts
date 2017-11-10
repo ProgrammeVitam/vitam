@@ -15,7 +15,7 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
   @Input() fieldCode: string;
   @Input() value: any;
   @Input() labelSize: number;
-  @Input() translate: (x) => string;
+  @Input() keyToLabel: (x) => string;
   @Input() collapse = true;
   @Input() noTitle = false;
 
@@ -89,7 +89,7 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
         if (typeof item === 'object') {
           let fields = [];
           for (let field in item) {
-            fields.push({title: this.translate(`${this.originalTitle}.${field}`), value: item[field],
+            fields.push({title: this.keyToLabel(`${this.originalTitle}.${field}`), value: item[field],
               originalTitle: `${this.originalTitle}.${field}`, fieldCode: `${this.fieldCode}[${i}].${field}`});
           }
           this.arrayValue.push({ isObject: true, value: fields });
@@ -101,7 +101,7 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
 
     } else if (this.typeOfField === 'Object') {
       for (let field in this.value) {
-        this.fields.push({title: this.translate(`${this.originalTitle}.${field}`), value: field,
+        this.fields.push({title: this.keyToLabel(`${this.originalTitle}.${field}`), value: field,
           originalTitle: `${this.originalTitle}.${field}`, fieldCode: `${this.fieldCode}.${field}`});
       }
     } else {

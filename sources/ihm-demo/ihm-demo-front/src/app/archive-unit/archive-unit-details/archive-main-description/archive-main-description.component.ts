@@ -11,7 +11,7 @@ import { Router, ActivatedRoute } from "@angular/router";
 export class ArchiveMainDescriptionComponent implements OnInit, OnChanges {
   @Input() archiveUnit;
   dataToDisplay: any;
-  translate = (x) => x;
+  keyToLabel = (x) => x;
   update = false;
   updatedFields = {};
   saveRunning = false;

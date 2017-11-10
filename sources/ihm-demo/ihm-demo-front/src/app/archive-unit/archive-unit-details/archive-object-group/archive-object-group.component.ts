@@ -11,12 +11,12 @@ export class ArchiveObjectGroupComponent implements OnInit {
   @Input() objects;
   @Input() objectGroupId;
   translations;
-  translate: (x) => string;
+  keyToLabel: (x) => string;
   displayObject = {};
 
   constructor(private archiveUnitHelper: ArchiveUnitHelper, private router : Router) {
     this.translations = this.archiveUnitHelper.getObjectGroupTranslations();
-    this.translate = (field: string) => {
+    this.keyToLabel = (field: string) => {
       const value = this.translations[field];
       if (this.translations[field]) {
         return value;
