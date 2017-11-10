@@ -1,14 +1,14 @@
-import {Component, EventEmitter} from '@angular/core';
-import { NO_ERRORS_SCHEMA } from "@angular/core";
-import {PageComponent} from "../../common/page/page-component";
+import { Component, EventEmitter } from '@angular/core';
+import { PageComponent } from "../../common/page/page-component";
 import { Title } from '@angular/platform-browser';
 import { BreadcrumbElement, BreadcrumbService } from '../../common/breadcrumb.service';
-import {ArchiveUnitService} from "../archive-unit.service";
-import {FieldDefinition} from "../../common/search/field-definition";
-import {Preresult} from "../../common/search/preresult";
-import {ColumnDefinition} from "../../common/generic-table/column-definition";
-import {VitamResponse} from "../../common/utils/response";
-import {ArchiveUnitHelper} from "../archive-unit.helper";
+import { ArchiveUnitService } from "../archive-unit.service";
+import { FieldDefinition } from "../../common/search/field-definition";
+import { Preresult } from "../../common/search/preresult";
+import { ColumnDefinition } from "../../common/generic-table/column-definition";
+import { VitamResponse } from "../../common/utils/response";
+import { ArchiveUnitHelper } from "../archive-unit.helper";
+import { Router } from "@angular/router";
 
 const breadcrumb: BreadcrumbElement[] = [
   {label: 'Recherche', routerLink: ''},
@@ -46,13 +46,13 @@ export class ArchiveUnitComponent extends PageComponent {
     ColumnDefinition.makeSpecialValueColumn('Date de fin', this.archiveUnitHelper.getEndDate, this.archiveUnitHelper.handleDate, () => ({'width': '100px'})),
     ColumnDefinition.makeSpecialIconColumn('Objet(s) disponible(s)',
       (data) => data['#object']? ['fa-check']: ['fa-close greyColor'], () => ({'width': '100px'})),
-    ColumnDefinition.makeIconColumn('Cycle de vie', ['fa-pie-chart'], this.routeToLFC, () => true, () => ({'width': '50px'}))
+    ColumnDefinition.makeIconColumn('Cycle de vie', ['fa-pie-chart'], (item) => this.routeToLFC(item), () => true, () => ({'width': '50px'}))
   ];
   public extraColumns = [
   ];
 
   constructor(public titleService:Title, public breadcrumbService:BreadcrumbService, public service: ArchiveUnitService,
-              public archiveUnitHelper: ArchiveUnitHelper) {
+              public archiveUnitHelper: ArchiveUnitHelper, private router : Router) {
     super('Recherche d\'archive', breadcrumb, titleService, breadcrumbService);
   }
 
@@ -74,8 +74,8 @@ export class ArchiveUnitComponent extends PageComponent {
     }
   }
 
-  routeToLFC() {
-    console.log('TODO: Route to LFC');
+  routeToLFC(item) {
+    this.router.navigate(['search/archiveUnit/' + item['#id'] + '/unitlifecycle']);
   }
 
 

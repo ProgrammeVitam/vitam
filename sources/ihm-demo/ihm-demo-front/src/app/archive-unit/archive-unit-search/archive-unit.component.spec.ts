@@ -7,6 +7,7 @@ import { BreadcrumbService } from '../../common/breadcrumb.service';
 import { VitamResponse } from "../../common/utils/response";
 import { ArchiveUnitService } from "../archive-unit.service";
 import { ArchiveUnitHelper } from "../archive-unit.helper";
+import { RouterTestingModule } from "@angular/router/testing";
 
 let ArchiveUnitServiceStub = {
   getDetails: (id) => Observable.of(new VitamResponse()),
@@ -21,6 +22,7 @@ describe('ArchiveUnitComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
+      imports: [ RouterTestingModule ],
       declarations: [ ArchiveUnitComponent ],
       providers: [
         ArchiveUnitHelper,
