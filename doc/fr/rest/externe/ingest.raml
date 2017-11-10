@@ -1,6 +1,6 @@
 #%RAML 1.0
 
-title: API-Vitam Version Beta - Ingest
+title: API-Vitam - Ingest
 version: v1
 baseUri: https://api.vitam.gouv.fr/ingest-external/{version}
 protocols: [ HTTPS ]
@@ -31,9 +31,9 @@ documentation:
 /ingests:
   displayName: Ingests
   description: |
-    API de versement (Ingest). Ce point d'entrée permet de chercher ou de créer une transaction de versement. Une transaction d'entrée est volatile, c'est à dire qu'elle disparaîtra dès qu'elle sera terminée. Sa terminaison est liée à la production du rapport et sa récupération par le service de transfert ayant effectué l'entrée.
+    API de versement (Ingest). Ce point d'entrée permet de créer une transaction de versement. Une transaction d'entrée est volatile, c'est à dire qu'elle disparaîtra dès qu'elle sera terminée. Sa terminaison est liée à la production du rapport et sa récupération par le service de transfert ayant effectué l'entrée.
 
-    Crée une transaction d'entrée :
+    Créé une transaction d'entrée :
     - une requête unique, avec un 'body' contenant toutes les informations dans un ZIP ou un TAR ou un TAR.GZ ou TAR.BZ2:
       - Métadonnées dans un format SEDA XML ou Json de nom manifest.xml ou manifest.json (json **UNSUPPORTED**)
       - Tous les binaires dans le répertoire "/content"
@@ -48,18 +48,29 @@ documentation:
             body:
     headers:
       X-Action:
-      	description: |
-      		Il indique le type de workflow à exécuter : RESUME correspond au mode nominal, NEXT correspond au mode pas à pas
-        enum: [ "RESUME", "NEXT" ]
         required: true
+        description: |
+          Il indique le type de workflow à exécuter : RESUME correspond au mode nominal, NEXT correspond au mode pas à pas
+        enum: [ "RESUME", "NEXT" ]
       X-Context-Id:
         required: false
         description: |
             Il indique le workflow à exécuter DEFAULT_WORKFLOW pour lancer le workflow INGEST (avec toutes les étapes) ou BLANK_TEST pour lancer le workflow INGEST-TEST (test à blanc sans les étapes de stockage d'objets et d'indéxation des UA et des GOT) ou encore FILING_SCHEME pour les plans de classements et enfin HOLDING_SCHEME pour les arbres de positionnement
         enum: [ "DEFAULT_WORKFLOW", "BLANK_TEST", "FILING_SCHEME", "HOLDING_SCHEME" ]
 
-  /{objectId}/{type}:
+  /{operationId}/{type}:
       displayName: IngestsType
+      uriParameters:
+        type:
+          required: true
+          description: |
+            Type de l'objet à télécharger
+          enum: [ "manifests", "archivetransferreply" ]
+        operationId:
+          required: true
+          description: |
+            Identifiant de l'opération sous forme d'un GUID
+
       description: |
         Télécharger un objet associé au processus INGEST (archivetransferreply ou manifests)
       is: [ StandardTraits.StandardOptionalHeader,
@@ -67,7 +78,7 @@ documentation:
       StandardTraits.StandardHeader409, StandardTraits.StandardHeader412, IngestTraits.IngestFinalResponse ]
       get:
         description:  |
-          Permet de télécharger un objet en précisant son identifiant et son type (archivetransferreply ou manifests)
+          Permet de télécharger un objet en précisant l'identifiant de l'opération à l'origine de l'objet et son type (archivetransferreply ou manifests)
 
 /:
   displayName: Endpoints

@@ -217,3 +217,27 @@ traits:
             description: Metadata
             schema: AccessTypes.AccessResponse
             example: !include examples/access1UnitUpdateResponse.json
+
+  DipCreationResponseAsync:
+    description: Request for a DIP creation
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AsynchronousHeader,
+      StandardTraits.StandardHeader202 ]
+    body:
+      application/json:
+        description: Body contains in JSON format the VITAM DSL request part
+        schema: AccessTypes.AccessQuery
+        example: !include examples/accessUnitQuery.json
+    responses:
+      202:
+        description: |
+          Returns the status of DIP creation accepted
+        body:
+          application/json:
+            description: DIP operation accepted
+            schema: StandardTypes.AsyncStatus
+            example: !include examples/dip.json
+      500:
+        description: Returns the final result of the DIP operation in KO status
+        body:
+          application/json:
+            description: Final DIP report

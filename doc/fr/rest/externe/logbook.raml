@@ -1,8 +1,8 @@
 #%RAML 1.0
 
-title: API-Vitam Version Alpha - Logbook
+title: API-Vitam - Logbook
 version: v1
-baseUri: https://api.vitam.gouv.fr/{version}
+baseUri: https://api.vitam.gouv.fr/access-external/{version}
 protocols: [ HTTPS ]
 
 uses:
@@ -32,7 +32,6 @@ documentation:
   displayName: Operations Logbooks
   description: |
     API d'accès aux Journaux d'opérations (Logbooks Operations). Ce point d'entrée permet de chercher une opération (entrée, audit, élimination, préservation, ...).
-
     La recherche sur cette API retourne pour chaque opération, la première entrée (la création à la date de démarrage de l'opération) et la dernière entrée (dans l'état connu par le journal à la date de la dernière étape de cette opération).
   get:
     description: |
@@ -44,9 +43,15 @@ documentation:
     is: [LogbookTraits.OperationListingResponse, StandardTraits.OverrideGet]
 
 
-  /{idop}:
+  /{idOp}:
     displayName: Operation Logbook
-    description: Accès à une opération.
+    description: |
+      Accès à une opération.
+      La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne les informations spécifiées (projection indiquée dans la requête) pour l'opération donnée.
+    uriParameters:
+      idOp:
+        required: true
+        description: Identifiant de l'opération
     get:
       description: Response model for one Logbook operation item.
       is: [LogbookTraits.OperationItemResponse]
@@ -55,88 +60,23 @@ documentation:
         Response model for one Logbook operation item. The request is using POST with X-Http-Method-Override: GET
       is: [LogbookTraits.OperationItemResponse, StandardTraits.OverrideGet]
 
-    /logbookunitlifecycles:
-      displayName: Unit Life Cycles Logbooks For Operation
-      description: |
-        **UNSUPPORTED** API d'accès aux Journaux de cycle de vie des Units. Ce point d'entrée permet de chercher un cycle de vie
-        ayant été impacté par cette opération (pour une entrée les archives ayant été intégrées, pour une élimination les archives ayant été éliminées, ...).
-
-        La recherche sur cette API retourne uniquement la première ligne et la dernière connue pour chaque journal du cycle de vie en rapport avec l'opération concernée.
-      get:
-        description: |
-          **UNSUPPORTED** Response model for the listing of Logbook unit life cycles
-        is: [LogbookTraits.UnitLifeCycleListingResponse ]
-      post:
-        description: |
-          **UNSUPPORTED** Response model for the listing of Logbook unit life cycles. The request is using POST with X-Http-Method-Override: GET
-        is: [LogbookTraits.UnitLifeCycleListingResponse, StandardTraits.OverrideGet]
-
-      /{id_lfc}:
-        displayName: Unit Life Cycle Logbook For Operation
-        description: |
-          **UNSUPPORTED** Accès à un cycle de vie lié à l'opération en référence (Unit).
-
-          Le cycle de vie concerné est retourné complet ou tronqué aux seuls événements liés à l'opération en référence selon l'argument X-Full.
-        get:
-          description: |
-            **UNSUPPORTED** Response model for one Logbook unit life cycle item.
-          is: [LogbookTraits.UnitLifeCycleItemResponse]
-        post:
-          description: |
-            **UNSUPPORTED** Response model for one Logbook unit life cycle item. The request is using POST with X-Http-Method-Override: GET
-          is: [LogbookTraits.UnitLifeCycleItemResponse, StandardTraits.OverrideGet]
-
-    /objectlifecycles:
-      displayName: Object Life Cycles Logbooks For Operation
-      description: |
-        **UNSUPPORTED** API d'accès aux Journaux de cycle de vie des Objects. Ce point d'entrée permet de chercher un cycle de
-        vie ayant été impacté par cette opération (pour une entrée les archives ayant été intégrées, pour une élimination les archives ayant été éliminées, ...).
-
-        La recherche sur cette API retourne uniquement la première ligne et la dernière connue pour chaque journal du cycle de vie en rapport avec l'opération concernée.
-      get:
-        description : |
-          **UNSUPPORTED** Response model for the listing of Logbook object life cycles
-        is: [LogbookTraits.ObjectLifeCycleListingResponse ]
-      post:
-        description : |
-          **UNSUPPORTED** Response model for the listing of Logbook object life cycles. The request is using POST with X-Http-Method-Override: GET
-        is: [LogbookTraits.ObjectLifeCycleListingResponse, StandardTraits.OverrideGet]
-
-      /{id_lfc}:
-        displayName: Object Life Cycle Logbook For Operation
-        description: |
-          **UNSUPPORTED** Accès à un cycle de vie lié à l'opération en référence (Object).
-
-          Le cycle de vie concerné est retourné complet ou tronqué aux seuls événements liés à l'opération en référence selon l'argument X-Full.
-        get:
-          description : |
-           **UNSUPPORTED** Response model for one Logbook object life cycle item
-          is: [LogbookTraits.ObjectLifeCycleItemResponse]
-        post:
-          description : |
-            **UNSUPPORTED** Response model for one Logbook object life cycle item. The request is using POST with X-Http-Method-Override: GET
-          is: [LogbookTraits.ObjectLifeCycleItemResponse, StandardTraits.OverrideGet]
-
 /logbookunitlifecycles:
   displayName: Unit Life Cycle Logbook
   description: |
     API d'accès aux Journaux de cycle de vie des Units.
 
     La recherche sur cette API retourne uniquement la première ligne et la dernière connue pour chaque journal du cycle de vie.
-  get:
-    description : |
-      **UNSUPPORTED**  Response model for the listing of Logbook unit life cycles
-    is: [LogbookTraits.UnitLifeCycleListingResponse ]
-  post:
-    description : |
-      **UNSUPPORTED**  Response model for the listing of Logbook unit life cycles. The request is using POST with X-Http-Method-Override: GET
-    is: [LogbookTraits.UnitLifeCycleListingResponse, StandardTraits.OverrideGet]
 
   /{id_lfc}:
+    uriParameters:
+      id_lfc:
+        required: true
+        description: Identifiant du cycle de vie
     displayName: Unit Life Cycle
-    description: Accès à un cycle de vie (Unit).
-
-      Le cycle de vie concerné est retourné complet.
+    description: |
+      Accès à un cycle de vie (Unit).
+      La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne les informations spécifiées (projection indiquée dans la requête) pour le cycle de vie recherché.
+      Le cycle de vie concerné est retourné en fonction de la projection (si la projection n'est pas indiquée, le cycle de vie est retourné complet).
     get:
       description : |
         Response model for one Logbook unit life cycle item
@@ -152,20 +92,17 @@ documentation:
     API d'accès aux Journaux du Cycle de Vie des archives (Object).
 
     La recherche sur cette API retourne uniquement la première ligne et la dernière connue pour chaque journal du cycle de vie.
-  get:
-    description : |
-      **UNSUPPORTED** Response model for the listing of Logbook object life cycles
-    is: [LogbookTraits.ObjectLifeCycleListingResponse ]
-  post:
-    description : |
-      **UNSUPPORTED**  Response model for the listing of Logbook object life cycles. The request is using POST with X-Http-Method-Override: GET
-    is: [LogbookTraits.ObjectLifeCycleListingResponse, StandardTraits.OverrideGet]
 
   /{id_lfc}:
+    uriParameters:
+      id_lfc:
+        required: true
+        description: Identifiant du cycle de vie
     displayName: Object Life Cycle
-    description: Accès à un cycle de vie (Object).
-
-      Le cycle de vie concerné est retourné complet.
+    description: |
+      Accès à un cycle de vie (Object).
+      La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne les informations spécifiées (projection indiquée dans la requête) pour le cycle de vie recherché.
+      Le cycle de vie concerné est retourné en fonction de la projection (si la projection n'est pas indiquée, le cycle de vie est retourné complet).
     get:
       description : Response model for one Logbook object life cycle item
       is: [LogbookTraits.ObjectLifeCycleItemResponse]
@@ -174,65 +111,15 @@ documentation:
         Response model for one Logbook object life cycle item. The request is using POST with X-Http-Method-Override: GET
       is: [LogbookTraits.ObjectLifeCycleItemResponse, StandardTraits.OverrideGet]
 
-
-
-/traceability:
-  displayName: Operation Logbook Security
+/:
+  displayName: Endpoints
   description: |
-    **DEPRECATED** : ne sera plus supporté en V1 car déplacé dans functional-administration.
-
-    Lancement d'une opération de sécurisation des journaux d'opération.
-
-  /check:
-    displayName: Operation Logbook Security
+   API qui liste les endpoints de la ressource /access-external/{version}.
+  options:
     description: |
-      **DEPRECATED** : ne sera plus supporté en V1 car déplacé dans functional-administration.
-
-      Lancement d'une opération de sécurisation des journaux d'opération.
-    post:
-      description: |
-        Permet de lancer une opération de sécurisation des journaux d'opération sur un tenant donné.
-      is: [StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader200, StandardTraits.StandardHeader400,
-        , StandardTraits.StandardHeader500, StandardTraits.StandardHeader401, StandardTraits.StandardHeader200, StandardTraits.StandardHeader417]
-      body:
-        application/json:
-          description: Body contains a Query in DSL Vitam to filter the Logbook operations
-          schema: DslTypes.DslQuery
-      responses:
-       200:
-         description: |
-           L'opération a été réalisée avec succès. L'ID de l'opération est retournée.
-       400:
-         description: |
-           Le tenant n'est pas indiqué, l'opération n'a pu être réalisée.
-       500:
-         description: |
-           Un problème interne a empêché l'opération de se dérouler.
-
-  /{idop}:
-    displayName: Operation Logbook Security Conformity report
-    description: |
-      **DEPRECATED** : ne sera plus supporté en V1 car déplacé dans functional-administration.
-
-      Demande le rapport de conformité d'une opération de sécurisation
-    get:
-      description: |
-        Permet de lancer une vérification d'une opération de sécurisation des journaux d'opération sur un tenant donné.
-      is: [LogbookTraits.RegisterFileItemResponse, StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader200, StandardTraits.StandardHeader412]
-      responses:
-       200:
-         description: |
-           L'opération a été réalisée avec succès. Le rapport au format ZIP est retourné.
-         body:
-           application/zip:
-             description: Security report
-       412:
-         description: |
-           Le tenant n'est pas indiqué, l'opération n'a pu être 
-
-       500:
-         description: |
-           Un problème interne (ou des arguments incorrects, comme le tenant) a empêché l'opération de se dérouler.
+      Request that will return list of endpoints
+    is: [ StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader404, StandardTraits.StandardHeader503 ]
 
 /status:
   get:

@@ -2,15 +2,20 @@
 
 - Référentiel des Formats basé sur PRONOM (TNA)
 - Référentiel des Règles de Gestion
-
-Cette API est dans une étape de création, elle est donc en statut **Alpha**.
+- Référentiel des Contrats d'Entrées
+- Référentiel des Contrats d'Accès
+- Référentiel des Contextes
+- Référentiel des Profiles de Sécurité
+- Registre des Fonds
+- Agencies
+- Opérations
 
 # Référentiel des Formats
 
 Ce référentiel est basé sur PRONOM (TNA) mais il peut être étendu. Il est trans-tenant.
 - L'extension est à ce jour non supporté (**UNSUPPORTED**)
 - Il est possible de mettre à jour ce référentiel via les API.
-  - Notez cependant que la mise à jour des outils utilisant ce référentiel n'est pas encore opérationnelle. Il n'est donc pas recommandé de mettre à jour ce référentiel avec une autre version que celle livrée par Vitam.
+- Notez cependant que la mise à jour des outils utilisant ce référentiel n'est pas encore opérationnelle. Il n'est donc pas recommandé de mettre à jour ce référentiel avec une autre version que celle livrée par Vitam.
 
 # Référentiel des Règles de Gestion
 
@@ -44,16 +49,18 @@ Il est possible de mettre à jour ce référentiel via les API.
 
 Actuellement ce référentiel pour le contrôle d'accès aux API.
 
+# Agencies
+
+Actuellement ce référentiel est utilisé lors du processus d'entrées.
+
 # Registre des Fonds
 
-**NOTE IMPORTANTE** : Ce service sera déplacé dans la partie administration fonctionnelle. Il est pour le moment dans l'Accès.
+Ce référentiel est utilisé et mis à jour lors du processus d'entrée.
 
 # Gestion des processus
 
-Il est possible de gérer les processus en mode administrateur (CANCEL, PAUSE, NEXT).
+Il est possible de gérer les processus en mode administrateur (CANCEL, PAUSE, NEXT, REPLAY, RESUME).
 
-# Sécurisation des journaux
+# Sécurisation des journaux - vérification
 
-Il est possible de gérer la sécurisation des journaux et de vérifier a posteriori leur conformité.
-
-**NOTE IMPORTANTE** : Ce service sera déplacé dans la partie administration fonctionnelle. Il est pour le moment dans la partie Logbook.
+**traceability/checks** est le point d'entrée pour la vérification de la sécurisation des journaux d'opérations dans Vitam.

@@ -4,7 +4,7 @@ Cette API est globalement reproduite dans tous les autres points d'accès lorsqu
 
 # API Access externe
 
-les API externe dans le projet Vitam supportent le POST-X-HTTP-OVERRIDE=GET par contre au niveau des API interne ils supportent seulement le GET .
+Dans le projet Vitam, Les API externes supportent le POST-X-HTTP-OVERRIDE=GET. Les API internes ne supportent que le GET.
 
 # Units
 
@@ -29,7 +29,7 @@ La structuration d'un Unit est la suivante :
     "#id": "UnitId",
     "#tenant": "tenantId",
     "#type": "DocumentTypeId",
-    "#unitType" : "HOLLDING_UNIT (arbre), FILING_UNIT (Plan) ou INGEST (ArchiveUnit standard)"
+    "#unitType" : "HOLDING_UNIT (arbre), FILING_UNIT (Plan) ou INGEST (ArchiveUnit standard)"
     //Métadonnées du content
     "DescriptionLevel": "Fonds",
     "Title": "titre",
@@ -53,9 +53,7 @@ La structuration d'un Unit est la suivante :
 
 # Objects
 
-**Cette collection est DEPRECATED et va disparaître car elle est contraire aux règles d'accès aux objets à partir d'une ArchiveUnit.**
-
-**Objects** est le point d'entrée pour toutes les archives binaires mais également les non binaires (comme une référence à des objet d'archives physiques ou externes au système). Elles contiennent les métadonnées techniques. Il est constitué de plusieurs usages et versions d'usages du même contenu. C'est dans ce sens qu'il est aussi appelé un **Groupe d'objets**.
+**/units/{idu}/objects** est le point d'entrée pour toutes les archives binaires mais également les non binaires (comme une référence à des objet d'archives physiques ou externes au système). Elles contiennent les métadonnées techniques. Il est constitué de plusieurs usages et versions d'usages du même contenu. C'est dans ce sens qu'il est aussi appelé un **Groupe d'objets**.
 
 Un _Groupe_ d'_Objects_ peut être constitué de plusieurs versions (sous-objets) pour différencier des usages comme version de conservation, version de diffusion...
 
@@ -78,9 +76,9 @@ Chaque _Objet_ n'est lié qu'à un seul _Groupe_. Chaque _Objet_ a un qualifier 
 - **TextContent** : il s'agit d'une version ne contenant que le texte du document, sans la mise en forme (son usage est en prévision du futur, par exemple pour des opérations d'analyses sémantiques)
 - **All** (**UNSUPPORTED**) : il s'agit en consultation d'un accès en cas de ZIP ou TAR à l'ensemble des usages et versions. Il est utilisable également en mode HEAD.
 
-Ces qualifiers peuvent être utilisés dans une requête GET en conjonction avec le Header *Accept: application/octet-stream ou application/zip ou application/x-tar* pour accéder en lecture ou en check à un usage particulier.
+Ces qualifiers peuvent être utilisés dans une requête GET en conjonction avec le Header *Accept: application/octet-stream* ou *application/zip ou application/x-tar* (**UNSUPPORTED**) pour accéder en lecture ou en check à un usage particulier.
 Le qualifier **All** est ajouté pour permettre l'accès à l'ensemble des usages avec le Header *Accept: application/zip ou application/x-tar*.
-Pour la commande HEAD, ces Qualifiers peuvent être spécifiés pour préciser sur quoi porte le test d'existence.
+Pour la commande HEAD (**UNSUPPORTED**), ces Qualifiers peuvent être spécifiés pour préciser sur quoi porte le test d'existence.
 
 ### Structuration des métadonnées
 
@@ -91,52 +89,71 @@ La structuration d'un Object est la suivante :
   {
     "#id": "ObjectId",
     "#tenant": "tenantId",
-    "#type": "ObjectTypeId", // Audio, Video, Document, Text, Image, ...
     //Métadonnées de l'Object
     "FileInfo": {
       "Filename": "filename",
       "LastModified": "date",
       "GPS": {}
     },
-    "#qualifiers": { // ATTENTION: Changement majeur de la structure de données
-      "PhysicalMaster": { // Version papier
-        "PhysicalId": "abcdef",
-        "PhysicalDimensions": {},
-        "xxx": "" // autres informations
-      },
-      "BinaryMaster": { // Version numérique
-        "nb": 1, // nombre de versions
-        "versions": [
-          {
-
-            "MessageDigest": "algorithme digest", // empreinte et algorithme d'empreinte de l'objet
-            "IngestDate": "yyyy-MM-dd'T'HH:mm:ssZ", // date de l'ingest de cette version
-            "Rank": 1, // quantième de la version
-            "Size": 10, // taille de l'objet
-            "FormatIdentification": {
-              "FormatLitteral": "format Literral",
-              "MimeType": "mimetype",
-              "FormatId": "pronomId"
-            },
-            "Metadata": { // un parmi tous
-              "Text": {}, "Document": {}, "Image": {}, "Audio": {}, "Video": {}
-            },
-            "OtherMetadata": {
-              // autres métadonnées non classées
-            }
+    "#qualifiers": [{
+      "qualifier": "PhysicalMaster",
+      "_nbc": 1,
+      "versions": [
+        {
+          "#id": "abcdef",
+          "DataObjectGroupId": "abcdef",
+          "DataObjectVersion": "PhysicalMaster_1",
+          "PhysicalDimensions": {},
+          "xxx": "" // autres informations
+        }
+      ]}
+      {
+      "qualifier": "BinaryMaster",  // Version numérique
+      "_nbc": 1, // nombre de versions
+      "versions": [
+        {
+          "#id": "abcdef",
+          "#storage" : {// informations sur le stockage de l'objet}
+          "DataObjectGroupId": "abcdef",
+          "DataObjectVersion": "BinaryMaster_1",
+          "MessageDigest": "algorithme digest", // empreinte et algorithme d'empreinte de l'objet
+          "Algorithm": "SHA-512",
+          "FileInfo": {// informations du fichier},
+          "Size": 10, // taille de l'objet
+          "Uri": "Content/uri", // uri de l'objet
+          "FormatIdentification": {
+            "FormatLitteral": "format Literral",
+            "MimeType": "mimetype",
+            "FormatId": "pronomId"
+          },
+          "OtherMetadata": {
+            // autres métadonnées non classées
           }
+        }
+      ]
+      },
+      {
+        "qualifier": "Dissemination",  // Version de diffusion
+        "_nbc": 1, // nombre de versions
+        "versions": [
+          {//idem à BinaryMaster}
         ]
       },
-      "Dissemination": {
-        // idem à #master
+      {
+        "qualifier": "TextContent",  // Contenu brut
+        "_nbc": 1, // nombre de versions
+        "versions": [
+          {//idem à BinaryMaster}
+        ]
       },
-      "Thumbnail": {
-        // idem à #master
-      },
-      "TextContent": {
-        // idem à #master
-      },
-    },
+      {
+        "qualifier": "Thumbnail",  // Vignette
+        "_nbc": 1, // nombre de versions
+        "versions": [
+          {//idem à BinaryMaster}
+        ]
+      }
+    ],
     "#unitups": [ "unitParentId", "unitParentId"],
     "#nbobjects": 1, // Nombre de versions d'objets contenus pour tous les usages
     "#operations" : [ "id", "id" ], // liste des opérations auxquelles cette AU a participées
@@ -144,4 +161,7 @@ La structuration d'un Object est la suivante :
 ```
 **Note :** A l'avenir, à l'intérieur d'une version d'usage, et pour chaque version (pour les **BinaryMaster** notamment), un contexte sera ajouté à la structure de l'Object afin de pouvoir y introduire des données de contexte (version du référentiel Pronom par exemple...).
 
-De plus, pour le moment, les recherches actuelles retournent uniquement le nombre de versions pour chaque usage (ex : "#qualifiers": { "BinaryMaster": 3, "Dissemination": 1, "Thumbnail": 1, "TextContent": 1 }), mais à l'avenir, il sera possible de retourner le détail de chaque usage (ou de tous les usages), comme indiqué dans l'exemple ci-dessus.
+# DIPEXPORT
+**/dipexport** est le point d'entrée permettant l'export sous forme de DIP (paquet d'information diffusé ou Dissemination Information Package en anglais) d'une sélection d'unités archivistiques.
+
+**Important** : Deux actions sont disponibles. La première permet de lancer un processus de génération d'un DIP. La deuxième permet de télécharger le fichier généré par le processus précédent, une fois terminé.
