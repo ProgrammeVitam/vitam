@@ -13,7 +13,7 @@ traits:
     description: Response model for Units collection in access
     is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AllowsHeader,
       StandardTraits.PaginationRequestHeader,  StandardTraits.PaginationNextHeader,  StandardTraits.PaginationResponseHeader,
-      StandardTraits.StandardHeader200, StandardTraits.StandardHeader206, StandardTraits.StandardHeader400,
+      StandardTraits.StandardHeader200, StandardTraits.StandardHeader400,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader403, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
     headers:
       X-Access-Contract-Id:
@@ -21,116 +21,20 @@ traits:
         required: true
     body:
       application/json:
-        description: Body contains in JSON format the VITAM DSL request part
-        schema: AccessTypes.AccessQuery
+        description: Contient la requête DSL multiple au format JSON.
+        schema: AccessTypes.AccessMultipleQuery
         example: !include examples/accessUnitQuery.json
     responses:
       200:
-        description: Returns the list of Units results
+        description: Renvoie la liste des résultats d'Unités d'archives correspondant à la requête DSL
         body:
           application/json:
-            description: Metadata
-            schema: AccessTypes.AccessResponse
-            example: !include examples/accessUnitResponse.json
-          application/zip:
-            description: |
-              **UNSUPPORTED** Metadata and Binary object(s)
-          application/x-tar:
-            description: |
-              **UNSUPPORTED** Metadata and Binary object(s)
-          application/octet-stream:
-            description: Binary object
-      206:
-        description: |
-          **UNSUPPORTED** Returns the list of Units results using Cursor
-        body:
-          application/json:
-            description: Metadata
-            schema: AccessTypes.AccessResponse
+            description: Réponse DSL multiple pour Access contenant les métadonnées des Unités d'archives
+            schema: AccessTypes.AccessMultipleResponse
             example: !include examples/accessUnitResponse.json
 
-  AccessObjectResponse:
-    description: Response model for Objects collection in access
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AllowsHeader,
-      StandardTraits.PaginationRequestHeader,  StandardTraits.PaginationNextHeader,  StandardTraits.PaginationResponseHeader,
-      StandardTraits.StandardHeader200, StandardTraits.StandardHeader206, StandardTraits.StandardHeader400,
-      StandardTraits.StandardHeader401, StandardTraits.StandardHeader403, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
-    headers:
-      X-Access-Contract-Id:
-        type: string
-        required: true
-    body:
-      application/json:
-        description: Body contains in JSON format the VITAM DSL request part
-        schema: AccessTypes.AccessQuery
-        example: !include examples/accessObjectQuery.json
-    responses:
-      200:
-        description: Returns the list of Objects matching the DSL query
-        body:
-          application/json:
-            description: Metadata
-            schema: AccessTypes.AccessResponse
-            example: !include examples/accessObjectResponse.json
-          application/zip:
-            description: |
-              **UNSUPPORTED** Metadata and Binary object(s)
-          application/x-tar:
-            description: |
-              **UNSUPPORTED** Metadata and Binary object(s)
-          application/octet-stream:
-            description: Binary object
-      206:
-        description: |
-          **UNSUPPORTED** Returns the list of Objects matching the DSL query, using Cursor
-        body:
-          application/json:
-            description: Metadata
-            schema: AccessTypes.AccessResponse
-            example: !include examples/accessObjectResponse.json
-
-  AccessUniqueObjectQualifierHeadResponse:
-    description: Response model for Object collection under Units collection in access or direct access to get one specific Qualifier version
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AllowsHeader,
-      StandardTraits.StandardHeader204, StandardTraits.StandardHeader400,
-      StandardTraits.StandardHeader401, StandardTraits.StandardHeader403, StandardTraits.StandardHeader404]
-    headers:
-      X-Qualifier?:
-        type: AccessTypes.Qualifiers
-        description: |
-         The requested qualifier only when used with Accept: application/octet-stream or application/zip or application/x-tar or application/.
-         If the qualifier is missing, it means the Dissemination.
-         Extra qualifier "All" means all Qualifiers in conjunction with application/zip or application/x-tar for GET (HEAD allows all).
-         **ONLY VALID with Accept application/octet-stream, application/zip or application/x-tar**
-      X-Version?:
-        type: integer
-        description: |
-          The rank of the version only when used with Accept: application/octet-stream or application/zip or application/x-tar. If the rank is missing, it means the last version.
-          Extra qualifier "All" means all Qualifiers and all Versions in conjunction with application/zip or application/x-tar for GET (HEAD allows all).
-          **ONLY VALID with Accept application/octet-stream, application/zip or application/x-tar**
-      X-Access-Contract-Id:
-        type: string
-        required: true
-    responses:
-      204:
-        headers:
-          X-Qualifier?:
-            type: AccessTypes.Qualifiers
-            description: |
-             The requested qualifier only when used with Accept: application/octet-stream or application/zip or application/x-tar.
-             If the qualifier is missing, it means the Dissemination.
-             Extra qualifier "All" means all Qualifiers in conjunction with application/zip or application/x-tar for GET (HEAD allows all).
-             **ONLY VALID with Accept application/octet-stream, application/zip or application/x-tar**
-          X-Version?:
-            type: integer
-            description: |
-              The rank of the version only when used with Accept: application/octet-stream or application/zip or application/x-tar. If the rank is missing, it means the last version.
-              Extra qualifier "All" means all Qualifiers and all Versions in conjunction with application/zip or application/x-tar for GET (HEAD allows all).
-              **ONLY VALID with Accept application/octet-stream, application/zip or application/x-tar**
-
-
-  AccessUniqueObjectQualifierResponse:
-    description: Response model for Object collection under Units collection in access or direct access to get one specific Qualifier version
+  AccessUniqueUnitResponse:
+    description: Response model for Unit item in access
     is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AllowsHeader,
       StandardTraits.StandardHeader200, StandardTraits.StandardHeader400,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader403, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
@@ -138,32 +42,62 @@ traits:
       X-Access-Contract-Id:
         type: string
         required: true
+    body:
+      application/json?:
+        description: Body contient la requête DSL unitaire au format JSON.
+        schema: AccessTypes.AccessGetByIdQuery
+        example: !include examples/access1UnitQuery.json
     responses:
       200:
-        description: Returns the list of 1 Object matching the DSL query
+        description: Renvoie la liste de résultats contenant 1 Unité d'archive correspondant à la requête DSL
+        body:
+          application/json:
+            description: Réponse DSL multiple pour Access contenant les métadonnées de l'Unité d'archive
+            schema: AccessTypes.AccessGetByIdResponse
+            example: !include examples/access1UnitResponse.json
+
+  AccessUniqueObjectQualifierResponse:
+    description: Response model for Object collection under Units collection in access or direct access to get one specific Qualifier version
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AllowsHeader,
+      StandardTraits.StandardHeader200, StandardTraits.StandardHeader400,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader403, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    headers:
+      X-Qualifier?:
+        type: string
+        enum:
+          - PhysicalMaster
+          - BinaryMaster
+          - Dissemination
+          - Thumbnail
+          - TextContent
+        description: |
+         L'usage est utilisée et obligatoire uniquement en présence de Accept: application/octet-stream.
+         **ONLY VALID with Accept application/octet-stream**
+      X-Version?:
+        type: integer
+        description: |
+          La version est utilisée et obligatoire uniquement en présence de Accept: application/octet-stream.
+          **ONLY VALID with Accept application/octet-stream**
+      X-Access-Contract-Id:
+        type: string
+        required: true
+    responses:
+      200:
+        description: Renvoie l'objet binaire (Returns the list of 1 Object matching the DSL query)
         headers:
           X-Qualifier?:
-            type: AccessTypes.Qualifiers
+            type: AccessTypes.X-Qualifiers
             description: |
-             The requested qualifier only when used with Accept: application/octet-stream or application/zip or application/x-tar.
-             If the qualifier is missing, it means the Dissemination.
-             Extra qualifier "All" means all Qualifiers in conjunction with application/zip or application/x-tar for GET (HEAD allows all).
-             **ONLY VALID with Accept application/octet-stream, application/zip or application/x-tar**
+              L'usage est utilisée et obligatoire uniquement en présence de Accept: application/octet-stream.
+              **ONLY VALID with Accept application/octet-stream**
           X-Version?:
             type: integer
             description: |
-              The rank of the version only when used with Accept: application/octet-stream or application/zip or application/x-tar. If the rank is missing, it means the last version.
-              Extra qualifier "All" means all Qualifiers and all Versions in conjunction with application/zip or application/x-tar for GET (HEAD allows all).
-              **ONLY VALID with Accept application/octet-stream, application/zip or application/x-tar**
+              La version est utilisée et obligatoire uniquement en présence de Accept: application/octet-stream.
+              **ONLY VALID with Accept application/octet-stream**
         body:
-          application/zip:
-            description: |
-              **UNSUPPORTED** Metadata and Binary object(s)
-          application/x-tar:
-            description: |
-              **UNSUPPORTED** Metadata and Binary object(s)
           application/octet-stream:
-            description: Binary object
+            description: Objet binaire
 
   AccessUniqueObjectResponse:
     description: Response model for Object collection under Units collection in access
@@ -176,25 +110,21 @@ traits:
         required: true
     body:
       application/json?:
-        description: Body contains in JSON format the VITAM DSL request part if any (may be absent, meaning access to this Object)
-        schema: AccessTypes.AccessQuery
-        example: !include examples/accessObjectQuery.json
+        description: |
+          Body contient la requête DSL unitaire au format JSON. Il est utilisé et obligatoire uniquement en présence de Accept: application/json.
+          **ONLY VALID with Accept application/json**
+        schema: AccessTypes.AccessGetByIdQuery
+        example: !include examples/access1ObjectQuery.json
     responses:
       200:
-        description: Returns the list of 1 or many Object result according to DSL query
+        description: Renvoie la liste de résultats contenant 1 Object d'archive correspondant à la requête DSL
         body:
           application/json:
-            description: Metadata
-            schema: AccessTypes.AccessResponse
+            description: Réponse DSL unitaire pour Access contenant les métadonnées
+            schema: AccessTypes.AccessGetByIdResponse
             example: !include examples/access1ObjectResponse.json
-          application/zip:
-            description: |
-              **UNSUPPORTED** Metadata and Binary object(s)
-          application/x-tar:
-            description: |
-              **UNSUPPORTED** Metadata and Binary object(s)
           application/octet-stream:
-            description: Binary object
+            description: Objet binaire
 
   AccessUpdateUnitResponse:
     description: Response model for Update Unit under Units collection in access
@@ -206,38 +136,38 @@ traits:
         required: true
     body:
       application/json?:
-        description: Body contains in JSON format the VITAM DSL request part for Update action
-        schema: AccessTypes.AccessQuery
+        description: Body contient la requête DSL unitaire de modification au format JSON.
+        schema: AccessTypes.AccessUpdateByIdQuery
         example: !include examples/access1UnitUpdateQuery.json
     responses:
       200:
-        description: Returns the list of 1 or many Object result according to DSL query
+        description: Renvoie l'état d'execution de la modification correspondant à la requête DSL
         body:
           application/json:
-            description: Metadata
-            schema: AccessTypes.AccessResponse
+            description: Réponse DSL unitaire de modification pour Access contenant l'état d'execution de la modification.
+            schema: AccessTypes.AccessUpdateByIdResponse
             example: !include examples/access1UnitUpdateResponse.json
 
   DipCreationResponseAsync:
-    description: Request for a DIP creation
+    description: Requête de création d'un DIP
     is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AsynchronousHeader,
       StandardTraits.StandardHeader202 ]
     body:
       application/json:
-        description: Body contains in JSON format the VITAM DSL request part
-        schema: AccessTypes.AccessQuery
+        description: Body contient la requête DSL **multiple** au format JSON.
+        schema: AccessTypes.AccessMultipleQuery
         example: !include examples/accessUnitQuery.json
     responses:
       202:
         description: |
-          Returns the status of DIP creation accepted
+          Renvoie le statut de l'opération de DIP
         body:
           application/json:
-            description: DIP operation accepted
+            description: Operation de DIP acceptée
             schema: StandardTypes.AsyncStatus
             example: !include examples/dip.json
       500:
-        description: Returns the final result of the DIP operation in KO status
+        description: Renvoie le statut final de l'opération DIP en KO
         body:
           application/json:
-            description: Final DIP report
+            description: Rapport final du DIP

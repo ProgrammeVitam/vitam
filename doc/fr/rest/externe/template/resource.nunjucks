@@ -161,6 +161,11 @@
                     {% if method.body %}
                       <h3>Body</h3>
                       {% for b in method.body %}
+
+                        {% if b.description.length %}
+                          <p><strong>Description</strong>: {{ b.description }}</p>
+                        {% endif %}
+
                         <p><strong>Media type</strong>: {{ b.key }}</p>
 
                         {% if b.type %}
@@ -243,6 +248,11 @@
                       {% if response.body.length %}
                         <h3>Body</h3>
                         {% for b in response.body %}
+
+                          {% if b.description.length %}
+                            <p><strong>Description</strong>: {{ b.description }}</p>
+                          {% endif %}
+
                           <p><strong>Media type</strong>: {{ b.key }}</p>
 
                           {% if b.type %}

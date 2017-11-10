@@ -1,7 +1,3 @@
 {
-  "$roots": [ "id3" ],
-  "$query": [
-  ],
-  "$filter": {  },
-  "$action": [{ "$set": { "NewField": "New value" } }]
+  "$action": [ { "$set": { "NewField": "New value" } } ]
 }

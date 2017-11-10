@@ -10,26 +10,103 @@ uses:
 
 traits:
 
+  AdminListingResponse:
+    description: Response model for the listing of <<resourcePathName | !uppercamelcase>>
+    is: [ StandardTraits.StandardOptionalHeader,
+       StandardTraits.PaginationRequestHeader,  StandardTraits.PaginationNextHeader,  StandardTraits.PaginationResponseHeader,
+       StandardTraits.StandardHeader200, StandardTraits.StandardHeader206,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/json:
+        description: Contient la requête DSL simple au format JSON.
+        schema: DslTypes.DslSingleQuery
+        example: !include examples/dslQuery.json
+    responses:
+      200:
+        description:  Renvoie la liste des résultats de type <<resourcePathName | !uppercamelcase>> correspondant à la requête DSL 
+        body:
+          application/json:
+            description: Réponse DSL multiple pour Access contenant les <<resourcePathName | !uppercamelcase>> 
+            schema: DslTypes.DslSingleResponse
+            #example: !include examples/logbookResponse.json
+
+  AdminItemResponse:
+    description: Response model for one <<resourcePathName | !uppercamelcase>> item
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    responses:
+      200:
+        description: Retourne un élément de type <<resourcePathName | !uppercamelcase>>
+        body:
+          application/json:
+            description: un élément de type <<resourcePathName | !uppercamelcase>>
+            schema: DslTypes.DslSingleResponse
+            #example: !include examples/logbookResponse.json
+
+  AdminUpload:
+    description: Response model for check or upload of <<resourcePathName | !uppercamelcase>>
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412, StandardTraits.StandardHeader409 ]
+    body:
+      application/xml:
+        description: Contient le fichier source <<resourcePathName | !uppercamelcase>> au format XML (Formats from PRONOM registry)
+      application/csv:
+        description: Contient le fichier source <<resourcePathName | !uppercamelcase>> au format CSV (Rules)
+      application/json:
+        description: Contient le fichier source <<resourcePathName | !uppercamelcase>> au format Json (ingestcontracts, accesscontracts, contexts, profiles)
+      application/octet-stream:
+        description: Contient le fichier source <<resourcePathName | !uppercamelcase>> au format InputStream (for all)
+    responses:
+      201:
+        description: Réponse si le versement ou la vérification de <<resourcePathName | !uppercamelcase>> est OK
+
+
+  AdminProfileUpload:
+    description: Response model for upload of <<resourcePathName | !uppercamelcase>>
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    body:
+      application/octet-stream:
+        description: Contient le fichier source <<resourcePathName | !uppercamelcase>> au format InputStream (for Profile as XSD or RNG format)
+    responses:
+      201:
+        description: Réponse si le versement ou la vérification de <<resourcePathName | !uppercamelcase>> est OK
+
+  AdminFileItemResponse:
+    description: Response model for one <<resourcePathName | !uppercamelcase>> download item
+    is: [ StandardTraits.StandardOptionalHeader,
+      StandardTraits.StandardHeader200,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    responses:
+      200:
+        description: Retourne un fichier de type <<resourcePathName | !uppercamelcase>>
+        body:
+          application/octet-stream:
+            description: un fichier de type <<resourcePathName | !uppercamelcase>>
+
   AuditCreationResponseAsync:
-    description: Request for an Audit creation
+    description: Requête pour la création d'un Audit
     is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AsynchronousHeader,
       StandardTraits.StandardHeader202 ]
     body:
       application/json:
-        description: Body contains in JSON format the VITAM DSL request part
-        schema: AccessTypes.AccessQuery
-        example: !include examples/accessUnitQuery.json
+        description: Contient la requête spécifique au format JSON.
+        example: !include examples/auditLaunchQuery.json
     responses:
       202:
         description: |
-          Returns the status of Audit creation accepted
+          Retourne le status de ACCEPTED en cas de succès de la création de l'opération d'Audit
         body:
           application/json:
             description: Audit operation accepted
             schema: StandardTypes.AsyncStatus
-            example: !include examples/audit.json
+            example: !include examples/auditResponse.json
       500:
-        description: Returns the final result of the Audit operation in KO status
+        description: |
+          Retourne le status de KO en cas d'erreur de la création de l'opération d'Audit
         body:
           application/json:
             description: Final Audit report
@@ -40,13 +117,13 @@ traits:
       StandardTraits.StandardHeader202 ]
     body:
       application/json:
-        description: Body contains in JSON format the VITAM DSL request part
-        schema: DslTypes.DslQuery
-        example: !include examples/dslQuery.json
+        description: Contient la requête DSL simple au format JSON.
+        schema: DslTypes.DslSingleQuery
+        example: !include examples/logbookQuery.json
     responses:
       202:
         description: |
-          Returns the status of Traceability check accepted
+          Retourne le statut ACCEPTED en cas de succès de l'opération Traceability Check
         body:
           application/json:
             description: Traceability operation accepted
