@@ -109,15 +109,16 @@ public class PrepareAuditActionHandler extends ActionHandler {
             String auditType = mapParameters.get(WorkerParameterName.auditType);
             if (auditType.toLowerCase().equals("tenant")) {
                 auditType = BuilderToken.PROJECTIONARGS.TENANT.exactToken();
-                originatingAgency = listOriginatingAgency(originatingAgencyEmpty);
+                originatingAgency = listOriginatingAgency(originatingAgencyEmpty, null);
                 String[] arrayOriginatingAgency = new String[originatingAgency.size()];
                 originatingAgency.toArray(arrayOriginatingAgency);
                 selectQuery.setQuery(QueryHelper.in(BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCY.exactToken(),
                     arrayOriginatingAgency));
             } else if (auditType.toLowerCase().equals("originatingagency")) {
                 auditType = BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCY.exactToken();
-                selectQuery.setQuery(QueryHelper.eq(auditType,
-                    mapParameters.get(WorkerParameterName.objectId)));
+                String objectId = mapParameters.get(WorkerParameterName.objectId);
+                listOriginatingAgency(originatingAgencyEmpty, objectId);
+                selectQuery.setQuery(QueryHelper.eq(auditType, objectId));
             }
             final int scrollSize = GlobalDatas.LIMIT_LOAD;
             selectQuery.setProjection(JsonHandler.getFromString("{\"$fields\": { \"#id\": 1}}"));
@@ -187,13 +188,16 @@ public class PrepareAuditActionHandler extends ActionHandler {
 
 
 
-    private List<String> listOriginatingAgency(ArrayNode originatingAgencyEmpty)
+    private List<String> listOriginatingAgency(ArrayNode originatingAgencyEmpty, String objectId)
         throws AccessUnauthorizedException, InvalidParseOperationException, ReferentialException,
         InvalidCreateOperationException {
         List<String> originatingAgency = new ArrayList<String>();
 
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Select selectQuery = new Select();
+            if (objectId != null) {
+                selectQuery.setQuery(QueryHelper.eq("OriginatingAgency", objectId));
+            }
             RequestResponse<AccessionRegisterSummaryModel> results =
                 client.getAccessionRegister(selectQuery.getFinalSelect());
 
