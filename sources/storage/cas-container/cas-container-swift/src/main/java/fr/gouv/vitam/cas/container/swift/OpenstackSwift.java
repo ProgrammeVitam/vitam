@@ -28,6 +28,7 @@ package fr.gouv.vitam.cas.container.swift;
 
 import java.util.Properties;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.openstack.keystone.v2_0.config.KeystoneProperties;
@@ -120,9 +121,15 @@ public class OpenstackSwift extends ContentAddressableStorageJcloudsAbstract {
     }
 
     private ContextBuilder getContextBuilder(StorageConfiguration configuration) {
+        final String swiftUserName;
+        if (StringUtils.isBlank(configuration.getSwiftSubUser())) {
+            swiftUserName = configuration.getSwiftUid();
+        } else {
+            swiftUserName = configuration.getSwiftUid() + ":" + configuration.getSwiftSubUser();
+        }
         ContextBuilder contextBuilder = ContextBuilder.newBuilder(configuration.getProvider())
                 .endpoint(configuration.getKeystoneEndPoint())
-                .credentials(configuration.getSwiftUid() + ":" + configuration.getSwiftSubUser(), configuration.getCredential());
+                .credentials(swiftUserName, configuration.getCredential());
         // ceph swift
         if (configuration.isCephMode()) {
             Properties overrides = new Properties();
