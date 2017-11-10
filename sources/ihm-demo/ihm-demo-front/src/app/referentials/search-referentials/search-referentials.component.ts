@@ -44,8 +44,8 @@ export class SearchReferentialsComponent  extends PageComponent {
           this.searchReferentialsService.setSearchAPI('accesscontracts');
           this.breadcrumbName = "Contrats d'accès";
           this.referentialData = [
-            FieldDefinition.createIdField('ContractID', "Identifiant", 6, 8),
-            new FieldDefinition('ContractName', "Intitulé", 6, 8)
+            new FieldDefinition('ContractName', "Intitulé", 6, 8),
+            FieldDefinition.createIdField('ContractID', "Identifiant", 6, 8)
           ];
           this.searchForm = {"ContractID":"all","ContractName":"all","orderby":{"field":"Name","sortType":"ASC"}};
           this.columns = [
@@ -70,8 +70,8 @@ export class SearchReferentialsComponent  extends PageComponent {
           this.searchReferentialsService.setSearchAPI('contracts');
           this.breadcrumbName = "Contrats d'entrée";
           this.referentialData = [
-            FieldDefinition.createIdField('ContractID', "Identifiant", 6, 8),
-            new FieldDefinition('ContractName', "Intitulé", 6, 8)
+            new FieldDefinition('ContractName', "Intitulé", 6, 8),
+            FieldDefinition.createIdField('ContractID', "Identifiant", 6, 8)
           ];
           this.searchForm = {"ContractID":"all","ContractName":"all","orderby":{"field":"Name","sortType":"ASC"}};
           this.columns = [
