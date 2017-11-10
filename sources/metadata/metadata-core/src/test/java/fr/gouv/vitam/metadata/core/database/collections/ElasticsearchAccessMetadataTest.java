@@ -85,16 +85,15 @@ public class ElasticsearchAccessMetadataTest {
         "{ \"Filename\":\"Vitam-Sensibilisation-API-V1.0.odp\", \"_max\": \"5\", \"_min\": \"2\"}";
     private static final String S2 = "{\"_id\":\"id2\", \"title\":\"title2\", \"_up\":\"id1\"}";
     private static final String S3 =
-        "{$roots:[\"id2\"],$query:[],$filter:{},$action:[{$set:{\"title\":\"Archive2\"}}]}";
-    private static final String S4 = "{$query: { $or : [ { $match : { 'id' : 'id2' , '$max_expansions' : 1  } } ] }}";
-    private static final String S6 = "{$match:{ \"id \": \"id2 \"}}";
+            "{\"$roots\":[\"id2\"],\"$query\":[],\"$filter\":{},\"$action\":[{\"$set\":{\"title\":\"Archive2\"}}]}";
+    private static final String S4 = "{\"$query\": { \"$or\" : [ { \"$match\" : { 'id' : 'id2' , '$max_expansions' : 1  } } ] }}";
+    private static final String S6 = "{\"$match\":{ \"id \": \"id2 \"}}";
     private static final String S5 =
-        "{$bool : {$must : {$match : {\"title\" : {$query : \"Archive3\",$type : \"boolean\"}}},$filter : {$terms : {\"_up\" : [ \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\" ]}}} }";
+            "{\"$bool\" : {\"$must\" : {\"$match\" : {\"title\" : {\"$query\" : \"Archive3\",\"$type\" : \"boolean\"}}},\"$filter\" : {\"$terms\" : {\"_up\" : [ \"aeaqaaaaaet33ntwablhaaku6z67pzqaaaas\" ]}}} }";
     private final int IntTest = 12345;
-    String groupGUID = GUIDFactory.newObjectGUID(IntTest).toString();
+    private final String groupGUID = GUIDFactory.newObjectGUID(IntTest).toString();
     private final String go = "{\"_id\":\"" + groupGUID +
         "\", \"_qualifiers\" :{\"Physique Master\" : {\"PhysiqueOId\" : \"abceff\"}}, \"title\":\"title1\"}";
-    private MongoClient mongoClient;
     private static ElasticsearchTestConfiguration config = null;
 
     @BeforeClass

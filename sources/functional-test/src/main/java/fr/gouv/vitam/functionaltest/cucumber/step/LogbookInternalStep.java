@@ -31,8 +31,6 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-import org.assertj.core.api.Fail;
-
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;

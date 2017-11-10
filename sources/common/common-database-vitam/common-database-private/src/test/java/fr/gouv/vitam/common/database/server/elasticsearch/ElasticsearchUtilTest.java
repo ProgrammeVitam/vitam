@@ -15,7 +15,7 @@ public class ElasticsearchUtilTest {
         "{\n" +
         "  \"properties\": {\n" +
         "    \"Tenant\": {\n" +
-        "      \"type\": \"string\"\n" +
+        "      \"type\": \"text\"\n" +
         "    }\n" +
         "  }\n" +
         "}";

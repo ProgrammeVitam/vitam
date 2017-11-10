@@ -102,5 +102,10 @@
             <artifactId>powermock-api-mockito</artifactId>
             <scope>test</scope>
         </dependency>
+	    <dependency>
+	        <groupId>org.apache.logging.log4j</groupId>
+	        <artifactId>log4j-core</artifactId>
+	        <scope>test</scope>
+	    </dependency>
     </dependencies>
 </project>

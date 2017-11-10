@@ -308,7 +308,7 @@ public class TnrLaunchAllApplication {
         nodes.add(new ElasticsearchNode(LOCALHOST, config.getTcpPort()));
         try {
             esClient = new LogbookElasticsearchAccess(CLUSTER_NAME, nodes);
-        } catch (VitamException e1) {
+        } catch (VitamException | IOException e1) {
             LOGGER.error(e1);
             earlyShutdown();
         }

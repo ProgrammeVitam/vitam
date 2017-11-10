@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.database.server.elasticsearch;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
+import java.io.IOException;
 
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.client.Client;
@@ -36,6 +37,8 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.Settings.Builder;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -48,8 +51,6 @@ import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
  * Elasticsearch Access
  */
 public class ElasticsearchAccess implements DatabaseConnection {
-
-    private static final int TOSECOND = 1000;
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchAccess.class);
 
@@ -67,7 +68,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
      * @param nodes the elasticsearch nodes
      * @throws VitamException when elasticseach node list is empty
      */
-    public ElasticsearchAccess(final String clusterName, List<ElasticsearchNode> nodes) throws VitamException {
+    public ElasticsearchAccess(final String clusterName, List<ElasticsearchNode> nodes) throws VitamException, IOException  {
 
         ParametersChecker.checkParameter("clusterName, elasticsearch nodes list are a mandatory parameters",
             clusterName, nodes);
@@ -95,25 +96,29 @@ public class ElasticsearchAccess implements DatabaseConnection {
      *
      * @return Settings for Elasticsearch client
      */
-    private Settings getSettings() {
-        return Settings.settingsBuilder().put("cluster.name", clusterName)
-            .put("client.transport.sniff", true)
-            .put("client.transport.ping_timeout", "2s")
-            .put("transport.tcp.connect_timeout", "1s")
-            .put("transport.profiles.client.connect_timeout", "1s")
-            .put("transport.profiles.tcp.connect_timeout", "1s")
-            .put("threadpool.refresh.size", VitamConfiguration.getNumberDbClientThread())
-            .put("threadpool.search.size", VitamConfiguration.getNumberDbClientThread())
-            .put("threadpool.search.queue_size", VitamConfiguration.getNumberEsQueue())
-            .put("threadpool.bulk.size", VitamConfiguration.getNumberDbClientThread())
-            .put("threadpool.bulk.queue_size", VitamConfiguration.getNumberEsQueue())
-            .put("watcher.http.default_read_timeout", VitamConfiguration.getReadTimeout() / TOSECOND + "s")
-            .build();
+    private Settings getSettings() {        
+        return Settings.builder().put("cluster.name", clusterName)                
+                .put("client.transport.sniff", true)
+                .put("client.transport.ping_timeout", "2s")
+                .put("transport.tcp.connect_timeout", "1s")
+                .put("transport.profiles.client.connect_timeout", "1s")
+                .put("transport.profiles.tcp.connect_timeout", "1s")
+                // Note : thread_pool.refresh.size is now limited to max(half number of processors, 10)... that is the default max value. So no configuration is needed.
+                .put("thread_pool.refresh.max", VitamConfiguration.getNumberDbClientThread())
+                .put("thread_pool.search.size", VitamConfiguration.getNumberDbClientThread())
+                .put("thread_pool.search.queue_size", VitamConfiguration.getNumberEsQueue())
+                // thread_pool.bulk.size is now boundedNumberOfProcessors() ; the default value is the maximum allowed (+1), so no configuration is needed.
+                // In addition, if the configured size is >= (1 + # of available processors), the threadpool creation fails.
+                //.put("thread_pool.bulk.size", VitamConfiguration.getNumberDbClientThread())
+                .put("thread_pool.bulk.queue_size", VitamConfiguration.getNumberEsQueue())
+                // watcher settings are now part of X-pack (paid license) and can be configured once installed with the corresponding xpack.http.default_read_timeout
+                //.put("watcher.http.default_read_timeout", VitamConfiguration.getReadTimeout() / TOSECOND + "s")                
+                .build();        
     }
 
     private TransportClient getClient(Settings settings) throws VitamException {
         try {
-            final TransportClient clientNew = TransportClient.builder().settings(settings).build();
+            final TransportClient clientNew = new PreBuiltTransportClient(settings);
             for (final ElasticsearchNode node : nodes) {
                 clientNew.addTransportAddress(
                     new InetSocketTransportAddress(InetAddress.getByName(node.getHostName()), node.getTcpPort()));
@@ -177,7 +182,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
                 final CreateIndexResponse response =
                     client.admin().indices().prepareCreate(collectionName)
                         .setSettings(settings())
-                        .addMapping(type, mapping)
+                        .addMapping(type, mapping, XContentType.JSON)
                         .get();
                 if (!response.isAcknowledged()) {
                     LOGGER.error(type + ":" + response.isAcknowledged());
@@ -191,7 +196,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
         return true;
     }
 
-    public Builder settings() {
+    public Builder settings() throws IOException{
         return Settings.builder().loadFromStream(ES_CONFIGURATION_FILE,
             ElasticsearchAccess.class.getResourceAsStream(ES_CONFIGURATION_FILE));
     }

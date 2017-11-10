@@ -26,6 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Java6Assertions.fail;
+
+import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -34,13 +41,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import org.junit.Test;
-
-import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Java6Assertions.fail;
 
 
 public class ElasticsearchMappingParseTest {
@@ -108,22 +108,22 @@ public class ElasticsearchMappingParseTest {
 
             boolean isNotAnalyzed = ParserTokens.PROJECTIONARGS.isNotAnalyzed(fieldName);
             switch (fieldType) {
-                case "Text":
+                case "text":
                     assertThat(isNotAnalyzed)
                         .withFailMessage("Expected isNotAnalyzed=false for key=" + fieldName + " / type=" + fieldType)
                         .isFalse();
                     break;
-                case "DateTime":
-                case "Boolean":
-                case "Long":
-                case "Double":
-                case "Keyword":
-                case "NotIndexed":
+                case "dateTime":
+                case "boolean":
+                case "long":
+                case "double":
+                case "keyword":
+                case "notIndexed":
                     assertThat(isNotAnalyzed)
                         .withFailMessage("Expected isNotAnalyzed=true for key=" + fieldName + " / type=" + fieldType)
                         .isTrue();
                     break;
-                case "Object":
+                case "object":
                     assertThat(ParserTokens.PROJECTIONARGS.isNotAnalyzed(fieldName + ".Any")).isFalse();
                     break;
                 default:
@@ -170,44 +170,33 @@ public class ElasticsearchMappingParseTest {
     private void parseType(JsonNode jsonNode, String parentMappingPath, Map<String, String> result, JsonNode type) {
         String typeStr;
         switch (type.asText()) {
-            case "string":
-                JsonNode index = jsonNode.get("index");
-                if (index != null) {
-                    assertThat(index.asText()).isEqualTo("not_analyzed");
-                    typeStr = "Keyword";
-                } else {
-                    typeStr = "Text";
-                }
-                break;
             case "date":
                 JsonNode format = jsonNode.get("format");
                 assertThat(format).isNotNull();
 
                 switch (format.asText()) {
                     case "strict_date_optional_time":
-                        typeStr = "DateTime";
+                        typeStr = "dateTime";
                         break;
                     default:
                         throw new IllegalStateException("Unexpected date format " + format.asText());
                 }
                 break;
+            case "text":
+            case "keyword":
             case "boolean":
-                typeStr = "Boolean";
-                break;
             case "long":
-                typeStr = "Long";
-                break;
             case "double":
-                typeStr = "Double";
+                typeStr = type.asText();
                 break;
             case "object":
 
                 JsonNode enabled = jsonNode.get("enabled");
                 if (enabled != null) {
                     assertThat(enabled.asText()).isEqualTo("false");
-                    typeStr = "NotIndexed";
+                    typeStr = "notIndexed";
                 } else {
-                    typeStr = "Object";
+                    typeStr = "object";
                 }
 
                 break;

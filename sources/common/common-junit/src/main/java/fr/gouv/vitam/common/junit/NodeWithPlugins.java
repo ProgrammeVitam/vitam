@@ -36,7 +36,6 @@ package fr.gouv.vitam.common.junit;
 
 import java.util.List;
 
-import org.elasticsearch.Version;
 import org.elasticsearch.env.Environment;
 import org.elasticsearch.node.Node;
 import org.elasticsearch.plugins.Plugin;
@@ -46,12 +45,14 @@ import org.elasticsearch.plugins.Plugin;
  */
 public class NodeWithPlugins extends Node {
 
+    // KWA FIXME P2: Is it really the best and surest way to start a cluster with plugins ?
+
     /**
      * @param settings
-     * @param version
      * @param list
      */
-    public NodeWithPlugins(Environment settings, Version version, List<Class<? extends Plugin>> list) {
-        super(settings, version, list);
+    public NodeWithPlugins(Environment settings, List<Class<? extends Plugin>> list) {
+        super(settings, list);
     }
+
 }

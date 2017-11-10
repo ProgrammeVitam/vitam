@@ -1,22 +1,20 @@
 {
   "properties": {
     "Identifier": {
-      "type": "string",
-      "index": "not_analyzed"
+      "type": "keyword"
     },
     "Name": {
-      "type": "string"
+      "type": "text",
+      "fielddata": true
     },
     "Description": {
-      "type": "string"
+      "type": "text"
     },
     "Status": {
-      "type": "string",
-      "index": "not_analyzed"
+      "type": "keyword"
     },
     "ArchiveProfiles": {
-      "type": "string",
-      "index": "not_analyzed"
+      "type": "keyword"
     },
     "CreationDate": {
       "type": "date",
@@ -35,8 +33,7 @@
       "format": "strict_date_optional_time"
     },
     "LinkParentId": {
-      "type": "string",
-      "index": "not_analyzed"
+      "type": "keyword"
     },
     "_tenant": {
       "type": "long"

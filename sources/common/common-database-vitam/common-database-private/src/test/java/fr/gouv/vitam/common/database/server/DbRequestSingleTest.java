@@ -151,7 +151,7 @@ public class DbRequestSingleTest {
 
         // find with sort in mongo
         final Select sortedSelect = new Select();
-        sortedSelect.addOrderByDescFilter("Title");
+        sortedSelect.addOrderByDescFilter("Title.keyword");
         final DbRequestResult sortedSelectResult = dbRequestSingle.execute(sortedSelect);
         final List<VitamDocument> sortedSelectCursor = sortedSelectResult.getDocuments(VitamDocument.class);
         final Document documentSorted1 = sortedSelectCursor.get(0);
@@ -164,7 +164,7 @@ public class DbRequestSingleTest {
         // find with sort in ES
         final Select sortedSelectES = new Select();
         sortedSelectES.setQuery(match("Title", "title"));
-        sortedSelectES.addOrderByDescFilter("Title");
+        sortedSelectES.addOrderByDescFilter("Title.keyword");
         DbRequestResult sortedSelectESResult = dbRequestSingle.execute(sortedSelectES);
         List<VitamDocument> sortedSelectESCursor = sortedSelectESResult.getDocuments(VitamDocument.class);
         final Document documentSortedES1 = sortedSelectESCursor.get(0);
@@ -176,7 +176,7 @@ public class DbRequestSingleTest {
 
         // update
         final Update update = new Update();
-        update.setQuery(eq("Title", "title one"));
+        update.setQuery(eq("Title.keyword", "title one"));
         update.addActions(UpdateActionHelper.set("Title", "new name"));
         final DbRequestResult updateResult = dbRequestSingle.execute(update);
         assertEquals(1, updateResult.getCount());

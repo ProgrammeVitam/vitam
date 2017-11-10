@@ -73,7 +73,7 @@ public class ElasticsearchAccessTest {
     }
 
     @Test
-    public void testElasticsearchAccess() throws VitamException {
+    public void testElasticsearchAccess() throws VitamException, IOException {
         final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
 

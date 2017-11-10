@@ -8,8 +8,6 @@ https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.6.1.rpm
 https://artifacts.elastic.co/downloads/logstash/logstash-5.6.1.rpm
 https://artifacts.elastic.co/downloads/kibana/kibana-5.6.1-x86_64.rpm
 
-https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/rpm/elasticsearch/2.4.4/elasticsearch-2.4.4.rpm
-https://download.elastic.co/kibana/kibana/kibana-4.6.4-x86_64.rpm
 
 https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-5.6.1-x86_64.rpm
 

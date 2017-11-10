@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core;
 
+import java.io.IOException;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
@@ -45,7 +47,7 @@ public class ElasticsearchAccessMetadataFactory {
      * @return the ElasticsearchAccess
      * @throws MetaDataException if error of creating ElasticSearchAccessMetadata 
      */
-    public ElasticsearchAccessMetadata create(MetaDataConfiguration configuration) throws MetaDataException {
+    public ElasticsearchAccessMetadata create(MetaDataConfiguration configuration) throws MetaDataException, IOException {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
         try {
             return new ElasticsearchAccessMetadata(configuration.getClusterName(),

@@ -5,7 +5,8 @@
         "Titles": {
           "path_match": "Titles.*",
           "mapping": {
-            "type": "string"
+            "type": "text",
+            "fielddata": true
           }
         }
       },
@@ -13,7 +14,7 @@
         "Descriptions": {
           "path_match": "Descriptions.*",
           "mapping": {
-            "type": "string"
+            "type": "text"
           }
         }
       },
@@ -29,19 +30,17 @@
         "all_string": {
           "match": "*",
           "mapping": {
-            "type": "string"
+            "type": "text"
           }
         }
       }
     ],
     "properties": {
       "ArchivalAgencyArchiveUnitIdentifier": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "ArchiveUnitProfile": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "AcquiredDate": {
         "type": "date",
@@ -52,17 +51,16 @@
         "format": "strict_date_optional_time"
       },
       "Description": {
-        "type": "string"
+        "type": "text"
       },
       "Descriptions": {
         "type": "object"
       },
       "DescriptionLanguage": {
-        "type": "string"
+        "type": "text"
       },
       "DescriptionLevel": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "EndDate": {
         "type": "date",
@@ -71,43 +69,38 @@
       "Event": {
         "properties": {
           "EventIdentifier": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           },
           "EventType": {
-            "type": "string"
+            "type": "text"
           },
           "EventDateTime": {
             "type": "date",
             "format": "strict_date_optional_time"
           },
           "EventDetail": {
-            "type": "string"
+            "type": "text"
           }
         }
       },
       "FilePlanPosition": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "Language": {
-        "type": "string"
+        "type": "text"
       },
       "OriginatingAgency": {
         "properties": {
           "Identifier": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           }
         }
       },
       "OriginatingAgencyArchiveUnitIdentifier": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "OriginatingSystemId": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "ReceivedDate": {
         "type": "date",
@@ -122,7 +115,7 @@
         "format": "strict_date_optional_time"
       },
       "Source": {
-        "type": "string"
+        "type": "text"
       },
       "StartDate": {
         "type": "date",
@@ -131,21 +124,19 @@
       "SubmissionAgency": {
         "properties": {
           "Identifier": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           }
         }
       },
       "SystemId": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "Tag": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "Title": {
-        "type": "string"
+        "type": "text",
+        "fielddata": true
       },
       "Titles": {
         "type": "object"
@@ -155,34 +146,29 @@
         "format": "strict_date_optional_time"
       },
       "TransferringAgencyArchiveUnitIdentifier": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "Type": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "DocumentType": {
-        "type": "string"
+        "type": "text"
       },
       "Status": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "Version": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "CustodialHistory": {
         "properties": {
           "CustodialHistoryItem": {
-            "type": "string"
+            "type": "text"
           },
           "CustodialHistoryFile": {
             "properties": {
               "DataObjectGroupReferenceId": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               }
             }
           }
@@ -191,29 +177,26 @@
       "Keyword": {
         "properties": {
           "KeywordContent": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           },
           "KeywordReference": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           },
           "KeywordType": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           }
         }
       },
       "Coverage": {
         "properties": {
           "Spatial": {
-            "type": "string"
+            "type": "text"
           },
           "Temporal": {
-            "type": "string"
+            "type": "text"
           },
           "Juridictional": {
-            "type": "string"
+            "type": "text"
           }
         }
       },
@@ -222,23 +205,22 @@
           "BirthPlace": {
             "properties": {
               "Geogname": {
-                "type": "string"
+                "type": "text"
               },
               "Address": {
-                "type": "string"
+                "type": "text"
               },
               "PostalCode": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "City": {
-                "type": "string"
+                "type": "text"
               },
               "Region": {
-                "type": "string"
+                "type": "text"
               },
               "Country": {
-                "type": "string"
+                "type": "text"
               }
             }
           },
@@ -249,51 +231,49 @@
           "DeathPlace": {
             "properties": {
               "Geogname": {
-                "type": "string"
+                "type": "text"
               },
               "Address": {
-                "type": "string"
+                "type": "text"
               },
               "PostalCode": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "City": {
-                "type": "string"
+                "type": "text"
               },
               "Region": {
-                "type": "string"
+                "type": "text"
               },
               "Country": {
-                "type": "string"
+                "type": "text"
               }
             }
           },
           "GivenName": {
-            "type": "string"
+            "type": "text"
           },
           "BirthName": {
-            "type": "string"
+            "type": "text"
           },
           "FirstName": {
-            "type": "string"
+            "type": "text"
           },
           "Gender": {
-            "type": "string"
+            "type": "text"
           },
           "Corpname": {
-            "type": "string"
+            "type": "text"
           },
           "Nationality": {
-            "type": "string"
+            "type": "text"
           },
           "DeathDate": {
             "type": "date",
             "format": "strict_date_optional_time"
           },
           "Identifier": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           }
         }
       },
@@ -302,23 +282,22 @@
           "BirthPlace": {
             "properties": {
               "Geogname": {
-                "type": "string"
+                "type": "text"
               },
               "Address": {
-                "type": "string"
+                "type": "text"
               },
               "PostalCode": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "City": {
-                "type": "string"
+                "type": "text"
               },
               "Region": {
-                "type": "string"
+                "type": "text"
               },
               "Country": {
-                "type": "string"
+                "type": "text"
               }
             }
           },
@@ -329,62 +308,58 @@
           "DeathPlace": {
             "properties": {
               "Geogname": {
-                "type": "string"
+                "type": "text"
               },
               "Address": {
-                "type": "string"
+                "type": "text"
               },
               "PostalCode": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "City": {
-                "type": "string"
+                "type": "text"
               },
               "Region": {
-                "type": "string"
+                "type": "text"
               },
               "Country": {
-                "type": "string"
+                "type": "text"
               }
             }
           },
           "GivenName": {
-            "type": "string"
+            "type": "text"
           },
           "BirthName": {
-            "type": "string"
+            "type": "text"
           },
           "FirstName": {
-            "type": "string"
+            "type": "text"
           },
           "Gender": {
-            "type": "string"
+            "type": "text"
           },
           "Nationality": {
-            "type": "string"
+            "type": "text"
           },
           "DeathDate": {
             "type": "date",
             "format": "strict_date_optional_time"
           },
           "Identifier": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           },
           "Function": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           },
           "Activity": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           },
           "Position": {
-            "type": "string"
+            "type": "text"
           },
           "Role": {
-            "type": "string"
+            "type": "text"
           }
         }
       },
@@ -393,23 +368,22 @@
           "BirthPlace": {
             "properties": {
               "Geogname": {
-                "type": "string"
+                "type": "text"
               },
               "Address": {
-                "type": "string"
+                "type": "text"
               },
               "PostalCode": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "City": {
-                "type": "string"
+                "type": "text"
               },
               "Region": {
-                "type": "string"
+                "type": "text"
               },
               "Country": {
-                "type": "string"
+                "type": "text"
               }
             }
           },
@@ -420,51 +394,49 @@
           "DeathPlace": {
             "properties": {
               "Geogname": {
-                "type": "string"
+                "type": "text"
               },
               "Address": {
-                "type": "string"
+                "type": "text"
               },
               "PostalCode": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "City": {
-                "type": "string"
+                "type": "text"
               },
               "Region": {
-                "type": "string"
+                "type": "text"
               },
               "Country": {
-                "type": "string"
+                "type": "text"
               }
             }
           },
           "GivenName": {
-            "type": "string"
+            "type": "text"
           },
           "BirthName": {
-            "type": "string"
+            "type": "text"
           },
           "FirstName": {
-            "type": "string"
+            "type": "text"
           },
           "Gender": {
-            "type": "string"
+            "type": "text"
           },
           "Corpname": {
-            "type": "string"
+            "type": "text"
           },
           "Nationality": {
-            "type": "string"
+            "type": "text"
           },
           "DeathDate": {
             "type": "date",
             "format": "strict_date_optional_time"
           },
           "Identifier": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           }
         }
       },
@@ -473,23 +445,22 @@
           "BirthPlace": {
             "properties": {
               "Geogname": {
-                "type": "string"
+                "type": "text"
               },
               "Address": {
-                "type": "string"
+                "type": "text"
               },
               "PostalCode": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "City": {
-                "type": "string"
+                "type": "text"
               },
               "Region": {
-                "type": "string"
+                "type": "text"
               },
               "Country": {
-                "type": "string"
+                "type": "text"
               }
             }
           },
@@ -500,51 +471,49 @@
           "DeathPlace": {
             "properties": {
               "Geogname": {
-                "type": "string"
+                "type": "text"
               },
               "Address": {
-                "type": "string"
+                "type": "text"
               },
               "PostalCode": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "City": {
-                "type": "string"
+                "type": "text"
               },
               "Region": {
-                "type": "string"
+                "type": "text"
               },
               "Country": {
-                "type": "string"
+                "type": "text"
               }
             }
           },
           "GivenName": {
-            "type": "string"
+            "type": "text"
           },
           "BirthName": {
-            "type": "string"
+            "type": "text"
           },
           "FirstName": {
-            "type": "string"
+            "type": "text"
           },
           "Gender": {
-            "type": "string"
+            "type": "text"
           },
           "Corpname": {
-            "type": "string"
+            "type": "text"
           },
           "Nationality": {
-            "type": "string"
+            "type": "text"
           },
           "DeathDate": {
             "type": "date",
             "format": "strict_date_optional_time"
           },
           "Identifier": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           }
         }
       },
@@ -553,140 +522,115 @@
           "IsVersionOf": {
             "properties": {
               "ArchiveUnitRefId": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "DataObjectReference": {
                 "properties": {
                   "DataObjectGroupReferenceId": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   },
                   "DataObjectReferenceId": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   }
                 }
               },
               "RepositoryArchiveUnitPID": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "RepositoryObjectPID": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               }
             }
           },
           "Replaces": {
             "properties": {
               "ArchiveUnitRefId": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "DataObjectReference": {
                 "properties": {
                   "DataObjectGroupReferenceId": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   },
                   "DataObjectReferenceId": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   }
                 }
               },
               "RepositoryArchiveUnitPID": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "RepositoryObjectPID": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               }
             }
           },
           "Requires": {
             "properties": {
               "ArchiveUnitRefId": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "DataObjectReference": {
                 "properties": {
                   "DataObjectGroupReferenceId": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   },
                   "DataObjectReferenceId": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   }
                 }
               },
               "RepositoryArchiveUnitPID": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "RepositoryObjectPID": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               }
             }
           },
           "IsPartOf": {
             "properties": {
               "ArchiveUnitRefId": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "DataObjectReference": {
                 "properties": {
                   "DataObjectGroupReferenceId": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   },
                   "DataObjectReferenceId": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   }
                 }
               },
               "RepositoryArchiveUnitPID": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "RepositoryObjectPID": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               }
             }
           },
           "References": {
             "properties": {
               "ArchiveUnitRefId": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "DataObjectReference": {
                 "properties": {
                   "DataObjectGroupReferenceId": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   },
                   "DataObjectReferenceId": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   }
                 }
               },
               "RepositoryArchiveUnitPID": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "RepositoryObjectPID": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               }
             }
           }
@@ -703,23 +647,22 @@
               "BirthPlace": {
                 "properties": {
                   "Geogname": {
-                    "type": "string"
+                    "type": "text"
                   },
                   "Address": {
-                    "type": "string"
+                    "type": "text"
                   },
                   "PostalCode": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   },
                   "City": {
-                    "type": "string"
+                    "type": "text"
                   },
                   "Region": {
-                    "type": "string"
+                    "type": "text"
                   },
                   "Country": {
-                    "type": "string"
+                    "type": "text"
                   }
                 }
               },
@@ -730,69 +673,65 @@
               "DeathPlace": {
                 "properties": {
                   "Geogname": {
-                    "type": "string"
+                    "type": "text"
                   },
                   "Address": {
-                    "type": "string"
+                    "type": "text"
                   },
                   "PostalCode": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   },
                   "City": {
-                    "type": "string"
+                    "type": "text"
                   },
                   "Region": {
-                    "type": "string"
+                    "type": "text"
                   },
                   "Country": {
-                    "type": "string"
+                    "type": "text"
                   }
                 }
               },
               "GivenName": {
-                "type": "string"
+                "type": "text"
               },
               "BirthName": {
-                "type": "string"
+                "type": "text"
               },
               "FirstName": {
-                "type": "string"
+                "type": "text"
               },
               "Gender": {
-                "type": "string"
+                "type": "text"
               },
               "Corpname": {
-                "type": "string"
+                "type": "text"
               },
               "Nationality": {
-                "type": "string"
+                "type": "text"
               },
               "DeathDate": {
                 "type": "date",
                 "format": "strict_date_optional_time"
               },
               "Identifier": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "SigningTime": {
                 "type": "date",
                 "format": "strict_date_optional_time"
               },
               "Function": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "Activity": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "Position": {
-                "type": "string"
+                "type": "text"
               },
               "Role": {
-                "type": "string"
+                "type": "text"
               }
             }
           },
@@ -801,23 +740,22 @@
               "BirthPlace": {
                 "properties": {
                   "Geogname": {
-                    "type": "string"
+                    "type": "text"
                   },
                   "Address": {
-                    "type": "string"
+                    "type": "text"
                   },
                   "PostalCode": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   },
                   "City": {
-                    "type": "string"
+                    "type": "text"
                   },
                   "Region": {
-                    "type": "string"
+                    "type": "text"
                   },
                   "Country": {
-                    "type": "string"
+                    "type": "text"
                   }
                 }
               },
@@ -828,91 +766,83 @@
               "DeathPlace": {
                 "properties": {
                   "Geogname": {
-                    "type": "string"
+                    "type": "text"
                   },
                   "Address": {
-                    "type": "string"
+                    "type": "text"
                   },
                   "PostalCode": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   },
                   "City": {
-                    "type": "string"
+                    "type": "text"
                   },
                   "Region": {
-                    "type": "string"
+                    "type": "text"
                   },
                   "Country": {
-                    "type": "string"
+                    "type": "text"
                   }
                 }
               },
               "GivenName": {
-                "type": "string"
+                "type": "text"
               },
               "BirthName": {
-                "type": "string"
+                "type": "text"
               },
               "FirstName": {
-                "type": "string"
+                "type": "text"
               },
               "Gender": {
-                "type": "string"
+                "type": "text"
               },
               "Corpname": {
-                "type": "string"
+                "type": "text"
               },
               "Nationality": {
-                "type": "string"
+                "type": "text"
               },
               "DeathDate": {
                 "type": "date",
                 "format": "strict_date_optional_time"
               },
               "Identifier": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "ValidationTime": {
                 "type": "date",
                 "format": "strict_date_optional_time"
               },
               "Function": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "Activity": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "Position": {
-                "type": "string"
+                "type": "text"
               },
               "Role": {
-                "type": "string"
+                "type": "text"
               }
             }
           },
           "Masterdata": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           },
           "ReferencedObject": {
             "properties": {
               "SignedObjectId": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "SignedObjectDigest": {
                 "properties": {
                   "Algorithm": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   },
                   "Value": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   }
                 }
               }
@@ -923,36 +853,28 @@
       "Gps": {
         "properties": {
           "GpsVersionID": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           },
           "GpsAltitude": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           },
           "GpsAltitudeRef": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           },
           "GpsLatitude": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           },
           "GpsLatitudeRef": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           },
           "GpsLongitude": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           },
           "GpsLongitudeRef": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           },
           "GpsDateStamp": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           }
         }
       },
@@ -967,8 +889,7 @@
                     "format": "strict_date_optional_time"
                   },
                   "Rule": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   },
                   "StartDate": {
                     "type": "date",
@@ -982,8 +903,7 @@
                     "type": "boolean"
                   },
                   "PreventRulesId": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   }
                 }
               }
@@ -998,8 +918,7 @@
                     "format": "strict_date_optional_time"
                   },
                   "Rule": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   },
                   "StartDate": {
                     "type": "date",
@@ -1013,14 +932,12 @@
                     "type": "boolean"
                   },
                   "PreventRulesId": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   }
                 }
               },
               "FinalAction": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               }
             }
           },
@@ -1033,8 +950,7 @@
                     "format": "strict_date_optional_time"
                   },
                   "Rule": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   },
                   "StartDate": {
                     "type": "date",
@@ -1048,8 +964,7 @@
                     "type": "boolean"
                   },
                   "PreventRulesId": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   }
                 }
               }
@@ -1064,8 +979,7 @@
                     "format": "strict_date_optional_time"
                   },
                   "Rule": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   },
                   "StartDate": {
                     "type": "date",
@@ -1079,8 +993,7 @@
                     "type": "boolean"
                   },
                   "PreventRulesId": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   }
                 }
               }
@@ -1095,8 +1008,7 @@
                     "format": "strict_date_optional_time"
                   },
                   "Rule": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   },
                   "StartDate": {
                     "type": "date",
@@ -1110,14 +1022,12 @@
                     "type": "boolean"
                   },
                   "PreventRulesId": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   }
                 }
               },
               "FinalAction": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               }
             }
           },
@@ -1130,11 +1040,10 @@
                     "format": "strict_date_optional_time"
                   },
                   "ClassificationLevel": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   },
                   "ClassificationOwner": {
-                    "type": "string"
+                    "type": "text"
                   },
                   "ClassificationReassessingDate": {
                     "type": "date",
@@ -1144,8 +1053,7 @@
                     "type": "boolean"
                   },
                   "Rule": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   },
                   "StartDate": {
                     "type": "date",
@@ -1159,16 +1067,14 @@
                     "type": "boolean"
                   },
                   "PreventRulesId": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   }
                 }
               }
             }
           },
           "OriginatingAgency": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           }
         }
       },
@@ -1182,23 +1088,19 @@
         "type": "long"
       },
       "_og": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "_ops": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "_tenant": {
         "type": "long"
       },
       "_sp": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "_sps": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "_uds": {
         "type": "object",
@@ -1213,12 +1115,10 @@
         "enabled": false
       },
       "_up": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "_us": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "_v": {
         "type": "long"
@@ -1229,18 +1129,15 @@
             "type": "long"
           },
           "offerIds": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           },
           "strategyId": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           }
         }
       },
       "_unitType": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       }
     }
   }

@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,7 +60,7 @@ public class MongoDbAccessMetadataFactory {
         try {
             esClient = new ElasticsearchAccessMetadataFactory().create(configuration);
 
-        } catch (final MetaDataException e1) {
+        } catch (final MetaDataException | IOException e1) {
             throw new IllegalArgumentException(e1);
         }
 
