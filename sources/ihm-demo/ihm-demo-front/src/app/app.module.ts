@@ -83,6 +83,9 @@ import { LifecycleComponent } from './archive-unit/archive-unit-details/lifecycl
 import {CustomLoader} from "./common/translate/custom-loader";
 import { TraceabilityOperationDetailsComponent } from './admin/traceability/traceability-operation-details/traceability-operation-details.component';
 import { TraceabilityOperationService } from './admin/traceability/traceability-operation.service';
+import { WorkflowComponent } from './admin/workflow/workflow.component';
+import {WorkflowService} from "./admin/workflow.service";
+
 
 const appRoutes: Routes = [
   {
@@ -164,6 +167,9 @@ const appRoutes: Routes = [
     path: 'admin/audits', component: AuditComponent, data : {permission : 'admin:audit'}
   },
   {
+    path: 'admin/workflow', component: WorkflowComponent, data : {permission : 'admin:audit'}
+  },
+  {
     path: '**', redirectTo: 'ingest/sip', pathMatch: 'full'
   }
 ];
@@ -226,7 +232,9 @@ const appRoutes: Routes = [
     ArchiveExportDIPComponent,
     DialogComponent,
     LifecycleComponent,
-    TraceabilityOperationDetailsComponent
+    TraceabilityOperationDetailsComponent,
+    WorkflowComponent
+
   ],
   imports: [
     RouterModule.forRoot(appRoutes, {useHash: true}),
@@ -294,7 +302,8 @@ const appRoutes: Routes = [
     ObjectsService,
     AuditService,
     DialogService,
-    TraceabilityOperationService
+    TraceabilityOperationService,
+    WorkflowService
   ],
   bootstrap: [AppComponent]
 })

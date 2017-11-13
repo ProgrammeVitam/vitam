@@ -1,9 +1,11 @@
 <p-dataTable [value]="items" (onRowClick)="navigateTo($event)" [sortField]="filter"
              [selectionMode]="selectionMode" scrollable="true" scrollWidth="100%" [emptyMessage]="'Aucun résultat'">
-  <p-column *ngFor="let col of selectedCols" [field]="col.field" [header]="col.label" [style]="col.computeCss()" [styleClass]="clickable(col)" >
+  <p-column *ngFor="let col of selectedCols" [field]="col.field" [header]="col.label" [style]="col.computeCss()"
+            [styleClass]="clickable(col)">
     <ng-template let-item="rowData" pTemplate="body">
       <ng-template [ngIf]="col.forceIcon || (col.icons.length > 0 && col.shouldDisplay(item))">
-        <i *ngFor="let icon of col.getIcons(item, col.icons); let i = index" [ngClass]="'fa ' + icon + ' clickableDiv'" (click)="col.onClick(item, i)"></i>
+        <i *ngFor="let icon of col.getIcons(item, col.icons)"
+           [ngClass]="'fa ' + icon + ' clickableDiv'" (click)="col.onClick(item, icon)"></i>
       </ng-template>
       <span *ngIf="col.icons.length === 0 && !col.forceIcon" (click)="col.onClick(item)" [ngClass]="col.computeCss()"
             title="{{col.transform(col.getValue(item)) }}"> {{col.transform(col.getValue(item)) | translate}}
