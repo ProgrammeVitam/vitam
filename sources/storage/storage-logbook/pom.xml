@@ -82,7 +82,7 @@
                 <executions>
                     <execution>
                         <id>make-my-jar-with-dependencies</id>
-                        <phase>package</phase>
+                        <phase>verify</phase>
                         <goals>
                             <goal>single</goal>
                         </goals>
