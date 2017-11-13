@@ -41,6 +41,7 @@ export class ResultsComponent implements OnInit {
   ngOnChanges(changes: SimpleChanges) {
     if (!!this.data) {
       this.items = this.data.$results;
+      this.firstItem = 0;
       this.hits = this.data.$hits;
       this.displayedItems = this.items.slice(this.firstItem, this.firstItem + this.nbRows);
       this.firstPage = 0;
