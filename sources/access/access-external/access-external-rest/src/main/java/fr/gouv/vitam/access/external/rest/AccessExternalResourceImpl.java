@@ -231,7 +231,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @GET
     @Path("/dipexport/{id}/dip")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "dipexport:read", description = "Récupérer le DIP")
+    @Secured(permission = "dipexport:id:dip:read", description = "Récupérer le DIP")
     public Response findDIPByID(@PathParam("id") String id) {
 
         Integer tenantId = ParameterHelper.getTenantParameter();
