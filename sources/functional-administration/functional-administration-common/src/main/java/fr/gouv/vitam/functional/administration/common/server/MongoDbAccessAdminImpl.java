@@ -69,8 +69,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAccessReferential {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccessAdminImpl.class);
-    private static final String CONTEXT_NAME = "Name";
-    private static final String CONTEXT_TO_SAVE = "admin-context";
+
 
     /**
      * @param mongoClient client of mongo
@@ -105,11 +104,8 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     }
     // Not check, test feature !
     @Override
-    public DbRequestResult deleteCollection(FunctionalAdminCollections collection)
+    public DbRequestResult deleteCollection(FunctionalAdminCollections collection, Delete delete)
         throws DatabaseException, ReferentialException {
-        if (collection.equals(FunctionalAdminCollections.CONTEXT)) {
-            return deleteContexts(collection);
-        } else {
             long count = 0;
             if (collection.isMultitenant()) {
                 final Document filter =
@@ -122,50 +118,47 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
                 LOGGER.debug(collection.getName() + " count before: " + count);
             }
             if (count > 0) {
-                final Delete delete = new Delete();
+
                 final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
                 try (DbRequestResult result = dbrequest.execute(delete)) {
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getCount());
                     }
-                    if (result.getCount() != count) {
-                        throw new DatabaseException(
-                            String.format("%s: Delete %s from %s elements", collection.getName(),
-                                result.getCount(), count));
-                    }
+
                     return result;
                 } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
                     throw new DatabaseException("Delete document exception");
                 }
             }
             return new DbRequestResult();
-        }
     }
 
-    private DbRequestResult deleteContexts(FunctionalAdminCollections collection)
+    @Override
+    public DbRequestResult deleteCollection(FunctionalAdminCollections collection)
         throws DatabaseException, ReferentialException {
 
         long count = 0;
-        count = collection.getCollection().count();
+        if (collection.isMultitenant()) {
+            final Document filter =
+                new Document().append(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter());
+            count = collection.getCollection().count(filter);
+        } else {
+            count = collection.getCollection().count();
+        }
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(collection.getName() + " count before: " + count);
         }
-        if (count > 1) {
-            final Delete delete = new Delete();
+        if (count > 0) {
+            Delete delete = new Delete();
             final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
-
-            try {
-                //FIXME: Which context shouldn't be deleted?
-                final Query query = QueryHelper.not().add(QueryHelper.eq(CONTEXT_NAME, CONTEXT_TO_SAVE));
-                delete.setQuery(query);
-                DbRequestResult result = dbrequest.execute(delete);
-
+            try (DbRequestResult result = dbrequest.execute(delete)) {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug(collection.getName() + " result.result.getDeletedCount(): " + result.getCount());
                 }
-                if (result.getCount() != count - 1) {
-                    throw new DatabaseException(String.format("%s: Delete %s from %s elements", collection.getName(),
-                        result.getCount(), count));
+                if (result.getCount() != count) {
+                    throw new DatabaseException(
+                        String.format("%s: Delete %s from %s elements", collection.getName(),
+                            result.getCount(), count));
                 }
                 return result;
             } catch (InvalidParseOperationException | InvalidCreateOperationException e) {

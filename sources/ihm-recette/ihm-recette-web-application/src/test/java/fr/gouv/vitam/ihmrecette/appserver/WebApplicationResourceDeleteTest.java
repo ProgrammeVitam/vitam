@@ -452,6 +452,8 @@ public class WebApplicationResourceDeleteTest {
         }
     }
 
+    @Test
+    @RunWithCustomExecutor
     public void testDeleteMasterdataProfileOK() {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
