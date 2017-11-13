@@ -929,28 +929,44 @@ public class AccessStep {
         throw new VitamClientException("Access contract was found");
     }
 
-    @When("^je veux faire l'audit des objets du service producteur \"([^\"]*)\"$")
-    public void je_lance_l_audit_en_service_producteur(String originatingAgnecy) throws Throwable {
-        String QUERY = "{auditType:\"originatingAgency\",objectId:\"" + originatingAgnecy +
-            "\"}";
+    @When("^je veux faire un audit sur (.*) des objets par service producteur \"([^\"]*)\"$")
+    public void je_lance_l_audit_en_service_producteur(String action, String originatingAgnecy) throws Throwable {
+        String QUERY = null;
+        auditStatus = null;
+        if (action.equals("l'existence")) {
+             QUERY = "{auditActions:\"AUDIT_FILE_EXISTING\",auditType:\"originatingAgency\",objectId:\"" + originatingAgnecy +
+                "\"}";
+        } else if (action.equals("l'intégrité")) {
+            QUERY = "{auditActions:\"AUDIT_FILE_INTEGRITY\",auditType:\"originatingAgency\",objectId:\"" + originatingAgnecy +
+                "\"}";
+        }
+        
         JsonNode auditOption = JsonHandler.getFromString(QUERY);
+        VitamContext vitamContext = new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+            .setApplicationSessionId(world.getApplicationSessionId());
 
-        assertThat(world.getAdminClient().launchAudit(
-            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId()),
-            auditOption).isOk()).isTrue();
+        RequestResponse response = world.getAdminClient().launchAudit(vitamContext, auditOption);
+        assertThat(response.isOk()).isTrue();
+        auditStatus = Status.ACCEPTED;
     }
 
-    @When("^je veux faire l'audit des objets de tenant (\\d+)$")
-    public void je_veux_faire_l_audit_des_objets_de_tenant(int tenant) throws Throwable {
-        String QUERY =
-            "{auditType:\"tenant\",objectId:\"" + tenant + "\"}";
-        JsonNode auditOption = JsonHandler.getFromString(QUERY);
+    @When("^je veux faire un audit sur (.*) des objets par tenant (\\d+)$")
+    public void je_veux_faire_l_audit_des_objets_de_tenant(String action, int tenant) throws Throwable {
+        String QUERY = null;
+        auditStatus = null;
+        if (action.equals("l'existence")) {
+            QUERY = "{auditActions:\"AUDIT_FILE_EXISTING\",auditType:\"tenant\",objectId:\"" + tenant + "\"}";
+        } else if (action.equals("l'intégrité")) {
+            QUERY = "{auditActions:\"AUDIT_FILE_INTEGRITY\",auditType:\"tenant\",objectId:\"" + tenant + "\"}";
+        }
 
-        assertThat(world.getAdminClient().launchAudit(
-            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId()),
-            auditOption).isOk()).isTrue();
+        JsonNode auditOption = JsonHandler.getFromString(QUERY);
+        VitamContext vitamContext = new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+            .setApplicationSessionId(world.getApplicationSessionId());
+
+        RequestResponse response = world.getAdminClient().launchAudit(vitamContext, auditOption);
+        assertThat(response.isOk()).isTrue();
+        auditStatus = Status.ACCEPTED;
     }
 
     @Then("^le réultat de l'audit est succès$")
