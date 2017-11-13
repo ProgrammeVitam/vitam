@@ -26,11 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -43,17 +45,6 @@ import java.util.Map;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
-
-import org.assertj.core.util.Lists;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
@@ -77,6 +68,15 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.assertj.core.util.Lists;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -89,9 +89,13 @@ public class CheckHeaderActionHandlerTest {
     private static final Integer TENANT_ID = 0;
 
     private static final String SIP_ADD_UNIT = "CheckHeaderActionHandler/manifest.xml";
+    private static final String MANIFEST_WITHOUT_ARCHIVAL_PROFILE =
+        "CheckHeaderActionHandler/manifest_no_archival_profile.xml";
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
-
+    private static final int CHECK_PROFILE_RANK = 2;
+    private static final int CHECK_CONTRACT_RANK = 0;
+    private static final int CHECK_ORIGINATING_AGENCY_RANK = 1;
     private final HandlerIO handlerIO = mock(HandlerIO.class);
     private final SedaUtils utils = SedaUtilsFactory.create(handlerIO);
 
@@ -102,7 +106,7 @@ public class CheckHeaderActionHandlerTest {
     @Before
     public void setUp() {
         PowerMockito.mockStatic(SedaUtilsFactory.class);
-        sedaUtils = mock(SedaUtils.class);        
+        sedaUtils = mock(SedaUtils.class);
         guid = GUIDFactory.newGUID();
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
@@ -123,16 +127,16 @@ public class CheckHeaderActionHandlerTest {
         sedaMap.put(SedaConstants.TAG_ARCHIVAL_AGREEMENT, CONTRACT_NAME);
         sedaMap.put(SedaConstants.TAG_MESSAGE_IDENTIFIER, SedaConstants.TAG_MESSAGE_IDENTIFIER);
         AdminManagementClientFactory.changeMode(null);
-        Mockito.doReturn(sedaMap).when(sedaUtils).getMandatoryValues(anyObject());
+        doReturn(sedaMap).when(sedaUtils).getMandatoryValues(anyObject());
         assertNotNull(CheckHeaderActionHandler.getId());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
-                    .setObjectNameList(Lists.newArrayList("objectName.json"))
-                    .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+                .setObjectNameList(Lists.newArrayList("objectName.json"))
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         action.getInput().add("true");
         action.getInput().add("true");
-        action.getInput().add("true");
+        action.getInput().add("false");
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
         assertNotNull(response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER));
@@ -144,7 +148,7 @@ public class CheckHeaderActionHandlerTest {
         action.getInput().add("true");
         action.getInput().add("true");
         sedaMap.put(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER, "");
-        Mockito.doReturn(sedaMap).when(sedaUtils).getMandatoryValues(anyObject());
+        doReturn(sedaMap).when(sedaUtils).getMandatoryValues(anyObject());
         assertEquals(handler.execute(params, action).getGlobalStatus(), StatusCode.KO);
 
 
@@ -153,7 +157,7 @@ public class CheckHeaderActionHandlerTest {
         action.getInput().add("true");
         action.getInput().add("true");
         sedaMap.remove(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
-        Mockito.doReturn(sedaMap).when(sedaUtils).getMandatoryValues(anyObject());
+        doReturn(sedaMap).when(sedaUtils).getMandatoryValues(anyObject());
         assertEquals(handler.execute(params, action).getGlobalStatus(), StatusCode.KO);
 
         action.partialClose();
@@ -175,15 +179,15 @@ public class CheckHeaderActionHandlerTest {
         when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
         when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(sedaLocal);
-        
+
         AdminManagementClientFactory.changeMode(null);
         //Mockito.doCallRealMethod().when(utils).getMandatoryValues(anyObject());
         assertNotNull(CheckHeaderActionHandler.getId());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
-                    .setObjectNameList(Lists.newArrayList("objectName.json"))
-                    .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+                .setObjectNameList(Lists.newArrayList("objectName.json"))
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         action.getInput().add("true");
         action.getInput().add("true");
         action.getInput().add("false");
@@ -194,6 +198,44 @@ public class CheckHeaderActionHandlerTest {
         assertTrue(evDetData.contains("ArchivalAgreement0"));
         assertTrue(evDetData.contains("English Comment"));
         assertTrue(evDetData.contains("ArchivalProfile0"));
+        action.partialClose();
+
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void testDefinedProfileInIngestContractButNotInManifest()
+        throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageServerException {
+
+        HandlerIOImpl action = new HandlerIOImpl(guid.getId(), "workerId");
+        PowerMockito.when(SedaUtilsFactory.create(action)).thenReturn(utils);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(MANIFEST_WITHOUT_ARCHIVAL_PROFILE));
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(sedaLocal);
+
+        AdminManagementClientFactory.changeMode(null);
+        assertNotNull(CheckHeaderActionHandler.getId());
+        final WorkerParameters params =
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList("objectName.json"))
+                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        action.getInput().add("true");
+        action.getInput().add("true");
+        action.getInput().add("true");
+        final ItemStatus response = handler.execute(params, action);
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
+        assertThat(response.getData("The_profile_null")).isEqualTo("Not found in the ingest contract ArchivalAgreement0");
+        assertThat(response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER)).isNotNull();
+        String evDetData = (String) response.getEvDetailData();
+        assertThat(evDetData).contains("ArchivalAgreement0");
+        assertThat(evDetData).contains("English Comment");
+        assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo("DIFF");
         action.partialClose();
 
     }

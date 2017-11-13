@@ -27,6 +27,17 @@
 
 package fr.gouv.vitam.processing.integration.test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.List;
+
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import de.flapdoodle.embed.mongo.MongodExecutable;
@@ -95,21 +106,9 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.InputStream;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 public class PauseOnFatalProcessingIT {
 
@@ -321,7 +320,7 @@ public class PauseOnFatalProcessingIT {
                 RequestResponseOK<ProfileModel> response =
                         (RequestResponseOK<ProfileModel>) client.findProfiles(new Select().getFinalSelect());
                 client.importProfileFile(response.getResults().get(0).getIdentifier(),
-                        PropertiesUtils.getResourceAsStream("integration-processing/Profil20.rng"));
+                        PropertiesUtils.getResourceAsStream("integration-processing/profil_ok.rng"));
 
                 // import contract
                 File fileContracts =
