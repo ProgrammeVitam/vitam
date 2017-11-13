@@ -27,8 +27,8 @@
     <div class="ui-g ui-g-nopad">
       <ng-template ngFor let-field [ngForOf]="fields">
         <vitam-metadata-field [title]="field.title" [value]="value[field.value]" [originalTitle]="field.originalTitle"
-                             [labelSize]="3" [translate]="translate" class="ui-g-12" style="text-align: left" [fieldCode]="field.fieldCode"
-                             [(updatedFields)]="updatedFields" [updateMode]="updateMode" [canUpdate]="canUpdate"></vitam-metadata-field>
+                              [labelSize]="3" [keyToLabel]="keyToLabel" class="ui-g-12" style="text-align: left" [fieldCode]="field.fieldCode"
+                              [(updatedFields)]="updatedFields" [updateMode]="updateMode" [canUpdate]="canUpdate"></vitam-metadata-field>
       </ng-template>
     </div>
 
@@ -47,16 +47,16 @@
 
       <ng-template ngFor let-field [ngForOf]="arrayValue">
         <vitam-metadata-field [value]="field.value" [originalTitle]="originalTitle" [fieldCode]="field.fieldCode"
-                             class="ui-g-12 ui-g-nopad" style="text-align: left" [translate]="translate" *ngIf="!field.isObject"
-                             [(updatedFields)]="updatedFields" [updateMode]="updateMode" [noTitle]="true" [canUpdate]="canUpdate"></vitam-metadata-field>
+                              class="ui-g-12 ui-g-nopad" style="text-align: left" [keyToLabel]="keyToLabel" *ngIf="!field.isObject"
+                              [(updatedFields)]="updatedFields" [updateMode]="updateMode" [noTitle]="true" [canUpdate]="canUpdate"></vitam-metadata-field>
 
 
         <div [ngClass]="elementClass" *ngIf="field.isObject">
           <div class="ui-g">
             <ng-template ngFor let-innerField [ngForOf]="field.value" let-i="index">
               <vitam-metadata-field [title]="innerField.title" [value]="innerField.value" [originalTitle]="innerField.originalTitle"
-                                   [labelSize]="4" class="ui-g-6 ui-g-nopad" style="text-align: left" [translate]="translate" [fieldCode]="innerField.fieldCode"
-                                   [(updatedFields)]="updatedFields" [updateMode]="updateMode" [canUpdate]="canUpdate"></vitam-metadata-field>
+                                    [labelSize]="4" class="ui-g-6 ui-g-nopad" style="text-align: left" [keyToLabel]="keyToLabel" [fieldCode]="innerField.fieldCode"
+                                    [(updatedFields)]="updatedFields" [updateMode]="updateMode" [canUpdate]="canUpdate"></vitam-metadata-field>
             </ng-template>
           </div>
         </div >

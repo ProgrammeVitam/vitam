@@ -11,7 +11,7 @@ export class ArchiveExtraDescriptionComponent implements OnInit, OnChanges {
   @Input() archiveUnit;
   fields: any[] = [];
   translations;
-  translate: (field: string) => string;
+  keyToLabel: (field: string) => string;
   update = false;
 
   saveRunning = false;
@@ -21,7 +21,7 @@ export class ArchiveExtraDescriptionComponent implements OnInit, OnChanges {
 
   constructor(private archiveUnitHelper: ArchiveUnitHelper, public archiveUnitService: ArchiveUnitService) {
     this.translations = this.archiveUnitHelper.getTranslationConstants();
-    this.translate = (field: string) => {
+    this.keyToLabel = (field: string) => {
       const value = this.translations[field];
       if (this.translations[field]) {
         return value;
@@ -50,7 +50,7 @@ export class ArchiveExtraDescriptionComponent implements OnInit, OnChanges {
     this.fields = [];
     for (let field in this.archiveUnit) {
       if (!this.archiveUnitHelper.mustExcludeFields(field)) {
-        this.fields.push({title: this.translate(field), value: field});
+        this.fields.push({title: this.keyToLabel(field), value: field});
       }
     }
   }

@@ -15,7 +15,7 @@ export class ArchiveObjectGroupComponent implements OnInit {
   @Input() objectGroupId;
   @Input() unitId;
   translations;
-  translate: (x) => string;
+  keyToLabel: (x) => string;
   displayObject = {};
   userContract;
 
@@ -23,7 +23,7 @@ export class ArchiveObjectGroupComponent implements OnInit {
               private resourceService: ResourcesService, private archiveUnitService: ArchiveUnitService,
               private router : Router) {
     this.translations = this.archiveUnitHelper.getObjectGroupTranslations();
-    this.translate = (field: string) => {
+    this.keyToLabel = (field: string) => {
       const value = this.translations[field];
       if (this.translations[field]) {
         return value;

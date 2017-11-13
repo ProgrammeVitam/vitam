@@ -24,32 +24,32 @@
     </div>
   </div>
   <div class="ui-g" *ngIf="dataToDisplay && !saveRunning">
-    <vitam-metadata-field [title]="'Identifiant'" [originalTitle]="'#id'" [value]="dataToDisplay['#id']" [translate]="translate" [labelSize]="2"
-                         class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields" [canUpdate]="false"></vitam-metadata-field>
-    <vitam-metadata-field [title]="'Date de début'" [originalTitle]="'StartDate'" [value]="dataToDisplay.StartDate" [translate]="translate" [labelSize]="6"
-                         class="ui-g-3 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
-    <vitam-metadata-field [title]="'Date de fin'" [originalTitle]="'EndDate'" [value]="dataToDisplay.EndDate" [translate]="translate" [labelSize]="5"
-                         class="ui-g-3 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
-    <vitam-metadata-field [title]="'Titre'" [originalTitle]="'Title'" [value]="dataToDisplay.Title" [translate]="translate" [labelSize]="2"
-                         class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
-    <vitam-metadata-field [title]="'Niveau de description'" [originalTitle]="'DescriptionLevel'" [value]="dataToDisplay.DescriptionLevel" [translate]="translate"
-                         class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+    <vitam-metadata-field [title]="'Identifiant'" [originalTitle]="'#id'" [value]="dataToDisplay['#id']" [keyToLabel]="keyToLabel" [labelSize]="2"
+                          class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields" [canUpdate]="false"></vitam-metadata-field>
+    <vitam-metadata-field [title]="'Date de début'" [originalTitle]="'StartDate'" [value]="dataToDisplay.StartDate" [keyToLabel]="keyToLabel" [labelSize]="6"
+                          class="ui-g-3 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+    <vitam-metadata-field [title]="'Date de fin'" [originalTitle]="'EndDate'" [value]="dataToDisplay.EndDate" [keyToLabel]="keyToLabel" [labelSize]="5"
+                          class="ui-g-3 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+    <vitam-metadata-field [title]="'Titre'" [originalTitle]="'Title'" [value]="dataToDisplay.Title" [keyToLabel]="keyToLabel" [labelSize]="2"
+                          class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+    <vitam-metadata-field [title]="'Niveau de description'" [originalTitle]="'DescriptionLevel'" [value]="dataToDisplay.DescriptionLevel" [keyToLabel]="keyToLabel"
+                          class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
     <vitam-metadata-field [title]="'Service versant'" [originalTitle]="'#management.SubmissionAgency'" [labelSize]="2"
-                         [value]="dataToDisplay['#management'].SubmissionAgency" [translate]="translate"
-                         class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+                          [value]="dataToDisplay['#management'].SubmissionAgency" [keyToLabel]="keyToLabel"
+                          class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
     <vitam-metadata-field [title]="'Service producteur'" [originalTitle]="'#management.OriginatingAgency'"
-                         [value]="dataToDisplay['#management'].OriginatingAgency" [translate]="translate"
-                         class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+                          [value]="dataToDisplay['#management'].OriginatingAgency" [keyToLabel]="keyToLabel"
+                          class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
     <vitam-metadata-field [title]="'Service producteur de l\'entrée'" [originalTitle]="'#originating_agency'" [labelSize]="2"
-                         [value]="dataToDisplay['#originating_agency']" [translate]="translate" [canUpdate]="false"
-                         class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+                          [value]="dataToDisplay['#originating_agency']" [keyToLabel]="keyToLabel" [canUpdate]="false"
+                          class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
     <vitam-metadata-field [title]="'Services ayant des droits sur l\'unité'" [originalTitle]="'#originating_agencies'"
-                         [value]="dataToDisplay['#originating_agencies']" [translate]="translate" [canUpdate]="false"
-                         class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
-    <vitam-metadata-field [title]="'Description'" [originalTitle]="'Description'" [value]="dataToDisplay.Description" [translate]="translate" [labelSize]="2"
-                         class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
-    <vitam-metadata-field [title]="'Type d\'unité'" [originalTitle]="'#unitType'" [value]="archiveUnitHelper.transformType(dataToDisplay['#unitType'])" [translate]="translate"
-                         class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields" [canUpdate]="false"></vitam-metadata-field>
+                          [value]="dataToDisplay['#originating_agencies']" [keyToLabel]="keyToLabel" [canUpdate]="false"
+                          class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+    <vitam-metadata-field [title]="'Description'" [originalTitle]="'Description'" [value]="dataToDisplay.Description" [keyToLabel]="keyToLabel" [labelSize]="2"
+                          class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+    <vitam-metadata-field [title]="'Type d\'unité'" [originalTitle]="'#unitType'" [value]="archiveUnitHelper.transformType(dataToDisplay['#unitType'])" [keyToLabel]="keyToLabel"
+                          class="ui-g-6 leftField" [updateMode]="update" [(updatedFields)]="updatedFields" [canUpdate]="false"></vitam-metadata-field>
   </div>
   <div *ngIf="saveRunning">
     Sauvegarde des métadonnées en cours...

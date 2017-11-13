@@ -18,8 +18,8 @@
   <div class="ui-g" *ngIf="!saveRunning">
     <ng-template ngFor let-field [ngForOf]="fields">
       <vitam-metadata-field [title]="field.title" [originalTitle]="field.value" [value]="archiveUnit[field.value]"
-                           class="ui-g-12" style="text-align: left" [translate]="translate" [(updatedFields)]="updatedFields"
-                           [updateMode]="update"></vitam-metadata-field>
+                            class="ui-g-12" style="text-align: left" [keyToLabel]="keyToLabel" [(updatedFields)]="updatedFields"
+                            [updateMode]="update"></vitam-metadata-field>
     </ng-template>
   </div>
 
