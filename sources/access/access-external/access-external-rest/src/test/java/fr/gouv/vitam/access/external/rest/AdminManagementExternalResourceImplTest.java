@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -64,11 +65,13 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
+import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*", "javax.management.*"})
-@PrepareForTest({AdminManagementClientFactory.class})
+@PrepareForTest({AdminManagementClientFactory.class, IngestInternalClientFactory.class})
 public class AdminManagementExternalResourceImplTest {
 
     private static final String CODE_VALIDATION_DSL = VitamCodeHelper.getCode(VitamCode.GLOBAL_INVALID_DSL);
@@ -123,6 +126,7 @@ public class AdminManagementExternalResourceImplTest {
     private static int serverPort;
     private static AccessExternalMain application;
     private static AdminManagementClient adminCLient;
+    private static IngestInternalClient ingestInternalClient;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -1421,7 +1425,7 @@ public class AdminManagementExternalResourceImplTest {
             .when().get(SECURITY_PROFILES_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode())
             .body(CoreMatchers.containsString(CODE_VALIDATION_DSL));
-        
+
         // Test no query
         given()
             .accept(ContentType.JSON)
@@ -1429,7 +1433,7 @@ public class AdminManagementExternalResourceImplTest {
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(SECURITY_PROFILES_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        
+
         // Test unknown tenant Id
         given()
             .accept(ContentType.JSON)
@@ -1765,6 +1769,25 @@ public class AdminManagementExternalResourceImplTest {
     }
 
     @Test
+    public void getWorkFlowNotFoundTest()
+        throws Exception {
+        PowerMockito.mockStatic(IngestInternalClientFactory.class);
+        ingestInternalClient = PowerMockito.mock(IngestInternalClient.class);
+        final IngestInternalClientFactory ingestClientFactory = PowerMockito.mock(IngestInternalClientFactory.class);
+        when(IngestInternalClientFactory.getInstance()).thenReturn(ingestClientFactory);
+        when(IngestInternalClientFactory.getInstance().getClient()).thenReturn(ingestInternalClient);
+        doThrow(new WorkflowNotFoundException("WorkflowNotFoundException")).when(ingestInternalClient)
+            .getOperationProcessExecutionDetails(anyObject());
+        RestAssured.given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(new ProcessQuery())
+            .when().get("operations/1")
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+    }
+
+    @Test
     public void getWorkflowDefinitionsTest()
         throws Exception {
         RestAssured.given()
@@ -1919,7 +1942,7 @@ public class AdminManagementExternalResourceImplTest {
         RestAssured.given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
-            .when().get( AccessExtAPI.RULES_REPORT_API + "/id")
+            .when().get(AccessExtAPI.RULES_REPORT_API + "/id")
             .then().statusCode(Status.OK.getStatusCode());
     }
 

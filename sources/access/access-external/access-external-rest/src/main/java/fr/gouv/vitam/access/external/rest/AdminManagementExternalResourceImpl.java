@@ -1863,6 +1863,14 @@ public class AdminManagementExternalResourceImpl {
             itemStatus = ingestInternalClient.getOperationProcessExecutionDetails(id);
             return new RequestResponseOK<ItemStatus>().addResult(itemStatus).setHttpCode(Status.OK.getStatusCode())
                 .toResponse();
+        } catch (final WorkflowNotFoundException e) {
+            LOGGER.error("Workflow not found exception: " + e);
+            status = Status.NOT_FOUND;
+            return Response.status(status)
+                .entity(VitamCodeHelper
+                    .toVitamError(VitamCode.INGEST_EXTERNAL_NOT_FOUND, e.getLocalizedMessage())
+                    .setHttpCode(status.getStatusCode()))
+                .build();
         } catch (final IllegalArgumentException e) {
             LOGGER.error("Illegal argument: " + e);
             status = Status.PRECONDITION_FAILED;

@@ -935,6 +935,15 @@ public class AdminExternalClientRestTest extends VitamJerseyTest {
     }
 
     @Test
+    public void givenNotFoundWhenGetOperationDetailThenReturnNotFound() throws VitamClientException, IllegalArgumentException {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND.getStatusCode())
+            .entity(new RequestResponseOK<ItemStatus>().addResult(new ItemStatus())).build());
+        RequestResponse<ItemStatus> result =
+            client.getOperationProcessExecutionDetails(new VitamContext(TENANT_ID), ID);
+        assertEquals(result.getHttpCode(), Status.NOT_FOUND.getStatusCode());
+    }
+    
+    @Test
     public void givenOKWhenCancelOperationThenReturnOK() throws VitamClientException, IllegalArgumentException {
         when(mock.delete()).thenReturn(Response.status(Status.OK.getStatusCode())
             .entity(new RequestResponseOK<ItemStatus>().addResult(new ItemStatus())).build());

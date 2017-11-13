@@ -359,9 +359,9 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
                     null, MediaType.APPLICATION_JSON_TYPE);
             if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
                 LOGGER.warn("SIP Warning : " + Response.Status.NOT_FOUND.getReasonPhrase());
-                throw new VitamClientInternalException(NOT_FOUND_EXCEPTION);
+                throw new WorkflowNotFoundException(NOT_FOUND_EXCEPTION);
             } else if (response.getStatus() == Status.NO_CONTENT.getStatusCode()) {
-                LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());
+                LOGGER.warn("SIP Warning : " + Response.Status.NO_CONTENT.getReasonPhrase());
                 throw new WorkflowNotFoundException(PROCESS_WORKFLOW_NOT_FOUND_FOR_OPERATION + id);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.warn("SIP Warning : " + Response.Status.PRECONDITION_FAILED.getReasonPhrase());

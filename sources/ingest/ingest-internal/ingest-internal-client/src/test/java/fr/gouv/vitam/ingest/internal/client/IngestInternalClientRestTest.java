@@ -462,7 +462,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
 
     }
 
-    @Test(expected = VitamClientInternalException.class)
+    @Test(expected = WorkflowNotFoundException.class)
     public void givenGetOperationStatusThenThrowVitamClientInternalException()
         throws Exception {
 
