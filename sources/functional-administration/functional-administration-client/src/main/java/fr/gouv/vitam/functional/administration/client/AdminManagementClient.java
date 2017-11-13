@@ -132,13 +132,13 @@ public interface AdminManagementClient extends MockOrRestClient {
         throws ReferentialException, DatabaseConflictException;
 
     /**
-     * Import  agencies for a given tenant
+     * Import agencies for a given tenant
      *
-     * @param stream   agency file inputstream to import
+     * @param stream agency file inputstream to import
      * @param filename name of the imported file
      * @return the response to the request
-     * @throws ReferentialException                 when file rules exception occurs
-     * @throws DatabaseConflictException            when Database conflict exception occurs
+     * @throws ReferentialException when file rules exception occurs
+     * @throws DatabaseConflictException when Database conflict exception occurs
      * @throws AdminManagementClientServerException
      */
     Status importAgenciesFile(InputStream stream, String filename)
@@ -147,20 +147,21 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * @param id The agency identifier
      * @return agency in JsonNode agency
-     * @throws ReferentialException                   when file referential exception occurs
-     * @throws InvalidParseOperationException       when a parse problem occurs
+     * @throws ReferentialException when file referential exception occurs
+     * @throws InvalidParseOperationException when a parse problem occurs
      * @throws AdminManagementClientServerException
      */
     JsonNode getAgencyById(String id)
         throws ReferentialException, InvalidParseOperationException, AdminManagementClientServerException;
+
     /**
      * List the agencies that match the query
      *
      * @param query to get agencies
      * @return Agencies in JsonNode
-     * @throws ReferentialException                   when file referential exception occurs
-     * @throws InvalidParseOperationException       when a parse problem occurs
-     * @throws IOException                          when IO Exception occurs
+     * @throws ReferentialException when file referential exception occurs
+     * @throws InvalidParseOperationException when a parse problem occurs
+     * @throws IOException when IO Exception occurs
      * @throws AdminManagementClientServerException when admin management resources not found
      */
     JsonNode getAgencies(JsonNode query)
@@ -274,9 +275,10 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @return The server response as vitam RequestResponse
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
+     * @throws ReferentialNotFoundException
      */
     RequestResponse<AccessContractModel> updateAccessContract(String id, JsonNode queryDsl)
-        throws InvalidParseOperationException, AdminManagementClientServerException;
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
 
     /**
      * Update IngestContract to mongo
@@ -287,9 +289,10 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @return The server response as vitam RequestResponse
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
+     * @throws ReferentialNotFoundException
      */
     RequestResponse<IngestContractModel> updateIngestContract(String id, JsonNode queryDsl)
-        throws InvalidParseOperationException, AdminManagementClientServerException;
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
 
     /**
      * Find access contracts
@@ -406,9 +409,19 @@ public interface AdminManagementClient extends MockOrRestClient {
     RequestResponse<ProfileModel> findProfilesByID(String id)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
 
-    
-    RequestResponse<ProfileModel> updateProfile(String id, JsonNode queryDsl) 
-        throws AdminManagementClientServerException, InvalidParseOperationException;
+
+    /**
+     * Update a profile
+     * 
+     * @param id
+     * @param queryDsl
+     * @return
+     * @throws AdminManagementClientServerException
+     * @throws InvalidParseOperationException
+     * @throws ReferentialNotFoundException
+     */
+    RequestResponse<ProfileModel> updateProfile(String id, JsonNode queryDsl)
+        throws AdminManagementClientServerException, InvalidParseOperationException, ReferentialNotFoundException;
 
     /**
      * Import a set of context
@@ -427,9 +440,10 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @return The server response as vitam RequestResponse
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
+     * @throws ReferentialNotFoundException
      */
     RequestResponse<ContextModel> updateContext(String id, JsonNode queryDsl)
-        throws InvalidParseOperationException, AdminManagementClientServerException;
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
 
     /**
      * Find contexts
@@ -465,9 +479,8 @@ public interface AdminManagementClient extends MockOrRestClient {
         throws AdminManagementClientServerException;
 
     /**
-     * Import a set of security profiles after passing the validation steps.
-     * If all the security profiles are valid, they are stored in the database.
-     * The input is invalid in the following situations : </BR>
+     * Import a set of security profiles after passing the validation steps. If all the security profiles are valid,
+     * they are stored in the database. The input is invalid in the following situations : </BR>
      * <ul>
      * <li>The json is invalid</li>
      * <li>The json contains 2 ore many contracts having the same name or identifier</li>
@@ -494,9 +507,10 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @return The server response as vitam RequestResponse
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
+     * @throws ReferentialNotFoundException
      */
     RequestResponse<SecurityProfileModel> updateSecurityProfile(String identifier, JsonNode queryDsl)
-        throws InvalidParseOperationException, AdminManagementClientServerException;
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
 
     /**
      * Find security profiles by DSL query

@@ -26,9 +26,21 @@
  */
 package fr.gouv.vitam.functional.administration.security.profile.core;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.core.Response;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -68,15 +80,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-
-import javax.ws.rs.core.Response;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class SecurityProfileService implements VitamAutoCloseable {
 
@@ -95,7 +98,8 @@ public class SecurityProfileService implements VitamAutoCloseable {
     public static final String ERR_DUPLICATE_NAME_IN_CREATE =
         "One or many security profiles in the imported list have the same name : %s";
 
-    public static String ERR_UNEXPECTED_PERMISSION_SET_WITH_FULL_ACCESS = "Permission set cannot be set with full access mode : %s";
+    public static String ERR_UNEXPECTED_PERMISSION_SET_WITH_FULL_ACCESS =
+        "Permission set cannot be set with full access mode : %s";
 
     private static final String SECURITY_PROFILE_IMPORT_EVENT = "STP_IMPORT_SECURITY_PROFILE";
     private static final String SECURITY_PROFILE_UPDATE_EVENT = "STP_UPDATE_SECURITY_PROFILE";
@@ -105,6 +109,7 @@ public class SecurityProfileService implements VitamAutoCloseable {
     private final VitamCounterService vitamCounterService;
     private final SecurityProfileLogbookManager manager;
     private static final String _ID = "_id";
+
     /**
      * Constructor
      *
@@ -243,7 +248,7 @@ public class SecurityProfileService implements VitamAutoCloseable {
                 // Permission set incompatible with full access mode
                 if (!CollectionUtils.isEmpty(securityProfile.getPermissions())) {
                     error.addToErrors(new VitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem()).setMessage(
-                            String.format(ERR_UNEXPECTED_PERMISSION_SET_WITH_FULL_ACCESS, securityProfile.getName())));
+                        String.format(ERR_UNEXPECTED_PERMISSION_SET_WITH_FULL_ACCESS, securityProfile.getName())));
                     continue;
                 }
             }
@@ -282,7 +287,7 @@ public class SecurityProfileService implements VitamAutoCloseable {
 
     public RequestResponse<SecurityProfileModel> updateSecurityProfile(String identifier, JsonNode queryDsl)
         throws VitamException {
-        final VitamError error =
+        VitamError error =
             new VitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem())
                 .setHttpCode(Response.Status.BAD_REQUEST
                     .getStatusCode());
@@ -293,6 +298,7 @@ public class SecurityProfileService implements VitamAutoCloseable {
 
         final SecurityProfileModel securityProfileModel = findOneByIdentifier(identifier);
         if (securityProfileModel == null) {
+            error.setHttpCode(Response.Status.NOT_FOUND.getStatusCode());
             return error.addToErrors(new VitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem()).setMessage(
                 SECURITY_PROFILE_NOT_FOUND + identifier));
         }

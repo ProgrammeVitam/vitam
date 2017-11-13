@@ -386,6 +386,12 @@ public class MetaDataResource extends ApplicationStatusResource {
         try {
             RequestResponse<JsonNode> result = metaDataImpl.updateUnitbyId(updateRequest, unitId);
             int st = result.isOk() ? Status.FOUND.getStatusCode() : result.getHttpCode();
+            if (result.isOk()) {
+                RequestResponseOK<JsonNode> resultOK = (RequestResponseOK<JsonNode>) result;
+                if (resultOK.getHits().getTotal() == 0) {
+                    throw new MetaDataNotFoundException("Unit not found");
+                }
+            }
             return Response.status(st).entity(result.setHttpCode(st)).build();
 
         } catch (final InvalidParseOperationException e) {
@@ -409,6 +415,16 @@ public class MetaDataResource extends ApplicationStatusResource {
                     .setState(CODE_VITAM)
                     .setMessage(e.getMessage())
                     .setDescription(status.getReasonPhrase()))
+                .build();
+        } catch (MetaDataNotFoundException e) {
+            LOGGER.error(e);
+            status = Status.NOT_FOUND;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setContext(ACCESS)
+                    .setState(CODE_VITAM)
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(e.getMessage()))
                 .build();
         }
     }

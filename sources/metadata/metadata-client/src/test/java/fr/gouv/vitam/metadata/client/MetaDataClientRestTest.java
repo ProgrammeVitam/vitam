@@ -433,9 +433,15 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
     @Test
     public void updateUnitByIdTest()
         throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
-        MetaDataClientServerException {
+        MetaDataClientServerException, MetaDataNotFoundException {
         when(mock.put()).thenReturn(Response.status(Status.FOUND).entity("true").build());
         client.updateUnitbyId(JsonHandler.getFromString(VALID_QUERY), "id");
+    }
+    
+    @Test(expected = MetaDataNotFoundException.class)
+    public void given_UnexistingUnit_When_UpdateByiD_ThenReturn_NotFound() throws Exception {
+        when(mock.put()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.updateUnitbyId(JsonHandler.getFromString(VALID_QUERY), "unitId");
     }
 
 

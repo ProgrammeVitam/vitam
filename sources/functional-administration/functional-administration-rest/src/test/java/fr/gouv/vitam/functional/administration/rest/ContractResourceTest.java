@@ -369,6 +369,10 @@ public class ContractResourceTest {
         given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
             .when().put(ContractResource.UPDATE_ACCESS_CONTRACT_URI + "/" + ids.get(0)).then()
             .statusCode(Status.OK.getStatusCode());
+        
+        given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
+        .when().put(ContractResource.UPDATE_ACCESS_CONTRACT_URI + "/wrongId").then()
+        .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
     private List<String> selectContractByName(String name, String resource) throws Exception {
@@ -422,6 +426,11 @@ public class ContractResourceTest {
         given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
             .when().put(ContractResource.UPDATE_INGEST_CONTRACTS_URI + "/" + ids.get(0)).then()
             .statusCode(Status.OK.getStatusCode());
+        
+        given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
+        .when().put(ContractResource.UPDATE_INGEST_CONTRACTS_URI + "/wrongId").then()
+        .statusCode(Status.NOT_FOUND.getStatusCode());
+        
     }
 
 

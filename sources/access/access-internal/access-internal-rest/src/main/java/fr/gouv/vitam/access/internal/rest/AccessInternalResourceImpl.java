@@ -144,6 +144,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private static final String EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING =
         "Execution of DSL Vitam from Access ongoing...";
     private static final String BAD_REQUEST_EXCEPTION = "Bad request Exception ";
+    private static final String NOT_FOUND_EXCEPTION = "Not Found Exception ";
     private static final String ACCESS_MODULE = "ACCESS";
     private static final String CODE_VITAM = "code_vitam";
     private static final String ACCESS_RESOURCE_INITIALIZED = "AccessResource initialized";
@@ -420,6 +421,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         } catch (final AccessInternalExecutionException e) {
             LOGGER.error(e.getMessage(), e);
             status = INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+        } catch (final MetaDataNotFoundException e) {
+            LOGGER.error(NOT_FOUND_EXCEPTION, e);
+            status = Status.NOT_FOUND;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }

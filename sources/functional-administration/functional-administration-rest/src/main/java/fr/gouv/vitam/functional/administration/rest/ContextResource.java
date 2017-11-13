@@ -56,6 +56,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.context.api.ContextService;
 import fr.gouv.vitam.functional.administration.context.core.ContextServiceImpl;
@@ -192,7 +193,11 @@ public class ContextResource {
 
                 return Response.status(Status.OK).entity(requestResponse).build();
             }
-        } catch (VitamException exp) {
+        } catch (ReferentialNotFoundException exp) {
+            LOGGER.error(exp);
+            return Response.status(Status.NOT_FOUND)
+                .entity(getErrorEntity(Status.NOT_FOUND, exp.getMessage(), null)).build();
+        }  catch (VitamException exp) {
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
                 .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage(), null)).build();

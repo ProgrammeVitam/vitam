@@ -230,11 +230,13 @@ public class ContractResource {
         try (ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess,
             vitamCounterService)) {
             RequestResponse requestResponse = accessContract.updateContract(contractId, queryDsl);
-            if (!requestResponse.isOk()) {
+            if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
+                ((VitamError) requestResponse).setHttpCode(Status.NOT_FOUND.getStatusCode());
+                return Response.status(Status.NOT_FOUND).entity(requestResponse).build();
+            } else if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
                 return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
             } else {
-
                 return Response.status(Status.OK).entity(requestResponse).build();
             }
         } catch (VitamException exp) {
@@ -256,7 +258,10 @@ public class ContractResource {
         try (ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess,
             vitamCounterService)) {
             RequestResponse requestResponse = ingestContract.updateContract(contractId, queryDsl);
-            if (!requestResponse.isOk()) {
+            if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
+                ((VitamError) requestResponse).setHttpCode(Status.NOT_FOUND.getStatusCode());
+                return Response.status(Status.NOT_FOUND).entity(requestResponse).build();
+            } else if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
                 return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
             } else {

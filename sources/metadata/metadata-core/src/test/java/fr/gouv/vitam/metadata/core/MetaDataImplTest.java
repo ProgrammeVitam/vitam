@@ -369,9 +369,19 @@ public class MetaDataImplTest {
         metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
         metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
     }
+    
+    @RunWithCustomExecutor
+    @Test(expected = MetaDataNotFoundException.class)
+    public void given_updateUnits_ThenThrow_MetaDataNotFoundExecutionException() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        when(request.execRequest(anyObject(), anyObject())).thenThrow(new MetaDataNotFoundException(""));
+
+        metaDataImpl = MetaDataImpl.newMetadata(null, mongoDbAccessFactory);
+        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
+    }
 
     @RunWithCustomExecutor
-    @Test(expected = MetaDataExecutionException.class)
+    @Test(expected = MetaDataNotFoundException.class)
     public void given_updateUnits_FindMetadataNotFoundException_ThenThrow_MetaDataExecutionException()
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
@@ -382,7 +392,7 @@ public class MetaDataImplTest {
     }
 
     @RunWithCustomExecutor
-    @Test(expected = MetaDataExecutionException.class)
+    @Test(expected = MetaDataNotFoundException.class)
     public void given_selectUnit_FindMetadataNotFoundException_ThenThrow_MetaDataExecutionException()
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);

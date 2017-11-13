@@ -224,9 +224,11 @@ public class ProfileResourceTest {
     @Before
     public void setUp() throws Exception {
         instanceRule.stubFor(WireMock.post(urlMatching("/workspace/v1/containers/(.*)"))
-            .willReturn(aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+            .willReturn(
+                aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
         instanceRule.stubFor(WireMock.delete(urlMatching("/workspace/v1/containers/(.*)"))
-            .willReturn(aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+            .willReturn(
+                aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
     }
 
     @Test
@@ -329,6 +331,19 @@ public class ProfileResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().put(ProfileResource.PROFILE_URI + "/" + identifierProfile)
             .then().statusCode(Status.CREATED.getStatusCode());
+
+        // we update an existing profile -> OK
+        File updateProfile = PropertiesUtils.getResourceFile("updateProfile.json");
+        JsonNode updateSecurityProfileJson = JsonHandler.getFromFile(updateProfile);
+        given().contentType(ContentType.JSON).body(updateSecurityProfileJson)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().put(ProfileResource.PROFILE_URI + "/" + identifierProfile)
+            .then().statusCode(Status.OK.getStatusCode());
+        
+        given().contentType(ContentType.JSON).body(updateSecurityProfileJson)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().put(ProfileResource.PROFILE_URI + "/wrongId")
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
 
@@ -392,10 +407,10 @@ public class ProfileResourceTest {
         setDescription = UpdateActionHelper.set("Description", "New Description of the profile");
         update.addActions(setDescription);
         update.setQuery(QueryHelper.eq("Name", "aName"));
-        
+
         given().contentType(ContentType.JSON).body(update.getFinalUpdate()).header(GlobalDataRest.X_TENANT_ID, 0)
-        .when().put(ProfileResource.UPDATE_PROFIL_URI + "/" + identifierProfile1).then()
-        .statusCode(Status.OK.getStatusCode());
+            .when().put(ProfileResource.UPDATE_PROFIL_URI + "/" + identifierProfile1).then()
+            .statusCode(Status.OK.getStatusCode());
 
 
 

@@ -67,8 +67,8 @@ public interface MetaDataClient extends BasicClient {
     /**
      * Search units by select query (DSL)
      *
-     * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery} as String
-     *        <br>
+     * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery}
+     *        as String <br>
      *        Null is not allowed
      * @return Json object {$hint:{},$result:[{},{}]}
      * @throws MetaDataExecutionException thrown when internal Server Error (fatal technical exception thrown)
@@ -127,9 +127,11 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataExecutionException thrown when internal Server Error (fatal technical exception thrown)
      * @throws InvalidParseOperationException
      * @throws MetaDataDocumentSizeException thrown when Query document Size is Too Large
+     * @throws MetaDataNotFoundException
      * @throws MetaDataClientServerException
      */
-    JsonNode updateUnitbyId(JsonNode updateQuery, String unitId) throws MetaDataExecutionException,
+    JsonNode updateUnitbyId(JsonNode updateQuery, String unitId)
+        throws MetaDataNotFoundException, MetaDataExecutionException,
         MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException;
 
     /**
@@ -147,7 +149,8 @@ public interface MetaDataClient extends BasicClient {
         MetaDataClientServerException;
 
     /**
-     * Update ObjectGroup 
+     * Update ObjectGroup
+     * 
      * @param updateQuery
      * @param objectGroupId
      * @throws InvalidParseOperationException
@@ -155,11 +158,11 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataAlreadyExistException
      * @throws MetaDataDocumentSizeException
      * @throws MetaDataClientServerException
-     * @throws MetaDataExecutionException 
+     * @throws MetaDataExecutionException
      */
-    void updateObjectGroupById(JsonNode updateQuery, @PathParam("id_og") String objectGroupId) 
+    void updateObjectGroupById(JsonNode updateQuery, @PathParam("id_og") String objectGroupId)
         throws InvalidParseOperationException, MetaDataClientServerException, MetaDataExecutionException;
-    
+
     /**
      * 
      * @param operationId
@@ -181,8 +184,8 @@ public interface MetaDataClient extends BasicClient {
     /**
      * Search objectgroups by select query (DSL)
      *
-     * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery} as String
-     *        <br>
+     * @param selectQuery : select query {@link fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery}
+     *        as String <br>
      *        Null is not allowed
      * @return Json object {$hint:{},$result:[{},{}]}
      * @throws MetaDataExecutionException thrown when internal Server Error (fatal technical exception thrown)
@@ -193,18 +196,18 @@ public interface MetaDataClient extends BasicClient {
     JsonNode selectObjectGroups(JsonNode selectQuery)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
         MetaDataClientServerException;
-    
+
     /**
      * 
      * @return True if the Units index is flushed
-     * @throws MetaDataClientServerException 
+     * @throws MetaDataClientServerException
      */
     boolean flushUnits() throws MetaDataClientServerException;
-    
+
     /**
      * 
      * @return True if the ObjectGroups index is flushed
-     * @throws MetaDataClientServerException 
+     * @throws MetaDataClientServerException
      */
     boolean flushObjectGroups() throws MetaDataClientServerException;
 }

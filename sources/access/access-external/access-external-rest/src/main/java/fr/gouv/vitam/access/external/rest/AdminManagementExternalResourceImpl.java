@@ -1345,6 +1345,11 @@ public class AdminManagementExternalResourceImpl {
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
             RequestResponse response = client.updateContext(identifier, update.getFinalUpdate());
             return getResponse(response);
+        } catch (ReferentialNotFoundException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_CONTEXT_NOT_FOUND, e.getMessage())
+                .setHttpCode(Status.NOT_FOUND.getStatusCode())
+                .toResponse();
         } catch (InvalidCreateOperationException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_CONTEXT_ERROR, e.getMessage())
@@ -1381,6 +1386,11 @@ public class AdminManagementExternalResourceImpl {
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
             RequestResponse response = client.updateProfile(identifier, update.getFinalUpdate());
             return getResponse(response);
+        } catch (ReferentialNotFoundException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_PROFILE_NOT_FOUND, e.getMessage())
+                .setHttpCode(Status.NOT_FOUND.getStatusCode())
+                .toResponse();
         } catch (InvalidCreateOperationException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_PROFILE_ERROR, e.getMessage())
@@ -1417,6 +1427,11 @@ public class AdminManagementExternalResourceImpl {
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
             RequestResponse response = client.updateAccessContract(identifier, update.getFinalUpdate());
             return getResponse(response);
+        } catch (ReferentialNotFoundException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.CONTRACT_NOT_FOUND_ERROR, e.getMessage())
+                .setHttpCode(Status.NOT_FOUND.getStatusCode())
+                .toResponse();
         } catch (InvalidCreateOperationException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_ACCESS_CONTRACT_ERROR, e.getMessage())
@@ -1455,6 +1470,11 @@ public class AdminManagementExternalResourceImpl {
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
             RequestResponse response = client.updateIngestContract(identifier, update.getFinalUpdate());
             return getResponse(response);
+        } catch (ReferentialNotFoundException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.CONTRACT_NOT_FOUND_ERROR, e.getMessage())
+                .setHttpCode(Status.NOT_FOUND.getStatusCode())
+                .toResponse();
         } catch (InvalidCreateOperationException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_INGEST_CONTRACT_ERROR, e.getMessage())
@@ -1722,6 +1742,11 @@ public class AdminManagementExternalResourceImpl {
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
             RequestResponse response = client.updateSecurityProfile(identifier, update.getFinalUpdateById());
             return getResponse(response);
+        } catch (ReferentialNotFoundException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SECURITY_PROFILE_NOT_FOUND, e.getMessage())
+                .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                .toResponse();
         } catch (InvalidCreateOperationException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_SECURITY_PROFILE_ERROR, e.getMessage())

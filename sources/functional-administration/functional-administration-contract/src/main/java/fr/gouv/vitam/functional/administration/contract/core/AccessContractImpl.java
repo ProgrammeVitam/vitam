@@ -741,12 +741,13 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     public RequestResponse<AccessContractModel> updateContract(String identifier, JsonNode queryDsl)
         throws VitamException {
         ParametersChecker.checkParameter(UPDATE_ACCESS_CONTRACT_MANDATORY_PATAMETER, queryDsl);
-        final VitamError error = new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem())
+        VitamError error = new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem())
             .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
         final AccessContractModel accContractModel = findByIdentifier(identifier);
         Map<String, List<String>> updateDiffs;
         if (accContractModel == null) {
+            error.setHttpCode(Response.Status.NOT_FOUND.getStatusCode());
             return error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
                 ACCESS_CONTRACT_NOT_FIND + identifier));
         }

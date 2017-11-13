@@ -100,7 +100,7 @@ public class MetaDataImpl implements MetaData {
     /**
      * MetaDataImpl constructor
      *
-     * @param configuration        of mongoDB access
+     * @param configuration of mongoDB access
      * @param mongoDbAccessFactory
      */
     private MetaDataImpl(MetaDataConfiguration configuration, MongoDbAccessMetadataFactory mongoDbAccessFactory) {
@@ -124,7 +124,7 @@ public class MetaDataImpl implements MetaData {
     /**
      * Get a new MetaDataImpl instance
      *
-     * @param configuration        of mongoDB access
+     * @param configuration of mongoDB access
      * @param mongoDbAccessFactory factory creating MongoDbAccessMetadata
      * @return a new instance of MetaDataImpl
      */
@@ -183,8 +183,8 @@ public class MetaDataImpl implements MetaData {
                 new Document(Unit.UNIT_TYPE, new Document("$ne", UnitType.HOLDING_UNIT.name()))))),
             new Document("$unwind", "$" + ORIGINATING_AGENCIES),
             new Document("$group",
-                new Document(ID, "$" + ORIGINATING_AGENCIES).append("count", new Document("$sum", 1)))
-        ), Document.class);
+                new Document(ID, "$" + ORIGINATING_AGENCIES).append("count", new Document("$sum", 1)))),
+            Document.class);
         return Lists.newArrayList(aggregate.iterator());
     }
 
@@ -201,8 +201,8 @@ public class MetaDataImpl implements MetaData {
                     .append("totalObject", new Document("$sum", 1))
                     .append("listGOT", new Document("$addToSet", "$_id"))),
                 new Document("$project", new Document("_id", 1).append("totalSize", 1).append("totalObject", 1)
-                    .append("totalGOT", new Document("$size", "$listGOT")))
-            ), Document.class);
+                    .append("totalGOT", new Document("$size", "$listGOT")))),
+                Document.class);
         return Lists.newArrayList(aggregate.iterator());
     }
 
@@ -305,18 +305,18 @@ public class MetaDataImpl implements MetaData {
             }
 
 
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new MetaDataExecutionException(e);
-        } catch (final MetaDataAlreadyExistException | MetaDataNotFoundException e) {
+        } catch (InstantiationException | IllegalAccessException | MetaDataAlreadyExistException e) {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
+        } catch (final MetaDataNotFoundException e) {
+            LOGGER.error(e);
+            throw e;
         }
         List res = toArrayList(arrayNodeResponse);
         Long total = (result != null) ? result.getTotal() : res.size();
         String scrollId = (result != null) ? result.getScrollId() : null;
-        DatabaseCursor hits = (scrollId != null) ?
-            new DatabaseCursor(total, offset, limit, res.size(), scrollId) :
-            new DatabaseCursor(total, offset, limit, res.size());
+        DatabaseCursor hits = (scrollId != null) ? new DatabaseCursor(total, offset, limit, res.size(), scrollId)
+            : new DatabaseCursor(total, offset, limit, res.size());
         return new RequestResponseOK<JsonNode>(queryCopy)
             .addAllResults(res).setHits(hits);
     }
@@ -350,7 +350,8 @@ public class MetaDataImpl implements MetaData {
         } catch (final MetaDataExecutionException | InvalidParseOperationException e) {
             LOGGER.error(e);
             throw e;
-        } catch (final InstantiationException | MetaDataAlreadyExistException | MetaDataNotFoundException | IllegalAccessException e) {
+        } catch (final InstantiationException | MetaDataAlreadyExistException | MetaDataNotFoundException |
+            IllegalAccessException e) {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         }
@@ -359,7 +360,8 @@ public class MetaDataImpl implements MetaData {
     // TODO : in order to deal with selection (update from the root) in the query, the code should be modified
     @Override
     public RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
-        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataDocumentSizeException {
+        throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataExecutionException,
+        MetaDataDocumentSizeException {
         Result result = null;
         ArrayNode arrayNodeResponse;
         if (updateQuery.isNull()) {
@@ -393,10 +395,10 @@ public class MetaDataImpl implements MetaData {
                 VitamDocument.getConcernedDiffLines(VitamDocument.getUnifiedDiff(unitBeforeUpdate, unitAfterUpdate)));
 
             arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, updateRequest, diffs);
-        } catch (final MetaDataExecutionException | InvalidParseOperationException e) {
+        } catch (final MetaDataExecutionException | InvalidParseOperationException | MetaDataNotFoundException e) {
             LOGGER.error(e);
             throw e;
-        } catch (final InstantiationException | MetaDataAlreadyExistException | MetaDataNotFoundException | IllegalAccessException e) {
+        } catch (final InstantiationException | MetaDataAlreadyExistException | IllegalAccessException e) {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         }

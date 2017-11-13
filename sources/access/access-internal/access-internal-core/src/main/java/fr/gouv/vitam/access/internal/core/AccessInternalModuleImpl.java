@@ -165,6 +165,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String LOGBOOK_CLIENT_BAD_REQUEST_ERROR = "logbook client bad request error";
     private static final String LOGBOOK_CLIENT_NOT_FOUND_ERROR = "logbook client not found error";
     private static final String METADATA_EXECUTION_EXECUTION_ERROR = "metadata execution execution error";
+    private static final String METADATA_NOT_FOUND_ERROR = "metadata not found execution error";
     private static final String DOCUMENT_CLIENT_SERVER_ERROR = "document client server error";
     private static final String METADATA_DOCUMENT_SIZE_ERROR = "metadata document size error";
     private static final String ILLEGAL_ARGUMENT = "illegal argument";
@@ -183,7 +184,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
     private static final String UNIT_KEY = "unit";
     private static final String LFC_KEY = "lfc";
-    
+
     private static final String WORKSPACE_SERVER_EXCEPTION = "workspace server exception";
     private static final String STORAGE_SERVER_EXCEPTION = "Storage server exception";
     private static final String JSON = ".json";
@@ -221,7 +222,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * AccessModuleImpl constructor <br>
      * with metaDataClientFactory, configuration and logbook operation client and lifecycle
      *
-     * @param storageClient           a StorageClient instance
+     * @param storageClient a StorageClient instance
      * @param pLogbookOperationClient logbook operation client
      * @param pLogbookLifeCycleClient logbook lifecycle client
      */
@@ -237,7 +238,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * select Unit
      *
      * @param jsonQuery as String { $query : query}
-     * @throws InvalidParseOperationException   Throw if json format is not correct
+     * @throws InvalidParseOperationException Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      */
     @Override
@@ -275,8 +276,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * select Unit by Id
      *
      * @param jsonQuery as String { $query : query}
-     * @param idUnit    as String
-     * @throws IllegalArgumentException         Throw if json format is not correct
+     * @param idUnit as String
+     * @throws IllegalArgumentException Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      */
 
@@ -296,7 +297,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private JsonNode selectMetadataDocumentById(JsonNode jsonQuery, String idDocument, DataCategory dataCategory)
         throws InvalidParseOperationException, AccessInternalExecutionException {
         JsonNode jsonNode;
-        
+
         ParametersChecker.checkParameter("Data category ", dataCategory);
         ParametersChecker.checkParameter("idDocument is empty", idDocument);
 
@@ -343,7 +344,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         ParametersChecker.checkParameter("You must specify a valid tenant", tenantId);
         ParametersChecker.checkValue("version", version, 0);
 
-        
+
         final SelectMultiQuery request = new SelectMultiQuery();
         request.addRoots(idObjectGroup);
         // FIXME P1: we should find a better way to do that than use json, like a POJO.
@@ -424,20 +425,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         }
     }
 
-    /**
-     * update Unit by id
-     *
-     * @param queryJson json update query
-     * @param idUnit    as String
-     * @param requestId GUID operation as String
-     * @throws InvalidParseOperationException       Throw if json format is not correct
-     * @throws AccessInternalExecutionException     Throw if error occurs when send Unit to database
-     * @throws IllegalArgumentException             Throw if error occurs when checking argument
-     * @throws AccessInternalRuleExecutionException Throw When error occures on rules update check
-     */
     @Override
     public JsonNode updateUnitbyId(JsonNode queryJson, String idUnit, String requestId)
-        throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException,
+        throws MetaDataNotFoundException, IllegalArgumentException, InvalidParseOperationException,
+        AccessInternalExecutionException,
         AccessInternalRuleExecutionException {
         LogbookOperationParameters logbookOpParamEnd, logbookOpStpParamStart, logbookOpStpParamEnd;
         LogbookLifeCycleUnitParameters logbookLCParamEnd;
@@ -476,14 +467,14 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             if (logbookLifeCycleClient == null) {
                 logbookLifeCycleClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
             }
-            
+
             // create logbook
             logbookOpStpParamStart = getLogbookOperationUpdateUnitParameters(updateOpGuidStart, updateOpGuidStart,
-                    StatusCode.STARTED, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.STARTED), idRequest,
-                    STP_UPDATE_UNIT, true);
+                StatusCode.STARTED, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.STARTED), idRequest,
+                STP_UPDATE_UNIT, true);
             logbookOpStpParamStart.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
             logbookOpStpParamStart.putParameterValue(LogbookParameterName.outcomeDetail, STP_UPDATE_UNIT + "." +
-                    StatusCode.STARTED);
+                StatusCode.STARTED);
             logbookOperationClient.create(logbookOpStpParamStart);
             globalStep = false;
 
@@ -503,7 +494,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             }
             stepCheckRules = true;
 
-            /** Update: Indexation task **/         
+            /** Update: Indexation task **/
             stepMetadataUpdate = false;
             // call update
             jsonNode = metaDataClient.updateUnitbyId(newQuery, idUnit);
@@ -512,7 +503,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
             // update global logbook lifecycle TASK INDEXATION
             logbookLCParamEnd = getLogbookLifeCycleUpdateUnitParameters(updateOpGuidStart, StatusCode.OK,
-                    idGUID, UNIT_METADATA_UPDATE);
+                idGUID, UNIT_METADATA_UPDATE);
             logbookLCParamEnd.putParameterValue(LogbookParameterName.eventDetailData,
                 getDiffMessageFor(jsonNode, idUnit));
             logbookLifeCycleClient.update(logbookLCParamEnd);
@@ -546,17 +537,17 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
             // full step OK
             globalStep = true;
-            
-            // write logbook operation at end, in case of exception it is written by rollBackLogbook 
+
+            // write logbook operation at end, in case of exception it is written by rollBackLogbook
             try {
                 finalizeStepOperation(logbookOperationClient, updateOpGuidStart, idRequest, idUnit, globalStep,
-                        stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, null);
+                    stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, null);
             } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-                    LogbookClientServerException e1) {
+                LogbookClientServerException e1) {
                 LOGGER.error(STORAGE_SERVER_EXCEPTION, e1);
             }
         } catch (final InvalidParseOperationException ipoe) {
-            rollBackLogbook(logbookOperationClient, logbookLifeCycleClient, updateOpGuidStart, idRequest, idUnit, 
+            rollBackLogbook(logbookOperationClient, logbookLifeCycleClient, updateOpGuidStart, idRequest, idUnit,
                 globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, null);
             LOGGER.error(PARSING_ERROR, ipoe);
             throw ipoe;
@@ -565,6 +556,11 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, null);
             LOGGER.error(ILLEGAL_ARGUMENT, iae);
             throw iae;
+        } catch (final MetaDataNotFoundException mdnfe) {
+            rollBackLogbook(logbookOperationClient, logbookLifeCycleClient, updateOpGuidStart, idRequest, idUnit,
+                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, null);
+            LOGGER.error(METADATA_NOT_FOUND_ERROR, mdnfe);
+            throw mdnfe;
         } catch (final MetaDataDocumentSizeException mddse) {
             rollBackLogbook(logbookOperationClient, logbookLifeCycleClient, updateOpGuidStart, idRequest, idUnit,
                 globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, null);
@@ -602,8 +598,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             // NO since metadata is already updated: rollBackLogbook(logbookLifeCycleClient, logbookOperationClient,
             // updateOpGuidStart, newQuery, idGUID);
             try {
-                finalizeStepOperation(logbookOperationClient, updateOpGuidStart, idRequest, idUnit, globalStep, 
-                        stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, null);
+                finalizeStepOperation(logbookOperationClient, updateOpGuidStart, idRequest, idUnit, globalStep,
+                    stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, null);
             } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
                 LogbookClientServerException e1) {
                 LOGGER.error(STORAGE_SERVER_EXCEPTION, e1);
@@ -647,12 +643,12 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private StoredInfoResult replaceStoredUnitMetadata(String idUnit, String requestId)
         throws InvalidParseOperationException, ContentAddressableStorageException,
         StorageClientException, AccessInternalException {
-        
+
         final WorkspaceClient workspaceClient =
             workspaceClientMock == null ? WorkspaceClientFactory.getInstance().getClient() : workspaceClientMock;
         try {
             final String fileName = idUnit + JSON;
-            JsonNode unit = getUnitWithLfc(idUnit);            
+            JsonNode unit = getUnitWithLfc(idUnit);
             if (unit != null && unit.size() > 0) {
                 workspaceClient.createContainer(requestId);
                 File file = null;
@@ -695,7 +691,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      *
      * @param idUnit the unit id
      * @return a new JsonNode with unit and lfc inside
-     * @throws InvalidParseOperationException 
+     * @throws InvalidParseOperationException
      * @throws AccessInternalException if unable to find the unit or it's lfc
      */
     private JsonNode getUnitWithLfc(String idUnit) throws InvalidParseOperationException, AccessInternalException {
@@ -718,7 +714,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             final ObjectNode docWithLFC = JsonHandler.getFactory().objectNode();
             docWithLFC.set(UNIT_KEY, unit);
             docWithLFC.set(LFC_KEY, lfc);
-            
+
             return docWithLFC;
         } catch (final InvalidCreateOperationException e) {
             LOGGER.error(e);
@@ -729,27 +725,28 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     /**
      * retrieveLogbookLifeCycleById, retrieve the LFC for the giving document (Unit or Got)
      *
-     * @param idDocument     document uuid
-     * @param dataCategory   accepts UNIT or OBJECT_GROUP
+     * @param idDocument document uuid
+     * @param dataCategory accepts UNIT or OBJECT_GROUP
      * @return the LFC of the giving document from logbook
      * @throws ProcessingException if no result found or error during parsing response from logbook client
      */
     private JsonNode retrieveLogbookLifeCycleById(JsonNode jsonQuery, String idDocument, DataCategory dataCategory)
-            throws AccessInternalExecutionException {
+        throws AccessInternalExecutionException {
         JsonNode jsonNode;
 
         ParametersChecker.checkParameter("Data category ", dataCategory);
         ParametersChecker.checkParameter("idDocument is empty", idDocument);
 
-        try(LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient()){
+        try (LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             switch (dataCategory) {
                 case UNIT:
-                    jsonNode = logbookClient.selectUnitLifeCycleById(idDocument, jsonQuery, LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS);
+                    jsonNode = logbookClient.selectUnitLifeCycleById(idDocument, jsonQuery,
+                        LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS);
                     break;
                 default:
                     throw new IllegalArgumentException("Unsupported category " + dataCategory);
             }
-        } catch (final InvalidParseOperationException | LogbookClientException e){
+        } catch (final InvalidParseOperationException | LogbookClientException e) {
             LOGGER.error(e);
             throw new AccessInternalExecutionException(e);
         }
@@ -761,7 +758,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      * extractNodeFromResponse, check response and extract single result
      *
      * @param jsonResponse
-     * @param error        message to throw if response is null or no result could be found
+     * @param error message to throw if response is null or no result could be found
      * @return a single result from response
      * @throws AccessInternalException if no result found
      */
@@ -782,7 +779,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
         // return a single node
         return jsonNode.get(0);
-    } 
+    }
 
 
     /**
@@ -797,12 +794,12 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
      */
     private StoredInfoResult storeMetaDataUnit(ObjectDescription description) throws StorageClientException {
         final StorageClient storageClient =
-                storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
+            storageClientMock == null ? StorageClientFactory.getInstance().getClient() : storageClientMock;
         try {
             // store binary data object
             return storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY, description.getType(),
-                    description.getObjectName(),
-                    description);
+                description.getObjectName(),
+                description);
         } finally {
             if (storageClient != null && storageClientMock == null) {
                 storageClient.close();
@@ -812,10 +809,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     }
 
     private void finalizeStepOperation(LogbookOperationsClient logbookOperationClient, GUID updateOpGuidStart,
-        GUID idRequest, String idUnit, boolean globalStep, boolean stepMetadataUpdate, boolean stepStorageUpdate, 
+        GUID idRequest, String idUnit, boolean globalStep, boolean stepMetadataUpdate, boolean stepStorageUpdate,
         boolean stepCheckRules, boolean stepLFCCommit, String evDetData)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
-        
+
         // Global step
         GUID parentEventGuid = GUIDFactory.newEventGUID(updateOpGuidStart);
         LogbookOperationParameters logbookOpStpParamEnd;
@@ -827,15 +824,15 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     STP_UPDATE_UNIT, false);
 
             logbookOpStpParamEnd.putParameterValue(LogbookParameterName.outcomeDetail, STP_UPDATE_UNIT + "." +
-                    StatusCode.KO);
+                StatusCode.KO);
         } else {
             // GLOBAL OK
-            logbookOpStpParamEnd = 
+            logbookOpStpParamEnd =
                 getLogbookOperationUpdateUnitParameters(parentEventGuid, updateOpGuidStart,
                     StatusCode.OK, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.OK), idRequest,
                     STP_UPDATE_UNIT, false);
             logbookOpStpParamEnd.putParameterValue(LogbookParameterName.outcomeDetail, STP_UPDATE_UNIT + "." +
-                    StatusCode.OK);
+                StatusCode.OK);
         }
         logbookOpStpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
         logbookOperationClient.update(logbookOpStpParamEnd);
@@ -846,7 +843,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             // STEP UNIT_CHECK_RULES KO
             logbookOpParamEnd =
                 getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart), updateOpGuidStart,
-                    StatusCode.KO, VitamLogbookMessages.getCodeOp(UNIT_CHECK_RULES, StatusCode.KO), idRequest, 
+                    StatusCode.KO, VitamLogbookMessages.getCodeOp(UNIT_CHECK_RULES, StatusCode.KO), idRequest,
                     UNIT_CHECK_RULES, false);
             logbookOpParamEnd.putParameterValue(LogbookParameterName.eventDetailData, evDetData);
             logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
@@ -855,9 +852,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         } else {
             // last step STEP UNIT_CHECK_RULES OK
             logbookOpParamEnd =
-                    getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart), updateOpGuidStart,
-                        StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_CHECK_RULES, StatusCode.OK), idRequest,
-                        UNIT_CHECK_RULES, false);
+                getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart), updateOpGuidStart,
+                    StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_CHECK_RULES, StatusCode.OK), idRequest,
+                    UNIT_CHECK_RULES, false);
             logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
             logbookOpParamEnd.putParameterValue(LogbookParameterName.parentEventIdentifier, parentEventGuid.getId());
             logbookOperationClient.update(logbookOpParamEnd);
@@ -865,56 +862,71 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             if (!stepMetadataUpdate) {
                 // STEP UNIT_METADATA_UPDATE KO
                 logbookOpParamEnd =
-                    getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart), updateOpGuidStart,
+                    getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart),
+                        updateOpGuidStart,
                         StatusCode.KO, VitamLogbookMessages.getCodeOp(UNIT_METADATA_UPDATE, StatusCode.KO), idRequest,
                         UNIT_METADATA_UPDATE, false);
                 logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
-                logbookOpParamEnd.putParameterValue(LogbookParameterName.parentEventIdentifier, parentEventGuid.getId());
+                logbookOpParamEnd.putParameterValue(LogbookParameterName.parentEventIdentifier,
+                    parentEventGuid.getId());
                 logbookOperationClient.update(logbookOpParamEnd);
             } else {
                 // last step UNIT_METADATA_UPDATE OK
                 logbookOpParamEnd =
-                    getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart), updateOpGuidStart,
+                    getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart),
+                        updateOpGuidStart,
                         StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_METADATA_UPDATE, StatusCode.OK), idRequest,
                         UNIT_METADATA_UPDATE, false);
                 logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
-                logbookOpParamEnd.putParameterValue(LogbookParameterName.parentEventIdentifier, parentEventGuid.getId());
+                logbookOpParamEnd.putParameterValue(LogbookParameterName.parentEventIdentifier,
+                    parentEventGuid.getId());
                 logbookOperationClient.update(logbookOpParamEnd);
-                
+
                 if (!stepStorageUpdate) {
                     // STEP UNIT_METADATA_STORAGE KO
                     logbookOpParamEnd =
-                        getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart), updateOpGuidStart,
-                            StatusCode.KO, VitamLogbookMessages.getCodeOp(UNIT_METADATA_STORAGE, StatusCode.KO), idRequest,
+                        getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart),
+                            updateOpGuidStart,
+                            StatusCode.KO, VitamLogbookMessages.getCodeOp(UNIT_METADATA_STORAGE, StatusCode.KO),
+                            idRequest,
                             UNIT_METADATA_STORAGE, false);
                     logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
-                    logbookOpParamEnd.putParameterValue(LogbookParameterName.parentEventIdentifier, parentEventGuid.getId());
+                    logbookOpParamEnd.putParameterValue(LogbookParameterName.parentEventIdentifier,
+                        parentEventGuid.getId());
                     logbookOperationClient.update(logbookOpParamEnd);
                 } else {
                     // STEP UNIT_METADATA_STORAGE OK
-                    logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart), updateOpGuidStart,
-                            StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_METADATA_STORAGE, StatusCode.OK), idRequest,
-                            UNIT_METADATA_STORAGE, false);
+                    logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(
+                        GUIDFactory.newEventGUID(updateOpGuidStart), updateOpGuidStart,
+                        StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_METADATA_STORAGE, StatusCode.OK), idRequest,
+                        UNIT_METADATA_STORAGE, false);
                     logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
-                    logbookOpParamEnd.putParameterValue(LogbookParameterName.parentEventIdentifier, parentEventGuid.getId());
+                    logbookOpParamEnd.putParameterValue(LogbookParameterName.parentEventIdentifier,
+                        parentEventGuid.getId());
                     logbookOperationClient.update(logbookOpParamEnd);
-                    
+
                     if (!stepLFCCommit) {
                         // STEP COMMIT_LIFE_CYCLE_UNIT KO
                         logbookOpParamEnd =
-                            getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart), updateOpGuidStart,
-                                StatusCode.KO, VitamLogbookMessages.getCodeOp(COMMIT_LIFE_CYCLE_UNIT, StatusCode.KO), idRequest,
+                            getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart),
+                                updateOpGuidStart,
+                                StatusCode.KO, VitamLogbookMessages.getCodeOp(COMMIT_LIFE_CYCLE_UNIT, StatusCode.KO),
+                                idRequest,
                                 COMMIT_LIFE_CYCLE_UNIT, false);
                         logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
-                        logbookOpParamEnd.putParameterValue(LogbookParameterName.parentEventIdentifier, parentEventGuid.getId());
+                        logbookOpParamEnd.putParameterValue(LogbookParameterName.parentEventIdentifier,
+                            parentEventGuid.getId());
                         logbookOperationClient.update(logbookOpParamEnd);
                     } else {
                         // STEP COMMIT_LIFE_CYCLE_UNIT OK
-                        logbookOpParamEnd = getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart),
-                                updateOpGuidStart, StatusCode.OK, VitamLogbookMessages.getCodeOp(COMMIT_LIFE_CYCLE_UNIT, StatusCode.OK), 
+                        logbookOpParamEnd =
+                            getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart),
+                                updateOpGuidStart, StatusCode.OK,
+                                VitamLogbookMessages.getCodeOp(COMMIT_LIFE_CYCLE_UNIT, StatusCode.OK),
                                 idRequest, COMMIT_LIFE_CYCLE_UNIT, false);
                         logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
-                        logbookOpParamEnd.putParameterValue(LogbookParameterName.parentEventIdentifier, parentEventGuid.getId());
+                        logbookOpParamEnd.putParameterValue(LogbookParameterName.parentEventIdentifier,
+                            parentEventGuid.getId());
                         logbookOperationClient.update(logbookOpParamEnd);
                     }
                 }
@@ -924,12 +936,15 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
     private void rollBackLogbook(LogbookOperationsClient logbookOperationClient,
         LogbookLifeCyclesClient logbookLifeCycleClient, GUID updateOpGuidStart, GUID idRequest, String idUnit,
-        boolean globalStep, boolean stepMetadataUpdate, boolean stepStorageUpdate, boolean stepCheckRules, 
+        boolean globalStep, boolean stepMetadataUpdate, boolean stepStorageUpdate, boolean stepCheckRules,
         boolean stepLFCCommit, String evDetData) {
         try {
-            finalizeStepOperation(logbookOperationClient, updateOpGuidStart, idRequest, idUnit, globalStep, 
+            finalizeStepOperation(logbookOperationClient, updateOpGuidStart, idRequest, idUnit, globalStep,
                 stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, evDetData);
-            logbookLifeCycleClient.rollBackUnitsByOperation(updateOpGuidStart.toString());
+            // That means lifecycle could be found, so it could be roolbacked
+            if (stepMetadataUpdate) {
+                logbookLifeCycleClient.rollBackUnitsByOperation(updateOpGuidStart.toString());
+            }
         } catch (final LogbookClientBadRequestException lcbre) {
             LOGGER.error(BAD_REQUEST, lcbre);
         } catch (final LogbookClientNotFoundException lcbre) {
@@ -1099,8 +1114,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     ArrayNode values = (ArrayNode) object;
                     for (int i = 0, len = values.size(); i < len; i++) {
                         String unsetField = values.get(i).asText();
-                        if (unsetField.startsWith(MANAGEMENT_PREFIX)
-                            && VitamConstants.getSupportedRules()
+                        if (unsetField.startsWith(MANAGEMENT_PREFIX) && VitamConstants.getSupportedRules()
                             .contains(unsetField.substring(MANAGEMENT_PREFIX.length()))) {
                             // Delete a ruleCategory
                             deletedCategoryRules.add(unsetField.substring(MANAGEMENT_PREFIX.length()));

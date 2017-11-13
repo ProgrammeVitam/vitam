@@ -849,7 +849,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     @Test
     @RunWithCustomExecutor
     public void updateProfile() 
-        throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException {
+        throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         when(mock.put()).thenReturn(Response.status(Status.OK)

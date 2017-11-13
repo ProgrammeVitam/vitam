@@ -79,9 +79,11 @@ public interface AccessInternalModule {
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      * @throws AccessInternalRuleExecutionException Throw When error occures on rules update check
      * @throws IllegalArgumentException Throw if error occurs when checking argument
+     * @throws MetaDataNotFoundException Throw if unit is not found
      */
     JsonNode updateUnitbyId(JsonNode queryJson, String idUnit, String requestId)
-        throws InvalidParseOperationException, AccessInternalExecutionException, IllegalArgumentException, AccessInternalRuleExecutionException;
+        throws MetaDataNotFoundException, InvalidParseOperationException, AccessInternalExecutionException,
+        IllegalArgumentException, AccessInternalRuleExecutionException;
 
     /**
      * Retrieve an ObjectGroup by its id with results fields filtered based on given query
@@ -116,6 +118,7 @@ public interface AccessInternalModule {
 
     /**
      * retrieve a DIP file according to an operationId
+     * 
      * @param id operation id
      * @return zip file containing a DIP
      * @throws AccessInternalExecutionException
