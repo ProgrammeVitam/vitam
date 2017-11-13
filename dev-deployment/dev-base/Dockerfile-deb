@@ -111,6 +111,12 @@ RUN apt-get clean && apt-get update && apt-get install -t jessie-backports -y an
 
 RUN apt-get clean && apt-get update && apt-get install -y git vim
 
+##################################  Ansible 2.4             #################################
+RUN sudo echo "deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main" >> /etc/apt/sources.list \
+  && sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 93C4A3FD7BB9C367 \
+  && sudo apt-get update \
+  && sudo apt-get install -y ansible
+
 ##################################  Declare local deb repo  #################################
 
 # Note : declare at the end ; else other commands will fail.
@@ -163,3 +169,4 @@ COPY vitam-mongo-cli /usr/bin
 COPY vitam-mongo-cli-rs /usr/bin
 
 RUN  chmod a+x /usr/bin/vitam-*
+
