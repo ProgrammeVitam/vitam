@@ -29,6 +29,7 @@ package fr.gouv.vitam.functional.administration.agencies.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -56,7 +57,6 @@ import static fr.gouv.vitam.functional.administration.agencies.api.AgenciesServi
 class AgenciesManager {
     public static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AgenciesManager.class);
 
-    final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
     private final GUID eip;
     private final LogbookOperationsClient logBookclient;
     private boolean warning = false;
@@ -68,6 +68,11 @@ class AgenciesManager {
         this.eip = eip;
     }
 
+    @VisibleForTesting AgenciesManager(LogbookOperationsClient logBookclient, GUID eip, boolean warning) {
+        this.logBookclient = logBookclient;
+        this.eip = eip;
+        this.warning = warning;
+    }
 
     /**
      * log start process
@@ -154,30 +159,19 @@ class AgenciesManager {
      * @param errorsDetails
      * @throws VitamException
      */
-    public void logFatalError(String errorsDetails) throws VitamException {
+    public void logError(String errorsDetails) throws VitamException {
 
 
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
         final LogbookOperationParameters logbookParameters = LogbookParametersFactory
             .newLogbookOperationParameters(eip, AGENCIES_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
-                StatusCode.FATAL,
-                VitamLogbookMessages.getCodeOp(AGENCIES_IMPORT_EVENT, StatusCode.FATAL), eip);
+                StatusCode.KO,
+                VitamLogbookMessages.getCodeOp(AGENCIES_IMPORT_EVENT, StatusCode.KO), eip);
         logbookMessageError(errorsDetails, logbookParameters);
 
         logBookclient.update(logbookParameters);
     }
 
-    private void logValidationError(String errorsDetails, String action) throws VitamException {
-        LOGGER.error("There validation errors on the input file {}", errorsDetails);
-        final LogbookOperationParameters logbookParameters = LogbookParametersFactory
-            .newLogbookOperationParameters(eip, action, eip, LogbookTypeProcess.MASTERDATA,
-                StatusCode.KO,
-                VitamLogbookMessages.getCodeOp(action, StatusCode.KO), eip);
-        logbookMessageError(errorsDetails, logbookParameters);
-        helper.updateDelegate(logbookParameters);
-        logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
-
-    }
 
     private void logbookMessageError(String errorsDetails, LogbookOperationParameters logbookParameters) {
         if (null != errorsDetails && !errorsDetails.isEmpty()) {
@@ -193,9 +187,6 @@ class AgenciesManager {
         }
     }
 
-    public ObjectNode getEvDetData() {
-        return evDetData;
-    }
 
     public void setEvDetData(ObjectNode evDetData) {
         this.evDetData = evDetData;
