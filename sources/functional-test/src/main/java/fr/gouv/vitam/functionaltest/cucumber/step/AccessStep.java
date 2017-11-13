@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
+import static fr.gouv.vitam.access.external.api.AdminCollections.FORMATS;
+import static fr.gouv.vitam.access.external.api.AdminCollections.RULES;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
@@ -683,32 +685,9 @@ public class AccessStep {
             int status = 0;
             results = new ArrayList<>();
             if ("vérifie".equals(action)) {
-                // status =
-                if (AdminCollections.FORMATS.equals(adminCollection)) {
-                    world.getAdminClient().checkFormats(
-                        new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                        inputStream);
-                } else if (AdminCollections.RULES.equals(adminCollection)) {
-                    world.getAdminClient().checkRules(
-                        new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                        inputStream);
-                }
+                status = actionVerify(inputStream, adminCollection);
             } else if ("importe".equals(action)) {
-                if (AdminCollections.FORMATS.equals(adminCollection)) {
-                    RequestResponse response =
-                        world.getAdminClient().createFormats(
-                            new VitamContext(world.getTenantId())
-                                .setApplicationSessionId(world.getApplicationSessionId()),
-                            inputStream, filename);
-                    status = response.getHttpCode();
-                } else if (AdminCollections.RULES.equals(adminCollection)) {
-                    RequestResponse response =
-                        world.getAdminClient().createRules(
-                            new VitamContext(world.getTenantId())
-                                .setApplicationSessionId(world.getApplicationSessionId()),
-                            inputStream, filename);
-                    status = response.getHttpCode();
-                }
+                status = actionImport(filename, inputStream, adminCollection);
             }
             if (status != 0) {
                 results.add(JsonHandler.createObjectNode().put("Code", String.valueOf(status)));
@@ -716,6 +695,40 @@ public class AccessStep {
         } catch (Exception e) {
             LOGGER.warn("Referentiels collection already imported");
         }
+    }
+
+    private int actionVerify(InputStream inputStream, AdminCollections adminCollection)
+        throws VitamClientException {
+        int status = 0;
+        VitamContext context =
+            new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId());
+        if (FORMATS.equals(adminCollection)) {
+            status = world.getAdminClient().checkFormats(context, inputStream).getStatus();
+        } else if (RULES.equals(adminCollection)) {
+            status = world.getAdminClient().checkRules(context, inputStream).getStatus();
+        }
+        return status;
+    }
+
+    private int actionImport(String filename, InputStream inputStream, AdminCollections adminCollection)
+        throws AccessExternalClientException, InvalidParseOperationException {
+        int status = 0;
+        if (FORMATS.equals(adminCollection)) {
+            RequestResponse response =
+                world.getAdminClient().createFormats(
+                    new VitamContext(world.getTenantId())
+                        .setApplicationSessionId(world.getApplicationSessionId()),
+                    inputStream, filename);
+            status = response.getHttpCode();
+        } else if (RULES.equals(adminCollection)) {
+            RequestResponse response =
+                world.getAdminClient().createRules(
+                    new VitamContext(world.getTenantId())
+                        .setApplicationSessionId(world.getApplicationSessionId()),
+                    inputStream, filename);
+            status = response.getHttpCode();
+        }
+        return status;
     }
 
     /**
