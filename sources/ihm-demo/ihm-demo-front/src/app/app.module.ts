@@ -70,6 +70,7 @@ import { TreeSearchComponent } from './archive-unit/archive-unit-details/archive
 import { AgenciesComponent } from './referentials/details/agencies/agencies.component';
 import { AuditComponent } from './admin/audit/audit.component';
 import { AuditService } from './admin/audit/audit.service';
+import { AccessionRegisterSearchComponent } from './admin/accession-register/accession-register.component';
 import { LogbookDetailsDescriptionComponent } from './admin/logbook-operation/logbook-operation-details/logbook-details-description/logbook-details-description.component';
 import { LogbookHelperService } from "./common/logbook-operation-events/logbook-helper.service";
 import { AccessionRegisterComponent } from './referentials/details/accession-register/accession-register.component';
@@ -149,6 +150,9 @@ const appRoutes: Routes = [
     path: 'admin/agencies/:id', component: AgenciesComponent, data : {permission : 'admin:accession-register:read'}
   },
   {
+    path: 'admin/accessionRegister', component: AccessionRegisterSearchComponent, data : {permission : 'admin:accession-register:read'}
+  },
+  {
     path: 'admin/accessionRegister/:id', component: AccessionRegisterComponent, data : {permission : 'admin:accession-register:read'}
   },
   {
@@ -214,6 +218,7 @@ const appRoutes: Routes = [
     LogbookDetailsDescriptionComponent,
     AuditComponent,
     AccessionRegisterComponent,
+    AccessionRegisterSearchComponent,
     OperationComponent,
     HoldingschemeComponent,
     ArchiveExportDIPComponent,

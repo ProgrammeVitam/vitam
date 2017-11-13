@@ -44,7 +44,7 @@ export class MenuComponent implements OnInit {
               icon: 'fa-search',
               items: [
                 {label: 'Recherche d\'archives', routerLink: ['search/archiveUnit']},
-                {label: 'Recherche par service producteur', routerLink: ['admin/search/accession-register']}
+                {label: 'Recherche par service producteur', routerLink: ['admin/accessionRegister']}
               ]
             },
             {
@@ -109,7 +109,7 @@ export class MenuComponent implements OnInit {
               icon: 'fa-search',
               items: [
                 {label: 'Recherche d\'archives', routerLink: ['search/archiveUnit']},
-                {label: 'Recherche par services producteurs', routerLink: ['admin/search/accession-register']}
+                {label: 'Recherche par services producteurs', routerLink: ['admin/accessionRegister']}
               ]
             },
             {
