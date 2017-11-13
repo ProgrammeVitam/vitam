@@ -28,7 +28,6 @@ package fr.gouv.vitam.metadata.rest;
 
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
@@ -37,23 +36,10 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
-import com.google.common.collect.Lists;
-import fr.gouv.vitam.common.PropertiesUtils;
-import org.jhades.JHades;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Lists;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
-
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -62,7 +48,7 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -77,6 +63,16 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import org.jhades.JHades;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 /**
  *
@@ -96,16 +92,15 @@ public class SelectUnitResourceTest {
         "    \"StorageRule\" : {" +
         "      \"Rule\" : \"str0\"," +
         "      \"PreventInheritance\" : \"true\"," +
-        "      \"FinalAction\" : \"RestrictedAccess\"," +
         "      \"StartDate\" : \"2017-01-01\"," +
         "      \"EndDate\" : \"2019-01-01\"" +
         "    }," +
         "    \"AccessRule\" : {" +
         "      \"Rule\" : \"acc0\"," +
-        "      \"FinalAction\" : \"RestrictedAccess\"," +
         "      \"StartDate\" : \"2017-01-01\"," +
         "      \"EndDate\" : \"2019-01-01\"" +
-        "    }" +
+        "    }," +
+        "      \"FinalAction\" : \"RestrictedAccess\"" +
         "  }";
     
     private final static String AU1_MGT = "{" +

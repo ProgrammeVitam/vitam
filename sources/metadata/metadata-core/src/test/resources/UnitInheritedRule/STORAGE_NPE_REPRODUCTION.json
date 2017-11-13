@@ -7,16 +7,15 @@
 			{
 				"Rule": "R1",
 				"StartDate": "2017-01-01",
-				"FinalAction": "RestrictAccess",
 				"EndDate": "2018-01-01"
 			},
 			{
 				"Rule": "R4",
 				"StartDate": "2017-01-01",
-				"FinalAction": "RestrictAccess",
 				"EndDate": "2021-01-01"
 			}
-		]
+		],
+		"FinalAction": "RestrictAccess"
 	},
 	"AccessRule": {
 		"Rules": [

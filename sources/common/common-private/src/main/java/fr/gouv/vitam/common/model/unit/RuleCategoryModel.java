@@ -40,6 +40,9 @@ public class RuleCategoryModel {
     @JsonProperty("Inheritance")
     private InheritanceModel inheritance;
 
+    @JsonProperty("FinalAction")
+    private String finalAction;
+
     public RuleCategoryModel() {
         rules = new ArrayList<>();
     }
@@ -50,6 +53,14 @@ public class RuleCategoryModel {
 
     public InheritanceModel getInheritance() {
         return inheritance;
+    }
+
+    public String getFinalAction() {
+        return finalAction;
+    }
+
+    public void setFinalAction(String finalAction) {
+        this.finalAction = finalAction;
     }
 
     @JsonIgnore
@@ -63,6 +74,7 @@ public class RuleCategoryModel {
         } else {
             inheritance = ruleCategoryModel.getInheritance();
         }
+        finalAction = ruleCategoryModel.getFinalAction();
     }
     
     @JsonIgnore

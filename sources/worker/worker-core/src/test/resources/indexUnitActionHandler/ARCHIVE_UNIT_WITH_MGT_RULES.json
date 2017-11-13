@@ -6,10 +6,10 @@
 			"StorageRule": {
 				"Rules": [
 					{
-						"Rule": "R5",
-						"FinalAction": "RestrictAccess"
+						"Rule": "R5"
 					}
-				]
+				],
+				"FinalAction": "RestrictAccess"
 			},
 			"AccessRule": {
 				"Rules": [

@@ -6,13 +6,13 @@
 				"Rules": [
 					{
 						"Rule": "R1",
-						"StartDate": "2017-01-01",
-						"FinalAction": "RestrictAccess"
+						"StartDate": "2017-01-01"
 					},
 					{
 						"Rule": "RULE-THAT-DOES-NOT-EXIST"
 					}
-				]
+				],
+				"FinalAction": "RestrictAccess"
 			}
 		},
 		"Content": {

@@ -4,6 +4,7 @@
 			"STR1": {
 				"AU0": {
 					"StartDate": "02/01/2019",
+					"FinalAction":"Copy",
 					"path": [
 						[
 							"AU0",

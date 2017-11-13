@@ -58,7 +58,7 @@ public class ArchiveUnitMapperTest {
 
     @Before
     public void init() throws Exception {
-        archiveUnitMapper = new ArchiveUnitMapper(new DescriptiveMetadataMapper());
+        archiveUnitMapper = new ArchiveUnitMapper(new DescriptiveMetadataMapper(), new RuleMapper());
     }
 
     @Test

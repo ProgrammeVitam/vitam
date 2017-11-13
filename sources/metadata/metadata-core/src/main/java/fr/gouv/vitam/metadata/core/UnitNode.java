@@ -58,8 +58,8 @@ public class UnitNode {
      */
     public UnitNode(UnitSimplified u) {
         this.unit = u;
-        this.childs = new HashMap<String, UnitNode>(); 
-        this.allUnitNode = new HashMap<String, UnitNode>();
+        this.childs = new HashMap<>();
+        this.allUnitNode = new HashMap<>();
     }
 
     /**
@@ -74,7 +74,7 @@ public class UnitNode {
         this.allUnitNode = allUnitNode;
         allUnitNode.put(unit.getId(), this);
         for (String parentId : this.unit.getDirectParent()) {
-            UnitNode parentNode = null;
+            UnitNode parentNode;
             if (allUnitNode.containsKey(parentId)) {
                 parentNode = allUnitNode.get(parentId);
                 parentNode.addChild(this);

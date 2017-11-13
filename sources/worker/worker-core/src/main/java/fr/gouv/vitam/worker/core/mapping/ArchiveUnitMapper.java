@@ -32,10 +32,8 @@ import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.google.common.collect.Iterables;
-
 import fr.gouv.culture.archivesdefrance.seda.v2.AccessRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.AppraisalRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
@@ -43,13 +41,13 @@ import fr.gouv.culture.archivesdefrance.seda.v2.ClassificationRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DisseminationRuleType;
+import fr.gouv.culture.archivesdefrance.seda.v2.FinalActionAppraisalCodeType;
+import fr.gouv.culture.archivesdefrance.seda.v2.FinalActionStorageCodeType;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ReuseRuleType;
-import fr.gouv.culture.archivesdefrance.seda.v2.RuleIdType;
 import fr.gouv.culture.archivesdefrance.seda.v2.StorageRuleType;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitRoot;
-import fr.gouv.vitam.common.model.unit.CommonRule;
 import fr.gouv.vitam.common.model.unit.DataObjectReference;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
@@ -61,9 +59,12 @@ import fr.gouv.vitam.common.model.unit.RuleModel;
 public class ArchiveUnitMapper {
 
     private DescriptiveMetadataMapper descriptiveMetadataMapper;
+    private RuleMapper ruleMapper;
 
-    public ArchiveUnitMapper(DescriptiveMetadataMapper descriptiveMetadataMapper) {
+    public ArchiveUnitMapper(DescriptiveMetadataMapper descriptiveMetadataMapper,
+        RuleMapper ruleMapper) {
         this.descriptiveMetadataMapper = descriptiveMetadataMapper;
+        this.ruleMapper = ruleMapper;
     }
 
     /**
@@ -129,7 +130,7 @@ public class ArchiveUnitMapper {
 
     private void fillAccessRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit) {
         AccessRuleType accessRule = archiveUnitType.getManagement().getAccessRule();
-        RuleCategoryModel accessRuleCategory = fillCommonRule(accessRule);
+        RuleCategoryModel accessRuleCategory = ruleMapper.fillCommonRule(accessRule);
         if (archiveUnit.getManagement().getAccess() != null) {
             archiveUnit.getManagement().getAccess().merge(accessRuleCategory);
         } else {
@@ -139,13 +140,12 @@ public class ArchiveUnitMapper {
 
     private void fillStorageRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit) {
         StorageRuleType storageRule = archiveUnitType.getManagement().getStorageRule();
-        RuleCategoryModel storageRuleCategory = fillCommonRule(storageRule);
+        RuleCategoryModel storageRuleCategory = ruleMapper.fillCommonRule(storageRule);
         if (storageRule != null && storageRule.getFinalAction() != null && storageRuleCategory == null) {
             // that means we only have FinalAction set in the rule
             storageRuleCategory = new RuleCategoryModel();
             List<RuleModel> rules = new ArrayList<>();
             RuleModel newRule = new RuleModel();
-            newRule.setFinalAction(storageRule.getFinalAction().value());
             rules.add(newRule);
             storageRuleCategory.getRules().addAll(rules);
         }
@@ -156,19 +156,19 @@ public class ArchiveUnitMapper {
             archiveUnit.getManagement().setStorage(storageRuleCategory);
         }
 
-        if (archiveUnit.getManagement().getStorage() != null &&
-            archiveUnit.getManagement().getStorage().getRules().size() > 0) {
-            RuleModel lastRule = Iterables.getLast(archiveUnit.getManagement().getStorage().getRules());
-
-            if (storageRule != null && storageRule.getFinalAction() != null) {
-                lastRule.setFinalAction(storageRule.getFinalAction().value());
+        if (storageRuleCategory != null) {
+            FinalActionStorageCodeType sfa = storageRule.getFinalAction();
+            if (sfa != null) {
+                storageRuleCategory.setFinalAction(sfa.value());
+            } else {
+                throw new RuntimeException("FinalAction is required for StorageRule");
             }
         }
     }
 
     private void fillClassificationRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit) {
         ClassificationRuleType classificationRule = archiveUnitType.getManagement().getClassificationRule();
-        RuleCategoryModel classificationRuleCategory = fillCommonRule(classificationRule);
+        RuleCategoryModel classificationRuleCategory = ruleMapper.fillCommonRule(classificationRule);
         if (archiveUnit.getManagement().getClassification() != null) {
             archiveUnit.getManagement().getClassification().merge(classificationRuleCategory);
         } else {
@@ -193,7 +193,7 @@ public class ArchiveUnitMapper {
 
     private void fillReuseRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit) {
         ReuseRuleType reuseRule = archiveUnitType.getManagement().getReuseRule();
-        RuleCategoryModel reuseRuleCategory = fillCommonRule(reuseRule);
+        RuleCategoryModel reuseRuleCategory = ruleMapper.fillCommonRule(reuseRule);
         if (archiveUnit.getManagement().getReuse() != null) {
             archiveUnit.getManagement().getReuse().merge(reuseRuleCategory);
         } else {
@@ -203,7 +203,7 @@ public class ArchiveUnitMapper {
 
     private void fillDisseminationRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit) {
         DisseminationRuleType disseminationRule = archiveUnitType.getManagement().getDisseminationRule();
-        RuleCategoryModel disseminationRuleCategory = fillCommonRule(disseminationRule);
+        RuleCategoryModel disseminationRuleCategory = ruleMapper.fillCommonRule(disseminationRule);
         if (archiveUnit.getManagement().getDissemination() != null) {
             archiveUnit.getManagement().getDissemination().merge(disseminationRuleCategory);
         } else {
@@ -213,14 +213,13 @@ public class ArchiveUnitMapper {
 
     private void fillAppraisalRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit) {
         AppraisalRuleType appraisalRule = archiveUnitType.getManagement().getAppraisalRule();
-        RuleCategoryModel appraisalRuleCategory = fillCommonRule(appraisalRule);
+        RuleCategoryModel appraisalRuleCategory = ruleMapper.fillCommonRule(appraisalRule);
 
         if (appraisalRule != null && appraisalRule.getFinalAction() != null && appraisalRuleCategory == null) {
             // that means we only have FinalAction set in the rule
             appraisalRuleCategory = new RuleCategoryModel();
             List<RuleModel> rules = new ArrayList<>();
             RuleModel newRule = new RuleModel();
-            newRule.setFinalAction(appraisalRule.getFinalAction().value());
             rules.add(newRule);
             appraisalRuleCategory.getRules().addAll(rules);
         }
@@ -230,61 +229,15 @@ public class ArchiveUnitMapper {
         } else {
             archiveUnit.getManagement().setAppraisal(appraisalRuleCategory);
         }
-
-        if (archiveUnit.getManagement().getAppraisal() != null &&
-            appraisalRule != null && archiveUnit.getManagement().getAppraisal().getRules().size() > 0) {
-            RuleModel lastRule = Iterables.getLast(archiveUnit.getManagement().getAppraisal().getRules());
-            lastRule.setFinalAction(appraisalRule.getFinalAction().value());
+        if (appraisalRuleCategory != null) {
+            FinalActionAppraisalCodeType afa = appraisalRule.getFinalAction();
+            if (afa != null) {
+                appraisalRuleCategory.setFinalAction(afa.value());
+            } else {
+                throw new RuntimeException("FinalAction is required for AppraisalRule");
+            }
         }
     }
 
-    private RuleCategoryModel fillCommonRule(CommonRule rule) {
-        if (rule == null) {
-            return null;
-        }
-
-        boolean ruleUsed = false;
-        RuleCategoryModel ruleCategoryModel = new RuleCategoryModel();
-        RuleModel ruleModel = null;
-
-        List<RuleModel> rules = new ArrayList<>();
-
-
-        for (Object ruleOrStartDate : rule.getRuleAndStartDate()) {
-            if (ruleOrStartDate instanceof RuleIdType) {
-                ruleModel = new RuleModel();
-                rules.add(ruleModel);
-                String ruleId = ((RuleIdType) ruleOrStartDate).getValue();
-                ruleModel.setRule(ruleId);
-            }
-            if (ruleOrStartDate instanceof XMLGregorianCalendar && ruleModel != null) {
-                XMLGregorianCalendar startDate = (XMLGregorianCalendar) ruleOrStartDate;
-                ruleModel.setStartDate(startDate.toString());
-            }
-        }
-
-        if (!rules.isEmpty()) {
-            ruleUsed = true;
-            ruleCategoryModel.getRules().addAll(rules);
-        }
-
-        if (rule.isPreventInheritance() != null) {
-            ruleUsed = true;
-            ruleCategoryModel.setPreventInheritance(rule.isPreventInheritance());
-        }
-
-        if (rule.getRefNonRuleId().size() > 0) {
-            ruleUsed = true;
-            List<String> refNonRuleId =
-                rule.getRefNonRuleId().stream().map(RuleIdType::getValue).collect(Collectors.toList());
-            ruleCategoryModel.addAllPreventRulesId(refNonRuleId);
-        }
-
-        if (!ruleUsed) {
-            return null;
-        }
-        return ruleCategoryModel;
-
-    }
 
 }

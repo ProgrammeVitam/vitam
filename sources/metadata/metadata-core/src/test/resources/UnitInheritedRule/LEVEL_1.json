@@ -1,10 +1,11 @@
 {
-	"StorageRule": {
-		"Rules": [
-			{
-				"Rule": "STR1",
-				"StartDate": "02/01/2019"
-			}
-		]
-	}
+  "StorageRule": {
+    "Rules": [
+      {
+        "Rule": "STR1",
+        "StartDate": "02/01/2019"
+      }
+    ],
+    "FinalAction": "Copy"
+  }
 }

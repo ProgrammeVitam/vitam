@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -40,7 +40,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.VitamConstants;
@@ -103,7 +103,7 @@ public class UnitInheritedRule {
 
     /**
      * Concat UnitInheritedRule when unit have many parent
-     * 
+     *
      * @param parentRule of type UnitInheritedRule
      */
     public void concatRule(UnitInheritedRule parentRule) {
@@ -163,9 +163,9 @@ public class UnitInheritedRule {
 
     /**
      * Herite rule from parent with unit management
-     * 
+     *
      * @param unitManagement as ObjectNode
-     * @param unitId as String
+     * @param unitId         as String
      * @return UnitInheritedRule created
      * @throws InvalidParseOperationException
      */
@@ -186,8 +186,9 @@ public class UnitInheritedRule {
             parentCategoryList.add(categoryName);
             Map<String, Map<String, InheritedRuleModel>> categoryValue = categoryEntry.getValue();
             ruleCategoryFromUnit.remove(categoryName);
-            if (unitManagement.get(categoryName) == null || unitManagement.get(categoryName).get(RULES) == null ||
-                ((ArrayNode) unitManagement.get(categoryName).get(RULES)).size() == 0) {
+            if (unitManagement.get(categoryName) == null ||
+                unitManagement.get(categoryName).get(RULES) == null ||
+                unitManagement.get(categoryName).get(RULES).size() == 0) {
                 // Unit management does not contain category rule
                 // By rule
                 for (Entry<String, Map<String, InheritedRuleModel>> ruleEntry : categoryValue.entrySet()) {
@@ -204,14 +205,11 @@ public class UnitInheritedRule {
                 for (Entry<String, Map<String, InheritedRuleModel>> ruleEntry : categoryValue.entrySet()) {
                     String ruleId = ruleEntry.getKey();
                     Map<String, InheritedRuleModel> ruleValue = ruleEntry.getValue();
-                    ArrayNode unitRuleNode = (ArrayNode) unitManagement.get(categoryName).get(RULES);
-                    // By Rule in management
-                    for (JsonNode node : unitRuleNode) {
-                        compareInheritedRuleWithManagement((ObjectNode) node, ruleId, ruleValue, unitId,
-                            categoryName, ruleIdTodReplace);
-                    }
-
+                    JsonNode unitManagementRuleCategory = unitManagement.get(categoryName);
+                    compareInheritedRuleWithManagement(unitManagementRuleCategory, ruleId, ruleValue, unitId,
+                        ruleIdTodReplace);
                 }
+
                 for (Entry<String, String> ruleIdEntry : ruleIdTodReplace.entrySet()) {
                     String originId = ruleIdEntry.getKey().split(SEPERATOR, 2)[0];
                     String ruleId = ruleIdEntry.getKey().split(SEPERATOR, 2)[1];
@@ -231,26 +229,21 @@ public class UnitInheritedRule {
 
 
         for (String ruleCategory : VitamConstants.getSupportedRules()) {
-            if (unitManagement.get(ruleCategory) == null) {
+            JsonNode unitManagementRuleCategory = unitManagement.get(ruleCategory);
+            if (unitManagementRuleCategory == null) {
                 continue;
             }
-            ObjectNode ruleCategories = null;
-            JsonNode inheritance = JsonHandler.createObjectNode();
-            if (unitManagement.get(ruleCategory).has("Inheritance")) {
-                inheritance = unitManagement.get(ruleCategory).get("Inheritance");
+            if (unitManagementRuleCategory.has("Inheritance")) {
+                JsonNode inheritance = unitManagementRuleCategory.get("Inheritance");
                 if (inheritance.has(PREVENTRULESID)) {
                     addPreventRulesId(inheritance.get(PREVENTRULESID));
                 }
-                computeRuleCategoryInheritancePrevent(inheritance, newRule, ruleCategory, ruleCategories,
-                    ruleCategoryFromUnit,
-                    parentCategoryList);
+                computeRuleCategoryInheritancePrevent(inheritance, newRule, ruleCategory);
             }
 
-            if (unitManagement.get(ruleCategory).has(RULES)) {
-                for (JsonNode rule : (ArrayNode) unitManagement.get(ruleCategory).get(RULES)) {
-                    computeRuleCategoryInheritance(rule, newRule, ruleCategory, ruleCategories, ruleCategoryFromUnit,
-                        parentCategoryList);
-                }
+            if (unitManagementRuleCategory.has(RULES)) {
+                computeRuleCategoryInheritance(unitManagementRuleCategory, newRule, ruleCategory, ruleCategoryFromUnit,
+                    parentCategoryList);
             }
 
         }
@@ -265,9 +258,9 @@ public class UnitInheritedRule {
                 newRule.inheritedRule.put(categoryName, rulesMap);
             }
 
-            Iterator<String> rules = category.fieldNames();
-            while (rules.hasNext()) {
-                String idRule = rules.next();
+            Iterator<String> categoryRules = category.fieldNames();
+            while (categoryRules.hasNext()) {
+                String idRule = categoryRules.next();
                 JsonNode rule = category.get(idRule);
                 Map<String, InheritedRuleModel> originsMap = new HashMap<>();
                 if (rulesMap.containsKey(idRule)) {
@@ -280,27 +273,32 @@ public class UnitInheritedRule {
                 while (origins.hasNext()) {
                     String idOrigin = origins.next();
                     JsonNode origin = rule.get(idOrigin);
-                    InheritedRuleModel ruleModel;
-                    ruleModel = JsonHandler.getFromJsonNode(origin, InheritedRuleModel.class);
+                    InheritedRuleModel ruleModel = JsonHandler.getFromJsonNode(origin, InheritedRuleModel.class);
                     ruleModel.setPath((ArrayNode) origin.get("path"));
                     originsMap.put(idOrigin, ruleModel);
                 }
             }
         }
 
-        for (String rule : parentCategoryList) {
-            if (newRule.inheritedRule.containsKey(rule)) {
-                if (newRule.inheritedRule.get(rule).isEmpty()) {
-                    newRule.inheritedRule.remove(rule);
+        for (String categoryName : parentCategoryList) {
+            if (newRule.inheritedRule.containsKey(categoryName)) {
+                if (newRule.inheritedRule.get(categoryName).isEmpty()) {
+                    newRule.inheritedRule.remove(categoryName);
                 }
             }
         }
         return newRule;
     }
 
+    /**
+     * Remove rules concerning by preventInheretance
+     *
+     * @param inheritance
+     * @param newRule
+     * @param unitRuleCategory
+     */
     private void computeRuleCategoryInheritancePrevent(JsonNode inheritance, UnitInheritedRule newRule,
-        String unitRuleCategory, ObjectNode ruleCategories, Map<String, ObjectNode> ruleCategoryFromUnit,
-        List<String> parentCategoryList) {
+        String unitRuleCategory) {
         if (inheritance.has(PREVENTRULESID)) {
             ArrayNode nonRefRuleId = (ArrayNode) inheritance.get(PREVENTRULESID);
             for (int index = nonRefRuleId.size() - 1; index >= 0; index--) {
@@ -316,18 +314,39 @@ public class UnitInheritedRule {
         }
     }
 
-    private void computeRuleCategoryInheritance(JsonNode rule, UnitInheritedRule newRule,
-        String unitRuleCategory, ObjectNode ruleCategories, Map<String, ObjectNode> ruleCategoryFromUnit,
+    /**
+     * @param unitManagementRuleCategory the ruleCategory of the unit
+     * @param newRule
+     * @param unitRuleCategory           the name of the category
+     * @param ruleCategoryFromUnit
+     * @param parentCategoryList
+     */
+    private void computeRuleCategoryInheritance(JsonNode unitManagementRuleCategory, UnitInheritedRule newRule,
+        String unitRuleCategory, Map<String, ObjectNode> ruleCategoryFromUnit,
         List<String> parentCategoryList) {
-        if (!parentCategoryList.contains(unitRuleCategory) && rule.has(RULE)) {
-            ObjectNode newCategories = JsonHandler.createObjectNode();
-            ruleCategories = createRuleCategories((ObjectNode) rule, newRule.unitId);
-            newCategories.set(rule.get(RULE).asText(), ruleCategories.get(rule.get(RULE).asText()));
-            ruleCategoryFromUnit.put(unitRuleCategory, newCategories);
-            parentCategoryList.add(unitRuleCategory);
-        } else {
-            addInheritedRuleFromManagement(newRule, (ObjectNode) rule, unitRuleCategory, newRule.unitId,
-                ruleCategoryFromUnit);
+        Map<String, JsonNode> categoryFinalAction = new HashMap<>();
+        for (JsonNode rule : unitManagementRuleCategory.get(RULES)) {
+            ObjectNode ruleToEdit = (ObjectNode) rule;
+            if (!parentCategoryList.contains(unitRuleCategory) && rule.has(RULE)) {
+                ObjectNode ruleCategories =
+                    createRuleCategories(unitManagementRuleCategory, ruleToEdit, newRule.unitId);
+                String ruleName = rule.get(RULE).asText();
+                JsonNode unitRuleNode = ruleCategories.get(ruleName);
+                categoryFinalAction
+                    .put(unitRuleCategory, unitRuleNode.get(newRule.unitId).get(SedaConstants.TAG_RULE_FINAL_ACTION));
+                ruleCategoryFromUnit.put(unitRuleCategory, ruleCategories);
+                parentCategoryList.add(unitRuleCategory);
+            } else {
+
+                // Add FinalAction
+                JsonNode finalActionNode = categoryFinalAction.get(unitRuleCategory);
+                if (null != finalActionNode) {
+                    ruleToEdit.set(SedaConstants.TAG_RULE_FINAL_ACTION, finalActionNode);
+                }
+
+                addInheritedRuleFromManagement(newRule, ruleToEdit, unitRuleCategory, newRule.unitId,
+                    ruleCategoryFromUnit);
+            }
         }
     }
 
@@ -357,50 +376,71 @@ public class UnitInheritedRule {
         }
     }
 
-    private void compareInheritedRuleWithManagement(ObjectNode unitRuleNode, String ruleId,
-        Map<String, InheritedRuleModel> ruleValue, String unitId, String categoryName,
+    private void compareInheritedRuleWithManagement(JsonNode unitManagementRuleCategory, String ruleId,
+        Map<String, InheritedRuleModel> ruleValue, String unitId,
         Map<String, String> ruleIdTodReplace) throws InvalidParseOperationException {
 
-        String unitRuleId = null;
-        if (unitRuleNode.get(RULE) != null) {
-            unitRuleId = unitRuleNode.get(RULE).asText();
+        if (null == unitManagementRuleCategory) {
+            return;
         }
 
-        if (unitRuleId == null || !unitRuleId.equals(ruleId)) {
-            // Unit management contains category rule but not the ruleId
-            for (Entry<String, InheritedRuleModel> originEntry : ruleValue.entrySet()) {
-                ArrayNode pathNode = (ArrayNode) originEntry.getValue().getPath();
-                updateOriginPath(pathNode, unitId);
+        ArrayNode unitRuleNodes = (ArrayNode) unitManagementRuleCategory.get(RULES);
+
+        if (null == unitRuleNodes) {
+            return;
+        }
+
+        for (JsonNode unitRule : unitRuleNodes) {
+
+            String unitRuleId = null;
+            if (unitRule.get(RULE) != null) {
+                unitRuleId = unitRule.get(RULE).asText();
             }
 
-        } else {
-            // Unit management contains category rule with the same ruleId
-            for (Entry<String, InheritedRuleModel> originEntry : ruleValue.entrySet()) {
-                String originId = originEntry.getKey();
-                InheritedRuleModel originValue = originEntry.getValue();
-                InheritedRuleModel copiedRule = createNewOriginModel(unitRuleNode,
-                    JsonHandler.createArrayNode().add(JsonHandler.createArrayNode().add(unitId)));
-                ruleValue.put(originId, copiedRule);
-                ruleIdTodReplace.put(originId + SEPERATOR + ruleId, unitId);
-                if (originValue.getOverrideBy() == null) {
-                    originValue.setOverrideBy(new ArrayList<>());
+            ObjectNode modifiedUnitRule = (ObjectNode) unitRule;
+            modifiedUnitRule.set(SedaConstants.TAG_RULE_FINAL_ACTION,
+                unitManagementRuleCategory.get(SedaConstants.TAG_RULE_FINAL_ACTION));
+
+            if (unitRuleId == null || !unitRuleId.equals(ruleId)) {
+                // Unit management contains category rule but not the ruleId
+                for (Entry<String, InheritedRuleModel> originEntry : ruleValue.entrySet()) {
+                    ArrayNode pathNode = originEntry.getValue().getPath();
+                    updateOriginPath(pathNode, unitId);
                 }
-                originValue.getOverrideBy().add(unitId);
 
-
+            } else {
+                // Unit management contains category rule with the same ruleId
+                for (Entry<String, InheritedRuleModel> originEntry : ruleValue.entrySet()) {
+                    String originId = originEntry.getKey();
+                    InheritedRuleModel originValue = originEntry.getValue();
+                    InheritedRuleModel copiedRule = createNewOriginModel((ObjectNode) unitRule,
+                        JsonHandler.createArrayNode().add(JsonHandler.createArrayNode().add(unitId)));
+                    ruleValue.put(originId, copiedRule);
+                    ruleIdTodReplace.put(originId + SEPERATOR + ruleId, unitId);
+                    if (originValue.getOverrideBy() == null) {
+                        originValue.setOverrideBy(new ArrayList<>());
+                    }
+                    originValue.getOverrideBy().add(unitId);
+                }
             }
         }
     }
 
-    private ObjectNode createRuleCategories(ObjectNode fieldValue, String unitId) {
+    private ObjectNode createRuleCategories(JsonNode unitManagementRuleCategory, ObjectNode unitRule, String unitId) {
         String ruleId = "";
-        if (fieldValue.has(RULE)) {
-            ruleId = fieldValue.get(RULE).textValue();
+        if (unitRule.has(RULE)) {
+            ruleId = unitRule.get(RULE).textValue();
         }
         ObjectNode newValue = JsonHandler.createObjectNode();
-        newValue.setAll(fieldValue);
+        newValue.setAll(unitRule);
         newValue.remove(RULE);
         newValue.set(PATH, JsonHandler.createArrayNode().add(JsonHandler.createArrayNode().add(unitId)));
+
+        // Add FinalAction
+        JsonNode finalActionNode = unitManagementRuleCategory.get(SedaConstants.TAG_RULE_FINAL_ACTION);
+        if (null != finalActionNode) {
+            newValue.set(SedaConstants.TAG_RULE_FINAL_ACTION, finalActionNode);
+        }
 
         // Create Origin of rule (arrayNode)
         ObjectNode ruleOrigin = JsonHandler.createObjectNode();
@@ -460,10 +500,10 @@ public class UnitInheritedRule {
             }
         }
     }
-    
+
     /**
      * check inheritedRule set if empty
-     * 
+     *
      * @return boolean value
      */
     @JsonIgnore
@@ -473,7 +513,7 @@ public class UnitInheritedRule {
 
     /**
      * Deep copy a new unit rule
-     * 
+     *
      * @param unit as UnitInheritedRule
      * @return UnitInheritedRule where unit is copied
      * @throws InvalidParseOperationException

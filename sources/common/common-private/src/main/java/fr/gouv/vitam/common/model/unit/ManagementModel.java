@@ -110,6 +110,10 @@ public class ManagementModel {
         return needAuthorization;
     }
 
+    public void setNeedAuthorization(Boolean needAuthorization) {
+        this.needAuthorization = needAuthorization;
+    }
+
     public UpdateOperationType getUpdateOperationType() {
         return updateOperationType;
     }

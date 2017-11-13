@@ -441,8 +441,11 @@ public class MetaDataImpl implements MetaData {
             for (JsonNode parentIdNode : unitParentId) {
                 unitParentIdList.add(parentIdNode.asText());
             }
-            unitId = unitNode.get(PROJECTIONARGS.ID.exactToken()).asText();
-            unitParentIdList.add(unitId);
+            String currentUnitId = unitNode.get(PROJECTIONARGS.ID.exactToken()).asText();
+            if (unitId.isEmpty()) {
+                unitId = currentUnitId;
+            }
+            unitParentIdList.add(currentUnitId);
         }
         SelectMultiQuery newSelectQuery = createSearchParentSelect(unitParentIdList);
         RequestResponseOK unitParents = selectMetadataObject(newSelectQuery.getFinalSelect(), null,

@@ -6,24 +6,24 @@
 				"Rules": [
 					{
 						"Rule": "STR001",
-						"StartDate": "1990-10-01",
-						"FinalAction": "Copy"
+						"StartDate": "1990-10-01"
 					}
-				]
+				],
+				"FinalAction": "Copy"
 			},
 			"AppraisalRule": {
 				"Rules": [
 					{
 						"Rule": "APR001",
-						"StartDate": "1990-10-01",
-						"FinalAction": "Keep"
+						"StartDate": "1990-10-01"
 					}
 				],
 				"Inheritance": {
 					"PreventRulesId": [
 						"ID42"
 					]
-				}
+				},
+				"FinalAction": "Keep"
 			},
 			"ReuseRule": {
 				"Rules": [

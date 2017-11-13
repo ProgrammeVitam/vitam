@@ -2,11 +2,7 @@
   "ArchiveUnit": {
     "Management": {
       "StorageRule": {
-        "Rules": [
-          {
-            "FinalAction": "RestrictAccess"
-          }
-        ]
+        "FinalAction": "RestrictAccess"
       },
       "AccessRule": {
         "Rules": [

@@ -3,10 +3,10 @@
 		"Rules": [
 			{
 				"Rule": "acc3",
-				"FinalAction": "AU3Access",
 				"EndDate": "01/01/2019"
 			}
-		]
+		],
+		"FinalAction": "AU3Access"
 	},
 	"DissiminationRule": {
 		"Inheritance": {

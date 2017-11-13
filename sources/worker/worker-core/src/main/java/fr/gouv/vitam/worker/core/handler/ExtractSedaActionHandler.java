@@ -44,7 +44,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import javax.xml.bind.JAXBContext;
@@ -283,8 +282,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         this(MetaDataClientFactory.getInstance());
     }
 
-    @VisibleForTesting
-    ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory) {
+    @VisibleForTesting ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory) {
         dataObjectIdToGuid = new HashMap<>();
         dataObjectIdWithoutObjectGroupId = new HashMap<>();
         objectGroupIdToGuid = new HashMap<>();
@@ -508,13 +506,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
         error.set(unitId, errorDetail);
         return JsonHandler.unprettyPrint(error);
     }
-    
+
 
     /**
      * Split Element from InputStream and write it to workspace
      *
      * @param logbookLifeCycleClient
-     * @param params parameters of workspace server
+     * @param params                    parameters of workspace server
      * @param globalCompositeItemStatus the global status
      * @throws ProcessingException throw when can't read or extract element from SEDA
      * @throws CycleFoundException when a cycle is found in data extract
@@ -1122,7 +1120,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * Merge global rules to specific archive rules and clean management node
      *
-     * @param archiveUnit archiveUnit
+     * @param archiveUnit      archiveUnit
      * @param globalMgtIdExtra list of global management rule ids
      * @throws InvalidParseOperationException
      */
@@ -1144,11 +1142,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
             JsonNode stringWriterNode = JsonHandler.getFromString(stringWriter.toString());
             JsonNode globalMgtRuleNode = stringWriterNode.get(GLOBAL_MGT_RULE_TAG);
             Iterator<String> ruleTypes = globalMgtRuleNode.fieldNames();
+
             while (ruleTypes.hasNext()) {
                 String ruleType = ruleTypes.next();
                 JsonNode globalMgtRuleTypeNode = globalMgtRuleNode.get(ruleType);
                 if (globalMgtRuleTypeNode.isArray()) {
-                    for (JsonNode globalMgtRuleTypeItemNode : (ArrayNode) globalMgtRuleTypeNode) {
+                    for (JsonNode globalMgtRuleTypeItemNode : globalMgtRuleTypeNode) {
                         mergeRule(globalMgtRuleTypeItemNode, archiveUnitManagementModel, ruleType);
                     }
                 } else {
@@ -1165,9 +1164,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     /**
      * Merge global management rule in root units management rules.
      *
-     * @param globalMgtRuleNode global management node
+     * @param globalMgtRuleNode          global management node
      * @param archiveUnitManagementModel rule management model
-     * @param ruleType category of rule
+     * @param ruleType                   category of rule
      * @throws InvalidParseOperationException
      */
     private void mergeRule(JsonNode globalMgtRuleNode, ManagementModel archiveUnitManagementModel, String ruleType)
@@ -1204,6 +1203,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     .addToPreventRulesId(globalMgtRuleNode.get(SedaConstants.TAG_RULE_REF_NON_RULE_ID).asText());
             }
         }
+
+        JsonNode finalAction = globalMgtRuleNode.get(SedaConstants.TAG_RULE_FINAL_ACTION);
+        if (finalAction != null && ruleCategoryModel.getFinalAction() == null) {
+            ruleCategoryModel.setFinalAction(finalAction.asText());
+        }
+
         archiveUnitManagementModel.setRuleCategoryModel(ruleCategoryModel, ruleType);
 
     }
@@ -1245,17 +1250,17 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
 
         archiveUnit.set(SedaConstants.PREFIX_WORK, workNode);
-        
+
         return isRootArchive;
     }
 
     private void createUnitLifeCycle(String unitGuid, String containerId)
-            throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
-        
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+
         if (guidToLifeCycleParameters.get(unitGuid) != null) {
             if (!existingUnitGuids.contains(unitGuid)) {
                 LogbookLifeCycleUnitParameters unitLifeCycle =
-                        createUnitLifeCycle(unitGuid, containerId, LogbookTypeProcess.INGEST);
+                    createUnitLifeCycle(unitGuid, containerId, LogbookTypeProcess.INGEST);
 
                 handlerIO.getHelper().updateDelegate(unitLifeCycle);
             }
@@ -1263,8 +1268,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private void addFinalStatusToUnitLifeCycle(String unitGuid, String unitId, boolean isRootArchive)
-            throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
-        
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+
         if (guidToLifeCycleParameters.get(unitGuid) != null) {
             final LogbookLifeCycleParameters llcp = guidToLifeCycleParameters.get(unitGuid);
             String eventId = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).toString();
@@ -1286,8 +1291,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
             llcp.setFinalStatus(HANDLER_ID, null, StatusCode.OK, null);
 
             Set<String> parentAttachments = existAttachmentUnitAsParentOnTree(unitId);
-            
-            if(isRootArchive && linkParentId != null){
+
+            if (isRootArchive && linkParentId != null) {
                 parentAttachments.add(linkParentId);
             }
 
@@ -1879,7 +1884,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         if (logbookLifeCycleParameters == null) {
             logbookLifeCycleParameters = isArchive ? LogbookParametersFactory.newLogbookLifeCycleUnitParameters()
                 : isObjectGroup ? LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters()
-                    : LogbookParametersFactory.newLogbookOperationParameters();
+                : LogbookParametersFactory.newLogbookOperationParameters();
 
 
             logbookLifeCycleParameters.putParameterValue(LogbookParameterName.objectIdentifier, guid);
@@ -2113,7 +2118,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Update data object json node with data from maps
      *
      * @param objectNode data object json node
-     * @param guid guid of data object
+     * @param guid       guid of data object
      * @param isPhysical is this object a physical object
      */
 

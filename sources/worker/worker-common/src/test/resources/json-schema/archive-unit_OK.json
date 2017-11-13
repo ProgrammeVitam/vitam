@@ -2,22 +2,26 @@
     "ArchiveUnit": {
         "_id": "aeaqaaaaaahfrfvaaahrgak25v5fttiaaaaq",
         "Management": {
-            "StorageRule": [
-                {
-                    "Rule": "STR001",
-                    "StartDate": "1990-10-01",
-                    "RefNonRuleId": [],
-                    "FinalAction": "Copy"
-                }
-            ],
-            "AppraisalRule": [
-                {
-                    "Rule": "APR001",
-                    "StartDate": "1990-10-01",
-                    "PreventInheritance": "ID42",
-                    "FinalAction": "Keep"
-                }
-            ],
+            "StorageRule": {
+                "Rules": [
+                    {
+                        "Rule": "STR001",
+                        "StartDate": "1990-10-01",
+                        "RefNonRuleId": []
+                    }
+                ],
+                "FinalAction": "Copy"
+            },
+            "AppraisalRule": {
+                "Rules": [
+                    {
+                        "Rule": "APR001",
+                        "StartDate": "1990-10-01",
+                        "PreventInheritance": "ID42"
+                    }
+                ],
+                "FinalAction": "Keep"
+            },
             "AccessRule": [],
             "ReuseRule": [
                 {

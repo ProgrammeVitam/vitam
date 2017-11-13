@@ -4,6 +4,7 @@
 			"PreventRulesId": [
 				"R1"
 			]
-		}
+		},
+		"FinalAction":"Copy"
 	}
 }

@@ -4,7 +4,7 @@
 			"R1": {
 				"AU1": {
 					"EndDate": "01/01/2019",
-					"FinalAction": "RestrictedAccess",
+					"FinalAction":"RestrictedAccess",
 					"path": [
 						[
 							"AU1"
@@ -18,7 +18,6 @@
 				"AU1": {
 					"StartDate": "01/01/2017",
 					"EndDate": "01/01/2019",
-					"FinalAction": "Access",
 					"path": [
 						[
 							"AU1"

@@ -5,18 +5,18 @@
 				"Rules": [
 					{
 						"Rule": "Rule0",
-						"StartDate": "2021-01-01",
-						"FinalAction": "RestrictAccess"
+						"StartDate": "2021-01-01"
 					}
-				]
+				],
+				"FinalAction": "RestrictAccess"
 			},
 			"AppraisalRule": {
 				"Rules": [
 					{
-						"Rule": "Rule2",
-						"FinalAction": "Keep"
+						"Rule": "Rule2"
 					}
-				]
+				],
+				"FinalAction": "Keep"
 			},
 			"AccessRule": {
 				"Rules": [

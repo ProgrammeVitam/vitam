@@ -44,11 +44,6 @@ public class RuleModel {
     @JsonProperty("StartDate")
     private String startDate;
 
-    /**
-     * final action
-     */
-    @JsonProperty("FinalAction")
-    private String finalAction;
 
     /**
      * classification level
@@ -92,14 +87,6 @@ public class RuleModel {
 
     public void setStartDate(String startDate) {
         this.startDate = startDate;
-    }
-
-    public String getFinalAction() {
-        return finalAction;
-    }
-
-    public void setFinalAction(String finalAction) {
-        this.finalAction = finalAction;
     }
 
     public String getClassificationLevel() {

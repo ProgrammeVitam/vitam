@@ -15,20 +15,20 @@
             {
               "Rule": "STO-00001",
               "StartDate": "2000-01-01",
-              "FinalAction": "Copy",
               "EndDate": "2001-01-01"
             }
-          ]
+          ],
+          "FinalAction": "Copy"
         },
         "AppraisalRule": {
           "Rules": [
             {
               "Rule": "APP-00002",
               "StartDate": "2000-01-01",
-              "FinalAction": "Destroy",
               "EndDate": "2005-01-01"
             }
-          ]
+          ],
+          "FinalAction": "Destroy"
         },
         "AccessRule": {
           "Rules": [

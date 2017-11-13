@@ -182,10 +182,6 @@
 										"type": "date",
 										"format": "strict_date_optional_time||epoch_millis"
 									},
-									"FinalAction": {
-										"type": "string",
-										"index": "not_analyzed"
-									},
 									"Rule": {
 										"type": "string",
 										"index": "not_analyzed"
@@ -207,6 +203,10 @@
 										"index": "not_analyzed"
 									}
 								}
+							},
+							"FinalAction": {
+								"type": "string",
+								"index": "not_analyzed"
 							}
 						}
 					},
@@ -282,10 +282,6 @@
 										"type": "date",
 										"format": "strict_date_optional_time||epoch_millis"
 									},
-									"FinalAction": {
-										"type": "string",
-										"index": "not_analyzed"
-									},
 									"Rule": {
 										"type": "string",
 										"index": "not_analyzed"
@@ -307,6 +303,10 @@
 										"index": "not_analyzed"
 									}
 								}
+							},
+							"FinalAction": {
+								"type": "string",
+								"index": "not_analyzed"
 							}
 						}
 					},

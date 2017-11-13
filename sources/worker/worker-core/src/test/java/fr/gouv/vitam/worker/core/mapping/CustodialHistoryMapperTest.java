@@ -29,20 +29,20 @@ package fr.gouv.vitam.worker.core.mapping;
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertTrue;
 
+import java.util.List;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Unmarshaller;
+
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitRoot;
 import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;
 import fr.gouv.vitam.common.model.unit.DataObjectReference;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
-import junit.framework.TestCase;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
-import java.util.List;
 
 /**
  * test class for {@link ElementMapper}
@@ -60,7 +60,7 @@ public class CustodialHistoryMapperTest {
 
     @Before
     public void init() throws Exception {
-        archiveUnitMapper = new ArchiveUnitMapper(new DescriptiveMetadataMapper());
+        archiveUnitMapper = new ArchiveUnitMapper(new DescriptiveMetadataMapper(), new RuleMapper());
     }
 
     @Test

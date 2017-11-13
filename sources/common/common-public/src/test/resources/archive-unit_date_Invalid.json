@@ -7,24 +7,24 @@
 			"Rules": [
 				{
 					"Rule": "STR001",
-					"StartDate": "2012-11-15T14:30:23",
-					"FinalAction": "Copy"
+					"StartDate": "2012-11-15T14:30:23"
 				}
-			]
+			],
+			"FinalAction": "Copy"
 		},
 		"AppraisalRule": {
 			"Rules": [
 				{
 					"Rule": "APR001",
-					"StartDate": "2012-11-15T14:30:23",
-					"FinalAction": "Keep"
+					"StartDate": "2012-11-15T14:30:23"
 				}
 			],
 			"Inheritance": {
 				"PreventRulesId": [
 					"ID42"
 				]
-			}
+			},
+			"FinalAction": "Keep"
 		},
 		"ReuseRule": {
 			"Rules": [
