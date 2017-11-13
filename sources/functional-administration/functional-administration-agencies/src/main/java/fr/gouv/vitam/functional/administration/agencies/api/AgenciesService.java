@@ -128,6 +128,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.assertj.core.util.Lists;
 
 
 public class AgenciesService implements VitamAutoCloseable {
@@ -175,7 +176,7 @@ public class AgenciesService implements VitamAutoCloseable {
     /**
      * Constructor
      *
-     * @param mongoAccess MongoDB client
+     * @param mongoAccess         MongoDB client
      * @param vitamCounterService
      * @param securisator
      */
@@ -313,10 +314,8 @@ public class AgenciesService implements VitamAutoCloseable {
             return;
         }
         final ArrayNode usedAgenciesAUNode = JsonHandler.createArrayNode();
+        usedAgenciesByAU.forEach(agency -> usedAgenciesAUNode.add(agency.getIdentifier()));
 
-        for (AgenciesModel ageciesModel : usedAgenciesByAU) {
-            usedAgenciesAUNode.add(ageciesModel.getIdentifier());
-        }
         final ObjectNode data = JsonHandler.createObjectNode();
         data.set(ADDITIONAL_INFORMATION, usedAgenciesAUNode);
 
@@ -342,17 +341,14 @@ public class AgenciesService implements VitamAutoCloseable {
             }
         }
 
-
-
         if (agenciesToUpdate.isEmpty()) {
             manager.logEventSuccess(AGENCIES_IMPORT_CONTRACT_USAGE);
             return;
         }
 
         final ArrayNode usedAgenciesContractNode = JsonHandler.createArrayNode();
-        for (AgenciesModel ageciesModel : usedAgenciesByContracts) {
-            usedAgenciesContractNode.add(ageciesModel.getIdentifier());
-        }
+
+        usedAgenciesByContracts.forEach(agency -> usedAgenciesContractNode.add(agency.getIdentifier()));
 
         final ObjectNode data = JsonHandler.createObjectNode();
         data.set(ADDITIONAL_INFORMATION, usedAgenciesContractNode);
@@ -555,13 +551,28 @@ public class AgenciesService implements VitamAutoCloseable {
             storeJson();
 
             manager.logFinish();
+        } catch (final AgencyImportDeletionException e) {
 
-        } catch (final Exception exp) {
-
+            LOGGER.error(MESSAGE_ERROR, e);
             InputStream errorStream = generateErrorReport();
             storeReport(errorStream);
             errorStream.close();
-            return generateVitamError(MESSAGE_ERROR + exp.getMessage());
+            ObjectNode erorrMessage = JsonHandler.createObjectNode();
+            erorrMessage.put("ErrorMessage", MESSAGE_ERROR + e.getMessage());
+
+            String listAgencies = agenciesToDelete.stream().map(agenciesModel -> agenciesModel.getIdentifier())
+                .collect(Collectors.joining(","));
+            erorrMessage.put("Agencies ", listAgencies);
+
+
+            return generateVitamBadRequestError(erorrMessage.toString());
+
+        } catch (final Exception e) {
+            LOGGER.error(MESSAGE_ERROR, e);
+            InputStream errorStream = generateErrorReport();
+            storeReport(errorStream);
+            errorStream.close();
+            return generateVitamError(MESSAGE_ERROR + e.getMessage());
         } finally {
             // StreamUtils.closeSilently(stream);
         }
@@ -578,8 +589,17 @@ public class AgenciesService implements VitamAutoCloseable {
 
 
 
+    private VitamError generateVitamBadRequestError(String err) throws VitamException {
+        manager.logError(err);
+        return new VitamError(VitamCode.AGENCIES_VALIDATION_ERROR.getItem())
+            .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
+            .setCode(VitamCode.AGENCIES_VALIDATION_ERROR.getItem())
+            .setDescription(err)
+            .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+    }
+
     private VitamError generateVitamError(String err) throws VitamException {
-        manager.logFatalError(err);
+        manager.logError(err);
         return new VitamError(VitamCode.AGENCIES_VALIDATION_ERROR.getItem())
             .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
             .setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
@@ -705,50 +725,58 @@ public class AgenciesService implements VitamAutoCloseable {
      */
     private InputStream generateReportOK()
         throws ReferentialException {
+        ObjectNode reportFinal = generateReport();
+
+        return new ByteArrayInputStream(JsonHandler.unprettyPrint(reportFinal).getBytes(StandardCharsets.UTF_8));
+    }
+
+    private ObjectNode generateReport() {
+
         final ObjectNode reportFinal = JsonHandler.createObjectNode();
         final ObjectNode guidmasterNode = JsonHandler.createObjectNode();
         final ArrayNode insertAgenciesNode = JsonHandler.createArrayNode();
         final ArrayNode updateAgenciesNode = JsonHandler.createArrayNode();
         final ArrayNode usedAgenciesContractNode = JsonHandler.createArrayNode();
         final ArrayNode usedAgenciesAUNode = JsonHandler.createArrayNode();
+        final ArrayNode agenciesTodelete = JsonHandler.createArrayNode();
+        final ArrayNode allAgencies = JsonHandler.createArrayNode();
+
 
         guidmasterNode.put("evType", AGENCIES_IMPORT_EVENT);
         guidmasterNode.put("evDateTime", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
         guidmasterNode.put("evId", eip.toString());
 
-        for (AgenciesModel fileRulesModel : agenciesToInsert) {
-            insertAgenciesNode.add(fileRulesModel.getIdentifier());
-        }
-        for (AgenciesModel ageciesModel : agenciesToUpdate) {
-            updateAgenciesNode.add(ageciesModel.getIdentifier());
-        }
-        for (AgenciesModel ageciesModel : usedAgenciesByContracts) {
-            usedAgenciesContractNode.add(ageciesModel.getIdentifier());
-        }
-        for (AgenciesModel ageciesModel : usedAgenciesByAU) {
-            usedAgenciesAUNode.add(ageciesModel.getIdentifier());
-        }
+        agenciesToInsert.forEach(agency -> insertAgenciesNode.add(agency.getIdentifier()));
+
+        agenciesToUpdate.forEach(agency -> updateAgenciesNode.add(agency.getIdentifier()));
+
+        usedAgenciesByContracts.forEach(agency -> usedAgenciesContractNode.add(agency.getIdentifier()));
+
+        usedAgenciesByAU.forEach(agency -> usedAgenciesAUNode.add(agency.getIdentifier()));
+
+        agenciesToDelete.forEach(agency -> agenciesTodelete.add(agency.getIdentifier()));
+
+        agenciesToImport.forEach(agency -> allAgencies.add(agency.getIdentifier()));
 
         reportFinal.set("Journal des opérations", guidmasterNode);
+        reportFinal.set("AgenciesToImport", allAgencies);
         reportFinal.set("InsertAgencies", insertAgenciesNode);
         reportFinal.set("UpdatedAgencies", updateAgenciesNode);
         reportFinal.set("UsedAgencies By Contrat", usedAgenciesContractNode);
         reportFinal.set("UsedAgencies By AU", usedAgenciesAUNode);
+        reportFinal.set("UsedAgencies to Delete", agenciesTodelete);
 
-        return new ByteArrayInputStream(JsonHandler.unprettyPrint(reportFinal).getBytes(StandardCharsets.UTF_8));
+        return reportFinal;
     }
+
 
 
     public InputStream generateErrorReport() {
 
-        final ObjectNode reportFinal = JsonHandler.createObjectNode();
+        final ObjectNode reportFinal = generateReport();
+
         final ArrayNode messagesArrayNode = JsonHandler.createArrayNode();
-        final ObjectNode guidmasterNode = JsonHandler.createObjectNode();
         final ObjectNode lineNode = JsonHandler.createObjectNode();
-        final ArrayNode usedByContratArrayNode = JsonHandler.createArrayNode();
-        final ArrayNode usedByAUArrayNode = JsonHandler.createArrayNode();
-        guidmasterNode.put("evType", AGENCIES_IMPORT_EVENT);
-        guidmasterNode.put("evDateTime", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
 
         for (Integer line : errorsMap.keySet()) {
             List<ErrorReportAgencies> errorsReports = errorsMap.get(line);
@@ -775,19 +803,7 @@ public class AgenciesService implements VitamAutoCloseable {
             }
             lineNode.set(String.format("line %s", line), messagesArrayNode);
         }
-
-        for (AgenciesModel model : usedAgenciesByContracts) {
-            usedByContratArrayNode.add(JsonHandler.unprettyPrint(model));
-        }
-        for (AgenciesModel model : usedAgenciesByAU) {
-            usedByAUArrayNode.add(JsonHandler.unprettyPrint(model));
-        }
-
-        reportFinal.set("JDO", guidmasterNode);
         reportFinal.set("error", lineNode);
-        reportFinal.set("usedAgenciesByContracts", usedByContratArrayNode);
-        reportFinal.set("usedAgenciesByAU", usedByAUArrayNode);
-
         return new ByteArrayInputStream(JsonHandler.unprettyPrint(reportFinal).getBytes(StandardCharsets.UTF_8));
     }
 
