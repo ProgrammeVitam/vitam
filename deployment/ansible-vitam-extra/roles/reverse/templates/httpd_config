@@ -229,8 +229,8 @@
 
     {% if groups['hosts-elasticsearch-log']|length >0 %}
     # Elasticsearch log
-    ProxyPass /{{ elasticsearch.log.baseuri }} http://{{ hostvars[groups['hosts-elasticsearch-log'][0]]['ip_admin']}}:{{ elasticsearch.log.port_http }}/
-    ProxyPassReverse /{{ elasticsearch.log.baseuri }} http://{{ hostvars[groups['hosts-elasticsearch-log'][0]]['ip_admin']}}:{{ elasticsearch.log.port_http }}/
+    ProxyPass /{{ elasticsearch.log.baseuri }} http://{{ hostvars[groups['hosts-elasticsearch-log'][0]]['ip_admin']}}:{{ elasticsearch.log.port_http }}
+    ProxyPassReverse /{{ elasticsearch.log.baseuri }} http://{{ hostvars[groups['hosts-elasticsearch-log'][0]]['ip_admin']}}:{{ elasticsearch.log.port_http }}
     {% endif %}
 
     {% if groups['hosts-elasticsearch-data']|length >0 %}
