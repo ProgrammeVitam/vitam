@@ -262,7 +262,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     static {
         try {
-            jaxbContext = JAXBContext.newInstance("fr.gouv.culture.archivesdefrance.seda.v2");
+            jaxbContext = JAXBContext.newInstance("fr.gouv.culture.archivesdefrance.seda.v2:fr.gouv.vitam.common.model.unit");
         } catch (JAXBException e) {
             LOGGER.error("unable to create jaxb context", e);
         }
@@ -342,9 +342,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 objectGroupIdToUnitId, dataObjectIdToObjectGroupId, dataObjectIdWithoutObjectGroupId,
                 guidToLifeCycleParameters, existingUnitGuids, params.getLogbookTypeProcess(),
                 params.getContainerName(), metaDataClientFactory, objectGroupIdToGuid,
-                unitIdToSetOfRuleId,
+                dataObjectIdToGuid, unitIdToSetOfRuleId,
                 getWorkflowUnitType(), originatingAgencies, existingGOTs));
-
 
             ObjectNode evDetData = extractSEDA(lifeCycleClient, params, globalCompositeItemStatus);
 

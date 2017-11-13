@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -50,12 +49,10 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.Strings;
-import fr.gouv.culture.archivesdefrance.seda.v2.AgentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
-import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType.Signature.Signer;
-import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType.Signature.Validator;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.KeywordsType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
@@ -72,6 +69,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitRoot;
+import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.GotObj;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
@@ -128,6 +126,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private String containerId;
     private MetaDataClientFactory metaDataClientFactory;
     private Map<String, String> objectGroupIdToGuid;
+    private Map<String, String> dataObjectIdToGuid;
     private Map<String, Set<String>> unitIdToSetOfRuleId;
     private UnitType workflowUnitType;
     private List<String> originatingAgencies;
@@ -142,7 +141,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         Set<String> existingUnitGuids, LogbookTypeProcess logbookTypeProcess, String containerId,
         MetaDataClientFactory metaDataClientFactory,
         Map<String, String> objectGroupIdToGuid,
-        Map<String, Set<String>> unitIdToSetOfRuleId, UnitType workflowUnitType,
+        Map<String, String> dataObjectIdToGuid, Map<String, Set<String>> unitIdToSetOfRuleId, UnitType workflowUnitType,
         List<String> originatingAgencies, List<String> existingGOTs) {
         this.unitIdToGroupId = unitIdToGroupId;
         this.objectGroupIdToUnitId = objectGroupIdToUnitId;
@@ -154,6 +153,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         this.containerId = containerId;
         this.metaDataClientFactory = metaDataClientFactory;
         this.objectGroupIdToGuid = objectGroupIdToGuid;
+        this.dataObjectIdToGuid = dataObjectIdToGuid;
         this.unitIdToSetOfRuleId = unitIdToSetOfRuleId;
         this.handlerIO = handlerIO;
         this.archiveUnitTree = archiveUnitTree;
@@ -208,46 +208,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             if (archiveUnitType.getManagement() != null &&
                 archiveUnitType.getManagement().getUpdateOperation() != null &&
                 archiveUnitType.getManagement().getUpdateOperation().getSystemId() != null) {
-                // check if systemId exist
-                elementGUID = archiveUnitType.getManagement().getUpdateOperation().getSystemId();
-                existingUnitGuids.add(elementGUID);
-                ArchiveUnitRoot archiveUnitRoot = new ArchiveUnitRoot();
-                archiveUnitRoot.getArchiveUnit().setId(elementGUID);
+                elementGUID = attachArchiveUnitToExisting(archiveUnitType, archiveUnitId);
 
-                try {
-                    JsonNode existingData = loadExistingArchiveUnit(elementGUID, archiveUnitId);
-                    if (existingData == null || existingData.get("$results") == null ||
-                        existingData.get("$results").size() == 0) {
-                        LOGGER.error("Existing Unit was not found {}", elementGUID);
-                        throw new ProcessingUnitNotFoundException(
-                            "Existing Unit " + archiveUnitId + "[" + elementGUID + "] was not found", archiveUnitId,
-                            elementGUID);
-                    }
-
-
-                    String type = existingData.get("$results").get(0).get("#unitType").asText();
-                    UnitType dataUnitType = UnitType.valueOf(type);
-
-                    if (dataUnitType.ordinal() < workflowUnitType.ordinal()) {
-                        LOGGER.error("Linking not allowed  {}", elementGUID);
-                        throw new ProcessingUnitLinkingException("Linking Unauthorized ");
-
-                    }
-
-                    // Do not get originating agencies of holding
-                    if (!UnitType.HOLDING_UNIT.equals(dataUnitType)) {
-                        ArrayNode originatingAgencies =
-                            (ArrayNode) existingData.get("$results").get(0).get(originatingAgencies());
-                        List<String> originatingAgencyList = new ArrayList<>();
-                        for (JsonNode agency : originatingAgencies) {
-                            originatingAgencyList.add(agency.asText());
-                        }
-                        this.originatingAgencies.addAll(originatingAgencyList);
-                    }
-
-                } catch (ProcessingException e) {
-                    throw new RuntimeException(e);
-                }
             }
 
             List<Object> archiveUnitOrDataObjectReferenceOrAny =
@@ -267,11 +229,18 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
             unitIdToGuid.put(archiveUnitId, elementGUID);
 
-            ArchiveUnitRoot archiveUnitRoot = null;
+            ArchiveUnitRoot archiveUnitRoot;
             try {
                 archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, elementGUID, groupId);
             } catch (DatatypeConfigurationException e) {
                 throw new RuntimeException(e);
+            }
+
+            DescriptiveMetadataModel descriptiveMetadataModel = archiveUnitRoot.getArchiveUnit().getDescriptiveMetadataModel();
+
+            if (descriptiveMetadataModel.getSignature() != null &&
+                descriptiveMetadataModel.getSignature().getReferencedObject() != null) {
+                enhanceSignature(descriptiveMetadataModel);
             }
 
             // fill list rules to map
@@ -294,7 +263,6 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
                 updateUnitLifeCycle(elementGUID, containerId, logbookTypeProcess);
             }
 
-
             // clean archiveUnitType
             archiveUnitType.setManagement(null);
             archiveUnitType.getContent().clear();
@@ -306,6 +274,69 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         super.afterUnmarshal(target, parent);
     }
 
+    /**
+     * fill binaryId instead of intenal seda id.
+     * @param descriptiveMetadataModel
+     */
+    private void enhanceSignature(DescriptiveMetadataModel descriptiveMetadataModel) {
+        String signedObjectId = descriptiveMetadataModel.getSignature().getReferencedObject().getSignedObjectId();
+
+        if (dataObjectIdToGuid.containsKey(signedObjectId)) {
+            descriptiveMetadataModel.getSignature().getReferencedObject()
+                .setSignedObjectId(dataObjectIdToGuid.get(signedObjectId));
+        }
+    }
+
+    /**
+     * link the current archive unit to an existing archive unit
+     * @param archiveUnitType
+     * @param archiveUnitId
+     * @return
+     */
+    private String attachArchiveUnitToExisting(ArchiveUnitType archiveUnitType, String archiveUnitId) {
+        String elementGUID;// check if systemId exist
+        elementGUID = archiveUnitType.getManagement().getUpdateOperation().getSystemId();
+        existingUnitGuids.add(elementGUID);
+        ArchiveUnitRoot archiveUnitRoot = new ArchiveUnitRoot();
+        archiveUnitRoot.getArchiveUnit().setId(elementGUID);
+
+        try {
+            JsonNode existingData = loadExistingArchiveUnit(elementGUID, archiveUnitId);
+            if (existingData == null || existingData.get("$results") == null ||
+                existingData.get("$results").size() == 0) {
+                LOGGER.error("Existing Unit was not found {}", elementGUID);
+                throw new ProcessingUnitNotFoundException(
+                    "Existing Unit " + archiveUnitId + "[" + elementGUID + "] was not found", archiveUnitId,
+                    elementGUID);
+            }
+
+
+            String type = existingData.get("$results").get(0).get("#unitType").asText();
+            UnitType dataUnitType = UnitType.valueOf(type);
+
+            if (dataUnitType.ordinal() < workflowUnitType.ordinal()) {
+                LOGGER.error("Linking not allowed  {}", elementGUID);
+                throw new ProcessingUnitLinkingException("Linking Unauthorized ");
+
+            }
+
+            // Do not get originating agencies of holding
+            if (!UnitType.HOLDING_UNIT.equals(dataUnitType)) {
+                ArrayNode originatingAgencies =
+                    (ArrayNode) existingData.get("$results").get(0).get(originatingAgencies());
+                List<String> originatingAgencyList = new ArrayList<>();
+                for (JsonNode agency : originatingAgencies) {
+                    originatingAgencyList.add(agency.asText());
+                }
+                this.originatingAgencies.addAll(originatingAgencyList);
+            }
+
+        } catch (ProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return elementGUID;
+    }
+
     private void fillListRulesToMap(String archiveUnitId, RuleCategoryModel ruleCategory) {
         if (ruleCategory == null) {
             return;
@@ -314,8 +345,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             ruleCategory.getRules().stream()
                 .map(RuleModel::getRule)
                 .filter(item -> !Strings.isNullOrEmpty(item))
-                .collect(
-                    Collectors.toSet());
+                .collect(Collectors.toSet());
         if (rulesId.size() <= 0) {
             return;
         }
@@ -548,7 +578,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         if (logbookLifeCycleParameters == null) {
             logbookLifeCycleParameters = isArchive ? LogbookParametersFactory.newLogbookLifeCycleUnitParameters()
                 : isObjectGroup ? LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters()
-                    : LogbookParametersFactory.newLogbookOperationParameters();
+                : LogbookParametersFactory.newLogbookOperationParameters();
 
             logbookLifeCycleParameters.putParameterValue(LogbookParameterName.objectIdentifier, guid);
         }
@@ -559,10 +589,10 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
      * Load data of an existing archive unit by its vitam id.
      *
      * @param archiveUnitGuid guid of archive unit
-     * @param archiveUnitId xml id of archive unit
+     * @param archiveUnitId   xml id of archive unit
      * @return AU response
      * @throws ProcessingUnitNotFoundException thrown if unit not found
-     * @throws ProcessingException thrown if a metadata exception occured
+     * @throws ProcessingException             thrown if a metadata exception occured
      */
     private JsonNode loadExistingArchiveUnit(String archiveUnitGuid, String archiveUnitId) throws ProcessingException {
 
@@ -589,7 +619,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
      * @param objectGroupId guid of archive unit
      * @return AU response
      * @throws ProcessingUnitNotFoundException thrown if unit not found
-     * @throws ProcessingException thrown if a metadata exception occured
+     * @throws ProcessingException             thrown if a metadata exception occured
      */
     private JsonNode loadExistingObjectGroup(String objectGroupId) {
 
@@ -616,19 +646,17 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 
-
         SimpleModule module = new SimpleModule();
         module.addSerializer(TextType.class, new TextTypeSerializer());
         module.addSerializer(LevelType.class, new LevelTypeSerializer());
-        module.addSerializer(Signer.class, new SignerSerializer());
-        module.addSerializer(Validator.class, new ValidatorSerializer());
         module.addSerializer(IdentifierType.class, new IdentifierTypeSerializer());
         module.addSerializer(XMLGregorianCalendar.class, new XMLGregorianCalendarSerializer());
         module.addSerializer(TextByLang.class, new TextByLangSerializer());
         module.addSerializer(KeywordsType.KeywordType.class, new KeywordTypeSerializer());
-        module.addSerializer(AgentType.class, new AgentTypeSerializer());
 
         objectMapper.registerModule(module);
+        JavaTimeModule module1 = new JavaTimeModule();
+        objectMapper.registerModule(module1);
 
         return objectMapper;
     }

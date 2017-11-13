@@ -55,26 +55,15 @@ public class DescriptiveMetadataMapper {
         DescriptiveMetadataContentType dmc = new DescriptiveMetadataContentType();
         dmc.setAcquiredDate(metadataModel.getAcquiredDate());
 
-        AgentTypeMapper agentTypeMapper = new AgentTypeMapper();
-
-        metadataModel.getAddressee().forEach(item -> {
-            try {
-                dmc.getAddressee().add(agentTypeMapper.convert(item));
-            } catch (DatatypeConfigurationException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        //        mapMapToElement(dmc, metadataModel.getAny());
+        dmc.getAddressee().addAll(metadataModel.getAddressee());
         dmc.getAny().addAll(
             TransformJsonTreeToListOfXmlElement.mapJsonToElement(Collections.singletonList(metadataModel.getAny())));
 
         dmc.setArchivalAgencyArchiveUnitIdentifier(metadataModel.getArchivalAgencyArchiveUnitIdentifier());
 
-        dmc.setAuthorizedAgent(agentTypeMapper.convert(metadataModel.getAuthorizedAgent()));
+        dmc.setAuthorizedAgent(metadataModel.getAuthorizedAgent());
         dmc.setCoverage(metadataModel.getCoverage());
         dmc.setCreatedDate(metadataModel.getCreatedDate());
-
 
         CustodialHistory custodialHistory = custodialHistoryMapper.map(metadataModel.getCustodialHistory());
         dmc.setCustodialHistory(custodialHistory);
@@ -94,18 +83,11 @@ public class DescriptiveMetadataMapper {
         dmc.getKeyword().addAll(metadataModel.getKeyword());
         dmc.setLanguage(metadataModel.getLanguage());
         dmc.setOriginatingAgency(metadataModel.getOriginatingAgency());
-        dmc
-            .setOriginatingAgencyArchiveUnitIdentifier(metadataModel.getOriginatingAgencyArchiveUnitIdentifier());
+        dmc.setOriginatingAgencyArchiveUnitIdentifier(metadataModel.getOriginatingAgencyArchiveUnitIdentifier());
         dmc.setOriginatingSystemId(metadataModel.getOriginatingSystemId());
         dmc.setReceivedDate(metadataModel.getReceivedDate());
 
-        metadataModel.getRecipient().forEach(item -> {
-            try {
-                dmc.getRecipient().add(agentTypeMapper.convert(item));
-            } catch (DatatypeConfigurationException e) {
-                throw new RuntimeException(e);
-            }
-        });
+        dmc.getRecipient().addAll(metadataModel.getRecipient());
 
         dmc.setRegisteredDate(metadataModel.getRegisteredDate());
         dmc.setRelatedObjectReference(metadataModel.getRelatedObjectReference());

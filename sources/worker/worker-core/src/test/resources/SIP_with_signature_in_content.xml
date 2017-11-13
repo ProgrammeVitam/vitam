@@ -1,0 +1,100 @@
+<?xml version="1.0" ?>
+<ArchiveTransfer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 Vitam/BA/SEDA/SEDA_2-0_fast_dl/Sch%D0%92mas/seda-2.0-main.xsd"
+ xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:pr="info:lc/xmlns/premis-v2"
+ xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="ID1">
+    <Comment>CCTP Vitam</Comment>
+    <Date>2016-09-19T10:40:23</Date>
+    <MessageIdentifier>xoxo1534hurtirndl88</MessageIdentifier>
+    <ArchivalAgreement>ArchivalAgreement0Test</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0123</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage xml:id="ID21">
+        <BinaryDataObject id="ID011">
+            <DataObjectGroupId>ID006</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>content/e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804.odp</Uri>
+            <MessageDigest algorithm="SHA-512">e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804</MessageDigest>
+            <Size>100646</Size>
+            <FormatIdentification>
+                <FormatLitteral>OpenDocument Presentation</FormatLitteral>
+                <MimeType>application/vnd.oasis.opendocument.presentation</MimeType>
+                <FormatId>fmt/293</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>Vitam-Sensibilisation-API-V1.0.odp</Filename>
+                <CreatingApplicationName>LibreOffice/Impress</CreatingApplicationName>
+                <CreatingApplicationVersion>5.0.5.2</CreatingApplicationVersion>
+                <CreatingOs>Windows_X86_64</CreatingOs>
+                <CreatingOsVersion>10</CreatingOsVersion>
+                <LastModified>2016-05-05T20:45:20</LastModified>
+            </FileInfo>
+            <Metadata>
+                <Document><!--  --></Document>
+            </Metadata>
+            <OtherMetadata><!--  --></OtherMetadata>
+        </BinaryDataObject>
+
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID3">
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>LEVANT</Title>
+                    <Description>C:\Users\mehdi.afnai\Desktop\LEVANT</Description>
+                    <Addressee>
+                        <FirstName>reoiu</FirstName>
+                        <BirthPlace>
+                            <City>Paris</City>
+                        </BirthPlace>
+                    </Addressee>
+                    <StartDate>2015-06-18T13:54:42</StartDate>
+                    <EndDate>2015-06-18T13:54:42</EndDate>
+                    <Signature>
+                        <DateSignature>2015-06-18T13:54:42Z</DateSignature>
+                        <Signer>
+                            <FirstName>Bobby1</FirstName>
+                            <SigningTime>2015-06-19T13:54:42</SigningTime>
+                        </Signer>
+                        <Validator>
+                            <FirstName>Bobby0</FirstName>
+                            <ValidationTime>2015-06-20T13:54:42</ValidationTime>
+                        </Validator>
+                        <ReferencedObject>
+                            <SignedObjectId>ID011</SignedObjectId>
+                            <SignedObjectDigest algorithm="SHA-1">752c14ea195c369bac3c3b7896975ee9fd15eeb7</SignedObjectDigest>
+                        </ReferencedObject>
+                    </Signature>
+                    <DataObjectReference id="ID0290">
+                        <DataObjectGroupReferenceId>ID006</DataObjectGroupReferenceId>
+                    </DataObjectReference>
+                </Content>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata>
+          <OriginatingAgencyIdentifier>FRAN_NP_050758</OriginatingAgencyIdentifier>
+          <SubmissionAgencyIdentifier>FRAN_NP_050758</SubmissionAgencyIdentifier>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <ArchivalAgency>
+        <Identifier>Plate-forme Vitam</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>Ministère de l'Agriculture</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>
+
