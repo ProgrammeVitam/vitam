@@ -94,16 +94,16 @@ public class AccessStep {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessStep.class);
 
     private static final String UNIT_GUID = "UNIT_GUID";
-
     private static String CONTRACT_WITH_LINK = "[{" +
-        "\"Name\":\"contrat_de_rattachement_TNR\"," +
-        "\"Description\":\"Rattachant les SIP à une AU\"," +
-        "\"Status\" : \"ACTIVE\"," +
-        "\"LastUpdate\":\"10/12/2016\"," +
-        "\"CreationDate\":\"10/12/2016\"," +
-        "\"ActivationDate\":\"10/12/2016\"," +
-        "\"DeactivationDate\":\"10/12/2016\"," +
-        "\"LinkParentId\": \"" + UNIT_GUID + "\"}]";
+            "\"Identifier\":\"contrat_de_rattachement_TNR\"," +
+            "\"Name\":\"contrat_de_rattachement_TNR\"," +
+            "\"Description\":\"Rattachant les SIP à une AU\"," +
+            "\"Status\" : \"ACTIVE\"," +
+            "\"LastUpdate\":\"10/12/2016\"," +
+            "\"CreationDate\":\"10/12/2016\"," +
+            "\"ActivationDate\":\"10/12/2016\"," +
+            "\"DeactivationDate\":\"10/12/2016\"," +
+            "\"LinkParentId\": \"" + UNIT_GUID + "\"}]";
 
     private static final String OPERATION_ID = "Operation-Id";
 
