@@ -85,6 +85,8 @@ import java.util.Queue;
 public class WebApplicationResourceDelete {
     private static final String CONTEXT_NAME = "Name";
     private static final String CONTEXT_TO_SAVE = "admin-context";
+    private static final String SECURITY_PROFIL_NAME = "Name";
+    private static final String SECURITY_PROFIL_NAME_TO_SAVE = "admin-security-profile";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResourceDelete.class);
     private static final String STP_DELETE_FORMAT = "STP_DELETE_FORMAT";
     private static final String STP_DELETE_RULES = "STP_DELETE_RULES";
@@ -607,6 +609,29 @@ public class WebApplicationResourceDelete {
 
     }
 
+    /**
+     * Delete all entries for the context collection
+     * except the "admin" context
+     *
+     * @return Response
+     */
+    @Path("masterdata/securityProfil")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteMasterdataSecurityProfil() {
+        Delete delete = null;
+
+        try {
+            delete = queryDeleteSecurityProfil();
+
+            mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.SECURITY_PROFILE, delete);
+
+            return Response.status(Status.OK).build();
+        } catch (InvalidCreateOperationException | DatabaseException | ReferentialException e) {
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+
+    }
 
     private Response deleteMasterDataCollection(FunctionalAdminCollections collection) {
         if (!(collection.equals(FunctionalAdminCollections.ACCESS_CONTRACT) ||
@@ -652,32 +677,35 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response purgeDataForTnr() {
-        Response response = deleteLogBook();
-        response.close();
-        response = deleteMasterDataCollection(FunctionalAdminCollections.AGENCIES);
-        response.close();
-        response = deleteMasterDataCollection(FunctionalAdminCollections.INGEST_CONTRACT);
-        response.close();
-        response = deleteMasterDataCollection(FunctionalAdminCollections.ACCESS_CONTRACT);
-        response.close();
-        response = deleteLifecycleUnits();
-        response.close();
-        response = deleteLifecycleOg();
-        response.close();
-        response = deleteMetadataOg();
-        response.close();
-        response = deleteMetadataUnits();
-        response.close();
-        response = deleteAccessionRegister();
-        response.close();
-        response = deleteRules();
-        response.close();
-        response = deleteFormats();
-        response.close();
-        response = deleteMasterdataProfile();
-        response.close();
-        response = deleteMasterdataContext();
-        response.close();
+
+        deleteLogBook().close();
+
+        deleteMasterDataCollection(FunctionalAdminCollections.AGENCIES).close();
+
+        deleteMasterDataCollection(FunctionalAdminCollections.INGEST_CONTRACT).close();
+
+        deleteMasterDataCollection(FunctionalAdminCollections.ACCESS_CONTRACT).close();
+
+        deleteLifecycleUnits().close();
+
+        deleteLifecycleOg().close();
+
+        deleteMetadataOg().close();
+
+        deleteMetadataUnits().close();
+
+        deleteAccessionRegister().close();
+
+        deleteRules().close();
+
+        deleteFormats().close();
+
+        deleteMasterdataProfile().close();
+
+        deleteMasterdataContext().close();
+
+        deleteMasterdataSecurityProfil().close();
+
         return Response.status(Status.OK).build();
     }
 
@@ -1008,6 +1036,14 @@ public class WebApplicationResourceDelete {
 
         final Delete delete = new Delete();
         final Query query = QueryHelper.not().add(QueryHelper.eq(CONTEXT_NAME, CONTEXT_TO_SAVE));
+        delete.setQuery(query);
+        return delete;
+    }
+
+    private Delete queryDeleteSecurityProfil() throws InvalidCreateOperationException {
+
+        final Delete delete = new Delete();
+        final Query query = QueryHelper.not().add(QueryHelper.eq(SECURITY_PROFIL_NAME, SECURITY_PROFIL_NAME_TO_SAVE));
         delete.setQuery(query);
         return delete;
     }
