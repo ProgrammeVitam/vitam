@@ -67,15 +67,15 @@ export class UploadSipComponent implements OnInit {
         this.displayDialog = true;
         return false;
       }
-    }else if(extension.length > 2){
+    } else if (extension.length > 2) {
       let extensionRev = fileName.split('.').reverse();
-      if(this.extensions.indexOf(extensionRev[1]) >= 0){
+      if (this.extensions.indexOf(extensionRev[1]) >= 0) {
         return true;
       } else {
         this.displayDialog = true;
         return false;
       }
-    }else {
+    } else {
       this.displayDialog = true;
       return false;
     }

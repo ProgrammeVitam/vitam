@@ -99,7 +99,7 @@ export class LogbookComponent extends PageComponent {
   // TODO Move me in some utils class ?
   static handleStatus(event): string {
     let status = event.outcome.toUpperCase();
-    if ( event.evType === 'PROCESS_SIP_UNITARY' ) {
+    if (event.evType === 'PROCESS_SIP_UNITARY' || event.evType === 'FILINGSCHEME') {
       switch (status) {
         case 'OK': return 'Succès';
         case 'STARTED': return 'En cours';
