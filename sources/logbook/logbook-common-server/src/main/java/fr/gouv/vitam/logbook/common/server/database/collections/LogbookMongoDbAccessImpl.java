@@ -1594,14 +1594,9 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             document.remove(LogbookMongoDbName.rightsStatementIdentifier.getDbname());
         }
 
-        if (document.get(LogbookMongoDbName.agentIdentifierApplication.getDbname()) == null ||
-            ((String) document.get(LogbookMongoDbName.agentIdentifierApplication.getDbname())).isEmpty()) {
-            document.remove(LogbookMongoDbName.agentIdentifierApplication.getDbname());
-        }
-        if (document.get(LogbookMongoDbName.agentIdentifierApplicationSession.getDbname()) == null ||
-            ((String) document.get(LogbookMongoDbName.agentIdentifierApplicationSession.getDbname())).isEmpty()) {
-            document.remove(LogbookMongoDbName.agentIdentifierApplicationSession.getDbname());
-        }
+        document.remove(LogbookMongoDbName.agentIdentifierApplication.getDbname());
+        document.remove(LogbookMongoDbName.agentIdentifierApplicationSession.getDbname());
+        
         if (document.get(LogbookMongoDbName.agIdExt.getDbname()) == null ||
             ((String) document.get(LogbookMongoDbName.agIdExt.getDbname())).isEmpty()) {
             document.remove(LogbookMongoDbName.agIdExt.getDbname());

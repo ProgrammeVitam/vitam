@@ -32,11 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Logbook operation event model
  */
 public class LogbookEventOperation extends LogbookEvent {
-    @JsonProperty("agIdApp")
-    private String agIdApp;
 
-    @JsonProperty("evIdAppSession")
-    private String evIdAppSession;
 
     @JsonProperty("evIdReq")
     private String evIdReq;
@@ -51,38 +47,6 @@ public class LogbookEventOperation extends LogbookEvent {
 
     @JsonProperty("obIdIn")
     private String obIdIn;
-
-    /**
-     * @return the agIdApp
-     */
-    public String getAgIdApp() {
-        return agIdApp;
-    }
-
-    /**
-     * @param agIdApp the agIdApp to set
-     *
-     * @return this
-     */
-    public void setAgIdApp(String agIdApp) {
-        this.agIdApp = agIdApp;
-    }
-
-    /**
-     * @return the evIdAppSession
-     */
-    public String getEvIdAppSession() {
-        return evIdAppSession;
-    }
-
-    /**
-     * @param evIdAppSession the evIdAppSession to set
-     *
-     * @return this
-     */
-    public void setEvIdAppSession(String evIdAppSession) {
-        this.evIdAppSession = evIdAppSession;
-    }
 
     /**
      * @return the evIdReq

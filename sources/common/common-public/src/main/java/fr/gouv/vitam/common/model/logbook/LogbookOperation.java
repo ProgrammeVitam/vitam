@@ -45,6 +45,12 @@ public class LogbookOperation extends LogbookEventOperation {
     private String id;
     @JsonProperty(HASH + TAG_TENANT)
     private Integer tenant;
+    
+    @JsonProperty("agIdApp")
+    private String agIdApp;
+
+    @JsonProperty("evIdAppSession")
+    private String evIdAppSession;
 
     @JsonProperty("events")
     private List<LogbookEventOperation> events;
@@ -98,6 +104,38 @@ public class LogbookOperation extends LogbookEventOperation {
      */
     public void setEvents(List<LogbookEventOperation> events) {
         this.events = events;
+    }
+    
+    /**
+     * @return the agIdApp
+     */
+    public String getAgIdApp() {
+        return agIdApp;
+    }
+
+    /**
+     * @param agIdApp the agIdApp to set
+     *
+     * @return this
+     */
+    public void setAgIdApp(String agIdApp) {
+        this.agIdApp = agIdApp;
+    }
+
+    /**
+     * @return the evIdAppSession
+     */
+    public String getEvIdAppSession() {
+        return evIdAppSession;
+    }
+
+    /**
+     * @param evIdAppSession the evIdAppSession to set
+     *
+     * @return this
+     */
+    public void setEvIdAppSession(String evIdAppSession) {
+        this.evIdAppSession = evIdAppSession;
     }
 
 
