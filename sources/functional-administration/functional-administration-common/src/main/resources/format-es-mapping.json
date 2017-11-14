@@ -1,42 +1,50 @@
 {
-	"properties": {
-		"Name": {
-			"type": "string"
-		},
-		"PUID": {
-			"type": "string",
-			"index": "not_analyzed"
-		},
-		"MIMEType": {
-			"type": "string"
-		},
-		"Extension": {
-			"type": "string"
-		},
-		"VersionPronom": {
-			"type": "string",
-			"index": "not_analyzed"
-		},
-		"CreatedDate": {
-			"type": "date",
-			"format": "strict_date_optional_time"
-		},
-		"Version": {
-			"type": "string"
-		},
-		"Group": {
-			"type": "string",
-			"index": "not_analyzed"
-		},
-		"Alert": {
-			"type": "boolean"
-		},
-		"Comment": {
-			"type": "string"
-		},
-        "_score": {
-           "type": "object",
-           "enabled": false
-        }
-	}
+  "properties": {
+    "Name": {
+      "type": "string"
+    },
+    "PUID": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "MIMEType": {
+      "type": "string"
+    },
+    "Extension": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "VersionPronom": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "CreatedDate": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    },
+    "Version": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "Group": {
+      "type": "string"
+    },
+    "Alert": {
+      "type": "boolean"
+    },
+    "Comment": {
+      "type": "string"
+    },
+    "HasPriorityOverFileFormatID": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "_v": {
+      "type": "long"
+    },
+    "_score": {
+      "type": "object",
+      "enabled": false
+    }
+  }
 }

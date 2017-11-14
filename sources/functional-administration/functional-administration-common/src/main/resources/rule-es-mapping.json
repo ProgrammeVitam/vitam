@@ -1,44 +1,44 @@
 {
-	"properties": {
-		"RuleType": {
-			"type": "string",
-			"index": "not_analyzed"
-		},
-		"RuleValue": {
-			"type": "string"
-		},
-		"RuleDescription": {
-			"type": "string"
-		},
-		"RuleDuration": {
-			"type": "long"
-		},
-		"_tenant": {
-			"type": "long"
-		},
-		"RuleId": {
-			"type": "string",
-			"index": "not_analyzed"
-		},
-		"RuleMeasurement": {
-			"type": "string",
-			"index": "not_analyzed"
-		},
-		"CreationDate": {
-			"type": "date",
-			"format": "strict_date_optional_time"
-		},
-		"UpdateDate": {
-			"type": "date",
-			"format": "strict_date_optional_time"
-		},
-		"Extension": {
-			"type": "string",
-			"index": "not_analyzed"
-		},
-        "_score": {
-           "type": "object",
-           "enabled": false
-        }
-	}
+  "properties": {
+    "RuleType": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "RuleValue": {
+      "type": "string"
+    },
+    "RuleDescription": {
+      "type": "string"
+    },
+    "RuleDuration": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "_tenant": {
+      "type": "long"
+    },
+    "RuleId": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "RuleMeasurement": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "CreationDate": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    },
+    "UpdateDate": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    },
+    "_v": {
+      "type": "long"
+    },
+    "_score": {
+      "type": "object",
+      "enabled": false
+    }
+  }
 }
