@@ -57,6 +57,7 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.events.Attribute;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
@@ -545,7 +546,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         try (InputStream xmlFile = handlerIO.getInputStreamFromWorkspace(
             IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);) {
-            reader = xmlInputFactory.createXMLEventReader(xmlFile);
+            XMLStreamReader rawReader = xmlInputFactory.createXMLStreamReader(xmlFile);
+            XMLStreamReader filteredReader = xmlInputFactory.createFilteredReader(rawReader,
+                r -> !r.isWhiteSpace());
+
+            reader = xmlInputFactory.createXMLEventReader(filteredReader);
             final JsonXMLConfig config =
                 new JsonXMLConfigBuilder().autoArray(true).autoPrimitive(true).prettyPrint(true)
                     .namespaceDeclarations(false).build();
