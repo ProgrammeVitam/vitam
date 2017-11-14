@@ -47,7 +47,7 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
  * <pre>
  * <code>
  *   GET http://host:port/service/v1/resource/path1/monid1/path2/monid2
- *      Header: X-Request-ID = abcd
+ *      Header: X-Request-Id = abcd
  *      Body = Json(body)
  *      Expected: OK
  *   int statusCode = testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
@@ -57,7 +57,7 @@ import fr.gouv.vitam.common.exception.VitamClientInternalException;
  *         .status(Status.OK).get("resource");
  *
  *   POST http://host:port/service/v1/resource/path1/monid1/path2/monid2
- *      Header: X-Request-ID = abcd
+ *      Header: X-Request-Id = abcd
  *      Body = Json(body)
  *      Expected: OK + Body: InputStream
  *   InputStream stream = testClient.given().accept(MediaType.APPLICATION_OCTET_STREAM_TYPE)

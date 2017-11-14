@@ -604,7 +604,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         // dont call VITAM backend) ?
         // 1- Check if the requested operation is done
         ParametersChecker.checkParameter(BLANK_OPERATION_ID, operationId);
-        // mapping X-request-ID
+        // mapping X-Request-Id
         final List<Object> responseDetails = uploadRequestsStatus.get(operationId);
         if (responseDetails != null && responseDetails.size() >= 3 &&
             responseDetails.get(1).equals(Status.SERVICE_UNAVAILABLE)) {

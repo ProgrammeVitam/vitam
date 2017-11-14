@@ -1,6 +1,7 @@
 package fr.gouv.vitam.access.external.rest;
 
 import static com.jayway.restassured.RestAssured.given;
+import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyObject;
 import static org.powermock.api.mockito.PowerMockito.mock;
@@ -105,8 +106,6 @@ public class LogbookExternalResourceImplTest {
         "{ $query: {\"$match\": {\"Description\": \"ragnar\",\"Title\": \"lockbrok\"}} , $projection: {}, $filter: {} }";
     private static String good_id = "goodId";
     private static String bad_id = "badId";
-
-    public static String X_HTTP_METHOD_OVERRIDE = "X-HTTP-Method-Override";
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -674,7 +673,7 @@ public class LogbookExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(select.getFinalSelectById())
             .pathParam("id_op", good_id)
@@ -684,7 +683,7 @@ public class LogbookExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .body(select.getFinalSelectById())
             .pathParam("id_op", good_id)
@@ -694,7 +693,7 @@ public class LogbookExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .body(select.getFinalSelectById())
             .pathParam("id_op", good_id)
             .when()

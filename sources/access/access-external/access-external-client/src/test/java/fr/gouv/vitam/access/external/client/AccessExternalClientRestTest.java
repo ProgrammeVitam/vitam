@@ -1,5 +1,6 @@
 package fr.gouv.vitam.access.external.client;
 
+import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -210,7 +211,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response selectOperationWithPostOverride(@PathParam("id_op") String operationId,
-            @HeaderParam("X-HTTP-Method-Override") String xhttpOverride)
+            @HeaderParam(X_HTTP_METHOD_OVERRIDE) String xhttpOverride)
             throws InvalidParseOperationException {
             return expectedResponse.post();
         }
@@ -228,7 +229,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response selectOperationByPost(@PathParam("id_op") String operationId,
-            @HeaderParam("X-HTTP-Method-Override") String xhttpOverride)
+            @HeaderParam(X_HTTP_METHOD_OVERRIDE) String xhttpOverride)
             throws InvalidParseOperationException {
             return expectedResponse.post();
         }
@@ -254,7 +255,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response findAccessionRegister(@PathParam("id_op") String operationId,
-            @HeaderParam("X-HTTP-Method-Override") String xhttpOverride)
+            @HeaderParam(X_HTTP_METHOD_OVERRIDE) String xhttpOverride)
             throws InvalidParseOperationException {
             return expectedResponse.post();
         }
@@ -264,7 +265,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response findAccessionRegisterDetail(@PathParam("id_op") String operationId,
-            @HeaderParam("X-HTTP-Method-Override") String xhttpOverride)
+            @HeaderParam(X_HTTP_METHOD_OVERRIDE) String xhttpOverride)
             throws InvalidParseOperationException {
             return expectedResponse.post();
         }

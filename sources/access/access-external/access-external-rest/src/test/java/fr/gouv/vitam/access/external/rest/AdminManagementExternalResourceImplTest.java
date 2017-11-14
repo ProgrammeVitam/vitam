@@ -1,6 +1,7 @@
 package fr.gouv.vitam.access.external.rest;
 
 import static com.jayway.restassured.RestAssured.given;
+import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
@@ -112,7 +113,6 @@ public class AdminManagementExternalResourceImplTest {
         AccessExtAPI.ACCESSION_REGISTERS_DETAIL;
     private static final String CHECK_TRACEABILITY_OPERATION_URI = AccessExtAPI.TRACEABILITY_API + "checks";
 
-    private static final String X_HTTP_METHOD_OVERRIDE = "X-HTTP-Method-Override";
 
     private static final String GOOD_ID = "goodId";
     public static final String SECURITY_PROFILES_URI = "/securityprofiles";
@@ -827,7 +827,7 @@ public class AdminManagementExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .and().header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID)
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(select.getFinalSelect())
