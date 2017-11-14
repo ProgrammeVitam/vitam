@@ -812,7 +812,7 @@ public class AccessStep {
             world.getAccessClient().selectUnitLifeCycleById(
                 new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
                     .setApplicationSessionId(world.getApplicationSessionId()),
-                unitId, new Select().getFinalSelect());
+                unitId, new Select().getFinalSelectById());
         if (requestResponse.isOk()) {
             RequestResponseOK<LogbookLifecycle> requestResponseOK =
                 (RequestResponseOK<LogbookLifecycle>) requestResponse;
@@ -848,7 +848,7 @@ public class AccessStep {
                 world.getAccessClient().selectObjectGroupLifeCycleById(
                     new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
                         .setApplicationSessionId(world.getApplicationSessionId()),
-                    unit.get(PROJECTIONARGS.OBJECT.exactToken()).asText(), new Select().getFinalSelect());
+                    unit.get(PROJECTIONARGS.OBJECT.exactToken()).asText(), new Select().getFinalSelectById());
             if (requestResponseLFC.isOk()) {
                 RequestResponseOK<LogbookLifecycle> requestResponseLFCOK =
                     (RequestResponseOK<LogbookLifecycle>) requestResponseLFC;
