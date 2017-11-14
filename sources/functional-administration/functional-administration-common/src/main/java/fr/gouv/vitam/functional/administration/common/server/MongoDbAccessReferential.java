@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
+import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
@@ -74,6 +75,10 @@ public interface MongoDbAccessReferential {
      */
     DbRequestResult insertDocument(JsonNode jsonNode, FunctionalAdminCollections collection)
         throws ReferentialException;
+
+    // Not check, test feature !
+    DbRequestResult deleteCollection(FunctionalAdminCollections collection, Delete delete)
+        throws DatabaseException, ReferentialException;
 
     /**
      * Delete FileFormat collections

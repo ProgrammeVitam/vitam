@@ -114,7 +114,8 @@ public class WebApplicationResourceDeleteTest {
 
     private static final String CONTEXT_NAME = "Name";
     private static final String ADMIN_CONTEXT = "admin-context";
-
+    private static final String SECURITY_PROFIL_NAME = "Name";
+    private static final String SECURITY_PROFIL_NAME_TO_SAVE = "admin-security-profile";
     // Take it from conf file
     private static final String DEFAULT_WEB_APP_CONTEXT = "/test-admin";
     private static final String CREDENTIALS = "{\"token\": {\"principal\": \"myName\", \"credentials\": \"myName\"}}";
@@ -452,6 +453,8 @@ public class WebApplicationResourceDeleteTest {
         }
     }
 
+    @Test
+    @RunWithCustomExecutor
     public void testDeleteMasterdataProfileOK() {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -488,6 +491,28 @@ public class WebApplicationResourceDeleteTest {
             fail("Exception using mongoDbAccess");
         }
     }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testDeleteMasterdataSecuryityProfilOK() {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+            final GUID adminSecurity = addAdminSecurityData(FunctionalAdminCollections.SECURITY_PROFILE);
+            // Needs two contexts for testing purposes (admin context won't be deleted)
+            final GUID idSecurity = addData(FunctionalAdminCollections.SECURITY_PROFILE);
+            assertTrue(existsData(FunctionalAdminCollections.SECURITY_PROFILE, adminSecurity.getId()));
+            assertTrue(existsData(FunctionalAdminCollections.SECURITY_PROFILE, idSecurity.getId()));
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+                .delete("delete/masterdata/securityProfil");
+            assertTrue(existsData(FunctionalAdminCollections.SECURITY_PROFILE, adminSecurity.getId()));
+            assertFalse(existsData(FunctionalAdminCollections.SECURITY_PROFILE, idSecurity.getId()));
+        } catch (final Exception e) {
+            LOGGER.error(e);
+            fail("Exception using mongoDbAccess");
+        }
+    }
+
 
     @Test
     @RunWithCustomExecutor
@@ -601,6 +626,24 @@ public class WebApplicationResourceDeleteTest {
         return adminContext;
     }
 
+
+    public GUID addAdminSecurityData(FunctionalAdminCollections collection)
+        throws ReferentialException, InvalidCreateOperationException, InvalidGuidOperationException,
+        InvalidParseOperationException {
+        final Query query = QueryHelper.or().add(QueryHelper.eq(SECURITY_PROFIL_NAME, SECURITY_PROFIL_NAME_TO_SAVE));
+        JsonNode select = query.getCurrentObject();
+        DbRequestResult result = mongoDbAccessAdmin.findDocuments(select, FunctionalAdminCollections.SECURITY_PROFILE);
+        GUID adminContext = null;
+        if (result.getCount() > 0) {
+            adminContext = GUIDReader.getGUID(result.getDocuments(Context.class, ContextModel.class).get(0).getId());
+        } else {
+            adminContext = GUIDFactory.newGUID();
+            final ObjectNode data1 = JsonHandler.createObjectNode().put("_id", adminContext.getId());
+            data1.put(SECURITY_PROFIL_NAME, SECURITY_PROFIL_NAME_TO_SAVE);
+            mongoDbAccessAdmin.insertDocument(data1, collection).close();
+        }
+        return adminContext;
+    }
     public boolean existsData(FunctionalAdminCollections collection, String id)
         throws ReferentialException {
         try {
