@@ -56,8 +56,9 @@ describe('ArchiveObjectGroupComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should have access to object download', () => {
+  it('should have access to object download if version match', () => {
     component.userContract = {
+      'EveryDataObjectVersion': false,
       'DataObjectVersion': [
         "PhysicalMaster",
         "Dissemination"
@@ -67,12 +68,27 @@ describe('ArchiveObjectGroupComponent', () => {
 
   });
 
-  it('should not have access to object download', () => {
+  it('should not have access to object if version don\'t match', () => {
     component.userContract = {
+      'EveryDataObjectVersion': false,
       'DataObjectVersion': [
         "PhysicalMaster",
         "Dissemination"
       ]
+    };
+    expect(component.isDownloadable('BinaryMaster_0')).toBeFalsy();
+  });
+
+  it('should have access to object if everyVersion accepted', () => {
+    component.userContract = {
+      'EveryDataObjectVersion': true
+    };
+    expect(component.isDownloadable('BinaryMaster_0')).toBeTruthy();
+  });
+
+  it ('should not throw error if versions empty', () => {
+    component.userContract = {
+      'EveryDataObjectVersion': false
     };
     expect(component.isDownloadable('BinaryMaster_0')).toBeFalsy();
   });
