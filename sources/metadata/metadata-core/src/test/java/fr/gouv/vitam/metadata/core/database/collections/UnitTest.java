@@ -91,7 +91,7 @@ public class UnitTest {
     @Test
     public void testSubDepth() {
         final Unit unit = new Unit(s1);
-        assertEquals("{ \"id1\" : 1}", unit.getSubDepth().toString());
+        assertEquals("[Update{fieldName='_uds.id1', operator='$set', value=1}]", unit.getSubDepthList().toString());
 
         final Map<String, Integer> map = new HashMap<>();
         map.put("UUID2", 3);
@@ -102,7 +102,10 @@ public class UnitTest {
         unit.putAll(map2);
         assertEquals("Unit: Document{{_id=id1, title=title1, _uds={UUID2=3, UUID1=4}}}",
             unit.toString());
-        assertEquals("{ \"UUID2\" : 4 , \"UUID1\" : 5 , \"id1\" : 1}", unit.getSubDepth().toString());
+        assertEquals(
+            "[Update{fieldName='_uds.UUID2', operator='$min', value=4}, Update{fieldName='_uds.UUID1', " +
+                "operator='$min', value=5}, Update{fieldName='_uds.id1', operator='$set', value=1}]",
+            unit.getSubDepthList().toString());
     }
 
     @Test

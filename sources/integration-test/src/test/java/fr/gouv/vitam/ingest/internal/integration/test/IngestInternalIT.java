@@ -40,7 +40,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -52,6 +55,7 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.jclouds.json.Json;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -64,6 +68,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.restassured.RestAssured;
+import com.mongodb.client.model.Projections;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -297,6 +302,8 @@ public class IngestInternalIT {
 
     private static String SIP_OK_ARBO_RATEAU_GRAPH = "integration-ingest-internal/OK_ARBO_rateau_GRAPH.zip";
 
+    private static String OK_RULES_COMPLEXE = "integration-ingest-internal/OK_ARBO-COMPLEXE.zip";
+
     private static ElasticsearchTestConfiguration config = null;
 
     @BeforeClass
@@ -529,7 +536,263 @@ public class IngestInternalIT {
         }
     }
 
+    @RunWithCustomExecutor
+    @Test
+    /**
+     * Check _up, _us, _uds for the SIP OK_ARBO-COMPLEXE.zip
+     */
+    public void testIngestInternalAndCheckudsField() throws Exception {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+            tryImportFile();
+            RestAssured.port = PORT_SERVICE_WORKSPACE;
+            RestAssured.basePath = WORKSPACE_PATH;
+            final InputStream zipInputStreamSipObject =
+                PropertiesUtils.getResourceAsStream(OK_RULES_COMPLEXE);
 
+            // init default logbook operation
+            final List<LogbookOperationParameters> params = new ArrayList<>();
+            final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                operationGuid, "Process_SIP_unitary", operationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
+            params.add(initParameters);
+            // call ingest
+            IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
+            final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+            final Response response2 = client.uploadInitialLogbook(params);
+            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+
+            // init workflow before execution
+            client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
+
+            client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
+
+            wait(operationGuid.toString());
+
+            ProcessWorkflow processWorkflow =
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+
+            assertNotNull(processWorkflow);
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            // NO OBJECT -> WARNING
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+
+            // Check AUs
+            // ID7
+            final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
+            SelectMultiQuery select = new SelectMultiQuery();
+            select.addQueries(QueryHelper.eq("Title", "ID7"));
+            JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
+            LOGGER.debug(JsonHandler.prettyPrint(node));
+            JsonNode result = node.get("$results");
+            assertNotNull(result);
+            JsonNode unit = result.get(0);
+            assertNotNull(unit);
+
+            // Check unit tree
+            List<String> upIds = new ArrayList<>(3);
+            upIds.add("ID4");
+            upIds.add("ID6");
+            upIds.add("ID8");
+            List<String> usIds = new ArrayList<>(7);
+            usIds.add("ID1");
+            usIds.add("ID2");
+            usIds.add("ID3");
+            usIds.add("ID4");
+            usIds.add("ID5");
+            usIds.add("ID6");
+            usIds.add("ID8");
+            Map<String, Integer> wantedDepths = new HashMap<>(7);
+            wantedDepths.put("ID4", 1);
+            wantedDepths.put("ID6", 1);
+            wantedDepths.put("ID8", 1);
+            wantedDepths.put("ID1", 2);
+            wantedDepths.put("ID3", 2);
+            wantedDepths.put("ID5", 2);
+            wantedDepths.put("ID2", 3);
+            checkUnitTree(unit, metadataClient, upIds, usIds, wantedDepths);
+
+            // ID6
+            select = new SelectMultiQuery();
+            select.addQueries(QueryHelper.eq("Title", "ID6"));
+            node = metadataClient.selectUnits(select.getFinalSelect());
+            LOGGER.debug(JsonHandler.prettyPrint(node));
+            result = node.get("$results");
+            assertNotNull(result);
+            unit = result.get(0);
+            assertNotNull(unit);
+            upIds = new ArrayList<>(1);
+            upIds.add("ID5");
+            usIds = new ArrayList<>(4);
+            usIds.add("ID1");
+            usIds.add("ID2");
+            usIds.add("ID3");
+            usIds.add("ID5");
+            wantedDepths = new HashMap<>(4);
+            wantedDepths.put("ID1", 4);
+            wantedDepths.put("ID2", 3);
+            wantedDepths.put("ID3", 2);
+            wantedDepths.put("ID5", 1);
+            checkUnitTree(unit, metadataClient, upIds, usIds, wantedDepths);
+
+            // ID5
+            select = new SelectMultiQuery();
+            select.addQueries(QueryHelper.eq("Title", "ID5"));
+            node = metadataClient.selectUnits(select.getFinalSelect());
+            LOGGER.debug(JsonHandler.prettyPrint(node));
+            result = node.get("$results");
+            assertNotNull(result);
+            unit = result.get(0);
+            assertNotNull(unit);
+            upIds = new ArrayList<>(1);
+            upIds.add("ID3");
+            usIds = new ArrayList<>(3);
+            usIds.add("ID1");
+            usIds.add("ID2");
+            usIds.add("ID3");
+            wantedDepths = new HashMap<>(3);
+            wantedDepths.put("ID1", 3);
+            wantedDepths.put("ID2", 2);
+            wantedDepths.put("ID3", 1);
+            checkUnitTree(unit, metadataClient, upIds, usIds, wantedDepths);
+
+            // ID4
+            select = new SelectMultiQuery();
+            select.addQueries(QueryHelper.eq("Title", "ID4"));
+            node = metadataClient.selectUnits(select.getFinalSelect());
+            LOGGER.debug(JsonHandler.prettyPrint(node));
+            result = node.get("$results");
+            assertNotNull(result);
+            unit = result.get(0);
+            assertNotNull(unit);
+            upIds = new ArrayList<>(1);
+            upIds.add("ID3");
+            usIds = new ArrayList<>(3);
+            usIds.add("ID1");
+            usIds.add("ID2");
+            usIds.add("ID3");
+            wantedDepths = new HashMap<>(3);
+            wantedDepths.put("ID1", 3);
+            wantedDepths.put("ID2", 2);
+            wantedDepths.put("ID3", 1);
+            checkUnitTree(unit, metadataClient, upIds, usIds, wantedDepths);
+
+            // ID3
+            select = new SelectMultiQuery();
+            select.addQueries(QueryHelper.eq("Title", "ID3"));
+            node = metadataClient.selectUnits(select.getFinalSelect());
+            LOGGER.debug(JsonHandler.prettyPrint(node));
+            result = node.get("$results");
+            assertNotNull(result);
+            unit = result.get(0);
+            assertNotNull(unit);
+            upIds = new ArrayList<>(1);
+            upIds.add("ID2");
+            usIds = new ArrayList<>(2);
+            usIds.add("ID1");
+            usIds.add("ID2");
+            wantedDepths = new HashMap<>(2);
+            wantedDepths.put("ID1", 2);
+            wantedDepths.put("ID2", 1);
+            checkUnitTree(unit, metadataClient, upIds, usIds, wantedDepths);
+
+            // ID2
+            select = new SelectMultiQuery();
+            select.addQueries(QueryHelper.eq("Title", "ID2"));
+            node = metadataClient.selectUnits(select.getFinalSelect());
+            LOGGER.debug(JsonHandler.prettyPrint(node));
+            result = node.get("$results");
+            assertNotNull(result);
+            unit = result.get(0);
+            assertNotNull(unit);
+            upIds = new ArrayList<>(1);
+            upIds.add("ID1");
+            usIds = new ArrayList<>(1);
+            usIds.add("ID1");
+            wantedDepths = new HashMap<>(1);
+            wantedDepths.put("ID1", 1);
+            checkUnitTree(unit, metadataClient, upIds, usIds, wantedDepths);
+
+        } catch (final Exception e) {
+            LOGGER.error(e);
+            SearchResponse elasticSearchResponse =
+                esClient.search(LogbookCollections.OPERATION, tenantId, null, null, null, 0, 25);
+            LOGGER.error("Total:" + (elasticSearchResponse.getHits().getTotalHits()));
+            try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
+                fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
+                    new fr.gouv.vitam.common.database.builder.request.single.Select();
+                selectQuery.setQuery(QueryHelper.eq("evIdProc", operationGuid.getId()));
+                JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
+                LOGGER.error(JsonHandler.prettyPrint(logbookResult));
+            }
+
+            fail("should not raized an exception" + e);
+        }
+    }
+
+    /**
+     * To check unit tree (ancestors _up, _us and _uds)
+     *
+     * @param unit the unit to check
+     * @param metadataClient the metadataclient
+     * @param upIds the wanted up ids list
+     * @param usIds the wanted us ids list
+     * @param udsIds the wanted uds ids / depth map
+     * @throws Exception
+     */
+    private void checkUnitTree(JsonNode unit, MetaDataClient metadataClient, List<String> upIds, List<String> usIds,
+        Map<String, Integer> udsIds) throws Exception {
+        SelectMultiQuery query = new SelectMultiQuery();
+        query.setProjection(JsonHandler.getFromString("{\"$fields\": {\"Title\": 1}}"));
+        // _up / # up
+        final JsonNode up = unit.get("#unitups");
+        assertNotNull(up);
+        assertEquals(upIds.size(), up.size());
+        // Check ids
+        JsonNode result;
+        for (int i = 0; i< up.size(); i++) {
+            result = metadataClient.selectUnitbyId(query.getFinalSelectById(), up.get(i).asText());
+            assertNotNull(result);
+            assertNotNull(result.get("$results"));
+            assertEquals(1, result.get("$results").size());
+            assertNotNull(result.get("$results").get(0).get("Title"));
+            assertTrue(upIds.remove(result.get("$results").get(0).get("Title").asText()));
+        }
+        // _us / #us
+        final JsonNode us = unit.get("#allunitups");
+        assertNotNull(us);
+        assertEquals(usIds.size(), us.size());
+        // Check ids
+        for (int i = 0; i< us.size(); i++) {
+            result = metadataClient.selectUnitbyId(query.getFinalSelectById(), us.get(i).asText());
+            assertNotNull(result);
+            assertNotNull(result.get("$results"));
+            assertEquals(1, result.get("$results").size());
+            assertNotNull(result.get("$results").get(0).get("Title"));
+            assertTrue(usIds.remove(result.get("$results").get(0).get("Title").asText()));
+        }
+        // _uds / #uds
+        final JsonNode uds = unit.get("#uds");
+        assertNotNull(uds);
+        assertEquals(udsIds.size(), uds.size());
+        // Check ids and depth
+        String fieldName;
+        Iterator fieldNames = uds.fieldNames();
+        while(fieldNames.hasNext()) {
+            fieldName = (String) fieldNames.next();
+            result = metadataClient.selectUnitbyId(query.getFinalSelectById(), fieldName);
+            assertNotNull(result);
+            assertEquals(1, result.get("$results").size());
+            assertNotNull(result.get("$results").get(0).get("Title"));
+            assertNotNull(udsIds.get(result.get("$results").get(0).get("Title").asText()));
+            assertEquals(udsIds.get(result.get("$results").get(0).get("Title").asText()).intValue(), uds.get(fieldName)
+                .asInt());
+        }
+    }
 
     @RunWithCustomExecutor
     @Test

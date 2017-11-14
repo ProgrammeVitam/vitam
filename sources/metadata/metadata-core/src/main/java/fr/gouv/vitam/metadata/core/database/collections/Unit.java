@@ -33,6 +33,7 @@ import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Filters.lt;
 import static com.mongodb.client.model.Updates.addEachToSet;
 import static com.mongodb.client.model.Updates.combine;
+import static com.mongodb.client.model.Updates.min;
 import static com.mongodb.client.model.Updates.set;
 
 import java.util.ArrayList;
@@ -83,6 +84,7 @@ public class Unit extends MetadataDocument<Unit> {
      * UNITDEPTHS : { UUID1 : depth2, UUID2 : depth2 }
      */
     public static final String UNITDEPTHS = "_uds";
+    public static final String UNITDEPTHS_POINT = UNITDEPTHS + ".";
     /**
      * UNITUPS : [ UUID1, UUID2 ]
      */
@@ -449,25 +451,44 @@ public class Unit extends MetadataDocument<Unit> {
     /**
      * Used in ingest (get the next uds including itself with depth +1 for all)
      *
-     * @return the new unitdepth for children
+     * @return a list of udpate query for new unitdepth for children
      */
-    public Bson getSubDepth() {
+    public List<Bson> getSubDepthList() {
         final String id = getId();
-
         // addAll to temporary ArrayList
         final Map<String, Integer> vtDomaineLevels = getDepths();
         final int size = vtDomaineLevels != null ? vtDomaineLevels.size() + 1 : 1;
 
         // must compute depth from parent
-        final Map<String, Integer> submap = new HashMap<>(size);
+        final List<Bson> list = new ArrayList<>(size);
         if (vtDomaineLevels != null) {
             for (final Map.Entry<String, Integer> bson : vtDomaineLevels.entrySet()) {
-                submap.put(bson.getKey(), bson.getValue() + 1);
+                list.add(min(UNITDEPTHS_POINT + bson.getKey(), bson.getValue() + 1));
             }
         }
-        submap.put(id, 1);
-        final Bson bson = new BasicDBObject(submap);
-        return bson;
+        list.add(set(UNITDEPTHS_POINT + id, 1));
+        return list;
+    }
+
+    /**
+     * Used in ingest (get the next uds including itself with depth +1 for all)
+     *
+     * @param units the list of unit to add
+     * @return a list of udpate query for new unitdepth for children
+     */
+     public List<Bson> getSubDepthList(List<Unit> units) {
+        final List<Bson> list = new ArrayList<>();
+        list.addAll(getSubDepthList());
+
+        for (Unit unit : units) {
+            if (unit.get(UNITDEPTHS) != null) {
+                for (Map.Entry<String, Integer> entry : ((Map<String, Integer>) unit.get(UNITDEPTHS)).entrySet()) {
+                    list.add(min(UNITDEPTHS_POINT + entry.getKey(), entry.getValue()));
+                }
+
+            }
+        }
+        return list;
     }
 
     /**
@@ -585,8 +606,7 @@ public class Unit extends MetadataDocument<Unit> {
             update = update2;
         }
         if (!ids.isEmpty()) {
-            final Bson sublist = getSubDepth();
-            final Bson updateSubDepth = set(UNITDEPTHS, sublist);
+            final List<Bson> updateSubDepth = getSubDepthList();
             final List<String> subids = getSubUnitUps();
             final Bson updateSubUnits = addEachToSet(UNITUPS, subids);
             Integer val = this.getInteger(MINDEPTH);
@@ -599,7 +619,7 @@ public class Unit extends MetadataDocument<Unit> {
             if (val != null) {
                 max += val;
             }
-            update = combine(update, updateSubDepth, updateSubUnits);
+            update = combine(update, combine(updateSubDepth), updateSubUnits);
             if (min < unit.getInteger(MINDEPTH)) {
                 update = combine(update, set(MINDEPTH, min));
             }
@@ -620,7 +640,7 @@ public class Unit extends MetadataDocument<Unit> {
                     update,
                     new UpdateOptions().upsert(false)).getMatchedCount();
                 nb += nbc;
-                ((BasicDBObject) sublist).clear();
+                updateSubDepth.clear();
                 subids.clear();
                 updateAfterAddingSubUnit();
             } catch (final MongoException e) {
@@ -650,11 +670,10 @@ public class Unit extends MetadataDocument<Unit> {
             }
         }
         if (!ids.isEmpty()) {
-            final Bson sublist = getSubDepth();
-            final Bson updateSubDepth = set(UNITDEPTHS, sublist);
+            final List<Bson> updateSubDepth = getSubDepthList(units);
             final List<String> subids = getSubUnitUps();
             final Bson updateSubUnits = addEachToSet(UNITUPS, subids);
-            update = combine(update, updateSubDepth, updateSubUnits);
+            update = combine(update, combine(updateSubDepth), updateSubUnits);
             Integer val = this.getInteger(MINDEPTH);
             int min = 1;
             if (val != null) {
@@ -670,7 +689,7 @@ public class Unit extends MetadataDocument<Unit> {
                     update,
                     new UpdateOptions().upsert(false)).getMatchedCount();
                 nb += nbc;
-                ((BasicDBObject) sublist).clear();
+                updateSubDepth.clear();
                 subids.clear();
                 getCollection().updateMany(
                     and(in(ID, ids), lt(MAXDEPTH, max)),
