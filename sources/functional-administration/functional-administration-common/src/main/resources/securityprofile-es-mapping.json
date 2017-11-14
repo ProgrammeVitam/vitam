@@ -15,7 +15,7 @@
       "index": "not_analyzed"
     },
     "_v": {
-      "type": "integer"
+      "type": "long"
     },
     "_score": {
       "type": "object",

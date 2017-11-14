@@ -27,15 +27,15 @@
 package fr.gouv.vitam.common.database.parser.query;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
  * Main language definition
- *
- *
  */
 public class ParserTokens extends BuilderToken {
     /**
@@ -64,15 +64,309 @@ public class ParserTokens extends BuilderToken {
         "ClassificationLevel", "ClassificationOwner", "ClassificationReassessingDate", "NeedReassessingAuthorization"
     });
 
-    private static final List<String> FIELD_NOT_ANALYZED = Arrays.asList(new String[] {
-        "ArchivalAgencyArchiveUnitIdentifier", "ArchiveUnitProfile", "DescriptionLevel", "DocumentType",
-        "Identifier", "OriginatingAgencyArchiveUnitIdentifier", "OriginatingSystemId", "SubmissionAgency",
-        "SystemId", "TransferringAgencyArchiveUnitIdentifier", "Rule", "RefNonRuleId", "FinalAction",
-        "PreventInheritance", "RefNonRuleId", "ClassificationLevel",
-        "PhysicalId", "MessageDigest", "Algorithm", "DataObjectGroupId", "DataObjectVersion", "strategyId",
-        "unit", "offerIds", "strategyId"
-    });
-    private static final List<String> FIELD_ANALYZED = Arrays.asList(new String[] {"RuleValue", "RuleDescription"});
+    /**
+     * @deprecated Quick & dirty fix of non analyzed fields.
+     */
+    private static final Set<String> NON_ANALYZED_FIELDS = new HashSet<>(Arrays.asList(
+            /* Units */
+            "AcquiredDate",
+            "Addressee.BirthDate",
+            "Addressee.BirthPlace.PostalCode",
+            "Addressee.DeathDate",
+            "Addressee.DeathPlace.PostalCode",
+            "Addressee.Identifier",
+            "ArchivalAgencyArchiveUnitIdentifier",
+            "ArchiveUnitProfile",
+            "AuthorizedAgent.BirthDate",
+            "AuthorizedAgent.BirthPlace.PostalCode",
+            "AuthorizedAgent.DeathDate",
+            "AuthorizedAgent.DeathPlace.PostalCode",
+            "AuthorizedAgent.Identifier",
+            "CreatedDate",
+            "CustodialHistory.CustodialHistoryFile.DataObjectGroupReferenceId",
+            "DescriptionLevel",
+            "Descriptions",
+            "EndDate",
+            "Event.EventDateTime",
+            "Event.EventIdentifier",
+            "FilePlanPosition",
+            "Gps.GpsAltitude",
+            "Gps.GpsAltitudeRef",
+            "Gps.GpsDateStamp",
+            "Gps.GpsLatitude",
+            "Gps.GpsLatitudeRef",
+            "Gps.GpsLongitude",
+            "Gps.GpsLongitudeRef",
+            "Gps.GpsVersionID",
+            "Keyword.KeywordContent",
+            "Keyword.KeywordReference",
+            "Keyword.KeywordType",
+            "OriginatingAgency.Identifier",
+            "OriginatingAgencyArchiveUnitIdentifier",
+            "OriginatingSystemId",
+            "ReceivedDate",
+            "Recipient.BirthDate",
+            "Recipient.BirthPlace.PostalCode",
+            "Recipient.DeathDate",
+            "Recipient.DeathPlace.PostalCode",
+            "Recipient.Identifier",
+            "RegisteredDate",
+            "RelatedObjectReference.IsPartOf.ArchiveUnitRefId",
+            "RelatedObjectReference.IsPartOf.DataObjectReference.DataObjectGroupReferenceId",
+            "RelatedObjectReference.IsPartOf.DataObjectReference.DataObjectReferenceId",
+            "RelatedObjectReference.IsPartOf.RepositoryArchiveUnitPID",
+            "RelatedObjectReference.IsPartOf.RepositoryObjectPID",
+            "RelatedObjectReference.IsVersionOf.ArchiveUnitRefId",
+            "RelatedObjectReference.IsVersionOf.DataObjectReference.DataObjectGroupReferenceId",
+            "RelatedObjectReference.IsVersionOf.DataObjectReference.DataObjectReferenceId",
+            "RelatedObjectReference.IsVersionOf.RepositoryArchiveUnitPID",
+            "RelatedObjectReference.IsVersionOf.RepositoryObjectPID",
+            "RelatedObjectReference.References.ArchiveUnitRefId",
+            "RelatedObjectReference.References.DataObjectReference.DataObjectGroupReferenceId",
+            "RelatedObjectReference.References.DataObjectReference.DataObjectReferenceId",
+            "RelatedObjectReference.References.RepositoryArchiveUnitPID",
+            "RelatedObjectReference.References.RepositoryObjectPID",
+            "RelatedObjectReference.Replaces.ArchiveUnitRefId",
+            "RelatedObjectReference.Replaces.DataObjectReference.DataObjectGroupReferenceId",
+            "RelatedObjectReference.Replaces.DataObjectReference.DataObjectReferenceId",
+            "RelatedObjectReference.Replaces.RepositoryArchiveUnitPID",
+            "RelatedObjectReference.Replaces.RepositoryObjectPID",
+            "RelatedObjectReference.Requires.ArchiveUnitRefId",
+            "RelatedObjectReference.Requires.DataObjectReference.DataObjectGroupReferenceId",
+            "RelatedObjectReference.Requires.DataObjectReference.DataObjectReferenceId",
+            "RelatedObjectReference.Requires.RepositoryArchiveUnitPID",
+            "RelatedObjectReference.Requires.RepositoryObjectPID",
+            "SentDate",
+            "Signature.DateSignature",
+            "Signature.Masterdata",
+            "Signature.ReferencedObject.SignedObjectDigest.Algorithm",
+            "Signature.ReferencedObject.SignedObjectDigest.Value",
+            "Signature.ReferencedObject.SignedObjectId",
+            "Signature.Signer.Activity",
+            "Signature.Signer.BirthDate",
+            "Signature.Signer.BirthPlace.PostalCode",
+            "Signature.Signer.DeathDate",
+            "Signature.Signer.DeathPlace.PostalCode",
+            "Signature.Signer.Function",
+            "Signature.Signer.Identifier",
+            "Signature.Signer.SigningTime",
+            "Signature.Validator.Activity",
+            "Signature.Validator.BirthDate",
+            "Signature.Validator.BirthPlace.PostalCode",
+            "Signature.Validator.DeathDate",
+            "Signature.Validator.DeathPlace.PostalCode",
+            "Signature.Validator.Function",
+            "Signature.Validator.Identifier",
+            "Signature.Validator.ValidationTime",
+            "StartDate",
+            "Status",
+            "SubmissionAgency.Identifier",
+            "SystemId",
+            "Tag",
+            "Titles",
+            "TransactedDate",
+            "TransferringAgencyArchiveUnitIdentifier",
+            "Type",
+            "Version",
+            "Writer.Activity",
+            "Writer.BirthDate",
+            "Writer.BirthPlace.PostalCode",
+            "Writer.DeathDate",
+            "Writer.DeathPlace.PostalCode",
+            "Writer.Function",
+            "Writer.Identifier",
+            "_max",
+            "_mgt.AccessRule.Inheritance.PreventInheritance",
+            "_mgt.AccessRule.Inheritance.PreventRulesId",
+            "_mgt.AccessRule.Rules.EndDate",
+            "_mgt.AccessRule.Rules.Rule",
+            "_mgt.AccessRule.Rules.StartDate",
+            "_mgt.AppraisalRule.FinalAction",
+            "_mgt.AppraisalRule.Inheritance.PreventInheritance",
+            "_mgt.AppraisalRule.Inheritance.PreventRulesId",
+            "_mgt.AppraisalRule.Rules.EndDate",
+            "_mgt.AppraisalRule.Rules.Rule",
+            "_mgt.AppraisalRule.Rules.StartDate",
+            "_mgt.ClassificationRule.Inheritance.PreventInheritance",
+            "_mgt.ClassificationRule.Inheritance.PreventRulesId",
+            "_mgt.ClassificationRule.Rules.ClassificationLevel",
+            "_mgt.ClassificationRule.Rules.ClassificationReassessingDate",
+            "_mgt.ClassificationRule.Rules.EndDate",
+            "_mgt.ClassificationRule.Rules.NeedReassessingAuthorization",
+            "_mgt.ClassificationRule.Rules.Rule",
+            "_mgt.ClassificationRule.Rules.StartDate",
+            "_mgt.DisseminationRule.Inheritance.PreventInheritance",
+            "_mgt.DisseminationRule.Inheritance.PreventRulesId",
+            "_mgt.DisseminationRule.Rules.EndDate",
+            "_mgt.DisseminationRule.Rules.Rule",
+            "_mgt.DisseminationRule.Rules.StartDate",
+            "_mgt.OriginatingAgency",
+            "_mgt.ReuseRule.Inheritance.PreventInheritance",
+            "_mgt.ReuseRule.Inheritance.PreventRulesId",
+            "_mgt.ReuseRule.Rules.EndDate",
+            "_mgt.ReuseRule.Rules.Rule",
+            "_mgt.ReuseRule.Rules.StartDate",
+            "_mgt.StorageRule.FinalAction",
+            "_mgt.StorageRule.Inheritance.PreventInheritance",
+            "_mgt.StorageRule.Inheritance.PreventRulesId",
+            "_mgt.StorageRule.Rules.EndDate",
+            "_mgt.StorageRule.Rules.Rule",
+            "_mgt.StorageRule.Rules.StartDate",
+            "_min",
+            "_nbc",
+            "_og",
+            "_ops",
+            "_score",
+            "_sp",
+            "_sps",
+            "_storage._nbc",
+            "_storage.offerIds",
+            "_storage.strategyId",
+            "_tenant",
+            "_uds",
+            "_unitType",
+            "_unused",
+            "_up",
+            "_us",
+            "_v",
+            /* Object Groups */
+            "FileInfo.DateCreatedByApplication",
+            "FileInfo.LastModified",
+            "Metadata",
+            "OtherMetadata",
+            "_nbc",
+            "_ops",
+            "_profil",
+            "_qualifiers._nbc",
+            "_qualifiers.qualifier",
+            "_qualifiers.versions.Algorithm",
+            "_qualifiers.versions.DataObjectGroupId",
+            "_qualifiers.versions.DataObjectVersion",
+            "_qualifiers.versions.FileInfo.DateCreatedByApplication",
+            "_qualifiers.versions.FileInfo.LastModified",
+            "_qualifiers.versions.FormatIdentification.FormatId",
+            "_qualifiers.versions.MessageDigest",
+            "_qualifiers.versions.PhysicalDimensions.Depth.unit",
+            "_qualifiers.versions.PhysicalDimensions.Depth.value",
+            "_qualifiers.versions.PhysicalDimensions.Diameter.unit",
+            "_qualifiers.versions.PhysicalDimensions.Diameter.value",
+            "_qualifiers.versions.PhysicalDimensions.Height.unit",
+            "_qualifiers.versions.PhysicalDimensions.Height.value",
+            "_qualifiers.versions.PhysicalDimensions.Length.unit",
+            "_qualifiers.versions.PhysicalDimensions.Length.value",
+            "_qualifiers.versions.PhysicalDimensions.NumberOfPage",
+            "_qualifiers.versions.PhysicalDimensions.Shape",
+            "_qualifiers.versions.PhysicalDimensions.Thickness.unit",
+            "_qualifiers.versions.PhysicalDimensions.Thickness.value",
+            "_qualifiers.versions.PhysicalDimensions.Weight.unit",
+            "_qualifiers.versions.PhysicalDimensions.Weight.value",
+            "_qualifiers.versions.PhysicalDimensions.Width.unit",
+            "_qualifiers.versions.PhysicalDimensions.Width.value",
+            "_qualifiers.versions.PhysicalId",
+            "_qualifiers.versions.Size",
+            "_qualifiers.versions.Uri",
+            "_qualifiers.versions._id",
+            "_qualifiers.versions._storage._nbc",
+            "_qualifiers.versions._storage.offerIds",
+            "_qualifiers.versions._storage.strategyId",
+            "_score",
+            "_sp",
+            "_sps",
+            "_storage._nbc",
+            "_storage.offerIds",
+            "_storage.strategyId",
+            "_tenant",
+            "_uds",
+            "_unused",
+            "_up",
+            "_us",
+            "_v",
+            /* Access Contracts */
+            "Identifier",
+            "Status",
+            "OriginatingAgencies",
+            "CreationDate",
+            "LastUpdate",
+            "ActivationDate",
+            "DeactivationDate",
+            "DataObjectVersion",
+            "WritingPermission",
+            "EveryOriginatingAgency",
+            "EveryDataObjectVersion",
+            "RootUnits",
+            "_tenant",
+            "_v",
+            "_score",
+            /* Agencies */
+            "Identifier",
+            "_tenant",
+            "_v",
+            "_score",
+            /* Context */
+            "Identifier",
+            "Status",
+            "LastUpdate",
+            "CreationDate",
+            "ActivationDate",
+            "DeactivationDate",
+            "Permissions.AccessContracts",
+            "Permissions.IngestContracts",
+            "Permissions._tenant",
+            "EnableControl",
+            "SecurityProfile",
+            "_v",
+            "_score",
+            /* Format */
+            "PUID",
+            "Extension",
+            "VersionPronom",
+            "CreatedDate",
+            "Version",
+            "Alert",
+            "HasPriorityOverFileFormatID",
+            "_v",
+            "_score",
+            /* Ingest Contract */
+            "Identifier",
+            "Status",
+            "ArchiveProfiles",
+            "CreationDate",
+            "LastUpdate",
+            "ActivationDate",
+            "DeactivationDate",
+            "LinkParentId",
+            "_tenant",
+            "_v",
+            "_score",
+            /* Profiles */
+            "Identifier",
+            "Status",
+            "Format",
+            "Path",
+            "CreationDate",
+            "LastUpdate",
+            "ActivationDate",
+            "DeactivationDate",
+            "_tenant",
+            "_v",
+            "_score",
+            /* Rule */
+            "RuleType",
+            "RuleDuration",
+            "_tenant",
+            "RuleId",
+            "RuleMeasurement",
+            "CreationDate",
+            "UpdateDate",
+            "_v",
+            "_score",
+            /* Security profiles*/
+            "Identifier",
+            "FullAccess",
+            "Permissions",
+            "_v",
+            "_score"
+        ));
 
     private ParserTokens() {
         // Empty
@@ -82,7 +376,7 @@ public class ParserTokens extends BuilderToken {
     /**
      * specific fields: nbunits, dua, ... <br>
      * $fields : [ #nbunits:1, #dua:1, #all:1... ]
-     *
+     * <p>
      * #all:1 means all, while #all:0 means none
      */
     public static enum PROJECTIONARGS {
@@ -219,7 +513,6 @@ public class ParserTokens extends BuilderToken {
         }
 
         /**
-         *
          * @param name String
          * @return the corresponding PROJECTIONARGS
          * @throws IllegalArgumentException if not found
@@ -236,7 +529,6 @@ public class ParserTokens extends BuilderToken {
         }
 
         /**
-         *
          * @param name
          * @return
          */
@@ -251,7 +543,6 @@ public class ParserTokens extends BuilderToken {
         }
 
         /**
-         *
          * @param name
          * @return the PROJECTIONARGS associated
          * @throws IllegalArgumentException if not found
@@ -324,7 +615,6 @@ public class ParserTokens extends BuilderToken {
         }
 
         /**
-         *
          * @param name
          * @return True if attribute is not analyzed
          */
@@ -332,39 +622,11 @@ public class ParserTokens extends BuilderToken {
             if (name == null || name.isEmpty()) {
                 return false;
             }
-            try {
-                final PROJECTIONARGS proj = getPROJECTIONARGS(name);
-                switch (proj) {
-                    case ALLUNITUPS:
-                    case FORMAT:
-                    case ID:
-                    case OBJECT:
-                    case OPERATIONS:
-                    case ORIGINATING_AGENCIES:
-                    case ORIGINATING_AGENCY:
-                    case QUALIFIERS:
-                    case TENANT:
-                    case TYPE:
-                    case UNITTYPE:
-                    case UNITUPS:
-                    case USAGE:
-                    case NBUNITS:
-                    case NBOBJECTS:
-                    case MIN:
-                    case MAX:
-                    case STORAGE:
-                    case VERSION:
-                    case SCORE:
-                        return true;
-                    default:
-                        break;
 
-                }
-            } catch (final IllegalArgumentException e) {
-                // Ignore
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
-            return ParserTokens.isSingleNotAnalyzedVariable(name);
+            // Quick & dirty implementation.
+            // FIXME : Replace this unmaintainable code using a cleaner / more robust way.
+
+            return NON_ANALYZED_FIELDS.contains(name);
         }
 
         /**
@@ -409,7 +671,6 @@ public class ParserTokens extends BuilderToken {
         }
 
         /**
-         *
          * @param name String
          * @return True if this value is not allowed on set (insert, update)
          */
@@ -465,7 +726,6 @@ public class ParserTokens extends BuilderToken {
     }
 
     /**
-     * 
      * @param name
      * @return True if the name is a protected one
      */
@@ -481,7 +741,6 @@ public class ParserTokens extends BuilderToken {
     }
 
     /**
-     * 
      * @param name
      * @return True if this is an Array Variable
      */
@@ -628,36 +887,5 @@ public class ParserTokens extends BuilderToken {
             return false;
         }
         return true;
-    }
-
-    /**
-     * 
-     * @param name
-     * @return True if the name is a protected one
-     */
-    public static boolean isSingleNotAnalyzedVariable(String name) {
-        // FIXME Patch for Single collection
-        switch (name) {
-            case "Status":
-            case "PUID":
-            case "RuleId":
-            case "Identifier":
-            case "VersionPronom":
-            case "Group":
-            case "Format":
-            case "RuleType":
-            case "RuleMeasurement":
-            case "Path":
-            case "Permissions.AccessContracts":
-            case "Permissions.IngestContracts":
-            case "ArchiveProfiles":
-            case "Extension":
-                return true;
-            default:
-        }
-        if (!FIELD_ANALYZED.contains(name) && FIELD_NOT_ANALYZED.parallelStream().anyMatch(name::contains)) {
-            return true;
-        }
-        return false;
     }
 }

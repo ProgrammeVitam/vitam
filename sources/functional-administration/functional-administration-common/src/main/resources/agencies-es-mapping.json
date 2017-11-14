@@ -1,6 +1,5 @@
 {
   "properties": {
-
     "Identifier": {
       "type": "string",
       "index": "not_analyzed"
@@ -10,6 +9,16 @@
     },
     "Description": {
       "type": "string"
+    },
+    "_tenant": {
+      "type": "long"
+    },
+    "_v": {
+      "type": "long"
+    },
+    "_score": {
+      "type": "object",
+      "enabled": false
     }
   }
 }
