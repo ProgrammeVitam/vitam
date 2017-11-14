@@ -27,6 +27,7 @@
 package fr.gouv.vitam.access.external.rest;
 
 import static com.jayway.restassured.RestAssured.given;
+import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
@@ -116,7 +117,6 @@ public class AccessExternalResourceImplTest {
     private static String good_id = "goodId";
     private static String bad_id = "badId";
 
-    private static String X_HTTP_METHOD_OVERRIDE = "X-HTTP-Method-Override";
     private static final String QUERY_TEST = "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ], " +
         " \"$filter\" : { \"$orderby\" : { \"#id\":1 } }," +
         "\"$projection\" : {\"$fields\" : {\"#id\" : 1, \"title\":1, \"transacdate\":1}} }";
@@ -254,19 +254,19 @@ public class AccessExternalResourceImplTest {
     public void givenStartedServerHtpOverride_WhenRequestNotJson_ThenReturnError_UnsupportedMediaType()
         throws Exception {
         given()
-            .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.XML).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
             .when().post(ACCESS_UNITS_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
 
         given()
-            .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.XML).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
             .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
             .when().post(ACCESS_UNITS_URI).then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
-            .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.XML).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
             .when().post(ACCESS_UNITS_URI).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -293,19 +293,19 @@ public class AccessExternalResourceImplTest {
     @Test
     public void givenStartedServer_WhenRequestNotJson_ThenReturnError_UnsupportedMediaType() throws Exception {
         given()
-            .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.XML).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
             .when().post(ACCESS_UNITS_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
 
         given()
-            .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.XML).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
             .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
             .when().post(ACCESS_UNITS_URI).then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
-            .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.XML).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
             .when().post(ACCESS_UNITS_URI).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -316,19 +316,19 @@ public class AccessExternalResourceImplTest {
     public void givenStartedServer_WhenRequestNotJson_ThenReturnError_SelectObjectById_UnsupportedMediaType()
         throws Exception {
         given()
-            .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.XML).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithRoots("\"" + ID + "\"").asText())
             .when().post(ACCESS_UNITS_ID_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
 
         given()
-            .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.XML).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
             .body(buildDSLWithRoots("\"" + ID + "\"").asText())
             .when().post(ACCESS_UNITS_ID_URI).then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
-            .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.XML).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .body(buildDSLWithRoots("\"" + ID + "\"").asText())
             .when().post(ACCESS_UNITS_ID_URI).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -338,19 +338,19 @@ public class AccessExternalResourceImplTest {
     public void givenStartedServer_WhenRequestNotJson_ThenReturnError_SelectById_UnsupportedMediaType()
         throws Exception {
         given()
-            .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.XML).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithRoots("\"" + ID + "\"").asText())
             .when().post(ACCESS_OBJECTS_ID_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
 
         given()
-            .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.XML).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
             .body(buildDSLWithRoots("\"" + ID + "\"").asText())
             .when().post(ACCESS_OBJECTS_ID_URI).then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
-            .contentType(ContentType.XML).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.XML).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .body(buildDSLWithRoots("\"" + ID + "\"").asText())
             .when().post(ACCESS_OBJECTS_ID_URI).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -359,7 +359,7 @@ public class AccessExternalResourceImplTest {
     public void given_bad_header_when_SelectByID_thenReturn_Not_allowed() {
         given()
             .contentType(ContentType.JSON)
-            .headers(new Headers(new Header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "ABC"),
+            .headers(new Headers(new Header(X_HTTP_METHOD_OVERRIDE, "ABC"),
                 new Header(GlobalDataRest.X_TENANT_ID, TENANT_ID)))
             .body(BODY_TEST_SINGLE)
             .when()
@@ -371,7 +371,7 @@ public class AccessExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON)
-            .headers(new Headers(new Header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "ABC"),
+            .headers(new Headers(new Header(X_HTTP_METHOD_OVERRIDE, "ABC"),
                 new Header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)))
             .body(BODY_TEST_SINGLE)
             .when()
@@ -381,7 +381,7 @@ public class AccessExternalResourceImplTest {
 
         given()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "ABC")
+            .header(X_HTTP_METHOD_OVERRIDE, "ABC")
             .body(BODY_TEST_SINGLE)
             .when()
             .post("/units/" + ID_UNIT)
@@ -409,7 +409,7 @@ public class AccessExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(selectMultiQuery.getFinalSelectById())
             .when()
@@ -420,7 +420,7 @@ public class AccessExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .and().header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
             .body(QUERY_TEST)
             .when()
@@ -431,7 +431,7 @@ public class AccessExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .body(QUERY_TEST)
             .when()
             .post("/units/" + ID_UNIT)
@@ -445,7 +445,7 @@ public class AccessExternalResourceImplTest {
         throws Exception {
         // HERE
         given()
-            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.JSON).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithRoots(DATA_HTML))
             .accept(ContentType.JSON)
@@ -455,7 +455,7 @@ public class AccessExternalResourceImplTest {
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.JSON).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
@@ -464,7 +464,7 @@ public class AccessExternalResourceImplTest {
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.JSON).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
             .get("/units/" + ID_UNIT)
@@ -477,7 +477,7 @@ public class AccessExternalResourceImplTest {
         throws Exception {
         // HERE
         given()
-            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.JSON).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .accept(ContentType.JSON)
             .body(buildDSLWithRoots(DATA_HTML))
@@ -487,7 +487,7 @@ public class AccessExternalResourceImplTest {
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.JSON).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .accept(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
             .body(buildDSLWithRoots(DATA_HTML))
@@ -497,7 +497,7 @@ public class AccessExternalResourceImplTest {
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.JSON).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .accept(ContentType.JSON)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
@@ -512,7 +512,7 @@ public class AccessExternalResourceImplTest {
         throws Exception {
         // HERE
         given()
-            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.JSON).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .accept(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithRoots(DATA_HTML))
@@ -522,7 +522,7 @@ public class AccessExternalResourceImplTest {
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.JSON).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .accept(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
             .body(buildDSLWithRoots(DATA_HTML))
@@ -532,7 +532,7 @@ public class AccessExternalResourceImplTest {
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.JSON).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .accept(ContentType.JSON)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
@@ -549,7 +549,7 @@ public class AccessExternalResourceImplTest {
         throws Exception {
         // HERE
         given()
-            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.JSON).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .accept(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithRoots(DATA_HTML))
@@ -559,7 +559,7 @@ public class AccessExternalResourceImplTest {
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.JSON).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .accept(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
             .body(buildDSLWithRoots(DATA_HTML))
@@ -569,7 +569,7 @@ public class AccessExternalResourceImplTest {
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.JSON).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .accept(ContentType.JSON)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
@@ -585,7 +585,7 @@ public class AccessExternalResourceImplTest {
         throws Exception {
         // HERE
         given()
-            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.JSON).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .accept(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithRoots(DATA_HTML))
@@ -595,7 +595,7 @@ public class AccessExternalResourceImplTest {
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.JSON).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .accept(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
             .body(buildDSLWithRoots(DATA_HTML))
@@ -605,7 +605,7 @@ public class AccessExternalResourceImplTest {
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
-            .contentType(ContentType.JSON).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .contentType(ContentType.JSON).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .accept(ContentType.JSON)
             .body(buildDSLWithRoots(DATA_HTML))
             .when()
@@ -1182,42 +1182,42 @@ public class AccessExternalResourceImplTest {
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(JsonHandler.getFromString(QUERY_TEST_BY_ID))
-            .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+            .headers(getStreamHeaders()).header(X_HTTP_METHOD_OVERRIDE,
                 "GET")
             .when().post("/units/" + ID_UNIT + "/objects").then()
             .statusCode(Status.OK.getStatusCode()).contentType(MediaType.APPLICATION_JSON);
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(JsonHandler.getFromString(QUERY_TEST_BY_ID))
-            .headers(getStreamHeadersUnknwonTenant()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+            .headers(getStreamHeadersUnknwonTenant()).header(X_HTTP_METHOD_OVERRIDE,
                 "GET")
             .when().post("/units/" + ID_UNIT + "/objects").then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(JsonHandler.getFromString(QUERY_TEST_BY_ID))
-            .headers(getStreamHeadersWithoutTenant()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+            .headers(getStreamHeadersWithoutTenant()).header(X_HTTP_METHOD_OVERRIDE,
                 "GET")
             .when().post("/units/" + ID_UNIT + "/objects").then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(QUERY_TEST_BY_ID)
-            .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+            .headers(getStreamHeaders()).header(X_HTTP_METHOD_OVERRIDE,
                 "PUT")
             .when().get("/units/" + ID_UNIT + "/objects").then()
             .statusCode(Status.OK.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(QUERY_TEST_BY_ID)
-            .headers(getStreamHeadersUnknwonTenant()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+            .headers(getStreamHeadersUnknwonTenant()).header(X_HTTP_METHOD_OVERRIDE,
                 "PUT")
             .when().get("/units/" + ID_UNIT + "/objects").then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(QUERY_TEST_BY_ID)
-            .headers(getStreamHeadersWithoutTenant()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+            .headers(getStreamHeadersWithoutTenant()).header(X_HTTP_METHOD_OVERRIDE,
                 "PUT")
             .when().get("/units/" + ID_UNIT + "/objects").then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
@@ -1229,7 +1229,7 @@ public class AccessExternalResourceImplTest {
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(QUERY_TEST_BY_ID)
-            .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .headers(getStreamHeaders()).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .when().get("/units/" + ID_UNIT + "/objects").then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
@@ -1240,7 +1240,7 @@ public class AccessExternalResourceImplTest {
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(QUERY_TEST_BY_ID)
-            .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .headers(getStreamHeaders()).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .when().post("/units/" + ID_UNIT + "/objects").then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
@@ -1264,7 +1264,7 @@ public class AccessExternalResourceImplTest {
         // POST override GET ok
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(JsonHandler.getFromString(QUERY_TEST_BY_ID))
-            .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+            .headers(getStreamHeaders()).header(X_HTTP_METHOD_OVERRIDE,
                 "GET")
             .when().post("/units/" + unitId + "/objects").then()
             .statusCode(Status.OK.getStatusCode()).contentType(MediaType.APPLICATION_JSON);
@@ -1279,7 +1279,7 @@ public class AccessExternalResourceImplTest {
         // POST override GET no tenant
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(JsonHandler.getFromString(QUERY_TEST_BY_ID))
-            .headers(getStreamHeadersUnknwonTenant()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+            .headers(getStreamHeadersUnknwonTenant()).header(X_HTTP_METHOD_OVERRIDE,
                 "GET")
             .when().post("/units/" + unitId + "/objects").then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
@@ -1294,14 +1294,14 @@ public class AccessExternalResourceImplTest {
         // GET (PUT override isn't filtered) ok
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(QUERY_TEST_BY_ID)
-            .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "PUT")
+            .headers(getStreamHeaders()).header(X_HTTP_METHOD_OVERRIDE, "PUT")
             .when().get("/units/" + unitId + "/objects").then()
             .statusCode(Status.OK.getStatusCode());
 
         // POST (PUT override isn't filtered) unmapped
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(QUERY_TEST_BY_ID)
-            .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "PUT")
+            .headers(getStreamHeaders()).header(X_HTTP_METHOD_OVERRIDE, "PUT")
             .when().post("/units/" + unitId + "/objects").then()
             .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
 
@@ -1464,20 +1464,20 @@ public class AccessExternalResourceImplTest {
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+            .headers(getStreamHeaders()).header(X_HTTP_METHOD_OVERRIDE,
                 "PUT")
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(BODY_TEST_SINGLE)).when().post(GET_OBJECT_STREAM_URI).then()
             .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .headers(getStreamHeadersUnknwonTenant()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+            .headers(getStreamHeadersUnknwonTenant()).header(X_HTTP_METHOD_OVERRIDE,
                 "PUT")
             .when().post(GET_OBJECT_STREAM_URI).then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .headers(getStreamHeadersWithoutTenant()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+            .headers(getStreamHeadersWithoutTenant()).header(X_HTTP_METHOD_OVERRIDE,
                 "PUT")
             .when().post(GET_OBJECT_STREAM_URI).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
@@ -1527,20 +1527,20 @@ public class AccessExternalResourceImplTest {
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+            .headers(getStreamHeaders()).header(X_HTTP_METHOD_OVERRIDE,
                 "GET")
             .when().post(ACCESS_UNITS_URI + "/goodId/objects").then()
             .statusCode(Status.OK.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .body(JsonHandler.getFromString(objectnode))
-            .headers(getStreamHeadersUnknwonTenant()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+            .headers(getStreamHeadersUnknwonTenant()).header(X_HTTP_METHOD_OVERRIDE,
                 "GET")
             .when().post(ACCESS_UNITS_URI + "/goodId/objects").then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .headers(getStreamHeadersWithoutTenant()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+            .headers(getStreamHeadersWithoutTenant()).header(X_HTTP_METHOD_OVERRIDE,
                 "GET")
             .when().post(ACCESS_UNITS_URI + "/goodId/objects").then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
@@ -1561,18 +1561,18 @@ public class AccessExternalResourceImplTest {
             .thenReturn(new RequestResponseOK().addResult(objectGroup));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .headers(getStreamHeaders()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .headers(getStreamHeaders()).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .when().get("/units/goodId/objects").then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .headers(getStreamHeadersUnknwonTenant()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+            .headers(getStreamHeadersUnknwonTenant()).header(X_HTTP_METHOD_OVERRIDE,
                 "GET")
             .when().get("/units/goodId/objects").then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .headers(getStreamHeadersWithoutTenant()).header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE,
+            .headers(getStreamHeadersWithoutTenant()).header(X_HTTP_METHOD_OVERRIDE,
                 "GET")
             .when().get("/units/goodId/objects").then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
@@ -1584,7 +1584,7 @@ public class AccessExternalResourceImplTest {
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "GET")
+            .header(X_HTTP_METHOD_OVERRIDE, "GET")
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(QUERY_TEST_BAD_VALIDATION_REQUEST)
             .when()

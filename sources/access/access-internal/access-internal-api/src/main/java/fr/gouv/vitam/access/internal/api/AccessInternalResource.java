@@ -55,7 +55,7 @@ public interface AccessInternalResource extends VitamResource {
     Response exportDIP(JsonNode queryDsl);
 
     /**
-     * @param id of operation (x-request-id)
+     * @param id of operation (X-Request-Id)
      * @return
      */
     Response findDIPByID(String id);

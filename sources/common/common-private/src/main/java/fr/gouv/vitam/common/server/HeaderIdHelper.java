@@ -228,7 +228,7 @@ public class HeaderIdHelper {
     private static String getHeaderString(MultivaluedMap<String, String> requestHeaders, String headerName) {
         /*
          * Note : jetty seems NOT to correctly unserialize multiple headers declaration in only one header, with
-         * values separated by commas Example : X-REQUEST-ID: header-1,header-2-should-not-be-take Note : Cf. the
+         * values separated by commas Example : X-Request-Id: header-1,header-2-should-not-be-take Note : Cf. the
          * last paragraph in https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2 TODO: Jetty bug ?
          */
         // KWA TODO: beurk.
