@@ -1,7 +1,7 @@
 Rapport d'audit
 ####################
 
-Le rapport d'audit n'est pas une collection de la base de données. Il s'agit d'un fichier JSON généré par la solution logicielle Vitam lorsqu'une opération d'audit se termine. Cette section décrit la manière dont ce rapport est structuré.
+Le rapport d'audit est un fichier JSON généré par la solution logicielle Vitam lorsqu'une opération d'audit se termine. Cette section décrit la manière dont ce rapport est structuré.
 
 Exemple de JSON
 =======================
