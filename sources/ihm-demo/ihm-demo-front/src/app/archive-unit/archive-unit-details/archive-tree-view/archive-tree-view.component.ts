@@ -25,14 +25,12 @@ export class ArchiveTreeViewComponent implements OnInit, OnChanges {
   }
 
   ngOnInit() {
-    this.initRoot();
   }
 
   initRoot() {
-    let root = new TreeNode(this.title, this.unitId, new NodeData(this.type, this.unitUps || []));
-    this.root = root;
-    ArchiveTreeViewComponent.getParents(this.archiveUnitService, root);
-    ArchiveTreeViewComponent.getChildren(this.archiveUnitService, root);
+    this.root = new TreeNode(this.title, this.unitId, new NodeData(this.type, this.unitUps || []));
+    ArchiveTreeViewComponent.getParents(this.archiveUnitService, this.root);
+    ArchiveTreeViewComponent.getChildren(this.archiveUnitService, this.root);
   }
 
   static getParents(archiveUnitService, node) {

@@ -9,21 +9,14 @@ import {LogbookHelperService} from "./logbook-helper.service";
   styleUrls: ['./logbook-operation-events.component.css']
 })
 export class LogbookOperationEventsComponent implements OnInit {
-  @Input() operationId: string;
   @Input() isIngestOperation: boolean;
-  results: any;
+  @Input() results: any;
   events: Event[] = [];
 
-  constructor(private logbookService: LogbookService, private logbookHelper: LogbookHelperService) { }
+  constructor(private logbookHelper: LogbookHelperService) { }
 
   ngOnInit() {
-    this.logbookService.getDetails(this.operationId).subscribe(
-        (data) => {
-          this.results = data.$results[0];
-          this.events = this.logbookHelper.initEventsArray(this.results);
-        }
-    );
-
+    this.events = this.logbookHelper.initEventsArray(this.results);
   }
 
 }
