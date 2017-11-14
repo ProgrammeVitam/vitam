@@ -1,0 +1,20 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 1,
+    "size": 1,
+    "offset": 0,
+    "limit": 10000
+  },
+  "$context": {
+    "$projection": { "$fields": { "#id": 1, "title": 1, "#type": 1, "#parents": 1, "#object": 1 } }
+  },
+  "$results": [
+    {
+      "#id": "id1", "title": "titre 1", "#type": "DemandeCongés",
+      "#parents": [ { "#id": "id4", "#type": "DossierCongés" } ],
+      "#object": { "#id": "id101", "#type": "Document",
+        "#qualifiers": { "BinaryMaster": 5, "Dissemination": 1, "Thumbnail": 1, "TextContent": 1 } }
+    }
+  ]
+}

@@ -3,88 +3,282 @@
 usage: |
   Use to define global types for Vitam's DSL
 
-uses:
-    StandardTypes: StandardTypes.raml
-
 types:
-  DslQuery:
-      displayName: DSL Query
-      description: External Vitam DSL query
+  Projection:
+    description: Projection pour une requête DSL
+    type: object
+    properties:
+      $fields:
+        type: object
+        required: false
+
+  Filter:
+    description: Filtrer pour une requête DSL
+    type: object
+    properties:
+      $offset:
+        type: integer
+        required: false
+        minimum: 1
+        maximum: 100000
+      $limit:
+        type: integer
+        minimum: 1
+        maximum: 100000
+        required: false
+      $orderby:
+        type: object
+        required: false
+
+  DslSingleQuery:
+      displayName: Requête DSL simple (SELECT SINGLE)
+      description: Requête DSL Vitam externe mono-requête pour la recherche de ressources
       type: object
       properties:
         $query:
-          description: Contains one query
+          description: Contient une requête
           type: object
         $filter?:
           description: Contains filter to apply (for GET only)
-          type: StandardTypes.Filter
+          type: Filter
         $projection?:
           description: Contains projection to apply (for GET only)
-          type: StandardTypes.Projection
-        $data?:
-          description: Contains data to insert (for POST only)
-          type: object
-        $facetQuery?:
-          description: |
-            **UNSUPPORTED** Contains facet to apply (for GET only)
-          type: StandardTypes.FacetQuery
-        $action?:
-          description: Contains actions to apply as update (for PUT only)
-          type: object[]
+          type: Projection
       example: {
-        "$query": { "$path": "aaaaa" }
+        "$query": {
+          "$eq": { "myField1": "myValue" }
+        },
+        "$filter": {
+          "$limit": 100,
+          "$offset": 50
+        },
+        "$projection": {
+          "$fields": { "myField1": 1, "myField2.mySubField": 1 }
+        }
       }
 
-  DslResponse:
+  DslMultipleQuery:
+      displayName: Requête DSL multiple (SELECT MULTIPLE)
+      description: Requête DSL Vitam externe multi-requête pour la recherche de ressources
+      type: object
+      properties:
+        $roots:
+          description: Contient les racines de la recherche
+          type: string[]
+        $query:
+          description: Contient plusieurs requêtes
+          type: object[]
+        $filter?:
+          description: Contient les filtres à appliquer
+          type: Filter
+        $projection?:
+          description: Contient la projection à appliquer
+          type: Projection
+      example: {
+        "$roots": ["guid1","guid2"],
+        "$query": [
+          {
+            "$eq": { "myField1": "myValue" },
+            "$depth": 4
+          }
+        ],
+        "$filter": {
+          "$limit": 100,
+          "$offset": 50
+        },
+        "$projection": {
+          "$fields": { "myField1": 1, "myField2.mySubField": 1 }
+        }
+      }
+
+  DslGetByIdQuery:
+      displayName: Requête DSL unitaire (GET BY ID)
+      description: Requête DSL Vitam externe pour la récupération d'une ressources
+      type: object
+      properties:
+        $projection?:
+          description: Contient la projection à appliquer
+          type: Projection
+      example: {
+        "$projection": {
+          "$fields": { "myField1": 1, "myField2.mySubField": 1 }
+        }
+      }
+
+  DslUpdateByIdQuery:
+      displayName: Requête DSL de mise à jour unitaire (UPDATE BY ID)
+      description: Requête DSL Vitam externe unitaire pour la mise à jour d'une ressources
+      type: object
+      properties:
+        $action?:
+          description: Contient les actions de mise à jour à appliquer
+          type: object[]
+      example: {
+        "$action": [{
+          "$set": { "$myField1": "myValue" },
+          "$unset": [ "myField2" ]
+        }]
+      }
+
+
+  AbstractDslResponse:
     type: object
-    displayName: DSL Response
-    description: External Vitam DSL response list
+    displayName: Réponse DSL
+    description: Réponse DSL externe Vitam
     properties:
+      httpCode:
+        description: Contient le code retrour http
+        type: integer
       $hits:
-        description: Contains the hits for the response
+        description: Contient le nombre de hits
         required: true
         type: object
         properties:
           total:
-            description: Total estimated possible answears
+            description: Nombre total de résultats estimé
             type: integer
           offset:
-            description: Offset on possible answears
+            description: Décalage du début des résultats
             type: integer
           limit:
-            description: Limit specified in the request (or implicit) from Offset
+            description: Nombre maximum de résultats voulu à partir de la valeur "offset"
             type: integer
           size:
-            description: Number of currently returned answears
+            description: Nombre de résultats renvoyés
             type: integer
-          time_out?:
-            description: |
-              **UNSUPPORTED** True means the request was too long and so only partial result could be retrieved
-            type: boolean
-      $context:
-        required: true
-        description: Contains Request related to this to reply
-        type: DslQuery
 
       $results:
         required: true
-        description: Contains list of items
+        description: Contient la list des résultats
         type: object[]
-      $facet?:
-          description: |
-            **UNSUPPORTED** Contains facet if requested
-          type: StandardTypes.FacetResponse
+
+  DslSingleResponse:
+    type: AbstractDslResponse
+    displayName: Réponse DSL simple
+    description: Réponse DSL Vitam externe pour la recherche simple de ressources
+    properties:
+      $context:
+        required: true
+        description: Contient la requête DSL liée à la réponse
+        type: DslSingleQuery
 
     example: {
+        "httpCode": 200,
         "$hits": {
-          "total": 10,
-          "size": 3,
+          "total": 52,
+          "size": 2,
           "offset": 0,
-          "limit": 100,
-          "time_out": false
+          "limit": 100
         },
         "$context": {
-          "$query": { "$path": "aaaaa" }
+          "$query": {
+            "$eq": { "myField1": "myValue" }
+          },
+          "$filter": {
+            "$limit": 100,
+            "$offset": 50
+          },
+          "$projection": {
+            "$fields": { "myField1": 1, "myField2.mySubField": 1 }
+          }
         },
-        "$results": [ { "#id": "id1"}, {"#id": "id2"}, {"#id": "id3"} ]
+        "$results": [
+          { "myField1": "myValue1", "myField2.mySubField": "mySubValue1" },
+          { "myField1": "myValue2", "myField2.mySubField": "mySubValue2"  }
+        ]
+      }
+
+  DslMultipeResponse:
+    type: AbstractDslResponse
+    displayName: Réponse DSL multiple
+    description: Réponse DSL Vitam externe pour la recherche multiple de ressources
+    properties:
+      $context:
+        required: true
+        description: Contient la requête DSL liée à la réponse
+        type: DslMultipleQuery
+
+    example: {
+        "httpCode": 200,
+        "$hits": {
+          "total": 52,
+          "size": 2,
+          "offset": 0,
+          "limit": 100
+        },
+        "$context": {
+          "$roots": ["guid1","guid2"],
+          "$query": [
+            {
+              "$eq": { "myField1": "myValue" },
+              "$depth": 4
+            }
+          ],
+          "$filter": {
+            "$limit": 100,
+            "$offset": 50
+          },
+          "$projection": {
+            "$fields": { "myField1": 1, "myField2.mySubField": 1 }
+          }
+        },
+        "$results": [
+          { "myField1": "myValue1", "myField2.mySubField": "mySubValue1" },
+          { "myField1": "myValue2", "myField2.mySubField": "mySubValue2"  }
+        ]
+      }
+
+  DslGetByIdResponse:
+    type: AbstractDslResponse
+    displayName: Réponse DSL unitaire
+    description: Réponse DSL Vitam externe pour la récupération d'une ressources
+    properties:
+      $context:
+        required: true
+        description: Contient la requête DSL liée à la réponse
+        type: DslGetByIdQuery
+
+    example: {
+        "httpCode": 200,
+        "$hits": {
+          "total": 1,
+          "size": 1,
+          "offset": 0,
+          "limit": 0
+        },
+        "$context": {
+          "$projection": {
+            "$fields": { "myField1": 1, "myField2.mySubField": 1 }
+          }
+        },
+        "$results": [
+          { "myField1": "myValue1", "myField2.mySubField": "mySubValue1" }
+        ]
+      }
+
+  DslUpdateByIdResponse:
+    type: AbstractDslResponse
+    displayName: Réponse DSL  de modification unitaire
+    description: Réponse DSL Vitam externe pour la modification d'une ressources
+    properties:
+      $context:
+        required: true
+        description: Contient la requête DSL liée à la réponse
+        type: DslUpdateByIdQuery
+
+    example: {
+        "httpCode": 200,
+        "$hits": {
+          "total": 0,
+          "size": 0,
+          "offset": 0,
+          "limit": 0
+        },
+        "$context": {
+          "$action": [{
+            "$set": { "$myField1": "myValue" },
+            "$unset": [ "myField2" ]
+          }]
+        },
+        "$results": []
       }

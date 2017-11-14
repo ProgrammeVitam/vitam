@@ -1,0 +1,11 @@
+{
+  "$query":
+    { "$range": {
+      "eventDateTime": {
+        "$gte": "2014-01-10", "$lte": "2016-03-10"
+      }
+    }
+  },
+  "$filter": { "$limit": 100, "$offset": 10 },
+  "$projection": {}
+}

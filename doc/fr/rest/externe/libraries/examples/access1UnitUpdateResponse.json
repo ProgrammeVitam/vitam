@@ -1,22 +1,13 @@
 {
+  "httpCode": 200,
   "$hits": {
-    "total": 1,
-    "size": 1,
+    "total": 0,
+    "size": 0,
     "offset": 0,
-    "limit": 1,
-    "time_out": false
+    "limit": 0
   },
   "$context": {
-    "$roots": [ "id3" ],
-    "$query": [
-    ],
-    "$filter": {  },
     "$action": [{ "$set": { "NewField": "New value" } }]
   },
-  "$results": [
-    {
-      "#id": "id3", "title": "titre 3", "NewField": "New value",
-      "#type": "DemandeCongés", "#sector": "RessourcesHumaines"
-    }
-  ]
+  "$results": []
 }

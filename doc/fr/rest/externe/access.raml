@@ -10,7 +10,6 @@ uses:
   StandardTraits: libraries/StandardTraits.raml
   AccessTypes: libraries/AccessTypes.raml
   AccessTraits: libraries/AccessTraits.raml
-  RegisterTraits: libraries/RegisterTraits.raml
   DslTypes: libraries/DslTypes.raml
 
 mediaType: application/json
@@ -58,13 +57,16 @@ documentation:
   displayName: ArchiveUnits
   description: |
    API qui définit les requêtes pour accéder aux Unités d'archives.
-   La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.
+   La requête utilise le langage de requête DSL de Vitam en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.
   get:
-    description: Request that will return results composed of Units
+    description: |
+      Requête qui retourne des résultats contenant des Unités d'archives.
+      La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.
     is: [AccessTraits.AccessUnitResponse]
   post:
     description: |
-      Request that will return results composed of Units. The request is using POST with X-Http-Method-Override: GET
+      Requête qui retourne des résultats contenant des Unités d'archives. La requête utilise POST avec X-Http-Method-Override: GET
+      La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.
     is: [AccessTraits.AccessUnitResponse, StandardTraits.OverrideGet]
     headers:
       X-Http-Method-Override:
@@ -77,31 +79,37 @@ documentation:
           description: Identifiant de l'unité d'archive.
     displayName: ArchiveUnit
     description: |
-     API qui définit les requêtes pour accéder aux Unités d'archives à partir d'une Unité donnée (racine).
-     La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.
+     API qui définit les requêtes pour accéder à une Unité d'archive.
+     La requête utilise le langage de requête DSL de Vitam en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.
     get:
-      description: Request that will return results composed of Units
-      is: [AccessTraits.AccessUnitResponse]
+      description: |
+       Requête qui retourne une Unité d'archive.
+       La requête utilise le langage de requête DSL de type **recherche unitaire (GET BY ID)** de Vitam en entrée et retourne une liste d'Unités d'archives contenant 1 seul résultat selon le DSL Vitam en cas de succès.
+      is: [AccessTraits.AccessUniqueUnitResponse]
     post:
       description: |
-        Request that will return results composed of Units. The request is using POST with X-Http-Method-Override: GET
-      is: [AccessTraits.AccessUnitResponse, StandardTraits.OverrideGet]
+        Requête qui retourne une Unité d'archives. La requête utilise POST avec X-Http-Method-Override: GET
+        La requête utilise le langage de requête DSL de type **recherche unitaire  (GET BY ID)** de Vitam en entrée et retourne une liste d'Unités d'archives contenant 1 seul résultat selon le DSL Vitam en cas de succès.
+      is: [AccessTraits.AccessUniqueUnitResponse, StandardTraits.OverrideGet]
       headers:
         X-Http-Method-Override:
           required: true
     put:
-      description: Request that will update a set of Units according to the query and the filter parts. The actions to be applied on the set of Units are specified in the action part of the request. In this case this update is to be applied for only one Unit (the one specified in the URI).
+      description: |
+        Requête qui modifie une Unité d'archive.
+        La requête utilise le langage de requête DSL de type **modification unitaire (UPDATE BY ID)** de Vitam en entrée et retourne le statut de la mise à jour en résultat selon le DSL Vitam en cas de succès.
       is: [AccessTraits.AccessUpdateUnitResponse]
 
     /objects:
-      displayName: Object of 1 ArchiveUnit
+      displayName: Object of one ArchiveUnit
       description: |
-       API qui définit les requêtes pour accéder à l'Objet d'archives associé à l'Unité  d'archives s'il existe.
+       API qui définit les requêtes pour accéder à l'Objet d'archives associé à l'Unité d'archives s'il existe.
        La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne l'objet d'archives selon le DSL Vitam en cas de succès.
       get:
         description: |
-          Request that will return results composed of Objects (generally 1).
-          'Accept' header is 'application/octet-stream' or 'application/json'
+          Requête qui retourne le résultat contenant un Object d'archives : ses métadonnées ou un de ses objets binaires.
+          Dans le cas des métadonnées, la requête utilise le langage de requête DSL de type **recherche unitaire (GET BY ID)** de Vitam en entrée.
+          'Accept' header est 'application/octet-stream' (objet binaire) ou 'application/json' (métadonnées)
         is: [AccessTraits.AccessUniqueObjectQualifierResponse, AccessTraits.AccessUniqueObjectResponse]
         headers:
           Accept:
@@ -109,9 +117,10 @@ documentation:
             enum: [ "application/octet-stream", "application/json" ]
       post:
         description: |
-          Request that will return results composed of Objects (generally 1).
-          'Accept' header is 'application/octet-stream' or 'application/json'
-          The request is using POST with X-Http-Method-Override: GET.
+          Requête qui retourne le résultat contenant un Object d'archives : ses métadonnées ou un de ses objets binaires.
+          Dans le cas des métadonnées, la requête utilise le langage de requête DSL de type **recherche unitaire (GET BY ID)** de Vitam en entrée.
+          'Accept' header est 'application/octet-stream' (objet binaire) ou 'application/json' (métadonnées)
+          La requête utilise POST avec X-Http-Method-Override: GET.
         is: [AccessTraits.AccessUniqueObjectQualifierResponse, AccessTraits.AccessUniqueObjectResponse, StandardTraits.OverrideGet]
         headers:
           X-Http-Method-Override:
@@ -129,6 +138,7 @@ documentation:
   post:
     description: |
           response : JSON asynchronous state / HTTP CODE 202 or  500 for KO
+          La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam en entrée.
     is: [AccessTraits.DipCreationResponseAsync]
 
   /{id}/dip/:
@@ -136,7 +146,7 @@ documentation:
         id:
           required: true
           description: Identifiant de l'opération d'export DIP.
-    displayName: DIP Download
+    displayName: Téléchargement du DIP
     description: |
       Télécharger le DIP généré par l'opération passée en paramètre
     get:
@@ -145,8 +155,8 @@ documentation:
           required: true
           enum: [ "application/octet-stream" ]
       description: |
-        Request that will return results composed of metadata and objects in a zip file
-        'Accept' header is 'application/octet-stream'
+        Requête qui retourne les résultate composés des métadonnées et des objets binaires dans un fichier zip
+        'Accept' header est 'application/octet-stream'
       responses:
         200:
           description: Returns the generated zip file
@@ -164,7 +174,7 @@ documentation:
    API qui liste les endpoints de la ressource /access-external/{version}.
   options:
     description: |
-      Request that will return list of endpoints
+      Requête qui retourne la liste des endpoints
     is: [ StandardTraits.StandardHeader200,
       StandardTraits.StandardHeader404, StandardTraits.StandardHeader503 ]
 

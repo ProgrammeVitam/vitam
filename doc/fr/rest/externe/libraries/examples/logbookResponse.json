@@ -1,13 +1,21 @@
 {
+  "httpCode": 200,
   "$hits": {
-    "total": 2,
+    "total": 12,
     "size": 2,
-    "offset": 0,
+    "offset": 10,
     "limit": 100
   },
   "$context": {
-    "$query":
-      { "$path": "aaaaa" }
+    "$query":{
+      "$range": {
+        "eventDateTime": {
+          "$gte": "2014-01-10", "$lte": "2016-03-10"
+        }
+      }
+    },
+    "$filter": { "$limit": 100, "$offset": 10 },
+    "$projection": {}
   },
   "$results":
   [{
