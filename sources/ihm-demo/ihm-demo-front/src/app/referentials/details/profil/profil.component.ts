@@ -36,7 +36,7 @@ export class ProfilComponent extends PageComponent {
   id: string;
   isActif : boolean;
   update: boolean;
-  updatedFields = {};
+  updatedFields: any = {};
   saveRunning = false;
 
   constructor(private activatedRoute: ActivatedRoute, private router : Router,
@@ -77,14 +77,14 @@ export class ProfilComponent extends PageComponent {
   }
 
   saveUpdate() {
-    if (Object.keys(this.updatedFields).length == 0 && this.file == null) {
+    if ((Object.keys(this.updatedFields).length == 0 && this.file == null) || this.updatedFields.Name === '') {
       this.switchUpdateMode();
-      this.dialogService.displayMessage('Aucune modification effectuée', '');
+      this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée.', '');
       return;
     }
 
     this.saveRunning = true;
-    this.updatedFields['LastUpdate'] = new Date();
+    this.updatedFields.LastUpdate = new Date();
     if (this.file != null) {
       let updatedFields = this.updatedFields;
       this.searchReferentialsService.uploadProfile(this.id, this.file)
@@ -95,17 +95,17 @@ export class ProfilComponent extends PageComponent {
                 this.initData(value);
                 this.saveRunning = false;
                 if (data.httpCode >= 400) {
-                  this.dialogService.displayMessage('Erreur de modification. Aucune révision effectuée.', '');
+                  this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée.', '');
                 } else {
                   this.dialogService.displayMessage('Les modifications ont bien été enregistrées.', '');
                 }
               }, (error) => {
                 this.saveRunning = false;
-                this.dialogService.displayMessage('Erreur de modification. Aucune révision effectuée.', '');
+                this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée.', '');
               });
             }, (error) => {
               this.saveRunning = false;
-              this.dialogService.displayMessage('Erreur de modification. Aucune révision effectuée.', '');
+              this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée.', '');
             });
         });
     } else {
@@ -115,17 +115,17 @@ export class ProfilComponent extends PageComponent {
             this.initData(value);
             this.saveRunning = false;
             if (data.httpCode >= 400) {
-              this.dialogService.displayMessage('Erreur de modification. Aucune révision effectuée.', '');
+              this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée.', '');
             } else {
               this.dialogService.displayMessage('Les modifications ont bien été enregistrées.', '');
             }
           }, (error) => {
             this.saveRunning = false;
-            this.dialogService.displayMessage('Erreur de modification. Aucune révision effectuée.', '');
+            this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée.', '');
           });
         }, (error) => {
           this.saveRunning = false;
-          this.dialogService.displayMessage('Erreur de modification. Aucune révision effectuée.', '');
+          this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée.', '');
         });
     }
 
