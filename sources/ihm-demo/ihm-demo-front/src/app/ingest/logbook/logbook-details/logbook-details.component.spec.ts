@@ -10,7 +10,7 @@ import { LogbookService } from "../../logbook.service";
 import { ArchiveUnitHelper } from "../../../archive-unit/archive-unit.helper";
 
 const LogbookServiceStub = {
-  getDetails: (id) => Observable.of(new VitamResponse)
+  getDetails: (id) => Observable.of({$results: [{events: []}]})
 };
 
 describe('LogbookDetailsComponent', () => {
