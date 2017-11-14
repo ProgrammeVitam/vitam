@@ -79,6 +79,6 @@ vitam:
             # java: ""
     library:
         jvm_opts:
-            # memory: "-Xms512m -Xmx512m"
+            memory: "-Xms32m -Xmx128m"
             # gc: ""
             # java: ""
