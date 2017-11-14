@@ -116,7 +116,7 @@ export class ContextComponent extends PageComponent {
   saveUpdate() {
     if (Object.keys(this.updatedFields).length == 0) {
       this.switchUpdateMode();
-      this.dialogService.displayMessage('Aucune modification effectuée', '');
+      this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée.', '');
       return;
     }
 
@@ -133,17 +133,17 @@ export class ContextComponent extends PageComponent {
           this.switchUpdateMode();
           this.saveRunning = false;
           if (data.httpCode >= 400) {
-            this.dialogService.displayMessage('Erreur de modification. Aucune révision effectuée.', '');
+            this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée.', '');
           } else {
             this.dialogService.displayMessage('Les modifications ont bien été enregistrées.', '');
           }
         }, (error) => {
           this.saveRunning = false;
-          this.dialogService.displayMessage('Erreur de modification. Aucune révision effectuée.', '');
+          this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée.', '');
         });
       }, (error) => {
         this.saveRunning = false;
-        this.dialogService.displayMessage('Erreur de modification. Aucune révision effectuée.', '');
+        this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée.', '');
       });
   }
 

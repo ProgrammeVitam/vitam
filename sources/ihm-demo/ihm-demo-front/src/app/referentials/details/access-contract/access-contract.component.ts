@@ -42,7 +42,7 @@ export class AccessContractComponent  extends PageComponent {
   id: string;
   update : boolean;
   isActif : boolean;
-  updatedFields = {};
+  updatedFields: any = {};
   saveRunning = false;
 
   constructor(private activatedRoute: ActivatedRoute, private router : Router,
@@ -66,15 +66,6 @@ export class AccessContractComponent  extends PageComponent {
     });
   }
 
-
-  getValue(key: string) {
-    return this.contract[key];
-  }
-
-  getKeyName(key: string) {
-    return ACCESS_CONTRACT_KEY_TRANSLATION[key] || key;
-  }
-
   switchUpdateMode() {
     this.update = !this.update;
     this.updatedFields = {};
@@ -96,9 +87,9 @@ export class AccessContractComponent  extends PageComponent {
   }
 
   saveUpdate() {
-    if (Object.keys(this.updatedFields).length == 0) {
+    if (Object.keys(this.updatedFields).length == 0 || this.updatedFields.Name === '') {
       this.switchUpdateMode();
-      this.dialogService.displayMessage('Aucune modification effectuée', '');
+      this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée.', '');
       return;
     }
 
@@ -111,17 +102,17 @@ export class AccessContractComponent  extends PageComponent {
           this.switchUpdateMode();
           this.saveRunning = false;
           if (data.httpCode >= 400) {
-            this.dialogService.displayMessage('Erreur de modification. Aucune révision effectuée.', '');
+            this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée.', '');
           } else {
             this.dialogService.displayMessage('Les modifications ont bien été enregistrées.', '');
           }
         }, (error) => {
           this.saveRunning = false;
-          this.dialogService.displayMessage('Erreur de modification. Aucune révision effectuée.', '');
+          this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée.', '');
         });        
       }, (error) => {
         this.saveRunning = false;
-        this.dialogService.displayMessage('Erreur de modification. Aucune révision effectuée.', '');
+        this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée.', '');
       });
   }
 

@@ -1,11 +1,10 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 import { plainToClass } from 'class-transformer';
 
-import { BreadcrumbService, BreadcrumbElement } from "../../../common/breadcrumb.service";
+import { BreadcrumbService } from "../../../common/breadcrumb.service";
 import { ReferentialsService } from "../../referentials.service";
-import { DateService } from '../../../common/utils/date.service';
 import { PageComponent } from "../../../common/page/page-component";
 import { Rule } from "./rule";
 
