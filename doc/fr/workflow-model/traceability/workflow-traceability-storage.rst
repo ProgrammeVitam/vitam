@@ -16,3 +16,8 @@ Le processus de sécurisation des journaux des écritures consiste en la créati
 	- Un fichier d'information décrivant le périmètre du fichier des logs des journaux sécurisés associé : date de début et date de fin définissant l'intervalle de sélection des logs à sécuriser, ainsi que l'empreinte du fichier logFile et la date de création du .zip
 
 Au niveau du journal des opérations, cette action est entièrement réalisée dans une seule étape (STP_STORAGE_SECURISATION)
+
+* **Status** :
+	* OK : le tampon d'horodatage est calculé (STP_STORAGE_SECURISATION.OK=Succès du processus de sécurisation du journal des écritures)
+	* KO : pas de cas KO
+	* FATAL : une erreur technique est survenue lors de l'horodatage (STP_STORAGE_SECURISATION.FATAL=Erreur fatale lors du processus de sécurisation du journal des écritures)

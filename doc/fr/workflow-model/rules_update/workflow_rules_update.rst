@@ -28,11 +28,11 @@ Préparation des listes d'unités archivistiques à mettre à jour
 
   + **Statuts** :
 
-    - OK : le fichier listant les entrées (qu'il soit vide ou non) a bien été créé (LIST_RUNNING_INGESTS.OK=Succès du listing des processus d'entrée en cours).
+    - OK : le fichier listant les entrées (qu'il soit vide ou non) a bien été créé (LIST_RUNNING_INGESTS.OK=Succès de l'établissement de la liste des processus d'entrée en cours).
 
-    - KO : la liste des entrées en cours n'a pas pu être récupéré, ou alors la liste des ingests n'a pas pu être enregistrée sur le workspace (LIST_RUNNING_INGESTS.KO=Echec du listing des processus d''entrée en cours)
+    - KO : la liste des entrées en cours n'a pas pu être récupéré, ou alors la liste des ingests n'a pas pu être enregistrée sur le workspace (LIST_RUNNING_INGESTS.KO=Échec de l'établissement de la liste des processus d'entrée en cours)
 
-    - FATAL : une erreur technique est survenue lors du listage des entrées  (LIST_RUNNING_INGESTS.FATAL=Erreur fatale lors du listing des processus d''entrée en cours)
+    - FATAL : une erreur technique est survenue lors du listage des entrées  (LIST_RUNNING_INGESTS.FATAL=Erreur fatale lors de l'établissement de la liste des processus d'entrée en cours)
 
 * Liste des unités archivistiques à mettre à jour - LIST_ARCHIVE_UNITS - fichier de sortie : GUID/PROCESSING/auToBeUpdated.json
 
@@ -40,9 +40,9 @@ Préparation des listes d'unités archivistiques à mettre à jour
 
   + **Statuts** :
 
-    - OK : la liste des unités archivistiques à traiter a pu être créée. Les fichiers associés ont bien été créés (LIST_ARCHIVE_UNITS.OK=Succès du listing des unités archivistiques à mettre à jour)
+    - OK : la liste des unités archivistiques à traiter a pu être créée. Les fichiers associés ont bien été créés (LIST_ARCHIVE_UNITS.OK=Succès lors de l'établissement de la liste des unités archivistiques à mettre à jour)
 
-    - FATAL : une erreur technique est survenue lors du listage des unités archivistiques (LIST_ARCHIVE_UNITS.FATAL=Erreur fatale lors du listing des unités archivistiques à mettre à jour)
+    - FATAL : une erreur technique est survenue lors du listage des unités archivistiques (LIST_ARCHIVE_UNITS.FATAL=Erreur fatale lors de l'établissement de la liste des unités archivistiques à mettre à jour)
 
 
 - **Step 2** - STP_UNIT_UPDATE - distribution sur LIST GUID/UnitsWithoutLevel. Etape distribuée.
@@ -55,7 +55,7 @@ Préparation des listes d'unités archivistiques à mettre à jour
 
     - OK : l'unité archivistique a bien été mise à jour  (UPDATE_UNIT_RULES.OK=Succès de la mise à jour des règles de gestion des unités archivistiques).
 
-    - KO : l'unité archivistique n'a pas été trouvée, ou n'a pas pu être mise à jour (UPDATE_UNIT_RULES.KO=Echec de la mise à jour des règles de gestion des unités archivistiques)
+    - KO : l'unité archivistique n'a pas été trouvée, ou n'a pas pu être mise à jour (UPDATE_UNIT_RULES.KO=Échec de la mise à jour des règles de gestion des unités archivistiques)
 
     - FATAL : une erreur technique est survenue lors de la mise à jour de l'unité archivistique (UPDATE_UNIT_RULES.FATAL=Erreur fatale lors de la mise à jour des règles de gestion des unités archivistiques)
 
@@ -67,11 +67,11 @@ Préparation des listes d'unités archivistiques à mettre à jour
 
   + **Statuts** :
 
-    - OK : les entrées en cours ont été finalisées, et les unités archivistiques ont bien été mises à jour  (STP_UPDATE_RUNNING_INGESTS.OK=Succès de la mise à jour des processus d''entrée en cours).
+    - OK : les entrées en cours ont été finalisées, et les unités archivistiques ont bien été mises à jour  (STP_UPDATE_RUNNING_INGESTS.OK=Succès du processus de mise à jour des entrées en cours).
 
-    - KO : un problème a été rencontré avec le fichier des règles de gestion mises à jour (STP_UPDATE_RUNNING_INGESTS.KO=Echec de la mise à jour des processus d''entrée en cours)
+    - KO : un problème a été rencontré avec le fichier des règles de gestion mises à jour (STP_UPDATE_RUNNING_INGESTS.KO=Échec du processus de mise à jour des entrées en cours)
 
-    - FATAL : une erreur technique est survenue lors de la mise à jour des processus d'entrées (STP_UPDATE_RUNNING_INGESTS.FATAL=Erreur fatale lors de la mise à jour des processus d''entrée en cours)
+    - FATAL : une erreur technique est survenue lors de la mise à jour des processus d'entrées (STP_UPDATE_RUNNING_INGESTS.FATAL=Erreur fatale lors du processus de mise à jour des entrées en cours)
 
 
 D'une façon synthétique, le workflow est décrit de cette façon :

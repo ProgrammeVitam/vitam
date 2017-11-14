@@ -31,8 +31,8 @@ Import d'un référentiel des contextes (STP_IMPORT_CONTEXT)
 
   + **Statuts** :
 
-    - OK : Les règles ci-dessus sont respectées (STP_IMPORT_CONTEXT.OK) :
+    - OK : Les règles ci-dessus sont respectées (STP_IMPORT_CONTEXT.OK = Succès du processus d'import du contexte)
 
-    - KO : une des règles ci-dessus n'est pas respectée (STP_IMPORT_CONTEXT.KO)
+    - KO : une des règles ci-dessus n'est pas respectée (STP_IMPORT_CONTEXT.KO=Échec du processus d'import du contexte)
 
-    - FATAL : une erreur technique est survenue lors de l'import du contexte (STP_IMPORT_CONTEXT.FATAL)
+    - FATAL : une erreur technique est survenue lors de l'import du contexte (STP_IMPORT_CONTEXT.FATAL=Erreur fatale lors du processus d'import du contexte)

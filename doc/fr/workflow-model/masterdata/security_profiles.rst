@@ -27,11 +27,11 @@ Import d'un profil de sécurité (STP_IMPORT_SECURITY_PROFILE)
 
   + **Statuts** :
 
-    - OK : les règles ci-dessus sont respectées :
+    - OK : les règles ci-dessus sont respectées (STP_IMPORT_SECURITY_PROFILE.OK=Succès du processus d'import du profil de sécurité)
 
-    - KO : une des règles ci-dessus n'est pas respectée
+    - KO : une des règles ci-dessus n'est pas respectée (STP_IMPORT_SECURITY_PROFILE.KO=Échec du processus d'import du profil de sécurité)
 
-    - FATAL : une erreur technique est survenue lors de l'import du profil de sécurité (STP_IMPORT_SECURITY_PROFILE.FATAL=Erreur fatale lors de l''import du profil de sécurité)
+    - FATAL : une erreur technique est survenue lors de l'import du profil de sécurité (STP_IMPORT_SECURITY_PROFILE.FATAL=Erreur fatale lors du processus d'import du profil de sécurité)
 
 Mise à jour d'un profil de sécurité (STP_UPDATE_SECURITY_PROFILE)
 ---------------------------------------------------------------------

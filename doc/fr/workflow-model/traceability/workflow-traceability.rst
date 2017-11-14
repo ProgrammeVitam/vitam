@@ -15,8 +15,8 @@ Le processus de sécurisation des journaux consiste en la création d'un fichier
 
 Ce fichier zip est ensuite enregistré sur les offres de stockage, en fonction de la stratégie de stockage.
 
-Sécurisation des journaux (STP_OP_SECURISATION)
-===============================================
+Sécurisation du journal des opérations (STP_OP_SECURISATION)
+============================================================
 
 OP_SECURISATION_TIMESTAMP (LogbookAdministration.java)
 ------------------------------------------------------
@@ -24,8 +24,8 @@ OP_SECURISATION_TIMESTAMP (LogbookAdministration.java)
 * **Règle** : calcul du tampon d'horodatage à partir de la racine de l'arbre de merkle consitué de la liste des journaux qui sont en train d'être sécurisés.
 * **Type** : bloquant
 * **Status** :
-	* OK : le tampon d'horodatage est calculé (OP_SECURISATION_TIMESTAMP.OK=Succès de création du tampon d'horodatage de l'ensemble des journaux)
-	* FATAL : une erreur technique est survenue lors de l'horodatage (OP_SECURISATION_TIMESTAMP.FATAL=Erreur fatale lors de création du tampon  d'horodatage de l'ensemble des journaux)
+	* OK : le tampon d'horodatage est calculé (OP_SECURISATION_TIMESTAMP.OK=Succès de la création du tampon d'horodatage de l'ensemble des journaux)
+	* FATAL : une erreur technique est survenue lors de l'horodatage (OP_SECURISATION_TIMESTAMP.FATAL=Erreur fatale lors de la création du tampon d'horodatage de l'ensemble des journaux)
 
 OP_SECURISATION_STORAGE (LogbookAdministration.java)
 ------------------------------------------------------
@@ -33,8 +33,8 @@ OP_SECURISATION_STORAGE (LogbookAdministration.java)
 * **Règle** : écriture des journaux sécurisés sur les offres de stockage, en fonction de la stratégie de stockage.
 * **Type** : bloquant
 * **Status** :
-	* OK : le journal sécurisé est écrit sur les offres de stockage (OP_SECURISATION_STORAGE.OK=Succès du stockage des journaux)
-	* FATAL : une erreur technique est survenue lors de l'écriture du journal sécurisé (OP_SECURISATION_STORAGE.FATAL=Erreur fatale du stockage des journaux)
+	* OK : le journal sécurisé est écrit sur les offres de stockage (OP_SECURISATION_STORAGE.OK=Succès de l'enregistrement des journaux sur les offres de stockage)
+	* FATAL : une erreur technique est survenue lors de l'écriture du journal sécurisé (OP_SECURISATION_STORAGE.FATAL=Erreur fatale lors de l'enregistrement des journaux sur les offres de stockage)
 
 D'une façon synthétique, le workflow est décrit de cette façon.
 

@@ -28,11 +28,11 @@ Préparation des listes des cycles de vie
 
   + **Statuts** :
 
-    - OK : les fichiers des cycles de vie ont été exportés (dans UnitsWithoutLevel et ObjectGroup) ainsi que les informations concernant les dernières opérations de sécurisation (PREPARE_LC_TRACEABILITY.OK=Succès du processus de listage des cycles de vie)
+    - OK : les fichiers des cycles de vie ont été exportés (dans UnitsWithoutLevel et ObjectGroup) ainsi que les informations concernant les dernières opérations de sécurisation (PREPARE_LC_TRACEABILITY.OK=Succès du listage des journaux du cycle de vie)
 
-    - KO : les informations sur la dernière opération de sécurisation n'ont pas pu être obtenues / exportées, ou un problème a été rencontré avec un cycle de vie (PREPARE_LC_TRACEABILITY.KO=Échec du processus de listage des cycles de vie)
+    - KO : les informations sur la dernière opération de sécurisation n'ont pas pu être obtenues / exportées, ou un problème a été rencontré avec un cycle de vie (PREPARE_LC_TRACEABILITY.KO=Échec du listage des journaux du cycle de vie)
 
-    - FATAL : une erreur technique est survenue (PREPARE_LC_TRACEABILITY.FATAL=Erreur fatale lors du processus de listage des cycles de vie)
+    - FATAL : une erreur technique est survenue (PREPARE_LC_TRACEABILITY.FATAL=Erreur fatale lors du listage des journaux du cycle de vie)
 
 
 - **Step 2** - STP_OG_CREATE_SECURED_FILE -  distribution sur LIST - fichiers présents dans GUID/ObjectGroup
@@ -45,11 +45,11 @@ Préparation des listes des cycles de vie
 
   + **Statuts** :
 
-    - OK : le fichier sécurisé pour le cycle de vie en cours a été généré (STP_OG_CREATE_SECURED_FILE.OK=Succès du processus de gestion des groupes d''objets)
+    - OK : le fichier sécurisé pour le cycle de vie en cours a été généré (STP_OG_CREATE_SECURED_FILE.OK=Succès du processus de sécurisation des groupes d'objets)
 
-    - KO : le fichier pour le groupe d'objet n'a pas pu être trouvé (STP_OG_CREATE_SECURED_FILE.KO=Échec du processus de gestion des groupes d''objets)
+    - KO : le fichier pour le groupe d'objet n'a pas pu être trouvé (STP_OG_CREATE_SECURED_FILE.KO=Échec du processus de sécurisation des groupes d'objets)
 
-    - FATAL : une erreur technique est survenue lors de la génération des fichiers sécurisés (STP_OG_CREATE_SECURED_FILE.FATAL=Erreur fatale lors du processus de gestion des groupes d''objets)
+    - FATAL : une erreur technique est survenue lors de la génération des fichiers sécurisés (STP_OG_CREATE_SECURED_FILE.FATAL=Erreur fatale lors du processus de sécurisation des groupes d'objets)
 
 - **Step 3** - STP_UNITS_CREATE_SECURED_FILE -  distribution sur LIST - fichiers présents dans GUID/ObjectGroup
 
@@ -61,11 +61,11 @@ Préparation des listes des cycles de vie
 
   + **Statuts** :
 
-    - OK : le fichier sécurisé pour le cycle de vie en cours a été généré (UNITS_CREATE_SECURED_FILE.OK=Succès du processus de sécurisation des cycles de vie des unités archivistiques)
+    - OK : le fichier sécurisé pour le cycle de vie en cours a été généré (UNITS_CREATE_SECURED_FILE.OK=Succès du processus de sécurisation des journaux du cycle de vie des unités archivistiques)
 
-    - KO : le fichier pour le groupe d'objet n'a pas pu être trouvé (UNITS_CREATE_SECURED_FILE.KO=Échec du processus de sécurisation des cycles de vie des unités archivistiques)
+    - KO : le fichier pour le groupe d'objet n'a pas pu être trouvé (UNITS_CREATE_SECURED_FILE.KO=Échec du processus de sécurisation des journaux du cycle de vie des unités archivistiques)
 
-    - FATAL : une erreur technique est survenue lors de la génération des fichiers sécurisés (UNITS_CREATE_SECURED_FILE.FATAL=Erreur fatale lors du processus de sécurisation des cycles de vie des unités archivistiques)
+    - FATAL : une erreur technique est survenue lors de la génération des fichiers sécurisés (UNITS_CREATE_SECURED_FILE.FATAL=Erreur fatale lors du processus de sécurisation des journaux du cycle de vie des unités archivistiques)
 
 - **Step 4** - STP_GLOBAL_SECURISATION -  distribution sur REF
 
@@ -77,11 +77,11 @@ Préparation des listes des cycles de vie
 
   + **Statuts** :
 
-    - OK : le fichier zip final a été créé et sauvegarder sur les offres de stockage (FINALIZE_LC_TRACEABILITY.OK=Succès du processus de sécurisation des cycles de vie)
+    - OK : le fichier zip final a été créé et sauvegarder sur les offres de stockage (FINALIZE_LC_TRACEABILITY.OK=Succès de la sécurisation des journaux du cycle de vie)
 
-    - KO : le fichier zip n'a pas pu être généré ou sauvegardé sur les offres (FINALIZE_LC_TRACEABILITY.KO=Echec du processus de sécurisation des cycles de vie)
+    - KO : le fichier zip n'a pas pu être généré ou sauvegardé sur les offres (FINALIZE_LC_TRACEABILITY.KO=Échec de la sécurisation des journaux du cycle de vie)
 
-    - FATAL : une erreur technique est survenue lors de la création du fichier zip final et de la sauvegarde sur les offres de stockage (FINALIZE_LC_TRACEABILITY.FATAL=Erreur fatale lors du processus de sécurisation des cycles de vie)
+    - FATAL : une erreur technique est survenue lors de la création du fichier zip final et de la sauvegarde sur les offres de stockage (FINALIZE_LC_TRACEABILITY.FATAL=Erreur fatale lors de la sécurisation des journaux du cycle de vie)
 
 D'une façon synthétique, le workflow est décrit de cette façon :
 

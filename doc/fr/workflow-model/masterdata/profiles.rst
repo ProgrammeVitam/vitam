@@ -35,11 +35,11 @@ Import des métadonnées d'un profil d'archivage (STP_IMPORT_PROFILE_JSON)
 
   + **Statuts** :
 
-    - OK : les règles ci-dessus sont respectées
+    - OK : les règles ci-dessus sont respectées (STP_IMPORT_PROFILE_JSON.OK=Succès du processus d'import du profil d'archivage)
 
-    - KO : une des règles ci-dessus n'a pas été respecté
+    - KO : une des règles ci-dessus n'a pas été respecté (STP_IMPORT_PROFILE_JSON.KO=Échec du processus d'import du profil d'archivage)
 
-    - FATAL : une erreur technique est survenue lors de la vérification de l'import du profil d'archivage (STP_IMPORT_PROFILE_JSON.FATAL=Erreur fatale lors de l'import du profil d'archivage)
+    - FATAL : une erreur technique est survenue lors de la vérification de l'import du profil d'archivage (STP_IMPORT_PROFILE_JSON.FATAL=Erreur fatale lors du processus d'import du profil d'archivage)
 
 Mise à jour d'un profil d'archivage (STP_UPDATE_PROFILE_JSON)
 ----------------------------------------------------------------------
@@ -57,8 +57,8 @@ Import d'une description de profil d'archivage (STP_IMPORT_PROFILE_FILE)
 
   + **Statuts** :
 
-    - OK : le fichier importé est au même format que celui décrit dans le champ "Format"
+    - OK : le fichier importé est au même format que celui décrit dans le champ "Format" (STP_IMPORT_PROFILE_FILE.OK=Succès du processus d'import du profil d'archivage (fichier xsd ou rng)
 
-    - KO : le fichier importé n'est pas au même format que celui décrit dans le champ "Format"
+    - KO : le fichier importé n'est pas au même format que celui décrit dans le champ "Format" (STP_IMPORT_PROFILE_FILE.KO=Échec du processus d'import du profil d'archivage (fichier xsd ou rng))
 
-    - FATAL : une erreur technique est survenue lors de la vérification de l'import du profil d'archivage (STP_IMPORT_PROFILE_JSON.FATAL=Erreur fatale lors de l'import du profil d'archivage)
+    - FATAL : une erreur technique est survenue lors de la vérification de l'import du profil d'archivage (STP_IMPORT_PROFILE_FILE.FATAL=Erreur fatale lors du processus d'import du profil d'archivage (fichier xsd ou rng))
