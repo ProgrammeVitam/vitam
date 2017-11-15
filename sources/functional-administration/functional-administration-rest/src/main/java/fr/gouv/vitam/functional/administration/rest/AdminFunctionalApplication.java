@@ -39,7 +39,6 @@ import java.util.Map;
 import java.util.Set;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
