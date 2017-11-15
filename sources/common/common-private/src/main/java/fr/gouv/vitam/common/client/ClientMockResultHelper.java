@@ -140,6 +140,7 @@ public class ClientMockResultHelper {
         "\"Description\":\"DESCRIPTION D'UN CONTRAT\", " +
         "\"Status\":\"ACTIVE\", " +
         "\"CreationDate\":\"2016-11-02\", " +
+        "\"ArchiveProfiles\":[\"FakeProfile\"], " +
         "\"LastUpdate\":\"2016-11-02\", " +
         "\"ActivationDate\":\"2016-11-02\", " +
         "\"DeactivationDate\":\"2016-11-02\"}";

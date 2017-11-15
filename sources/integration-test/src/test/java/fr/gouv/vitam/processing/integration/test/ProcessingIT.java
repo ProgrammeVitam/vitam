@@ -56,17 +56,6 @@ import java.util.zip.ZipOutputStream;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
-import org.bson.Document;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -149,6 +138,7 @@ import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.UnitInheritedRule;
+import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
@@ -501,26 +491,30 @@ public class ProcessingIT {
 
                 File fileProfiles = PropertiesUtils.getResourceFile("integration-processing/OK_profil.json");
                 List<ProfileModel> profileModelList =
-                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {});
-                RequestResponse improrResponse = client.createProfiles(profileModelList);
+                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {
+                    });
+                client.createProfiles(profileModelList);
 
                 RequestResponseOK<ProfileModel> response =
                     (RequestResponseOK<ProfileModel>) client.findProfiles(new Select().getFinalSelect());
                 client.importProfileFile(response.getResults().get(0).getIdentifier(),
-                    PropertiesUtils.getResourceAsStream("integration-processing/Profil20.rng"));
+                    PropertiesUtils.getResourceAsStream("integration-processing/profil_ok.rng"));
+
 
                 // import contract
                 File fileContracts =
                     PropertiesUtils.getResourceFile("integration-processing/referential_contracts_ok.json");
                 List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
-                    new TypeReference<List<IngestContractModel>>() {});
+                    new TypeReference<List<IngestContractModel>>() {
+                    });
 
                 Status importStatus = client.importIngestContracts(IngestContractModelList);
 
                 // import access contract
                 File fileAccessContracts = PropertiesUtils.getResourceFile(ACCESS_CONTRACT);
                 List<AccessContractModel> accessContractModelList = JsonHandler
-                    .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {});
+                    .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
+                    });
                 client.importAccessContracts(accessContractModelList);
             } catch (final Exception e) {
                 LOGGER.error(e);
@@ -614,7 +608,8 @@ public class ProcessingIT {
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
 
             functionalClient.importIngestContracts(IngestContractModelList);
 
@@ -748,7 +743,7 @@ public class ProcessingIT {
             assertNotNull(processAuditWorkflow);
             assertEquals(ProcessState.COMPLETED, processAuditWorkflow.getState());
             assertEquals(StatusCode.OK, processAuditWorkflow.getStatus());
-            
+
             fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
                 new fr.gouv.vitam.common.database.builder.request.single.Select();
             selectQuery.setQuery(QueryHelper.eq("evTypeProc", "AUDIT"));
@@ -853,14 +848,13 @@ public class ProcessingIT {
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
             wait(containerName);
+
             ProcessWorkflow processWorkflow =
                 processMonitoring.findOneProcessWorkflow(containerName, tenantId);
             assertNotNull(processWorkflow);
-            // FIXME : the status is FATAL (STP_ACCESSION_REGISTRATION : IllegalArgumentException: Tenant id should be
-            // filled)
-            // Should check that state is COMPLETE and status is OK, Actually state is set to PAUSE (#3176)
-            // assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            // assertEquals(StatusCode.OK, processWorkflow.getStatus());
+
+            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
 
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
             fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
@@ -868,14 +862,13 @@ public class ProcessingIT {
             selectQuery.setQuery(QueryHelper.eq("evIdProc", containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
             JsonNode logbookNode = logbookResult.get("$results").get(0);
-            assertEquals(logbookNode.get("obIdIn").asText(),
-                "Transfert des enregistrements des délibérations de l'assemblée départementale");
+            assertEquals(logbookNode.get("rightsStatementIdentifier").asText(),
+                "{\"ArchivalAgreement\":\"IC_WITH_PROFILE\",\"ArchivalProfile\":\"PR-000001\"}");
             JsonNode agIdExt = JsonHandler.getFromString(logbookNode.get("agIdExt").asText());
 
-            assertEquals(agIdExt.get("submissionAgency").asText(), "https://demo.logilab.fr/seda/157118");
-            assertEquals(agIdExt.get("originatingAgency").asText(), "https://demo.logilab.fr/seda/157118");
-            assertEquals(agIdExt.get("ArchivalAgency").asText(), "https://demo.logilab.fr/seda/213109");
-            assertEquals(agIdExt.get("TransferringAgency").asText(), "https://demo.logilab.fr/seda/157118");
+            assertEquals(agIdExt.get("originatingAgency").asText(), "producteur1");
+            assertEquals(agIdExt.get("ArchivalAgency").asText(), "producteur1");
+            assertEquals(agIdExt.get("TransferringAgency").asText(), "producteur1");
 
             assertTrue(logbookNode.get("evDetData").asText().contains("EvDetailReq"));
             assertTrue(logbookNode.get("evDetData").asText().contains("EvDateTimeReq"));
@@ -3206,7 +3199,8 @@ public class ProcessingIT {
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
 
             functionalClient.importIngestContracts(IngestContractModelList);
 
@@ -3394,7 +3388,7 @@ public class ProcessingIT {
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
-        
+
     }
 
 }

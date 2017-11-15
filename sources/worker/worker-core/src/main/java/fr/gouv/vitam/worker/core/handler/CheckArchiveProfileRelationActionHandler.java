@@ -30,6 +30,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -42,7 +43,6 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.administration.ContractStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.ProfileStatus;
@@ -90,7 +90,7 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
     public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) {
         checkMandatoryParameters(params);
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-        final String profileIdentifier = (String) handlerIO.getInput(PROFILE_IDENTIFIER_RANK);
+        String profileIdentifier = (String) handlerIO.getInput(PROFILE_IDENTIFIER_RANK);
         final String ingestContractIdentifier = (String) handlerIO.getInput(CONTRACT_IDENTIFIER_RANK);
         CheckProfileStatus status = null;
 
@@ -98,54 +98,65 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
         String dataValue = null;
         try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
 
-            // Check that profile exists and not inactive
-            Select select = new Select();
-            select.setQuery(QueryHelper.eq(Profile.IDENTIFIER, profileIdentifier));
-            RequestResponse<ProfileModel> response = adminClient.findProfiles(select.getFinalSelect());
-            if (response.isOk()) {
-                List<ProfileModel> results = ((RequestResponseOK<ProfileModel>) response).getResults();
-                if (null != results & results.size() > 0) {
-                    final ProfileModel profile = results.iterator().next();
-                    if (!ProfileStatus.ACTIVE.equals(profile.getStatus())) {
-                        status = CheckProfileStatus.INACTIVE;
+            if (ParametersChecker.isNotEmpty(profileIdentifier)) {
+                // Check that profile exists and not inactive
+                Select select = new Select();
+                select.setQuery(QueryHelper.eq(Profile.IDENTIFIER, profileIdentifier));
+                RequestResponse<ProfileModel> response = adminClient.findProfiles(select.getFinalSelect());
+                if (response.isOk()) {
+                    List<ProfileModel> results = ((RequestResponseOK<ProfileModel>) response).getResults();
+                    if (null != results & results.size() > 0) {
+                        final ProfileModel profile = results.iterator().next();
+                        if (!ProfileStatus.ACTIVE.equals(profile.getStatus())) {
+                            status = CheckProfileStatus.INACTIVE;
+                        }
+                    } else {
+                        dataKey = THE_PROFILE_NOT_FOUND;
+                        dataValue = profileIdentifier;
+                        status = CheckProfileStatus.UNKNOWN;
                     }
                 } else {
-                    dataKey = THE_PROFILE_NOT_FOUND;
+                    dataKey = CAN_NOT_GET_THE_PROFILE;
                     dataValue = profileIdentifier;
                     status = CheckProfileStatus.UNKNOWN;
                 }
-            } else {
-                dataKey = CAN_NOT_GET_THE_PROFILE;
-                dataValue = profileIdentifier;
-                status = CheckProfileStatus.UNKNOWN;
-            }
 
+            } else {
+                //Force to null even if profileIdentifier is empty not null string
+                profileIdentifier = null;
+            }
             // Validate profile according to contract
             if (null == status) {
-                select = new Select();
-                select.setQuery(QueryHelper.eq(IngestContract.IDENTIFIER, ingestContractIdentifier));
-                JsonNode queryDsl = select.getFinalSelect();
-                RequestResponse<IngestContractModel> referenceContracts = adminClient.findIngestContracts(queryDsl);
-                if (referenceContracts.isOk()) {
-                    List<IngestContractModel> results =
-                        ((RequestResponseOK<IngestContractModel>) referenceContracts).getResults();
-                    if (null != results && results.size() > 0) {
-                        IngestContractModel contract = results.iterator().next();
-                        if (contract.getArchiveProfiles().contains(profileIdentifier)) {
-                            status = CheckProfileStatus.OK;
+
+                if (ParametersChecker.isNotEmpty(ingestContractIdentifier)) {
+                    Select select = new Select();
+                    select.setQuery(QueryHelper.eq(IngestContract.IDENTIFIER, ingestContractIdentifier));
+                    JsonNode queryDsl = select.getFinalSelect();
+                    RequestResponse<IngestContractModel> referenceContracts = adminClient.findIngestContracts(queryDsl);
+                    if (referenceContracts.isOk()) {
+                        List<IngestContractModel> results =
+                            ((RequestResponseOK<IngestContractModel>) referenceContracts).getResults();
+                        if (null != results && results.size() > 0) {
+                            IngestContractModel contract = results.iterator().next();
+                            if ((null == profileIdentifier && contract.getArchiveProfiles().isEmpty()) ||
+                                (contract.getArchiveProfiles().contains(profileIdentifier))) {
+                                status = CheckProfileStatus.OK;
+                            } else {
+                                status = CheckProfileStatus.DIFF;
+                            }
                         } else {
-                            status = CheckProfileStatus.DIFF;
+                            dataKey = CAN_NOT_GET_THE_INGEST_CONTRACT;
+                            dataValue = ingestContractIdentifier;
+                            status = CheckProfileStatus.UNKNOWN;
                         }
                     } else {
+
                         dataKey = CAN_NOT_GET_THE_INGEST_CONTRACT;
                         dataValue = ingestContractIdentifier;
                         status = CheckProfileStatus.UNKNOWN;
                     }
                 } else {
-
-                    dataKey = CAN_NOT_GET_THE_INGEST_CONTRACT;
-                    dataValue = ingestContractIdentifier;
-                    status = CheckProfileStatus.UNKNOWN;
+                    status = CheckProfileStatus.OK;
                 }
             }
         } catch (InvalidCreateOperationException | InvalidParseOperationException |
@@ -156,10 +167,6 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
             LOGGER.error(UNKNOWN_TECHNICAL_EXCEPTION, e);
             itemStatus.increment(StatusCode.FATAL);
             return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-        }
-
-        if (status.equals(CheckProfileStatus.OK)) {
-            status = checkProfilStatus(profileIdentifier);
         }
 
         switch (status) {
@@ -196,36 +203,6 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
 
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
 
-    }
-
-    private CheckProfileStatus checkProfilStatus(String profileIdentifier) {
-        try (final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-
-            Select select = new Select();
-            select.setQuery(QueryHelper.eq(Profile.IDENTIFIER, profileIdentifier));
-            JsonNode queryDsl = select.getFinalSelect();
-
-            RequestResponse<ProfileModel> referenceProfils = client.findProfiles(queryDsl);
-
-            if (referenceProfils.isOk()) {
-                List<ProfileModel> results = ((RequestResponseOK) referenceProfils).getResults();
-                if (!results.isEmpty()) {
-                    for (ProfileModel result : results) {
-                        String status = result.getStatus().toString();
-                        if (status.equals(ContractStatus.ACTIVE.toString()) &&
-                            result.getIdentifier().equals(profileIdentifier)) {
-                            return CheckProfileStatus.OK;
-                        } else {
-                            return CheckProfileStatus.INACTIVE;
-                        }
-                    }
-                }
-            }
-        } catch (InvalidCreateOperationException | AdminManagementClientServerException | InvalidParseOperationException e) {
-            LOGGER.error(e);
-        }
-
-        return CheckProfileStatus.KO;
     }
 
     @Override
