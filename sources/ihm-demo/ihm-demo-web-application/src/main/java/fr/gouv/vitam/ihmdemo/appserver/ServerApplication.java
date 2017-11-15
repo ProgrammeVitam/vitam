@@ -36,6 +36,8 @@ import java.util.Set;
 
 import javax.servlet.DispatcherType;
 
+import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.apache.shiro.web.env.EnvironmentLoaderListener;
 import org.apache.shiro.web.servlet.ShiroFilter;
@@ -221,7 +223,7 @@ public class ServerApplication extends AbstractVitamApplication<ServerApplicatio
 
     @Override
     protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-        // do not expose admin resource
-        return false;
+        resourceConfig.register(new AdminStatusResource(new VitamServiceRegistry()));
+        return true;
     }
 }
