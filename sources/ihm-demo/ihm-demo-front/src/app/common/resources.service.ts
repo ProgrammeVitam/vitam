@@ -54,8 +54,8 @@ export class ResourcesService {
     return this.post('accesscontracts', null, {"ContractName":"all","Status":"ACTIVE"});
   }
 
-  setAccessContract(contractName: string) {
-    this.cookies.put(CONTRACT_COOKIE, contractName);
+  setAccessContract(contractIdentifier: string) {
+    this.cookies.put(CONTRACT_COOKIE, contractIdentifier);
   }
 
   getAccessContract() {

@@ -134,8 +134,6 @@ public class FunctionalAdminIT {
     static int mongoPort;
     static ElasticsearchTestConfiguration config;
 
-    private static final String logbookSecurisation = "RULES_SECURISATION";
-    private static final String file_name = "RULES";
     private static final String REST_URI = StorageClientFactory.RESOURCE_PATH;
     private static final String LOGBOOK_REST_URI = LogbookOperationsClientFactory.RESOURCE_PATH;
 

@@ -295,7 +295,7 @@
           <li class="dropdown" style="padding-top: 25px; right:50px">
             <span for="accessContractId" style="display:inline">Contrat d'accès :</span>
             <select style="margin-left: 5px; max-width: 300px" ng-model="accessContratId" id = "accessContractId"  ng-change="changeContract(accessContratId)">
-              <option ng-repeat='contract in contracts' value="{{contract.Name}}">{{contract.Name}}</option>
+              <option ng-repeat='contract in contracts' value="{{contract.Identifier}}">{{contract.Name}}</option>
               <option value=" "> </option>
             </select>
           </li>
