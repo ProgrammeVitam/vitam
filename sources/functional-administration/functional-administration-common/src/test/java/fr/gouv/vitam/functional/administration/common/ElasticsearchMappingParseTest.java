@@ -87,6 +87,16 @@ public class ElasticsearchMappingParseTest {
         parseAndValidateMappingFile(ElasticsearchAccessFunctionalAdmin.MAPPING_SECURITY_PROFILE_FILE);
     }
 
+    @Test
+    public void testAccessionRegisterSummaryElasticsearchMapping() throws Exception {
+        parseAndValidateMappingFile(ElasticsearchAccessFunctionalAdmin.MAPPING_ACCESSION_REGISTER_SUMMARY_FILE);
+    }
+
+    @Test
+    public void testAccessionRegisterDetailElasticsearchMapping() throws Exception {
+        parseAndValidateMappingFile(ElasticsearchAccessFunctionalAdmin.MAPPING_ACCESSION_REGISTER_DETAIL_FILE);
+    }
+
     private void parseAndValidateMappingFile(String resourceFileName) throws InvalidParseOperationException {
 
         Map<String, String> result = parseMapping(resourceFileName);

@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.Agencies;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.Profile;
@@ -77,6 +79,9 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
     public static final String MAPPING_PROFILE_FILE = "/profile-es-mapping.json";
     public static final String MAPPING_CONTEXT_FILE = "/context-es-mapping.json";
     public static final String MAPPING_SECURITY_PROFILE_FILE = "/securityprofile-es-mapping.json";
+
+    public static final String MAPPING_ACCESSION_REGISTER_SUMMARY_FILE = "/accessionregistersummary-es-mapping.json";
+    public static final String MAPPING_ACCESSION_REGISTER_DETAIL_FILE = "/accessionregisterdetail-es-mapping.json";
 
     /**
      * @param clusterName
@@ -242,6 +247,12 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
             return ElasticsearchUtil.transferJsonToMapping(Agencies.class.getResourceAsStream(MAPPING_AGENCIES_FILE));
         } else if (collection.equals(FunctionalAdminCollections.SECURITY_PROFILE)) {
             return ElasticsearchUtil.transferJsonToMapping(SecurityProfile.class.getResourceAsStream(MAPPING_SECURITY_PROFILE_FILE));
+        } else if (FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.equals(collection)) {
+            return ElasticsearchUtil.transferJsonToMapping(AccessionRegisterSummary.class.getResourceAsStream
+                (MAPPING_ACCESSION_REGISTER_SUMMARY_FILE));
+        } else if (FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.equals(collection)) {
+            return ElasticsearchUtil.transferJsonToMapping(AccessionRegisterDetail.class.getResourceAsStream
+                (MAPPING_ACCESSION_REGISTER_DETAIL_FILE));
         }
         return "";
     }

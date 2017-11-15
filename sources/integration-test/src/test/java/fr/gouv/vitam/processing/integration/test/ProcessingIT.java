@@ -129,6 +129,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -428,12 +429,19 @@ public class ProcessingIT {
 
 
     @After
-    public void afterTest() {
+    public void afterTest() throws Exception {
         MongoDatabase db = mongoClient.getDatabase("Vitam");
         db.getCollection("Unit").deleteMany(new Document());
         db.getCollection("ObjectGroup").deleteMany(new Document());
         db.getCollection("AccessionRegisterSummary").deleteMany(new Document());
+        db.getCollection("AccessionRegisterDetail").deleteMany(new Document());
         db.getCollection("LogbookOperation").deleteMany(new Document());
+        FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getEsClient().deleteIndex(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
+        FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getEsClient().addIndex(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
+        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getEsClient().deleteIndex(FunctionalAdminCollections
+            .ACCESSION_REGISTER_DETAIL);
+        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getEsClient().addIndex(FunctionalAdminCollections
+            .ACCESSION_REGISTER_DETAIL);
     }
 
     @Test
