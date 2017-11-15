@@ -802,6 +802,18 @@ Détail des champs
   ``"LastUpdate": "2017-04-10T11:30:33.798",``
   * Cardinalité : 1-1 
 
+**"ActivationDate":** date d'activation du contexte.
+
+  * La date est au format ISO 8601
+  ``Exemple : "ActivationDate": "2017-04-10T11:30:33.798"``
+  * Cardinalité : 0-1
+
+**"DeactivationDate":** date de désactivation du contexte.
+
+  * La date est au format ISO 8601
+  ``Exemple : "DeactivationDate": "2017-04-10T11:30:33.798"``
+  * Cardinalité : 0-1
+
 **"Identifier":** identifiant signifiant donné au contexte applicatif.
   
   * Il est consituté du préfixe "CT-" suivi d'une suite de 6 chiffres. Par exemple : CT-001573.
