@@ -106,15 +106,15 @@
     enabled: yes
 
 - name: Deploy mongo-express container
-  docker:
+  docker_container:
     name: "mongo-express"
     image: "mongo-express:{{mongo_express_version}}"
     state: started
     restart_policy: always
     ports:
       - "{{mongo_express_external_port}}:{{mongo_express_port}}"
-    extra_hosts:
-        host1:  "{{ip_service}}"
+    # extra_hosts:
+    #     host1:  "{{ip_service}}"
     env:
       ME_CONFIG_MONGODB_SERVER: "{{ groups['mongos'][0] }}"
       ME_CONFIG_MONGODB_PORT: "{{ mongodb.mongos_port }}"
@@ -124,12 +124,12 @@
       ME_CONFIG_MONGODB_ADMINPASSWORD: "{{mongoAdminPassword}}"
 
 - name: Deploy elasticsearch-head container
-  docker:
+  docker_container:
     name: "elasticsearch-head"
     image: "mobz/elasticsearch-head:{{elasticsearch_head_version}}"
     state: started
     restart_policy: always
     ports:
       - "{{elasticsearch_head_external_port}}:{{elasticsearch_head_port}}"
-    extra_hosts:
-        host1:  "{{ip_service}}"
+    # extra_hosts:
+    #     host1:  "{{ip_service}}"
