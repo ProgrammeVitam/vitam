@@ -1,19 +1,24 @@
-import {Component, EventEmitter} from '@angular/core';
-import {DatePipe} from '@angular/common';
-import {ColumnDefinition} from '../../common/generic-table/column-definition';
-import {LogbookService} from '../logbook.service';
+import { Component, EventEmitter } from '@angular/core';
+import { ColumnDefinition } from '../../common/generic-table/column-definition';
+import { LogbookService } from '../logbook.service';
 import { IngestUtilsService } from '../../common/utils/ingest-utils.service';
-import {FieldDefinition} from '../../common/search/field-definition';
-import {Preresult} from '../../common/search/preresult';
-import {VitamResponse} from "../../common/utils/response";
-import {BreadcrumbService, BreadcrumbElement} from "../../common/breadcrumb.service";
-import {Title} from '@angular/platform-browser';
-import {PageComponent} from "../../common/page/page-component";
-import {ArchiveUnitHelper} from "../../archive-unit/archive-unit.helper";
+import { FieldDefinition } from '../../common/search/field-definition';
+import { Preresult } from '../../common/search/preresult';
+import { VitamResponse } from "../../common/utils/response";
+import { BreadcrumbService, BreadcrumbElement } from "../../common/breadcrumb.service";
+import { Title } from '@angular/platform-browser';
+import { PageComponent } from "../../common/page/page-component";
+import { ArchiveUnitHelper } from "../../archive-unit/archive-unit.helper";
 
 const breadcrumb: BreadcrumbElement[] = [
   {label: 'Entrée', routerLink: ''},
   {label: 'Suivi des opérations d\'entrée', routerLink: 'ingest/logbook'}
+];
+
+const operationType = [
+  {label : "Tous", value : ""},
+  {label : "Upload d'un SIP", value : "PROCESS_SIP_UNITARY"},
+  {label : "Plan de classement", value : "FILINGSCHEME"}
 ];
 
 @Component({
@@ -28,7 +33,10 @@ export class LogbookComponent extends PageComponent {
   public searchForm: any = {};
 
   public logbookData = [
-    FieldDefinition.createIdField('evId', 'Identifiant', 12, 4)
+    FieldDefinition.createIdField('evId', 'Identifiant de la demande d\'entrée', 6, 8),
+    FieldDefinition.createSelectMultipleField('evType', "Catégorie d\'opération", operationType, 6, 10),
+    FieldDefinition.createDateField('IngestStartDate', 'Date de début', 6, 10),
+    FieldDefinition.createDateField('IngestEndDate', 'Date de fin', 6, 10),
   ];
 
   public initialSearch(service: any, responseEvent: EventEmitter<any>, form: any, offset) {
@@ -48,16 +56,16 @@ export class LogbookComponent extends PageComponent {
     ColumnDefinition.makeStaticColumn('obIdIn', 'Identifiant de la demande d\'entrée',
         undefined, () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeSpecialValueColumn('Intitulé',
-        (item) => !!item.evDetData ? JSON.parse(item.evDetData).EvDetailReq : '', undefined,
+        (item) => (!!item.evDetData && JSON.parse(item.evDetData).EvDetailReq) ? JSON.parse(item.evDetData).EvDetailReq : '', undefined,
         () => ({'width': '200px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeSpecialValueColumn('Statut',
         (item) => item.events[1], LogbookComponent.handleStatus,
         () => ({'width': '125px'})),
     ColumnDefinition.makeSpecialValueColumn('Service versant',
-        (item) => !!item.evDetData ? JSON.parse(item.evDetData).AgIfTrans : '', undefined,
+        (item) => (!!item.evDetData && JSON.parse(item.evDetData).AgIfTrans) ? JSON.parse(item.evDetData).AgIfTrans : '', undefined,
         () => ({'width': '125px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeSpecialValueColumn('Contrat',
-        (item) => !!item.evDetData ? JSON.parse(item.evDetData).ArchivalAgreement : '', undefined,
+        (item) => (!!item.evDetData && JSON.parse(item.evDetData).ArchivalAgreement) ? JSON.parse(item.evDetData).ArchivalAgreement : '', undefined,
         () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeStaticColumn('evDateTime', 'Début opération', this.archiveUnitHelper.handleDateWithTime,
         () => ({'width': '100px'})),
@@ -137,9 +145,28 @@ export class LogbookComponent extends PageComponent {
   public preSearchFunction(request): Preresult {
     let preResult = new Preresult();
     request.INGEST = 'all';
-    if (request.obIdIn === '') {
-      delete request.obIdIn;
+    if (request.evId) {
+      request = {
+        'INGEST': 'all',
+        'evId': request.evId
+      };
+    } else {
+      for (let i in request) {
+        if (!request[i] || request[i] === '') {
+          delete request[i];
+        }
+      }
+      if (request.evType) {
+        if (typeof request.evType == 'object') {
+          if (request.evType.length === 1) {
+            request.evType = request.evType[0];
+          } else {
+            delete request.evType;
+          }
+        }
+      }
     }
+
     request.orderby = {
       field: 'evDateTime',
       sortType: 'DESC'

@@ -475,4 +475,54 @@ public class DslQueryHelperTest {
         assertTrue(orderBy.get("evDateTime").asInt() == -1);
     }
 
+    /**
+     * Tests testIngestDateDSLQuery: method : main scenario
+     *
+     * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException
+     */
+    @Test
+    public void testIngestDateDSLQuery()
+            throws InvalidParseOperationException, InvalidCreateOperationException {
+        final Map<String, Object> queryMap = new HashMap();
+        queryMap.put(EVENT_TYPE_PROCESS, "INGEST");
+
+        final JsonNode selectRequest = DslQueryHelper.createSingleQueryDSL(queryMap);
+        assertNotNull(selectRequest);
+
+        final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequest);
+        assertTrue(selectParser instanceof SelectParserMultiple);
+        assertTrue(selectParser.getRequest().getNbQueries() == 1);
+        assertTrue(selectParser.getRequest().getRoots().size() == 0);
+        assertTrue(selectParser.getRequest().getFilter().get("$orderby") == null);
+
+        final Map<String, Object> queryMap2 = new HashMap();
+        queryMap2.put(EVENT_TYPE_PROCESS, "INGEST");
+
+        final HashMap<String, String> sortSetting = new HashMap();
+        sortSetting.put("field", "evDateTime");
+        sortSetting.put("sortType", "DESC");
+
+        queryMap2.put("orderby", sortSetting);
+        queryMap2.put("IngestStartDate", "2017-01-01");
+        queryMap2.put("IngestEndDate", "2017-02-09");
+
+        final JsonNode selectRequest2 = DslQueryHelper.createSingleQueryDSL(queryMap2);
+        assertNotNull(selectRequest2);
+
+        final RequestParserMultiple selectParser2 = RequestParserHelper.getParser(selectRequest2);
+        assertTrue(selectParser2 instanceof SelectParserMultiple);
+        assertTrue(selectParser2.getRequest().getNbQueries() == 1);
+        JsonNode query = selectParser2.getRequest().getQueries().get(0).getCurrentQuery();
+        ArrayNode criterias = (ArrayNode) query.get("$and");
+        assertEquals("2017-01-01", criterias.get(0).get("$gte").get("evDateTime").asText());
+        assertEquals("INGEST", criterias.get(1).get("$eq").get("evTypeProc").asText());
+        assertEquals("2017-02-09", criterias.get(2).get("$lte").get("evDateTime").asText());
+
+        assertTrue(selectParser2.getRequest().getRoots().size() == 0);
+        JsonNode orderBy = selectParser2.getRequest().getFilter().get("$orderby");
+        assertTrue(orderBy != null);
+        assertTrue(orderBy.get("evDateTime").asInt() == -1);
+    }
+
 }

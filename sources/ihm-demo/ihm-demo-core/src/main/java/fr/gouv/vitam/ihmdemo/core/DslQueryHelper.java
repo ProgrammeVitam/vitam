@@ -122,6 +122,8 @@ public final class DslQueryHelper {
     private static final String TRACEABILITY_FIELD_ID = "evId";
     private static final String TRACEABILITY_FIELD_LOG_TYPE = "LogType";
     private static final String MANAGEMENT_KEY = "#management";
+    private static final String INGEST_START_DATE = "IngestStartDate";
+    private static final String INGEST_END_DATE = "IngestEndDate";
 
     private static final String ASC_SORT_TYPE = "ASC";
     private static final String SORT_TYPE_ENTRY = "sortType";
@@ -287,6 +289,17 @@ public final class DslQueryHelper {
                     case TRACEABILITY_END_DATE:
                         if (!searchValue.isEmpty()) {
                             query.add(lte(TRACEABILITY_EV_DET_DATA + '.' + END_DATE, searchValue));
+                        }
+                        break;
+
+                    case INGEST_START_DATE:
+                        if (!searchValue.isEmpty()) {
+                            query.add(gte(EVENT_DATE_TIME, searchValue));
+                        }
+                        break;
+                    case INGEST_END_DATE:
+                        if (!searchValue.isEmpty()) {
+                            query.add(lte(EVENT_DATE_TIME, searchValue));
                         }
                         break;
 
