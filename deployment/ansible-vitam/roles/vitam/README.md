@@ -30,7 +30,6 @@ Les variables attendues pour ce rôle sont :
   + {{ days_to_delete_access_local }} :
   + {{ vitam_worker_capacity }} : nombre de parallélisme des threads du composant vitam-worker
   + {{ vitam_provider_offer }}: type de fournisseur pour l'offre de stockage par défaut (filesystem/openstack-swift)
-  + {{ vitam_keystone_auth_url }} : URL de connexion à la gateway CEPH si {{ vitam_provider_offer }} est openstack-swift
   + {{ vitam_swift_uid }} : utilisateur swift
   + {{ vitam_swift_subuser }} : sous-utilisateur swift
   + {{ vitam_keystone_passwd }} : mot de passe associé
