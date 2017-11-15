@@ -1,5 +1,5 @@
 <p-panel [header]="'Contexte de l\'unité archivistique'" [toggleable]="true" [collapsed]="false">
-  <div class="root">
+  <div class="root" *ngIf="root">
     <vitam-tree-parent [node]="root"></vitam-tree-parent>
 
     <span class="fa fa-fw"></span>

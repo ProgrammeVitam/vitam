@@ -4,7 +4,6 @@ import { NO_ERRORS_SCHEMA } from "@angular/core";
 import { LogbookOperationEventsComponent } from './logbook-operation-events.component';
 import {LogbookService} from "../../ingest/logbook.service";
 import {Observable} from "rxjs";
-import {Logbook} from "../utils/logbook";
 import {LogbookHelperService} from "./logbook-helper.service";
 
 const results = [{
@@ -75,7 +74,7 @@ describe('LogbookOperationEventsComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(LogbookOperationEventsComponent);
     component = fixture.componentInstance;
-    component.results = {$results: [{events: []}]};
+    component.results = {events: []};
     fixture.detectChanges();
   });
 

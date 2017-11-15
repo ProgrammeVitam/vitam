@@ -22,7 +22,7 @@ const breadcrumb: BreadcrumbElement[] = [
 })
 export class LogbookOperationDetailsComponent extends PageComponent {
   id: string;
-  public response: VitamResponse;
+  response: VitamResponse;
 
   public columns = [
     ColumnDefinition.makeStaticColumn('evTypeProc', 'Catégorie d\'opération', undefined,

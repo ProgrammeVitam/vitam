@@ -1,3 +1,3 @@
 <vitam-logbook-details-description [data]="response" [cols]="columns" [extraCols]="extraColumns" [isIngestOperation]="true"></vitam-logbook-details-description>
 
-<vitam-logbook-operation-events [operationId]="id" [isIngestOperation]="true"></vitam-logbook-operation-events>
+<vitam-logbook-operation-events [results]="response.$results[0]" [isIngestOperation]="true" *ngIf="response"></vitam-logbook-operation-events>

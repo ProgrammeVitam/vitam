@@ -18,11 +18,6 @@ export class TreeChildComponent implements OnInit {
   constructor(public archiveUnitService: ArchiveUnitService) { }
 
   ngOnInit() {
-    this.searchForm = new FormGroup({
-      titleAndDescription: new FormControl(''),
-      startDate: new FormControl(''),
-      endDate: new FormControl('')
-    })
   }
 
   switchChild(node: TreeNode) {

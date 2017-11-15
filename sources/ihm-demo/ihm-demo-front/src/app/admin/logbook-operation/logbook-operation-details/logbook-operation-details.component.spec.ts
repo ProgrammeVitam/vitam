@@ -10,10 +10,9 @@ import { LogbookService } from "../../../ingest/logbook.service";
 import { LogbookHelperService } from "../../../common/logbook-operation-events/logbook-helper.service";
 import { BreadcrumbService } from "../../../common/breadcrumb.service";
 import { ArchiveUnitHelper } from "../../../archive-unit/archive-unit.helper";
-import { VitamResponse } from "../../../common/utils/response";
 
 const LogbookServiceStub = {
-  getDetails: (id) => Observable.of(new VitamResponse)
+  getDetails: (id) => Observable.of({$results: [{events: []}]})
 };
 const LogbookHelperServiceStub = {
 

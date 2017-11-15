@@ -17,18 +17,26 @@ export class ArchiveUnitDetailsComponent extends PageComponent {
   objects;
   id: string;
   objectDisplayable: boolean;
+  timeout;
 
   constructor(private route: ActivatedRoute, public titleService: Title, public breadcrumbService: BreadcrumbService,
               private archiveUnitService: ArchiveUnitService, private router: Router, private dialogService: DialogService) {
     super('Détails de l\'unité archivistique', [], titleService, breadcrumbService);
     router.events.subscribe((val) => {
       if (val instanceof NavigationEnd) {
-        this.pageOnInit();
+        this.pageOnInit()
       }
     });
   }
 
   pageOnInit() {
+    if (this.timeout) {
+      clearTimeout(this.timeout);
+    }
+    this.timeout = setTimeout(() => this.initDetails(), 250);
+  }
+
+  initDetails() {
     this.route.paramMap
       .switchMap((params: ParamMap) => {
         this.id = params.get('id');
@@ -70,6 +78,5 @@ export class ArchiveUnitDetailsComponent extends PageComponent {
       }
     );
   }
-
 
 }
