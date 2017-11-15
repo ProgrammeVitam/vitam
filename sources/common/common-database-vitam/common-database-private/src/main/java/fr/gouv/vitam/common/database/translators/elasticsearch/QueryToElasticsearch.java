@@ -95,15 +95,13 @@ public class QueryToElasticsearch {
         }
         // NB: terms and not term since multiple values
         return QueryBuilders.termsQuery(field, values);
-
-
     }
 
     /**
      * Merge a request and a root filter
      *
      * @param command QueryBuilder
-     * @param roots QueryBuilder
+     * @param roots   QueryBuilder
      * @return the complete request
      */
     public static QueryBuilder getFullCommand(final QueryBuilder command, final QueryBuilder roots) {
@@ -121,8 +119,8 @@ public class QueryToElasticsearch {
      * <br>
      *
      * @param requestParser the original parser
-     * @param hasFullText True to add scoreSort
-     * @param score True will add score first
+     * @param hasFullText   True to add scoreSort
+     * @param score         True will add score first
      * @return list of order by as sort objects
      * @throws InvalidParseOperationException if the orderBy is not valid
      */
@@ -193,7 +191,6 @@ public class QueryToElasticsearch {
 
 
     /**
-     *
      * @param query Query
      * @return the associated QueryBuilder
      * @throws InvalidParseOperationException if query could not parse to command
@@ -246,7 +243,7 @@ public class QueryToElasticsearch {
             case NOP:
                 return QueryBuilders.matchAllQuery();
             case PATH:
-                return pathCommand(content);
+                return pathCommand(req, content);
             case GEOMETRY:
             case BOX:
             case POLYGON:
@@ -262,7 +259,11 @@ public class QueryToElasticsearch {
      * @param content JsonNode
      * @return the Path Command
      */
-    private static QueryBuilder pathCommand(final JsonNode content) {
+    private static QueryBuilder pathCommand(final QUERY query, final JsonNode content) {
+
+        // Unsupported command. May be deleted without prior notice.
+        logUnsupportedCommand(query, content, "Deprecated. Should not be invoked anymore.");
+
         final ArrayNode array = (ArrayNode) content;
         final String[] values = new String[array.size()];
         int i = 0;
@@ -275,17 +276,21 @@ public class QueryToElasticsearch {
     /**
      * $size : { name : length }
      *
-     * @param query QUERY
+     * @param query   QUERY
      * @param content JsonNode
      * @return the size Command
      * @throws InvalidParseOperationException if check unicity is in error
      */
     private static QueryBuilder sizeCommand(final QUERY query, final JsonNode content)
         throws InvalidParseOperationException {
+
+        // Unsupported command. May be deleted without prior notice.
+        logUnsupportedCommand(query, content, "Deprecated. Should not be invoked anymore.");
+
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
         final Script script = new Script("doc['" + element.getKey() + "'].values.length == " + element.getValue());
         if (element.getKey().equals(VitamDocument.ID)) {
-            logWarnCommand(query, content);
+            logWarnUnsupportedIdForCommand(query, content);
         }
         return QueryBuilders.scriptQuery(script);
     }
@@ -293,7 +298,7 @@ public class QueryToElasticsearch {
     /**
      * $gt : { name : value } $gte : { name : value } $lt : { name : value } $lte : { name : value }
      *
-     * @param req QUERY
+     * @param query   QUERY
      * @param content JsonNode
      * @return the compare Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -303,22 +308,23 @@ public class QueryToElasticsearch {
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
 
         String key = element.getKey();
+
+        if (!ParserTokens.PROJECTIONARGS.isNotAnalyzed(key)) {
+            // Unsupported mode. May be updated without prior notice.
+            logUnsupportedCommand(query, content, "Analyzed field: '" + key + "'");
+        } else {
+            logCommand(query, content);
+        }
+
         // special case of _id
         boolean isId = false;
         if (key.equals(VitamDocument.ID)) {
-            logWarnCommand(query, content);
+            logWarnUnsupportedIdForCommand(query, content);
             key = _UID;
             isId = true;
         }
 
-        // TODO P0 remove after POC validation all DATE from Vitam code
-        JsonNode node = element.getValue().findValue(ParserTokens.QUERYARGS.DATE.exactToken());
-        if (node != null) {
-            key += "." + ParserTokens.QUERYARGS.DATE.exactToken();
-        } else {
-            node = element.getValue();
-        }
-
+        JsonNode node = element.getValue();
         Object value = GlobalDatasParser.getValue(node);
         if (isId) {
             value = VitamCollection.getTypeunique() + "#" + value.toString();
@@ -340,13 +346,17 @@ public class QueryToElasticsearch {
     /**
      * $mlt : { $fields : [ name1, name2 ], $like : like_text } $flt : { $fields : [ name1, name2 ], $like : like_text }
      *
-     * @param req QUERY
+     * @param query   QUERY
      * @param content JsonNode
      * @return the xlt Command
      * @throws InvalidParseOperationException if check unicity is in error
      */
     private static QueryBuilder xltCommand(final QUERY query, final JsonNode content)
         throws InvalidParseOperationException {
+
+        // Unsupported command. May be deleted without prior notice.
+        logUnsupportedCommand(query, content, "Deprecated. Should not be invoked anymore.");
+
         final ArrayNode fields = (ArrayNode) content.get(QUERYARGS.FIELDS.exactToken());
         final JsonNode like = content.get(QUERYARGS.LIKE.exactToken());
         if (fields == null || like == null || fields.size() == 0) {
@@ -360,7 +370,7 @@ public class QueryToElasticsearch {
         int i = 0;
         for (final JsonNode name : fields) {
             if (VitamDocument.ID.equals(name.toString())) {
-                logWarnCommand(query, content);
+                logWarnUnsupportedIdForCommand(query, content);
             }
             names[i++] = name.toString();
         }
@@ -384,7 +394,7 @@ public class QueryToElasticsearch {
     /**
      * $search : { name : searchParameter }
      *
-     * @param query QUERY
+     * @param query   QUERY
      * @param content JsonNode
      * @return the search Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -408,7 +418,7 @@ public class QueryToElasticsearch {
     /**
      * $match : { name : words }
      *
-     * @param query QUERY
+     * @param query   QUERY
      * @param content JsonNode
      * @return the match Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -451,7 +461,7 @@ public class QueryToElasticsearch {
     /**
      * $match : { name : words, $max_expansions : n }. Unsupported $max_expansions mode to be removed later.
      *
-     * @param query QUERY
+     * @param query   QUERY
      * @param content JsonNode
      * @return the match Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -483,7 +493,7 @@ public class QueryToElasticsearch {
     /**
      * $match : { name : words } for non analyzed fields. Unsupported use case to be removed later.
      *
-     * @param query QUERY
+     * @param query   QUERY
      * @param content JsonNode
      * @return the match Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -508,7 +518,7 @@ public class QueryToElasticsearch {
     /**
      * $in : { name : [ value1, value2, ... ] }
      *
-     * @param query QUERY
+     * @param query   QUERY
      * @param content JsonNode
      * @return the in Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -553,7 +563,7 @@ public class QueryToElasticsearch {
     /**
      * $in : { name : [ value1, value2, ... ] } for analyzed fields. Unsupported use case to be removed later.
      *
-     * @param query QUERY
+     * @param query   QUERY
      * @param content JsonNode
      * @return the in Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -599,7 +609,7 @@ public class QueryToElasticsearch {
     /**
      * $range : { name : { $gte : value, $lte : value } }
      *
-     * @param req QUERY
+     * @param query   QUERY
      * @param content JsonNode
      * @return the range Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -609,17 +619,22 @@ public class QueryToElasticsearch {
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(query.exactToken(), content);
 
         String key = element.getKey();
+
+        if (!ParserTokens.PROJECTIONARGS.isNotAnalyzed(key)) {
+            // Unsupported mode. May be updated without prior notice.
+            logUnsupportedCommand(query, content, "Analyzed field: '" + key + "'");
+        } else {
+            logCommand(query, content);
+        }
+
         if (VitamDocument.ID.equals(key)) {
-            logWarnCommand(query, content);
+            logWarnUnsupportedIdForCommand(query, content);
         }
-        JsonNode node = element.getValue().findValue(ParserTokens.QUERYARGS.DATE.exactToken());
-        if (node != null) {
-            key += "." + ParserTokens.QUERYARGS.DATE.exactToken();
-        }
+
         final RangeQueryBuilder range = QueryBuilders.rangeQuery(key);
-        for (final Iterator<Entry<String, JsonNode>> iterator = element.getValue().fields(); iterator.hasNext();) {
+        for (final Iterator<Entry<String, JsonNode>> iterator = element.getValue().fields(); iterator.hasNext(); ) {
             final Entry<String, JsonNode> requestItem = iterator.next();
-            RANGEARGS arg = null;
+            RANGEARGS arg;
             try {
                 final String skey = requestItem.getKey();
                 if (skey.startsWith("$")) {
@@ -630,10 +645,8 @@ public class QueryToElasticsearch {
             } catch (final IllegalArgumentException e) {
                 throw new InvalidParseOperationException("Invalid Range query command: " + requestItem, e);
             }
-            node = requestItem.getValue().findValue(ParserTokens.QUERYARGS.DATE.exactToken());
-            if (node == null) {
-                node = requestItem.getValue();
-            }
+            JsonNode node = requestItem.getValue();
+
             switch (arg) {
                 case GT:
                     range.gt(getAsObject(node));
@@ -656,7 +669,7 @@ public class QueryToElasticsearch {
     /**
      * $regex : { name : regex }
      *
-     * @param query QUERY
+     * @param query   QUERY
      * @param content JsonNode
      * @return the regex Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -685,7 +698,7 @@ public class QueryToElasticsearch {
     /**
      * Handles $regex : { name : regex } for _id field. Unsupported use case to be removed later.
      *
-     * @param query QUERY
+     * @param query   QUERY
      * @param content JsonNode
      * @return the regex Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -709,7 +722,7 @@ public class QueryToElasticsearch {
     /**
      * Handles $regex : { name : regex } for analyzed fields. Unsupported use case to be removed later.
      *
-     * @param query QUERY
+     * @param query   QUERY
      * @param content JsonNode
      * @return the regex Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -731,7 +744,7 @@ public class QueryToElasticsearch {
     /**
      * $term : { name : term, name : term }
      *
-     * @param req QUERY
+     * @param query   QUERY
      * @param content JsonNode
      * @return the term Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -739,26 +752,23 @@ public class QueryToElasticsearch {
     private static QueryBuilder termCommand(final QUERY query, final JsonNode content)
         throws InvalidParseOperationException {
 
+        // Unsupported command. May be deleted without prior notice.
+        logUnsupportedCommand(query, content, "Deprecated. Should not be invoked anymore.");
+
         boolean multiple = false;
         BoolQueryBuilder query2 = null;
         if (content.size() > 1) {
             multiple = true;
             query2 = QueryBuilders.boolQuery();
         }
-        for (final Iterator<Entry<String, JsonNode>> iterator = content.fields(); iterator.hasNext();) {
+        for (final Iterator<Entry<String, JsonNode>> iterator = content.fields(); iterator.hasNext(); ) {
             final Entry<String, JsonNode> requestItem = iterator.next();
             String key = requestItem.getKey();
             if (VitamDocument.ID.equals(key)) {
-                logWarnCommand(query, content);
+                logWarnUnsupportedIdForCommand(query, content);
             }
-            JsonNode node = requestItem.getValue().findValue(ParserTokens.QUERYARGS.DATE.exactToken());
-            boolean isDate = false;
-            if (node == null) {
-                node = requestItem.getValue();
-            } else {
-                isDate = true;
-                key += "." + ParserTokens.QUERYARGS.DATE.exactToken();
-            }
+            JsonNode node = requestItem.getValue();
+
             if (node.isNumber()) {
                 if (!multiple) {
                     return QueryBuilders.termQuery(key, getAsObject(node));
@@ -767,7 +777,7 @@ public class QueryToElasticsearch {
             } else {
                 final String val = node.asText();
                 QueryBuilder query3;
-                if (ParserTokens.PROJECTIONARGS.isNotAnalyzed(key) || isDate) {
+                if (ParserTokens.PROJECTIONARGS.isNotAnalyzed(key)) {
                     query3 = QueryBuilders.termQuery(key, val);
                 } else {
                     query3 = QueryBuilders.matchQuery(key, val).operator(Operator.AND);
@@ -786,7 +796,7 @@ public class QueryToElasticsearch {
     /**
      * $wildcard : { name : expression }
      *
-     * @param query QUERY
+     * @param query   QUERY
      * @param content JsonNode
      * @return the wildcard Command
      */
@@ -828,7 +838,7 @@ public class QueryToElasticsearch {
     /**
      * $eq : { name : value }
      *
-     * @param query QUERY
+     * @param query   QUERY
      * @param content JsonNode
      * @return the eq Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -857,7 +867,7 @@ public class QueryToElasticsearch {
     /**
      * $eq : { name : value } for analyzed fields. Unsupported use case to be removed later.
      *
-     * @param query QUERY
+     * @param query   QUERY
      * @param content JsonNode
      * @return the eq Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -885,7 +895,7 @@ public class QueryToElasticsearch {
     /**
      * $exists : name
      *
-     * @param req QUERY
+     * @param query   QUERY
      * @param content JsonNode
      * @return the exist Command
      * @throws InvalidParseOperationException if check unicity is in error
@@ -895,32 +905,45 @@ public class QueryToElasticsearch {
 
         String fieldname = content.asText();
         if (VitamDocument.ID.equals(fieldname)) {
-            logWarnCommand(query, content);
+            logWarnUnsupportedIdForCommand(query, content);
             fieldname = _UID;
         }
         final QueryBuilder queryBuilder = QueryBuilders.existsQuery(fieldname);
         switch (query) {
             case MISSING:
+
+                // Unsupported command. May be deleted without prior notice.
+                logUnsupportedCommand(query, content, "Deprecated. Should not be invoked anymore.");
+
                 return QueryBuilders.boolQuery().mustNot(queryBuilder);
             case EXISTS:
-            default:
+
+                logCommand(query, content);
+
                 return queryBuilder;
+
+            default:
+                throw new InvalidParseOperationException("Not correctly parsed: " + query);
         }
     }
 
     /**
      * $isNull : name
      *
-     * @param req QUERY
+     * @param query   QUERY
      * @param content JsonNode
      * @return the isNull Command
      * @throws InvalidParseOperationException if check unicity is in error
      */
     private static QueryBuilder isNullCommand(final QUERY query, final JsonNode content)
         throws InvalidParseOperationException {
+
+        // Unsupported command. May be deleted without prior notice.
+        logUnsupportedCommand(query, content, "Deprecated. Should not be invoked anymore.");
+
         String fieldname = content.asText();
         if (VitamDocument.ID.equals(fieldname)) {
-            logWarnCommand(query, content);
+            logWarnUnsupportedIdForCommand(query, content);
             fieldname = _UID;
         }
         return QueryBuilders.boolQuery().mustNot(QueryBuilders.existsQuery(fieldname));
@@ -931,13 +954,15 @@ public class QueryToElasticsearch {
      * $and : [ expression1, expression2, ... ] $or : [ expression1, expression2, ... ] $not : [ expression1,
      * expression2, ... ]
      *
-     * @param req QUERY
-     * @param content JsonNode
+     * @param req   QUERY
+     * @param query JsonNode
      * @return the and Or Not Command
      * @throws InvalidParseOperationException if check unicity is in error
      */
     private static QueryBuilder andOrNotCommand(final QUERY query, final Query req)
         throws InvalidParseOperationException {
+
+        logCommand(query, req.getCurrentObject());
 
         final BooleanQuery nthrequest = (BooleanQuery) req;
         final List<Query> sub = nthrequest.getQueries();
@@ -978,7 +1003,7 @@ public class QueryToElasticsearch {
 
     /**
      * Helper method for logging/dumping supported queries
-     * 
+     *
      * @param query
      * @param content
      */
@@ -989,18 +1014,18 @@ public class QueryToElasticsearch {
     /**
      * Helper method for logging tricky queries dealing with "id" field Aim of this log is to check if search based on
      * id field is used with other operator than eq, ne, in, nin
-     * 
+     *
      * @param query
      * @param content
      */
-    private static void logWarnCommand(QUERY query, JsonNode content) {
+    private static void logWarnUnsupportedIdForCommand(QUERY query, JsonNode content) {
         LOGGER.warn(String.format("Command #QUERY: %s using id is not recommended. Content: %s", query, content));
     }
 
     /**
      * Logs a warning message for unsupported cases. Unsupported cases should/will be removed without prior notice.
-     * 
-     * @param query the query
+     *
+     * @param query   the query
      * @param content the json content
      * @param message the error message
      * @deprecated Used to dump unsupported usages for queries.

@@ -411,18 +411,6 @@ public abstract class BuilderToken {
      */
     public static enum QUERYARGS {
         /**
-         * Used in geometric queries
-         */
-        TYPE("type"),
-        /**
-         * Used in geometric queries
-         */
-        COORDINATES("coordinates"),
-        /**
-         * Used in geometric queries
-         */
-        MAXDISTANCE("maxDistance"),
-        /**
          * Used in MLT queries
          */
         LIKE("like"),
@@ -441,11 +429,7 @@ public abstract class BuilderToken {
         /**
          * Used in Set Depth (relative) part of each request
          */
-        DEPTH("depth"),
-        /**
-         * Used to specify that argument is a date
-         */
-        DATE("date");
+        DEPTH("depth");
 
         private final String exactToken;
 

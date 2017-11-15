@@ -48,7 +48,6 @@ public class BuilderTokenTest {
     public void testExactToken() {
         assertEquals(PROJECTIONARGS.ID.exactToken(), "#id");
         assertEquals(RANGEARGS.GT.exactToken(), "$gt");
-        assertEquals(QUERYARGS.TYPE.exactToken(), "$type");
         assertEquals(PROJECTION.FIELDS.exactToken(), "$fields");
         assertEquals(FILTERARGS.CACHE.exactToken(), "cache");
         assertEquals(UPDATEACTION.SET.exactToken(), "$set");
