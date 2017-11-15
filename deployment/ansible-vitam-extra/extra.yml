@@ -22,7 +22,7 @@
   roles:
     - vitam_browser
 
-- include: dev-tools.yml
+- import_playbook: dev-tools.yml
 
 - hosts: library
   roles:
@@ -31,6 +31,6 @@
     vitam_struct: "{{ vitam.library }}"
 
 
-- include: ihm-recette.yml
+- import_playbook: ihm-recette.yml
 
-- include: reverse.yml
+- import_playbook: reverse.yml
