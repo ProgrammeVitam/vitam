@@ -315,11 +315,10 @@ public class MetaDataImpl implements MetaData {
         Long total = (result != null) ? result.getTotal() : res.size();
         String scrollId = (result != null) ? result.getScrollId() : null;
         DatabaseCursor hits = (scrollId != null) ?
-            new DatabaseCursor(total, offset, limit, total, scrollId) :
-            new DatabaseCursor(total, offset, limit, total);
+            new DatabaseCursor(total, offset, limit, res.size(), scrollId) :
+            new DatabaseCursor(total, offset, limit, res.size());
         return new RequestResponseOK<JsonNode>(queryCopy)
-            .addAllResults(toArrayList(arrayNodeResponse))
-            .setHits(hits);
+            .addAllResults(res).setHits(hits);
     }
 
     // TODO : handle version
