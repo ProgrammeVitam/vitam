@@ -35,6 +35,7 @@ import java.io.OutputStream;
 import javax.ws.rs.core.Response;
 import javax.xml.stream.XMLStreamException;
 
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import org.apache.commons.io.IOUtils;
 import org.xml.sax.SAXException;
 
@@ -178,6 +179,7 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
         infoNode.put(SedaConstants.TAG_ARCHIVE_PROFILE, profileIdentifier);
         String evdev = JsonHandler.unprettyPrint(infoNode);
         itemStatus.setEvDetailData( evdev );
+        itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(),evdev);
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
