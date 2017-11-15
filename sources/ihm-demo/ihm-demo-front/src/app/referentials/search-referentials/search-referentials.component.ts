@@ -215,8 +215,9 @@ export class SearchReferentialsComponent  extends PageComponent {
           this.searchReferentialsService.setSearchAPI('agencies');
           this.breadcrumbName = "Services agents";
           this.referentialData = [
-            new FieldDefinition('AgencyName', "Intitulé", 6, 8),
-            FieldDefinition.createIdField('AgencyID', "Identifiant", 6, 8)
+            new FieldDefinition('AgencyName', "Intitulé", 4, 10),
+            FieldDefinition.createIdField('AgencyID', "Identifiant", 4, 10),
+            new FieldDefinition('Description', "Description", 4, 10)
           ];
           this.searchForm = {"AgencyID":"all","AgencyName":"all","orderby":{"field":"Name","sortType":"ASC"}};
           this.columns = [
@@ -231,37 +232,11 @@ export class SearchReferentialsComponent  extends PageComponent {
           this.referentialIdentifier = 'Identifier';
           break;
 
-        case "accession-register":
-          this.searchReferentialsService.setSearchAPI('admin/accession-register');
-          this.breadcrumbName = "Recherche par service producteur";
-          this.referentialData = [
-            new FieldDefinition('OriginatingAgency', "Service producteur", 12, 4),
-          ];
-          this.searchForm = {"ACCESSIONREGISTER":"ACCESSIONREGISTER","orderby":{"field":"OriginatingAgency","sortType":"ASC"}};
-          this.columns = [
-            ColumnDefinition.makeStaticColumn('OriginatingAgency', 'Service producteur', undefined,
-              () => ({'width': '125px'})),
-            ColumnDefinition.makeStaticColumn('creationDate', 'Date de la première opération d\'entrée', DateService.handleDateWithTime,
-              () => ({'width': '125px'}))
-          ];
-          this.referentialPath = 'admin/agencies';
-          this.referentialIdentifier = 'OriginatingAgency';
-          newBreadcrumb = [
-            {label: 'Recherche', routerLink: ''},
-            {label: 'Recherche par service producteur', routerLink: ''}
-          ];
-          break;
-
         default:
           this.router.navigate(['ingest/sip']);
       }
 
-      if (this.referentialType != "accession-register") {
-        this.searchButtonLabel =  'Accèder à l\'import des référentiels';
-      } else {
-        this.searchButtonLabel = '';
-      }
-
+      this.searchButtonLabel =  'Accèder à l\'import des référentiels';
       if (newBreadcrumb.length == 0) {
         newBreadcrumb = [
           {label: 'Administration', routerLink: ''},
@@ -270,7 +245,6 @@ export class SearchReferentialsComponent  extends PageComponent {
       }
 
       this.setBreadcrumb(newBreadcrumb);
-
 
       this.searchReferentialsService.getResults(this.searchForm).subscribe(
           data => {this.response = data;},

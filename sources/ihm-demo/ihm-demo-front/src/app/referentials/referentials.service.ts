@@ -55,6 +55,9 @@ export class ReferentialsService {
       if (!body.AgencyName) {
         body.AgencyName = 'all';
       }
+      if (!body.Description) {
+        delete body.Description;
+      }
       body.orderby = {"field":"Name","sortType":"ASC"};
     }
 
