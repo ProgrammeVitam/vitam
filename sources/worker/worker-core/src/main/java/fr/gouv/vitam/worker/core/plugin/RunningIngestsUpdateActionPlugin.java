@@ -64,6 +64,7 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -247,7 +248,7 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
                                         logbookLifeCycleClient);
                                 } catch (MetaDataExecutionException | MetaDataDocumentSizeException |
                                     MetaDataClientServerException | InvalidCreateOperationException |
-                                    InvalidParseOperationException e) {
+                                    InvalidParseOperationException | MetaDataNotFoundException e) {
                                     try {
                                         logbookLifeCycleClient.rollBackUnitsByOperation(params.getProcessId());
                                     } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |

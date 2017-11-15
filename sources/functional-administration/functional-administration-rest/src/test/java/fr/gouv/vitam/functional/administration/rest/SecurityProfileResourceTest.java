@@ -181,5 +181,19 @@ public class SecurityProfileResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(SecurityProfileResource.SECURITY_PROFILE_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
+
+        // we update an existing security profile -> OK
+        File updateSecurityProfile = PropertiesUtils.getResourceFile("updateSecurityProfile.json");
+        JsonNode updateSecurityProfileJson = JsonHandler.getFromFile(updateSecurityProfile);
+        given().contentType(ContentType.JSON).body(updateSecurityProfileJson)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().put(SecurityProfileResource.SECURITY_PROFILE_URI + "/SEC_PROFILE-000001")
+            .then().statusCode(Status.OK.getStatusCode());
+
+        // we update an unexisting security profile -> 404
+        given().contentType(ContentType.JSON).body(updateSecurityProfileJson)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().put(SecurityProfileResource.SECURITY_PROFILE_URI + "/wrongId")
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
     }
 }

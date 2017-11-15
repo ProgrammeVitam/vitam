@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.client;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -69,7 +68,6 @@ import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.Profile;
-import fr.gouv.vitam.functional.administration.common.SecurityProfile;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -964,7 +962,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     @Override
     public RequestResponse<ProfileModel> updateProfile(String id, JsonNode queryDsl)
-        throws InvalidParseOperationException, AdminManagementClientServerException {
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
         Response response = null;
         try {
@@ -974,6 +972,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
                 return new RequestResponseOK<ProfileModel>().setHttpCode(Status.OK.getStatusCode());
+            } else if (status == Status.NOT_FOUND) {
+                throw new ReferentialNotFoundException("Profile not found with id: " + id);
             }
 
             return RequestResponse.parseFromResponse(response, AccessContractModel.class);
@@ -988,7 +988,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     @Override
     public RequestResponse<AccessContractModel> updateAccessContract(String id, JsonNode queryDsl)
-        throws InvalidParseOperationException, AdminManagementClientServerException {
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
         Response response = null;
         try {
@@ -998,6 +998,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
                 return new RequestResponseOK<AccessContractModel>().setHttpCode(Status.OK.getStatusCode());
+            } else if (status == Status.NOT_FOUND) {
+                throw new ReferentialNotFoundException("Access contract not found with id: " + id);
             }
 
             return RequestResponse.parseFromResponse(response, AccessContractModel.class);
@@ -1012,7 +1014,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     @Override
     public RequestResponse<IngestContractModel> updateIngestContract(String id, JsonNode queryDsl)
-        throws InvalidParseOperationException, AdminManagementClientServerException {
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
         Response response = null;
         try {
@@ -1022,6 +1024,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
                 return new RequestResponseOK<IngestContractModel>().setHttpCode(Status.OK.getStatusCode());
+            } else if (status == Status.NOT_FOUND) {
+                throw new ReferentialNotFoundException("Ingest contract not found with id: " + id);
             }
             return RequestResponse.parseFromResponse(response, IngestContractModel.class);
         } catch (VitamClientInternalException e) {
@@ -1045,8 +1049,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             final Status status = Status.fromStatusCode(response.getStatus());
 
             if (Response.Status.BAD_REQUEST.equals(status)) {
-                String reason = (response.hasEntity()) ? response.readEntity(String.class) :
-                    Response.Status.BAD_REQUEST.getReasonPhrase();
+                String reason = (response.hasEntity()) ? response.readEntity(String.class)
+                    : Response.Status.BAD_REQUEST.getReasonPhrase();
                 LOGGER.error(reason);
                 throw new ReferentialException("Referential Error: " + reason);
             }
@@ -1063,7 +1067,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     @Override
     public RequestResponse<ContextModel> updateContext(String id, JsonNode queryDsl)
-        throws AdminManagementClientServerException {
+        throws AdminManagementClientServerException, ReferentialNotFoundException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
         Response response = null;
         try {
@@ -1073,6 +1077,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
                 return new RequestResponseOK<ContextModel>().setHttpCode(Status.OK.getStatusCode());
+            } else if (status == Status.NOT_FOUND) {
+                throw new ReferentialNotFoundException("Context not found with id: " + id);
             }
 
             return RequestResponse.parseFromResponse(response, ContextModel.class);
@@ -1253,7 +1259,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
     @Override
     public RequestResponse<SecurityProfileModel> updateSecurityProfile(String identifier, JsonNode queryDsl)
-        throws InvalidParseOperationException, AdminManagementClientServerException {
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         ParametersChecker.checkParameter("The input queryDsl json is mandatory", queryDsl);
         Response response = null;
         try {
@@ -1263,6 +1269,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             if (status == Status.OK) {
                 LOGGER.debug(Response.Status.OK.getReasonPhrase());
                 return new RequestResponseOK<SecurityProfileModel>().setHttpCode(Status.OK.getStatusCode());
+            } else if (status == Status.NOT_FOUND) {
+                throw new ReferentialNotFoundException("Security Profile not found with id: " + identifier);
             }
             return RequestResponse.parseFromResponse(response, SecurityProfileModel.class);
         } catch (VitamClientInternalException e) {

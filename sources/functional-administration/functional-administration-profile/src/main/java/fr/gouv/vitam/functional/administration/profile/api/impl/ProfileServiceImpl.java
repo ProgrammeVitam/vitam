@@ -520,7 +520,7 @@ public class ProfileServiceImpl implements ProfileService {
             return getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
                 PROFILE_NOT_FOUND)
                     .setHttpCode(
-                        Response.Status.BAD_REQUEST.getStatusCode());
+                        Response.Status.NOT_FOUND.getStatusCode());
         }
 
         Map<String, List<String>> updateDiffs;

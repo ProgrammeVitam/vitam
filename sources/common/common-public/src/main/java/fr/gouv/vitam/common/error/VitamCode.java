@@ -253,6 +253,19 @@ public enum VitamCode {
     ADMIN_EXTERNAL_UPDATE_INGEST_CONTRACT_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "28",
         Status.BAD_REQUEST,
         "Admin external client error in updateIngestContract method."),
+    
+    ACCESS_EXTERNAL_UNIT_NOT_FOUND(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "29",
+        Status.NOT_FOUND,
+        "Access external client error unit not found."),
+
+    ACCESS_EXTERNAL_CONTEXT_NOT_FOUND(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "30",
+        Status.NOT_FOUND, "Access external client error, context not found"),
+
+    ACCESS_EXTERNAL_PROFILE_NOT_FOUND(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "31",
+        Status.NOT_FOUND, "Access external client error, profile not found"),
+
+    ACCESS_EXTERNAL_SECURITY_PROFILE_NOT_FOUND(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "32",
+        Status.NOT_FOUND, "Access external client error, security profile not found"),
 
     ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "01",
         Status.BAD_REQUEST,

@@ -659,7 +659,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     @Override
     public RequestResponse<IngestContractModel> updateContract(String identifier, JsonNode queryDsl)
         throws VitamException {
-        final VitamError error =
+        VitamError error =
             new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setHttpCode(Response.Status.BAD_REQUEST
                 .getStatusCode());
 
@@ -669,6 +669,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
         final IngestContractModel ingestContractModel = findByIdentifier(identifier);
         if (ingestContractModel == null) {
+            error.setHttpCode(Response.Status.NOT_FOUND.getStatusCode());
             return error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
                 INGEST_CONTRACT_NOT_FOUND + identifier));
         }

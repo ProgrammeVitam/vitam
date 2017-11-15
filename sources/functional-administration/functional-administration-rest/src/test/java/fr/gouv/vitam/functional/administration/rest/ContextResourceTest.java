@@ -5,7 +5,6 @@ import static com.jayway.restassured.RestAssured.given;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +22,7 @@ import org.junit.rules.TemporaryFolder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
+import com.jayway.restassured.response.Response;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -64,7 +64,7 @@ public class ContextResourceTest {
 
     private static final String RESOURCE_URI = "/adminmanagement/v1";
     private static final String STATUS_URI = "/status";
-    
+
     private static final int TENANT_ID = 0;
 
     static MongodExecutable mongodExecutable;
@@ -78,7 +78,7 @@ public class ContextResourceTest {
     private static int databasePort;
     private static File adminConfigFile;
     private static AdminManagementMain application;
-    
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -90,7 +90,7 @@ public class ContextResourceTest {
 
     private final static String CLUSTER_NAME = "vitam-cluster";
     private static ElasticsearchAccessFunctionalAdmin esClient;
-    
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         new JHades().overlappingJarsReport();
@@ -153,9 +153,9 @@ public class ContextResourceTest {
 
         // Create security profile
         given().contentType(ContentType.JSON).body(secProfileJson)
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-                .when().post(SecurityProfileResource.SECURITY_PROFILE_URI)
-                .then().statusCode(Status.CREATED.getStatusCode());
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(SecurityProfileResource.SECURITY_PROFILE_URI)
+            .then().statusCode(Status.CREATED.getStatusCode());
     }
 
     @AfterClass
@@ -182,14 +182,14 @@ public class ContextResourceTest {
         mongoDbAccess.deleteCollection(FunctionalAdminCollections.CONTEXT).close();
         mongoDbAccess.deleteCollection(FunctionalAdminCollections.SECURITY_PROFILE).close();
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public final void testGetStatus() {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         get(STATUS_URI).then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void givenAWellFormedContextJsonThenReturnCeated() throws Exception {
@@ -197,7 +197,7 @@ public class ContextResourceTest {
 
         File fileContexts = PropertiesUtils.getResourceFile("contexts_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileContexts);
-        
+
         MetaDataClientFactory.changeMode(null);
 
         // transform to json
@@ -205,6 +205,12 @@ public class ContextResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(ContextResource.CONTEXTS_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
+
+        // we try to update an unexisting id
+        given().contentType(ContentType.JSON).body(JsonHandler.createArrayNode())
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().put(ContextResource.UPDATE_CONTEXT_URI + "/wrongId")
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
@@ -219,9 +225,9 @@ public class ContextResourceTest {
 
         // transform to json
         given().contentType(ContentType.JSON).body(json)
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-                .when().post(ContextResource.CONTEXTS_URI)
-                .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(ContextResource.CONTEXTS_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
 }

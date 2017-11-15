@@ -79,6 +79,7 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -908,7 +909,15 @@ public class IngestInternalIT {
             SearchHit hit = elasticSearchResponse.getHits().iterator().next();
             assertNotNull(hit);
             // TODO compare
-
+            
+            // lets try to update a unit that does not exist, an AccessInternalClientNotFoundException will be thrown
+            try {
+                response = accessClient.updateUnitbyId(new UpdateMultiQuery().getFinalUpdate(),
+                    "aedqaaaaacfscicjabgwoak7xpw5pwyaaaaq");
+                fail("should raized an exception");
+            } catch (AccessInternalClientNotFoundException ex) {
+                LOGGER.error(ex + " | " +response.toString());
+            }            
         } catch (final Exception e) {
             LOGGER.error(e);
             SearchResponse elasticSearchResponse =

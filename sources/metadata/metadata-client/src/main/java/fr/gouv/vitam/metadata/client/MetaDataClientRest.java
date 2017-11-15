@@ -27,8 +27,17 @@
 
 package fr.gouv.vitam.metadata.client;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
@@ -48,14 +57,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Rest client for metadata
@@ -241,7 +242,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
 
     @Override
     public JsonNode updateUnitbyId(JsonNode updateQuery, String unitId) throws MetaDataExecutionException,
-        MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException {
+        MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException,
+        MetaDataNotFoundException {
         try {
             ParametersChecker.checkParameter(ErrorMessage.UPDATE_UNITS_QUERY_NULL.getMessage(), updateQuery, unitId);
         } catch (final IllegalArgumentException e) {
@@ -262,6 +264,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
+            } else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                throw new MetaDataNotFoundException(ErrorMessage.NOT_FOUND.getMessage());
             }
             return response.readEntity(JsonNode.class);
         } catch (final VitamClientInternalException e) {

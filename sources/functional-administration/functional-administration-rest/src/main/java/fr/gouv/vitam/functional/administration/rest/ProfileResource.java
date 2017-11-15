@@ -221,7 +221,10 @@ public class ProfileResource {
             new ProfileServiceImpl(mongoAccess, workspaceClientFactory, vitamCounterService)) {
             SanityChecker.checkParameter(profileMetadataId);
             RequestResponse requestResponse = profileService.updateProfile(profileMetadataId, queryDsl);
-            if (!requestResponse.isOk()) {
+            if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
+                ((VitamError) requestResponse).setHttpCode(Status.NOT_FOUND.getStatusCode());
+                return Response.status(Status.NOT_FOUND).entity(requestResponse).build();
+            } else if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Status.BAD_REQUEST.getStatusCode());
                 return Response.status(Status.BAD_REQUEST).entity(requestResponse).build();
             } else {

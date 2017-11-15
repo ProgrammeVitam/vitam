@@ -103,7 +103,7 @@ public class SecurityProfileResource {
      * </ul>
      *
      * @param securityProfileModelList as InputStream
-     * @param uri                      the uri info
+     * @param uri the uri info
      * @return Response jersey response
      */
     @Path(SECURITY_PROFILE_URI)
@@ -190,11 +190,11 @@ public class SecurityProfileResource {
             JsonNode queryDsl = parser.getRequest().getFinalSelect();
 
             RequestResponseOK<SecurityProfileModel> securityProfileModelList =
-                    securityProfileService.findSecurityProfiles(queryDsl).setQuery(queryDsl);
+                securityProfileService.findSecurityProfiles(queryDsl).setQuery(queryDsl);
 
             return Response.status(Response.Status.OK)
-                    .entity(securityProfileModelList)
-                    .build();
+                .entity(securityProfileModelList)
+                .build();
 
         } catch (ReferentialException e) {
             LOGGER.error(e);
@@ -217,7 +217,10 @@ public class SecurityProfileResource {
             vitamCounterService)) {
 
             RequestResponse requestResponse = securityProfileService.updateSecurityProfile(identifier, queryDsl);
-            if (!requestResponse.isOk()) {
+            if (Response.Status.NOT_FOUND.getStatusCode() == requestResponse.getHttpCode()) {
+                ((VitamError) requestResponse).setHttpCode(Response.Status.NOT_FOUND.getStatusCode());
+                return Response.status(Response.Status.NOT_FOUND).entity(requestResponse).build();
+            } else if (!requestResponse.isOk()) {
                 ((VitamError) requestResponse).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
                 return Response.status(Response.Status.BAD_REQUEST).entity(requestResponse).build();
             } else {
@@ -238,9 +241,9 @@ public class SecurityProfileResource {
     /**
      * Construct the error following input
      *
-     * @param status  Http error status
+     * @param status Http error status
      * @param message The functional error message, if absent the http reason phrase will be used instead
-     * @param code    The functional error code, if absent the http code will be used instead
+     * @param code The functional error code, if absent the http code will be used instead
      * @return
      */
     private VitamError getErrorEntity(Response.Status status, String message, String code) {

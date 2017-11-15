@@ -346,7 +346,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             LOGGER.error("Request resources does not exits", e);
             status = Status.NOT_FOUND;
             return Response.status(status)
-                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_UPDATE_UNIT_BY_ID_ERROR,
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_UNIT_NOT_FOUND,
                     e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
                 .build();
         } catch (NoWritingPermissionException e) {

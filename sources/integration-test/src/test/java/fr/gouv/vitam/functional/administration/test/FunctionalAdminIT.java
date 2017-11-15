@@ -28,6 +28,7 @@ package fr.gouv.vitam.functional.administration.test;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -37,6 +38,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.ws.rs.core.Response;
 
 import org.jhades.JHades;
 import org.junit.AfterClass;
@@ -84,6 +87,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.FilesSecurisator;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
@@ -92,7 +96,6 @@ import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFile
 import fr.gouv.vitam.functional.administration.profile.api.ProfileService;
 import fr.gouv.vitam.functional.administration.profile.api.impl.ProfileServiceImpl;
 import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
-import fr.gouv.vitam.functional.administration.common.FilesSecurisator;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -283,8 +286,7 @@ public class FunctionalAdminIT {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File fileMetadataProfile = PropertiesUtils.getResourceFile("functional-admin/profile_ok.json");
         List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {});
         RequestResponse response = profileService.createProfiles(profileModelList);
         assertThat(response.isOk()).isTrue();
         RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
@@ -367,12 +369,11 @@ public class FunctionalAdminIT {
         RestAssured.basePath = LOGBOOK_REST_URI;
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        // do the import 
+        // do the import
         File fileContracts =
             PropertiesUtils.getResourceFile("integration-ingest-internal/referential_contracts_ok.json");
         List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeRefence(fileContracts,
-            new TypeReference<List<IngestContractModel>>() {
-            });
+            new TypeReference<List<IngestContractModel>>() {});
         ingestContract.createContracts(IngestContractModelList);
 
         // check import log
@@ -428,5 +429,12 @@ public class FunctionalAdminIT {
         assertThat(evDetData.get("IngestContract").get("updatedDiffs")).isNotNull();
         assertThat(evDetData.get("IngestContract").get("updatedDiffs").asText())
             .contains("-  Status : ACTIVE+  Status : INACTIVE");
+
+        updateQuery = new UpdateMultiQuery();
+        updateQuery.addActions(new SetAction("Status", "INACTIVE"));
+        RequestResponse response = ingestContract.updateContract("wrongId", updateQuery.getFinalUpdate());
+        assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getHttpCode());
+
+
     }
 }

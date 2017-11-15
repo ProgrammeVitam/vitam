@@ -41,8 +41,6 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
 
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.database.parser.request.adapter.SimpleVarNameAdapter;
 import org.apache.commons.lang.StringUtils;
 import org.bson.conversions.Bson;
 
@@ -54,12 +52,12 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -85,6 +83,7 @@ import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.context.api.ContextService;
@@ -243,7 +242,7 @@ public class ContextServiceImpl implements ContextService {
     }
 
     @Override
-    public ContextModel findOneContextById(String id) throws ReferentialException, InvalidParseOperationException {
+    public ContextModel findOneContextById(String id) throws ReferentialNotFoundException, ReferentialException, InvalidParseOperationException {
         SanityChecker.checkParameter(id);
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         parser.parse(new Select().getFinalSelect());
@@ -256,7 +255,7 @@ public class ContextServiceImpl implements ContextService {
             mongoAccess.findDocuments(parser.getRequest().getFinalSelect(), FunctionalAdminCollections.CONTEXT)) {
             final List<ContextModel> list = result.getDocuments(Context.class, ContextModel.class);
             if (list.isEmpty()) {
-                throw new ReferentialException("Context not found");
+                throw new ReferentialNotFoundException("Context not found");
             }
             return list.get(0);
         }
