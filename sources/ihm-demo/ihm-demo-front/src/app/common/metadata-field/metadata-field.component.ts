@@ -105,7 +105,7 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
           originalTitle: `${this.originalTitle}.${field}`, fieldCode: `${this.fieldCode}.${field}`});
       }
     } else {
-      if (!!this.title && this.title.indexOf('Date') !== -1) {
+      if (!!this.originalTitle && this.originalTitle.toUpperCase().indexOf('DATE') !== -1) {
         this.dateValue = new Date(this.value);
         if ( isNaN(this.dateValue.getTime()) ) {
           this.dateValue = null;
