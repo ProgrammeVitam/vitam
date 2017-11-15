@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { DomSanitizer } from '@angular/platform-browser';
 import { ActivatedRoute, ParamMap } from "@angular/router";
 import { Title } from "@angular/platform-browser";
 import { BreadcrumbService } from "../../../common/breadcrumb.service";
@@ -7,7 +6,6 @@ import { PageComponent } from "../../../common/page/page-component";
 import { TraceabilityOperationService } from "../traceability-operation.service";
 import { ObjectsService } from "../../../common/utils/objects.service";
 import { ColumnDefinition } from "../../../common/generic-table/column-definition";
-import { ArchiveUnitHelper } from "../../../archive-unit/archive-unit.helper";
 import { LogbookService } from "../../../ingest/logbook.service";
 import {DateService} from "../../../common/utils/date.service";
 
@@ -30,7 +28,7 @@ export class TraceabilityOperationDetailsComponent extends PageComponent {
     ColumnDefinition.makeStaticColumn('outDetail', 'Intitulé de l\'évènement', undefined,
       () => ({'width': '500px', 'overflow-wrap': 'break-word', 'text-align': 'left'})),
     ColumnDefinition.makeStaticColumn('evDateTime', 'Date',
-      this.archiveUnitHelper.handleDateWithTime, () => ({'width': '125px', 'overflow-wrap': 'break-word'})),
+      DateService.handleDateWithTime, () => ({'width': '125px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeStaticColumn('outcome', 'Statut', undefined,
       () => ({'width': '100px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeStaticColumn('outMessg', 'Message', undefined,
@@ -65,7 +63,7 @@ export class TraceabilityOperationDetailsComponent extends PageComponent {
 
   constructor(public traceabilityService: TraceabilityOperationService, private route: ActivatedRoute,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
-              public archiveUnitHelper: ArchiveUnitHelper, private logbookService: LogbookService) {
+              private logbookService: LogbookService) {
     super('Détail de l\'opération de sécurisation', [], titleService, breadcrumbService);
   }
 

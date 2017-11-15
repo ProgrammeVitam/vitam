@@ -7,7 +7,7 @@ import {Title} from "@angular/platform-browser";
 import {Preresult} from "../../common/search/preresult";
 import {LogbookService} from "../../ingest/logbook.service";
 import {ColumnDefinition} from "../../common/generic-table/column-definition";
-import {ArchiveUnitHelper} from "../../archive-unit/archive-unit.helper";
+import {DateService} from "../../common/utils/date.service";
 
 const breadcrumb: BreadcrumbElement[] = [
   {label: 'Admin', routerLink: ''},
@@ -56,8 +56,8 @@ export class LogbookOperationComponent extends PageComponent {
     ColumnDefinition.makeStaticColumn('evTypeProc', 'Catégorie d\'opération', undefined,
         () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('evType', 'Opération', undefined,
-        () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
-    ColumnDefinition.makeStaticColumn('evDateTime', 'Date', this.archiveUnitHelper.handleDateWithTime,
+        () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
+    ColumnDefinition.makeStaticColumn('evDateTime', 'Date', DateService.handleDateWithTime,
         () => ({'width': '100px'}), false),
     ColumnDefinition.makeSpecialValueColumn('Statut',
         LogbookOperationComponent.handleValue, LogbookOperationComponent.handleStatus,
@@ -94,8 +94,7 @@ export class LogbookOperationComponent extends PageComponent {
         () => ({'width': '50px', 'overflow-wrap': 'break-word'}), LogbookOperationComponent.downloadReports, this.logbookService, false),
   ];
 
-  constructor(public logbookService: LogbookService, public titleService: Title, public breadcrumbService: BreadcrumbService,
-              public archiveUnitHelper: ArchiveUnitHelper) {
+  constructor(public logbookService: LogbookService, public titleService: Title, public breadcrumbService: BreadcrumbService) {
     super('Journal des opérations', breadcrumb, titleService, breadcrumbService);
   }
 
@@ -125,6 +124,7 @@ export class LogbookOperationComponent extends PageComponent {
   }
 
   static handleValue(item): string {
+    if (!item.events) return '';
     const lastItem = item.events.length -1;
     return item.events[lastItem] ? item.events[lastItem].outcome.toUpperCase() : ''
   }

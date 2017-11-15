@@ -1,5 +1,4 @@
-import {EventEmitter} from "@angular/core";
-import {isUndefined} from "util";
+import {ObjectsService} from "../utils/objects.service";
 
 export class ColumnDefinition {
   public field: string;
@@ -87,8 +86,8 @@ export class ColumnDefinition {
 
   public computeCss: () => any = () => '';
   public onClick: (item, iconType?: string) => void = () => null;
-  public transform: (value) => string = (x) => '' + x;
-  public getValue: (item) => string = (x) => !!x[this.field] ? '' + x[this.field]:'';
+  public transform: (value) => string = (x) => ObjectsService.stringify(x);
+  public getValue: (item) => string = (x) => ObjectsService.stringify(x[this.field]);
   public getIcons: (item, icons: string[]) => string[] = (x, y) => y;
   public shouldDisplay: (item) => boolean = (x) => true;
   public forceIcon: boolean = false;

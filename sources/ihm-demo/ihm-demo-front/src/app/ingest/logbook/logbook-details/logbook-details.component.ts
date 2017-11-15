@@ -8,6 +8,7 @@ import {LogbookOperationComponent} from "../../../admin/logbook-operation/logboo
 import {LogbookService} from "../../logbook.service";
 import {ArchiveUnitHelper} from "../../../archive-unit/archive-unit.helper";
 import {VitamResponse} from "../../../common/utils/response";
+import {DateService} from "../../../common/utils/date.service";
 
 const breadcrumb: BreadcrumbElement[] = [
   {label: 'Entrée', routerLink: ''},
@@ -32,9 +33,9 @@ export class LogbookDetailsComponent extends PageComponent {
     ColumnDefinition.makeStaticColumn('rightsStatementIdentifier', 'Contrat associé', undefined,
       () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('evDateTime', 'Date de début',
-      this.archiveUnitHelper.handleDateWithTime, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
+      DateService.handleDateWithTime, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeSpecialValueColumn('Date de fin', (item) => item.events[item.events.length - 1].evDateTime,
-      this.archiveUnitHelper.handleDateWithTime, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
+      DateService.handleDateWithTime, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeSpecialValueColumn('Statut', (item) => item.events[item.events.length - 1].outcome,
       undefined, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeSpecialValueColumn('Message', (item) => item.events[item.events.length - 1].outMessg,

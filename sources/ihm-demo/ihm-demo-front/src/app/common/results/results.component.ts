@@ -97,15 +97,17 @@ export class ResultsComponent implements OnInit {
 
   paginate(event) {
     this.firstItem = event.first;
+    this.firstPage = event.page;
+
     // TODO If unloadedPage reached (See how to trigg) => Call search with offset.
     if (event.page >= this.lastPage || event.page <= this.firstPage) {
       var searchScope = {response: null};
       this.searchFunction(this.service, this.firstItem, event.rows, searchScope).subscribe(
         (response) => {
           this.items = Array.from('x'.repeat(event.page * event.rows)).concat(response.$results);
-          this.firstPage = event.page;
-          this.lastPage = this.firstPage + this.hits.limit / event.rows;
-          this.displayedItems = this.items.slice(this.firstItem, this.firstItem +  event.rows);
+          this.lastPage = event.page + this.hits.limit / event.rows;
+          this.displayedItems = this.items.slice(event.first, event.first +  event.rows);
+
         },
         (error) => console.log('Error: ', error.body));
     } else {

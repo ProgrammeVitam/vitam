@@ -118,15 +118,6 @@ export class ArchiveUnitHelper {
     return lowestDate;
   }
 
-  // TODO Move me in some utils class ?
-  handleDate(date): string {
-    return new DatePipe('en-US').transform(date, 'dd/MM/yyyy');
-  }
-
-  handleDateWithTime(date): string {
-    return new DatePipe('en-US').transform(date, 'dd/MM/yyyy HH:mm');
-  }
-
   isTextArea(field: string): boolean {
     return this.textAreaFields.indexOf(field) !== -1;
   }
