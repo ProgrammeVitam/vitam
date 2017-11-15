@@ -69,7 +69,7 @@ export class ArchiveObjectGroupComponent implements OnInit {
   }
 
   isDownloadable(version) {
-    return this.userContract.DataObjectVersion.indexOf(version.split('_')[0]) !== -1;
+    return this.userContract.EveryDataObjectVersion || (this.userContract.DataObjectVersion && this.userContract.DataObjectVersion.indexOf(version.split('_')[0]) !== -1);
   }
 
   goToUnitLifecycles() {
