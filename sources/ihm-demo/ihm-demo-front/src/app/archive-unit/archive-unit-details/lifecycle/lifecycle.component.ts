@@ -33,7 +33,7 @@ export class LifecycleComponent extends PageComponent {
   getClass: () => string;
   identifier = "evId";
   cols = [
-    ColumnDefinition.makeStaticColumn('outDetail', 'Intitulé de l\'évènement', undefined,
+    ColumnDefinition.makeStaticColumn('evType', 'Intitulé de l\'évènement', undefined,
       () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeStaticColumn('evDateTime', 'Date',
       this.archiveUnitHelper.handleDateWithTime, () => ({'width': '75px', 'overflow-wrap': 'break-word'})),
