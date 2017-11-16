@@ -113,13 +113,18 @@ public class ContextStep {
 
     @Then("^j'importe ce contexte en succès")
     public void success_upload_context()
-        throws IOException, AccessExternalClientServerException, InvalidParseOperationException {
+        throws IOException,
+        AccessExternalClientServerException,
+        InvalidParseOperationException {
+
         Path context = Paths.get(world.getBaseDirectory(), fileName);
-        final RequestResponse response =
-            world.getAdminClient().createContexts(
-                new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                Files.newInputStream(context, StandardOpenOption.READ));
-        assertThat(Response.Status.OK.getStatusCode() == response.getStatus());
+        VitamContext vitamContext = new VitamContext(world.getTenantId());
+        vitamContext.setApplicationSessionId(world.getApplicationSessionId());
+
+        final RequestResponse response = world.getAdminClient()
+            .createContexts(vitamContext, Files.newInputStream(context, StandardOpenOption.READ));
+
+        assertThat(response.isOk()).isTrue();
     }
 
     /**
@@ -158,7 +163,8 @@ public class ContextStep {
 
         RequestResponse<ContextModel> requestResponse =
             world.getAdminClient().updateContext(context, contextIdentifier, queryDsl);
-        assertThat(requestResponse).isInstanceOf(RequestResponseOK.class);
+
+        assertThat(requestResponse.isOk()).isTrue();
     }
 
 

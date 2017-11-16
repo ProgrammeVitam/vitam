@@ -1,5 +1,7 @@
 package fr.gouv.vitam.common.model.administration;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -13,10 +15,10 @@ public class PermissionModel {
     private Integer tenant;
 
     @JsonProperty("AccessContracts")
-    private Set<String> accessContract;
+    private Set<String> accessContract = new HashSet<>();
 
     @JsonProperty("IngestContracts")
-    private Set<String> ingestContract;
+    private Set<String> ingestContract = new HashSet<>();
 
     /**
      * Constructor of permission
