@@ -10,7 +10,7 @@ Les URL sont découpées de la façon suivantes :
 - Resource : le nom d'une collection
 - L'URL peut contenir d'autres éléments (item, sous-collections)
 
-Exemple: https://api.vitam.fr/access/v1/units/id
+Exemple: https://api.vitam.fr/access-external/v1/units/id
 
 Les méthodes utilisées :
 - GET: pour l'équivalent de "Select" (possibilité d'utiliser POST avec X-Http-Method-Override: GET dans le Header)
@@ -38,13 +38,23 @@ Les codes d'erreurs HTTP standards utilisés sont :
 - 500: si une erreur interne est survenue dans le back-office (peut être un bug ou un effet de bord d'une mauvaise commande)
 - 501: Le service n'est pas implémenté
 
+## Entêtes HTTPs des APIs
+
+L'appel aux APIs REST nécessite le passage de certains entêtes dans la requête :
+- **X-Application-Id** : pour conserver la session (valeur non signifiante) dans les journaux et logs du SAE associés à l'opération demandée
+- **X-Tenant-Id** : pour chaque requête, le tenant sur lequel doit être exécutée la requête
+- **X-Access-Contract-Id** : pour les APIs nécessitant un contrat d'accès.
+- **X-Personal-Certificate** : pour les API sensibles nécessitant une authentification personae.
+- **X-Qualifier** et **X-Version** : pour une requête GET sur un **Object** pour récupérer un usage et une version particulière
+- **X-Http-Method-Override** : pour permettre aux clients HTTP ne supportant pas tous les modes de la RFC 7231 (GET/PUT/DELETE avec Body) de faire des appels POST en passant le verb HTTP cible (GET/PUT/DELETE) dans l'entête.
+
+La réponse des APIs REST contient dans les headers de réponse :
+- **X-Request-Id** : pour chaque requête, un identifiant unique de corrélation est fourni en réponse.
+
 ## Modèle asynchrone
 
-Dans le cas d'une opération asynchrone, deux options sont possibles :
-
-### Mode Pooling
-
-Dans le mode pooling, le client est responsable de requêter de manière répétée l'URI de vérification du statut, et ce de manière raisonnée (pas trop souvent).
+Dans le cas d'une opération asynchrone, une API d'interrogation de type "pooling" est disponible.
+Le client peut requêter de manière répétée une URI de vérification du statut, et ce de manière raisonnée (pas trop souvent).
 
 Le principe est le suivant :
 - Création de l'opération à effectuer
@@ -55,31 +65,15 @@ Le principe est le suivant :
 - Fin de pooling sur l'opération demandée
   - Exemple : GET /operations/id et retourne 200 + le résultat
 
-### Mode Callback **UNSUPPORTED**
-
-Dans le mode Callback, le client soumet une création d'opération et simultanément propose une URI de Callback sur laquelle Vitam rappellera le client pour lui indiquer que cette opération est terminée.
-
-Le principe est le suivant :
-- Création de l'opération à effectuer avec l'URI de Callback
-  - Exemple: POST /ingests + dans le Header X-Callback: https://uri?id={id}&status={status} et retourne 202 + #id + Header X-Callback confirmé
-- A la fin de l'opération, Vitam rappelle le client avec l'URI de Callback
-  - Exemple: GET /uri?id=idop&status=OK
-- Le client rappelle alors Vitam pour obtenir l'information
-  - Exemple: GET /ingests/#id et retourne 200 + le résultat
-
-### Perspectives d'évolution
-
-Dans le cas où l'accès au résulat final ne doit pas se faire sur l'URI /resources/id, il faudra ajouter une réponse 303.
-
 ## Authentification
 
-L'authentification dans Vitam authentifie l'application Front-Office qui se connecte à ses API. Cette authentification s'effectue en trois temps :
-- Un premier composant authentifie la nouvelle connexion
-  - La première implémentation sera basée sur une authentification du certificat client dans la connexion TLS
-- Le premier composant passe au service REST la variable Header "X-Identity" contenant l'identifiant de l'application Front-Office.
-  - Comme cette identification est actuellement interne, ce Header est actuellement non généré.
-- Le service REST, sur la base de cette authentification, s'assure que l'application Front-Office ait bien l'habilitation nécessaire pour effectuer la requête exprimée.
+Vitam authentifie l'application Front-Office qui se connecte à ses API via le certificat client de la connexion TLS.
+Chaque certificat enregistré dans le référentiel Vitam est rattaché à un Contexte.
+Vitam s'assure que l'application Front-Office ait bien l'habilitation nécessaire pour effectuer la requête exprimée.
 
+## Authentification Personae
+
+Certaines APIs dites "sensibles" nécessitent une authentification renforcée de l'utilisateur. L'utilisateur souhaitant avoir accès à ces API doit s'authentifier de manière forte avec un certificat X509 auprès du SIA. Ce certificat doit être passé par SIA lors de l'appel aux APIs sensisbles dans un dédié header "**X-Personal-Certificate**" (en Base64 au format PEM).
 
 ## Identifiant de corrélation
 
@@ -89,27 +83,13 @@ Cependant chaque requête retourne un identifiant de requête "**X-Request-Id**"
 Considérant que cela peut rendre difficile le suivi d'une session utilisateur connecté sur un Front-Office, il est proposé que l'application Front-Office puisse passer en paramètre dans le Header l'argument "**X-Application-Id**" correspondant à un identifiant de session de l'utilisateur connecté. Cet identifiant DOIT être non signifiant car il sera lui aussi dans les logs et les journaux de Vitam. Il est inclus dans chaque réponse de Vitam si celui-ci est exprimé dans la requête correspondante.
 Grâce à cet identifiant externe de session, il est alors plus facile de retracer l'activité d'un utilisateur grâce d'une part au regroupement de l'ensemble des actions dans Vitam au travers de cet identifiant, et d'autre part grâce aux logs de l'application Front-Office utilisant ce même identifiant de session.
 
-Afin de gérer plusieurs tenants, il est imposé (pour le moment) que l'application Front-Office puisse passer en paramètre 
-dans le Header l'argument **X-Tenant-Id** correspondant au tenant sur lequel se baser pour exécuter la requête.  
-
 ## Pagination
 
-Vitam ne dispose pas de notion de session en raison de son implémentation « State Less ». Néanmoins, pour des raisons d'optimisations sur des requêtes où le nombre de résultats serait important, il est proposé une option tendant à améliorer les performances : X-Cursor et X-Cursor-Id.
+Vitam ne dispose pas de notion de session en raison de son implémentation « State Less ».
+Néanmoins, il est possible de paginer les résultats en utilisant le DSL avec les arguments suivants dans la requête : (pour GET uniquement)
+- **$limit** : le nombre maximum d'items retournés (limité à 10000 par défaut)
+- **$offset** : la position de démarrage dans la liste retournée (positionné à 0 par défaut)
 
-### Méthode standard
+A noter qu'en raison du modèle State-less, les requêtes suivantes (en manipulant notamment $offset) seront à nouveau exécutées, conduisant à des performances réduites.
 
-De manière standard, il est possible de paginer les résultats en utilisant le DSL avec les arguments suivants dans la requête : (pour GET uniquement)
-- **$limit** : le nombre maximum d'items retournés (limité à 1000 par défaut, maximum à 100000)
-- **$per_page** : le nombre maximum des premiers items retournés (limité à 100 par défaut, maximum à 100) (**UNSUPPORTED**)
-- **$offset** : la position de démarrage dans la liste retournée (positionné à 0 par défaut, maximum à 100000)
 
-En raison du principe State-less, les requêtes suivantes (en manipulant notamment $offset) seront à nouveau exécutées, conduisant à des performances réduites.
-
-### Méthode optimisée **UNSUPPORTED**
-
-Afin d'optimiser, il est proposé d'ajouter de manière optionnelle dans le Header lors de la première requête le champs suivant : **X-Cursor: true**
-Si la requête nécessite une pagination (plus d'une page de réponses possible), le SAE répondra alors la première page (dans le Body) et dans le Header :
-- **X-Cursor-Id**: id (identifiant du curseur)
-- **X-Cursor-Timeout**: datetime (date limite de validité du curseur)
-
-Le client peut alors demander les pages suivantes en envoyant simplement une requête GET avec un Body vide et dans le Header : **X-Cursor-Id**: id.
