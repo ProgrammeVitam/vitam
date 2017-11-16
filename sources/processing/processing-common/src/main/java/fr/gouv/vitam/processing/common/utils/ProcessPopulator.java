@@ -55,6 +55,8 @@ public class ProcessPopulator {
     private static final String INTERNAL_WORKFLOWS_LIST_CONFIG = "workflows.conf";
     private static final String EXTERNAL_WORKFLOWS_FOLDER = "processing/workflows";
 
+    private static final File[] NO_FILES = {};
+    
     private ProcessPopulator() {
         // empty constructor
     }
@@ -134,14 +136,13 @@ public class ProcessPopulator {
      *
      * @param fromDate datetime on milliseconds to filter from, if null no filter is applied
      * @return list of workflow (json) files
-     * @throws WorkflowNotFoundException if workflow folder not found in config directory
      */
-    private static File[] getExternalWorkflowFiles(Long fromDate) throws WorkflowNotFoundException {
+    private static File[] getExternalWorkflowFiles(Long fromDate) {
         File workflowFolder = PropertiesUtils.fileFromConfigFolder(EXTERNAL_WORKFLOWS_FOLDER);
 
         if(!workflowFolder.isDirectory()){
-            LOGGER.warn("DirectoryNotFoundException thrown by populator: {}", workflowFolder);
-            throw new WorkflowNotFoundException("DirectoryNotFoundException thrown by populator");
+            LOGGER.debug("DirectoryNotFoundException thrown by populator: {}", workflowFolder);
+            return NO_FILES;
         }
         else {
             return workflowFolder.listFiles(
