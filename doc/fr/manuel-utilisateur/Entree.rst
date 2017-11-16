@@ -10,9 +10,9 @@ Le SIP est un fichier compressé comportant le bordereau de versement SEDA au fo
 Transfert d'un SIP dans la solution logicielle Vitam
 ====================================================
 
-Le transfert d'un SIP dans la solution logicielle Vitam s'effectue depuis l'écran "Transfert SIP". Par défaut, lors de sa connexion, l'utilisateur est dirigé vers cette page. Il peut également y accéder en cliquant sur le menu "Entrée" puis le sous-menu "Transfert SIP".
+Le transfert d'un SIP dans la solution logicielle Vitam s'effectue depuis l'écran "Transfert SIP et plan de classement". Par défaut, lors de sa connexion, l'utilisateur est dirigé vers cette page. Il peut également y accéder en survolant le menu "Entrée" puis sélectionne sous-menu "Transfert de SIP et plan de classement".
 
-.. image:: images/menu_entree.png
+.. image:: images/menu_transfert.png
 
 Pour débuter une entrée, l’utilisateur doit sélectionner le lot d’archives (SIP) à transférer dans la solution logicielle Vitam. Pour cela, il clique sur le bouton « Parcourir », une nouvelle fenêtre s'ouvre dans laquelle il a la possibilité de sélectionner le SIP.
 
@@ -32,7 +32,7 @@ Le mode d'exécution et la destination sont obligatoires. Par défaut le mode d'
 
 Pour lancer le transfert du SIP, l’utilisateur clique sur le bouton « Importer ».
 
-.. image:: images/upload_sip.png
+.. image:: images/entree_sip.png
 
 Un fois le SIP importé, les informations visibles à l'écran sont :
 
@@ -50,7 +50,7 @@ Les formats de SIP attendus sont : ZIP, TAR, TAR.GZ, TAR.BZ2
 
 Si l'utilisateur tente d'importer un SIP au format non conforme, alors la solution logicielle Vitam empêche le téléchargement et une fenêtre de type "modale" s'ouvre indiquant les formats autorisés.
 
-.. image:: images/upload_sip_KO.jpg
+.. image:: images/sip_ko_format.png
 
 Toute opération d'entrée (succès, avertissement et échec) fait l'objet d'une écriture dans le journal des opérations. Les entrées abouties génèrent un accusé de réception qui est proposé en téléchargement à l'utilisateur.
 
@@ -83,9 +83,7 @@ La notification comprend ensuite la liste des erreurs rencontrées (échec ou av
 Transfert d'un SIP de plan de classement
 =========================================
 
-Le transfert d'un plan de classement dans Vitam s'effectue depuis l'écran "Transfert du plan de classement", accessible depuis le menu "Entrée" puis en cliquant sur le sous-menu du même nom.
-
-.. image:: images/menu_entree_plan_classement.png
+Le transfert d'un plan de classement dans la solution logicielle Vitam s'effectue depuis l'écran "Transfert SIP et plan de classement". Par défaut, lors de sa connexion, l'utilisateur est dirigé vers cette page. Il peut également y accéder en survolant le menu "Entrée" puis sélectionne sous-menu "Transfert de SIP et plan de classement". Il faut ensuite sélectionner le bouton "Plan de classement"
 
 Pour débuter une entrée, l’utilisateur doit sélectionner le plan, sous le format demandé, à transférer dans la solution logicielle Vitam. Pour cela, il clique sur le bouton « Parcourir », une nouvelle fenêtre s'ouvre dans laquelle il a la possibilité de sélectionner le plan.
 
@@ -113,7 +111,7 @@ Les informations visibles à l'écran sont :
 
 NB : Suite au téléchargement du plan, un temps d'attente est nécessaire, correspondant au traitement du plan par le système avant affichage du statut final. Dans ce cas, une roue de chargement est affichée au niveau du statut.
 
-.. image:: images/upload_plan.png
+.. image:: images/entree_plan.png
 
 Si l'utilisateur tente d'importer un plan au format non conforme (s'il ne s'agit pas des formats ZIP, TAR, TAR.GZ, TAR.BZ2) alors le système empêche le téléchargement.
 Une fenêtre pop-up s'ouvre indiquant les formats autorisés.
@@ -124,10 +122,10 @@ Cette notification ou ArchiveTransferReply (ATR) est au format XML conforme au s
 Lors d'une entrée en succès dans la solution logicielle VITAM, l'ATR comprend les informations suivantes :
 
 - Date : date d'émission de l'ATR
-- MessageIdentifier : identifiant de l'ATR. Cet identifiant correspond à l'identification attribuéesss à la demande de transfert par la solution logicielle Vitam
+- MessageIdentifier : identifiant de l'ATR. Cet identifiant correspond à l'identification attribuées à la demande de transfert par la solution logicielle Vitam
 - ArchivalAgreement : contrat d'entrée
 - CodeListVersion : la liste des référentiels utilisés
-- La liste des unités achivistiques avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle Vitam (SystemId)
+- La liste des unités archivistiques avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle Vitam (SystemId)
 - ReplyCode : statut final de l'entrée
 - GrantDate : date de prise en charge du plan
 - MessageIdentifierRequest : identifiant de la demande de transfert
@@ -153,7 +151,7 @@ Il permet ainsi à l'utilisateur de savoir si son entrée est valide, c'est-à-d
 
 Pour consulter le journal des opérations d'entrée, l'utilisateur clique sur le menu "Entrée" dans la barre de menu, puis clique sur le sous-menu "Suivi des opérations d'entrée".
 
-.. image:: images/menu_op_entree.png
+.. image:: images/menu_jdoe.png
 
 Formulaire de recherche d'une entrée
 ------------------------------------
@@ -166,7 +164,7 @@ Pour initier la recherche, l'utilisateur saisit le nom du SIP et clique sur le b
 
 La recherche s'effectue de façon stricte, c'est-à-dire que seul le nom exact de l'entrée comprenant strictement la chaîne de caractères saisie sera pris en compte. La recherche porte sur toutes les opérations d'entrée quel que soit leur statut (en cours, succès, avertissement et erreur)
 
-.. image:: images/op_entree.png
+.. image:: images/rechch_jdoe.png
 
 Affichage des résultats
 -----------------------
@@ -183,7 +181,7 @@ Le résultat de la recherche est affiché sous forme de tableau. Par défaut, le
 - Bordereau : permet le téléchargement du manifest.xml
 - AR : permet le téléchargement de l'accusé de réception (ATR)
 
-.. image:: images/op_entree_liste.png
+.. image:: images/res_jdoe.png
 
 
 Il y a également la possibilité d'afficher d'autres informations, soit en les sélectionnant individuellement, soit en les sélectionnant toutes par un clic sur "Tout sélectionner".
@@ -197,27 +195,24 @@ Les informations supplémentaires disponibles sont :
 - Signature
 - Rapport
 
-.. image:: images/op_entree_info_complementaires.png
-
 
 Consultation du détail
 ----------------------
 
 Suite à la recherche d'une opération d'entrée ou depuis l'écran d'affichage par défaut, l'utilisateur peut choisir de consulter le détail des événements intervenus durant le processus d'entrée.
-Pour cela, il clique sur la ligne de l'entrée voulue.
-Le détail du journal d'entrée s'ouvre dans un nouvel onglet. L'utilisateur peut ainsi revenir à la page d'affichage de la liste globale des résultats.
+Pour accéder au détail d'une opération d'entrée, l'utilisateur clique sur la ligne souhaitée.
 
-Le processus d'entrée est décrit étape par étape avec des messages correspondant au résultat de chaque étape (avec les informations de début et de fin d'étape) et de chaque tâche (associée à une étape, seule l'information de fin de tâche est affichée).
+Le détail est composé de deux parties, le descriptif de l'opération qui récapitule les informations de l'opérations avec la possibilité d'afficher les informations supplémentaires.
 
-En haut de la page figure le numéro de l'opération d'entrée, sous la forme "Détail de l'opération - Numéro de l'opération d'entrée"
+.. image:: images/desc_jdoe.png
 
-Le détail est affiché sous forme de tableau comportant pour chaque événement les éléments suivants :
+Puis, les détails de l'opération qui sont présentés sous forme de liste comportant, pour chaque événement, les éléments suivants :
 
-- Etape : nom de l'étape correspondante
-- Date : date à laquelle l'étape ou la tâche a été effectuée
-- Statut : statut final de l'étape ou de la tâche
-- Message : message expliquant le statut de l'étape, tâche ou traitement correspondant
+- le nom de l'étape
+- la date à laquelle l'étape a été effectuée
+- le message expliquant le statut de cette étape
+- le statut présenté sous forme de pictogramme
 
-.. image:: images/op_entree_detail.png
+Un clique sur la flèche située à côté du message permet d'afficher plus de détail concernant cette étape. Un clic sur un signe "+" situé à côté d'un message affiche les détails des données de l'évènement.
 
-L'onglet d'affichage de la page "détail d'une opération d'entrée" peut être fermé à tout moment.
+.. image:: images/detail_jdoe.png

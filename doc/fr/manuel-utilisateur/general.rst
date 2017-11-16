@@ -11,7 +11,7 @@ Le menu est situé en haut des pages. Il est présent sur toutes les pages et es
 - Administration
 - Gestion des archives
 
-.. image:: images/menu.png
+.. image:: images/menu_general.png
 
 Chaque section comprend plusieurs sous-menus permettant de naviguer sur les différentes pages.
 
@@ -38,16 +38,16 @@ Deux types de formulaire sont utilisés dans la solution logicielle Vitam :
 Formulaires de recherche simple
 -------------------------------
 
-Les formulaires de recherche simple sont constitués d'un champ et d'un bouton "Rechercher". A droite du champ de recherche, l'utilisateur peut cliquer sur une croix pour effacer sa recherche.
-
-.. image:: images/gen_formulaire_simple.png
+Les formulaires de recherche simple sont constitués d'un champ et d'un bouton "Rechercher". 
+ 
+.. image:: images/au_rechchs.png
 
 Formulaires de recherche avancée
 --------------------------------
 
 Les formulaires de recherche avancée sont composés d'au moins deux champs, d'un bouton "Rechercher" et d'un bouton "Effacer". En cliquant sur le bouton "Effacer", toutes les valeurs saisies dans les champs du formulaire sont effacées.
 
-.. image:: images/gen_formulaire_avance.png
+.. image:: images/au_rechcha.png
 
 Affichage du nombre de résultats
 --------------------------------
@@ -58,7 +58,7 @@ Le nombre de résultats correspondant au résultat d'une recherche est indiqué 
 
 Si aucun résultat n'est trouvé par la solution logicielle Vitam, alors un message indique à l'utilisateur qu'aucun résultat n'est disponible pour sa recherche.
 
-.. image:: images/gen_aucun_resultat.png
+.. image:: images/au_res_ko.png
 
 Visualisation des listes des écrans de détail
 =============================================
@@ -71,13 +71,13 @@ Trois types d'écran de détail comportant des listes sont disponibles :
 
 Les couleurs de fonds et des polices ont été adaptées en fonction des statutss KO, FATAL et WARNING.
 
-Pour les cas KO ou FATAL, les lignes s'affichent en rouge et le texte est affiché en noir. Au survol avec le pointeur de la souris, le texte passe en blanc.
+Pour les cas KO ou FATAL, les lignes s'affichent en rouge et le texte est affiché en noir et un pictogramme de croix est présent.
 
-.. image:: images/op_entree_detail_FATAL.png
+.. image:: images/entree_ko.png
 
-Pour les cas WARNING, la ligne ne change pas de couleur mais le texte est affiché en orange.
+Pour les cas WARNING, la ligne ne change pas de couleur mais le texte est affiché en orange et un pictogramme de point d'exclamation est présent.
 
-.. image:: images/op_entree_detail_WARNING.png
+.. image:: images/entree_warn.png
 
 Affichage des dates et heures
 =============================
