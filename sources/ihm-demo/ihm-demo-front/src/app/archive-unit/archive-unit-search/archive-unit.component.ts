@@ -34,7 +34,7 @@ export class ArchiveUnitComponent extends PageComponent {
     FieldDefinition.createIdField('id', 'Identifiant', 4, 12),
     FieldDefinition.createDateField('startDate', 'Date de début', 4, 12),
     FieldDefinition.createDateField('endDate', 'Date de fin', 4, 12),
-    new FieldDefinition('originatingagencies', 'Service producteur d\'entrée', 4, 12)
+    new FieldDefinition('originatingagencies', 'Service producteur de l\'entrée', 4, 12)
   ];
 
   public columns = [
@@ -171,6 +171,10 @@ export class ArchiveUnitComponent extends PageComponent {
 
   public paginationSearch(service: any, offset) {
     return service.getResults(this.searchForm, offset);
+  }
+  
+  public onClearPressed() {
+    delete this.response;
   }
 
 }
