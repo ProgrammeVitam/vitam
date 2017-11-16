@@ -342,6 +342,7 @@ public class AdminManagementResourceTest {
 
         AccessContractModel contractModel = new AccessContractModel();
         contractModel.setOriginatingAgencies(Sets.newHashSet(originatingAgency));
+        contractModel.setIdentifier(contractId);
         contractModel.setName(contractId);
         contractModel.setStatus(ContractStatus.ACTIVE.name());
 

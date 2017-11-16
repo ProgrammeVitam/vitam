@@ -1,5 +1,6 @@
 [
 	{
+		"Identifier":"aName",
 		"Name":"aName",
 		"Description":"aDescription of the contract",
 		"Status":"ACTIVE",
@@ -13,6 +14,7 @@
 		"EveryOriginatingAgency": true
 	},
 	{
+		"Identifier":"EveryOriginatingAgency",
 		"Name":"EveryOriginatingAgency",
 		"Description":"aDescription of the contract",
 		"Status":"ACTIVE",

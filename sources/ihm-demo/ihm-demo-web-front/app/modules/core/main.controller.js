@@ -161,7 +161,7 @@ angular.module('core')
                             if (repsonse.status == 200 && repsonse.data['$results'] && repsonse.data['$results'].length > 0) {
                                 $scope.contracts = repsonse.data['$results'];
                                 authVitamService.setContract($scope.contracts);
-                                $scope.accessContratId = $scope.contracts[0].Name;
+                                $scope.accessContratId = $scope.contracts[0].Identifier;
                                 authVitamService.createCookie("X-Access-Contract-Id", $scope.accessContratId);
                             }
                         }, function (error) {

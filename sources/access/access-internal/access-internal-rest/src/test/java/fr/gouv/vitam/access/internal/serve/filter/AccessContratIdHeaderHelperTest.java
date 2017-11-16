@@ -81,6 +81,7 @@ public class AccessContratIdHeaderHelperTest {
 
     private static final Integer TENANT_ID = 0;
     private static final String CONTRACT_ID = "CONTRACT_ID";
+    private static final String CONTRACT_IDENTIFIER = "CONTRACT_IDENTIFIER";
 
     @Before
     public void setUp() {
@@ -182,6 +183,7 @@ public class AccessContratIdHeaderHelperTest {
         // Prepare mocks
         AccessContractModel mockedContract = new AccessContractModel();
         mockedContract.setId(CONTRACT_ID);
+        mockedContract.setIdentifier(CONTRACT_IDENTIFIER);
         mockedContract.setEveryOriginatingAgency(true);
         Set<String> originatingAgencies = new HashSet<>();
         originatingAgencies.add("FRAN_AGENCY_1");
@@ -202,7 +204,7 @@ public class AccessContratIdHeaderHelperTest {
 
         // launch test
         MultivaluedMap<String, String> requestHeaders = new MultivaluedHashMap<>();
-        requestHeaders.putSingle(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID);
+        requestHeaders.putSingle(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_IDENTIFIER);
 
         AccessContratIdHeaderHelper.manageAccessContratFromHeader(requestHeaders);
 

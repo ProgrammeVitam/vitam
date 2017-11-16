@@ -103,7 +103,7 @@ public class AccessContratIdHeaderHelper {
         throws InvalidParseOperationException, InvalidCreateOperationException{
 
         Select select = new Select();        
-        Query query = QueryHelper.and().add(QueryHelper.eq(AccessContract.NAME, headerAccessContratId),
+        Query query = QueryHelper.and().add(QueryHelper.eq(AccessContract.IDENTIFIER, headerAccessContratId),
             QueryHelper.eq(AccessContract.STATUS, ACTIVE_STATUS));
         select.setQuery(query);        
         JsonNode queryDsl = select.getFinalSelect();

@@ -83,9 +83,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.model.WorkerRemoteConfiguration;
@@ -102,27 +100,7 @@ import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
-import org.apache.commons.io.IOUtils;
 import org.assertj.core.util.Lists;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.stream.FactoryConfigurationError;
-import javax.xml.transform.TransformerFactoryConfigurationError;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Map;
-
-import static com.jayway.restassured.RestAssured.get;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 
 /**
  * Worker integration test TODO P1 : do a "worker-integration" module

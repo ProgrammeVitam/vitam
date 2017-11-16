@@ -112,7 +112,7 @@ export class QueryDSLComponent extends PageComponent {
         this.selectedMethod = 'PUT';
       }
     }
-    this.queryDslService.executeRequest(this.jsonRequest, this.selectedContract.Name,
+    this.queryDslService.executeRequest(this.jsonRequest, this.selectedContract.Identifier,
       this.selectedCollection, this.selectedMethod, this.selectedAction, this.objectId).subscribe(
       (response) => this.requestResponse = JSON.stringify(response.json(), null, 2),
       (error) => {

@@ -146,8 +146,8 @@ export class MenuComponent implements OnInit {
           let contractInCookie = this.resourcesService.getAccessContract();
           let hasContract = false;
           for (let contract of data.$results) {
-            this.accessContracts.push({label:contract.Name, value:contract.Name});
-            if (contract.Name === contractInCookie) {
+            this.accessContracts.push({label:contract.Name, value:contract.Identifier});
+            if (contract.Identifier === contractInCookie) {
               hasContract = true
             }
           }

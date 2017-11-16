@@ -150,7 +150,7 @@ describe('QueryDSLComponent', () => {
     let parsedResponse = JSON.parse(response);
     expect(parsedResponse.ok).toBeTruthy();
 
-    component.selectedContract.Name = null;
+    component.selectedContract.Identifier = null;
     component.sendRequest();
     response = component.requestResponse;
     parsedResponse = JSON.parse(response);
