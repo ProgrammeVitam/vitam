@@ -262,11 +262,12 @@ public class ValidatorTest {
     }
 
     @Test
-    public void should_not_retrieve_errors_when_send_size_request() throws Exception {
+    public void should_retrieve_errors_when_send_size_request() throws Exception {
         JsonNode test1Json =
             mapper.readTree(PropertiesUtils.getResourceFile("operator_size_request.json"));
         final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
-        validator.validate(test1Json);
+        assertThatThrownBy(() -> validator.validate(test1Json)).hasMessageContaining("Validating $query: ROOT_QUERY[]" +
+            " ~ INVALID_JSON_FIELD: $size");
     }
 
     @Test
@@ -278,7 +279,7 @@ public class ValidatorTest {
             .hasMessageContaining(
                 "Validating $roots: guid[] ~ INVALID_VALUE: STRING ~ hint: Tableau d'identifiants d'AU racines ~ found json: \\\"azdazdazdaz\\\" ~ path: [$roots]")
             .hasMessageContaining(
-                "Validating $size: {[key]: integer} ~ ELEMENT_TOO_SHORT: 0 < 1 ~ found json: {} ~ path: [$query, $size]");
+                "Validating $query: ROOT_QUERY[] ~ INVALID_JSON_FIELD: $size");
     }
 
 }
