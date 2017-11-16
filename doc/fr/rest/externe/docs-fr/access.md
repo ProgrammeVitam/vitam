@@ -1,6 +1,6 @@
 *L'API d'Accès* propose les points d'entrées et les méthodes pour atteindre, requêter et récupérer les informations depuis les **Units** et les **Objects**.
 
-Cette API est globalement reproduite dans tous les autres points d'accès lorsque l'accès à des _Units_ et _Objects_ est nécessaire. Les fonctionnalités offertes peuvent par contre varier (droit en modification, effacement, ... selon le contexte).
+Cette API est globalement reproduite dans tous les autres points d'accès lorsque l'accès à des _Units_ et _Objects_ est nécessaire. Les fonctionnalités offertes peuvent par contre varier (droit en modification, effacement, ...) selon le contexte.
 
 # API Access externe
 
@@ -10,16 +10,22 @@ Dans le projet Vitam, Les API externes supportent le POST-X-HTTP-OVERRIDE=GET. L
 
 **Units** est le point d'entrée pour toutes les descriptions d'archives. Celles-ci contiennent les métadonnées de description et les métadonnées archivistiques (métadonnées de gestion).
 
-Une _Unit_ peut être soit un simple dossier (comme dans un plan de classement), soit une description d'un item. Les _Units_ portent l'arborescence d'un plan de classement. Ce plan de classement peut être multiple :
-  - Plusieurs racines (_Unit_ de plus haut niveau)
-  - Plusieurs parents (un dossier peut être rattaché à plusieurs dossiers)
-  - Il s'agit d'une représentation dite de "_graphe dirigé sans cycle_" (DAG en Anglais pour "_Directed Acyclic Graph_").
+Une _Unit_ peut être de 3 types : 
+- "ingest" (unité archivistique classique), 
+- "holding" (unité archivistique d'arbre de positionnement) 
+- "filing" (unité archivistique de plan de classement). 
+Les métadonnées de ces unités peuvent tout aussi bien décrire un dossier qu'un groupe d'objet lié. Les _Units_ peuvent être organisées en arborescence et peuvent posséder :
+  - Plusieurs racines dans l'arborescence (_Unit_ de plus haut niveau)
+  - Plusieurs parents directs (un dossier peut être rattaché à plusieurs dossiers)
+  
+ Il s'agit d'une représentation dite de "_graphe dirigé sans cycle_" (DAG en Anglais pour "_Directed Acyclic Graph_").
 
 Pour le model SEDA, il est équivalent à l'**ArchiveUnit**, notamment pour les parties **Content** et **Management**. Pour l'Isad(G) / EAD, il est équivalent à **Description Unit**.
 
-A priori, un seul _groupe_ d'_objets_ d'archives (**Objects**) est attaché à une _Unit_. Cela signifie que si une _Unit_ devait avoir plus d'un _groupe_ d'_objets_ d'archive attaché, vous devez spécifier des sous-Units à l'_Unit_ principale, chaque sous-Unit n'ayant qu'un _groupe_ d'_objets_ d'archives attaché. Un même _groupe_ d'_objets_ d'archives peut par contre être attaché à de multiples _Units_.
+Au plus, un seul _groupe_ d'_objets_ d'archives (**Objects**) est attaché à une _Unit_. Cela signifie que si une _Unit_ doit avoir plus d'un _groupe_ d'_objets_ d'archive attaché, vous devez spécifier des sous-Units à l'_Unit_ principale, chaque sous-Unit n'ayant qu'un _groupe_ d'_objets_ d'archives attaché. Un même _groupe_ d'_objets_ d'archives peut par contre être attaché à de multiples _Units_.
 
 Aucun effacement n'est autorisé, ni aucune mise à jour complète (seules les mises à jours partielles sont autorisées via la commande PUT).
+Les mises à jour ne sont authorisées que par _Unit_, il n'y a pas de mise à jour en masse.
 
 ### Structuration des métadonnées
 
@@ -28,7 +34,7 @@ La structuration d'un Unit est la suivante :
   {
     "#id": "UnitId",
     "#tenant": "tenantId",
-    "#type": "DocumentTypeId",
+    "#version": 1,
     "#unitType" : "HOLDING_UNIT (arbre), FILING_UNIT (Plan) ou INGEST (ArchiveUnit standard)"
     //Métadonnées du content
     "DescriptionLevel": "Fonds",
@@ -44,41 +50,44 @@ La structuration d'un Unit est la suivante :
       "NeedAuthorization": false // Accès nécessitant une autorisation explicite
     },
     "#unitups": [ "unitParentId", "unitParentId"], // liste des parents immédiats
+    "#min": 1,
+    "#max": 1,
     "#object": "objectId",
     "#nbunits": 1, // Nombre de Unit fils
     "#operations" : [ "id", "id" ], // liste des opérations auxquelles cette AU a participées
-    "#allunitsups": [ "unitParentId", "unitParentId"] // liste de tous les parents jusqu'au sommet
-  }
+    "#allunitsups": [ "unitParentId", "unitParentId"], // liste de tous les parents jusqu'au sommet
+    "#storage": { "_nbc": [ 2 ]  } // information de stockage,
+    "#originating_agency": "originationAgencyId",
+    "#originating_agencies": [ "originationAgencyId" ],
+    "#operations" : [ "operationId" ] // liste des opérations auxquelles cette AU a participées
 ```
 
 # Objects
 
-**/units/{idu}/objects** est le point d'entrée pour toutes les archives binaires mais également les non binaires (comme une référence à des objet d'archives physiques ou externes au système). Elles contiennent les métadonnées techniques. Il est constitué de plusieurs usages et versions d'usages du même contenu. C'est dans ce sens qu'il est aussi appelé un **Groupe d'objets**.
+**/units/{idu}/objects** est le point d'entrée pour :
 
-Un _Groupe_ d'_Objects_ peut être constitué de plusieurs versions (sous-objets) pour différencier des usages comme version de conservation, version de diffusion...
+ * tous les groupes objets, qui contiennent les métadonnées techniques (nom des objets, format, type MIME...)
+ * tous les objets binaires (des fichiers) non binaires (des références à des objets d'archives physiques ou externes au système). 
 
-Il peut exister plusieurs enregistrements pour une même version d'usage (pour l'original numérique notamment), au fur et à mesure du cycle de vie du _Groupe_ d'_Objects_.
+Un _Groupe_ d'_Objects_ peut posséder de 1 à N objets. Chaque objet a un usage et une version dans son groupe d'objet. Ces distinctions permettent de différencier des usages comme version de conservation, version de diffusion...
+
+Il peut exister plusieurs versions de l'objet pour un même usage (pour l'original numérique notamment), au fur et à mesure du cycle de vie du _Groupe_ d'_Objects_. Par exemple l'objet d'usage+version "BinaryMaster_1" est la version 1 de l'usage BinaryMaster, le "BinaryMaster_2" est la version 2 de l'usage BinaryMaster. Dans le modèle de données de la solution logicielle Vitam, cet usage correspond au champ "qualifier".
 
 Pour le model SEDA, il est équivalent à un **DataObjectGroup**. Pour l'EAD, il est équivalent à un **Digital Archive Object Group or Set**.
 
 Chaque _Groupe_ d'_Objets_ doit être attaché à au moins un parent _Unit_.
 
-Seul l'accès est autorisé (GET/HEAD).
+Seul l'accès est autorisé (GET/POST en override de GET).
 
-Pour le model SEDA, chaque usage/version est équivalent à un **DataObject** (binaire avec **BinaryDataObject** ou physique avec **PhysicalDataObject**). Pour l'EAD, il est équivalent à un **Digital Archive Object**.
-
-Chaque _Objet_ n'est lié qu'à un seul _Groupe_. Chaque _Objet_ a un qualifier (spécifiable via *#qualifiers* dans le DSL et *X-Qualifier* en Header) :
+Chaque _Objet_ n'est lié qu'à un seul _Groupe d'objets_. Chaque _Objet_ a un qualifier (spécifiable via *#qualifiers* dans le DSL pour l'accès métadonnées et *X-Qualifier* en Header pour l'accès aux objets binaires) :
 
 - **PhysicalMaster** : il s'agit de l'original papier ou physique s'il existe
 - **BinaryMaster** : il s'agit de l'original numérique s'il existe
 - **Dissemination** : il s'agit d'une version adaptée à la diffusion via le réseau et l'usage dans des navigateurs
 - **Thumbnail** : il s'agit d'une version adaptée à la diffusion dans une taille et une qualité correspondant à une vignette (utile lors de l'affichage d'une liste)
 - **TextContent** : il s'agit d'une version ne contenant que le texte du document, sans la mise en forme (son usage est en prévision du futur, par exemple pour des opérations d'analyses sémantiques)
-- **All** (**UNSUPPORTED**) : il s'agit en consultation d'un accès en cas de ZIP ou TAR à l'ensemble des usages et versions. Il est utilisable également en mode HEAD.
 
-Ces qualifiers peuvent être utilisés dans une requête GET en conjonction avec le Header *Accept: application/octet-stream* ou *application/zip ou application/x-tar* (**UNSUPPORTED**) pour accéder en lecture ou en check à un usage particulier.
-Le qualifier **All** est ajouté pour permettre l'accès à l'ensemble des usages avec le Header *Accept: application/zip ou application/x-tar*.
-Pour la commande HEAD (**UNSUPPORTED**), ces Qualifiers peuvent être spécifiés pour préciser sur quoi porte le test d'existence.
+Ces qualifiers peuvent être utilisés dans une requête GET en conjonction avec le Header *Accept: application/octet-stream* pour accéder en lecture à un usage particulier.
 
 ### Structuration des métadonnées
 
@@ -104,9 +113,10 @@ La structuration d'un Object est la suivante :
           "DataObjectGroupId": "abcdef",
           "DataObjectVersion": "PhysicalMaster_1",
           "PhysicalDimensions": {},
+          "PhysicalId": {},
           "xxx": "" // autres informations
         }
-      ]}
+      ]},
       {
       "qualifier": "BinaryMaster",  // Version numérique
       "_nbc": 1, // nombre de versions
@@ -156,7 +166,10 @@ La structuration d'un Object est la suivante :
     ],
     "#unitups": [ "unitParentId", "unitParentId"],
     "#nbobjects": 1, // Nombre de versions d'objets contenus pour tous les usages
-    "#operations" : [ "id", "id" ], // liste des opérations auxquelles cette AU a participées
+    "#storage": { "_nbc": [ 2 ]  } // information de stockage,
+    "#originating_agency": "originationAgencyId",
+    "#originating_agencies": [ "originationAgencyId" ],
+    "#operations" : [ "operationId" ] // liste des opérations auxquelles ce groupe d'objets a participées
   }
 ```
 **Note :** A l'avenir, à l'intérieur d'une version d'usage, et pour chaque version (pour les **BinaryMaster** notamment), un contexte sera ajouté à la structure de l'Object afin de pouvoir y introduire des données de contexte (version du référentiel Pronom par exemple...).

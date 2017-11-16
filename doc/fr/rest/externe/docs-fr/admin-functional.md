@@ -7,7 +7,7 @@
 - Référentiel des Contextes
 - Référentiel des Profiles de Sécurité
 - Registre des Fonds
-- Agencies
+- Référentiel des Services Agents
 - Opérations
 
 # Référentiel des Formats
@@ -49,7 +49,7 @@ Il est possible de mettre à jour ce référentiel via les API.
 
 Actuellement ce référentiel pour le contrôle d'accès aux API.
 
-# Agencies
+# Référentiel des Services Agents
 
 Actuellement ce référentiel est utilisé lors du processus d'entrées.
 
