@@ -34,5 +34,5 @@ Traitement additionnel dans la tâche CHECK_DATAOBJECTPACKAGE
 
 D'une façon synthétique, le workflow est décrit de cette façon :
 
-.. image:: images/Workflow_FilingScheme.jpg
+.. image:: images/Workflow_FilingScheme.png
     :align: center
