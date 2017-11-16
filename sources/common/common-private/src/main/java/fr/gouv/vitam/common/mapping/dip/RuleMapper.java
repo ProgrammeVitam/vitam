@@ -69,7 +69,6 @@ public class RuleMapper {
                 XMLGregorianCalendar xmlGregorianCalendar = newInstance().newXMLGregorianCalendar(startDate);
                 ruleAndStartDate.add(xmlGregorianCalendar);
             }
-            commonRule.getRuleAndStartDate().addAll(ruleAndStartDate);
 
             // Case ClassificationRuleType manage other fields
             if (commonRule instanceof ClassificationRuleType) {
@@ -85,6 +84,8 @@ public class RuleMapper {
                 }
             }
         }
+
+        commonRule.getRuleAndStartDate().addAll(ruleAndStartDate);
 
         // FinalAction for StorageRuleType and AppraisalRuleType
         String finalAction = ruleCategory.getFinalAction();
