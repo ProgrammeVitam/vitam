@@ -125,11 +125,11 @@ export class LogbookComponent extends PageComponent {
 
   static displayManifestDownload(item): boolean {
     return (item.events[1].outcome.toUpperCase() === 'OK' || item.events[1].outcome.toUpperCase() === 'WARNING')
-        && item.events[1].evType === 'PROCESS_SIP_UNITARY';
+        && (item.events[1].evType === 'PROCESS_SIP_UNITARY' || item.events[1].evType === 'FILINGSCHEME');
   }
 
   static displayReportDownload(item): boolean {
-    return item.events[1].evType === 'PROCESS_SIP_UNITARY';
+    return item.events[1].evType === 'PROCESS_SIP_UNITARY' || item.events[1].evType === 'FILINGSCHEME';
   }
 
   // TODO Move me in some utils class ?
