@@ -60,13 +60,13 @@ export class OperationComponent extends PageComponent {
 
   public columns = [
     ColumnDefinition.makeSpecialValueColumn('Type de journal sécurisé',
-      (item) => !!item.events[1].evDetData ? JSON.parse(item.events[1].evDetData).LogType : '' , undefined,
+      (item) => !!item.evDetData ? JSON.parse(item.evDetData).LogType : '' , undefined,
       () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeSpecialValueColumn('Date de début',
-      (item) => !!item.events[1].evDetData ? JSON.parse(item.events[1].evDetData).StartDate : '', DateService.handleDate,
+      (item) => !!item.evDetData ? JSON.parse(item.evDetData).StartDate : '', DateService.handleDateWithTime,
       () => ({'width': '200px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeSpecialValueColumn('Date de fin',
-      (item) => !!item.events[1].evDetData ? JSON.parse(item.events[1].evDetData).EndDate : '', DateService.handleDate,
+      (item) => !!item.evDetData ? JSON.parse(item.evDetData).EndDate : '', DateService.handleDateWithTime,
       () => ({'width': '125px'})),
     ColumnDefinition.makeSpecialIconColumn('Télécharger',
       (item) => item.events[1].outcome === 'OK' ? ['fa-download'] : [],

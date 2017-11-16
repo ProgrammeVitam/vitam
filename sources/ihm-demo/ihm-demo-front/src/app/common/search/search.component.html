@@ -60,7 +60,7 @@
               <p-listbox class="ui-g-12" [style]="{'width':'100%', 'text-align':'left'}"
                          *ngIf="field.type === 'selectMultiple'" [options]="field.options"
                          formControlName="{{field.name}}" id="{{field.name}}"
-                         multiple="multiple"></p-listbox>
+                         [listStyle]="{'max-height': '90px'}" multiple="multiple"></p-listbox>
             </div>
           </div>
           <div class="ui-g-12">
