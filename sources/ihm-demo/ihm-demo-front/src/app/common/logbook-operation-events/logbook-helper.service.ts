@@ -37,7 +37,8 @@ export class LogbookHelperService {
                 eventIndex = events.length;
               }
               tasks = [];
-              if (events[eventIndex] && events[eventIndex].end) {
+              if (events[eventIndex] && events[eventIndex].end
+                    && events[eventIndex].end.evType === event.evType) {
                 events[eventIndex].end = this.eventData;
               } else {
                 events.push(new Event('', this.eventData, []));
@@ -71,7 +72,7 @@ export class LogbookHelperService {
               events.push(new Event(this.eventData, '', []));
               eventIndex = events.length - 1;
             } else {
-              if (events[eventIndex]) {
+              if (events[eventIndex] && !events[eventIndex].end) {
                 events[eventIndex].end = this.eventData;
               } else {
                 events.push(new Event('', this.eventData, []));
