@@ -295,6 +295,10 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                     errors, eip, eip1, usedDeletedRulesForReport, usedUpdateRulesForReport,
                     notUsedDeletedRulesForReport, fileRulesModelToInsert, fileRulesModelToDelete,
                     fileRulesModelToUpdate, fileRulesModelsToImport, validatedRules, filename, client);
+            } catch (FileRulesCsvException e) {
+                updateCheckFileRulesLogbookOperationWhenCsvIsInvalid(CHECK_RULES, StatusCode.KO, eip, client);
+                updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.KO, filename, client);
+                throw e;
             } catch (FileRulesException e) {
                 throw e;
             } catch (FileRulesImportInProgressException e) {
@@ -963,11 +967,11 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
             final ArrayNode readRulesAsJson = RulesManagerParser.readObjectsFromCsvWriteAsArrayNode(csvFileReader);
             checkRulesLinkedToAu(readRulesAsJson, usedDeletedRules, usedUpdatedRules, notUsedDeletedRules,
                 notUsedUpdatedRules);
-            if (usedDeletedRules.size() > 0) {
-                throw new FileRulesDeleteException("used Rules want to be deleted");
-            }
             if (errorsMap.size() > 0) {
                 throw new FileRulesCsvException(INVALID_CSV_FILE);
+            }
+            if (usedDeletedRules.size() > 0) {
+                throw new FileRulesDeleteException("used Rules want to be deleted");
             }
             if (usedUpdatedRules.size() > 0) {
                 throw new FileRulesUpdateException("used Rules want to be updated");
