@@ -145,7 +145,9 @@ Exemples
 Le rapport généré est :
 
 ::
+
   {"JDO":{"evType":"STP_IMPORT_RULES","evDateTime":"2017-11-02T13:50:22.389"},"error":{},"usedDeletedRules":[],"usedUpdatedRules":[]}
+
 
 **Exemple 2 : mise à jour d'un référentiel existant**
 
@@ -157,6 +159,7 @@ Dans cette exemple, la mise à jour :
 Le rapport généré est :
 
 ::
+
   {
   	"JDO": {
   		"evType": "STP_IMPORT_RULES",

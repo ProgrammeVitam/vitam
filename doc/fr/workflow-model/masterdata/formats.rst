@@ -22,8 +22,8 @@ Import d'un référentiel de formats (STP_REFERENTIAL_FORMAT_IMPORT)
 
   + **Statuts** :
 
-    - OK : les informations correspondant à chaque format sont décrites comme dans le référentiel PRONOM
+    - OK : les informations correspondant à chaque format sont décrites comme dans le référentiel PRONOM (STP_REFERENTIAL_FORMAT_IMPORT.OK=Succès du processus d'import du référentiel des formats)
 
-    - KO : la condition ci-dessus n'est pas respectée
+    - KO : la condition ci-dessus n'est pas respectée (STP_REFERENTIAL_FORMAT_IMPORT.KO=Échec du processus d'import du référentiel des formats)
 
-    - FATAL : une erreur technique est survenue lors de l'import du référentiel des formats (STP_REFERENTIAL_FORMAT_IMPORT.FATAL=Erreur de l''import du référentiel de format)
+    - FATAL : une erreur technique est survenue lors de l'import du référentiel des formats (STP_REFERENTIAL_FORMAT_IMPORT.FATAL=Erreur fatale lors du processus d'import du référentiel des formats)

@@ -34,11 +34,11 @@ Import d'un contrat d'entrée (STP_IMPORT_INGEST_CONTRACT)
 
   + **Statuts** :
 
-    - OK : le contrat répond aux exigences des règles
+    - OK : le contrat répond aux exigences des règles (STP_IMPORT_INGEST_CONTRACT.OK=Succès du processus d'import du contrat d'entrée)
 
-    - KO : une des règles ci-dessus n'a pas été respectée
+    - KO : une des règles ci-dessus n'a pas été respectée (STP_IMPORT_INGEST_CONTRACT.KO=Échec du processus d'import du contrat d'entrée)
 
-    - FATAL : une erreur technique est survenue lors de la vérification de l'import du contrat (STP_IMPORT_INGEST_CONTRACT.FATAL=Erreur fatale lors de l''import du contrat d''entrée)
+    - FATAL : une erreur technique est survenue lors de la vérification de l'import du contrat (STP_IMPORT_INGEST_CONTRACT.FATAL=Erreur fatale du processus d'import du contrat d'entrée)
 
 Mise à jour d'un contrat d'entrée (STP_UPDATE_INGEST_CONTRACT)
 ----------------------------------------------------------

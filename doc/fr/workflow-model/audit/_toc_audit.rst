@@ -6,5 +6,5 @@ AUDIT
    :maxdepth: 1
 
    workflow-check-traceability
-   workflow_audit_file_existing
+   workflow_audit_file_existing_integrity
    rapportaudit.rst

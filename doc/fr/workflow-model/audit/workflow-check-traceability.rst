@@ -26,9 +26,9 @@ PREPARE_TRACEABILITY_CHECK (PrepareTraceabilityCheckProcessActionHandler.java)
 * **Règle** : vérification que l'opération donnée en entrée est de type TRACEABILITY. Récupération du zip associé à cette opération et extraction de son contenu.
 * **Type** : bloquant
 * **Statuts** :
-	* OK : l'opération donnée en entrée est une opération de type TRACEABILITY, le zip a été trouvé et son contenu extrait (PREPARE_TRACEABILITY_CHECK.OK=Succès de la préparation du processus de la vérification des journaux sécurisés)
-	* KO : l'opération donnée en entrée n'est pas une opération de type TRACEABILITY (PREPARE_TRACEABILITY_CHECK.KO=Échec de la préparation du processus de  vérification des journaux sécurisés)
-	* FATAL : une erreur technique est survenue lors de la préparation du processus de vérification (PREPARE_TRACEABILITY_CHECK.FATAL=Erreur fatale lors de la préparation du processus de vérification des journaux sécurisés)
+	* OK : l'opération donnée en entrée est une opération de type TRACEABILITY, le zip a été trouvé et son contenu extrait (PREPARE_TRACEABILITY_CHECK.OK=Succès de la préparation de la vérification des journaux sécurisés)
+	* KO : l'opération donnée en entrée n'est pas une opération de type TRACEABILITY (PREPARE_TRACEABILITY_CHECK.KO=Échec de la préparation de la vérification des journaux sécurisés)
+	* FATAL : une erreur technique est survenue lors de la préparation du processus de vérification (PREPARE_TRACEABILITY_CHECK.FATAL=Erreur fatale lors de la préparation de la vérification des journaux sécurisés)
 
 Vérification de l'arbre de Merkle (STP_MERKLE_TREE)
 ===================================================
@@ -71,7 +71,7 @@ VERIFY_TIMESTAMP (VerifyTimeStampActionHandler.java)
 * **Statuts** :
     * OK : le tampon d'horadatage est correct (VERIFY_TIMESTAMP.OK=Succès de la vérification de l'horodatage)
     * KO : le tampon d'horadatage est incorrect (VERIFY_TIMESTAMP.KO=Échec de la vérification de l'horodatage)
-    * FATAL : erreur technique lors de la vérification du tampon d'horodatage (VERIFY_TIMESTAMP.FATAL=Erreur lors de la vérification de l'horodatage)
+    * FATAL : erreur technique lors de la vérification du tampon d'horodatage (VERIFY_TIMESTAMP.FATAL=Erreur fatale lors de la vérification de l'horodatage)
 
 **La tâche contient les traitements suivants**
 

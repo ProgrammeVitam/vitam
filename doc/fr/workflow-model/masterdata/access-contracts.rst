@@ -41,11 +41,11 @@ Import d'un contrat d'accès (STP_IMPORT_ACCESS_CONTRACT)
 
   + **Statuts** :
 
-    - OK : le contrat répond aux exigences des règles
+    - OK : le contrat répond aux exigences des règles (STP_IMPORT_ACCESS_CONTRACT.OK=Succès du processus d'import du contrat d'accès)
 
-    - KO : une des règles ci-dessus n'a pas été respectée
+    - KO : une des règles ci-dessus n'a pas été respectée (STP_IMPORT_ACCESS_CONTRACT.KO=Échec du processus d'import du contrat d'accès)
 
-    - FATAL : une erreur technique est survenue lors de la vérification de l'import du contrat (STP_IMPORT_ACCESS_CONTRACT.FATAL=Erreur fatale lors de l'import du contrat d'accès)
+    - FATAL : une erreur technique est survenue lors de la vérification de l'import du contrat (STP_IMPORT_ACCESS_CONTRACT.FATAL=Erreur fatale lors du processus d'import du contrat d'accès)
 
 Mise à jour d'un contrat d'accès (STP_UPDATE_ACCESS_CONTRACT)
 ----------------------------------------------------------
