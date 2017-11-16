@@ -71,8 +71,8 @@ public class ArchiveUnitListenerTest {
 
         ArchiveUnitListener archiveUnitListener =
             new ArchiveUnitListener(mock(HandlerIOImpl.class), JsonHandler.createObjectNode(), null, null, null, null,
-                null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, null, null);
-
+                null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, null, null, null
+            );
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
         ArchiveUnitType.Management management = mock(ArchiveUnitType.Management.class);
@@ -110,7 +110,7 @@ public class ArchiveUnitListenerTest {
 
         ArchiveUnitListener archiveUnitListener =
             new ArchiveUnitListener(mock(HandlerIOImpl.class), JsonHandler.createObjectNode(), null, null, null, null,
-                null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, UnitType.FILING_UNIT, null,
+                null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, UnitType.FILING_UNIT, null,
                 null);
 
 
@@ -156,7 +156,7 @@ public class ArchiveUnitListenerTest {
 
         ArchiveUnitListener archiveUnitListener =
             new ArchiveUnitListener(mock(HandlerIOImpl.class), JsonHandler.createObjectNode(), null, null, null, null,
-                null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, UnitType.HOLDING_UNIT, null,
+                null, null, new HashSet<>(), null, null, metaDataClientFactory, null, null, null, UnitType.HOLDING_UNIT, null,
                 null);
 
 
@@ -201,7 +201,7 @@ public class ArchiveUnitListenerTest {
         ArchiveUnitListener archiveUnitListener =
             new ArchiveUnitListener(handlerIO, JsonHandler.createObjectNode(), unitIdToGuid, null, null, null,
                 null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
-                metaDataClientFactory, null, null, UnitType.INGEST,
+                metaDataClientFactory, null, null, null, UnitType.INGEST,
                 agenciesList, null);
 
 
@@ -253,9 +253,8 @@ public class ArchiveUnitListenerTest {
         ArchiveUnitListener archiveUnitListener =
             new ArchiveUnitListener(handlerIO, JsonHandler.createObjectNode(), unitIdToGuid, null, null, null,
                 null, guidToLifeCycleParameters, new HashSet<>(), LogbookTypeProcess.INGEST_TEST, "OperationID",
-                metaDataClientFactory, null, null, UnitType.INGEST,
+                metaDataClientFactory, null, null, null, UnitType.INGEST,
                 agenciesList, null);
-
 
         when(target.getArchiveUnitRefId()).thenReturn(null);
         ArchiveUnitType.Management management = mock(ArchiveUnitType.Management.class);

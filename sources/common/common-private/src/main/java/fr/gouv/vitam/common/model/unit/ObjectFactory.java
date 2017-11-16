@@ -24,55 +24,30 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.mapping.dip;
+package fr.gouv.vitam.common.model.unit;
 
-import javax.xml.datatype.DatatypeConfigurationException;
-
-import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
-import fr.gouv.vitam.common.model.unit.LocationGroupModel;
+import javax.xml.bind.annotation.XmlRegistry;
 
 /**
- * Convert LocationGroupModel to Jaxb BirthPlace or DeathPlace
+ * create instance for JAXB model (necessary to jaxb)
  */
-public class LocationGroupMapper {
+@XmlRegistry
+public class ObjectFactory {
 
     /**
-     * Map LocationGroupModel to jaxb BirthPlace
-     * @param model
-     * @return
-     * @throws DatatypeConfigurationException
+     * Create an instance of {@link AgentTypeModel }
+     *
      */
-    public DescriptiveMetadataContentType.Signature.Validator.BirthPlace mapToBirthPlace(LocationGroupModel model)
-        throws DatatypeConfigurationException {
-
-        DescriptiveMetadataContentType.Signature.Validator.BirthPlace birthPlace =
-            new DescriptiveMetadataContentType.Signature.Validator.BirthPlace();
-        birthPlace.setGeogname(model.getGeogname());
-        birthPlace.setAddress(model.getAddress());
-        birthPlace.setCity(model.getCity());
-        birthPlace.setCountry(model.getCountry());
-        birthPlace.setPostalCode(model.getPostalCode());
-        birthPlace.setRegion(model.getRegion());
-        return birthPlace;
+    public AgentTypeModel createAgentTypeModel() {
+        return new AgentTypeModel();
     }
 
     /**
-     * Map LocationGroupModel to jaxb DeathPlace
-     * @param model
-     * @return
-     * @throws DatatypeConfigurationException
+     * Create an instance of {@link ValidatorOrSignerModel }
+     *
      */
-    public DescriptiveMetadataContentType.Signature.Validator.DeathPlace mapToDeathPlace(LocationGroupModel model)
-        throws DatatypeConfigurationException {
-
-        DescriptiveMetadataContentType.Signature.Validator.DeathPlace birthPlace =
-            new DescriptiveMetadataContentType.Signature.Validator.DeathPlace();
-        birthPlace.setGeogname(model.getGeogname());
-        birthPlace.setAddress(model.getAddress());
-        birthPlace.setCity(model.getCity());
-        birthPlace.setCountry(model.getCountry());
-        birthPlace.setPostalCode(model.getPostalCode());
-        birthPlace.setRegion(model.getRegion());
-        return birthPlace;
+    public ValidatorOrSignerModel createValidatorOrSignerModel() {
+        return new ValidatorOrSignerModel();
     }
+
 }

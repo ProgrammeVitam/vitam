@@ -84,8 +84,8 @@ public class ArchiveUnitMapperTest {
         assertThat(recipient.getIdentifiers()).hasSize(2);
         assertThat(recipient.getIdentifiers().get(1)).isEqualTo("EFG");
         assertThat(recipient.getGivenName()).isEqualTo("Martin");
-        assertThat(recipient.getBrithPlace()).isNotNull();
-        assertThat(recipient.getBrithPlace().getGeogname()).isEqualTo("Geogname");
+        assertThat(recipient.getBirthPlace()).isNotNull();
+        assertThat(recipient.getBirthPlace().getGeogname()).isEqualTo("Geogname");
         assertThat(recipient.getDeathPlace()).isNotNull();
         assertThat(recipient.getDeathPlace().getAddress()).isEqualTo("123 my Street");
 

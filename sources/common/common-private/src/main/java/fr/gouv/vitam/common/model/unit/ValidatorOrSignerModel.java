@@ -38,69 +38,81 @@ import javax.xml.bind.annotation.XmlType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Model for AgentType defined in seda.xsd
+ * Class representing a Signer or a Validator
  */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "AgentType", namespace = NAMESPACE_URI)
-public class AgentTypeModel {
+@XmlType(namespace = NAMESPACE_URI)
+public class ValidatorOrSignerModel {
 
-    public static final String BIRTH_PLACE = "BirthPlace";
-    public static final String BIRTH_DATE = "BirthDate";
-    public static final String DEATH_PLACE = "DeathPlace";
-    public static final String GIVEN_NAME = "GivenName";
-    public static final String BIRTH_NAME = "BirthName";
-    public static final String FIRST_NAME = "FirstName";
-    public static final String TAG_GENDER = "Gender";
-    public static final String TAG_CORPNAME = "Corpname";
-    public static final String NATIONALITY = "Nationality";
-    public static final String DEATH_DATE = "DeathDate";
-    public static final String IDENTIFIER = "Identifier";
-
-    @JsonProperty(BIRTH_PLACE)
-    @XmlElement(name = BIRTH_PLACE, namespace = NAMESPACE_URI)
+    @JsonProperty("BirthPlace")
+    @XmlElement(name = "BirthPlace", namespace = NAMESPACE_URI)
     private LocationGroupModel birthPlace;
 
-    @JsonProperty(BIRTH_DATE)
-    @XmlElement(name = BIRTH_DATE, namespace = NAMESPACE_URI)
+    @JsonProperty("BirthDate")
+    @XmlElement(name = "BirthDate", namespace = NAMESPACE_URI)
     private String birthDate;
 
-    @JsonProperty(DEATH_PLACE)
-    @XmlElement(name = DEATH_PLACE, namespace = NAMESPACE_URI)
+    @JsonProperty("DeathPlace")
+    @XmlElement(name = "DeathPlace", namespace = NAMESPACE_URI)
     private LocationGroupModel deathPlace;
 
-    @JsonProperty(GIVEN_NAME)
-    @XmlElement(name = GIVEN_NAME, namespace = NAMESPACE_URI)
+    @JsonProperty("GivenName")
+    @XmlElement(name = "GivenName", namespace = NAMESPACE_URI)
     private String givenName;
 
-    @JsonProperty(BIRTH_NAME)
-    @XmlElement(name = BIRTH_NAME, namespace = NAMESPACE_URI)
+    @JsonProperty("BirthName")
+    @XmlElement(name = "BirthName", namespace = NAMESPACE_URI)
     private String birthName;
 
-    @JsonProperty(FIRST_NAME)
-    @XmlElement(name = FIRST_NAME, namespace = NAMESPACE_URI)
+    @JsonProperty("FirstName")
+    @XmlElement(name = "FirstName", namespace = NAMESPACE_URI)
     private String firstName;
 
-    @JsonProperty(TAG_GENDER)
-    @XmlElement(name = TAG_GENDER, namespace = NAMESPACE_URI)
+    @JsonProperty("Gender")
+    @XmlElement(name = "Gender", namespace = NAMESPACE_URI)
     private String gender;
 
-    @JsonProperty(TAG_CORPNAME)
-    @XmlElement(name = TAG_CORPNAME, namespace = NAMESPACE_URI)
+    @JsonProperty("Corpname")
+    @XmlElement(name = "Corpname", namespace = NAMESPACE_URI)
     private String corpname;
 
-    @JsonProperty(NATIONALITY)
-    @XmlElement(name = NATIONALITY, namespace = NAMESPACE_URI)
+    @JsonProperty("Nationality")
+    @XmlElement(name = "Nationality", namespace = NAMESPACE_URI)
     private List<String> nationalities;
 
-    @JsonProperty(DEATH_DATE)
-    @XmlElement(name = DEATH_DATE, namespace = NAMESPACE_URI)
+    @JsonProperty("DeathDate")
+    @XmlElement(name = "DeathDate", namespace = NAMESPACE_URI)
     private String deathDate;
 
-    @JsonProperty(IDENTIFIER)
-    @XmlElement(name = IDENTIFIER, namespace = NAMESPACE_URI)
+    @JsonProperty("Identifier")
+    @XmlElement(name = "Identifier", namespace = NAMESPACE_URI)
     private List<String> identifiers;
 
-    public AgentTypeModel() {
+    @JsonProperty("Function")
+    @XmlElement(name = "Function", namespace = NAMESPACE_URI)
+    private String function;
+
+    @JsonProperty("Activity")
+    @XmlElement(name = "Activity", namespace = NAMESPACE_URI)
+    private String activity;
+
+    @JsonProperty("Position")
+    @XmlElement(name = "Position", namespace = NAMESPACE_URI)
+    private String position;
+
+    @JsonProperty("Role")
+    @XmlElement(name = "Role", namespace = NAMESPACE_URI)
+    private String role;
+
+    @JsonProperty("SigningTime")
+    @XmlElement(name = "SigningTime", namespace = NAMESPACE_URI)
+    private String signingTime;
+
+    @JsonProperty("ValidationTime")
+    @XmlElement(name = "ValidationTime", namespace = NAMESPACE_URI)
+    private String validationTime;
+
+    public ValidatorOrSignerModel() {
     }
 
     public LocationGroupModel getBirthPlace() {
@@ -195,5 +207,53 @@ public class AgentTypeModel {
 
     public void setIdentifiers(List<String> identifiers) {
         this.identifiers = identifiers;
+    }
+
+    public String getFunction() {
+        return function;
+    }
+
+    public void setFunction(String function) {
+        this.function = function;
+    }
+
+    public String getActivity() {
+        return activity;
+    }
+
+    public void setActivity(String activity) {
+        this.activity = activity;
+    }
+
+    public String getPosition() {
+        return position;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getSigningTime() {
+        return signingTime;
+    }
+
+    public void setSigningTime(String signingTime) {
+        this.signingTime = signingTime;
+    }
+
+    public String getValidationTime() {
+        return validationTime;
+    }
+
+    public void setValidationTime(String validationTime) {
+        this.validationTime = validationTime;
     }
 }

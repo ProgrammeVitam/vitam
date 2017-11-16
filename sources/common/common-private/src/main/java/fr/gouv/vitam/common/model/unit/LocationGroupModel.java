@@ -26,30 +26,44 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.unit;
 
+import static fr.gouv.vitam.common.SedaConstants.NAMESPACE_URI;
+
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlType;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Model for  LocationGroup defined in sead.xsd
- *
  */
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(name = "LocationGroup", namespace = NAMESPACE_URI)
 public class LocationGroupModel {
 
     @JsonProperty("Geogname")
+    @XmlElement(name = "Geogname", namespace = NAMESPACE_URI)
     private String geogname;
 
     @JsonProperty("Address")
+    @XmlElement(name = "Address", namespace = NAMESPACE_URI)
     private String address;
 
     @JsonProperty("PostalCode")
+    @XmlElement(name = "PostalCode", namespace = NAMESPACE_URI)
     private String postalCode;
 
     @JsonProperty("City")
+    @XmlElement(name = "City", namespace = NAMESPACE_URI)
     private String city;
 
     @JsonProperty("Region")
+    @XmlElement(name = "Region", namespace = NAMESPACE_URI)
     private String region;
 
     @JsonProperty("Country")
+    @XmlElement(name = "Country", namespace = NAMESPACE_URI)
     private String country;
 
     public LocationGroupModel() {

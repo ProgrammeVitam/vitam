@@ -30,8 +30,6 @@ import static fr.gouv.vitam.common.VitamConfiguration.getDefaultLang;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
-
 import javax.xml.datatype.DatatypeConfigurationException;
 
 import com.google.common.collect.Iterables;
@@ -53,10 +51,8 @@ public class DescriptiveMetadataMapper {
     private ElementMapper elementMapper;
 
     /**
-     * agentType mapper.
+     * CustodialHistory mapper
      */
-    private AgentTypeMapper agentTypeMapper;
-
     private CustodialHistoryMapper custodialHistoryMapper;
 
     /**
@@ -64,8 +60,7 @@ public class DescriptiveMetadataMapper {
      */
     public DescriptiveMetadataMapper() {
         this.elementMapper = new ElementMapper();
-        this.agentTypeMapper = new AgentTypeMapper();
-        custodialHistoryMapper = new CustodialHistoryMapper();
+        this.custodialHistoryMapper = new CustodialHistoryMapper();
     }
 
     /**
@@ -79,26 +74,17 @@ public class DescriptiveMetadataMapper {
 
         DescriptiveMetadataModel descriptiveMetadataModel = new DescriptiveMetadataModel();
         descriptiveMetadataModel.setAcquiredDate(metadataContentType.getAcquiredDate());
-
-        descriptiveMetadataModel.getAddressee()
-            .addAll(metadataContentType.getAddressee().stream().map(item -> {
-                try {
-                    return agentTypeMapper.convert(item);
-                } catch (DatatypeConfigurationException e) {
-                    throw new RuntimeException(e);
-                }
-            }).collect(
-                Collectors.toList()));
+        descriptiveMetadataModel.getAddressee().addAll(metadataContentType.getAddressee());
 
         descriptiveMetadataModel.setAny(elementMapper.toMap(metadataContentType.getAny()));
         descriptiveMetadataModel
             .setArchivalAgencyArchiveUnitIdentifier(metadataContentType.getArchivalAgencyArchiveUnitIdentifier());
 
-        descriptiveMetadataModel.setAuthorizedAgent(agentTypeMapper.convert(metadataContentType.getAuthorizedAgent()));
+        descriptiveMetadataModel.setAuthorizedAgent(metadataContentType.getAuthorizedAgent());
 
         descriptiveMetadataModel.setCoverage(metadataContentType.getCoverage());
         descriptiveMetadataModel.setCreatedDate(metadataContentType.getCreatedDate());
-        
+
         CustodialHistoryModel custodialHistoryModel =
             custodialHistoryMapper.map(metadataContentType.getCustodialHistory());
         descriptiveMetadataModel.setCustodialHistory(custodialHistoryModel);
@@ -121,16 +107,7 @@ public class DescriptiveMetadataMapper {
             .setOriginatingAgencyArchiveUnitIdentifier(metadataContentType.getOriginatingAgencyArchiveUnitIdentifier());
         descriptiveMetadataModel.setOriginatingSystemId(metadataContentType.getOriginatingSystemId());
         descriptiveMetadataModel.setReceivedDate(metadataContentType.getReceivedDate());
-
-        descriptiveMetadataModel.getRecipient()
-            .addAll(metadataContentType.getRecipient().stream().map(item -> {
-                try {
-                    return agentTypeMapper.convert(item);
-                } catch (DatatypeConfigurationException e) {
-                    throw new RuntimeException(e);
-                }
-            }).collect(
-                Collectors.toList()));
+        descriptiveMetadataModel.getRecipient().addAll(metadataContentType.getRecipient());
 
         descriptiveMetadataModel.setRegisteredDate(metadataContentType.getRegisteredDate());
         descriptiveMetadataModel.setRelatedObjectReference(metadataContentType.getRelatedObjectReference());
@@ -139,7 +116,9 @@ public class DescriptiveMetadataMapper {
         descriptiveMetadataModel.setRestrictionValue(metadataContentType.getRestrictionValue());
         descriptiveMetadataModel.setReceivedDate(metadataContentType.getReceivedDate());
         descriptiveMetadataModel.setSentDate(metadataContentType.getSentDate());
+
         descriptiveMetadataModel.setSignature(metadataContentType.getSignature());
+
         descriptiveMetadataModel.setSource(metadataContentType.getSource());
         descriptiveMetadataModel.setStartDate(metadataContentType.getStartDate());
         descriptiveMetadataModel.setStatus(metadataContentType.getStatus());
