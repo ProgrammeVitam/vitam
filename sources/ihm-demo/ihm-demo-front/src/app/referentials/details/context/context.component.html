@@ -56,6 +56,19 @@
             <p-toggleButton onLabel="Actif" offLabel="Inactif" [(ngModel)]="modifiedContext.Status" (onChange)="valueChange('Status')"></p-toggleButton>
           </div>
         </div>
+        <vitam-metadata-field [title]="'Profil de sécurité'"  [originalTitle]="'SecurityProfile'" [value]="modifiedContext.SecurityProfile" [labelSize]="4"
+                              class="ui-g-4" [updateMode]="false" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+        <div class="ui-g-4">
+          <div class="ui-g-nopad ui-g-4">
+            <label class="label fieldLabel">Activation des permissions</label>
+          </div>
+          <div class="ui-g-nopad ui-g-8" *ngIf="!update">
+            <span class="overflow-break-words" >{{modifiedContext.EnableControl ? 'Actif' : 'Inactif'}}</span>
+          </div>
+          <div class="ui-g-nopad ui-g-8" *ngIf="update">
+            <p-toggleButton onLabel="Actif" offLabel="Inactif" [(ngModel)]="modifiedContext.EnableControl" (onChange)="valueChange('EnableControl')"></p-toggleButton>
+          </div>
+        </div>
 
       </div>
 
