@@ -150,6 +150,7 @@ public class AgenciesService implements VitamAutoCloseable {
 
     private static final String ADDITIONAL_INFORMATION = "Information additionnelle";
     private static final String MESSAGE_ERROR = "Import agency error > ";
+    private static final String FILE_INVALID = "File invalid -- lack of column ";
     private static final String _ID = "_id";
     private static final String _TENANT = "_tenant";
 
@@ -165,7 +166,7 @@ public class AgenciesService implements VitamAutoCloseable {
     private List<AgenciesModel> agenciesToInsert;
     private List<AgenciesModel> agenciesToUpdate;
     private List<AgenciesModel> agenciesToDelete;
-    private List<AgenciesModel> agenciesToImport;
+    private List<AgenciesModel> agenciesToImport = new ArrayList<>();
     private List<AgenciesModel> agenciesInDb;
     private final FilesSecurisator securisator;
 
@@ -193,6 +194,7 @@ public class AgenciesService implements VitamAutoCloseable {
         agenciesToInsert = new ArrayList<>();
         agenciesToUpdate = new ArrayList<>();
         agenciesToDelete = new ArrayList<>();
+        agenciesToImport = new ArrayList<>();
         agenciesInDb = new ArrayList<>();
         finder = new ContractsFinder(mongoAccess, vitamCounterService);
     }
@@ -421,6 +423,16 @@ public class AgenciesService implements VitamAutoCloseable {
                         }
                     }
                 }
+            } catch (IllegalArgumentException e) {
+                String message = e.getMessage();
+                if (message.contains("Name not found")) {
+                    message = FILE_INVALID + "Name";
+                } if (message.contains("Identifier not found")) {
+                    message = FILE_INVALID + "Identifier";
+                } if (message.contains("Description not found")) {
+                    message = FILE_INVALID + "Description";
+                } 
+                throw new ReferentialException(message);
             } catch (Exception e) {
                 throw new ReferentialException(e);
             }
