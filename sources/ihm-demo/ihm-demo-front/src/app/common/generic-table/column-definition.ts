@@ -1,9 +1,10 @@
-
+import {EventEmitter} from "@angular/core";
 export class ColumnDefinition {
   public field: string;
   public label: string;
   public icons: string[] = [];
   public httpService: any;
+  public thisWorkflow: any;
 
   static makeStaticColumn(field: string, label: string, transform?: (value) => string, computeCss?: () => any) {
     const col = new ColumnDefinition(field, label, []);
@@ -27,7 +28,9 @@ export class ColumnDefinition {
 
     if (httpService !== undefined) {
       col.httpService = httpService;
-      col.onClick = (item, index) => { onClick(item, col.httpService, index) };
+      col.onClick = (item, index) => {
+        onClick(item, col.httpService, index)
+      };
     } else {
       col.onClick = onClick;
     }
@@ -47,29 +50,33 @@ export class ColumnDefinition {
     return col;
   }
 
-  static makeSpecialIconColumn(label: string, getIcons: (item, icons: string[]) => string[], computeCss?: () => any, onClick?: (item, httpService?, index?) => void, httpService?) {
+  static makeSpecialIconColumn(label: string, getIcons: (item, icons: string[]) => string[], computeCss?: () => any, onClick?: (item, httpService?, iconType?, thisWorkflow?: any) => void, httpService?) {
     const col = new ColumnDefinition('', label, []);
     if (computeCss !== undefined) {
       col.computeCss = computeCss;
     }
     if (httpService !== undefined) {
       col.httpService = httpService;
-      col.onClick = (item, index) => { onClick(item, col.httpService, index) };
+      col.onClick = (item, iconType) => {
+        onClick(item, col.httpService, iconType)
+      };
     } else {
       col.onClick = onClick;
     }
+    col.thisWorkflow = onClick;
     col.getIcons = getIcons;
     col.forceIcon = true;
     return col;
   }
 
   public computeCss: () => any = () => '';
-  public onClick: (item, index?) => void = () => null;
+  public onClick: (item, iconType?: string) => void = () => null;
   public transform: (value) => string = (x) => '' + x;
   public getValue: (item) => string = (x) => '' + x[this.field];
   public getIcons: (item, icons: string[]) => string[] = (x, y) => y;
   public shouldDisplay: (item) => boolean = (x) => true;
   public forceIcon: boolean = false;
+  public executionMode: (globalState: string, stepByStep: string) => string;
 
   private constructor(field: string, label: string, icons: string[]) {
     this.field = field;

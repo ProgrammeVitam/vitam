@@ -44,7 +44,7 @@ export class LogbookOperationComponent extends PageComponent {
         (response) => {
           responseEvent.emit({response: response, form: form});
         },
-        (error) => console.log('Error: ', error)
+        (error) => console.error('Error: ', error)
     );
   }
 

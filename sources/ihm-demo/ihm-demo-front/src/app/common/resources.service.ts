@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
+import {Injectable} from '@angular/core';
 import {CookieService} from "angular2-cookie/core";
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Observable} from "rxjs/Observable";
 
 import {VitamResponse} from "./utils/response";
@@ -13,45 +13,49 @@ const TENANTS = 'tenants';
 @Injectable()
 export class ResourcesService {
 
-  constructor(private cookies: CookieService, private http: HttpClient) { }
+  constructor(private cookies: CookieService, private http: HttpClient) {
+  }
 
-  get(url, header?: HttpHeaders, responsetype? : any): Observable<any> {
+  get(url, header?: HttpHeaders, responsetype?: any): Observable<any> {
     header = this.setDefaultHeader(header);
 
     if (responsetype && responsetype != 'json') {
       return this.http.get(`${BASE_URL}${url}`, {
-        headers : header,
-        responseType : responsetype,
+        headers: header,
+        responseType: responsetype,
         observe: 'response'
       });
     } else {
-      return this.http.get(`${BASE_URL}${url}`, { headers : header,
-        responseType : 'json'});
+      return this.http.get(`${BASE_URL}${url}`, {
+        headers: header,
+        responseType: 'json'
+      });
     }
 
   }
 
-  post(url, header?: HttpHeaders, body?: any, responsetype? : any): Observable<any>  {
+  post(url, header?: HttpHeaders, body?: any, responsetype?: any): Observable<any> {
     header = this.setDefaultHeader(header);
-    return this.http.post(`${BASE_URL}${url}`, body, {headers : header, responseType: responsetype || 'json'});
+    return this.http.post(`${BASE_URL}${url}`, body, {headers: header, responseType: responsetype || 'json'});
   }
 
-  put(url, header?: HttpHeaders, body?: any, responsetype? : any): Observable<any>  {
+  put(url, header?: HttpHeaders, body?: any, responsetype?: any): Observable<any> {
     header = this.setDefaultHeader(header);
-    return this.http.put(`${BASE_URL}${url}`, body, {headers : header, responseType : responsetype || 'json'});
+    console.log('responsetype', responsetype, 'body', body, 'header', header, 'url', url);
+    return this.http.put(`${BASE_URL}${url}`, body, {headers: header, responseType: responsetype || 'json'});
   }
 
-  delete(url): Observable<any> {
-    let header = this.setDefaultHeader(null);
-    return this.http.delete(`${BASE_URL}${url}`, {headers : header});
+  delete(url, header?: HttpHeaders): Observable<any> {
+    header = this.setDefaultHeader(header);
+    return this.http.delete(`${BASE_URL}${url}`, {headers: header});
   }
 
   getTenants() {
     return this.get(TENANTS);
   }
 
-  getAccessContrats() : Observable<VitamResponse> {
-    return this.post('accesscontracts', null, {"ContractName":"all","Status":"ACTIVE"});
+  getAccessContrats(): Observable<VitamResponse> {
+    return this.post('accesscontracts', null, {"ContractName": "all", "Status": "ACTIVE"});
   }
 
   setAccessContract(contractIdentifier: string) {

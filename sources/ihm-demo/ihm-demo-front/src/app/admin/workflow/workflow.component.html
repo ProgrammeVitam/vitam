@@ -1,0 +1,8 @@
+<vitam-search *ngIf="workflowData" label="Gestion des opérations" [service]="workflowService" [data]="workflowData"
+              [preSearch]="preSearchFunction"
+              [submitFunction]="initialSearch" (responseEvent)="onNotify($event)"></vitam-search>
+<button pButton type="button" class="refreshbnt" icon="fa-refresh" label="Rafraichir"
+        (click)="refreshButton()" iconPos="right"></button>
+<vitam-results [data]="response" [cols]="columns" [extraCols]="extraColumns" [service]="workflowService"
+               [searchFunction]="paginationSearch" [searchForm]="searchForm"
+               [identifier]="'operationId'"></vitam-results>
