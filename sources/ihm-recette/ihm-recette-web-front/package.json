@@ -31,7 +31,8 @@
     "intl": "^1.2.5",
     "primeng": "^4.1.2",
     "rxjs": "^5.1.0",
-    "zone.js": "^0.8.4"
+    "zone.js": "^0.8.4",
+    "ng2-vis": "^0.0.6"
   },
   "devDependencies": {
     "@angular/cli": "1.1.2",

@@ -1,0 +1,25 @@
+.visualization {
+    border-color: black;
+    border-width: 1px;
+    border-style: dashed;
+    height: 600px;
+}
+
+.errorMessage {
+    color: white;
+    background-color: #d9534f;
+}
+
+/*Text areas*/
+.textarea-dsl {
+    width:90%;
+    resize: vertical;
+    font-size: 1em;
+}
+
+.textarea-dsl-error {
+    width:90%;
+    resize: vertical;
+    font-size: 1em;
+    border-color: red;
+}

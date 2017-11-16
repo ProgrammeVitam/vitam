@@ -1,0 +1,38 @@
+<div class="ui-g-12 errorMessage">
+  <span>!!!! EXPERIMENTAL !!!!</span>
+</div>
+
+<div class="ui-g-12">
+  <div class="ui-g-1"></div>
+  <div class="ui-g-3">
+    <label for="contract">Contrat</label>
+    <p-dropdown id="contract" [options]="contractsList" [(ngModel)]="selectedContract" [style]="{'width':'100%'}" [scrollHeight]="300"
+      placeholder="Sélectionner un contrat"></p-dropdown>
+  </div>
+  <div class="ui-g-4">
+    <label for="operationId">Identifiant d'opération</label>
+    <input id="operationId" class="fs-1-1em" size="35" pInputText [(ngModel)]="operationId" placeholder="Identifiant d'opération"
+    />
+  </div>
+  <div class="ui-g-3">
+    <button pButton type="button" label="Envoyer la requête" (click)="sendRequest()"></button>
+  </div>
+</div>
+
+<!-- use for error handling -->
+<div class="ui-g-12" *ngIf="showError">
+  <div class="ui-g-2"></div>
+  <div class="ui-g-8">
+    <textarea class="textarea-dsl-error" id="reponse" rows="10" pInputTextarea [(ngModel)]="requestResponse"></textarea>
+  </div>
+  <div class="ui-g-2"></div>
+</div>
+
+<div class="ui-g-12" *ngIf="showGraph">
+  <div class="network-canvas ui-g-6 visualization" [visNetwork]="visNetwork" [visNetworkData]="visNetworkData" [visNetworkOptions]="visNetworkOptions"
+    (initialized)="networkInitialized()"></div>
+  <div class="ui-g-6">
+    <label for="detail">Détail de l'Archive Unit</label>
+    <textarea class="textarea-dsl" id="detail" rows="25" pInputTextarea [(ngModel)]="detail"></textarea>
+  </div>
+</div>
