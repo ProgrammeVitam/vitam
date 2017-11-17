@@ -555,6 +555,17 @@ La valeur **1** indique que le champ est activé (renvoyé au client). Toute aut
 }
 ```
 
+**Remarque :**
+- Pour la collection *unit*, il est possible de demander la construction de l'ensemble des règles héritées en utilisant une projection *spéciale* **$rules**. Si cette projection est utilisée, l'ensemble des champs de l'unité archivistique est remonté.
+  Cette projection ne devrait être utilisée que dans le point d'API */units/{id}* (GET BY ID).
+
+
+```json
+{
+  "$projection": { "$fields": { "$rules": 1 } }
+}
+```
+
 ## Actions
 Dans le cas d'un update, les opérateurs suivants sont utilisables
 
@@ -628,6 +639,15 @@ En cas d'erreur, Vitam retourne un message d'erreur dont le format est :
   "description": "Access contract not found with id: GUID0"
 }
 ```
+
+# Champs texte analysés et non analysés
+
+Il existe 2 types de champs texte indexés sur le moteur d'indexation elasticsearch :
+
+- **Les champs analysés :** Ces champs sont analysés syntaxiquement par le moteur d'indexation (full-text). Par exemple, les champs *Description*, *Name*.
+- **Les champs non analysés :** Ces champs ne sont pas analysés par le moteur d'indexation (exact match). Par exemple, les champs *Identifier* ou *OriginatingAgency*.
+
+La liste complète des champs analysés et non analysés est disponible dans la documentation du modèle de données.
 
 # Champs spéciaux
 
