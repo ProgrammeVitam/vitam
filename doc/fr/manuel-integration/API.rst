@@ -1,15 +1,15 @@
 API
 ###
 
-Documentation
-=============
+Formation générale des API externes
+===================================
 
 Services
---------
+---------
 
-* ingest-external : opérations d’entrées
-* access-external : accès et journaux d’opérations
-* admin-external : gestion du référentiel et opérations d’administration
+* ingest-external : Opérations d’entrées
+* access-external : Opérations d'accès et journaux d’opérations
+* admin-external : Gestion du référentiel et opérations d’administration
 
 Quelques Ressources
 -------------------
@@ -18,78 +18,30 @@ Quelques Ressources
 * ``/admin-external/v1/formats``
 * ``/access-external/v1/units``
 
-Formation générale des API externes
------------------------------------
+Format
+---------
 
-.. image:: images/API_formation_generale.png
+::
 
-RAML
-----
+  POST   /access-external    /v1       /units
+  VERB   Endpoint            Version   Ressource
 
-* :doclink:`raml/externe/introduction.html`
-* :doclink:`raml/externe/ingest.html`
-* :doclink:`raml/externe/access.html`
-* :doclink:`raml/externe/functional-administration.html`
-* :doclink:`raml/externe/logbook.html`
-
-exemple d'interface du RAML
-
-.. image:: images/API_exemple_RAML.png
-
-Javadoc
--------
-
-* :doclink:`javadoc`
-
-Notamment pour les packages des clients suivants :
-
-* Ingest External Client : ``fr.gouv.vitam.ingest.external.client``;
-* Access External Client : ``fr.gouv.vitam.access.external.client``;
-
-   * Plus tard ce package sera découpé en trois parties :
-
-      * ``AccessExternalClient``
-      * ``AdminExternalClient``
-      * ``LogbookExternalClient``
+La documentation des API REST décrit en détail les endpoints, les conventions d'appels ainsi que le language de requêtes DSL.
 
 
-Requêtes et réponses
---------------------
+Clients d'appels Java
+=====================
 
-Les requêtes HTTP VITAM ont en commun les attributs suivants :
+Vitam est livré avec des clients d'appels externes en Java. Ils sont notamment accessibles depuis les packages des clients suivants :
 
-.. image:: images/API_requetes_elements_communs.png
+* Ingest External Client : ``fr.gouv.vitam.ingest.external.client``
+* Access External Client : ``fr.gouv.vitam.access.external.client``
 
-Les réponses HTTP de VITAM ont en commun les attributs suivants :
+De plus, plusieurs helpers sont disponibles pour la construction des requêtes DSL dans ``common/common-database-vitam/common-database-public`` :
 
-.. image:: images/API_reponses_elements_communs.png
+* fr.gouv.vitam.common.database.builder.query; notamment **VitamFieldsHelper** et **QueryHelper**
+* fr.gouv.vitam.common.database.builder.query.action; dont **UpdateActionHelper**
+* fr.gouv.vitam.common.database.builder.request.multiple; dont **DeleteMultiQuery**, **SelectMultiQuery**, **InsertMultiQuery**, **UpdateMultiQuery**
+* fr.gouv.vitam.common.database.builder.request.single; dont **Delete**, **Insert**, **Select**, **Update**
 
-
-Ingest
-======
-
-Exemple d'implémentation Java :
-
-``/ingest-external/v1/ingests``
-
-.. image:: images/API_implementation_ingest_1.png
-
-``/ingest-external/v1/ingests/{objectId}/{type}``
-
-.. image:: images/API_implementation_ingest_2.png
-
-
-Access
-======
-
-RAML : :doclink:`raml/access/introduction.html` ; API qui définit les requêtes pour accéder aux Unités d'archives.
-
-La requête utilise le langage de requête (DSL) de Vitam en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.
-
-* ``/units``
-
-.. image:: images/API_RAML_unit.png
-
-* ``/objects``
-
-.. image:: images/API_RAML_object.png
+La documentation JavaDoc décrit en détail les API clientes Java.
