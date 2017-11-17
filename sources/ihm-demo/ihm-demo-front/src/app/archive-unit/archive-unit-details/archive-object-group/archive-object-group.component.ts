@@ -34,16 +34,16 @@ export class ArchiveObjectGroupComponent implements OnInit {
 
 
 
-    const contractName = this.resourceService.getAccessContract();
+    const contractIdentifier = this.resourceService.getAccessContract();
     const criteria = {
-      ContractName: contractName
+      ContractID: contractIdentifier
     };
 
     this.referentialsService.getAccessContract(criteria).subscribe(
       (response) => {
       if (response.httpCode == 200 && response.$results && response.$results.length > 0) {
         response.$results.forEach((contract) => {
-          if (contract.Name == contractName) {
+          if (contract.Identifier == contractIdentifier) {
             this.userContract = contract;
           }
         });

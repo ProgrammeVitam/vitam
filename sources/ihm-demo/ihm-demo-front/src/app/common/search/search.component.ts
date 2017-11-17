@@ -27,6 +27,7 @@ export class SearchComponent implements OnInit {
   @Input() service: any;
   @Output() responseEvent: EventEmitter<any> = new EventEmitter<any>();
   @Output() panelButtonEvent: EventEmitter<any> = new EventEmitter<any>();
+  @Output() clearResults: EventEmitter<any> = new EventEmitter<any>();
 
 
 
@@ -130,8 +131,13 @@ export class SearchComponent implements OnInit {
       this.advancedSearchForm.reset();
       this.advancedSearchForm.enable();
     }
-    this.preSearchReturn = new Preresult();
-    this.onSubmit();
+    if (this.clearResults && this.clearResults.observers
+        && this.clearResults.observers.length > 0) {
+      this.clearResults.emit();
+    } else {
+      this.preSearchReturn = new Preresult();
+      this.onSubmit();
+    }
   }
 
   disableOthers(field: FieldDefinition) {
