@@ -8,6 +8,7 @@ import { NO_ERRORS_SCHEMA } from "@angular/core";
 
 import { AuthenticationComponent } from './authentication.component';
 import { AuthenticationService } from './authentication.service';
+import {TranslateService} from "@ngx-translate/core";
 
 const AuthenticationServiceStub = {
   verifyAuthentication: (username : string, password : string) => {
@@ -29,12 +30,18 @@ describe('AuthenticationComponent', () => {
       declarations: [ AuthenticationComponent ],
       imports: [ PanelModule, DropdownModule, InputTextModule, FormsModule, BrowserAnimationsModule, RouterTestingModule, ReactiveFormsModule],
       providers: [
-        {provide: AuthenticationService, useValue : AuthenticationServiceStub}
+        {provide: AuthenticationService, useValue : AuthenticationServiceStub},
+        {provide: TranslateService, useValue: translateServiceStub}
       ],
       schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();
   }));
+
+  let translateServiceStub = {
+    reloadLang: (string) => Observable.of({}),
+    getDefaultLang: () => 'fr'
+  };
 
   beforeEach(() => {
     fixture = TestBed.createComponent(AuthenticationComponent);
