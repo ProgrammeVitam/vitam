@@ -73,3 +73,11 @@ Limite de caractères acceptés dans les champs
 ---------------------------------------------
 
 Mongo est un type de base de données dite "schemaless", soit sans-schéma. Ainsi, les champs contenus dans les collections décrites dans ce document sont, sauf mention contraire, sans limite de caractères.
+
+Type d'indexation dans elasticsearch
+------------------------------------
+
+Les champs peuvent être indexés de deux façons différentes dans ElasticSearch :
+
+	* **Les champs analysés :** les informations contenues dans ces champs peuvent être retrouvés par une recherche full-text. Par exemple, les champs *Description*, *Name*.
+	* **Les champs non analysés :** les informations contenues dans ces champs peuvent être retrouvés par une recherche exacte uniquement. Par exemple, les champs *Identifier* ou *OriginatingAgency*.
