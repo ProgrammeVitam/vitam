@@ -156,9 +156,8 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     // This was choosen to be coherent with existing Jclouds implementation of ContentAdressableStorage
     // This must be changed by verifying that where the call is done, it implements the contract
     @Override
-    public void putObject(String containerName, String objectName, InputStream stream)
-        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageException {
+    public void putObject(String containerName, String objectName, InputStream stream, DigestType digestType)
+        throws ContentAddressableStorageException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         Path filePath = fsHelper.getPathObject(containerName, objectName);
@@ -179,6 +178,8 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         try {
             // Create the file from the inputstream
             Files.copy(stream, filePath, StandardCopyOption.REPLACE_EXISTING);
+            String digest = super.computeObjectDigest(containerName, objectName, digestType);
+            storeDigest(containerName, objectName, digestType, digest);
             containerMetadata.get(containerName).updateAndMarshall(1L - beforeObj, Files.size(filePath) - beforeSize);
         } catch (FileAlreadyExistsException e) {
             throw new ContentAddressableStorageAlreadyExistException("File " + filePath.toString() + " already exists",
@@ -189,8 +190,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public Response getObject(String containerName, String objectName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+    public Response getObject(String containerName, String objectName) throws ContentAddressableStorageException {
         ParametersChecker
             .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
         Path filePath = fsHelper.getPathObject(containerName, objectName);
@@ -296,29 +296,33 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         }
 
         // Calculate the digest via the common method
-        String digest = super.computeObjectDigest(containerName, objectName, algo);
 
         // IF there was on XATTR attribute, write it.
+        String digest = super.computeObjectDigest(containerName, objectName, algo);
         // TODO : Reflexion must be done on an existing Metadata attribute but with a different algorithm
         if (digestMetadata == null) {
-            StringBuilder sb = new StringBuilder(algo.getName()).append(":").append(digest);
-            try {
-                writeExtendedMetadata(fsHelper.getPathObject(containerName, objectName),
-                    ExtendedAttributes.DIGEST.getKey(), sb.toString());
-            } catch (IOException e) {
-                LOGGER.warn("Unable to write DIGEST extended attribute for the object " + objectName +
-                    " in the container " + containerName, e);
-            }
+            storeDigest(containerName, objectName, algo, digest);
         }
-
         return digest;
+    }
+
+    private void storeDigest(String containerName, String objectName, DigestType algo, String digest)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        StringBuilder sb = new StringBuilder(algo.getName()).append(":").append(digest);
+        try {
+            writeExtendedMetadata(fsHelper.getPathObject(containerName, objectName),
+                ExtendedAttributes.DIGEST.getKey(), sb.toString());
+        } catch (IOException e) {
+            LOGGER.warn("Unable to write DIGEST extended attribute for the object " + objectName +
+                " in the container " + containerName, e);
+        }
     }
 
     // TODO : manage used information per container
     @Override
     public ContainerInformation getContainerInformation(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        // A discuter : je l'ai enlevé car les autres implémentations considère que containerName peut être null
+        // A discuter : je l'ai enlevé car les autres implémentations considèrent que containerName peut être null
         // ParametersChecker.checkParameter(LOG_MESSAGE_CHECK_CONTAINER, containerName);
         if (containerName == null) {
             containerName = "";

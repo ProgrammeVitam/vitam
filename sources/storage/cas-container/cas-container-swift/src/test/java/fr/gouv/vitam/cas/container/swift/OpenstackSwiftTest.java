@@ -33,6 +33,7 @@ import static org.junit.Assert.assertNotNull;
 import java.io.IOException;
 import java.io.InputStream;
 
+import fr.gouv.vitam.common.digest.DigestType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -80,7 +81,7 @@ public class OpenstackSwiftTest {
         // }
         storage.createContainer(containerName);
 
-        storage.putObject(containerName, OBJECT_ID, getInputStream("file1.pdf"));
+        storage.putObject(containerName, OBJECT_ID, getInputStream("file1.pdf"), DigestType.SHA512);
 
         // get metadata of file
         MetadatasObject result = storage.getObjectMetadatas(containerName, OBJECT_ID);
@@ -95,7 +96,7 @@ public class OpenstackSwiftTest {
         assertNotNull(result.getFileOwner());
         assertNotNull(result.getLastModifiedDate());
 
-        storage.putObject(containerName, OBJECT_ID2, getInputStream("file2.pdf"));
+        storage.putObject(containerName, OBJECT_ID2, getInputStream("file2.pdf"), DigestType.SHA512);
         // get metadata of directory
         result = storage.getObjectMetadatas(containerName, null);
         assertEquals("object_1", result.getObjectName());

@@ -27,6 +27,14 @@
 
 package fr.gouv.vitam.storage.offers.common.core;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.cas.container.builder.StoreContextBuilder;
@@ -51,14 +59,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExi
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-
-import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Default offer service implementation
@@ -161,10 +161,11 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             throw new ContentAddressableStorageAlreadyExistException("Object with id " + objectId + "already exists " +
                 "and cannot be updated");
         }
-        defaultStorage.putObject(containerName, objectId, objectPart);
+        DigestType digestType = getDigestAlgoFor(objectId);
+
+        defaultStorage.putObject(containerName, objectId, objectPart, digestType);
         // Check digest AFTER writing in order to ensure correctness
-        final String digest =
-            defaultStorage.computeObjectDigest(containerName, objectId, getDigestAlgoFor(objectId));
+        final String digest = defaultStorage.computeObjectDigest(containerName, objectId, digestType);
         // remove digest algo
         digestTypeFor.remove(objectId);
         return digest;
