@@ -3,13 +3,10 @@
 ###########
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    Vitam
    API
-   standard
-   DSL
-   dsl-introduction
    Exemples
-   exemple-dsl
+   java-dsl
    client-usage
