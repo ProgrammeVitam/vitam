@@ -1,0 +1,110 @@
+{
+  "properties": {
+    "OriginatingAgency": {
+      "type": "string",
+      "index": "not_analyzed"
+    },
+    "creationDate": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    },
+    "TotalObjects": {
+      "properties": {
+        "ingested": {
+          "type": "long"
+        },
+        "deleted": {
+          "type": "long"
+        },
+        "remained": {
+          "type": "long"
+        },
+        "attached": {
+          "type": "long"
+        },
+        "detached": {
+          "type": "long"
+        },
+        "symbolicRemained": {
+          "type": "long"
+        }
+      }
+    },
+    "TotalObjectGroups": {
+      "properties": {
+        "ingested": {
+          "type": "long"
+        },
+        "deleted": {
+          "type": "long"
+        },
+        "remained": {
+          "type": "long"
+        },
+        "attached": {
+          "type": "long"
+        },
+        "detached": {
+          "type": "long"
+        },
+        "symbolicRemained": {
+          "type": "long"
+        }
+      }
+    },
+    "TotalUnits": {
+      "properties": {
+        "ingested": {
+          "type": "long"
+        },
+        "deleted": {
+          "type": "long"
+        },
+        "remained": {
+          "type": "long"
+        },
+        "attached": {
+          "type": "long"
+        },
+        "detached": {
+          "type": "long"
+        },
+        "symbolicRemained": {
+          "type": "long"
+        }
+      }
+    },
+    "ObjectSize": {
+      "properties": {
+        "ingested": {
+          "type": "long"
+        },
+        "deleted": {
+          "type": "long"
+        },
+        "remained": {
+          "type": "long"
+        },
+        "attached": {
+          "type": "long"
+        },
+        "detached": {
+          "type": "long"
+        },
+        "symbolicRemained": {
+          "type": "long"
+        }
+      }
+    },
+    "_tenant": {
+      "type": "long"
+    },
+    "_v": {
+      "type": "long"
+    },
+    "_score": {
+      "type": "object",
+      "enabled": false
+    }
+  }
+}

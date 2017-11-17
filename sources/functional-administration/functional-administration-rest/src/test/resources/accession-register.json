@@ -1,9 +1,9 @@
 {
   "OriginatingAgency": "OriginatingAgency",
   "SubmissionAgency": "SubmissionAgency",
-  "StartDate": "StartDate",
-  "EndDate": "EndDate",
-  "LastUpdate": "LastUpdate",
+  "StartDate": "2017-01-01",
+  "EndDate": "2017-01-01",
+  "LastUpdate": "2017-01-01",
   "TotalUnits": {
     "ingested": 1,
     "deleted": 0,
