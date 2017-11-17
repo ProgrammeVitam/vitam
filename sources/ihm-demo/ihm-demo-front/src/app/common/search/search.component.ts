@@ -29,8 +29,6 @@ export class SearchComponent implements OnInit {
   @Output() panelButtonEvent: EventEmitter<any> = new EventEmitter<any>();
   @Output() clearResults: EventEmitter<any> = new EventEmitter<any>();
 
-
-
   frLocale = {
     dayNames: ["Dimanche","Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"],
     dayNamesShort: ["Dim.", "Lun.", "Mar.", "Mer.", "Jeu.", "Ven.", "Sam."],

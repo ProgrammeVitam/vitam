@@ -167,6 +167,14 @@ export class ArchiveUnitComponent extends PageComponent {
     this.searchForm = event.form;
   }
 
+  /**
+   * clear results.
+   */
+  onClear(event) {
+    console.log('response deletion !');
+    delete this.response;
+  }
+
   public paginationSearch(service: any, offset) {
     return service.getResults(this.searchForm, offset);
   }
