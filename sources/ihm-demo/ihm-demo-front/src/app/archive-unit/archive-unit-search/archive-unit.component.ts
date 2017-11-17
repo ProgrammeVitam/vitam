@@ -78,8 +78,6 @@ export class ArchiveUnitComponent extends PageComponent {
     this.router.navigate(['search/archiveUnit/' + item['#id'] + '/unitlifecycle']);
   }
 
-
-
   public preSearchFunction(request, advancedMode):Preresult {
     var criteriaSearch:any = {}; // TODO Type me !
     let preResult = new Preresult();

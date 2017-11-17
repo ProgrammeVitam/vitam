@@ -82,7 +82,8 @@ export class LogbookComponent extends PageComponent {
   public extraColumns = [
     ColumnDefinition.makeStaticColumn('evIdProc', 'Identifiant de l\'entrée', undefined,
         () => ({'width': '325px'})),
-    ColumnDefinition.makeStaticColumn('ArchivalProfile', 'Profil d\'archivage', undefined,
+    ColumnDefinition.makeSpecialValueColumn('Profil d\'archivage',
+            (item) => !!item.ArchivalProfile ? item.ArchivalProfile : '', undefined,
         () => ({'width': '125px'})),
     ColumnDefinition.makeStaticColumn('EvDateTimeReq', 'Date', this.archiveUnitHelper.handleDate,
         () => ({'width': '100px'})),

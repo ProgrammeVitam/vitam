@@ -72,7 +72,7 @@ export class ColumnDefinition {
   public computeCss: () => any = () => '';
   public onClick: (item, iconType?: string) => void = () => null;
   public transform: (value) => string = (x) => '' + x;
-  public getValue: (item) => string = (x) => '' + x[this.field];
+  public getValue: (item) => string = (x) => !!x[this.field] ? '' + x[this.field]:'';
   public getIcons: (item, icons: string[]) => string[] = (x, y) => y;
   public shouldDisplay: (item) => boolean = (x) => true;
   public forceIcon: boolean = false;
