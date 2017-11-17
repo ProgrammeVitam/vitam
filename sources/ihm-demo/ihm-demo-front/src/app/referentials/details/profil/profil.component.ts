@@ -107,6 +107,9 @@ export class ProfilComponent extends PageComponent {
               this.saveRunning = false;
               this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée.', '');
             });
+        }, (error) => {
+          this.saveRunning = false;
+          this.dialogService.displayMessage('Le profil d\'archivage est peut-être au mauvais format', 'Echec de l\'import du fichier');
         });
     } else {
       this.searchReferentialsService.updateProfilById(this.id, this.updatedFields)
