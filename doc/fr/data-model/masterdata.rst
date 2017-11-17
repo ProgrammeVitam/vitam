@@ -663,74 +663,99 @@ Utilisation de la collection
 
 La collection Context permet de stocker unitairement les contextes applicatifs.
 
+Exemple d'un fichier d'import de contexte applicatif
+----------------------------------------------------
+
+Les contextes applicatifs sont importés dans la solution logicielle Vitam sous la forme d’un fichier json.
+
+::
+
+  {
+      "Name": "My_Context_5",
+      "Status": true,
+      "SecurityProfile": "admin-security-profile",
+      "Permissions": [
+        {
+          "_tenant": 1,
+          "AccessContracts": [],
+          "IngestContracts": []
+        },
+        {
+          "_tenant": 0,
+          "AccessContracts": [],
+          "IngestContracts": []
+        }
+      ]
+    }
+
 Exemple de JSON stocké en base comprenant l'exhaustivité des champs de la collection Context
 --------------------------------------------------------------------------------------------
 
 ::
 
-{
-    "_id": "aegqaaaaaaevq6lcaamxsak7psqdcmqaaaaq",
-    "Name": "admin-context",
-    "Status": true,
-    "EnableControl": false,
-    "Identifier": "CT-000001",
-    "SecurityProfile": "admin-security-profile",
-    "Permissions": [
-        {
-            "_tenant": 0,
-            "AccessContracts": [],
-            "IngestContracts": []
-        },
-        {
-            "_tenant": 1,
-            "AccessContracts": [],
-            "IngestContracts": []
-        },
-        {
-            "_tenant": 2,
-            "AccessContracts": [],
-            "IngestContracts": []
-        },
-        {
-            "_tenant": 3,
-            "AccessContracts": [],
-            "IngestContracts": []
-        },
-        {
-            "_tenant": 4,
-            "AccessContracts": [],
-            "IngestContracts": []
-        },
-        {
-            "_tenant": 5,
-            "AccessContracts": [],
-            "IngestContracts": []
-        },
-        {
-            "_tenant": 6,
-            "AccessContracts": [],
-            "IngestContracts": []
-        },
-        {
-            "_tenant": 7,
-            "AccessContracts": [],
-            "IngestContracts": []
-        },
-        {
-            "_tenant": 8,
-            "AccessContracts": [],
-            "IngestContracts": []
-        },
-        {
-            "_tenant": 9,
-            "AccessContracts": [],
-            "IngestContracts": []
-        }
-    ],
-    "CreationDate": "2017-11-02T12:06:34.034",
-    "LastUpdate": "2017-11-02T12:06:34.036",
-    "_v": 0
-}
+  {
+      "_id": "aegqaaaaaaevq6lcaamxsak7psqdcmqaaaaq",
+      "Name": "admin-context",
+      "Status": true,
+      "EnableControl": false,
+      "Identifier": "CT-000001",
+      "SecurityProfile": "admin-security-profile",
+      "Permissions": [
+          {
+              "_tenant": 0,
+              "AccessContracts": [],
+              "IngestContracts": []
+          },
+          {
+              "_tenant": 1,
+              "AccessContracts": [],
+              "IngestContracts": []
+          },
+          {
+              "_tenant": 2,
+              "AccessContracts": [],
+              "IngestContracts": []
+          },
+          {
+              "_tenant": 3,
+              "AccessContracts": [],
+              "IngestContracts": []
+          },
+          {
+              "_tenant": 4,
+              "AccessContracts": [],
+              "IngestContracts": []
+          },
+          {
+              "_tenant": 5,
+              "AccessContracts": [],
+              "IngestContracts": []
+          },
+          {
+              "_tenant": 6,
+              "AccessContracts": [],
+              "IngestContracts": []
+          },
+          {
+              "_tenant": 7,
+              "AccessContracts": [],
+              "IngestContracts": []
+          },
+          {
+              "_tenant": 8,
+              "AccessContracts": [],
+              "IngestContracts": []
+          },
+          {
+              "_tenant": 9,
+              "AccessContracts": [],
+              "IngestContracts": []
+          }
+      ],
+      "CreationDate": "2017-11-02T12:06:34.034",
+      "LastUpdate": "2017-11-02T12:06:34.036",
+      "_v": 0
+  }
 
 Il est possible de mettre plusieurs contextes applicatifs dans un même fichier, sur le même modèle que les contrats d'entrées ou d'accès par exemple. On pourra noter que le contexte est multi-tenant et définit chaque tenant de manière indépendante.
 
