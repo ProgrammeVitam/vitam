@@ -11,6 +11,8 @@
 * The command to redeploy VITAM (rpm ONLY & restart service) : vitam-redeploy [local|fulllocal] (to execute in /code)
 * The command to redeploy VITAM extra  (rpm ONLY & restart service)  : vitam-redeploy-extra [local|fulllocal] (to execute in /code)
 *
+* The command to deploy COTS for dev usage : vitam-deploy-cots (only for COTS container)
+*
 * The command to start VITAM  : vitam-start
 * The command to stop VITAM  : vitam-stop
 * The command to restart VITAM  : vitam-restart

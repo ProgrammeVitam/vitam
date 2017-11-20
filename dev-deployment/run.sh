@@ -36,6 +36,14 @@ fi
 if [ -z "${VITAM_TARGET}" ] ; then
 	VITAM_TARGET=rpm
 fi
+if [ "${VITAM_TARGET}" == "rpm-cots" ] ; then
+	MAPPING_PORTS="-p 9200:9200 -p 9201:9201 -p 9300:9300 -p 9301:9301 -p 9000:9000 -p 27016:27016 -p 27017:27017 -p 19000:19000"
+	VOLUME_INGEST="/vitam/data/ingest-external"
+	VOLUME_WORKER="/vitam/data/worker"
+	VOLUME_WORKER_TMP="/vitam/tmp/worker"
+else
+	MAPPING_PORTS="-p 80:80 -p 8082:8082 -p 9102:9102 -p 9104:9104 -p 9200:9200 -p 9201:9201 -p 9300:9300 -p 9301:9301 -p 9000:9000 -p 9002:9002 -p 9900:9900 -p 27016:27016 -p 27017:27017 -p 10514:10514 -p 8000-8010:8000-8010 -p 8100-8110:8100-8110 -p 8200-8210:8200-8210 -p 8090:8090 -p 8300-8310:8300-8310 -p 5601:5601 -p 8500:8500 -p 8443-8445:8443-8445"
+fi
 echo "Using vitam target : ${VITAM_TARGET}"
 
 VITAMDEV_USER=${LOGNAME}
@@ -70,7 +78,14 @@ if [ -z "$(docker ps -a | grep vitam-${VITAM_TARGET}-dev)" ]; then
 		-f dev-base/Dockerfile-${VITAM_TARGET} \
 		dev-base
 	echo "Launching docker container as daemon (launching systemd init process...)"
-	docker run -d --privileged -v "${VITAMDEV_GIT_REPO}:/code" -v  /sys/fs/cgroup:/sys/fs/cgroup:ro -v "${VITAMDEV_HOME}/.npmrc:/devhome/.npmrc"  -v "${VITAMDEV_HOME}/.m2:/devhome/.m2" -p 80:80 -p 8082:8082 -p 9102:9102 -p 9104:9104 -p 9200:9200 -p 9201:9201 -p 9300:9300 -p 9301:9301 -p 9000:9000 -p 9002:9002 -p 9900:9900 -p 27016:27016 -p 27017:27017 -p 10514:10514 -p 8000-8010:8000-8010 -p 8100-8110:8100-8110 -p 8200-8210:8200-8210 -p 8090:8090 -p 8300-8310:8300-8310 -p 5601:5601 -p 8500:8500 -p 8443-8445:8443-8445 --cap-add=SYS_ADMIN --security-opt seccomp=unconfined --name=${VITAMDEV_CONTAINER} --net=bridge --dns=127.0.0.1 --dns=10.100.211.222 --dns=8.8.8.8 ${VITAMDEV_IMAGE}
+	if [ "${VITAM_TARGET}" == "rpm-cots" ]; then
+		sudo mkdir -p ${VOLUME_INGEST}
+		sudo mkdir -p ${VOLUME_WORKER}
+		sudo mkdir -p ${VOLUME_WORKER_TMP}
+		docker run -d --privileged -v "${VITAMDEV_GIT_REPO}:/code" -v ${VOLUME_INGEST}:${VOLUME_INGEST} -v ${VOLUME_WORKER}:${VOLUME_WORKER} -v ${VOLUME_WORKER_TMP}:${VOLUME_WORKER_TMP} -v /sys/fs/cgroup:/sys/fs/cgroup:ro -v "${VITAMDEV_HOME}/.npmrc:/devhome/.npmrc"  -v "${VITAMDEV_HOME}/.m2:/devhome/.m2" ${MAPPING_PORTS} --cap-add=SYS_ADMIN --security-opt seccomp=unconfined --name=${VITAMDEV_CONTAINER} --net=bridge --dns=127.0.0.1 --dns=10.100.211.222 --dns=8.8.8.8 ${VITAMDEV_IMAGE}
+	else
+		docker run -d --privileged -v "${VITAMDEV_GIT_REPO}:/code" -v  /sys/fs/cgroup:/sys/fs/cgroup:ro -v "${VITAMDEV_HOME}/.npmrc:/devhome/.npmrc"  -v "${VITAMDEV_HOME}/.m2:/devhome/.m2" ${MAPPING_PORTS} --cap-add=SYS_ADMIN --security-opt seccomp=unconfined --name=${VITAMDEV_CONTAINER} --net=bridge --dns=127.0.0.1 --dns=10.100.211.222 --dns=8.8.8.8 ${VITAMDEV_IMAGE}
+	fi
 	if (( ${?} != 0 )); then
 		echo "Container refused to start please correct and retry"
 		docker rm ${VITAMDEV_CONTAINER}
@@ -78,7 +93,7 @@ if [ -z "$(docker ps -a | grep vitam-${VITAM_TARGET}-dev)" ]; then
 	fi
 	echo "Registering user ${VITAMDEV_USER} in container..."
 	docker exec ${VITAMDEV_CONTAINER} groupadd -g ${VITAMDEV_USER_GID} vitam-dev
-	if [ "${VITAM_TARGET}" == "rpm" ]; then
+	if [ "${VITAM_TARGET}" == "rpm" ] || [ "${VITAM_TARGET}" == "rpm-cots" ]; then
 		docker exec ${VITAMDEV_CONTAINER} useradd -u ${VITAMDEV_USER_UID} -g ${VITAMDEV_USER_GID} -G wheel \
 			-d /devhome -s /bin/bash -c "Welcome, mister developer !" ${VITAMDEV_USER}
 	fi
