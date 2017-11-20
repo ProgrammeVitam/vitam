@@ -26,15 +26,21 @@
  */
 package fr.gouv.vitam.functional.administration.accession.register.core;
 
-import java.util.HashMap;
-import java.util.Map;
+import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.MongoWriteException;
 
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.action.Action;
+import fr.gouv.vitam.common.database.builder.query.action.IncAction;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -106,7 +112,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
                 registerDetail.getOriginatingAgency());
 
             mongoAccess.insertDocument(JsonHandler.toJsonNode(accessionRegister),
-                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
+                ACCESSION_REGISTER_SUMMARY);
         } catch (ReferentialException e) {
             if (!DbRequestSingle.checkInsertOrUpdate(e)) {
                 throw e;
@@ -118,15 +124,13 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
         }
 
         try {
-            final Map<String, Object> updateMap = createMaptoUpdate(registerDetail);
-            mongoAccess.updateAccessionRegisterByMap(
-                updateMap,
-                JsonHandler.toJsonNode(registerDetail),
-                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY,
-                UPDATEACTION.INC);
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.info("Update error", e);
-            throw new ReferentialException(e);
+            List<Action> actions = createActions(registerDetail);
+            Update update = new Update();
+            update.setQuery(QueryHelper.eq(AccessionRegisterSummary.ORIGINATING_AGENCY, registerDetail
+                .getOriginatingAgency()));
+            update.addActions(actions.toArray(new IncAction[actions.size()]));
+
+            mongoAccess.updateData(update.getFinalUpdate(), ACCESSION_REGISTER_SUMMARY);
         } catch (final Exception e) {
             LOGGER.info("Unknown error", e);
             throw new ReferentialException(e);
@@ -134,61 +138,63 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
 
     }
 
-    private Map<String, Object> createMaptoUpdate(AccessionRegisterDetail registerDetail) {
-        final Map<String, Object> updateMap = new HashMap<>();
+    private List<Action> createActions(AccessionRegisterDetail registerDetail)
+        throws InvalidCreateOperationException {
+        ArrayList<Action> actions = new ArrayList<>();
 
-        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.INGESTED,
-            registerDetail.getTotalObjectGroups().getIngested());
-        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.DELETED,
-            registerDetail.getTotalObjectGroups().getDeleted());
-        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.REMAINED,
-            registerDetail.getTotalObjectGroups().getRemained());
-        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.DETACHED,
-            registerDetail.getTotalObjectGroups().getDetached());
-        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.ATTACHED,
-            registerDetail.getTotalObjectGroups().getAttached());
-        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.SYMBOLIC_REMAINED,
-            registerDetail.getTotalObjectGroups().getSymbolicRemained());
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.INGESTED,
+            registerDetail.getTotalObjectGroups().getIngested()));
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.DELETED,
+            registerDetail.getTotalObjectGroups().getDeleted()));
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.REMAINED,
+            registerDetail.getTotalObjectGroups().getRemained()));
 
-        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.INGESTED,
-            registerDetail.getTotalObjects().getIngested());
-        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.DELETED,
-            registerDetail.getTotalObjects().getDeleted());
-        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.REMAINED,
-            registerDetail.getTotalObjects().getRemained());
-        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.DETACHED,
-            registerDetail.getTotalObjects().getDetached());
-        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.ATTACHED,
-            registerDetail.getTotalObjects().getAttached());
-        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.SYMBOLIC_REMAINED,
-            registerDetail.getTotalObjects().getSymbolicRemained());
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.DETACHED,
+            registerDetail.getTotalObjectGroups().getDetached()));
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.ATTACHED,
+            registerDetail.getTotalObjectGroups().getAttached()));
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTGROUPS + "." + AccessionRegisterSummary.SYMBOLIC_REMAINED,
+            registerDetail.getTotalObjectGroups().getSymbolicRemained()));
 
-        updateMap.put(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.INGESTED,
-            registerDetail.getTotalUnits().getIngested());
-        updateMap.put(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.DELETED,
-            registerDetail.getTotalUnits().getDeleted());
-        updateMap.put(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.REMAINED,
-            registerDetail.getTotalUnits().getRemained());
-        updateMap.put(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.DETACHED,
-            registerDetail.getTotalUnits().getDetached());
-        updateMap.put(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.ATTACHED,
-            registerDetail.getTotalUnits().getAttached());
-        updateMap.put(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.SYMBOLIC_REMAINED,
-            registerDetail.getTotalUnits().getSymbolicRemained());
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.INGESTED,
+            registerDetail.getTotalObjects().getIngested()));
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.DELETED,
+            registerDetail.getTotalObjects().getDeleted()));
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.REMAINED,
+            registerDetail.getTotalObjects().getRemained()));
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.DETACHED,
+            registerDetail.getTotalObjects().getDetached()));
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.ATTACHED,
+            registerDetail.getTotalObjects().getAttached()));
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_OBJECTS + "." + AccessionRegisterSummary.SYMBOLIC_REMAINED,
+            registerDetail.getTotalObjects().getSymbolicRemained()));
 
-        updateMap.put(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.INGESTED,
-            registerDetail.getTotalObjectSize().getIngested());
-        updateMap.put(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.DELETED,
-            registerDetail.getTotalObjectSize().getDeleted());
-        updateMap.put(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.REMAINED,
-            registerDetail.getTotalObjectSize().getRemained());
-        updateMap.put(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.DETACHED,
-            registerDetail.getTotalObjectSize().getDetached());
-        updateMap.put(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.ATTACHED,
-            registerDetail.getTotalObjectSize().getAttached());
-        updateMap.put(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.SYMBOLIC_REMAINED,
-            registerDetail.getTotalObjectSize().getSymbolicRemained());
-        return updateMap;
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.INGESTED,
+            registerDetail.getTotalUnits().getIngested()));
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.DELETED,
+            registerDetail.getTotalUnits().getDeleted()));
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.REMAINED,
+            registerDetail.getTotalUnits().getRemained()));
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.DETACHED,
+            registerDetail.getTotalUnits().getDetached()));
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.ATTACHED,
+            registerDetail.getTotalUnits().getAttached()));
+        actions.add(new IncAction(AccessionRegisterSummary.TOTAL_UNITS + "." + AccessionRegisterSummary.SYMBOLIC_REMAINED,
+            registerDetail.getTotalUnits().getSymbolicRemained()));
+
+        actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.INGESTED,
+            registerDetail.getTotalObjectSize().getIngested()));
+        actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.DELETED,
+            registerDetail.getTotalObjectSize().getDeleted()));
+        actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.REMAINED,
+            registerDetail.getTotalObjectSize().getRemained()));
+        actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.DETACHED,
+            registerDetail.getTotalObjectSize().getDetached()));
+        actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.ATTACHED,
+            registerDetail.getTotalObjectSize().getAttached()));
+        actions.add(new IncAction(AccessionRegisterSummary.OBJECT_SIZE + "." + AccessionRegisterSummary.SYMBOLIC_REMAINED,
+            registerDetail.getTotalObjectSize().getSymbolicRemained()));
+        return actions;
     }
 
     @Override
@@ -205,7 +211,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
      */
     public RequestResponseOK<AccessionRegisterSummary> findDocuments(JsonNode select) throws ReferentialException {
         try (DbRequestResult result =
-            mongoAccess.findDocuments(select, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY)) {
+            mongoAccess.findDocuments(select, ACCESSION_REGISTER_SUMMARY)) {
             final RequestResponseOK<AccessionRegisterSummary> list =
                 result.getRequestResponseOK(select, AccessionRegisterSummary.class);
             if (list.isEmpty()) {
