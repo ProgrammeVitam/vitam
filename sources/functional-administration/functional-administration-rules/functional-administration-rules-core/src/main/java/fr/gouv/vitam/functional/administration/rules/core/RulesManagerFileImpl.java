@@ -203,12 +203,13 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     private static String UPDATE_RULES_ARCHIVE_UNITS = "UPDATE_RULES_ARCHIVE_UNITS";
     private static final String STP_IMPORT_RULES = "STP_IMPORT_RULES";
     private static final String CHECK_RULES = "CHECK_RULES";
+    private static final String CHECK_RULES_INVALID_CSV = "INVALID_CSV";
+    private static final String CHECK_RULES_IMPORT_IN_PROCESS = "IMPORT_IN_PROCESS";
     private static final String COMMIT_RULES = "COMMIT_RULES";
     private static final String USED_DELETED_RULE_IDS = "usedDeletedRuleIds";
     private static final String DELETED_RULE_IDS = "deletedRuleIds";
     private static final String USED_UPDATED_RULE_IDS = "usedUpdatedRuleIds";
     private static final String RULES_REPORT = "RULES_REPORT";
-    private static final String INVALID_CSV_FILE_LOGBOOK = "csv Invalid";
     private static final String DEFAULT_STRATEGY = "default";
 
 
@@ -268,8 +269,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         ArrayNode validatedRules = JsonHandler.createArrayNode();
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             try {
+                initStpImportRulesLogbookOperation(eip, client);
                 if (!isImportOperationInProgress(client)) {
-                    initStpImportRulesLogbookOperation(eip, client);
                     /* To process import validate the file first */
                     validatedRules =
                         checkFile(new FileInputStream(file), errors, usedDeletedRulesForReport,
@@ -296,12 +297,14 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                     notUsedDeletedRulesForReport, fileRulesModelToInsert, fileRulesModelToDelete,
                     fileRulesModelToUpdate, fileRulesModelsToImport, validatedRules, filename, client);
             } catch (FileRulesCsvException e) {
-                updateCheckFileRulesLogbookOperationWhenCsvIsInvalid(CHECK_RULES, StatusCode.KO, eip, client);
+                updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(CHECK_RULES_INVALID_CSV, eip, client);
                 updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.KO, filename, client);
                 throw e;
             } catch (FileRulesException e) {
                 throw e;
             } catch (FileRulesImportInProgressException e) {
+                updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(CHECK_RULES_IMPORT_IN_PROCESS, eip, client);
+                updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.KO, filename, client);
                 throw new FileRulesImportInProgressException(RULES_PROCESS_IMPORT_ALREADY_EXIST);
             } catch (LogbookClientException e) {
                 throw new FileRulesException(e);
@@ -763,21 +766,17 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         updateLogBookEntry(logbookOperationParameters, client);
     }
 
-    private void updateCheckFileRulesLogbookOperationWhenCsvIsInvalid(String operationFileRules, StatusCode statusCode,
+    private void updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(String subEvenType, 
         GUID evIdentifierProcess, LogbookOperationsClient client) {
         final GUID evid = GUIDFactory.newOperationLogbookGUID(getTenant());
         final LogbookOperationParameters logbookOperationParameters =
-            LogbookParametersFactory
-                .newLogbookOperationParameters(evid, operationFileRules, evIdentifierProcess,
+            LogbookParametersFactory.newLogbookOperationParameters(
+                    evid, CHECK_RULES, evIdentifierProcess,
                     LogbookTypeProcess.MASTERDATA,
-                    statusCode,
-                    VitamLogbookMessages.getCodeOp(CHECK_RULES, statusCode), evid);
-        final ObjectNode csvInvalidOperation = JsonHandler.createObjectNode();
-        csvInvalidOperation.put(INVALID_CSV_FILE_LOGBOOK, INVALID_CSV_FILE);
-        logbookOperationParameters.putParameterValue(LogbookParameterName.eventDetailData,
-            JsonHandler.unprettyPrint(csvInvalidOperation));
-        logbookOperationParameters.putParameterValue(LogbookParameterName.outcomeDetail, operationFileRules +
-            "." + statusCode);
+                    StatusCode.KO,
+                    VitamLogbookMessages.getCodeOp(CHECK_RULES, subEvenType, StatusCode.KO), evid);
+        logbookOperationParameters.putParameterValue(LogbookParameterName.outcomeDetail, 
+                VitamLogbookMessages.getOutcomeDetail(CHECK_RULES, subEvenType, StatusCode.KO));
         updateLogBookEntry(logbookOperationParameters, client);
     }
 
