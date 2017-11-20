@@ -1,7 +1,9 @@
 <p-panel [header]="'Règles de gestion'" [toggleable]="true" [collapsed]="true">
-  <p-confirmDialog header="Confirmation de modification de règles" icon="fa fa-question-circle" width="425"
-                   acceptLabel="Modifier" rejectLabel="Annuler">
-
+  <p-confirmDialog header="Confirmation de modification de règles" icon="fa fa-question-circle" width="425" #cd >
+    <p-footer>
+      <button type="button" pButton icon="fa-close" label="Annuler" (click)="cd.reject()"></button>
+      <button type="button" pButton icon="fa-check" label="Modifier" (click)="cd.accept()"></button>
+    </p-footer>
   </p-confirmDialog>
 
   <div class="ui-g">
