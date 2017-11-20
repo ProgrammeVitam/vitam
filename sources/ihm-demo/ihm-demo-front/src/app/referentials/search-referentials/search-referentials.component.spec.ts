@@ -6,7 +6,6 @@ import { Observable } from "rxjs/Rx";
 import { SearchReferentialsComponent } from './search-referentials.component';
 import { BreadcrumbService } from "../../common/breadcrumb.service";
 import { ReferentialsService } from "../referentials.service";
-import { VitamResponse } from "../../common/utils/response";
 
 const ReferentialsServiceStub = {
   getResults: (id) => Observable.of({'$results': [{}]})
@@ -40,5 +39,18 @@ describe('SearchReferentialsComponent', () => {
 
   it('should be created', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should check item status', () => {
+    let item = {
+      'status': 'ACTIVE'
+    };
+    expect(SearchReferentialsComponent.handleStatus(item.status)).toEqual('Actif');
+
+    item.status = 'true';
+    expect(SearchReferentialsComponent.handleStatus(item.status)).toEqual('Actif');
+
+    item.status = 'INACTIVE';
+    expect(SearchReferentialsComponent.handleStatus(item.status)).toEqual('Inactif');
   });
 });
