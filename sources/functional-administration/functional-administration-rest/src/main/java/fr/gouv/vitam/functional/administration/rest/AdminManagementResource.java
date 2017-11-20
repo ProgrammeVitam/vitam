@@ -350,9 +350,6 @@ public class AdminManagementResource extends ApplicationStatusResource {
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
-        } catch (FileFormatNotFoundException e) {
-            return Response.status(Status.OK)
-                .entity(new RequestResponseOK(select).setHttpCode(Status.OK.getStatusCode())).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
             final Status status = Status.NOT_FOUND;

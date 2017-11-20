@@ -186,8 +186,7 @@ public class DbRequest {
                 result = new ResultError(requestParser.model())
                     .addError(newResult != null ? newResult.getCurrentIds().toString() : NO_RESULT_TRUE)
                     .addError(NO_RESULT_AT_RANK2 + rank).addError(FROM2 + requestParser)
-                    .addError(WHERE_PREVIOUS_RESULT_WAS + result);
-
+                    .addError(WHERE_PREVIOUS_RESULT_WAS + result).setTotal(newResult!= null ? newResult.total : 0);
                 return result;
             }
             LOGGER.debug("Query: {}\n\tResult: {}", requestParser, result);
