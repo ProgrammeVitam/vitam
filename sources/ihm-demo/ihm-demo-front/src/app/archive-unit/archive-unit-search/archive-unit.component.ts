@@ -170,8 +170,7 @@ export class ArchiveUnitComponent extends PageComponent {
   /**
    * clear results.
    */
-  onClear(event) {
-    console.log('response deletion !');
+  onClear() {
     delete this.response;
   }
 
