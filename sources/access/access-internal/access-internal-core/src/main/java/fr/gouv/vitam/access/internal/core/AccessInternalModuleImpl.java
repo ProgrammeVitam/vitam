@@ -445,7 +445,9 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         try {
             idGUID = GUIDReader.getGUID(idUnit);
             idRequest = GUIDReader.getGUID(requestId);
-            tenant = idGUID.getTenantId();
+            if (tenant != idGUID.getTenantId()) {
+                throw new IllegalArgumentException("GUID is not valid for the tenant");
+            }
         } catch (final InvalidGuidOperationException e) {
             throw new IllegalArgumentException("idUnit is not a valid GUID", e);
         }

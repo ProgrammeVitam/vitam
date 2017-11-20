@@ -257,7 +257,9 @@ public class AccessInternalModuleImplTest {
         junitHelper.releasePort(serverPort);
     }
 
-    private static final String ID = "aeaqaaaaaitxll67abarqaktftcfyniaaaaq";
+    // this guid was generated with tenant = 0
+    private static final String ID = "aeaqaaaaaaevelkyaa6teak73hlewtiaaabq";
+    private static final String ID_WITH_TENANT_ID_1 = "aeaqaaaaaeevelkyaa6teak73hn6kpyaaaca";
     private static final String REQUEST_ID = "aeaqaaaaaitxll67abarqaktftcfyniaaaaq";
 
     /**
@@ -561,6 +563,14 @@ public class AccessInternalModuleImplTest {
         Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient)
             .updateUnitbyId(fromStringToJson(QUERY), ID);
         accessModuleImpl.updateUnitbyId(fromStringToJson(QUERY), ID, REQUEST_ID);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    @RunWithCustomExecutor
+    public void given_test_updateUnitById_withWrongTenant()
+        throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        accessModuleImpl.updateUnitbyId(fromStringToJson(QUERY), ID_WITH_TENANT_ID_1, REQUEST_ID);
     }
 
     @Test(expected = InvalidParseOperationException.class)

@@ -144,6 +144,13 @@ documentation:
   get:
      description:  |
       Permet de télécharger un objet représentant le rapport d'import des règles en fonction de l'id de l'opération
+  post:
+    description: |
+      Requête qui permet de télécharger un objet représentant le rapport d'import des règles en fonction de l'id de l'opération. La requête utilise POST avec X-Http-Method-Override: GET
+    is: [AdminTraits.AdminItemResponse, StandardTraits.OverrideGet]
+    headers:
+      X-Http-Method-Override:
+        required: true
 
 /accessionregisters:
   displayName: AccessionRegisters

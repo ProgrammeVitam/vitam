@@ -410,7 +410,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             JsonNode result = accessModule.updateUnitbyId(queryDsl, idUnit, requestId);
             LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
             return Response.status(Status.OK).entity(result).build();
-        } catch (final InvalidParseOperationException e) {
+        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION, e);
             // Unprocessable Entity not implemented by Jersey
             status = Status.BAD_REQUEST;
