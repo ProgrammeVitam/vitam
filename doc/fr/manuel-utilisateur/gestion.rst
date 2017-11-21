@@ -3,19 +3,47 @@ Gestion des archives existantes
 
 Cette partie décrit les fonctionnalités de gestion et modification des archives dans la solution logicielle Vitam.
 
-NB : Cette partie est disponible via l'IHM de démonstration.
 
-Modification des métadonnées
-============================
+Audit
+=====
 
-Il est possible de modifier les métadonnées depuis le détail d'une unité archivistique, issu d'une recherche dans l'écran "Recherche d'archive".
+La fonctionnalité d'audit permet de contrôler que les fichiers détenus par un service producteur ou présents sur un tenant sont toujours existants et intèges.
 
-.. image:: images/GESTION_modif_boutons.png
+Pour consulter la recherche d'une unité archivistique, l'utilisateur survole le menu "Gestion des archives existantes", puis sélectionne "Audit".
 
-Un clic sur le bouton "Modifier" situé dans la partie droite de l'écran permet de faire apparaître des pictogrammes de stylos à gauche des champs modifiables, le bouton devient un bouton "Annuler" afin de pouvoir annuler l'opération et revenir à l'état initial, sans prendre en compte aucune modification.
+.. image:: images/menu_audit.png
 
-.. image:: images/GESTION_modif_boutons_annuler.png
+Sélection du type d'Audit
+---------------------------------
 
-Un clic sur le "stylo" permet de modifier la métadonnée correspondante. Une fois toutes les modifications effectuées, un clic sur le bouton "Sauvegarder" va enregistrer les modifications.
+Les audits peuvent être exécutés sur les fonds détenus par un service producteur ou sur l'ensemble d'un tenant. 
 
-.. image:: images/GESTION_modif_champ.png
+Pour exécuter un audit sur un tenant, l'utilisateur sélectionne "Service Producteur" dans le sélecteur "Sélectionner le type", puis choisi un service producteur dans le sélecteur "Sélectionner un service producteur".
+
+Pour réaliser un audit sur l'ensemble des fonds pris en charge dans un tenant, l'utilisateur choisi "Tenant" dans le sélecteur "Sélectionner le type".
+
+Le numéro du tenant s'affiche alors automatiquement et n'est pas modifiable.
+
+.. image:: images/detail_audit.png
+
+
+Sélection du périmètre de l'Audit
+---------------------------------
+
+Un audit porte à minima sur l'existence des fichiers et peut aller jusqu'au contrôle de leurs intégrité.
+
+Ainsi, un utilisateur doit au moins cocher la case "Audit de l'existence des objets" pour pouvoir lancer un audit.
+
+S'il coche la case "Audit de l'intégrité des objets", alors la case précédente est grisée et impossible à décocher.
+
+
+Journalisation et rapport d'Audit
+---------------------------------
+
+La réalisation d'un audit donne lieu la création d'un journal d'opération et d'un rapport.
+
+L'utilisateur peut télécharger le rapport de l'IHM depuis l'écran de consultation des journaux d'opération en choisissant affichant la colonne "Rapport", accessible par le sélecteur "Informations supplémentaires".
+
+Un lien de téléchargement apparaît alors dans cette colonne pour les lignes affichant une opération d'audit.
+
+L'utilisateur peut télécharger le rapport de l'opération en cliquant sur ce lien.
