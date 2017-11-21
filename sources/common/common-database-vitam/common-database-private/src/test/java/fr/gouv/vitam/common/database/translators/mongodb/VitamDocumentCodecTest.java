@@ -32,8 +32,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import org.assertj.core.api.Assertions;
 import org.bson.Document;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class VitamDocumentCodecTest {
     private static class PseudoClass extends Document {
@@ -79,4 +84,15 @@ public class VitamDocumentCodecTest {
         assertNotNull(vitamDocumentCodec.getDocumentId(document));
     }
 
+    @Test
+    public final void testdiff() {
+        List<String> list = new ArrayList<>();
+        list.add("-  \"Name\" : \"PToUpdate\",");
+        list.add("-  \"_v\" : 0");
+        List<String> result = VitamDocument.getConcernedDiffLines(list);
+        Assertions.assertThat(result.get(0)).isEqualTo("-  Name : PToUpdate");
+
+        Assertions.assertThat(result.get(1)).isEqualTo("-  _v : 0");
+
+    }
 }

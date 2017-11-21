@@ -55,6 +55,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 public abstract class VitamDocument<E> extends Document {
     private static final long serialVersionUID = 4051636259488359930L;
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamDocument.class);
+    private static String REGEX = "^(\\+|-){1}\\s{1,}.*";
     /**
      * ID of each line: different for each sub type
      */
@@ -208,7 +209,7 @@ public abstract class VitamDocument<E> extends Document {
     }
 
     /**
-     * Retrieve only + and - line on diff (for logbook lifecycle) regexp = line started by + or - with at least one
+     * Retrieve only + and - lines on diff (for logbook lifecycle) regexp = line started by + or - with at least one
      * space after and any character
      *
      * @param diff the unified diff
@@ -217,10 +218,15 @@ public abstract class VitamDocument<E> extends Document {
     public static List<String> getConcernedDiffLines(List<String> diff) {
         final List<String> result = new ArrayList<>();
         for (final String line : diff) {
-            if (line.matches("^(\\+|-){1}\\s{1,}.*")) {
+            if (line.matches(REGEX)) {
                 // remove the last character which is a ","
-                result.add(line.substring(0, line.length() - 1).replace("\"", ""));
+                if (line.endsWith(",")) {
+                    result.add(line.substring(0, line.length() - 1).replace("\"", ""));
+                } else {
+                    result.add(line.substring(0, line.length()).replace("\"", ""));
+                }
             }
+
         }
         return result;
     }
