@@ -136,6 +136,8 @@
 
 {% if vitam_struct.https_enabled==true %}
    <New id="httpsConfig" class="org.eclipse.jetty.server.HttpConfiguration">
+        <Set name="sendServerVersion">false</Set>
+        <Set name="sendDateHeader">false</Set>
         <Call name="addCustomizer">
             <Arg>
                 <New class="org.eclipse.jetty.server.SecureRequestCustomizer" />
