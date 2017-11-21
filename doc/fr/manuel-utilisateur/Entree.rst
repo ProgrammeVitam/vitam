@@ -7,28 +7,28 @@ Dans l’univers numérique, peuvent être transférées à un service d’archi
 
 Le SIP est un fichier compressé comportant le bordereau de versement SEDA au format XML et les objets à archiver (pour la formalisation des SIP, se référer au livrable "Structuration des submissions information Package (SIP)").
 
-Transfert d'un SIP dans la solution logicielle Vitam
-====================================================
+Transfert d'un SIP 
+===================
 
 Le transfert d'un SIP dans la solution logicielle Vitam s'effectue depuis l'écran "Transfert SIP et plan de classement". Par défaut, lors de sa connexion, l'utilisateur est dirigé vers cette page. Il peut également y accéder en survolant le menu "Entrée" puis sélectionne sous-menu "Transfert de SIP et plan de classement".
 
 .. image:: images/menu_transfert.png
 
-Pour débuter une entrée, l’utilisateur doit sélectionner le lot d’archives (SIP) à transférer dans la solution logicielle Vitam. Pour cela, il clique sur le bouton « Parcourir », une nouvelle fenêtre s'ouvre dans laquelle il a la possibilité de sélectionner le SIP.
+Pour débuter une entrée, l’utilisateur doit sélectionner le lot d’archives (SIP) à transférer dans la solution logicielle Vitam. Pour cela, il est possible de faire glisser le SIP sur l'espace de téléchargement ou de cliquer sur le lien « sélectionner un fichier », alors une nouvelle fenêtre s'ouvre dans laquelle il a la possibilité de sélectionner le SIP.
 
-Une fois le SIP sélectionné, il apparaît sur l'écran "Téléchargement du SIP" et le nom du fichier s'affiche à droite du bouton "Choisissez un fichier" et une nouvelle ligne apparaît en dessous avec le nom du fichier, sa taille ainsi qu'un champ statut pour l'instant vide.
+Une fois le SIP sélectionné, il apparaît sur l'écran "Transfert du SIP et plan de classement" et le nom du fichier s'affiche sous le lien "sélectionner un fichier" et une nouvelle ligne apparaît en dessous avec le nom du fichier, sa taille ainsi qu'un champ statut pour l'instant vide.
 
-Deux listes déroulantes sont présentes sur l'écran :
+Plusieurs options sont présentes sur l'écran :
 
 - Mode d'exécution, l'utilisateur a le choix entre :
 	- le mode d'exécution "pas à pas" permettant de réaliser progressivement l'entrée en passant d'une étape à une autre. (NB : Les actions liées au processus d'entrée en mode "pas à pas" se retrouvent dans la partie Administration du manuel utilisateur).
-	- le mode d'exécution "continu" permettant de lancer le processus d'entrée dans sa globalité en une seule fois. Dans la grande majorité des cas, ce mode d'exécution sera le choix adopté.
+	- le mode d'exécution "en continu" permettant de lancer le processus d'entrée dans sa globalité en une seule fois. Dans la grande majorité des cas, ce mode d'exécution sera le choix adopté.
 
 - Destination, l'utilisateur peut indiquer la destination de l'entrée d'un SIP
 	- "en production", option d'entrée classique, l'entrée est réellement effectuée, les objets et métadonnées sont enregistrés dans la solution logicielle Vitam, l'évènement est journalisé.
-	- "à blanc", option permettant de tester une entrée afin de s'assurer de la cohérence du SIP, sans toutefois l'enregistrer et la journaliser. L'utilisateur pourra ainsi corriger les erreurs éventuelles avant de procéder à une nouvelle entrée.
+	- "à blanc", option permettant de tester une entrée afin de s'assurer de la cohérence du SIP. L'utilisateur pourra ainsi corriger les erreurs éventuelles avant de procéder à une nouvelle entrée.
 
-Le mode d'exécution et la destination sont obligatoires. Par défaut le mode d'exécution "continu" et la destination "en production" sont sélectionnés. Lorsque l'utilisateur sélectionne le mode "à blanc", une fenêtre de type "modale" lui demande de confirmer son choix.
+Le mode d'exécution et la destination sont obligatoires. Par défaut le mode d'exécution "continu" et la destination "en production" sont sélectionnés. Lorsque l'utilisateur sélectionne le mode "à blanc".
 
 Pour lancer le transfert du SIP, l’utilisateur clique sur le bouton « Importer ».
 
@@ -46,13 +46,13 @@ Un fois le SIP importé, les informations visibles à l'écran sont :
 
 - Une roue animée symbolisant l'avancement du traitement du SIP par la solution logicielle Vitam.
 
-Les formats de SIP attendus sont : ZIP, TAR, TAR.GZ, TAR.BZ2
+Les formats de SIP attendus sont : ZIP, TAR, TAR.GZ, TAR.BZ2, TAR.GZ2
 
-Si l'utilisateur tente d'importer un SIP au format non conforme, alors la solution logicielle Vitam empêche le téléchargement et une fenêtre de type "modale" s'ouvre indiquant les formats autorisés.
+Si l'utilisateur tente d'importer un SIP au format non conforme, alors la solution logicielle Vitam empêche le téléchargement et une fenêtre de type "modale" affiche l'erreur "fichier invalide".
 
 .. image:: images/sip_ko_format.png
 
-Toute opération d'entrée (succès, avertissement et échec) fait l'objet d'une écriture dans le journal des opérations. Les entrées abouties génèrent un accusé de réception qui est proposé en téléchargement à l'utilisateur.
+Toute opération d'entrée fait l'objet d'une écriture dans le journal des opérations. Les entrées abouties (succès, avertissement et échec technique ou métier) génèrent un accusé de réception qui est proposé en téléchargement à l'utilisateur.
 
 Cet accusé de réception ou ArchiveTransferReply (ATR) est au format XML conforme au schéma SEDA 2.0.
 
@@ -65,7 +65,8 @@ Lors d'une entrée en succès dans la solution logicielle Vitam, l'ATR comprend 
 - La liste des unités archivistiques avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle Vitam (SystemId) et la liste des groupes d'objets avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle Vitam (SystemId)
 - ReplyCode : statut final de l'entrée
 - GrantDate : date de prise en charge du SIP
-- MessageIdentifierRequest : identifiant de la demande de transfert
+- ArchivalAgency : service d'archives
+- TransferringAgency : service producteur
 
 Lors d'une entrée en avertissement, l'ATR contient les mêmes informations que l'ATR d'une entrée en succès et le statut final de l'entrée (ou ReplyCode) est "WARNING". L'ATR indique les unités archivistiques et étapes du processus ayant rencontré une difficulté, en revanche il n'est pas possible de connaître la cause de l'avertissement.
 
@@ -73,6 +74,7 @@ En cas de rejet de l'entrée, l'ATR contient les mêmes informations que l'ATR e
 
 Les blocs <event> sont composés des balises suivantes :
 
+- EventType : l'intitulé de l'étape ou de la tâche
 - EventTypeCode : code de l'étape ou de la tâche en erreur
 - Outcome : statut de l'étape ou de la tâche ayant rencontré au moins une erreur
 - OutcomeDetail : code interne à la solution logicielle Vitam correspondant à l'erreur rencontrée
@@ -85,13 +87,13 @@ Transfert d'un SIP de plan de classement
 
 Le transfert d'un plan de classement dans la solution logicielle Vitam s'effectue depuis l'écran "Transfert SIP et plan de classement". Par défaut, lors de sa connexion, l'utilisateur est dirigé vers cette page. Il peut également y accéder en survolant le menu "Entrée" puis sélectionne sous-menu "Transfert de SIP et plan de classement". Il faut ensuite sélectionner le bouton "Plan de classement"
 
-Pour débuter une entrée, l’utilisateur doit sélectionner le plan, sous le format demandé, à transférer dans la solution logicielle Vitam. Pour cela, il clique sur le bouton « Parcourir », une nouvelle fenêtre s'ouvre dans laquelle il a la possibilité de sélectionner le plan.
+Pour débuter une entrée, l’utilisateur doit sélectionner le plan, sous le format demandé, à transférer dans la solution logicielle Vitam. Pour cela, il est possible de faire glisser le plan sur l'espace de téléchargement ou de cliquer sur le lien « sélectionner un fichier », alors une nouvelle fenêtre s'ouvre dans laquelle il a la possibilité de sélectionner le plan.
 
-Une fois celui-ci sélectionné, il apparaît sur l'écran "Téléchargement du plan de classement". Le nom du fichier s'affiche à droite du bouton "choisissez un fichier" et une nouvelle ligne apparaît en dessous avec le nom du fichier, sa taille ainsi qu'un champ statut.
+Une fois celui-ci sélectionné, il apparaît sur l'écran "Téléchargement du plan de classement". Le nom du fichier s'affiche sous le bouton "choisissez un fichier" et une nouvelle ligne apparaît en dessous avec le nom du fichier, sa taille ainsi qu'un champ statut.
 
 Deux listes déroulantes sont présentes sur l'écran :
 
-- Mode d'exécution : l'utilisateur a le choix entre le mode d'exécution "pas à pas" permettant de passer d'une étape à une autre dans le processus d'entrée, et le mode d'exécution "continu" permettant de lancer le processus d'entrée dans sa globalité en une seule fois. Dans la grande majorité des cas, le mode d'exécution "continu" sera le choix adopté. (NB : Les actions liées au processus d'entrée en mode "pas à pas" se retrouve dans la partie "Administration" du manuel utilisateur)
+- Mode d'exécution : l'utilisateur a le choix entre le mode d'exécution "pas à pas" permettant de passer d'une étape à une autre dans le processus d'entrée, et le mode d'exécution "continu" permettant de lancer le processus d'entrée dans sa globalité en une seule fois. Dans la grande majorité des cas, le mode d'exécution "continu" sera le choix adopté. (NB : Les actions liées au processus d'entrée en mode "pas à pas" se retrouvent dans la partie "Administration" du manuel utilisateur)
 
 - Destination : l'utilisateur peut indiquer la destination du plan. Actuellement, seule l'option "production", pour verser directement le plan, est disponible.
 
@@ -113,8 +115,7 @@ NB : Suite au téléchargement du plan, un temps d'attente est nécessaire, corr
 
 .. image:: images/entree_plan.png
 
-Si l'utilisateur tente d'importer un plan au format non conforme (s'il ne s'agit pas des formats ZIP, TAR, TAR.GZ, TAR.BZ2) alors le système empêche le téléchargement.
-Une fenêtre pop-up s'ouvre indiquant les formats autorisés.
+Si l'utilisateur tente d'importer un plan au format non conforme (s'il ne s'agit pas des formats ZIP, TAR, TAR.GZ, TAR.BZ2, TAR.GZ2) alors le système empêche le téléchargement et une fenêtre modale s'ouvre indiquant que le fichier est invalide.
 
 Toute opération d'entrée (succès, avertissement et échec) fait l'objet d'une écriture dans le journal des opérations et génère une notification qui est proposée en téléchargement à l'utilisateur.
 
@@ -128,9 +129,10 @@ Lors d'une entrée en succès dans la solution logicielle VITAM, l'ATR comprend 
 - La liste des unités archivistiques avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle Vitam (SystemId)
 - ReplyCode : statut final de l'entrée
 - GrantDate : date de prise en charge du plan
-- MessageIdentifierRequest : identifiant de la demande de transfert
+- ArchivalAgency : service d'archives
+- TransferringAgency : service de transfert d'archives
 
-Lors d'une entrée en avertissement, l'ATR contient les mêmes informations que l'ATR en succès et le ReplyCode est "WARNING". Actuellement, il n'est pas possible de connaître la cause de l'avertissement.
+Lors d'une entrée en avertissement, l'ATR contient les mêmes informations que l'ATR en succès et le ReplyCode est "WARNING".
 
 En cas de rejet de l'entrée, l'ATR contient les mêmes informations que l'ATR en succès ainsi que la liste des problèmes rencontrés :
 
@@ -181,6 +183,7 @@ Le résultat de la recherche est affiché sous forme de tableau. Par défaut, le
 - Bordereau : permet le téléchargement du manifest.xml
 - AR : permet le téléchargement de l'accusé de réception (ATR)
 
+
 .. image:: images/res_jdoe.png
 
 
@@ -189,11 +192,10 @@ Il y a également la possibilité d'afficher d'autres informations, soit en les 
 Les informations supplémentaires disponibles sont :
 
 - Identifiant de l'entrée
-- Profil
+- Profil d'archivage
 - Date
 - Niveau de service
 - Signature
-- Rapport
 
 
 Consultation du détail
@@ -214,5 +216,6 @@ Puis, les détails de l'opération qui sont présentés sous forme de liste comp
 - le statut présenté sous forme de pictogramme
 
 Un clique sur la flèche située à côté du message permet d'afficher plus de détail concernant cette étape. Un clic sur un signe "+" situé à côté d'un message affiche les détails des données de l'évènement.
+
 
 .. image:: images/detail_jdoe.png

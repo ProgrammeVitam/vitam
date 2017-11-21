@@ -11,5 +11,4 @@
    Entree.rst
    Consultation.rst
    gestion.rst
-   Audit.rst
    Administration.rst
