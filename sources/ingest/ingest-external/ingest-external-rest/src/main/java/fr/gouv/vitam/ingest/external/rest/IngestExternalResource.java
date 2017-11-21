@@ -105,7 +105,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
 
     /**
      * List secured resource end points
-     * 
+     *
      * @return response
      */
     @Path("/")
@@ -124,10 +124,10 @@ public class IngestExternalResource extends ApplicationStatusResource {
     /**
      * upload the file in local
      *
-     * @param contextId the context id of upload
-     * @param action in workflow
+     * @param contextId           the context id of upload
+     * @param action              in workflow
      * @param uploadedInputStream data input stream
-     * @param asyncResponse the asynchronized response
+     * @param asyncResponse       the asynchronized response
      */
     @Path("ingests")
     @POST
@@ -141,7 +141,6 @@ public class IngestExternalResource extends ApplicationStatusResource {
 
         VitamThreadPoolExecutor.getDefaultExecutor()
             .execute(() -> uploadAsync(uploadedInputStream, asyncResponse, tenantId, contextId, action, guid));
-
     }
 
     private void uploadAsync(InputStream uploadedInputStream, AsyncResponse asyncResponse,
@@ -160,8 +159,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
                 ingestExternal.createATRFatalWorkspace(contextId, guid, asyncResponse);
                 return;
             }
-            Response response = ingestExternal.upload(preUploadResume, guid);
-            response.close();
+            ingestExternal.upload(preUploadResume, guid);
         } catch (final Exception exc) {
             LOGGER.error(exc);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
@@ -203,10 +201,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
      * <br/>
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
-     *
      * @param objectId the id of object to download
      * @return The given response with the manifest
-     *
      */
     @GET
     @Path("/ingests/{objectId}/manifests")

@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.core;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -35,21 +33,6 @@ import static org.mockito.Mockito.when;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.format.identification.FormatIdentifier;
@@ -61,12 +44,25 @@ import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotF
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.junit.AsyncResponseJunitTest;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 
 @RunWith(PowerMockRunner.class)
@@ -111,7 +107,8 @@ public class IngestExternalImplTest {
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
-        assertEquals(Status.BAD_REQUEST.getStatusCode(), ingestExternalImpl.upload(model, guid).getStatus());
+        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
     @RunWithCustomExecutor
@@ -126,7 +123,8 @@ public class IngestExternalImplTest {
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
-        assertEquals(Status.BAD_REQUEST.getStatusCode(), ingestExternalImpl.upload(model, guid).getStatus());
+        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        Assert.assertTrue(statusCode.equals(StatusCode.KO));
 
     }
 
@@ -144,7 +142,8 @@ public class IngestExternalImplTest {
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
 
-        assertEquals(Status.BAD_REQUEST.getStatusCode(), ingestExternalImpl.upload(model, guid).getStatus());
+        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
     @RunWithCustomExecutor
@@ -164,7 +163,8 @@ public class IngestExternalImplTest {
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
 
-        assertEquals(Status.BAD_REQUEST.getStatusCode(), ingestExternalImpl.upload(model, guid).getStatus());
+        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
     @RunWithCustomExecutor
@@ -184,7 +184,8 @@ public class IngestExternalImplTest {
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
 
-        assertEquals(Status.BAD_REQUEST.getStatusCode(), ingestExternalImpl.upload(model, guid).getStatus());
+        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
 
@@ -202,7 +203,8 @@ public class IngestExternalImplTest {
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
 
-        assertEquals(Status.BAD_REQUEST.getStatusCode(), ingestExternalImpl.upload(model, guid).getStatus());
+        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
 
@@ -234,7 +236,8 @@ public class IngestExternalImplTest {
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
 
-        assertEquals(Status.BAD_REQUEST.getStatusCode(), ingestExternalImpl.upload(model, guid).getStatus());
+        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
     @RunWithCustomExecutor
@@ -251,7 +254,8 @@ public class IngestExternalImplTest {
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
 
-        assertEquals(Status.BAD_REQUEST.getStatusCode(), ingestExternalImpl.upload(model, guid).getStatus());
+        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
     private List<FormatIdentifierResponse> getFormatIdentifierZipResponse() {
@@ -274,10 +278,8 @@ public class IngestExternalImplTest {
         PreUploadResume model =
             ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, EXECUTION_MODE, guid, responseAsync);
 
-               final Response xmlResponse =
-                   ingestExternalImpl.upload(model, guid);
-                assertNotNull(xmlResponse);
-        //        assertEquals(200, xmlResponse.getStatus());
+        StatusCode statusCode = ingestExternalImpl.upload(model, guid);
+        Assert.assertTrue(statusCode.equals(StatusCode.OK));
     }
 
     private List<FormatIdentifierResponse> getFormatIdentifierTarResponse() {

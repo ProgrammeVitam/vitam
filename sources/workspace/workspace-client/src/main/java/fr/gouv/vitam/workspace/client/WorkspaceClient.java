@@ -26,12 +26,27 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.client;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.Collections;
+import java.util.List;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -42,25 +57,12 @@ import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.cas.container.api.MetadatasStorageObject;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
+import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
 import fr.gouv.vitam.workspace.common.CompressInformation;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.Collections;
-import java.util.List;
 
 
 /**
@@ -405,9 +407,7 @@ public class WorkspaceClient extends DefaultClient {
 
     public void uncompressObject(String containerName, String folderName, String archiveType,
         InputStream inputStreamObject)
-        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageAlreadyExistException, ContentAddressableStorageCompressedFileException,
-        ContentAddressableStorageZipException {
+        throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, folderName, archiveType);
         LOGGER.debug("-- Begin uncompress object in container:" + containerName + "/archiveType:" +
@@ -433,6 +433,16 @@ public class WorkspaceClient extends DefaultClient {
                         LOGGER.warn(ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
                         throw new ContentAddressableStorageAlreadyExistException(
                             ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
+                    } else if (Status.NOT_ACCEPTABLE.getStatusCode() == response.getStatus()) {
+                        LOGGER.error(ErrorMessage.FOLDER_OR_FILE_NAME_NOT_ALLOWED.getMessage());
+                        RequestResponse requestResponse = RequestResponse.parseFromResponse(response);
+                        if (!requestResponse.isOk()) {
+                            VitamError vitamError = (VitamError) requestResponse;
+                            throw new ZipFilesNameNotAllowedException(vitamError.getMessage());
+                        }
+
+                        throw new ZipFilesNameNotAllowedException("File or folder name not allowed");
+
                     } else if (Status.BAD_REQUEST.getStatusCode() == response.getStatus() &&
                         "application/json".equals(response.getHeaderString("Content-Type"))) {
                         LOGGER.warn(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());

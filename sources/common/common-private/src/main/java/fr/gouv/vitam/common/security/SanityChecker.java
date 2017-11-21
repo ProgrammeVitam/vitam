@@ -71,7 +71,7 @@ public class SanityChecker {
     private static final int DEFAULT_LIMIT_JSON_SIZE = 16000000;
     private static final long DEFAULT_LIMIT_FILE_SIZE = 8000000000L;
 
-    private static final String HTTP_PARAMETER_VALUE = "HTTPParameterValue";
+    public static final String HTTP_PARAMETER_VALUE = "HTTPParameterValue";
     private static final String HTTP_PARAMETER_NAME = "HTTPParameterName";
     private static final String HTTP_HEADER_NAME = "HTTPHeaderName";
     private static final String HTTP_HEADER_VALUE = "HTTPHeaderValue";
@@ -108,6 +108,10 @@ public class SanityChecker {
         return new DefaultValidator();
     }
 
+
+    public static boolean isValidFileName(String value) {
+        return !isStringInfected(value, HTTP_PARAMETER_VALUE);
+    }
     /**
      * checkXMLAll : check xml sanity all aspect : size, tag size, invalid tag
      *

@@ -53,7 +53,7 @@ public enum VitamCode {
 
     GLOBAL_EMPTY_QUERY(ServiceName.VITAM, DomainName.ILLEGAL, "00", Status.FORBIDDEN,
         "No search query specified, this is mandatory"),
-    
+
     GLOBAL_INVALID_DSL(ServiceName.VITAM, DomainName.BUSINESS, "01", Status.BAD_REQUEST, "Dsl query is not valid."),
 
     INTERNAL_SECURITY_UNAUTHORIZED(ServiceName.VITAM, DomainName.SECURITY, "00", Status.UNAUTHORIZED,
@@ -96,6 +96,10 @@ public enum VitamCode {
     STORAGE_CONTAINER_NOT_FOUND(ServiceName.STORAGE, DomainName.STORAGE, "13", Status.NOT_FOUND,
         "Container with name %s not " +
             "found in all strategy"),
+    WORKSPACE_NOT_ACCEPTABLE_FILES(ServiceName.WORKSPACE, DomainName.STORAGE, "14", Status.NOT_ACCEPTABLE,
+        "File or folder name not authorized"),
+    WORKSPACE_BAD_REQUEST(ServiceName.WORKSPACE, DomainName.STORAGE, "15", Status.BAD_REQUEST,
+        "Bad request"),
 
     WORKER_FORMAT_IDENTIFIER_NOT_FOUND(ServiceName.WORKER, DomainName.IO, "00", Status.NOT_FOUND, "Format identifier " +
         "%s not found"),
@@ -253,7 +257,7 @@ public enum VitamCode {
     ADMIN_EXTERNAL_UPDATE_INGEST_CONTRACT_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "28",
         Status.BAD_REQUEST,
         "Admin external client error in updateIngestContract method."),
-    
+
     ACCESS_EXTERNAL_UNIT_NOT_FOUND(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "29",
         Status.NOT_FOUND,
         "Access external client error unit not found."),

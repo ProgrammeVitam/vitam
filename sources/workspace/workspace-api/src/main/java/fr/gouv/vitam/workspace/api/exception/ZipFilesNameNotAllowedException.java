@@ -24,34 +24,34 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-
-package fr.gouv.vitam.workspace.common;
-
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.json.JsonHandler;
+package fr.gouv.vitam.workspace.api.exception;
 
 /**
- *
+ * Thrown when there is an not allowed file or folder name in the zip
  */
-public class RequestResponseTest {
-    private static RequestResponse requestResponse = new RequestResponse();
+public class ZipFilesNameNotAllowedException extends ContentAddressableStorageException {
+    private static final long serialVersionUID = -1L;
 
-    @Test
-    public void testGetSetResult() throws Exception {
-        final JsonNode node = JsonHandler.createObjectNode();
-        requestResponse.setResult(node);
-        assertEquals(node, requestResponse.getResult());
+    /**
+     * @param message as String message to associate with the exception
+     */
+    public ZipFilesNameNotAllowedException(String message) {
+        super(message);
     }
 
-    @Test
-    public void testGetSetQuery() throws Exception {
-        final JsonNode node = JsonHandler.createObjectNode();
-        requestResponse.setQuery(node);
-        assertEquals(node, requestResponse.getQuery());
+    /**
+     * @param cause as String to associate with the exception
+     */
+    public ZipFilesNameNotAllowedException(Throwable cause) {
+        super(cause);
     }
+
+    /**
+     * @param message : message to associate with the exception
+     * @param cause : cause to associate with the exception
+     */
+    public ZipFilesNameNotAllowedException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
 }

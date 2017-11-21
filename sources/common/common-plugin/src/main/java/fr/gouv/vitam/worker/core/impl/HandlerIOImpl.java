@@ -41,6 +41,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -68,7 +69,6 @@ import fr.gouv.vitam.processing.common.model.WorkspaceQueue;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -523,9 +523,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     @Override
     public void unzipInputStreamOnWorkspace(String container, final String folderName,
         final String archiveMimeType, final InputStream uploadedInputStream, boolean asyncIO)
-        throws ContentAddressableStorageException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageAlreadyExistException, ContentAddressableStorageCompressedFileException,
-        ContentAddressableStorageServerException {
+        throws ContentAddressableStorageException {
 
         if (container == null) {
             container = this.containerName;

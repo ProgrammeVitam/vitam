@@ -86,7 +86,12 @@ public enum ErrorMessage {
     /**
      * Algo name is a mandatory parameter
      */
-    ALGO_IS_A_MANDATORY_PARAMETER("Digest Algo name is a mandatory parameter");
+    ALGO_IS_A_MANDATORY_PARAMETER("Digest Algo name is a mandatory parameter"),
+
+    /**
+     * When zip contains file or folder with not allowed name example : (test.txt#)
+     */
+    FOLDER_OR_FILE_NAME_NOT_ALLOWED("File or folder not allowed name");
 
     private final String message;
 
