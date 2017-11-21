@@ -67,10 +67,13 @@ export class ArchiveUnitHelper {
   }
 
   getStartDate(unitData: any) {
-    if (unitData.DescriptionLevel !== 'Item') {
+    if (unitData.DescriptionLevel && unitData.DescriptionLevel !== 'Item') {
       return unitData.StartDate;
     }
     let lowestDate = '';
+    if (!unitData.DescriptionLevel && unitData.StartDate) {
+      lowestDate = unitData.StartDate;
+    }
     if (unitData.CreatedDate && (lowestDate === '' || lowestDate > unitData.CreatedDate)) {
       lowestDate = unitData.CreatedDate;
     }
@@ -93,29 +96,32 @@ export class ArchiveUnitHelper {
   }
 
   getEndDate(unitData: any) {
-    if (unitData.DescriptionLevel !== 'Item') {
+    if (unitData.DescriptionLevel && unitData.DescriptionLevel !== 'Item') {
       return unitData.EndDate;
     }
-    let lowestDate = '';
-    if (unitData.CreatedDate && (lowestDate === '' || lowestDate < unitData.CreatedDate)) {
-      lowestDate = unitData.CreatedDate;
+    let highestDate = '';
+    if (!unitData.DescriptionLevel && unitData.EndDate) {
+      highestDate = unitData.EndDate;
     }
-    if (unitData.AcquiredDate && (lowestDate === '' || lowestDate < unitData.AcquiredDate)) {
-      lowestDate = unitData.AcquiredDate;
+    if (unitData.CreatedDate && (highestDate === '' || highestDate < unitData.CreatedDate)) {
+      highestDate = unitData.CreatedDate;
     }
-    if (unitData.SentDate && (lowestDate === '' || lowestDate < unitData.SentDate)) {
-      lowestDate = unitData.SentDate;
+    if (unitData.AcquiredDate && (highestDate === '' || highestDate < unitData.AcquiredDate)) {
+      highestDate = unitData.AcquiredDate;
     }
-    if (unitData.ReceivedDate && (lowestDate === '' || lowestDate < unitData.ReceivedDate)) {
-      lowestDate = unitData.ReceivedDate;
+    if (unitData.SentDate && (highestDate === '' || highestDate < unitData.SentDate)) {
+      highestDate = unitData.SentDate;
     }
-    if (unitData.RegisteredDate && (lowestDate === '' || lowestDate < unitData.RegisteredDate)) {
-      lowestDate = unitData.RegisteredDate;
+    if (unitData.ReceivedDate && (highestDate === '' || highestDate < unitData.ReceivedDate)) {
+      highestDate = unitData.ReceivedDate;
     }
-    if (unitData.TransactedDate && (lowestDate === '' || lowestDate < unitData.TransactedDate)) {
-      lowestDate = unitData.TransactedDate;
+    if (unitData.RegisteredDate && (highestDate === '' || highestDate < unitData.RegisteredDate)) {
+      highestDate = unitData.RegisteredDate;
     }
-    return lowestDate;
+    if (unitData.TransactedDate && (highestDate === '' || highestDate < unitData.TransactedDate)) {
+      highestDate = unitData.TransactedDate;
+    }
+    return highestDate;
   }
 
   isTextArea(field: string): boolean {

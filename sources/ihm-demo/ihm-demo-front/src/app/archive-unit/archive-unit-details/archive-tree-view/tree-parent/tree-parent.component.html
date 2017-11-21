@@ -1,4 +1,4 @@
-<div #panelTarget style="position: absolute; left: -900px; top: -150px"></div>
+<div #panelTarget style="position: fixed; left: -230px; top:0;"></div>
 
 <ng-template [ngIf]="node">
   <div *ngIf="node.data.haveMoreParents" style="position: relative; left: -10px;" (click)="parentSearchPanel.show($event, panelTarget)">
@@ -8,6 +8,13 @@
   </div>
 
   <div *ngFor="let parent of node.parents" class="parent">
+    <ng-template [ngIf]="!parent.expended && parent.roots">
+      <div *ngFor="let root of parent.roots" class="parent">
+        <span class="fa fa-fw fa-bullseye"></span>
+        <a [routerLink]="'/search/archiveUnit/' + root.id"><span>{{root.label}}</span></a>
+      </div>
+    </ng-template>
+
     <ng-template [ngIf]="parent.expended">
       <vitam-tree-parent [node]="parent" [level]="1+level"></vitam-tree-parent>
     </ng-template>
@@ -17,10 +24,7 @@
       <span *ngIf="parent.expended" class="fa fa-fw fa-chevron-down" (click)="switchParent(parent)"></span>
     </ng-template>
     <span *ngIf="parent.leaf" class="fa fa-fw"></span>
-    <span *ngIf="parent.data.type=='HOLDING_UNIT'" class="fa fa-fw fa-tree"></span>
-    <span *ngIf="parent.data.type=='FILING_UNIT'" class="fa fa-fw fa-square-o"></span>
-    <span *ngIf="parent.data.type=='INGEST'" class="fa fa-fw fa-archive"></span>
-    <a [routerLink]="'/search/archiveUnit/' + parent.id"><span><!--{{level}}] -->{{parent.label}}</span></a>
+    <a [routerLink]="'/search/archiveUnit/' + parent.id"><span>{{parent.label}}</span></a>
   </div>
 </ng-template>
 

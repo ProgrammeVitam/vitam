@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 
 /**
  * DslQueryHelper junit test
@@ -90,15 +91,8 @@ public class DslQueryHelperTest {
         "{ $regex : { 'mavar14' : '^start?aa.*' }, $depth : -1 } " + "], " + "$filter : {$mult : false }," +
         "$action : " + updateAction + " }";
 
-    private static final String UNIT_ID = "1";
-    private static List<String> IMMEDIATE_PARENTS = new ArrayList<>();
-
-
     @BeforeClass
     public static void setup() throws Exception {
-        IMMEDIATE_PARENTS.add("P1");
-        IMMEDIATE_PARENTS.add("P2");
-        IMMEDIATE_PARENTS.add("P3");
     }
 
     /**
@@ -311,36 +305,6 @@ public class DslQueryHelperTest {
         final Map<String, JsonNode> rulesMap = new HashMap();
         DslQueryHelper.createUpdateByIdDSLQuery(queryMap, rulesMap);
     }
-
-    /**
-     * Tests CreateSelectUnitTreeDSLQuery method : main scenario
-     *
-     * @throws InvalidParseOperationException
-     * @throws InvalidCreateOperationException
-     */
-    @Test
-    public void testCreateSelectUnitTreeDSLQuery()
-        throws InvalidParseOperationException, InvalidCreateOperationException {
-
-        final JsonNode selectRequest = DslQueryHelper.createSelectUnitTreeDSLQuery(UNIT_ID, IMMEDIATE_PARENTS);
-        assertNotNull(selectRequest);
-
-        final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequest);
-        assertTrue(selectParser instanceof SelectParserMultiple);
-        assertTrue(selectParser.getRequest().getNbQueries() == 1);
-        assertTrue(selectParser.getRequest().getRoots().size() == 0);
-        assertTrue(selectParser.getRequest().getFilter().get("$orderby") == null);
-        assertTrue(
-            selectParser.getRequest().getProjection().get("$fields")
-                .has(UiConstants.ID.getResultCriteria()));
-        assertTrue(
-            selectParser.getRequest().getProjection().get("$fields")
-                .has(UiConstants.TITLE.getResultCriteria()));
-        assertTrue(
-            selectParser.getRequest().getProjection().get("$fields")
-                .has(UiConstants.UNITUPS.getResultCriteria()));
-    }
-
 
     /**
      * Tests testFundsRegisterDSLQuery: method : main scenario

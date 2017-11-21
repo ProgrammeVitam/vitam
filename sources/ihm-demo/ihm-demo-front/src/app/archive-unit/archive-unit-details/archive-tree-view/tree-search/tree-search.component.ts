@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import {Component, OnInit, Input, OnChanges} from '@angular/core';
 import {FormGroup, FormControl} from "@angular/forms";
 import {Preresult} from "../../../../common/search/preresult";
 import {ArchiveUnitService} from "../../../archive-unit.service";
@@ -13,7 +13,7 @@ import {DateService} from "../../../../common/utils/date.service";
   templateUrl: './tree-search.component.html',
   styleUrls: ['./tree-search.component.css']
 })
-export class TreeSearchComponent implements OnInit {
+export class TreeSearchComponent implements OnInit, OnChanges {
   @Input() node: TreeNode;
   @Input() searchParents: boolean;
   @Input() label: string;
@@ -30,10 +30,10 @@ export class TreeSearchComponent implements OnInit {
   nbRows = 5;
 
   public columns = [
-    ColumnDefinition.makeStaticColumn('#id', 'Identifiant', undefined, () => ({'width': '325px', 'overflow-wrap': 'break-word'})),
-    ColumnDefinition.makeStaticColumn('Title', 'Titre', undefined, () => ({'width': '200px', 'overflow-wrap': 'break-word'})),
-    ColumnDefinition.makeStaticColumn('_unitType', 'Type', this.archiveUnitHelper.transformType, () => ({'width': '100px'})),
-    ColumnDefinition.makeStaticColumn('#originating_agency', 'Service Producteur', undefined, () => ({'width': '200px', 'overflow-wrap': 'break-word'})),
+    ColumnDefinition.makeStaticColumn('#id', 'Identifiant', undefined, () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
+    ColumnDefinition.makeStaticColumn('Title', 'Intitulé', undefined, () => ({'width': '200px', 'overflow-wrap': 'break-word'})),
+    ColumnDefinition.makeStaticColumn('#unitType', 'Type', this.archiveUnitHelper.transformType, () => ({'width': '100px'})),
+    ColumnDefinition.makeStaticColumn('#originating_agency', 'Service producteur', undefined, () => ({'width': '200px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeSpecialValueColumn('Date de début', this.archiveUnitHelper.getStartDate, DateService.handleDate, () => ({'width': '100px'})),
     ColumnDefinition.makeSpecialValueColumn('Date de fin', this.archiveUnitHelper.getEndDate, DateService.handleDate, () => ({'width': '100px'})),
   ];
@@ -52,26 +52,36 @@ export class TreeSearchComponent implements OnInit {
 
   constructor(public archiveUnitService: ArchiveUnitService, public archiveUnitHelper: ArchiveUnitHelper) { }
 
+  ngOnChanges(changes) {
+    if (changes.node) {
+      this.init();
+    }
+  }
+
   ngOnInit() {
+    this.init();
+  }
+
+  init() {
     this.searchForm = new FormGroup({
-      titleAndDescription: new FormControl(''),
+      Title: new FormControl(''),
       startDate: new FormControl(''),
       endDate: new FormControl('')
     });
-  }
+    this.inList = {};
+    this.onSubmit();
+  };
 
   public onSubmit() {
 
     let request: any = {};
-    if (this.searchForm.valid) {
+    if (this.searchForm && this.searchForm.valid && this.node) {
       Object.keys(this.searchForm.controls).forEach(key => {
         request[key] = this.searchForm.controls[key].value;
       });
     } else {
+      return;
     }
-
-    let preResult = new Preresult();
-    preResult.searchProcessSkip = false;
 
     this.updateCriteria(request);
 
@@ -80,10 +90,11 @@ export class TreeSearchComponent implements OnInit {
           this.hits = response.$hits;
           this.data = response.$results;
           this.firstPage = 0;
+          this.firstItem = 0;
           this.lastPage = this.firstPage + this.hits.limit / this.nbRows;
           this.displayedItems = this.data.slice(this.firstItem, this.firstItem + this.nbRows);
         },
-        (error) => console.log('Error: ', error)
+        (error) => console.error('Error: ', error)
     );
 
     let list = [];
@@ -93,7 +104,7 @@ export class TreeSearchComponent implements OnInit {
       list = this.node.children;
     }
     for (let item of list) {
-      this.inList[item.id] = item;
+      this.inList[item['#id']] = item;
     }
 
   }
@@ -101,6 +112,7 @@ export class TreeSearchComponent implements OnInit {
   clearFields() {
     this.searchForm.reset();
     this.searchForm.enable();
+    this.onSubmit();
   }
 
   updateCriteria(request) {
@@ -133,15 +145,19 @@ export class TreeSearchComponent implements OnInit {
       this.criteriaSearch.UNITUPS = this.node.id;
     }
 
-    if(request.titleAndDescription) {
-      this.criteriaSearch.titleAndDescription = request.titleAndDescription;
+    if(request.Title) {
+      this.criteriaSearch.Title = request.Title;
     }
   }
 
   switchSelected(event) {
-      let data: NodeData = new NodeData(event.data['_unitType'], event.data['#unitups']);
-      let node = new TreeNode(event.data.Title, event.data.id, data);
+    if (this.isInList(event.data)) {
+      delete this.inList[event.data['#id']];
+    } else {
+      let data: NodeData = new NodeData(event.data['#unitType'], event.data['#unitups']);
+      let node = new TreeNode(event.data.Title, event.data['#id'], data);
       this.inList[event.data['#id']] = node;
+    }
   }
 
   isInList(data) {
@@ -149,29 +165,19 @@ export class TreeSearchComponent implements OnInit {
   }
 
   updateSelection() {
-    let list = [];
     if (this.searchParents) {
-      list = this.node.parents;
+      this.node.parents = [];
     } else {
-      list = this.node.children;
+      this.node.children = [];
     }
 
     for(let prop in this.inList) {
       if (this.inList.hasOwnProperty(prop)) {
-        var item = this.inList[prop];
-        let isInChildren = false;
-        for (let node of list) {
-          if (node.id === item.id) {
-            isInChildren = true;
-            break;
-          }
-        }
-        if (!isInChildren) {
-          if (this.searchParents) {
-            this.node.parents.push(item);
-          } else {
-            this.node.children.push(item);
-          }
+        let item = this.inList[prop];
+        if (this.searchParents) {
+          this.node.parents.push(item);
+        } else {
+          this.node.children.push(item);
         }
       }
     }
@@ -191,7 +197,7 @@ export class TreeSearchComponent implements OnInit {
             this.lastPage = this.firstPage + this.hits.limit / this.nbRows;
             this.displayedItems = this.data.slice(this.firstItem, this.firstItem + this.nbRows);
           },
-          (error) => console.log('Error: ', error)
+          (error) => console.error('Error: ', error)
       );
 
     } else {

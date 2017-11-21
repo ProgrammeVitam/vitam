@@ -611,56 +611,6 @@ public final class DslQueryHelper {
         return update.getFinalUpdateById();
     }
 
-    /**
-     * Creates Select Query to retrieve all parents relative to the unit specified by its id
-     *
-     * @param unitId the unit id
-     * @param immediateParents immediate parents (_up field value)
-     * @return DSL Select Query
-     * @throws InvalidParseOperationException if error when parse json data for creating query
-     * @throws InvalidCreateOperationException if exception occurred when create query
-     */
-    public static JsonNode createSelectUnitTreeDSLQuery(String unitId, List<String> immediateParents)
-        throws InvalidParseOperationException, InvalidCreateOperationException {
-        final SelectMultiQuery selectParentsDetails = new SelectMultiQuery();
-
-        // Add projections
-        // Title
-        selectParentsDetails.addUsedProjection(UiConstants.TITLE.getResultCriteria());
-
-        // id
-        selectParentsDetails.addUsedProjection(UiConstants.ID.getResultCriteria());
-
-        // _up
-        selectParentsDetails.addUsedProjection(UiConstants.UNITUPS.getResultCriteria());
-
-        // Add query
-
-        // Initialize immediateParents if it is null
-        if (immediateParents == null) {
-            immediateParents = new ArrayList<>();
-        }
-
-        immediateParents.add(unitId);
-        final String[] allParentsArray = immediateParents.stream().toArray(size -> new String[size]);
-
-        final BooleanQuery inParentsIdListQuery = and();
-        inParentsIdListQuery.add(in(UiConstants.ID.getResultCriteria(), allParentsArray));
-        
-        if (inParentsIdListQuery.isReady()) {
-            
-            boolean noRoots = selectParentsDetails.getRoots() == null || selectParentsDetails.getRoots().isEmpty();
-            // do no set depth when no root and first query
-            if (!(noRoots && selectParentsDetails.getNbQueries() == 0)) {
-                inParentsIdListQuery.setDepthLimit(DEPTH_LIMIT);
-            }
-            selectParentsDetails.addQueries(inParentsIdListQuery);
-        }
-
-        return selectParentsDetails.getFinalSelect();
-    }
-
-
     private static BooleanQuery createSearchUntisQueryByDate(String startDate, String endDate)
         throws InvalidCreateOperationException {
 

@@ -247,29 +247,6 @@ public class UserInterfaceTransactionManagerTest {
     }
 
     @Test
-    public void testBuildUnitTree() throws VitamException {
-        final JsonNode unitTree = UserInterfaceTransactionManager.buildUnitTree("ID029", allParents);
-        assertTrue(unitTree.isArray());
-        assertTrue(unitTree.size() == 4);
-        assertTrue(unitTree.get(0).isArray());
-
-        final ArrayNode onePath = (ArrayNode) unitTree.get(0);
-        assertTrue(onePath.size() == 3);
-
-        final JsonNode oneImmediateParent = onePath.get(0);
-        assertTrue(oneImmediateParent.get(UiConstants.ID.getResultCriteria()).asText().equals("ID028") ||
-            oneImmediateParent.get(UiConstants.ID.getResultCriteria()).asText().equals("ID030"));
-
-        final JsonNode nextParent = onePath.get(1);
-        assertTrue(nextParent.get(UiConstants.ID.getResultCriteria()).asText().equals("ID027"));
-
-        final JsonNode oneRoot = onePath.get(2);
-        assertTrue(oneRoot.get(UiConstants.ID.getResultCriteria()).asText().equals("ID025") ||
-            oneRoot.get(UiConstants.ID.getResultCriteria()).asText().equals("ID026"));
-    }
-
-
-    @Test
     public void testExtractInformationFromTimestamp() throws Exception {
         final InputStream tokenFile =
             PropertiesUtils.getResourceAsStream("token.tsp");

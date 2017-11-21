@@ -139,7 +139,11 @@ public class WebApplicationResourceTest {
     private static final String UPDATE = "{title: \"myarchive\"}";
     private static final String DEFAULT_HOST = "localhost";
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
-    private static final String ALL_PARENTS = "[\"P1\", \"P2\", \"P3\"]";
+    private static final String TREE_QUERY = "{\"$query\": [{"
+        + "\"$and\": [{"
+        + "\"$in\": {\"#id\": [\"P1\",\"P2\",\"P3\"]}},{"
+        + "\"$eq\": {\"#max\": 1}"
+        + "}]}], \"$projection\": {}}";
     private static final String FAKE_STRING_RETURN = "{Fake: \"String\"}";
     private static final JsonNode FAKE_JSONNODE_RETURN = JsonHandler.createObjectNode();
     private static final String FAKE_UNIT_LF_ID = "1";
@@ -1013,48 +1017,16 @@ public class WebApplicationResourceTest {
                 "/archiveunit/objects/download/idOG?usage=BinaryMaster_1&version=0&filename=Vitam-Sensibilisation-API-V1.0.odp");
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     public void testUnitTreeOk() throws InvalidCreateOperationException, VitamException {
-
-        PowerMockito.when(
-            DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(
-                JsonHandler
-                    .getFromString(FAKE_STRING_RETURN));
         PowerMockito.when(
             UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject(), anyString()))
             .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN));
-        PowerMockito.when(
-            UserInterfaceTransactionManager.buildUnitTree(anyString(), anyObject())).thenReturn(FAKE_JSONNODE_RETURN);
 
-        given().contentType(ContentType.JSON).body(ALL_PARENTS)
+        given().contentType(ContentType.JSON).body(TREE_QUERY)
             .expect().statusCode(Status.OK.getStatusCode()).when()
-            .post("/archiveunit/tree/1");
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    public void testUnitTreeWithBadRequestExceptionWhenInvalidParseOperationException()
-        throws InvalidParseOperationException, InvalidCreateOperationException {
-        PowerMockito.when(
-            DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject()))
-            .thenThrow(InvalidParseOperationException.class);
-
-        given().contentType(ContentType.JSON).body(ALL_PARENTS)
-            .expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
-            .post("/archiveunit/tree/1");
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    public void testUnitTreeWithBadRequestExceptionWhenInvalidCreateOperationException()
-        throws InvalidParseOperationException, InvalidCreateOperationException {
-        PowerMockito.when(
-            DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject()))
-            .thenThrow(InvalidCreateOperationException.class);
-
-        given().contentType(ContentType.JSON).body(ALL_PARENTS)
-            .expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
-            .post("/archiveunit/tree/1");
+            .post("/archiveunit/tree");
     }
 
     @SuppressWarnings("unchecked")
@@ -1062,16 +1034,12 @@ public class WebApplicationResourceTest {
     public void testUnitTreeWithAccessExternalClientServerException()
         throws Exception {
         PowerMockito.when(
-            DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(
-                JsonHandler
-                    .getFromString(FAKE_STRING_RETURN));
-        PowerMockito.when(
             UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject(), anyString()))
             .thenThrow(AccessExternalClientServerException.class);
 
-        given().contentType(ContentType.JSON).body(ALL_PARENTS)
+        given().contentType(ContentType.JSON).body(TREE_QUERY)
             .expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
-            .post("/archiveunit/tree/1");
+            .post("/archiveunit/tree");
     }
 
     @SuppressWarnings("unchecked")
@@ -1079,34 +1047,11 @@ public class WebApplicationResourceTest {
     public void testUnitTreeWithAccessExternalClientNotFoundException()
         throws Exception {
         PowerMockito.when(
-            DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(
-                JsonHandler
-                    .getFromString(FAKE_STRING_RETURN));
-
-        PowerMockito.when(
             UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject(), anyString()))
             .thenThrow(AccessExternalClientNotFoundException.class);
 
-        given().contentType(ContentType.JSON).body(ALL_PARENTS)
+        given().contentType(ContentType.JSON).body(TREE_QUERY)
             .expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
-            .post("/archiveunit/tree/1");
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    public void testUnitTreeWithUnknownException()
-        throws InvalidCreateOperationException, VitamException {
-        PowerMockito.when(
-            DslQueryHelper.createSelectUnitTreeDSLQuery(anyString(), anyObject())).thenReturn(
-                JsonHandler.getFromString(FAKE_STRING_RETURN));
-        PowerMockito.when(
-            UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject(), anyString()))
-            .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN));
-        PowerMockito.when(
-            UserInterfaceTransactionManager.buildUnitTree(anyString(), anyObject())).thenThrow(VitamException.class);
-
-        given().contentType(ContentType.JSON).body(ALL_PARENTS)
-            .expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .post("/archiveunit/tree/1");
     }
 

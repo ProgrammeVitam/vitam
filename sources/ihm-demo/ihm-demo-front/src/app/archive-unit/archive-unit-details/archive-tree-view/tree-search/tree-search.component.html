@@ -1,10 +1,9 @@
 <p-panel header="{{label}}">
-
   <form class="w-100" [formGroup]="searchForm" (ngSubmit)="onSubmit()">
     <div class="ui-g">
       <div class="ui-g-4">
-        <label style="font-weigth: bold" class="ui-g-12">Titre et Description</label>
-        <input pInputText class="ui-g-12" formControlName="titleAndDescription" name="titleAndDescription">
+        <label style="font-weigth: bold" class="ui-g-12">Intitulé</label>
+        <input pInputText class="ui-g-12" formControlName="Title" name="Title">
       </div>
       <div class="ui-g-4">
         <label style="font-weigth: bold" class="ui-g-12">Date de début</label>
@@ -24,16 +23,15 @@
       </div>
     </div>
   </form>
-
 </p-panel>
 
 <p-panel header="Résultats ({{hits.total}})" *ngIf="data && hits">
-
+  <span>Vous pouvez sélectionner et déselectionner des archives pour les afficher dans l'arboresence</span>
   <p-paginator [rows]="nbRows" (onPageChange)="paginate($event)" [totalRecords]="hits.total"
                [(first)]="firstItem"></p-paginator>
 
-  <p-dataTable [value]="displayedItems" (onRowClick)="switchSelected($event)" [emptyMessage]="'Aucun Résultat'">
-    <p-column [header]="'Selectioné'">
+  <p-dataTable [value]="displayedItems" (onRowClick)="switchSelected($event)" [emptyMessage]="'Aucun Résultat'" >
+    <p-column [header]="'Selectionné'" [style]="{'width': '100px', 'text-align': 'center'}">
       <ng-template let-item="rowData" pTemplate="body">
         <span *ngIf="isInList(item)" class="fa fa-check"></span>
         <span *ngIf="!isInList(item)" class="fa fa-fw"></span>
@@ -51,8 +49,7 @@
   </p-dataTable>
   <div class="ui-g">
     <div class="ui-g-12">
-      <button pButton icon="fa-check" label="Valider" (click)="updateSelection()"></button>
+      <button pButton label="Valider" (click)="updateSelection()"></button>
     </div>
   </div>
-
 </p-panel>

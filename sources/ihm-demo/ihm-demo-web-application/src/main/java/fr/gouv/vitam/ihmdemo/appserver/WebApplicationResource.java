@@ -1472,48 +1472,22 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @return all paths relative to a unit
      */
     @POST
-    @Path("/archiveunit/tree/{id}")
+    @Path("/archiveunit/tree")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("archiveunit:tree:read")
-    public Response getUnitTree(@Context HttpHeaders headers, @PathParam("id") String unitId, String allParents) {
+    public Response getUnitTree(@Context HttpHeaders headers, JsonNode dslQuery) {
 
-        ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, unitId);
         try {
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(allParents));
-            if (allParents == null || allParents.isEmpty()) {
-                return Response.status(Status.OK).entity(JsonHandler.createArrayNode()).build();
-            }
+            SanityChecker.checkJsonAll(dslQuery);
 
-            if (!JsonHandler.getFromString(allParents).isArray()) {
-                throw new VitamException(INVALID_ALL_PARENTS_TYPE_ERROR_MSG);
-            }
-
-            // 1- Build DSL Query
-            final ArrayNode allParentsArray = (ArrayNode) JsonHandler.getFromString(allParents);
-            final List<String> allParentsList = StreamSupport.stream(allParentsArray.spliterator(), false)
-                .map(p -> new String(p.asText())).collect(Collectors.toList());
-            final JsonNode preparedDslQuery = DslQueryHelper.createSelectUnitTreeDSLQuery(unitId, allParentsList);
-
-            // 2- Execute Select Query
-            final RequestResponse parentsDetails = UserInterfaceTransactionManager.searchUnits(preparedDslQuery,
+            final RequestResponse parentsDetails = UserInterfaceTransactionManager.searchUnits(dslQuery,
                 getTenantId(headers), getAccessContractId(headers), getAppSessionId());
 
-            // 3- Build Unit tree (all paths)
-            final JsonNode unitTree = UserInterfaceTransactionManager.buildUnitTree(unitId,
-                parentsDetails.toJsonNode().get(UiConstants.RESULT.getResultCriteria()));
-
-            return Response.status(Status.OK).entity(unitTree).build();
-        } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
+            return Response.status(Status.OK).entity(parentsDetails).build();
+        } catch (InvalidParseOperationException e) {
             LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, e);
             return Response.status(Status.BAD_REQUEST).build();
-        } catch (final AccessExternalClientServerException e) {
-            LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (final AccessExternalClientNotFoundException e) {
-            LOGGER.error(ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG, e);
-            return Response.status(Status.NOT_FOUND).build();
         } catch (final AccessUnauthorizedException e) {
             LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);
             return Response.status(Status.UNAUTHORIZED).build();

@@ -1,4 +1,4 @@
-import {Component, OnInit, Input, EventEmitter} from '@angular/core';
+import {Component, OnInit, Input} from '@angular/core';
 import {TreeNode} from '../tree-node';
 import {ArchiveUnitService} from "../../../archive-unit.service";
 import {ArchiveTreeViewComponent} from "../archive-tree-view.component";

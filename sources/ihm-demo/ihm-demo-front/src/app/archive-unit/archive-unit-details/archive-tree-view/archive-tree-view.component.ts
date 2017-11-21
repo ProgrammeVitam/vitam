@@ -37,10 +37,6 @@ export class ArchiveTreeViewComponent implements OnInit, OnChanges {
     if (node.parents.length > 0) {
       return;
     }
-    if (node.data.unitups.length === 0) {
-      node.leaf = true;
-      return;
-    }
 
     let unitups = [];
 
@@ -57,27 +53,69 @@ export class ArchiveTreeViewComponent implements OnInit, OnChanges {
       projection_title: 'Title',
       projection_id: '#id',
       projection_unitups: '#unitups',
+      projection_allunitups: '#allunitups',
       projection_unitType: '#unittype'
     };
 
     archiveUnitService.getResults(criteria).subscribe(
-        (response) => {
+      (response) => {
 
-          let parents = [];
-          for (let result of response.$results) {
-            let data: NodeData = new NodeData(result._unitType, result['#unitups']);
-            let parent = new TreeNode(result.Title, result['#id'], data);
-            parents.push(parent);
+        let parents = [];
+        for (let result of response.$results) {
+          let data: NodeData = new NodeData(result._unitType, result['#unitups']);
+          data.allunitups = result['#allunitups'];
+          let parent = new TreeNode(result.Title, result['#id'], data);
+
+          if (result['#allunitups'].length === 0) {
+            parent.leaf = true;
           }
 
-          node.parents = parents;
+          ArchiveTreeViewComponent.getRootNode(archiveUnitService, parent);
+          parents.push(parent);
         }
+
+        node.parents = parents;
+      }
+    );
+  }
+
+  static getRootNode(archiveUnitService, node: TreeNode) {
+    let query = {
+      "$query": [
+        {
+          "$and": [
+            {
+              "$in": {
+                "#id": node.data.allunitups
+              }
+            },
+            {
+              "$eq": {
+                "#max": 1
+              }
+            }
+          ]
+        }
+      ],
+      "$projection": {}
+    };
+    archiveUnitService.getByQuery(query).subscribe(
+      (response) => {
+        let parents = [];
+        for (let result of response.$results) {
+          let data: NodeData = new NodeData(result._unitType, result['#unitups']);
+          let parent = new TreeNode(result.Title, result['#id'], data);
+          parents.push(parent);
+        }
+
+        node.roots = parents;
+      }
     );
   }
 
   static getChildren(archiveUnitService, node) {
 
-    if (node.children.length > 0) {
+    if (node.leaf || node.children.length > 0) {
       return;
     }
 
@@ -87,30 +125,37 @@ export class ArchiveTreeViewComponent implements OnInit, OnChanges {
       projection_title: 'Title',
       projection_id: '#id',
       projection_unitups: '#unitups',
-      projection_unitType: '#unittype'
+      projection_unitType: '#unittype',
+      projection_nbunits: '#nbunits'
     };
     archiveUnitService.getResults(criteria).subscribe(
-        (response) => {
+      (response) => {
 
-          let children = [];
-          let number = 0;
-          if (response.$results.length === 0) {
-            node.leaf = true;
-          }
-
-          for (let result of response.$results) {
-            if (number == LIMIT) {
-              node.data.haveMoreChildren = true;
-              break;
-            }
-            let data: NodeData = new NodeData(result['_unitType'], result['#unitups']);
-            let child = new TreeNode(result.Title, result['#id'], data);
-            children.push(child);
-            number++;
-          }
-
-          node.children = children;
+        let children = [];
+        let number = 0;
+        if (response.$results.length === 0) {
+          node.leaf = true;
         }
+
+        for (let result of response.$results) {
+          if (number == LIMIT) {
+            node.data.haveMoreChildren = true;
+            break;
+          }
+          let data: NodeData = new NodeData(result['_unitType'], result['#unitups']);
+          data.nbUnits = result['#nbunits'];
+          let child = new TreeNode(result.Title, result['#id'], data);
+
+          if (result['#nbunits'] === 0) {
+            child.leaf = true;
+          }
+
+          children.push(child);
+          number++;
+        }
+
+        node.children = children;
+      }
     );
   }
 
