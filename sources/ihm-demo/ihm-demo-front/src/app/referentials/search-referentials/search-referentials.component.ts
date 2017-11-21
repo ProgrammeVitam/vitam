@@ -352,7 +352,7 @@ export class SearchReferentialsComponent extends PageComponent {
   }
 
   static handleStatus(status): string {
-    return (status === 'ACTIVE' || status === true) ? 'Actif' : 'Inactif';
+    return (status === 'ACTIVE' || status === 'true') ? 'Actif' : 'Inactif';
   }
 
   static appendUnitToRuleDuration(item): string {
