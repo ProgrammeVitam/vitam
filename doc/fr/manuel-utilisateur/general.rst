@@ -11,6 +11,7 @@ Le menu est situé en haut des pages. Il est présent sur toutes les pages et es
 - Administration
 - Gestion des archives
 
+
 .. image:: images/menu_general.png
 
 Chaque section comprend plusieurs sous-menus permettant de naviguer sur les différentes pages.
@@ -22,7 +23,7 @@ Le fil d'Ariane est un élément qui permet de visualiser le chemin d'accès à 
 
 La racine est toujours inactive (sans lien), elle correspond au nom du menu où est située la page.
 
-Suite à la racine, les pages parentes sont listées et sont séparées par un "/" et, contrairement à la racine, elles sont toutes cliquables.
+Suite à la racine, les pages parentes sont listées et sont séparées par un chevron et, contrairement à la racine, elles sont toutes cliquables.
 Un clic sur un lien redirige sur la page idoine.
 
 .. image:: images/ariane.png
@@ -32,17 +33,17 @@ Formulaires de Recherche
 
 Deux types de formulaire sont utilisés dans la solution logicielle Vitam :
 
-- Les formulaires de recherche simple
-- Les formulaires de recherche avancée
+- Des formulaires de recherche globale
+- Des formulaires de recherche avancée
 
-Formulaires de recherche simple
+Formulaire de recherche globale
 -------------------------------
 
-Les formulaires de recherche simple sont constitués d'un champ et d'un bouton "Rechercher". 
+Les formulaires de recherche globale sont constitués d'un seul champ et d'un bouton "Rechercher" et d'un bouton "Effacer". En cliquant sur le bouton "Effacer", toutes les valeurs saisies dans les champs du formulaire sont effacées.
  
 .. image:: images/au_rechchs.png
 
-Formulaires de recherche avancée
+Formulaire de recherche avancée
 --------------------------------
 
 Les formulaires de recherche avancée sont composés d'au moins deux champs, d'un bouton "Rechercher" et d'un bouton "Effacer". En cliquant sur le bouton "Effacer", toutes les valeurs saisies dans les champs du formulaire sont effacées.
@@ -65,7 +66,7 @@ Visualisation des listes des écrans de détail
 
 Trois types d'écran de détail comportant des listes sont disponibles :
 
-- Détail d'une opération d'entrée
+- Détail des opérations
 - Détail d'un journal du cycle de vie de l'unité archivistique
 - Détail d'un journal du cycle de vie du groupe d'objets
 
@@ -99,18 +100,14 @@ Les titres des pages sont visibles sur les onglets des navigateurs Internet. Ils
 - Recherche Référentiel des formats
 - Recherche Référentiel des règles de gestion
 
+
 .. image:: images/titre_IHM_demo.png
 
-Sur IHM recette, le titre des pages est celui du dernier noeud du fil d'Ariane, précédé du mot "Recette -". Par exemple :
-
-- Recette - Test SOAP-UI
-- Recette - Administration des collections
-
-.. image:: images/titre_IHM_recette.png
 
 Gestion des erreurs techniques
 ------------------------------
 
 En cas d'erreur technique non gérée par le système, une fenêtre pop-up avertit l'utilisateur qu'un problème a eu lieu au travers d'un message généraliste, et lui indique des informations à transmettre à son administrateur technique.
+
 
 .. image:: images/error_popup.png

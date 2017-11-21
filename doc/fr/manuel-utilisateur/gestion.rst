@@ -7,9 +7,9 @@ Cette partie décrit les fonctionnalités de gestion et modification des archive
 Audit
 =====
 
-La fonctionnalité d'audit permet de contrôler que les fichiers détenus par un service producteur ou présents sur un tenant sont toujours existants et intèges.
+La fonctionnalité d'audit permet de contrôler que les fichiers détenus par un service producteur ou présents sur un tenant sont toujours existants et intègres.
 
-Pour consulter la recherche d'une unité archivistique, l'utilisateur survole le menu "Gestion des archives existantes", puis sélectionne "Audit".
+Pour réaliser des opérations d'audit, l'utilisateur survole le menu "Gestion des archives existantes", puis sélectionne "Audit".
 
 .. image:: images/menu_audit.png
 
