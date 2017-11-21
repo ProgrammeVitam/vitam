@@ -415,11 +415,6 @@ public class MongoDbAccessAdminImplTest {
         final MongoCollection<Document> collection =
             client.getDatabase(DATABASE_NAME).getCollection(ACCESSION_REGISTER_DETAIL_COLLECTION);
         assertEquals(1, collection.count());
-        final Map<String, Object> updateMap = new HashMap<>();
-        updateMap.put(AccessionRegisterSummary.TOTAL_OBJECTGROUPS, 1);
-        mongoAccess.updateAccessionRegisterByMap(updateMap, jsonNode,
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
-            UPDATEACTION.SET);
         mongoAccess.deleteCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
         assertEquals(0, collection.count());
         client.close();

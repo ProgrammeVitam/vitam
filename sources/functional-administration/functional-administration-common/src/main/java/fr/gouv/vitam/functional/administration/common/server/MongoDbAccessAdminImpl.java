@@ -225,27 +225,6 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
     }
 
     @Override
-    public void updateAccessionRegisterByMap(Map<String, Object> map, JsonNode objNode,
-        FunctionalAdminCollections collection, UPDATEACTION operator)
-        throws ReferentialException {
-        final BasicDBObject incQuery = new BasicDBObject();
-        final BasicDBObject updateFields = new BasicDBObject();
-        for (final Entry<String, Object> entry : map.entrySet()) {
-            updateFields.append(entry.getKey(), entry.getValue());
-        }
-        incQuery.append(operator.exactToken(), updateFields);
-        final Bson query = and(
-            eq(AccessionRegisterSummary.ORIGINATING_AGENCY,
-                objNode.get(AccessionRegisterSummary.ORIGINATING_AGENCY).textValue()),
-            eq(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter()));
-
-        final UpdateResult result = collection.getCollection().updateOne(query, incQuery);
-        if (result.getModifiedCount() == 0 && result.getMatchedCount() == 0) {
-            throw new ReferentialException("Document is not updated");
-        }
-    }
-
-    @Override
     public DbRequestResult insertDocument(JsonNode json, FunctionalAdminCollections collection)
         throws ReferentialException {
         return insertDocuments(JsonHandler.createArrayNode().add(json), collection);

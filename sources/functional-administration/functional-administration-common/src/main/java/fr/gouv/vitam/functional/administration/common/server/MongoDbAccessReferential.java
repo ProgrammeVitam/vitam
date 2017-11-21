@@ -112,17 +112,6 @@ public interface MongoDbAccessReferential {
         throws ReferentialException;
 
     /**
-     * @param map Map of key-value
-     * @param object
-     * @param collection collection of Mongo for update
-     * @param action update actions
-     * @throws ReferentialException when error occurs
-     */
-    void updateAccessionRegisterByMap(Map<String, Object> map, JsonNode object, FunctionalAdminCollections collection,
-        UPDATEACTION action)
-        throws ReferentialException;
-
-    /**
      * Update with queryDsl
      *
      * @param update JsonNode to update
