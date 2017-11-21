@@ -3,7 +3,7 @@
   <parent>
     <groupId>fr.gouv.vitam</groupId>
     <artifactId>functional-administration-rules</artifactId>
-    <version>0.27.0-SNAPSHOT</version>
+    <version>0.26.1</version>
   </parent>
   <artifactId>functional-administration-rules-api</artifactId>
 </project>
