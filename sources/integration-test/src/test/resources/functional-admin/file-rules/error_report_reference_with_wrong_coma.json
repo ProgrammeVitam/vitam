@@ -7,7 +7,7 @@
 		"line 3": [
 			{
 				"Code": "STP_IMPORT_RULES_MISSING_INFORMATION.KO",
-				"Message": "Au moins une valeur obligatoire est manquante. Valeurs obligatoires : RuleID, RuleType, RuleValue, RuleDuration, RuleMeasurement  ",
+				"Message": "Au moins une valeur obligatoire est manquante. Valeurs obligatoires : RuleID, RuleType, RuleValue, RuleDuration, RuleMeasurement",
 				"Information additionnelle": "RuleType"
 			},
 			{
