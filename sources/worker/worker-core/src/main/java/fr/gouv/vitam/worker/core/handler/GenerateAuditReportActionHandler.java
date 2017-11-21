@@ -86,8 +86,6 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
 
     private static final String EVENT = "events";
 
-    private static final String EV_TYPE_PROC = "evTypeProc";
-
     private static final String AUDIT_KO = "auditKO";
 
     private static final String AUDIT_WARNING = "auditWarning";
@@ -152,7 +150,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
             if (auditType.equals(BuilderToken.PROJECTIONARGS.TENANT.exactToken())) {
                 auditTypeString = "tenant";
                 originatingAgency = listOriginatingAgency(null);
-            } else if (auditType.equals(BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCY.exactToken())){
+            } else if (auditType.equals(BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCY.exactToken())) {
                 listOriginatingAgency(objectId);
                 originatingAgency.add(objectId);
                 auditTypeString = "originatingagency";
@@ -208,11 +206,11 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
                 report.put(STATUS, event.get(LogbookMongoDbName.outcome.getDbname()).textValue());
                 report.put(OUT_MESSAGE, event.get(LogbookMongoDbName.outcomeDetailMessage.getDbname()).textValue());
                 break;
-            } else if (event.get(LogbookMongoDbName.outcome.getDbname()).textValue().equals("OK")
-                && event.get(LogbookMongoDbName.outcomeDetail.getDbname()).textValue().contains("AUDIT_CHECK_OBJECT")) {
-                    
-                    report.put(STATUS, event.get(LogbookMongoDbName.outcome.getDbname()).textValue());
-                    report.put(OUT_MESSAGE, event.get(LogbookMongoDbName.outcomeDetailMessage.getDbname()).textValue());
+            } else if (event.get(LogbookMongoDbName.outcome.getDbname()).textValue().equals("OK") &&
+                event.get(LogbookMongoDbName.outcomeDetail.getDbname()).textValue().contains("AUDIT_CHECK_OBJECT")) {
+
+                report.put(STATUS, event.get(LogbookMongoDbName.outcome.getDbname()).textValue());
+                report.put(OUT_MESSAGE, event.get(LogbookMongoDbName.outcomeDetailMessage.getDbname()).textValue());
             }
         }
 
@@ -383,7 +381,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
             Optional<JsonNode> opt = StreamSupport.stream(serviceProducteurWarning.spliterator(), false)
                 .filter(s -> s.textValue().equals(sp.getKey())).findFirst();
             opt.ifPresent(jsonNode -> result.set(jsonNode.textValue(),
-                    JsonHandler.createObjectNode().put("OK", 0).put("KO", 0).put("WARNING", 1)));         
+                JsonHandler.createObjectNode().put("OK", 0).put("KO", 0).put("WARNING", 1)));
         }
         return JsonHandler.unprettyPrint(result);
     }

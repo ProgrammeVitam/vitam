@@ -27,10 +27,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalClientRest.class);
 
-    private static final String INVALID_PARSE_OPERATION = "Invalid Parse Operation";
     private static final String UNITS = "/units/";
-    private static final String OBJECTS = "/objects/";
-    private static final String BLANK_DSL = "select DSL is blank";
     private static final String BLANK_UNIT_ID = "unit identifier should be filled";
     private static final String BLANK_OBJECT_ID = "object identifier should be filled";
     private static final String BLANK_OBJECT_GROUP_ID = "object identifier should be filled";

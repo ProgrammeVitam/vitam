@@ -141,8 +141,8 @@ public class ProfileServiceImpl implements ProfileService {
      * Constructor
      *
      * @param mongoAccess MongoDB client
-     * @param workspaceClientFactory
-     * @param vitamCounterService
+     * @param workspaceClientFactory the workspace client factory
+     * @param vitamCounterService the vitam counter service
      */
     public ProfileServiceImpl(MongoDbAccessAdminImpl mongoAccess, WorkspaceClientFactory workspaceClientFactory,
         VitamCounterService vitamCounterService) {
@@ -617,7 +617,7 @@ public class ProfileServiceImpl implements ProfileService {
             }
         }
 
-        if (ProfileModel.IDENTIFIER.equals(field)) {
+        if (ProfileModel.TAG_IDENTIFIER.equals(field)) {
             if (!value.isTextual()) {
                 error.addToErrors(getVitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem(),
                     PROFILE_IDENTIFIER_MUST_BE_STRING + " : " + value.asText())

@@ -35,7 +35,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundE
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 /**
- * This servie manage the creation, update, find, ... profiles
+ * This service manages the creation, update, find, ... profiles
  */
 public interface ProfileService extends VitamAutoCloseable {
 
@@ -63,10 +63,10 @@ public interface ProfileService extends VitamAutoCloseable {
      * 3. If ok, save the file is the storage with the name (the given profile id)
      * TODO 4. In case of rng, check if RG exists ?!
      *
-     * @param profileIdentifier
-     * @param profileFile
+     * @param profileIdentifier the profile identifier
+     * @param profileFile the profile file as an input stream
      * @return RequestResponseOK if success or VitamError
-     * @throws VitamException
+     * @throws VitamException thrown if the profiles could not be imported
      */
     RequestResponse importProfileFile(String profileIdentifier,
         InputStream profileFile)
@@ -75,9 +75,12 @@ public interface ProfileService extends VitamAutoCloseable {
     /**
      * download file corresponding to profileIdentifier
      *
-     * @param profileIdentifier
+     * @param profileIdentifier the profile identifier
      * @return Response
-     * @throws VitamException
+     * @throws ProfileNotFoundException thrown if the profile could not be found
+     * @throws InvalidParseOperationException thrown if the query could not be executed 
+     * @throws ReferentialException thrown if the query could not be executed
+     * @throws VitamException thrown if another error is encountered
      */
     Response downloadProfileFile(String profileIdentifier)
         throws ProfileNotFoundException, InvalidParseOperationException, ReferentialException;
@@ -99,18 +102,21 @@ public interface ProfileService extends VitamAutoCloseable {
 
     /**
      * Update profile
-     * @param profileModel
-     * @param jsonDsl
-     * @return
-     * @throws VitamException
+     * 
+     * @param profileModel the updated ProfileModel
+     * @param jsonDsl the query as a json
+     * @return a response as a RequestResponse<ProfileModel> object 
+     * @throws VitamException thrown if the update could not be executed
      */
     RequestResponse<ProfileModel> updateProfile(ProfileModel profileModel,  JsonNode jsonDsl) throws VitamException;
 
     /**
      * Find profile by identifier
      *
-     * @param identifier
+     * @param identifier the Profile identifier
      * @return ProfileModel
+     * @throws ReferentialException thrown if the query could not be executed
+     * @throws InvalidParseOperationException thrown if the query could not be executed
      */
     ProfileModel findByIdentifier(String identifier) throws ReferentialException, InvalidParseOperationException;
 
@@ -118,8 +124,10 @@ public interface ProfileService extends VitamAutoCloseable {
     /**
      * find Profile by QueryDsl
      *
-     * @param queryDsl
+     * @param queryDsl the query as a json to be executed
      * @return list of ProfileModel
+     * @throws ReferentialException thrown if the query could not be executed
+     * @throws InvalidParseOperationException thrown if the query could not be executed 
      */
     RequestResponseOK<ProfileModel> findProfiles(JsonNode queryDsl)
         throws ReferentialException, InvalidParseOperationException;

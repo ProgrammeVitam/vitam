@@ -1,28 +1,19 @@
 /*
- *  Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *  <p>
- *  contact.vitam@culture.gouv.fr
- *  <p>
- *  This software is a computer program whose purpose is to implement a digital archiving back-office system managing
- *  high volumetry securely and efficiently.
- *  <p>
- *  This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
- *  software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
- *  circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *  <p>
- *  As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
- *  users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
- *  successive licensors have only limited liability.
- *  <p>
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
- *  developing or reproducing the software by the user in light of its specific status of free software, that may mean
- *  that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
- *  experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
- *  software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
- *  to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *  <p>
- *  The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
- *  accept its terms.
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019) <p> contact.vitam@culture.gouv.fr <p>
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently. <p> This software is governed by the CeCILL 2.1 license under French law and
+ * abiding by the rules of distribution of free software. You can use, modify and/ or redistribute the software under
+ * the terms of the CeCILL 2.1 license as circulated by CEA, CNRS and INRIA at the following URL
+ * "http://www.cecill.info". <p> As a counterpart to the access to the source code and rights to copy, modify and
+ * redistribute granted by the license, users are provided only with a limited warranty and the software's author, the
+ * holder of the economic rights, and the successive licensors have only limited liability. <p> In this respect, the
+ * user's attention is drawn to the risks associated with loading, using, modifying and/or developing or reproducing the
+ * software by the user in light of its specific status of free software, that may mean that it is complicated to
+ * manipulate, and that also therefore means that it is reserved for developers and experienced professionals having
+ * in-depth computer knowledge. Users are therefore encouraged to load and test the software's suitability as regards
+ * their requirements in conditions enabling the security of their systems and/or data to be ensured and, more
+ * generally, to use and operate it in the same conditions as regards security. <p> The fact that you are presently
+ * reading this means that you have had knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
 package fr.gouv.vitam.processing.distributor.api;
 
@@ -52,13 +43,21 @@ import fr.gouv.vitam.worker.client.WorkerClientFactory;
  */
 public interface IWorkerManager {
 
+    /**
+     * VitamLogger
+     */
     VitamLogger LOGGER = VitamLoggerFactory.getInstance(IWorkerManager.class);
+    /**
+     * Path to database
+     */
     String WORKKER_DB_PATH = "worker.db";
+    /**
+     * Database file
+     */
     File WORKKER_DB_FILE = PropertiesUtils.fileFromDataFolder(WORKKER_DB_PATH);
 
     /**
-     * Do the initialization
-     * Load worker from worker.db
+     * Do the initialization Load worker from worker.db
      */
     default void initialize() {
         if (WORKKER_DB_FILE.exists()) {
@@ -71,13 +70,14 @@ public interface IWorkerManager {
     /**
      * To load a registered worker list
      *
-     * @param registerWorkerFile
+     * @param registerWorkerFile the register worker file
      */
     default void loadWorkerList(File registerWorkerFile) {
         // Load the list of worker from database
         // for now it is a file content json data
         try {
-            List<WorkerBean>  workerBeans = JsonHandler.getFromFileAsTypeRefence(registerWorkerFile, new TypeReference<List<WorkerBean>>() {});
+            List<WorkerBean> workerBeans =
+                JsonHandler.getFromFileAsTypeRefence(registerWorkerFile, new TypeReference<List<WorkerBean>>() {});
             for (WorkerBean workerBean : workerBeans) {
                 String workerId = workerBean.getWorkerId();
                 String familyId = workerBean.getFamily();
@@ -109,9 +109,9 @@ public interface IWorkerManager {
     /**
      * Check status
      *
-     * @param serverHost
-     * @param serverPort
-     * @return
+     * @param serverHost the server host
+     * @param serverPort the server post
+     * @return worker status (true if ok / false is not)
      */
     default boolean checkStatusWorker(String serverHost, int serverPort) {
         WorkerClientConfiguration workerClientConfiguration =
@@ -130,16 +130,22 @@ public interface IWorkerManager {
     /**
      * To register a worker in the processing
      *
-     * @param familyId          : family of this worker
-     * @param workerId          : ID of the worker
+     * @param familyId : family of this worker
+     * @param workerId : ID of the worker
      * @param workerInformation : Worker Json representation
-     * @throws WorkerAlreadyExistsException   : when the worker is already registered
-     * @throws ProcessingBadRequestException  if cannot register worker to family
+     * @throws WorkerAlreadyExistsException : when the worker is already registered
+     * @throws ProcessingBadRequestException if cannot register worker to family
      * @throws InvalidParseOperationException if worker description is not well-formed
      */
     void registerWorker(String familyId, String workerId, String workerInformation)
         throws WorkerAlreadyExistsException, ProcessingBadRequestException, InvalidParseOperationException;
 
+    /**
+     * Register a worker
+     * 
+     * @param workerBean the worker description as a WorkerBean object
+     * @throws WorkerAlreadyExistsException
+     */
     void registerWorker(WorkerBean workerBean) throws WorkerAlreadyExistsException;
 
     /**
@@ -148,13 +154,21 @@ public interface IWorkerManager {
      * @param familyId : family of this worker
      * @param workerId : ID of the worker
      * @throws WorkerFamilyNotFoundException : when the family is unknown
-     * @throws WorkerNotFoundException       : when the ID of the worker is unknown in the family
-     * @throws InterruptedException          if error in stopping thread
+     * @throws WorkerNotFoundException : when the ID of the worker is unknown in the family
+     * @throws InterruptedException if error in stopping thread
      */
     void unregisterWorker(String familyId, String workerId)
         throws WorkerFamilyNotFoundException, WorkerNotFoundException, InterruptedException;
 
+    /**
+     * Marshall to Database
+     */
     void marshallToDB();
 
+    /**
+     * Find a worker by its family
+     * @param workerFamily the worker family
+     * @return a WorkerFamilyManager object
+     */
     WorkerFamilyManager findWorkerBy(String workerFamily);
 }

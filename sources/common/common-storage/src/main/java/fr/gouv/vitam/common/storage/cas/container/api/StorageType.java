@@ -1,5 +1,8 @@
 package fr.gouv.vitam.common.storage.cas.container.api;
 
+/**
+ * Enum with all possible Storage Type
+ */
 public enum StorageType {
 
     /**

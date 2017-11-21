@@ -37,6 +37,8 @@ public class MetadataInvalidUpdateException extends MetaDataExecutionException {
     private static final long serialVersionUID = 2268498439396621151L;
 
     /**
+     * Constructor
+     * 
      * @param message to associate with the exception
      */
     public MetadataInvalidUpdateException(String message) {
@@ -45,6 +47,8 @@ public class MetadataInvalidUpdateException extends MetaDataExecutionException {
 
 
     /**
+     * Constructor
+     * 
      * @param cause to associate with the exception
      */
     public MetadataInvalidUpdateException(Throwable cause) {
@@ -52,6 +56,8 @@ public class MetadataInvalidUpdateException extends MetaDataExecutionException {
     }
 
     /**
+     * Constructor
+     * 
      * @param message message to associate with the exception
      * @param cause to associate with the exception
      */

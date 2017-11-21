@@ -136,7 +136,7 @@ public class WorkerImpl implements Worker {
     /**
      * Add an actionhandler in the pool of action
      *
-     * @param actionName    action name
+     * @param actionName action name
      * @param actionHandler action handler
      * @return WorkerImpl
      */
@@ -259,13 +259,14 @@ public class WorkerImpl implements Worker {
                                 ((step.getDistribution().getKind().equals(DistributionKind.LIST) ||
                                     step.getDistribution().getKind().equals(DistributionKind.LIST_IN_FILE)) &&
                                     (!step.getDistribution().getElement().equals(UNIT_LIST_WITHOUT_LEVEL) &&
-                                        !step.getDistribution().getElement().equals(OG_LIST_WITHOUT_LEVEL)&&
+                                        !step.getDistribution().getElement().equals(OG_LIST_WITHOUT_LEVEL) &&
                                         !step.getDistribution().getElement().equals(DATA_BINARIES_JSON)));
                             if (shouldWriteLFC) {
                                 LogbookLifeCycleParameters lfcParam =
                                     createStartLogbookLfc(step, handlerName, workParams);
                                 pluginResponse = actionPlugin.execute(workParams, handlerIO);
-                                if (!StatusCode.ALREADY_EXECUTED.equals(pluginResponse.getGlobalStatus())) {
+                                if (!StatusCode.ALREADY_EXECUTED.equals(pluginResponse.getGlobalStatus()) &&
+                                    lfcParam != null) {
                                     writeLogBookLfcFromResponse(handlerName, logbookLfcClient, pluginResponse,
                                         lfcParam);
                                 }
@@ -322,7 +323,8 @@ public class WorkerImpl implements Worker {
     }
 
     private LogbookLifeCycleParameters createStartLogbookLfc(Step step, String handlerName,
-        WorkerParameters workParams) throws InvalidGuidOperationException {
+        WorkerParameters workParams)
+        throws InvalidGuidOperationException {
         LogbookLifeCycleParameters lfcParam = null;
         if (step.getDistribution().getElement()
             .equals(LogbookType.UNITS.getType())) {
@@ -376,10 +378,10 @@ public class WorkerImpl implements Worker {
         LogbookLifeCycleParameters finalLogbookLfcParam = LogbookLifeCyclesClientHelper.copy(logbookParam);
         if (!actionResponse.getItemId().contains(".")) {
             finalLogbookLfcParam.setFinalStatus(handlerName, null, actionResponse.getGlobalStatus(),
-                    actionResponse.getMessage());
+                actionResponse.getMessage());
         } else {
             finalLogbookLfcParam.setFinalStatus(actionResponse.getItemId(), null, actionResponse.getGlobalStatus(),
-                    actionResponse.getMessage());
+                actionResponse.getMessage());
         }
         if (!actionResponse.getEvDetailData().isEmpty()) {
             finalLogbookLfcParam.putParameterValue(LogbookParameterName.eventDetailData,
@@ -396,11 +398,11 @@ public class WorkerImpl implements Worker {
             for (final Entry<String, ItemStatus> subTaskEntry : entry.getValue().getSubTaskStatus().entrySet()) {
                 LogbookLifeCycleParameters subLogbookLfcParam = LogbookLifeCyclesClientHelper.copy(logbookParam);
                 // set a new eventId for every subTask
-                subLogbookLfcParam.putParameterValue(LogbookParameterName.eventIdentifier, 
-                        GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).getId());
+                subLogbookLfcParam.putParameterValue(LogbookParameterName.eventIdentifier,
+                    GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).getId());
                 // set parent eventId
-                subLogbookLfcParam.putParameterValue(LogbookParameterName.parentEventIdentifier, 
-                        logbookParam.getParameterValue(LogbookParameterName.eventIdentifier));
+                subLogbookLfcParam.putParameterValue(LogbookParameterName.parentEventIdentifier,
+                    logbookParam.getParameterValue(LogbookParameterName.eventIdentifier));
                 // set status
                 ItemStatus subItemStatus = subTaskEntry.getValue();
                 subLogbookLfcParam.setFinalStatus(handlerName,

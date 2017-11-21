@@ -146,7 +146,8 @@ public class CreateManifest extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO) throws ProcessingException,
+    public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)
+        throws ProcessingException,
         ContentAddressableStorageServerException {
 
         final ItemStatus itemStatus = new ItemStatus(CREATE_MANIFEST);
@@ -158,11 +159,8 @@ public class CreateManifest extends ActionHandler {
             ArrayNode results = (ArrayNode) jsonNode.get("$results");
 
             Set<String> originatingAgencies = new HashSet<>();
-
-            try {
-                File manifestFile = handlerIO.getNewLocalFile(handlerIO.getOutput(MANIFEST_XML_RANK).getPath());
-                OutputStream outputStream = new FileOutputStream(manifestFile);
-
+            File manifestFile = handlerIO.getNewLocalFile(handlerIO.getOutput(MANIFEST_XML_RANK).getPath());
+            try (OutputStream outputStream = new FileOutputStream(manifestFile);) {
                 ListMultimap<String, String> multimap = ArrayListMultimap.create();
                 Map<String, String> ogs = new HashMap<>();
 
@@ -210,7 +208,8 @@ public class CreateManifest extends ActionHandler {
 
                 handlerIO.addOuputResult(MANIFEST_XML_RANK, manifestFile, true, false);
 
-            } catch (XMLStreamException | JAXBException | DatatypeConfigurationException | InvalidCreateOperationException e) {
+            } catch (XMLStreamException | JAXBException | DatatypeConfigurationException |
+                InvalidCreateOperationException e) {
                 throw new ProcessingException(e);
             }
 

@@ -91,6 +91,7 @@ public enum AdminCollections {
     }
 
     /**
+     * Get the name of the collection
      *
      * @return the name of the collection
      */
@@ -98,11 +99,18 @@ public enum AdminCollections {
         return name;
     }
 
+    /**
+     * Get the checkUri
+     * 
+     * @return the checkUri
+     */
     public String getCheckURI() {
         return checkURI;
     }
 
     /**
+     * Compare method
+     * 
      * @param value as String to compare
      * @return True if the name of the collection equals
      */

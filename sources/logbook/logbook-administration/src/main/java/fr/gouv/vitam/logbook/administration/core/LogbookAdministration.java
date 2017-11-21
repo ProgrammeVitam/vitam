@@ -129,8 +129,6 @@ public class LogbookAdministration {
 
     private final File tmpFolder;
 
-    private final Joiner joiner;
-
     @VisibleForTesting //
     LogbookAdministration(LogbookOperations logbookOperations,
         TimestampGenerator timestampGenerator, WorkspaceClientFactory workspaceClientFactory, File tmpFolder) {
@@ -139,15 +137,14 @@ public class LogbookAdministration {
         this.workspaceClientFactory = workspaceClientFactory;
         this.tmpFolder = tmpFolder;
         formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
-        joiner = Joiner.on("").skipNulls();
         tmpFolder.mkdir();
     }
 
     /**
      * Constructor
      *
-     * @param logbookOperations      logbook operation
-     * @param timestampGenerator     to generate timestamp
+     * @param logbookOperations logbook operation
+     * @param timestampGenerator to generate timestamp
      * @param workspaceClientFactory to create workspace client
      */
     public LogbookAdministration(LogbookOperations logbookOperations, TimestampGenerator timestampGenerator,
@@ -160,10 +157,10 @@ public class LogbookAdministration {
      * secure the logbook operation since last securisation.
      *
      * @return the GUID of the operation
-     * @throws TraceabilityException           if error on generating secure logbook
-     * @throws LogbookNotFoundException        if not found on selecting logbook operation
-     * @throws InvalidParseOperationException  if json data is not well-formed
-     * @throws LogbookDatabaseException        if error on query logbook collection
+     * @throws TraceabilityException if error on generating secure logbook
+     * @throws LogbookNotFoundException if not found on selecting logbook operation
+     * @throws InvalidParseOperationException if json data is not well-formed
+     * @throws LogbookDatabaseException if error on query logbook collection
      * @throws InvalidCreateOperationException if error on creating query
      */
     // TODO: use a distributed lock to launch this function only on one server (cf consul)
@@ -423,7 +420,8 @@ public class LogbookAdministration {
     }
 
     private void createLogbookOperationEvent(GUID parentEventId, Integer tenantId, String eventType,
-        StatusCode statusCode, TraceabilityEvent traceabilityEvent) throws TraceabilityException {
+        StatusCode statusCode, TraceabilityEvent traceabilityEvent)
+        throws TraceabilityException {
         final GUID eventId = GUIDFactory.newEventGUID(tenantId);
         final LogbookOperationParameters logbookOperationParameters =
             newLogbookOperationParameters(eventId, eventType, parentEventId, TRACEABILITY, statusCode, null, null,

@@ -38,6 +38,8 @@ public class ContentAddressableStorageException extends VitamException {
     private static final long serialVersionUID = -4421004141804361330L;
 
     /**
+     * Constructor
+     * 
      * @param message message to associate with the exception *
      */
     public ContentAddressableStorageException(String message) {
@@ -45,6 +47,8 @@ public class ContentAddressableStorageException extends VitamException {
     }
 
     /**
+     * Constructor
+     * 
      * @param cause cause to associate with the exception
      */
     public ContentAddressableStorageException(Throwable cause) {
@@ -52,6 +56,8 @@ public class ContentAddressableStorageException extends VitamException {
     }
 
     /**
+     * Constructor
+     * 
      * @param message message to associate with the exception
      * @param cause cause to associate with the exception
      */

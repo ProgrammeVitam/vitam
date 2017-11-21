@@ -98,6 +98,9 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import org.bson.conversions.Bson;
 
+/**
+ * IngestContract implementation class
+ */
 public class IngestContractImpl implements ContractService<IngestContractModel> {
 
     private static final String THE_INGEST_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT =
@@ -110,27 +113,33 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logBookclient;
     private final VitamCounterService vitamCounterService;
-    private final MetaDataClient metaDataClient;
     private final IngestContractManager manager;
     private static final String _TENANT = "_tenant";
     private static final String _ID = "_id";
+
     /**
      * Constructor
      *
-     * @param dbConfiguration
-     * @param vitamCounterService
+     * @param dbConfiguration the Database configuration
+     * @param vitamCounterService the vitam counter service
      */
     public IngestContractImpl(MongoDbAccessAdminImpl dbConfiguration, VitamCounterService vitamCounterService) {
         this(dbConfiguration, vitamCounterService, MetaDataClientFactory.getInstance().getClient());
     }
 
+    /**
+     * Constructor
+     * 
+     * @param dbConfiguration the Database configuration
+     * @param vitamCounterService the vitam counter service
+     * @param metaDataClient the metadata client
+     */
     public IngestContractImpl(MongoDbAccessAdminImpl dbConfiguration, VitamCounterService vitamCounterService,
         MetaDataClient metaDataClient) {
         mongoAccess = dbConfiguration;
         this.vitamCounterService = vitamCounterService;
         logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
         manager = new IngestContractManager(logBookclient, metaDataClient);
-        this.metaDataClient = metaDataClient;
     }
 
     @Override
@@ -267,7 +276,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             acm.setIdentifier(code);
         }
     }
-    
+
     @Override
     public IngestContractModel findByIdentifier(String identifier)
         throws ReferentialException, InvalidParseOperationException {
@@ -320,7 +329,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         public IngestContractManager(LogbookOperationsClient logBookclient, MetaDataClient metaDataClient) {
             this.logBookclient = logBookclient;
             this.metaDataClient = metaDataClient;
-            //Init validator
+            // Init validator
             validators = Arrays.asList(
                 createMandatoryParamsValidator(),
                 createWrongFieldFormatValidator(),
@@ -535,8 +544,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     if (contract.getActivationdate() == null || contract.getActivationdate().trim().isEmpty()) {
                         contract.setActivationdate(now);
                     } else {
-                        contract.setActivationdate(LocalDateUtil.getFormattedDateForMongo(contract.getActivationdate
-                            ()));
+                        contract
+                            .setActivationdate(LocalDateUtil.getFormattedDateForMongo(contract.getActivationdate()));
                     }
                 } catch (final Exception e) {
                     LOGGER.error("Error ingest contract parse dates", e);
@@ -592,7 +601,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             return (contract, contractIdentifier) -> {
                 if (contractIdentifier == null || contractIdentifier.isEmpty()) {
                     return Optional
-                        .of(IngestContractValidator.GenericRejectionCause.rejectMandatoryMissing(IngestContract.IDENTIFIER));
+                        .of(IngestContractValidator.GenericRejectionCause
+                            .rejectMandatoryMissing(IngestContract.IDENTIFIER));
                 }
                 IngestContractValidator.GenericRejectionCause rejection = null;
                 final int tenant = ParameterHelper.getTenantParameter();
@@ -600,7 +610,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     and(eq(VitamDocument.TENANT_ID, tenant), eq(IngestContract.IDENTIFIER, contract.getIdentifier()));
                 final boolean exist = FunctionalAdminCollections.INGEST_CONTRACT.getCollection().count(clause) > 0;
                 if (exist) {
-                    rejection = IngestContractValidator.GenericRejectionCause.rejectDuplicatedInDatabase(contractIdentifier);
+                    rejection =
+                        IngestContractValidator.GenericRejectionCause.rejectDuplicatedInDatabase(contractIdentifier);
                 }
                 return rejection == null ? Optional.empty() : Optional.of(rejection);
             };

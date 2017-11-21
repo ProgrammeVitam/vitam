@@ -1131,7 +1131,6 @@ public class DbRequest {
                     }
                 }
                 if (!notFound.isEmpty()) {
-                    // FIXME P1 some Junit failed on this
                     LOGGER.error("Cannot find parent: " + notFound);
                     throw new MetaDataNotFoundException("Cannot find Parent: " + notFound);
                 }
@@ -1212,7 +1211,6 @@ public class DbRequest {
                 }
             }
             if (!notFound.isEmpty()) {
-                // FIXME P1 some Junit failed on this
                 LOGGER.error("Cannot find parent: " + notFound);
                 throw new MetaDataNotFoundException("Cannot find Parent: " + notFound);
             }

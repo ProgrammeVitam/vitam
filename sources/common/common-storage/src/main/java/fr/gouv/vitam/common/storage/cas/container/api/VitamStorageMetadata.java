@@ -32,6 +32,7 @@ import java.util.Date;
 import java.util.Map;
 
 /**
+ * VitamStorageMetadata interface describing storage metadata
  */
 public interface VitamStorageMetadata extends VitamResourceMetadata<StorageType> {
 

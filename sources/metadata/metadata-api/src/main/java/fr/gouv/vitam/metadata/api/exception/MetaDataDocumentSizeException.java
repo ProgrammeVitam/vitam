@@ -37,6 +37,8 @@ public class MetaDataDocumentSizeException extends MetaDataException {
     private static final long serialVersionUID = 3476175676691016762L;
 
     /**
+     * Constructor
+     * 
      * @param message message to associate with the exception
      */
     public MetaDataDocumentSizeException(String message) {
@@ -44,6 +46,8 @@ public class MetaDataDocumentSizeException extends MetaDataException {
     }
 
     /**
+     * Constructor
+     * 
      * @param cause cause to associate with the exception
      */
     public MetaDataDocumentSizeException(Throwable cause) {
@@ -51,6 +55,8 @@ public class MetaDataDocumentSizeException extends MetaDataException {
     }
 
     /**
+     * Constructor
+     * 
      * @param message message to associate with the exception
      * @param cause cause to associate with the exception
      */

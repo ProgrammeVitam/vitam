@@ -53,11 +53,11 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
      * Init a new process workflow
      * 
      * @param workerParameters parameters to be passed to ProcessEngine
-     * @param workflowId
-     * @param logbookTypeProcess
-     * @param tenantId
-     * @return ProcessWorkflow
-     * @throws ProcessingException
+     * @param workflowId the workflow identifier
+     * @param logbookTypeProcess the process type
+     * @param tenantId the tenant identifier
+     * @return ProcessWorkflow 
+     * @throws ProcessingException if the process could not be initialized
      */
     ProcessWorkflow init(WorkerParameters workerParameters, String workflowId, LogbookTypeProcess logbookTypeProcess,
         Integer tenantId) throws ProcessingException;
@@ -66,9 +66,10 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
      * Handle a next action for the corresponding process workflow
      * 
      * @param workerParameters parameters to be passed to ProcessEngine
-     * @param tenantId
-     * @throws ProcessingException
-     * @throws StateNotAllowedException
+     * @param tenantId the tenant identifier
+     * @return the status
+     * @throws ProcessingException if next could not be applied
+     * @throws StateNotAllowedException if the process state is incorrect
      */
     ItemStatus next(WorkerParameters workerParameters, Integer tenantId) throws ProcessingException,
         StateNotAllowedException;
@@ -77,9 +78,10 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
      * Handle a replay action for the corresponding process workflow
      * 
      * @param workerParameters parameters to be passed to ProcessEngine
-     * @param tenantId
-     * @throws ProcessingException
-     * @throws StateNotAllowedException
+     * @param tenantId the tenant identifier
+     * @return the status
+     * @throws ProcessingException if replay could not be applied
+     * @throws StateNotAllowedException if the process state is incorrect
      */
     ItemStatus replay(WorkerParameters workerParameters, Integer tenantId) throws ProcessingException,
         StateNotAllowedException;
@@ -88,9 +90,10 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
      * Handle a resume action for the corresponding process workflow
      * 
      * @param workerParameters parameters to be passed to ProcessEngine
-     * @param tenantId
-     * @throws ProcessingException
-     * @throws StateNotAllowedException
+     * @param tenantId the tenant identifier
+     * @return the status
+     * @throws ProcessingException if resume could not be applied
+     * @throws StateNotAllowedException if the process state is incorrect
      */
     ItemStatus resume(WorkerParameters workerParameters, Integer tenantId)
         throws ProcessingException, StateNotAllowedException;
@@ -98,20 +101,22 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
     /**
      * Handle a pause action for the corresponding process workflow
      * 
-     * @param operationId
-     * @param tenantId
-     * @throws ProcessingException
-     * @throws StateNotAllowedException
+     * @param operationId the operation identifier
+     * @param tenantId the tenant identifier
+     * @return the status
+     * @throws ProcessingException if pause could not be applied
+     * @throws StateNotAllowedException if the process state is incorrect
      */
     ItemStatus pause(String operationId, Integer tenantId) throws ProcessingException, StateNotAllowedException;
 
     /**
      * Handle a cancel action for the corresponding process workflow
      * 
-     * @param operationId
-     * @param tenantId
-     * @throws ProcessingException
-     * @throws StateNotAllowedException
+     * @param operationId the operation identifier
+     * @param tenantId the tenant identifier
+     * @return the status
+     * @throws ProcessingException if cancel could not be applied
+     * @throws StateNotAllowedException if the process state is incorrect
      */
     ItemStatus cancel(String operationId, Integer tenantId) throws ProcessingException, StateNotAllowedException;
 
@@ -119,7 +124,7 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
      * Retrieve All the workflow process for monitoring purpose The final business scope of this feature is likely to be
      * redefined, to match the future need
      * 
-     * @param tenantId
+     * @param tenantId the tenant identifier
      * @return All the workflow process details
      */
     List<ProcessWorkflow> findAllProcessWorkflow(Integer tenantId);
@@ -127,8 +132,8 @@ public interface ProcessManagement extends ProcessLifeCycle, VitamAutoCloseable 
     /**
      * find the workflow process according to the operation_id and the tenant_id
      * 
-     * @param operationId
-     * @param tenantId
+     * @param operationId the operation identifier
+     * @param tenantId the tenant identifier
      * @return the workFlow process
      */
     ProcessWorkflow findOneProcessWorkflow(String operationId, Integer tenantId);

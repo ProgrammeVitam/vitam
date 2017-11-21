@@ -120,6 +120,9 @@ public class Validator {
                 fields.add(it.next());
             }
             localFieldReport = fields::remove;
+        } else if (fieldReport == null) {
+            fields = new HashSet<>();
+            localFieldReport = fields::remove;
         } else {
             // We report field validation to upper level
             localFieldReport = fieldReport;

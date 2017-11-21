@@ -35,6 +35,8 @@ public class ContentAddressableStorageServerException extends ContentAddressable
     private static final long serialVersionUID = 2785259930527471401L;
 
     /**
+     * Constructor
+     * 
      * @param message to associate with a new ContentAddressableStorageServerException
      *
      */
@@ -43,6 +45,8 @@ public class ContentAddressableStorageServerException extends ContentAddressable
     }
 
     /**
+     * Constructor
+     * 
      * @param cause cause to associate with the exception
      */
     public ContentAddressableStorageServerException(Throwable cause) {
@@ -50,6 +54,8 @@ public class ContentAddressableStorageServerException extends ContentAddressable
     }
 
     /**
+     * Constructor
+     * 
      * @param message message to associate with the exception
      * @param cause cause to associate with the exception
      */

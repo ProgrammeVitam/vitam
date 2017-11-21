@@ -33,6 +33,8 @@ public class ContentAddressableStorageCompressedFileException extends ContentAdd
     private static final long serialVersionUID = -7976465493734475323L;
 
     /**
+     * Constructor
+     * 
      * @param message as String message to associate with the exception
      */
     public ContentAddressableStorageCompressedFileException(String message) {
@@ -40,6 +42,8 @@ public class ContentAddressableStorageCompressedFileException extends ContentAdd
     }
 
     /**
+     * Constructor
+     * 
      * @param cause as String to associate with the exception
      */
     public ContentAddressableStorageCompressedFileException(Throwable cause) {
@@ -47,6 +51,8 @@ public class ContentAddressableStorageCompressedFileException extends ContentAdd
     }
 
     /**
+     * Constructor
+     * 
      * @param message : message to associate with the exception
      * @param cause : cause to associate with the exception
      */

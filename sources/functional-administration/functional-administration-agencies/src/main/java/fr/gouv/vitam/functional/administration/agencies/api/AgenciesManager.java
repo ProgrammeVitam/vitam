@@ -27,9 +27,11 @@
 package fr.gouv.vitam.functional.administration.agencies.api;
 
 
-import com.fasterxml.jackson.databind.JsonNode;
+import static fr.gouv.vitam.functional.administration.agencies.api.AgenciesService.AGENCIES_IMPORT_EVENT;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -42,14 +44,10 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
-
-
-import static fr.gouv.vitam.functional.administration.agencies.api.AgenciesService.AGENCIES_IMPORT_EVENT;
 
 /**
  * Agency validator and logBook manager
@@ -77,8 +75,8 @@ class AgenciesManager {
     /**
      * log start process
      *
-     * @throws VitamException
-     * @param eventType
+     * @throws VitamException thrown if the logbook could not be created
+     * @param eventType the event type to be logged
      */
     public void logStarted(String eventType) throws VitamException {
 
@@ -96,7 +94,7 @@ class AgenciesManager {
     /**
      * log end success process
      *
-     * @throws VitamException
+     * @throws VitamException thrown if the logbook could not be updated
      */
     public void logFinish() throws VitamException {
         if (warning) {
@@ -108,7 +106,7 @@ class AgenciesManager {
     /**
      * log end success process
      *
-     * @throws VitamException
+     * @throws VitamException thrown if the logbook could not be updated
      */
     public void logSuccess() throws VitamException {
         logEventSuccess(AGENCIES_IMPORT_EVENT);
@@ -118,7 +116,8 @@ class AgenciesManager {
     /**
      * log end success process
      *
-     * @throws VitamException
+     * @param eventType the event type to be logged 
+     * @throws VitamException thrown if the logbook could not be updated
      */
     public void logEventSuccess(String eventType) throws VitamException {
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
@@ -134,7 +133,8 @@ class AgenciesManager {
     /**
      * log end warnig
      *
-     * @throws VitamException
+     * @param eventType the event type to be logged
+     * @throws VitamException thrown if the logbook could not be updated
      */
     public void logEventWarning(String eventType) throws VitamException {
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
@@ -156,8 +156,8 @@ class AgenciesManager {
     /**
      * log fatal error (system or technical error)
      *
-     * @param errorsDetails
-     * @throws VitamException
+     * @param errorsDetails the detail error
+     * @throws VitamException thrown if the logbook could not be updated
      */
     public void logError(String errorsDetails) throws VitamException {
 

@@ -156,7 +156,7 @@ public class ContextStep {
 
         JsonNode queryDsl = JsonHandler.getFromString(query);
 
-        find_a_context_id(name);
+        find_a_context_id(this.contextName);
 
         VitamContext context = new VitamContext(world.getTenantId());
         context.setApplicationSessionId(world.getApplicationSessionId());

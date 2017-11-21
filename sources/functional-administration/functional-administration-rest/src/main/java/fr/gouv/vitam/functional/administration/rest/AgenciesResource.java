@@ -101,10 +101,6 @@ public class AgenciesResource {
     private final MongoDbAccessAdminImpl mongoAccess;
     private VitamCounterService vitamCounterService;
 
-    private String logbookSecurisation = "AGENCIES_SECURISATION";
-    private String logbookReport = "AGENCIES_REPORT";
-
-    private final String file_name = "AGENCIES";
     private FilesSecurisator securisator = new FilesSecurisator();
 
     /**
@@ -227,10 +223,10 @@ public class AgenciesResource {
      * check the agencie file
      *
      * @return Response response jersey
-     * @throws IOException                     convert inputstream agency to File exception occurred
+     * @throws IOException convert inputstream agency to File exception occurred
      * @throws InvalidCreateOperationException if exception occurred when create query
-     * @throws InvalidParseOperationException  if parsing json data exception occurred
-     * @throws ReferentialException            if exception occurred when create agency file manager
+     * @throws InvalidParseOperationException if parsing json data exception occurred
+     * @throws ReferentialException if exception occurred when create agency file manager
      */
     @Path(AGENCIES_CHECK)
     @POST

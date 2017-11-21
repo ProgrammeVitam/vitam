@@ -44,9 +44,10 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 public interface WorkerAction {
 
     /**
+     * Execute an action 
      *
      * @param param {@link WorkerParameters}
-     * @param handler
+     * @param handler the handlerIo
      * @return CompositeItemStatus:response contains a list of functional message and status code
      * @throws ProcessingException if an error is encountered when executing the action
      * @throws ContentAddressableStorageServerException
@@ -55,6 +56,8 @@ public interface WorkerAction {
         throws ProcessingException, ContentAddressableStorageServerException;
 
     /**
+     * Check mandatory parameter
+     * 
      * @param handler input output list
      * @throws ProcessingException when handler io is not complete
      */

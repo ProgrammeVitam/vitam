@@ -37,6 +37,8 @@ public class MetadataInvalidSelectException extends MetaDataException {
     private static final long serialVersionUID = 2268498439396621151L;
 
     /**
+     * Constructor
+     * 
      * @param message to associate with the exception
      */
     public MetadataInvalidSelectException(String message) {
@@ -45,6 +47,8 @@ public class MetadataInvalidSelectException extends MetaDataException {
 
 
     /**
+     * Constructor
+     * 
      * @param cause to associate with the exception
      */
     public MetadataInvalidSelectException(Throwable cause) {
@@ -52,6 +56,8 @@ public class MetadataInvalidSelectException extends MetaDataException {
     }
 
     /**
+     * Constructor
+     * 
      * @param message message to associate with the exception
      * @param cause to associate with the exception
      */

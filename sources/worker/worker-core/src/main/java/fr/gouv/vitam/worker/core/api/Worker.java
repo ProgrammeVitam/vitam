@@ -51,7 +51,7 @@ public interface Worker extends VitamAutoCloseable {
      * @throws IllegalArgumentException throws when arguments are null
      * @throws HandlerNotFoundException throws when handler not found
      * @throws ProcessingException throws when error in execution
-     * @throws ContentAddressableStorageServerException
+     * @throws ContentAddressableStorageServerException thrown when workspace could not be used
      */
     ItemStatus run(WorkerParameters workParams, Step step)
         throws IllegalArgumentException, HandlerNotFoundException, ProcessingException,

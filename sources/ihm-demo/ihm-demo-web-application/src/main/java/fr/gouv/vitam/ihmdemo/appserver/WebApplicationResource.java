@@ -167,7 +167,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String CONTENT_DISPOSITION = "Content-Disposition";
     private static final String ATTACHMENT_FILENAME_ERROR_REPORT_JSON = "attachment; filename=rapport.json";
-    private static final String IDENTIFIER = "Identifier";
     public static final String X_SIZE_TOTAL = "X-Size-Total";
     public static final String X_CHUNK_OFFSET = "X-Chunk-Offset";
 
@@ -271,7 +270,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
                 final Map<String, Object> criteriaMap = JsonHandler.getMapFromString(criteria);
                 final JsonNode preparedQueryDsl = DslQueryHelper.createSelectElasticsearchDSLQuery(criteriaMap);
-                
+
                 result = UserInterfaceTransactionManager.searchUnits(preparedQueryDsl,
                     getTenantId(headers), getAccessContractId(headers), getAppSessionId());
 
@@ -1128,7 +1127,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         RequestResponse result = null;
         OffsetBasedPagination pagination = null;
 
-       
+
         final List<String> requestIds = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.REQUEST_ID.name());
         Integer tenantId = getTenantId(headers);
 
@@ -1144,8 +1143,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(result.toJsonNode(), pagination));
 
                 return Response.status(Status.OK).entity(result).header(GlobalDataRest.X_REQUEST_ID, requestId)
-                    .header(IhmDataRest.X_OFFSET, pagination.getOffset())
-                    .header(IhmDataRest.X_LIMIT, pagination.getLimit()).build();
+                    .header(IhmDataRest.X_OFFSET, pagination != null ? pagination.getOffset() : 0)
+                    .header(IhmDataRest.X_LIMIT, pagination != null ? pagination.getLimit() : 0).build();
             } catch (final VitamException e) {
                 LOGGER.error("Bad request Exception ", e);
                 return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId).build();

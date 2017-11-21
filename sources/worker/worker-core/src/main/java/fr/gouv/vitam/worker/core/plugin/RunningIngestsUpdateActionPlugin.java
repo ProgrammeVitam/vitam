@@ -100,9 +100,6 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
     private static final String MANAGEMENT_KEY = "#management";
     private static final String FIELDS_KEY = "$fields";
     private static final String RULES_KEY = "Rules";
-    private static final String MANAGEMENT_PREFIX = MANAGEMENT_KEY + '.';
-    private static final String RULES_PREFIX = '.' + RULES_KEY;
-
 
     private static final long SLEEP_TIME = 10000l;
     private static final long NB_TRY = 600; // equivalent to 60 minutes
