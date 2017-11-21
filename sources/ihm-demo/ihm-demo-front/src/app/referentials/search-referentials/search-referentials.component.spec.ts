@@ -53,4 +53,20 @@ describe('SearchReferentialsComponent', () => {
     item.status = 'INACTIVE';
     expect(SearchReferentialsComponent.handleStatus(item.status)).toEqual('Inactif');
   });
+
+  it('should handle rule measurement values', () => {
+    let itemWithRuleMeasurement = {
+      'RuleDuration': '40',
+      'RuleMeasurement': 'year'
+    };
+    expect(SearchReferentialsComponent.appendUnitToRuleDuration(itemWithRuleMeasurement)).toEqual('40 années');
+
+    itemWithRuleMeasurement.RuleMeasurement = 'month';
+    expect(SearchReferentialsComponent.appendUnitToRuleDuration(itemWithRuleMeasurement)).toEqual('40 mois');
+
+    let itemWithoutRuleMeasurement = {
+      'RuleDuration': '40'
+    };
+    expect(SearchReferentialsComponent.appendUnitToRuleDuration(itemWithoutRuleMeasurement)).toEqual('40');
+  });
 });

@@ -356,15 +356,19 @@ export class SearchReferentialsComponent extends PageComponent {
   }
 
   static appendUnitToRuleDuration(item): string {
-    switch (item.RuleMeasurement.toUpperCase()) {
-      case "YEAR":
-        return item.RuleDuration <= 1 ? item.RuleDuration + ' année' : item.RuleDuration + ' années';
-      case "MONTH":
-        return item.RuleDuration + ' mois';
-      case "DAY":
-        return item.RuleDuration <= 1 ? item.RuleDuration + ' jour' : item.RuleDuration + ' jours';
-      default :
-        return item.RuleDuration;
+    if (item.RuleMeasurement) {
+      switch (item.RuleMeasurement.toUpperCase()) {
+        case "YEAR":
+          return item.RuleDuration <= 1 ? item.RuleDuration + ' année' : item.RuleDuration + ' années';
+        case "MONTH":
+          return item.RuleDuration + ' mois';
+        case "DAY":
+          return item.RuleDuration <= 1 ? item.RuleDuration + ' jour' : item.RuleDuration + ' jours';
+        default :
+          return item.RuleDuration;
+      }
+    } else {
+      return item.RuleDuration;
     }
   }
 
