@@ -78,13 +78,14 @@ export class WorkflowComponent extends PageComponent {
         this.optionsWorkflowSteps = [new DynamicSelectItem('Tous', '', '')];
         for (var i = 0; i < data.$results.length; i++) {
           let workflow = data.$results[i];
-          let item = {label: data.$results[i].name, value: data.$results[i].id};
+          let item = {label: data.$results[i].name, value: data.$results[i].identifier};
+
           this.optionsCategories.push(item);
           for (var stepProp in workflow.steps) {
             if (workflow.steps.hasOwnProperty(stepProp)) {
               var step = workflow.steps[stepProp];
               //FIXME handle categories for change on step (parent: workflow.identifier)
-              this.optionsWorkflowSteps.push(new DynamicSelectItem(step.stepName, step.stepName, workflow.id));
+              this.optionsWorkflowSteps.push(new DynamicSelectItem(step.stepName, step.stepName, workflow.identifier));
             }
           }
         }
@@ -115,11 +116,11 @@ export class WorkflowComponent extends PageComponent {
   static computeSelectItems(items: DynamicSelectItem[], otherData: any): SelectItem[] {
     let filteredItems = [];
     let alreadyHereItems = [];
-    if (otherData &&  otherData.length > 0 && otherData[0] !== '') {
+    if (otherData && otherData.length > 0 && otherData[0] !== '') {
       filteredItems = items.filter((x) => {
-        if (alreadyHereItems.indexOf(x.value) === -1) {
+        if (alreadyHereItems.indexOf(x.value) === -1 && otherData.indexOf(x.data) !== -1) {
           alreadyHereItems.push(x.value);
-          return otherData.indexOf(x.data) !== -1
+          return true;
         }
         return false;
       });
