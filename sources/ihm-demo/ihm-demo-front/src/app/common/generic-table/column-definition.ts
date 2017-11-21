@@ -1,12 +1,15 @@
 import {EventEmitter} from "@angular/core";
+import {isUndefined} from "util";
+
 export class ColumnDefinition {
   public field: string;
   public label: string;
   public icons: string[] = [];
   public httpService: any;
-  public thisWorkflow: any;
+  public sortable: any;
+  public sortFunction: any;
 
-  static makeStaticColumn(field: string, label: string, transform?: (value) => string, computeCss?: () => any) {
+  static makeStaticColumn(field: string, label: string, transform?: (value) => string, computeCss?: () => any, sortable: any = true, sortFunction: (resultToSort, event) => any = (items) => true) {
     const col = new ColumnDefinition(field, label, []);
     if (transform !== undefined) {
       col.transform = transform;
@@ -14,10 +17,13 @@ export class ColumnDefinition {
     if (computeCss !== undefined) {
       col.computeCss = computeCss;
     }
+    col.sortable = sortable;
+    col.sortFunction = sortFunction;
     return col;
   }
 
-  static makeIconColumn(label: string, icons: string[], onClick: (item, httpService?, index?) => void, shouldDisplay?: (item) => boolean, computeCss?: () => any, httpService?) {
+
+  static makeIconColumn(label: string, icons: string[], onClick: (item, httpService?, index?) => void, shouldDisplay?: (item) => boolean, computeCss?: () => any, httpService?, sortable: any = true, sortFunction: (resultToSort, event) => any = (items) => true) {
     const col = new ColumnDefinition('', label, icons);
     if (shouldDisplay !== undefined) {
       col.shouldDisplay = shouldDisplay;
@@ -34,11 +40,12 @@ export class ColumnDefinition {
     } else {
       col.onClick = onClick;
     }
-
+    col.sortable = sortable;
+    col.sortFunction = sortFunction;
     return col;
   }
 
-  static makeSpecialValueColumn(label: string, getValue: (item) => string, transform?: (value) => string, computeCss?: () => any) {
+  static makeSpecialValueColumn(label: string, getValue: (item) => string, transform?: (value) => string, computeCss?: () => any, sortable: any = true, sortFunction: (resultToSort, event) => any = (items) => true, field?: string) {
     const col = new ColumnDefinition('', label, []);
     if (transform !== undefined) {
       col.transform = transform;
@@ -46,11 +53,17 @@ export class ColumnDefinition {
     if (computeCss !== undefined) {
       col.computeCss = computeCss;
     }
+    col.sortable = sortable;
+    col.sortFunction = sortFunction;
+    if (field !== undefined) {
+      col.field = field;
+    }
     col.getValue = getValue;
     return col;
   }
 
-  static makeSpecialIconColumn(label: string, getIcons: (item, icons: string[]) => string[], computeCss?: () => any, onClick?: (item, httpService?, iconType?, thisWorkflow?: any) => void, httpService?) {
+
+  static makeSpecialIconColumn(label: string, getIcons: (item, icons: string[]) => string[], computeCss?: () => any, onClick?: (item, httpService?, index?) => void, httpService?, sortable: any = true, sortFunction: (resultToSort) => any = (items) => true) {
     const col = new ColumnDefinition('', label, []);
     if (computeCss !== undefined) {
       col.computeCss = computeCss;
@@ -59,11 +72,14 @@ export class ColumnDefinition {
       col.httpService = httpService;
       col.onClick = (item, iconType) => {
         onClick(item, col.httpService, iconType)
+
       };
     } else {
       col.onClick = onClick;
     }
-    col.thisWorkflow = onClick;
+
+    col.sortable = sortable;
+    col.sortFunction = sortFunction;
     col.getIcons = getIcons;
     col.forceIcon = true;
     return col;
@@ -77,6 +93,7 @@ export class ColumnDefinition {
   public shouldDisplay: (item) => boolean = (x) => true;
   public forceIcon: boolean = false;
   public executionMode: (globalState: string, stepByStep: string) => string;
+
 
   private constructor(field: string, label: string, icons: string[]) {
     this.field = field;

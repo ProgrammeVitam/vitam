@@ -1128,12 +1128,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         RequestResponse result = null;
         OffsetBasedPagination pagination = null;
 
-        try {
-            pagination = new OffsetBasedPagination(headers);
-        } catch (final VitamException e) {
-            LOGGER.error("Bad request Exception ", e);
-            return Response.status(Status.BAD_REQUEST).build();
-        }
+       
         final List<String> requestIds = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.REQUEST_ID.name());
         Integer tenantId = getTenantId(headers);
 
