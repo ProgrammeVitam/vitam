@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 
 import { AuthenticationService, UserInformation } from './authentication.service';
+import {TranslateService} from "@ngx-translate/core";
 
 @Component({
   selector: 'vitam-authentication',
@@ -17,7 +18,7 @@ export class AuthenticationComponent implements OnInit {
   password: string;
   tenants = [];
   loginForm: FormGroup;
-  constructor(private authenticationService: AuthenticationService, private router: Router) {
+  constructor(private authenticationService: AuthenticationService, private router: Router, private translateService:TranslateService) {
     this.loginForm = new FormGroup( {
       username : new FormControl('', Validators.required),
       password : new FormControl('', Validators.required),
@@ -50,6 +51,7 @@ export class AuthenticationComponent implements OnInit {
         (user : UserInformation) => {
           this.router.navigate(["ingest/sip"]);
           this.authenticationService.loggedIn(user, tenant);
+          this.translateService.reloadLang(this.translateService.getDefaultLang());
         },
         (error) => {
           this.errorMessage = 'Identifiant et/ou mot de passe incorrect';
