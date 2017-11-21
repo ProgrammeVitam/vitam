@@ -12,6 +12,13 @@ import { LogbookService } from "../../../ingest/logbook.service";
 import { PageComponent } from "../../../common/page/page-component";
 import { AccessionRegister, AccessionRegisterDetail, RegisterData } from "./accession-register";
 
+
+const PROCESS_TRADUCTION = {
+  'PROCESS_SIP_UNITARY' : 'Standard',
+  'FILINGSCHEME' : 'Plan de classement',
+  'HOLDINGSCHEME' : 'Arbre de positionnement'
+};
+
 @Component({
   selector: 'vitam-accession-register',
   templateUrl: './accession-register.component.html',
@@ -144,14 +151,14 @@ export class AccessionRegisterComponent  extends PageComponent {
 
   getDetailsType(detail : AccessionRegisterDetail) {
     for (let opId of detail.OperationIds) {
-      if (this.registerDetailType[opId] === 'PROCESS_SIP_UNITARY') {
-        return 'Standard';
-      } else if (this.registerDetailType[opId] === 'FILINGSCHEME'){
-        return 'Plan de classement';
-      } else if (this.registerDetailType[opId] === 'HOLDINGSCHEME'){  
-        return 'Arbre de positionnement';
-      }else{
-       return '';
+      if (PROCESS_TRADUCTION[this.registerDetailType[opId]]) {
+        return PROCESS_TRADUCTION[this.registerDetailType[opId]];
+      } else {
+        // quand c'est une opération de rattachement on doit chercher evType par opId
+        return this.logbookService.getDetails(opId).subscribe((data) => {
+          this.registerDetailType[opId] = data.$results[0].evType;
+          return PROCESS_TRADUCTION[this.registerDetailType[opId]];
+        })
       }
     }
   }
