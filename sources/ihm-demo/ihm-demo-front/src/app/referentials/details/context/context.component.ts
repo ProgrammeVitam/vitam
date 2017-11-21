@@ -182,7 +182,7 @@ export class ContextComponent extends PageComponent {
     this.modifiedContext = ObjectsService.clone(this.context);
 
     for (let permission of this.modifiedContext.Permissions) {
-      this.tenants.splice(this.tenants.indexOf(permission._tenant), 1);
+      this.tenants.splice(this.tenants.indexOf(permission['#tenant']), 1);
     }
   }
 
