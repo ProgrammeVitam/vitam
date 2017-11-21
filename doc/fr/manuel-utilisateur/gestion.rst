@@ -1,49 +1,43 @@
 Gestion des archives existantes
 ################################
 
-Cette partie décrit les fonctionnalités de gestion et modification des archives dans la solution logicielle Vitam.
+Cette partie décrit le fonctionnement du processus d'audit dans la solution logicielle Vitam. L'audit est une action d'évaluation, de vérification, contrôle et correction permettant de s'assurer que l'état de la plateforme est toujours conforme à ses exigences de qualitées et de sécuritées.
 
+Lancement d'un audit de l'existence des objets
+====================================================
 
-Audit
-=====
+Un audit de l'existence des objets se lance sur un service producteur ou sur un tenant. Il permet de vérifier que, pour chaque objet du tenant choisi ou chaque objet appartenant à ce service producteur :
 
-La fonctionnalité d'audit permet de contrôler que les fichiers détenus par un service producteur ou présents sur un tenant sont toujours existants et intègres.
+* Il n'y a pas d'incohérence sur la stratégie de stockage. L'audit vérifie que la liste des offres de stockage définies dans le groupe d'objets est bien la même que celle définie dans la stratégie de stockage
 
-Pour réaliser des opérations d'audit, l'utilisateur survole le menu "Gestion des archives existantes", puis sélectionne "Audit".
+* Tous les objets ont leurs copies. L'audit vérifie que toutes les fichiers correspondant aux objets existent sur les offres déclarées, dans un nombre de copie spécifiée par la stratégie de stockage
+
+L'audit de l'existence des objets se lance depuis le menu "Gestion des archives"
 
 .. image:: images/menu_audit.png
 
-Sélection du type d'Audit
----------------------------------
+Pour débuter l'audit, il suffit de sélectionner comme type "tenant" ou "Service producteur". L'audit du tenant prend automatiquement comme valeur le tenant en cours, celui du service producteur demande de sélectionner un service producteur dans la liste. Cette liste est construite à partir des services producteurs déjà existant dans la solution logicielle Vitam.
 
-Les audits peuvent être exécutés sur les fonds détenus par un service producteur ou sur l'ensemble d'un tenant. 
-
-Pour exécuter un audit sur un tenant, l'utilisateur sélectionne "Service Producteur" dans le sélecteur "Sélectionner le type", puis choisi un service producteur dans le sélecteur "Sélectionner un service producteur".
-
-Pour réaliser un audit sur l'ensemble des fonds pris en charge dans un tenant, l'utilisateur choisi "Tenant" dans le sélecteur "Sélectionner le type".
-
-Le numéro du tenant s'affiche alors automatiquement et n'est pas modifiable.
+Il faut ensuite cocher l'audit désiré, ici "Audit de l'existence des objets", et de cliquer sur le bouton "Lancer l'audit". Un message de confirmation apparaît pour notifier du lancement du processus.
 
 .. image:: images/detail_audit.png
 
+L'avancement de l'audit, comme pour toutes les opérations, peut se suivre dans l'écran du suivi des opérations.
 
-Sélection du périmètre de l'Audit
----------------------------------
+Lancement d'un audit de l'intégrité des objets
+====================================================
 
-Un audit porte à minima sur l'existence des fichiers et peut aller jusqu'au contrôle de leurs intégrité.
+L'audit de l'intégrité des objets est un contrôle additionnel de l'audit de l'existence des objets. Il permet de vérifier que, pour chaque objet du tenant choisi ou chaque objet appartenant à ce service producteur, ces objets n'ont pas été altérés à l'insu de la solution logicielle Vitam.
 
-Ainsi, un utilisateur doit au moins cocher la case "Audit de l'existence des objets" pour pouvoir lancer un audit.
+Pour entrer dans le détail de cette vérification, l'audit vérifie pour chaque objet audité, l'empreinte de cet objet enregistrée dans la base de données est toujours la même que l'empreinte calculée par l'offre de stockage. Pour entrer dans le détail, l'empreinte d'un objet est une représentation mathématique considérée unique par objet. Si l'objet est modifié d'une quelconque manière que ce soit, son empreinte change de manière radicale.
 
-S'il coche la case "Audit de l'intégrité des objets", alors la case précédente est grisée et impossible à décocher.
+L'audit de l'existence des objets se lance depuis le menu "Gestion des archives", sur le même mode que l'audit de l'existence des objets, en cochant la case "Audit de l'intégrité des objets". Etant donné qu'il s'agit d'un contrôle additionnel, il est impossible dans l'IHM de lancer l'audit de l'intégrité des objets sans lancer l'audit de l'existence des objets : la case de ce dernier se cochant automatiquement si cela n'était pas déjà fait.
 
+L'avancement de l'audit, comme pour toutes les opérations, peut se suivre dans l'écran du suivi des opérations.
 
-Journalisation et rapport d'Audit
----------------------------------
+Journal des opérations d'entrée
+===============================
 
-La réalisation d'un audit donne lieu la création d'un journal d'opération et d'un rapport.
+Le résultat de l'audit est disponible dans le journal des opérations. De plus, l'audit génère un rapport, disponible dans la colonne "Rapport", sélectionnable dans le menu "informations complémentaires". Ce rapport détaille l'état de la plateforme vis à vis de son audit : tout d'abord en listant l'ensemble des opérations ayant versées un groupe d'objet ayant été audité (en succès ou échec), puis l'ensemble des objets pour lesquels l'audit a rencontré un échec. La structure de ce rapport est explicité dans le document modèle de données, alors que les différents statuts possibles sont décrits dans la documentation du workflow d'audit.
 
-L'utilisateur peut télécharger le rapport de l'IHM depuis l'écran de consultation des journaux d'opération en choisissant affichant la colonne "Rapport", accessible par le sélecteur "Informations supplémentaires".
-
-Un lien de téléchargement apparaît alors dans cette colonne pour les lignes affichant une opération d'audit.
-
-L'utilisateur peut télécharger le rapport de l'opération en cliquant sur ce lien.
+Ce rapport est formaté de telle manière à faciliter son intégration dans des systèmes d'informations, il n'a pas pour objet principal d'être lu par un humain tel quel, même si cela reste possible.

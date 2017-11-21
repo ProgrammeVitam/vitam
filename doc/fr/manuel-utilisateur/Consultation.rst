@@ -101,7 +101,7 @@ Détail de l'unité archivistique
 
 Cet écran affiche les informations concernant l'unité archivistique et le groupe d'objets associé, informations contenues dans le bordereau SEDA et récupérées lors de l'entrée de l'unité archivistique dans la solution logicielle Vitam.
 
-La page est divisée en plusieurs sections, certaines sont affichées par défaut, afin de visualiser les autres sections, un clique sur le "+" situé sur droite d'une section permet de l'afficher :
+La page est divisée en plusieurs sections, certaines sont affichées par défaut, afin de visualiser les autres sections, un clique sur le "+" situé sur droite d'une section permet de l'afficher.
 
 **Contexte de l'unité archivistique**
 
@@ -121,8 +121,8 @@ Concernant les services producteurs, il faut différencier :
  - Identifiant service producteur, le service producteur de l'unité archivistique, repris du bloc <content> du bordereau
  - Service producteur de l'entrée, l'information correspondant à la valeur de l'OriginatingAgencyIdentifier déclarée dans le SIP
  - Services ayant des droits sur l'entrée, correspondants aux services producteur de l'entrée et à ceux des entrées des parents auxquels des unités archivistiques ont été rattachées
- 
- 
+
+
  .. image:: images/au_desc.png
 
 **Description complémentaire**
@@ -345,18 +345,18 @@ Suite à une recherche, les résultats se présentent sous forme de tableau affi
 Consultation du détail
 ----------------------
 
-Depuis la liste des résultats, l'utilisateur peut consulter le détail du service producteur des fonds pour un service producteur en cliquant sur la ligne voulue. Puis il clique sur le bouton "Registre des fonds" afin d'affichre le détail complet.
+Depuis la liste des résultats, l'utilisateur peut consulter le détail du service producteur des fonds pour un service producteur en cliquant sur la ligne voulue. Puis il clique sur le bouton "Registre des fonds" afin d'afficher le détail complet.
 
 .. image:: images/detail_sp.png
 
 Consultation du registre des fonds
 ----------------------------------
 
-Depuis le détail du service agent, l'utilisateur peut consulter le registre des fonds de ce service.
+Depuis le détail du service agent (menu Administration > Référentiels > Services Agents, puis cliquer sur un service agent ayant versé des unités archivistiques), l'utilisateur peut consulter le registre des fonds de ce service.
 
 Deux blocs d'informations sont disponibles depuis le détail du registre des fonds :
 
-- Une vue regroupant toutes les unités archivistiques, groupes d'objets et objets pour un service producteur par fond propres et rattachés
+- Une vue regroupant toutes les unités archivistiques, groupes d'objets et objets ainsi que leurs volumétries, pour un service producteur par fond propres et rattachés
 - Une vue listant toutes les opérations d'entrée effectuées pour ce service producteur
 
 .. image:: images/fonds_detail.png
@@ -419,9 +419,4 @@ Pour chaque entrée, les informations suivantes sont affichées :
 - Type (standard, plan de classement, arbre de positionnement)
 - statut (En stock et complète, En stock et mise à jour, Sortie du stock)
 
-Un bouton permet d'accèder directement à la liste des unités archivistiques liées à ce service producteur.
-
-
-.. image:: images/fonds_au.png
-
-
+Un bouton "Unités archivistiques associées" permet d'accèder directement à la liste des unités archivistiques liées à ce service producteur.

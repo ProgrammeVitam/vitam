@@ -12,7 +12,7 @@ Cette partie décrit les fonctionnalités d'administration proposées à l'utili
 - Import et consultation du référentiel des règles de gestion
 - Import et consultation du référentiel des services agents
 - Consultation et recherche du journal des opérations
-- Recher et gestion des opérations
+- Recherche et gestion des opérations
 - Consultation et recherche des opérations de sécurisation
 
 Journal des opérations
@@ -464,13 +464,11 @@ La page "Détail d'un contrat d'accès" contient les informations suivantes :
 - Intitulé
 - Description
 - Statut
-- Service producteur
+- Tous les services producteurs
 - Date de création
-- Date d'activation
-- Date de mise à jour
-- Date de désactivation
+- Date de dernière modification
 - Droit d'écriture
-- Usage
+- Tous les usages autorisés
 - Nœuds de consultation
 
 
@@ -483,7 +481,7 @@ Il est possible d'ajouter ou supprimer des services producteurs au travers un sy
 
 Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet de les sauvegarder. A l'inverse, le bouton annuler permet de retourner à l'écran du détail du contrat sans appliquer les modifications.
 
-** Utilisation des contrats d'accès **
+**Utilisation des contrats d'accès**
 
 Chaque profil utilisateur peut être relié à un ou plusieurs contrats, qui restreignent totalement, de manière partielle ou autorisent pleinement l'accès et/ou la modification d'une archive.
 
@@ -502,7 +500,7 @@ L'administrateur a la possibilité d'activer / désactiver un contrat. Un bouton
 
 Restriction d'accès par service producteur
 
-Un contrat peut interdire l'accès à tous ou certains services producteurs d'objets inclus dans une liste blanche. . Deux options sont disponibles :
+Un contrat peut interdire l'accès à tous ou certains services producteurs d'objets inclus dans une liste blanche.Deux options sont disponibles :
 
  - accès à tous les services producteurs en cliquant sur le bouton "Tous les services producteurs"
  - accès à une sélection de services producteurs en cliquant sur le bouton "Liste blanche uniquement"
@@ -513,7 +511,7 @@ Un contrat peut autoriser l'accès à tous ou certains usages d'objets inclus da
 
  - accès à tous les services producteurs en cliquant sur le bouton "Tous les usages"
  - accès à une sélection de services producteurs en cliquant sur le bouton "Liste blanche uniquement"
- 
+
 
  .. image:: images/ca_update.png
 
@@ -522,8 +520,8 @@ Restriction par nœud de consultation
 Un contrat peut restreindre l'accès aux unités archivistiques listées en tant que nœuds de consultation ainsi qu'à leurs enfants. Chaque unités archivistiques renseignée est identifiée par son identifiant. Si aucune unité archivistique n'y est renseignée, alors l'accès du détenteur du contrat n'est pas restreint à des nœuds de consultation.
 
 
-Contexte
-========
+Contexte applicatifs
+========================
 
 Import d'un contexte
 --------------------
@@ -535,7 +533,7 @@ Pour importer un contexte, l'utilisateur clique sur le menu "Administration"  pu
 
 .. image:: images/menu_imports.png
 
-Il sélectionne ensuite le fichier (.json) à importer en cliquant sur "sélectionner un fichier" ou fait glisser le fichier sur l'espace de téléchargement,, puis clique sur "Importer" pour lancer l'opération.
+Il sélectionne ensuite le fichier (.json) à importer en cliquant sur "sélectionner un fichier" ou fait glisser le fichier sur l'espace de téléchargement, puis clique sur "Importer" pour lancer l'opération.
 
 
 .. image:: images/import_contextes.png
@@ -723,7 +721,7 @@ Pour importer un arbre de positionnement, l'utilisateur survole le menu "Adminis
 
 .. image:: images/menu_imports.png
 
-Une fois celui-ci sélectionné, il apparaît sur l'écran "Import de l'arbre de positionnement". Le nom du fichier s'affiche à droite du lien "sélectionner un fichier" et une nouvelle ligne apparaît en dessous avec le nom du fichier, sa taille ainsi qu'un champ statut pour l'instant vide.
+Une fois celui-ci sélectionné, il apparaît sur l'écran "Import de l'arbre de positionnement". Le nom du fichier s'affiche en-dessous du bouton "sélectionner un fichier" et une nouvelle ligne apparaît en dessous avec le nom du fichier, sa taille ainsi qu'un champ statut pour l'instant vide.
 
 Deux listes déroulantes sont présentes sur l'écran :
 
@@ -733,7 +731,7 @@ Deux listes déroulantes sont présentes sur l'écran :
 
 Le mode d'exécution et la destination sont obligatoires.
 
-Pour lancer le transfert de l'arbre, l’utilisateur clique sur le lien « sélectionner un fichier », il est également possible de faire glisser l'arbre sur l'espace de téléchargement.
+Pour lancer le transfert de l'arbre, l’utilisateur clique sur le lien « Importer », il est également possible de faire glisser l'arbre sur l'espace de téléchargement.
 
 Les informations visibles à l'écran sont :
 
@@ -760,8 +758,8 @@ Lors d'une entrée en succès dans la solution logicielle Vitam, l'ATR comprend 
 
 - Date : date d'émission de l'ATR
 - MessageIdentifier : identifiant de l'ATR. Cet identifiant correspond à l'identification attribué à la demande de transfert par la solution logicielle Vitam
-- ArchivalAgreement : contrat d'entrée
-- CodeListVesion : la liste des référentiels utilisés
+- ArchivalAgreement : identifiant du contrat d'entrée
+- CodeListVersion : la liste des référentiels utilisés
 - La liste des Unités Archivistiques avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle Vitam (SystemId)
 - ReplyCode : statut final de l'entrée
 - GrantDate : date de prise en charge de l'arbre
@@ -781,7 +779,7 @@ La notification comprend ensuite la liste des erreurs rencontrées (échecs ou a
 Gestion des opérations
 ======================
 
-Cette partie décrit les fonctionnalités de la page “Gestion des opérations”. Elle permet de suivre l’évolution des opérations d’entrée et d’utiliser le mode pas à pas.
+Cette partie décrit les fonctionnalités de la page “Gestion des opérations”. Elle permet de suivre l’évolution des opérations et d’utiliser le mode pas à pas.
 
 
 Recherche d'une opération
@@ -793,7 +791,7 @@ Pour accéder à la page de recherche d'une opération, l'utilisateur survole le
 La page affiche un formulaire de recherche composé des champs suivants :
 
 - Identifiant : identifiant unique de l’opération d’entrée
-- Catégorie : indique le type d’opération d’entrée
+- Catégorie : indique le type d’opération
 - Statut : statut actuel de l'opération
 - Etats : état actuel de l'opération
 - Dernière étape : dernière étape à laquelle le workflow s'est arrêté
@@ -811,7 +809,7 @@ Affichage des résultats
 Par défaut, la solution logicielle Vitam affiche toutes les opérations non terminées dans la liste de résultats et l’affine en fonction de la recherche effectuée. La liste des résultats est composée des colonnes suivantes :
 
 * Identifiant de l’opération : identifiant unique de l’opération d’entrée
-* Catégorie de l’opération : indique le type d’opération d’entrée :
+* Catégorie de l’opération : indique le type d’opération :
 	* INGEST : indique une opération d’entrée normale
 	* INGEST_TEST : indique une opération d’entrée en test à blanc
 * Date de l’entrée : date à laquelle l’entrée a été soumise à la solution logicielle Vitam
@@ -845,7 +843,7 @@ Les boutons disponibles sont :
 
 - Suivant : permet de passer à l’étape suivante du workflow - lorsqu’une étape est terminée, il faut cliquer sur “suivant” pour continuer l’entrée
 - Pause : permet de mettre l’opération d’entrée en pause
-- Relay : permet de rejouer l'étape dernièrement exécutée du workflow - lorsque cette étape est terminée, il faut cliquer sur “suivant” pour continuer l’entrée
+- Replay : permet de rejouer l'étape dernièrement exécutée du workflow - lorsque cette étape est terminée, il faut cliquer sur “suivant” pour continuer l’entrée
 - Reprise : permet de reprendre une entrée en pause
 - Arrêt : permet d’arrêter complètement une opération d’entrée. Elle passera alors en statut “terminée” et il sera impossible de la redémarrer
 
@@ -865,7 +863,7 @@ Les administrateurs ont la possibilité d'accéder aux fonctionnalités suivante
 Rechercher des journaux sécurisés
 ---------------------------------
 
-Pour accéder à la page de “Opérations de sécurisation”, l'utilisateur survole le menu "Administration", puis le sous-menu "Opérations" et sélectionne "Journaux sécurisés".
+Pour accéder à la page de “Opérations de sécurisation”, l'utilisateur survole le menu "Administration", puis le sous-menu "Opérations" et sélectionne "Opérations de sécurisation".
 
 
 L’interface est constituée de trois éléments :
@@ -879,7 +877,7 @@ L’interface est constituée de trois éléments :
 Le formulaire est composé des champs suivants :
 
 * Identifiant de l’objet : identifiant du fichier recherché
-* Dates extrêmes : intervalle de dates permettant de rechercher sur les dates du premier et du dernier journal pris en compte dans l'opération de sécurisation
+* Date de début et date de fin : intervalle de dates permettant de rechercher sur les dates du premier et du dernier journal pris en compte dans l'opération de sécurisation
 * Type de journal sécurisé : liste déroulante permettant de sélectionner le type de journal sécurisé à afficher.
 
 Les types de journaux sont :
@@ -893,7 +891,7 @@ Les types de journaux sont :
 
 **Lancer une recherche**
 
-Par défaut, aucun résultat n'est affiché. Il faut lancer une recherche pour faire apparaître des résultats.
+Par défaut, tous les résultat sont affichés.
 
 Pour lancer une recherche en prenant en compte un intervalle de dates, cliquer sur le bouton "Rechercher" après l'avoir renseigné dans les champs Dates extrêmes.
 
@@ -941,4 +939,3 @@ En cliquant sur le bouton "Lancer la vérification", la solution logicielle Vita
 Une fois l'opération terminée, son détail est affiché. Il est également disponible dans le Journal des opérations.
 
 Le bouton "Télécharger" permet d'obtenir le journal sécurisé.
-
