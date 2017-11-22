@@ -156,7 +156,7 @@ public class ArchiveUnitMapper {
             archiveUnit.getManagement().setStorage(storageRuleCategory);
         }
 
-        if (storageRuleCategory != null) {
+        if (storageRuleCategory != null && storageRule != null) {
             FinalActionStorageCodeType sfa = storageRule.getFinalAction();
             if (sfa != null) {
                 storageRuleCategory.setFinalAction(sfa.value());
@@ -229,7 +229,7 @@ public class ArchiveUnitMapper {
         } else {
             archiveUnit.getManagement().setAppraisal(appraisalRuleCategory);
         }
-        if (appraisalRuleCategory != null) {
+        if (appraisalRuleCategory != null && appraisalRule != null) {
             FinalActionAppraisalCodeType afa = appraisalRule.getFinalAction();
             if (afa != null) {
                 appraisalRuleCategory.setFinalAction(afa.value());

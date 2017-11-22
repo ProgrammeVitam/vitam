@@ -64,7 +64,9 @@ public interface MetaData {
 
 
     /**
-     * @param operationId
+     * Select an Accession Register linked to an Operation
+     * 
+     * @param operationId the operation identifier
      * @return the list of documents
      */
     List<Document> selectAccessionRegisterOnObjectGroupByOperationId(String operationId);
@@ -139,7 +141,7 @@ public interface MetaData {
      * @throws InvalidParseOperationException Thrown when json format is not correct
      * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
-     * @throws MetaDataNotFoundException
+     * @throws MetaDataNotFoundException Thrown if no objectGroup is found
      * 
      * 
      */
@@ -171,6 +173,8 @@ public interface MetaData {
 
 
     /**
+     * Insert an objectGroup
+     * 
      * @param objectRequest as JsonNode { $roots: roots, $query : query, $filter : multi, $data : data}
      *
      * @throws InvalidParseOperationException Throw if json format is not correct
@@ -191,6 +195,7 @@ public interface MetaData {
 
 
     /**
+     * Update an object group
      * 
      * @param updateRequest
      * @param objectId

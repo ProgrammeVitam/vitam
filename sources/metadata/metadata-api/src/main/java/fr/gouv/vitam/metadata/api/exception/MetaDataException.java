@@ -38,6 +38,8 @@ public class MetaDataException extends VitamException {
     private static final long serialVersionUID = 5683718092916241947L;
 
     /**
+     * Constructor
+     * 
      * @param message message to associate with the exception
      */
     public MetaDataException(String message) {
@@ -45,6 +47,8 @@ public class MetaDataException extends VitamException {
     }
 
     /**
+     * Constructor
+     * 
      * @param cause cause to associate with the exception
      */
     public MetaDataException(Throwable cause) {
@@ -52,6 +56,8 @@ public class MetaDataException extends VitamException {
     }
 
     /**
+     * Constructor
+     * 
      * @param message message to associate with the exception
      * @param cause cause to associate with the exception
      */

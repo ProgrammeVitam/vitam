@@ -104,7 +104,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
 
     private static final String FORMAT_IDENTIFIER_ID = "siegfried-local";
     private static final int OG_INPUT_RANK = 0;
-    
+
     private static final String SUBSTATUS_UNKNOWN = "UNKNOWN";
     private static final String SUBSTATUS_UNCHARTED = "UNCHARTED";
 
@@ -177,7 +177,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                                     ItemStatus subTaskItemStatus = new ItemStatus(FILE_FORMAT);
                                     subTaskItemStatus.increment(result.getStatus());
                                     itemStatus.increment(result.getStatus());
-                                        
+
                                     if (result.getStatus().equals(StatusCode.KO)) {
                                         switch (result.getSubStatus()) {
                                             case FILE_FORMAT_NOT_FOUND:
@@ -211,10 +211,10 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
             }
 
             if (metadatasUpdated) {
-                handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER, 
+                handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER,
                     params.getObjectName(), jsonOG, false, asyncIO);
 
-                if (eventDetailData!=null){
+                if (eventDetailData != null) {
                     itemStatus.setEvDetailData(eventDetailData);
                 }
             }
@@ -283,10 +283,10 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                         objectCheckFormatResult, refFormat,
                         version);
                 ObjectNode diffObject = JsonHandler.createObjectNode();
-                diffObject.set( "-", formatIdentification );
-                diffObject.set( "+", newFormatIdentification );
+                diffObject.set("-", formatIdentification);
+                diffObject.set("+", newFormatIdentification);
                 ObjectNode object = JsonHandler.createObjectNode();
-                object.set( "diff", diffObject );
+                object.set("diff", diffObject);
                 eventDetailData = object.toString();
                 // Reassign new format
                 ((ObjectNode) version).set(SedaConstants.TAG_FORMAT_IDENTIFICATION, newFormatIdentification);
@@ -335,8 +335,9 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         }
         if (newFormatIdentification != null) {
             final String fiPuid = newFormatIdentification.get(SedaConstants.TAG_FORMAT_ID) != null
-                ? newFormatIdentification.get(SedaConstants.TAG_FORMAT_ID).asText() : null;
-            if (!puid.equals(fiPuid)) {
+                ? newFormatIdentification.get(SedaConstants.TAG_FORMAT_ID).asText()
+                : null;
+            if (puid != null && !puid.equals(fiPuid)) {
                 objectCheckFormatResult.setStatus(StatusCode.WARNING);
                 if (fiPuid != null) {
                     diff.append("- PUID : ");
@@ -350,7 +351,8 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
             }
             final String name = refFormat.getName();
             final String fiFormatLitteral = newFormatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL) != null
-                ? newFormatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL).asText() : null;
+                ? newFormatIdentification.get(SedaConstants.TAG_FORMAT_LITTERAL).asText()
+                : null;
             if (!name.equals(fiFormatLitteral)) {
                 if (diff.length() != 0) {
                     diff.append('\n');
@@ -368,7 +370,8 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
             }
             final String mimeType = refFormat.getMimeType();
             final String fiMimeType = newFormatIdentification.get(SedaConstants.TAG_MIME_TYPE) != null
-                ? newFormatIdentification.get(SedaConstants.TAG_MIME_TYPE).asText() : null;
+                ? newFormatIdentification.get(SedaConstants.TAG_MIME_TYPE).asText()
+                : null;
             if (!mimeType.equals(fiMimeType)) {
                 if (diff.length() != 0) {
                     diff.append('\n');
@@ -389,7 +392,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         if (StatusCode.WARNING.equals(objectCheckFormatResult.getStatus())) {
             objectCheckFormatResult.setSubStatus(FILE_FORMAT_UPDATED_FORMAT);
         }
-        
+
         return newFormatIdentification;
     }
 

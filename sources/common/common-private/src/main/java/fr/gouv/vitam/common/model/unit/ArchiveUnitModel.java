@@ -31,6 +31,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
+/**
+ * ArchiveUnitModel class
+ */
 public class ArchiveUnitModel {
 
     @JsonProperty("_id")
@@ -50,6 +53,9 @@ public class ArchiveUnitModel {
 
     private DataObjectReference dataObjectReference;
 
+    /**
+     * Constructor
+     */
     public ArchiveUnitModel() {
         management = new ManagementModel();
     }

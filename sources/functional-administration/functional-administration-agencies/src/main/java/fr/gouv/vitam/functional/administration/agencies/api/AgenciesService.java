@@ -64,7 +64,6 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -89,7 +88,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
@@ -103,7 +101,6 @@ import fr.gouv.vitam.functional.administration.common.AgenciesParser;
 import fr.gouv.vitam.functional.administration.common.ErrorReportAgencies;
 import fr.gouv.vitam.functional.administration.common.FileAgenciesErrorCode;
 import fr.gouv.vitam.functional.administration.common.FilesSecurisator;
-import fr.gouv.vitam.functional.administration.common.exception.AgenciesException;
 import fr.gouv.vitam.functional.administration.common.exception.AgencyImportDeletionException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
@@ -111,12 +108,8 @@ import fr.gouv.vitam.functional.administration.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
@@ -128,9 +121,10 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.assertj.core.util.Lists;
 
-
+/**
+ * AgenciesService class allowing multiple operation on AgenciesService collection
+ */
 public class AgenciesService implements VitamAutoCloseable {
 
     public static final String AGENCIES_IMPORT_EVENT = "STP_IMPORT_AGENCIES";
@@ -177,9 +171,9 @@ public class AgenciesService implements VitamAutoCloseable {
     /**
      * Constructor
      *
-     * @param mongoAccess         MongoDB client
-     * @param vitamCounterService
-     * @param securisator
+     * @param mongoAccess MongoDB client
+     * @param vitamCounterService the vitam counter service
+     * @param securisator the FilesSecurisator
      */
     public AgenciesService(MongoDbAccessAdminImpl mongoAccess,
         VitamCounterService vitamCounterService, FilesSecurisator securisator) {
@@ -199,6 +193,15 @@ public class AgenciesService implements VitamAutoCloseable {
         finder = new ContractsFinder(mongoAccess, vitamCounterService);
     }
 
+    /**
+     * 
+     * @param mongoAccess MongoDB client
+     * @param vitamCounterService the vitam counter service
+     * @param securisator the FilesSecurisator
+     * @param logbookOperationsClientFactory the logbook operaction client factory
+     * @param storageClientFactory the storage client factory
+     * @param workspaceClientFactory the workspace client factory
+     */
     @VisibleForTesting
     public AgenciesService(MongoDbAccessAdminImpl mongoAccess,
         VitamCounterService vitamCounterService, FilesSecurisator securisator,
@@ -221,9 +224,9 @@ public class AgenciesService implements VitamAutoCloseable {
     }
 
     /**
-     * @param id
-     * @return
-     * @throws ReferentialException
+     * @param id the document id
+     * @return the vitamDocument as an Agencies object
+     * @throws ReferentialException thrown if the agency is not found or if the an error is encountered
      */
     public VitamDocument<Agencies> findDocumentById(String id) throws ReferentialException {
         try {
@@ -247,14 +250,15 @@ public class AgenciesService implements VitamAutoCloseable {
         throw new ReferentialException("Agency not found");
     }
 
+    /**
+     * 
+     * @param select the query as a json
+     * @return list of response as a RequestResponseOK object
+     * @throws ReferentialException thrown if an error is encountered
+     */
     public RequestResponseOK findDocuments(JsonNode select)
         throws ReferentialException {
-        try {
-            return findAgencies(select).getRequestResponseOK(select, Agencies.class);
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error("ReferentialException", e);
-            throw new ReferentialException("Agency not found");
-        }
+        return findAgencies(select).getRequestResponseOK(select, Agencies.class);
     }
 
 
@@ -281,8 +285,8 @@ public class AgenciesService implements VitamAutoCloseable {
 
     /**
      * Construct query DSL for find all Agencies (referential)
-     *
-     * @return list of FileAgencies in database
+     * 
+     * @throws VitamException thrown if query could not be executed
      */
     public void findAllAgenciesUsedByUnits() throws VitamException {
 
@@ -326,6 +330,12 @@ public class AgenciesService implements VitamAutoCloseable {
         manager.logEventWarning(AGENCIES_IMPORT_AU_USAGE);
     }
 
+    /**
+     * Find all agencies used by access contracts
+     * 
+     * @throws InvalidCreateOperationException thrown if the query could not be created
+     * @throws VitamException thrown if an error is encountered
+     */
     public void findAllAgenciesUsedByAccessContrats() throws InvalidCreateOperationException, VitamException {
 
         for (AgenciesModel agency : agenciesToUpdate) {
@@ -363,10 +373,10 @@ public class AgenciesService implements VitamAutoCloseable {
     /**
      * Convert a given input stream to a file
      *
-     * @param agenciesStream
-     * @param extension
-     * @return
-     * @throws IOException
+     * @param agenciesStream the agencies stream
+     * @param extension the file extension 
+     * @return a file
+     * @throws IOException thrown if the file could not be created
      */
     private File convertInputStreamToFile(InputStream agenciesStream, String extension) throws IOException {
         try {
@@ -379,17 +389,15 @@ public class AgenciesService implements VitamAutoCloseable {
     }
 
     /**
-     * @param stream
-     * @throws ReferentialException
-     * @throws IOException
-     * @throws InvalidCreateOperationException
-     * @throws InvalidParseOperationException
+     * Check file integrity
+     * 
+     * @param stream the stream to be checked
+     * @throws ReferentialException thrown if the file is not correct
+     * @throws IOException thrown if the file could be read
      */
     public void checkFile(InputStream stream)
         throws ReferentialException,
-        IOException,
-        InvalidCreateOperationException,
-        InvalidParseOperationException {
+        IOException {
 
         int lineNumber = 1;
         File csvFileReader = convertInputStreamToFile(stream, CSV);
@@ -427,11 +435,13 @@ public class AgenciesService implements VitamAutoCloseable {
                 String message = e.getMessage();
                 if (message.contains("Name not found")) {
                     message = FILE_INVALID + "Name";
-                } if (message.contains("Identifier not found")) {
+                }
+                if (message.contains("Identifier not found")) {
                     message = FILE_INVALID + "Identifier";
-                } if (message.contains("Description not found")) {
+                }
+                if (message.contains("Description not found")) {
                     message = FILE_INVALID + "Description";
-                } 
+                }
                 throw new ReferentialException(message);
             } catch (Exception e) {
                 throw new ReferentialException(e);
@@ -450,15 +460,12 @@ public class AgenciesService implements VitamAutoCloseable {
     }
 
     /**
-     * @throws AgenciesException
-     * @throws InvalidParseOperationException
+     * Check agencies in database
+     * 
      */
-    public void checkAgenciesInDb()
-        throws AgenciesException,
-        InvalidParseOperationException, InvalidCreateOperationException {
+    public void checkAgenciesInDb() {
 
         List<Agencies> tempAgencies = findAllAgencies();
-
         tempAgencies.forEach(a -> agenciesInDb.add(a.wrap()));
 
     }
@@ -520,10 +527,13 @@ public class AgenciesService implements VitamAutoCloseable {
 
 
     /**
-     * @param stream
-     * @return
-     * @throws VitamException
-     * @throws IOException
+     * Import an input stream into agencies collection
+     * 
+     * @param stream the stream to be imported
+     * @return a response as a RequestResponse<AgenciesModel> object
+     * @throws VitamException thrown if logbook could not be initialized
+     * @throws IOException thrown in case or error with stream
+     * @throws InvalidCreateOperationException thrown if the error report could not be stored
      */
     public RequestResponse<AgenciesModel> importAgencies(InputStream stream)
         throws VitamException, IOException, InvalidCreateOperationException {
@@ -693,21 +703,20 @@ public class AgenciesService implements VitamAutoCloseable {
     }
 
     /**
-     * @param queryDsl
-     * @return
-     * @throws ReferentialException
-     * @throws InvalidParseOperationException
+     * @param queryDsl the query to be executed
+     * @return a DbRequestResult containing agencies
+     * @throws ReferentialException thrown if the query could not be executed
      */
     public DbRequestResult findAgencies(JsonNode queryDsl)
-        throws ReferentialException, InvalidParseOperationException {
+        throws ReferentialException {
         return mongoAccess.findDocuments(queryDsl, AGENCIES);
     }
 
     /**
-     * @param id
-     * @return
-     * @throws ReferentialException
-     * @throws InvalidParseOperationException
+     * @param id the agency Id
+     * @return the agency as an AgenciesModel object
+     * @throws ReferentialException thrown if the query could not be executed
+     * @throws InvalidParseOperationException thrown if the query could not be created
      */
     public AgenciesModel findOneAgencyById(String id) throws ReferentialException, InvalidParseOperationException {
         SanityChecker.checkParameter(id);
@@ -783,6 +792,11 @@ public class AgenciesService implements VitamAutoCloseable {
 
 
 
+    /**
+     * Generate an error report
+     * 
+     * @return an input stream containing the report
+     */
     public InputStream generateErrorReport() {
 
         final ObjectNode reportFinal = generateReport();
@@ -819,6 +833,11 @@ public class AgenciesService implements VitamAutoCloseable {
         return new ByteArrayInputStream(JsonHandler.unprettyPrint(reportFinal).getBytes(StandardCharsets.UTF_8));
     }
 
+    /**
+     * Get Errors as a map
+     * 
+     * @return errors as a map
+     */
     @VisibleForTesting
     public Map<Integer, List<ErrorReportAgencies>> getErrorsMap() {
         return errorsMap;

@@ -26,6 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.api;
 
+/**
+ * AccessExtAPI containing different AccessExt uri 
+ * 
+ */
 public class AccessExtAPI {
 
     private AccessExtAPI() {}

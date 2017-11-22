@@ -30,6 +30,9 @@ import java.util.Optional;
 
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
 
+/**
+ * AgenciesValidator interface
+ */
 public interface AgenciesValidator {
     /**
      * Validate a agency object
@@ -39,16 +42,38 @@ public interface AgenciesValidator {
      */
     Optional<AgenciesRejectionCause> validate(AgenciesModel agency);
 
+    /**
+     * AgenciesRejectionCause class
+     * 
+     */
     public class AgenciesRejectionCause {
+        /**
+         * Error label for id not null
+         */
         public static String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating agency (%s)";
+        
+        /**
+         * Error label for duplication of agency in the database
+         */
         public static String ERR_DUPLICATE_AGENCY_ENTRY =
             "One or many Agencies in the imported list have the same name : %s";
+        /**
+         * Error label for a mandatory field missing
+         */
         public static String ERR_MANDATORY_FIELD = "The field %s is mandatory";
+        /**
+         * Error label for duplication of agency in the database
+         */
         public static String ERR_DUPLICATE_AGENCY = "The agency %s already exists in database";
 
 
         private String reason;
 
+        /**
+         * Constructor
+         * 
+         * @param error the rejection cause
+         */
         public AgenciesRejectionCause(String error) {
             setReason(error);
         }
@@ -56,8 +81,8 @@ public interface AgenciesValidator {
         /**
          * Reject if id exisit and the action is creation. If id exists, it should be an update instead of create
          *
-         * @param agencyIdentifier
-         * @return agenciesRejectionCause
+         * @param agencyIdentifier the id of the agency
+         * @return agenciesRejectionCause the cause of rejection
          */
         public static AgenciesRejectionCause rejectIdNotAllowedInCreate(String agencyIdentifier) {
             return new AgenciesRejectionCause(String.format(ERR_ID_NOT_ALLOWED_IN_CREATE, agencyIdentifier));
@@ -67,8 +92,8 @@ public interface AgenciesValidator {
          * Reject if multiple agency have the same name in the same request before persist into database. The agency
          * identifier must be unique
          *
-         * @param agencyIdentifier
-         * @return agenciesRejectionCause
+         * @param agencyIdentifier the id of the agency
+         * @return agenciesRejectionCause the cause of rejection
          */
         public static AgenciesRejectionCause rejectDuplicatedEntry(String agencyIdentifier) {
             return new AgenciesRejectionCause(String.format(ERR_DUPLICATE_AGENCY_ENTRY, agencyIdentifier));
@@ -77,25 +102,30 @@ public interface AgenciesValidator {
         /**
          * Reject if one of multiple mandatory parameter are null
          * 
-         * @param fieldName
-         * @return agenciesRejectionCause
+         * @param fieldname the fieldname
+         * @return agenciesRejectionCause the cause of rejection
          */
         public static AgenciesRejectionCause rejectMandatoryMissing(String fieldName) {
             return new AgenciesRejectionCause(String.format(ERR_MANDATORY_FIELD, fieldName));
         }
 
         /**
-         * Verify for each agency if already exists one in database that have the same name. The database my manage
-         * this kind of constraint (by creating an unique index on the field or column)
+         * Verify for each agency if already exists one in database that have the same name. The database my manage this
+         * kind of constraint (by creating an unique index on the field or column)
          * 
-         * @param agencyName
-         * @return agenciesRejectionCause
+         * @param agencyName the name of the agency
+         * @return agenciesRejectionCause the cause of rejection
          */
         public static AgenciesRejectionCause rejectDuplicatedInDatabase(String agencyName) {
             return new AgenciesRejectionCause(String.format(ERR_DUPLICATE_AGENCY, agencyName));
         }
 
 
+        /**
+         * Get the reason of rejection
+         * 
+         * @return the reason of rejection
+         */
         public String getReason() {
             return reason;
         }

@@ -33,6 +33,8 @@ public class WorkspaceClientServerException extends ContentAddressableStorageExc
     private static final long serialVersionUID = -7976465493734475323L;
 
     /**
+     * Constructor
+     * 
      * @param message as String message to associate with the exception
      */
     public WorkspaceClientServerException(String message) {
@@ -40,6 +42,8 @@ public class WorkspaceClientServerException extends ContentAddressableStorageExc
     }
 
     /**
+     * Constructor
+     * 
      * @param cause as String to associate with the exception
      */
     public WorkspaceClientServerException(Throwable cause) {
@@ -47,6 +51,7 @@ public class WorkspaceClientServerException extends ContentAddressableStorageExc
     }
 
     /**
+     * Constructor
      *
      * @param message the exception message as String
      * @param cause the cause of exception as String

@@ -46,8 +46,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.io.IOUtils;
@@ -90,7 +88,6 @@ public class IngestStep {
     private World world;
     private static boolean deleteSip = false;
     private static boolean attachMode = false;
-    private static String OUTCOME_DETAIL = "OutcomeDetail";
 
     public IngestStep(World world) {
         this.world = world;
@@ -206,7 +203,7 @@ public class IngestStep {
         RequestResponse<LogbookOperation> requestResponse =
             world.getAccessClient()
                 .selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                        .setApplicationSessionId(world.getApplicationSessionId()),
+                    .setApplicationSessionId(world.getApplicationSessionId()),
                     world.getOperationId(), new Select().getFinalSelectById());
         if (requestResponse instanceof RequestResponseOK) {
             RequestResponseOK<LogbookOperation> requestResponseOK =
@@ -227,7 +224,7 @@ public class IngestStep {
     /**
      * check if the status is valid for a list of event type according to logbook operation
      *
-     * @param eventNames  list of event
+     * @param eventNames list of event
      * @param eventStatus status of event
      * @throws VitamClientException
      * @throws InvalidParseOperationException
@@ -238,7 +235,7 @@ public class IngestStep {
         RequestResponse<LogbookOperation> requestResponse =
             world.getAccessClient()
                 .selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                        .setApplicationSessionId(world.getApplicationSessionId()),
+                    .setApplicationSessionId(world.getApplicationSessionId()),
                     world.getOperationId(), new Select().getFinalSelectById());
 
         if (requestResponse.isOk()) {
@@ -275,7 +272,7 @@ public class IngestStep {
         RequestResponse<LogbookOperation> requestResponse =
             world.getAccessClient()
                 .selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                        .setApplicationSessionId(world.getApplicationSessionId()),
+                    .setApplicationSessionId(world.getApplicationSessionId()),
                     world.getOperationId(), new Select().getFinalSelectById());
 
         if (requestResponse.isOk()) {
@@ -306,7 +303,7 @@ public class IngestStep {
     /**
      * check if the outcome detail is valid for an event type according to logbook operation
      *
-     * @param eventName    the event
+     * @param eventName the event
      * @param eventResults otucome detail of the event
      * @throws VitamClientException
      * @throws InvalidParseOperationException
@@ -317,7 +314,7 @@ public class IngestStep {
         RequestResponse<LogbookOperation> requestResponse =
             world.getAccessClient()
                 .selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                        .setApplicationSessionId(world.getApplicationSessionId()),
+                    .setApplicationSessionId(world.getApplicationSessionId()),
                     world.getOperationId(), new Select().getFinalSelectById());
 
         if (requestResponse.isOk()) {

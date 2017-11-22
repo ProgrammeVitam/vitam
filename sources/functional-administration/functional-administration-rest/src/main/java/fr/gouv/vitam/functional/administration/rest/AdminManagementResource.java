@@ -156,14 +156,21 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private final static String ORIGINATING_AGENCY = "OriginatingAgency";
 
     private static final SingleVarNameAdapter DEFAULT_VARNAME_ADAPTER = new SingleVarNameAdapter();
+    /**
+     * Audit type constant
+     */
     public static final String AUDIT_TYPE = "auditType";
+    /**
+     * Object id constant
+     */
     public static final String OBJECT_ID = "objectId";
+    /**
+     * Audit actions constant
+     */
     public static final String ACTION_LIST = "auditActions";
     private final MongoDbAccessAdminImpl mongoAccess;
     private final ElasticsearchAccessFunctionalAdmin elasticsearchAccess;
     private VitamCounterService vitamCounterService;
-    private String logbookSecurisation = "RULES_SECURISATION";
-    private final String file_name = "RULES";
     private FilesSecurisator securisator = new FilesSecurisator();
 
     /**

@@ -40,6 +40,11 @@ import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.administration.AbstractContractModel;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
+/**
+ * ContractService Interface declaring common methods for Contracts
+ * 
+ * @param <T> AccessContractModel or IngestContractModel
+ */
 public interface ContractService<T extends AbstractContractModel> extends VitamAutoCloseable {
 
 
@@ -54,7 +59,7 @@ public interface ContractService<T extends AbstractContractModel> extends VitamA
      * <li>One or many contracts already exist in the database</li>
      *
      *
-     * @param contractModelList
+     * @param contractModelList the list of contracts to be created
      * @return RequestResponseOK if success or VitamError
      * @throws VitamException if in error occurs while validating contracts
      */
@@ -69,9 +74,8 @@ public interface ContractService<T extends AbstractContractModel> extends VitamA
      * <li>- LastUpdate</li>
      * <li>- Status</li>
      * 
-     * @param id TODO
+     * @param id the id of the contract to be updated
      * @param queryDsl the given queryDsl for update
-     *
      *
      * @return RequestResponseOK if success or VitamError
      * @throws VitamException if in error occurs while validating contracts
@@ -82,8 +86,10 @@ public interface ContractService<T extends AbstractContractModel> extends VitamA
     /**
      * Find contract by identifier
      *
-     * @param identifier
-     * @return T
+     * @param identifier the identifier of the contract
+     * @return T the contract corresponding to this identifier
+     * @throws ReferentialException thrown if the query could not be executed
+     * @throws InvalidParseOperationException 
      */
     public T findByIdentifier(String identifier) throws ReferentialException, InvalidParseOperationException;
 
@@ -91,8 +97,10 @@ public interface ContractService<T extends AbstractContractModel> extends VitamA
     /**
      * find contract by QueryDsl
      *
-     * @param queryDsl
+     * @param queryDsl the query to be executed
      * @return list of T
+     * @throws ReferentialException thrown if the query could not be executed 
+     * @throws InvalidParseOperationException thrown is the query is incorrect
      */
     public RequestResponseOK<T> findContracts(JsonNode queryDsl)
         throws ReferentialException, InvalidParseOperationException;

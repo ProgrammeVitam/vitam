@@ -28,12 +28,12 @@ import fr.gouv.vitam.common.model.ModelConstants;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class ProfileModel {
 
-    public static final String IDENTIFIER = "Identifier";
-    public static final String NAME = "Name";
-    public static final String DESCRIPTION = "Description";
-    public static final String STATUS = "Status";
-    public static final String FORMAT = "Format";
-    public static final String PATH = "Path";
+    public static final String TAG_IDENTIFIER = "Identifier";
+    public static final String TAG_NAME = "Name";
+    public static final String TAG_DESCRIPTION = "Description";
+    public static final String TAG_STATUS = "Status";
+    public static final String TAG_FORMAT = "Format";
+    public static final String TAG_PATH = "Path";
     public static final String CREATION_DATE = "CreationDate";
     public static final String LAST_UPDATE = "LastUpdate";
     public static final String ACTIVATION_DATE = "ActivationDate";
@@ -49,23 +49,23 @@ public class ProfileModel {
      */
     private Integer tenant;
 
-    @JsonProperty(IDENTIFIER)
+    @JsonProperty(TAG_IDENTIFIER)
     private String identifier;
 
-    @JsonProperty(NAME)
+    @JsonProperty(TAG_NAME)
     private String name;
 
-    @JsonProperty(DESCRIPTION)
+    @JsonProperty(TAG_DESCRIPTION)
     private String description;
 
-    @JsonProperty(STATUS)
+    @JsonProperty(TAG_STATUS)
     private ProfileStatus status;
 
 
-    @JsonProperty(FORMAT)
+    @JsonProperty(TAG_FORMAT)
     private ProfileFormat format;
 
-    @JsonProperty(PATH)
+    @JsonProperty(TAG_PATH)
     private String path;
 
 

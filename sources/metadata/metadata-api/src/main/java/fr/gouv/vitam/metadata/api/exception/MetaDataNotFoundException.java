@@ -36,6 +36,8 @@ public class MetaDataNotFoundException extends MetaDataException {
     private static final long serialVersionUID = 6036555671433217486L;
 
     /**
+     * Constructor
+     * 
      * @param message message to associate with the exception
      */
     public MetaDataNotFoundException(String message) {
@@ -43,6 +45,8 @@ public class MetaDataNotFoundException extends MetaDataException {
     }
 
     /**
+     * Constructor
+     * 
      * @param cause cause to associate with the exception
      */
     public MetaDataNotFoundException(Throwable cause) {
@@ -50,6 +54,8 @@ public class MetaDataNotFoundException extends MetaDataException {
     }
 
     /**
+     * Constructor
+     * 
      * @param message message to associate with the exception
      * @param cause cause to associate with the exception
      */

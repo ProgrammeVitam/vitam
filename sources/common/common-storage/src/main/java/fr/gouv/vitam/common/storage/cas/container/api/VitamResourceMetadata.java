@@ -32,7 +32,9 @@ import java.net.URI;
 import java.util.Map;
 
 /**
-
+ * VitamResourceMetadata interface describing a resource metadata
+ * 
+ * @param <T> the VitamResourceMetadata
  */
 public interface VitamResourceMetadata<T extends Enum<T>> extends Comparable<VitamResourceMetadata<T>> {
 

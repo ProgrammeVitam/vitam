@@ -31,7 +31,7 @@ import java.util.Set;
 /**
  * Vitam PageSet Interface
  *
- * @param <T>
+ * @param <T> type of the VitamPageSet
  */
 public interface VitamPageSet<T> extends Set<T> {
 

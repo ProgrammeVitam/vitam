@@ -38,12 +38,11 @@ import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
 import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
 
 /**
- * Just a classe for
+ * Just a class for
  * <p>
- * Class for finding Contracts to prevent cyclic dependancy between agencies and contracts module
+ * Class for finding Contracts to prevent cyclic dependency between agencies and contracts module
  */
 public class ContractsFinder {
-    private final MongoDbAccessAdminImpl mongoAccess;
     AccessContractImpl accessContract;
 
     /**
@@ -51,13 +50,12 @@ public class ContractsFinder {
      * @param counter
      */
     public ContractsFinder(MongoDbAccessAdminImpl mongoAccess, VitamCounterService counter) {
-        this.mongoAccess = mongoAccess;
         accessContract = new AccessContractImpl(mongoAccess, counter);
     }
 
     /**
      * @param queryDsl
-     * @return
+     * @return response as a RequestResponseOK<AccessContractModel> object
      * @throws InvalidCreateOperationException
      * @throws VitamException
      */

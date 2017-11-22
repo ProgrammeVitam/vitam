@@ -62,9 +62,6 @@ public class SecurityProfileStep {
     private String fileName;
     private String securityProfileName;
 
-    private static final String SECURITY_PROFILE_NAME = "SecurityProfileName";
-
-
     public SecurityProfileStep(World world) {
         this.world = world;
     }

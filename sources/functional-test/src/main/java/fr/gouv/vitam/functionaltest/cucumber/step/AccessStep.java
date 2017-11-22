@@ -82,7 +82,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
@@ -97,15 +96,15 @@ public class AccessStep {
 
     private static final String UNIT_GUID = "UNIT_GUID";
     private static String CONTRACT_WITH_LINK = "[{" +
-            "\"Identifier\":\"contrat_de_rattachement_TNR\"," +
-            "\"Name\":\"contrat_de_rattachement_TNR\"," +
-            "\"Description\":\"Rattachant les SIP à une AU\"," +
-            "\"Status\" : \"ACTIVE\"," +
-            "\"LastUpdate\":\"10/12/2016\"," +
-            "\"CreationDate\":\"10/12/2016\"," +
-            "\"ActivationDate\":\"10/12/2016\"," +
-            "\"DeactivationDate\":\"10/12/2016\"," +
-            "\"LinkParentId\": \"" + UNIT_GUID + "\"}]";
+        "\"Identifier\":\"contrat_de_rattachement_TNR\"," +
+        "\"Name\":\"contrat_de_rattachement_TNR\"," +
+        "\"Description\":\"Rattachant les SIP à une AU\"," +
+        "\"Status\" : \"ACTIVE\"," +
+        "\"LastUpdate\":\"10/12/2016\"," +
+        "\"CreationDate\":\"10/12/2016\"," +
+        "\"ActivationDate\":\"10/12/2016\"," +
+        "\"DeactivationDate\":\"10/12/2016\"," +
+        "\"LinkParentId\": \"" + UNIT_GUID + "\"}]";
 
     private static final String OPERATION_ID = "Operation-Id";
 
@@ -120,8 +119,6 @@ public class AccessStep {
     private World world;
 
     private String query;
-
-    private StatusCode statusCode;
 
     private Status auditStatus;
     private static String savedUnit;
@@ -934,13 +931,15 @@ public class AccessStep {
         String QUERY = null;
         auditStatus = null;
         if (action.equals("l'existence")) {
-             QUERY = "{auditActions:\"AUDIT_FILE_EXISTING\",auditType:\"originatingAgency\",objectId:\"" + originatingAgnecy +
+            QUERY = "{auditActions:\"AUDIT_FILE_EXISTING\",auditType:\"originatingAgency\",objectId:\"" +
+                originatingAgnecy +
                 "\"}";
         } else if (action.equals("l'intégrité")) {
-            QUERY = "{auditActions:\"AUDIT_FILE_INTEGRITY\",auditType:\"originatingAgency\",objectId:\"" + originatingAgnecy +
+            QUERY = "{auditActions:\"AUDIT_FILE_INTEGRITY\",auditType:\"originatingAgency\",objectId:\"" +
+                originatingAgnecy +
                 "\"}";
         }
-        
+
         JsonNode auditOption = JsonHandler.getFromString(QUERY);
         VitamContext vitamContext = new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
             .setApplicationSessionId(world.getApplicationSessionId());

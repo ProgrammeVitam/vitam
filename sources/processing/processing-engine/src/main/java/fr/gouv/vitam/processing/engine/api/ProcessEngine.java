@@ -27,14 +27,13 @@
 package fr.gouv.vitam.processing.engine.api;
 
 
+import java.util.Map;
+
 import fr.gouv.vitam.processing.common.automation.IEventsProcessEngine;
 import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-
-import java.util.Map;
 
 /**
  * Process Engine Interface Provides access to all the services and to manage a workflow of operations.
@@ -52,10 +51,11 @@ public interface ProcessEngine {
     /**
      * Start the execution of the given step
      *
-     * @param step
-     * @param workerParameters
-     * @param pauseRecover
-     * @throws ProcessingException
+     * @param step the ProcessStep object
+     * @param workerParameters the worker parameters
+     * @param params other parameters
+     * @param pauseRecover prevent recover from pause action
+     * @throws ProcessingEngineException thrown if step could not be started
      */
     void start(ProcessStep step, WorkerParameters workerParameters, Map<String, String> params, PauseRecover pauseRecover)
         throws ProcessingEngineException;
@@ -63,7 +63,7 @@ public interface ProcessEngine {
     /**
      * Pause the execution of the current step
      * Send message to the distributor to cancel the execution of the current step
-     * @param operationId
+     * @param operationId the operation identifier
      * @return true if pause applied, false else
      */
     boolean pause(String operationId);
@@ -71,7 +71,7 @@ public interface ProcessEngine {
     /**
      * Cancel the execution of the current step
      * Send message to the distributor to cancel the execution of the current step
-     * @param operationId
+     * @param operationId the operation identifier
      * @return true if pause applied, false else
      */
     boolean cancel(String operationId);

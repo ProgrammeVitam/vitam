@@ -95,7 +95,7 @@ public interface LogbookOperations {
     /**
      * Select logbook operation by the operation's ID
      *
-     * @param IdProcess
+     * @param IdProcess the operation identifier
      * @return the logbook operation found by the ID
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws LogbookNotFoundException if no operation selected cannot be found
@@ -108,8 +108,8 @@ public interface LogbookOperations {
      * @param operationArray with first and next events to add/update
      *
      * @throws IllegalArgumentException if first argument is null or null mandatory parameters for all
-     * @throws LogbookDatabaseException
-     * @throws LogbookAlreadyExistsException
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
+     * @throws LogbookAlreadyExistsException if logbook already exists
      */
     void createBulkLogbookOperation(LogbookOperationParameters[] operationArray)
         throws LogbookDatabaseException, LogbookAlreadyExistsException;
@@ -122,8 +122,8 @@ public interface LogbookOperations {
      * @param operationArray containing all operations Logbook in order
      *
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
-     * @throws LogbookDatabaseException
-     * @throws LogbookNotFoundException
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
+     * @throws LogbookNotFoundException if no operation selected cannot be found
      */
     void updateBulkLogbookOperation(LogbookOperationParameters[] operationArray)
         throws LogbookDatabaseException, LogbookNotFoundException;
@@ -136,7 +136,7 @@ public interface LogbookOperations {
      * @throws LogbookNotFoundException if no operation selected cannot be found
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws InvalidParseOperationException if invalid parse for selecting the operation
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException if the query could not be created
      */
     MongoCursor<LogbookOperation> selectAfterDate(LocalDateTime date)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException,
@@ -151,19 +151,20 @@ public interface LogbookOperations {
      * @throws LogbookNotFoundException if no operation selected cannot be found
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws InvalidParseOperationException if invalid parse for selecting the operation
-     * @throws InvalidCreateOperationException
+     * @throws InvalidCreateOperationException if the query could not be created
      */
     LogbookOperation findFirstTraceabilityOperationOKAfterDate(LocalDateTime date)
         throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException;
 
 
     /**
+     * Find last successful traceability operation
      * 
      * @return the last valid traceability operation
-     * @throws InvalidCreateOperationException
-     * @throws LogbookNotFoundException
-     * @throws LogbookDatabaseException
-     * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException if the query could not be created
+     * @throws LogbookNotFoundException  if no operation selected cannot be found
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
+     * @throws InvalidParseOperationException if the query could not be created
      */
     LogbookOperation findLastTraceabilityOperationOK()
         throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException,

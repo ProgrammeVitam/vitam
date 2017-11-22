@@ -38,14 +38,47 @@ import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
+/**
+ * ContextService Interface declaring methods associated to contexts
+ */
 public interface ContextService extends VitamAutoCloseable {
 
-
+    /**
+     * Create a list of contexts
+     * 
+     * @param contextModelList the context list to be created
+     * @return a response as a RequestResponse<ContextModel> Object
+     * @throws VitamException thrown if operation could not be done
+     */
     RequestResponse<ContextModel> createContexts(List<ContextModel> contextModelList) throws VitamException;
 
+    /**
+     * Search for contexts
+     * 
+     * @param queryDsl the query to be used for the search
+     * @return the list of contexts as a DbRequestResult
+     * @throws ReferentialException thrown if the query could not be executed
+     * @throws InvalidParseOperationException thrown if query is incorrect
+     */
     DbRequestResult findContexts(JsonNode queryDsl) throws ReferentialException, InvalidParseOperationException;
 
+    /**
+     * Update a context
+     * 
+     * @param id the id of the context
+     * @param queryDsl the update command as a query
+     * @return a response as a RequestResponse<ContextModel> object
+     * @throws VitamException thrown if operation could not be done
+     */
     RequestResponse<ContextModel> updateContext(String id, JsonNode queryDsl) throws VitamException;
 
+    /**
+     * Find a context by its id
+     * 
+     * @param id the id of the context
+     * @return the context as a ContextModel
+     * @throws ReferentialException thrown if the context could not be found
+     * @throws InvalidParseOperationException thrown if the query is incorrect
+     */
     ContextModel findOneContextById(String id) throws ReferentialException, InvalidParseOperationException;
 }

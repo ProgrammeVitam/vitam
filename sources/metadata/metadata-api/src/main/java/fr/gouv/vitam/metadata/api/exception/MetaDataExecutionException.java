@@ -36,6 +36,8 @@ public class MetaDataExecutionException extends MetaDataException {
     private static final long serialVersionUID = -8131926677545592877L;
 
     /**
+     * Constructor
+     * 
      * @param message message to associate with the exception
      */
     public MetaDataExecutionException(String message) {
@@ -43,6 +45,8 @@ public class MetaDataExecutionException extends MetaDataException {
     }
 
     /**
+     * Constructor
+     * 
      * @param cause cause to associate with the exception
      */
     public MetaDataExecutionException(Throwable cause) {
@@ -50,6 +54,8 @@ public class MetaDataExecutionException extends MetaDataException {
     }
 
     /**
+     * Constructor
+     * 
      * @param message message to associate with the exception
      * @param cause cause to associate with the exception
      */

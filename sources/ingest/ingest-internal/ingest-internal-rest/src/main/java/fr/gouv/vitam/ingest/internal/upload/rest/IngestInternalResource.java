@@ -156,7 +156,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
     /**
      * IngestInternalResource constructor for tests
      *
-     * @param workspaceClient            workspace client instance
+     * @param workspaceClient workspace client instance
      * @param processingManagementClient processing management client instance
      */
     IngestInternalResource(WorkspaceClient workspaceClient, ProcessingManagementClient processingManagementClient) {
@@ -228,12 +228,12 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * Will return {@link Response} containing an InputStream for the ArchiveTransferReply (OK or KO) except in
      * INTERNAL_ERROR (no body)
      *
-     * @param contentType         the header Content-Type (zip, tar, ...)
-     * @param contextId           the header X-Context-Id (steptoStep or not)
-     * @param actionId            the header X-ACTION (next,resume,..)
+     * @param contentType the header Content-Type (zip, tar, ...)
+     * @param contextId the header X-Context-Id (steptoStep or not)
+     * @param actionId the header X-ACTION (next,resume,..)
      * @param uploadedInputStream the stream to upload
      * @throws InternalServerException if request resources server exception occurred
-     * @throws VitamClientException    if the server is unreachable
+     * @throws VitamClientException if the server is unreachable
      */
     @POST
     @Path("/ingests")
@@ -255,7 +255,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * Update the status of an operation.
      *
      * @param headers contain X-Action and X-Context-ID
-     * @param id      operation identifier
+     * @param id operation identifier
      * @return http response
      */
     @Path("/operations/{id}")
@@ -264,7 +264,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
     public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id) {
         Status status;
         // FIXME : can we really have a response AND an asyncResponse
-        // FIXME : can we have a produces APPLICATION_JSON and add an ATR file when COMPLETE in the asyncResponse 
+        // FIXME : can we have a produces APPLICATION_JSON and add an ATR file when COMPLETE in the asyncResponse
         ParametersChecker.checkParameter("Action Id Request must not be null",
             headers.getRequestHeader(GlobalDataRest.X_ACTION));
         final String xAction = headers.getRequestHeader(GlobalDataRest.X_ACTION).get(0);
@@ -285,15 +285,15 @@ public class IngestInternalResource extends ApplicationStatusResource {
     /**
      * Execute the process of an operation related to the id.
      *
-     * @param headers             contain X-Action and X-Context-ID
-     * @param id                  operation identifier
+     * @param headers contain X-Action and X-Context-ID
+     * @param id operation identifier
      * @param uploadedInputStream input stream to upload
      * @return http response
-     * @throws InternalServerException       if request resources server exception
-     * @throws VitamClientException          if the server is unreachable
-     * @throws IngestInternalException       if error when request to ingest internal server
+     * @throws InternalServerException if request resources server exception
+     * @throws VitamClientException if the server is unreachable
+     * @throws IngestInternalException if error when request to ingest internal server
      * @throws InvalidGuidOperationException if error when create guid
-     * @throws ProcessingException           if error in workflow execution
+     * @throws ProcessingException if error in workflow execution
      */
     @Path("/operations/{id}")
     @POST
@@ -372,6 +372,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                         containerGUID);
                 }
             }
+            return Response.status(Status.OK).entity(resp).build();
         } catch (ContentAddressableStorageServerException e) {
             LOGGER.error("unable to create container", e);
             status = Status.INTERNAL_SERVER_ERROR;
@@ -432,9 +433,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 .entity(getErrorStream(status, e.getMessage()))
                 .build();
         }
-        // FIXME: 4/14/17 resp is null !!! move this to the try bloc
-        return Response.status(Status.OK).entity(resp).build();
-
     }
 
     private VitamError getErrorEntity(Status status, String message) {
@@ -624,7 +622,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * Return the object as stream asynchronously
      *
      * @param objectId the object id
-     * @param type     the collection type
+     * @param type the collection type
      * @response the response
      */
     @GET
@@ -636,7 +634,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
     /**
      * @param guid the object guid
-     * @param atr  the inputstream ATR
+     * @param atr the inputstream ATR
      * @return the status of the request (OK)
      */
     @POST
@@ -942,7 +940,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
     /**
      * Executes an action on the given process
      *
-     * @param actionId      the action to start
+     * @param actionId the action to start
      * @param containerGUID
      * @return response
      * @throws LogbookClientAlreadyExistsException
@@ -1014,7 +1012,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             return new VitamAsyncInputStreamResponse(response, Status.fromStatusCode(stepExecutionStatus),
                 response.getMediaType());
         } catch (final
-        LogbookClientNotFoundException | LogbookClientServerException |
+            LogbookClientNotFoundException | LogbookClientServerException |
             LogbookClientBadRequestException | LogbookClientAlreadyExistsException | StorageClientException |
             StorageNotFoundException e) {
 
@@ -1094,9 +1092,9 @@ public class IngestInternalResource extends ApplicationStatusResource {
     /**
      * Pushes the inputStream to Workspace
      *
-     * @param containerName       the containerName
+     * @param containerName the containerName
      * @param uploadedInputStream the inputStream to store in workspace
-     * @param archiveMimeType     inputStream mimeType
+     * @param archiveMimeType inputStream mimeType
      * @throws ContentAddressableStorageException
      */
     private void pushSipStreamToWorkspace(final String containerName,
@@ -1164,7 +1162,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * @param contextId the context id
      * @return ProcessContext's object
      * @throws WorkflowNotFoundException if there is no workflow found
-     * @throws ContextNotFoundException  if context not found from file data
+     * @throws ContextNotFoundException if context not found from file data
      */
     private ProcessContext createProcessContextObject(String contextId)
         throws WorkflowNotFoundException, ContextNotFoundException {
@@ -1190,8 +1188,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * @param contextId the contextId
      * @return ProcessContext's object
      * @throws InvalidParseOperationException if unable to parse workflow file
-     * @throws IOException                    if there is no workflow found
-     * @throws ContextNotFoundException       if context not found from file data
+     * @throws IOException if there is no workflow found
+     * @throws ContextNotFoundException if context not found from file data
      */
     private ProcessContext getProcessContext(String contextId)
         throws InvalidParseOperationException, IOException, ContextNotFoundException {
@@ -1243,7 +1241,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
     /**
      * @param headers the http header for request
-     * @param query   the filter query
+     * @param query the filter query
      * @return Response
      */
     @GET
@@ -1285,9 +1283,9 @@ public class IngestInternalResource extends ApplicationStatusResource {
     /**
      * Construct the error following input
      *
-     * @param status  Http error status
+     * @param status Http error status
      * @param message The functional error message, if absent the http reason phrase will be used instead
-     * @param code    The functional error code, if absent the http code will be used instead
+     * @param code The functional error code, if absent the http code will be used instead
      * @return VitamError
      */
     // FIXME 2905 : refacto as a common code

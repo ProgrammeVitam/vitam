@@ -56,7 +56,7 @@ public interface ProcessDistributor extends AutoCloseable {
      * @param workParams {@link fr.gouv.vitam.processing.common.parameter.WorkerParameters} null not allowed
      * @param step {@link ProcessStep} null not allowed
      * @param operationId operationId
-     * @param pauseRecover
+     * @param pauseRecover prevent recover from pause action
      *
      * @return CompositeItemStatus : list of action response
      */

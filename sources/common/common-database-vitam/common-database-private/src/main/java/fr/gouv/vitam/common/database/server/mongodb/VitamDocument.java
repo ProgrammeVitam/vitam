@@ -75,7 +75,9 @@ public abstract class VitamDocument<E> extends Document {
     /**
      * Filter ES out
      */
-    public static final String[] ES_FILTER_OUT = new String [] {VitamDocument.ID, VitamDocument.TENANT_ID, VitamDocument.SCORE};
+    public static final String[] ES_FILTER_OUT =
+        new String[] {VitamDocument.ID, VitamDocument.TENANT_ID, VitamDocument.SCORE};
+
     /**
      * Empty constructor
      */
@@ -139,6 +141,7 @@ public abstract class VitamDocument<E> extends Document {
         try {
             GUIDReader.getGUID(id);
         } catch (final InvalidGuidOperationException e) {
+            LOGGER.error("ID is not a GUID: " + id, e);
             throw new IllegalArgumentException("ID is not a GUID: " + id, e);
         }
         return this;

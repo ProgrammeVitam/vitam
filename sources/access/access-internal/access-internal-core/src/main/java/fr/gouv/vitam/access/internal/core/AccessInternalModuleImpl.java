@@ -307,7 +307,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     jsonNode = metaDataClient.selectUnitbyId(jsonQuery, idDocument);
                     break;
                 case OBJECT_GROUP:
-                    // FIXME P1: metadata should return NotFound if the objectGroup is not found
                     jsonNode = metaDataClient.selectObjectGrouptbyId(jsonQuery, idDocument);
                     break;
                 default:
@@ -1143,7 +1142,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private JsonNode getUnitManagement(String unitId) throws AccessInternalExecutionException {
         JsonNode jsonUnit = null;
         try {
-            // FIXME Do it cleaner
+            // TODO Do it cleaner
             String emptyQuery = "{\"$queries\": [],\"$filter\": { },\"$projection\": {}}";
             JsonNode response = selectUnitbyId(JsonHandler.getFromString(emptyQuery), unitId);
             if (response == null || response.get("$results") == null) {
@@ -1350,7 +1349,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 endDate = startDate.plus(Integer.parseInt(duration), ruleMeasurement.getTemporalUnit());
             }
         }
-        // FIXME End of duplicated method
+        // End of duplicated method
         if (endDate != null) {
             updatingRule.put("EndDate", endDate.format(timeFormatter));
         }
