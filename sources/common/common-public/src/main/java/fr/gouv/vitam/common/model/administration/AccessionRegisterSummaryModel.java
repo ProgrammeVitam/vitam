@@ -38,14 +38,22 @@ import fr.gouv.vitam.common.model.ModelConstants;
 public class AccessionRegisterSummaryModel {
 
     /**
-     * unique identifier
+     * unique id
      */
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     private String id;
 
     /**
      * tenant id
      */
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
     private Integer tenant;
+
+    /**
+     * document version
+     */
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_VERSION)
+    private Integer version;
 
     /**
      * originating agency (aggregation key for {@link AccessionRegisterDetailModel})
@@ -87,7 +95,6 @@ public class AccessionRegisterSummaryModel {
     /**
      * @return id
      */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     public String getId() {
         return id;
     }
@@ -96,28 +103,14 @@ public class AccessionRegisterSummaryModel {
      * @param id value to set
      * @return this
      */
-    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_ID)
     public AccessionRegisterSummaryModel setId(String id) {
         this.id = id;
         return this;
     }
 
     /**
-     * @param id value to set
-     * @return this
-     */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
-    public AccessionRegisterSummaryModel setIdExt(String id) {
-        this.id = id;
-        return this;
-    }
-
-
-
-    /**
      * @return tenant
      */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
     public Integer getTenant() {
         return tenant;
     }
@@ -126,22 +119,25 @@ public class AccessionRegisterSummaryModel {
      * @param tenant the working tenant to set
      * @return this
      */
-    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_TENANT)
     public AccessionRegisterSummaryModel setTenant(Integer tenant) {
         this.tenant = tenant;
         return this;
     }
 
+    /**
+     * @return version
+     */
+    public Integer getVersion() {
+        return version;
+    }
 
     /**
-     * @param tenant the working tenant to set
-     * @return this
+     * @param version
      */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
-    public AccessionRegisterSummaryModel setTenantExt(int tenant) {
-        this.tenant = tenant;
-        return this;
+    public void setVersion(Integer version) {
+        this.version = version;
     }
+
     /**
      * @return originatingAgency
      */

@@ -41,9 +41,22 @@ public class AgenciesModel {
     public static final String TAG_DESCRIPTION = "Description";
 
     /**
-     * unique identifier
+     * unique id
      */
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     private String id;
+
+    /**
+     * tenant id
+     */
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
+    private Integer tenant;
+
+    /**
+     * document version
+     */
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_VERSION)
+    private Integer version;
 
     @JsonProperty(TAG_NAME)
     private String name;
@@ -53,7 +66,6 @@ public class AgenciesModel {
 
     @JsonProperty(TAG_DESCRIPTION)
     private String description;
-
 
     /**
      * Constructor of AgencyModel
@@ -72,50 +84,14 @@ public class AgenciesModel {
     }
 
     /**
-     * tenant id
-     */
-    private Integer tenant;
-
-    /**
      * empty constructor
      */
     public AgenciesModel() {
     }
 
     /**
-     * @return tenant
-     */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
-    public Integer getTenant() {
-        return tenant;
-    }
-
-    /**
-     * @param tenant value to set working tenant
-     * @return this
-     */
-    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_TENANT)
-    public AgenciesModel setTenant(Integer tenant) {
-        this.tenant = tenant;
-        return this;
-    }
-
-
-    /**
-     * @param tenant value to set working tenant
-     * @return this
-     */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
-    public AgenciesModel setTenantExt(Integer tenant) {
-        this.tenant = tenant;
-        return this;
-    }
-
-    /**
      * @return id
      */
-
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     public String getId() {
         return id;
     }
@@ -124,20 +100,39 @@ public class AgenciesModel {
      * @param id
      * @return AgencyModel
      */
-    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_ID)
     public AgenciesModel setId(String id) {
         this.id = id;
         return this;
     }
 
     /**
-     * @param id
-     * @return AgencyModel
+     * @return tenant
      */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
-    public AgenciesModel setIdExt(String id) {
-        this.id = id;
+    public Integer getTenant() {
+        return tenant;
+    }
+
+    /**
+     * @param tenant value to set working tenant
+     * @return this
+     */
+    public AgenciesModel setTenant(Integer tenant) {
+        this.tenant = tenant;
         return this;
+    }
+
+    /**
+     * @return version
+     */
+    public Integer getVersion() {
+        return version;
+    }
+
+    /**
+     * @param version
+     */
+    public void setVersion(Integer version) {
+        this.version = version;
     }
 
     /**

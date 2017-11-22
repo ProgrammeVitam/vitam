@@ -11,9 +11,23 @@ import fr.gouv.vitam.common.model.ModelConstants;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class FileRulesModel {
 
+    /**
+     * unique id
+     */
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     private String id;
 
+    /**
+     * tenant id
+     */
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
     private Integer tenant;
+
+    /**
+     * document version
+     */
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_VERSION)
+    private Integer version;
 
     @JsonProperty("RuleId")
     private String ruleId;
@@ -39,10 +53,8 @@ public class FileRulesModel {
     @JsonProperty("UpdateDate")
     private String updateDate;
 
-    @JsonProperty("#version")
-    private Integer version;
-
-    public FileRulesModel() {}
+    public FileRulesModel() {
+    }
 
     public FileRulesModel(String ruleId, String ruleType, String ruleValue, String ruleDescription,
         String ruleDuration, String ruleMeasurement) {
@@ -54,33 +66,19 @@ public class FileRulesModel {
         this.ruleMeasurement = ruleMeasurement;
     }
 
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     public String getId() {
         return id;
     }
 
-    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_ID)
     public void setId(String id) {
         this.id = id;
     }
 
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
-    public void setIdExt(String id) {
-        this.id = id;
-    }
-
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
     public Integer getTenant() {
         return tenant;
     }
 
-    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_TENANT)
     public void setTenant(Integer tenant) {
-        this.tenant = tenant;
-    }
-
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
-    public void setTenantExt(int tenant) {
         this.tenant = tenant;
     }
 
@@ -184,8 +182,6 @@ public class FileRulesModel {
         return "id=" + id + ", tenant=" + tenant + ", ruleId=" + ruleId + ", ruleType=" + ruleType +
             ", ruleValue=" + ruleValue + ", ruleDescription=" + ruleDescription + ", ruleDuration=" + ruleDuration +
             ", ruleMeasurement=" + ruleMeasurement + ", creationDate=" + creationDate + ", updateDate=" + updateDate +
-            ", version=" + version ;
+            ", version=" + version;
     }
-
-
 }

@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.model.administration;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import fr.gouv.vitam.common.model.ModelConstants;
@@ -39,14 +40,22 @@ import fr.gouv.vitam.common.model.ModelConstants;
 public class AccessionRegisterDetailModel {
 
     /**
-     * unique identifier
+     * unique id
      */
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     private String id;
 
     /**
      * tenant id
      */
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
     private Integer tenant;
+
+    /**
+     * document version
+     */
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_VERSION)
+    private Integer version;
 
     /**
      * originating agency
@@ -125,7 +134,8 @@ public class AccessionRegisterDetailModel {
     /**
      * Constructor without fields use for jackson
      */
-    public AccessionRegisterDetailModel() {}
+    public AccessionRegisterDetailModel() {
+    }
 
     /**
      * @return id
@@ -139,36 +149,15 @@ public class AccessionRegisterDetailModel {
      * @param id value to set
      * @return this
      */
-    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_ID)
+
     public AccessionRegisterDetailModel setId(String id) {
         this.id = id;
         return this;
     }
 
     /**
-     * @param id value to set
-     * @return this
-     */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
-    public AccessionRegisterDetailModel setIdExt(String id) {
-        this.id = id;
-        return this;
-    }
-
-    /**
-     * @param tenant the working tenant to set
-     * @return this
-     */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
-    public AccessionRegisterDetailModel setTenantExt(int tenant) {
-        this.tenant = tenant;
-        return this;
-    }
-
-    /**
      * @return tenant
      */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
     public Integer getTenant() {
         return tenant;
     }
@@ -180,6 +169,20 @@ public class AccessionRegisterDetailModel {
     public AccessionRegisterDetailModel setTenant(Integer tenant) {
         this.tenant = tenant;
         return this;
+    }
+
+    /**
+     * @return version
+     */
+    public Integer getVersion() {
+        return version;
+    }
+
+    /**
+     * @param version
+     */
+    public void setVersion(Integer version) {
+        this.version = version;
     }
 
     /**
@@ -376,6 +379,7 @@ public class AccessionRegisterDetailModel {
 
     /**
      * Add an operationId to the model and return the updated AccessionRegisterDetailModel
+     *
      * @param operationsId id of linked ingest operations that must be added
      * @return this
      */
@@ -388,7 +392,6 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     *
      * @param symbolic specify if a detail is a main detail or a symbolic detail.
      * @return
      */
@@ -398,7 +401,6 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
-     *
      * @return symbolic
      */
     public boolean isSymbolic() {

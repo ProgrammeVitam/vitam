@@ -40,14 +40,22 @@ public class ProfileModel {
     public static final String DEACTIVATION_DATE = "DeactivationDate";
 
     /**
-     * unique identifier
+     * unique id
      */
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     private String id;
 
     /**
      * tenant id
      */
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
     private Integer tenant;
+
+    /**
+     * document version
+     */
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_VERSION)
+    private Integer version;
 
     @JsonProperty(TAG_IDENTIFIER)
     private String identifier;
@@ -81,8 +89,6 @@ public class ProfileModel {
     @JsonProperty(DEACTIVATION_DATE)
     private String deactivationdate;
 
-
-
     /**
      * Constructor without fields use for jackson
      */
@@ -93,7 +99,6 @@ public class ProfileModel {
     /**
      * @return id
      */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     public String getId() {
         return id;
     }
@@ -102,18 +107,7 @@ public class ProfileModel {
      * @param id value to set field
      * @return this
      */
-    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_ID)
     public ProfileModel setId(String id) {
-        this.id = id;
-        return this;
-    }
-
-    /**
-     * @param id value to set field
-     * @return this
-     */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
-    public ProfileModel setIdExt(String id) {
         this.id = id;
         return this;
     }
@@ -121,7 +115,6 @@ public class ProfileModel {
     /**
      * @return tenant
      */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
     public Integer getTenant() {
         return tenant;
     }
@@ -130,22 +123,24 @@ public class ProfileModel {
      * @param tenant value to set working tenant
      * @return this
      */
-    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_TENANT)
     public ProfileModel setTenant(Integer tenant) {
         this.tenant = tenant;
         return this;
     }
 
     /**
-     * @param tenant value to set working tenant
-     * @return this
+     * @return version
      */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
-    public ProfileModel setTenantExt(Integer tenant) {
-        this.tenant = tenant;
-        return this;
+    public Integer getVersion() {
+        return version;
     }
 
+    /**
+     * @param version
+     */
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
 
     /**
      * Get the identifier of the profile
