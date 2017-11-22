@@ -1,5 +1,5 @@
 import {Component, OnInit, Input, OnChanges} from '@angular/core';
-import { DatePipe } from '@angular/common';
+import {DatePipe} from '@angular/common';
 import {ArchiveUnitHelper} from "../../archive-unit.helper";
 import {ArchiveUnitService} from "../../archive-unit.service";
 import {ConfirmationService} from "primeng/primeng";
@@ -29,11 +29,11 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
 
 
   frLocale = {
-    dayNames: ["Dimanche","Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"],
+    dayNames: ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"],
     dayNamesShort: ["Dim.", "Lun.", "Mar.", "Mer.", "Jeu.", "Ven.", "Sam."],
-    dayNamesMin: ["Di","Lu","Ma","Me","Je","Ve","Sa"],
-    monthNames: [ "Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Aout","Septembre","Octobre","Novembre","Décembre" ],
-    monthNamesShort: [ "Jan", "Fév", "Mars", "Avr", "Mai", "Juin","Juil", "Aou", "Sep", "Oct", "Nov", "Dec" ],
+    dayNamesMin: ["Di", "Lu", "Ma", "Me", "Je", "Ve", "Sa"],
+    monthNames: ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Aout", "Septembre", "Octobre", "Novembre", "Décembre"],
+    monthNamesShort: ["Jan", "Fév", "Mars", "Avr", "Mai", "Juin", "Juil", "Aou", "Sep", "Oct", "Nov", "Dec"],
     firstDayOfWeek: 1,
     today: "Aujourd'hui",
     clear: 'Vider'
@@ -96,8 +96,8 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
       return false;
     }
     return rule.Rule !== mgtRule.Rule ||
-    rule.FinalAction !== mgtRule.FinalAction ||
-    rule.StartDate !== mgtRule.StartDate
+      rule.FinalAction !== mgtRule.FinalAction ||
+      rule.StartDate !== mgtRule.StartDate
   }
 
   getUpdatedRules() {
@@ -117,7 +117,7 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
       // categoryName = need looping over categories in this function and push in updatedRules[]
       var isCategoryUpdated = false;
       var newRules = [];
-      for (let i=0, len = this.updatedFields[category].Rules.length; i < len; i++) {
+      for (let i = 0, len = this.updatedFields[category].Rules.length; i < len; i++) {
         let rule = this.updatedFields[category].Rules[i];
         rule.StartDate = new DatePipe('fr-FR').transform(rule.StartDate, 'yyyy-MM-dd');
         if (!rule.inherited) {
@@ -185,17 +185,17 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
 
   saveUpdate() {
     let info = this.getUpdatedRules();
-    this.confirmationService.confirm({
-      message:
-      `Vous vous apprétez à modifier les catégories ${info.categories} pour:<br />
+    let rules = info.rules;
+    if (rules.length > 0) {
+      this.confirmationService.confirm({
+
+        message: `Vous vous apprétez à modifier les catégories ${info.categories} pour:<br />
       - Supprimer ${info.deleted} règles,<br />
       - Modifier ${info.updated} règles,<br />
       - Ajouter ${info.added} règles`,
-      accept: () => {
-        this.saveRunning = true;
-        let request = [];
-        let rules = info.rules;
-        if (rules.length > 0) {
+        accept: () => {
+          this.saveRunning = true;
+          let request = [];
           request.push({'UpdatedRules': rules});
           this.archiveUnitService.updateMetadata(this.id, request).subscribe(
             (value) => {
@@ -219,9 +219,10 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
             }
           );
         }
-      }
-    });
-
+      });
+    } else {
+      this.switchUpdateMode();
+    }
 
   }
 
@@ -242,7 +243,7 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
 
 
   initUpdatedRules() {
-    for(let category of this.rulesCategories) {
+    for (let category of this.rulesCategories) {
       if (this.management[category.rule]) {
         let rules = [];
         let ruleIds = [];
@@ -268,7 +269,7 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
 
               let rule: any = {
                 Rule: ruleId,
-                StartDate: inheritedRule.StartDate? new Date(inheritedRule.StartDate): '',
+                StartDate: inheritedRule.StartDate ? new Date(inheritedRule.StartDate) : '',
                 EndDate: inheritedRule.EndDate,
                 inherited: true,
               };
@@ -285,7 +286,7 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
 
         this.updatedFields[category.rule] = {
           Rules: rules,
-          Inheritance: inheritance ? JSON.parse(JSON.stringify(inheritance)) : {PreventRulesId:[]}
+          Inheritance: inheritance ? JSON.parse(JSON.stringify(inheritance)) : {PreventRulesId: []}
         };
       } else {
 
@@ -317,9 +318,9 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
 
         this.updatedFields[category.rule] = {
           Rules: rules,
-           Inheritance:{
-           PreventRulesId:[]
-           }
+          Inheritance: {
+            PreventRulesId: []
+          }
         }
       }
     }
