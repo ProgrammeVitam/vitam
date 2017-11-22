@@ -26,7 +26,7 @@ export class ArchiveExtraDescriptionComponent implements OnInit, OnChanges {
       if (this.translations[field]) {
         return value;
       } else {
-        return field;
+        return field.split('.').pop();
       }
     }
   }

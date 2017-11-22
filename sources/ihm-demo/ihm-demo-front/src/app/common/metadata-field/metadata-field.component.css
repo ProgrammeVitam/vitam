@@ -14,3 +14,7 @@
 .value {
     padding-left: 5px;
 }
+
+.no-pad-top {
+    padding-top: 0;
+}

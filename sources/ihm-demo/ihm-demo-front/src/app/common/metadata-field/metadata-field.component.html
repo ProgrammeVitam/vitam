@@ -37,33 +37,22 @@
 
 <!-- Handle Array display -->
 <ng-container *ngIf="typeOfField === 'Array'">
-
-  <div class="ui-g">
-    <div [ngClass]="labelClass" class="ui-g-nopad">
-      <label class="label fieldLabel">{{title}}</label>
-    </div>
-    <div class="ui-g ui-g-nopad" [ngClass]="inputClass">
-
-
+  <p-fieldset [legend]="title" [toggleable]="true" [collapsed]="false">
+    <div class="ui-g">
       <ng-template ngFor let-field [ngForOf]="arrayValue">
-        <vitam-metadata-field [value]="field.value" [originalTitle]="originalTitle" [fieldCode]="field.fieldCode"
-                              class="ui-g-12 ui-g-nopad" style="text-align: left" [keyToLabel]="keyToLabel" *ngIf="!field.isObject"
-                              [(updatedFields)]="updatedFields" [updateMode]="updateMode" [noTitle]="true" [canUpdate]="canUpdate"></vitam-metadata-field>
-
-
         <div [ngClass]="elementClass" *ngIf="field.isObject">
-          <div class="ui-g">
-            <ng-template ngFor let-innerField [ngForOf]="field.value" let-i="index">
-              <vitam-metadata-field [title]="innerField.title" [value]="innerField.value" [originalTitle]="innerField.originalTitle"
-                                    [labelSize]="4" class="ui-g-6 ui-g-nopad" style="text-align: left" [keyToLabel]="keyToLabel" [fieldCode]="innerField.fieldCode"
-                                    [(updatedFields)]="updatedFields" [updateMode]="updateMode" [canUpdate]="canUpdate"></vitam-metadata-field>
-            </ng-template>
-          </div>
-        </div >
-
+          <ng-template ngFor let-innerField [ngForOf]="field.value" let-i="index">
+            <vitam-metadata-field [title]="innerField.title" [value]="innerField.value" [originalTitle]="innerField.originalTitle"
+                                  [labelSize]="3" [keyToLabel]="keyToLabel" class="ui-g-12 no-pad-top" style="text-align: left" [fieldCode]="innerField.fieldCode"
+                                  [(updatedFields)]="updatedFields" [updateMode]="updateMode" [canUpdate]="canUpdate"></vitam-metadata-field>
+          </ng-template>
+        </div>
+        <vitam-metadata-field *ngIf="!field.isObject" [noTitle]="true" [value]="field.value" [originalTitle]="field.originalTitle"
+                              [labelSize]="3" [keyToLabel]="keyToLabel" class="ui-g-12 no-pad-top" style="text-align: left" [fieldCode]="field.fieldCode"
+                              [(updatedFields)]="updatedFields" [updateMode]="updateMode" [canUpdate]="canUpdate"></vitam-metadata-field>
       </ng-template>
     </div>
-  </div>
+  </p-fieldset>
 </ng-container>
 
 <p-dialog [(visible)]="displayError" header="Erreur de modification">
