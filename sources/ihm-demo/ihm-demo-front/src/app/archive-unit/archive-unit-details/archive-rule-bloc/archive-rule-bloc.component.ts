@@ -254,6 +254,10 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
             updatedRule.StartDate = '';
           }
           updatedRule.oldId = updatedRule.Rule;
+          let finalAction = this.management[category.rule].FinalAction;
+          if (finalAction) {
+            updatedRule.FinalAction = finalAction;
+          }
           rules.push(updatedRule);
           ruleIds.push(updatedRule.Rule);
         }
