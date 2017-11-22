@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.report;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,10 +38,20 @@ public class Reports {
     private List<Report> reports;
 
     /**
+     * Start time
+     */
+    private LocalDateTime start;
+    /**
+     * End time
+     */
+    private LocalDateTime end;
+
+    /**
      * constructor
      */
     public Reports() {
         reports = new ArrayList<>();
+        start = LocalDateTime.now();
     }
 
     /**
@@ -74,4 +85,29 @@ public class Reports {
     public void add(Report report) {
         reports.add(report);
     }
+
+    /**
+     * @return the end
+     */
+    public LocalDateTime getEnd() {
+        return end;
+    }
+
+    /**
+     * @param end the end to set
+     *
+     * @return this
+     */
+    public void setEnd(LocalDateTime end) {
+        this.end = end;
+    }
+
+    /**
+     * @return the start
+     */
+    public LocalDateTime getStart() {
+        return start;
+    }
+    
+    
 }
