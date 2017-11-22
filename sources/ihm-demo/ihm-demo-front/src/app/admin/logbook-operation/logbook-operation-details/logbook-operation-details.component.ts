@@ -7,7 +7,7 @@ import {VitamResponse} from "../../../common/utils/response";
 import {ColumnDefinition} from "../../../common/generic-table/column-definition";
 import {LogbookOperationComponent} from "../logbook-operation.component";
 import {LogbookService} from "../../../ingest/logbook.service";
-import {ArchiveUnitHelper} from "../../../archive-unit/archive-unit.helper";
+import {DateService} from "../../../common/utils/date.service";
 
 const breadcrumb: BreadcrumbElement[] = [
   {label: 'Admin', routerLink: ''},
@@ -34,10 +34,10 @@ export class LogbookOperationDetailsComponent extends PageComponent {
     ColumnDefinition.makeStaticColumn('rightsStatementIdentifier', 'Contrat associé', undefined,
       () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('evDateTime', 'Date de début',
-      this.archiveUnitHelper.handleDateWithTime, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
+      DateService.handleDateWithTime, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeSpecialValueColumn('Date de fin',
-      (item) => item.events.length > 0 ? item.events[item.events.length - 1].evDateTime : item.evDateTime,
-      this.archiveUnitHelper.handleDateWithTime, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
+        (item) => item.events.length > 0 ? item.events[item.events.length - 1].evDateTime : item.evDateTime,
+      DateService.handleDateWithTime, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeSpecialValueColumn('Statut',
       (item) => item.events.length > 0 ? item.events[item.events.length - 1].outcome : 'KO',
       undefined, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
@@ -64,8 +64,7 @@ export class LogbookOperationDetailsComponent extends PageComponent {
   ];
 
   constructor(private route: ActivatedRoute, public logbookService: LogbookService,
-              public titleService: Title, public breadcrumbService: BreadcrumbService,
-              public archiveUnitHelper: ArchiveUnitHelper) {
+              public titleService: Title, public breadcrumbService: BreadcrumbService) {
     super('Détail d\'une opération', breadcrumb, titleService, breadcrumbService);
   }
 

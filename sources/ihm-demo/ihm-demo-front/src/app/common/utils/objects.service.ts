@@ -19,4 +19,11 @@ export class ObjectsService {
     return size + units[indice];
   }
 
+  static stringify(value) {
+    if (!value) {
+      return '';
+    } else {
+      return '' + value;
+    }
+  }
 }

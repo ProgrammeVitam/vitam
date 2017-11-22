@@ -10,6 +10,7 @@ import { BreadcrumbService, BreadcrumbElement } from "../../common/breadcrumb.se
 import { Title } from '@angular/platform-browser';
 import { PageComponent } from "../../common/page/page-component";
 import { ArchiveUnitHelper } from "../../archive-unit/archive-unit.helper";
+import { DateService } from "../../common/utils/date.service";
 
 const breadcrumb: BreadcrumbElement[] = [
   {label: 'Entrée', routerLink: ''},
@@ -64,15 +65,15 @@ export class LogbookComponent extends PageComponent {
       (item) => item.events[1], LogbookComponent.handleStatus,
       () => ({'width': '125px'}), false),
     ColumnDefinition.makeSpecialValueColumn('Service versant',
-        (item) => (!!item.evDetData && JSON.parse(item.evDetData).AgIfTrans) ? JSON.parse(item.evDetData).AgIfTrans : '', undefined,
-        () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
+      (item) => (!!item.evDetData && JSON.parse(item.evDetData).AgIfTrans) ? JSON.parse(item.evDetData).AgIfTrans : '', undefined,
+      () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeSpecialValueColumn('Contrat',
-        (item) => (!!item.evDetData && JSON.parse(item.evDetData).ArchivalAgreement) ? JSON.parse(item.evDetData).ArchivalAgreement : '', undefined,
-        () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
-    ColumnDefinition.makeStaticColumn('evDateTime', 'Début opération', this.archiveUnitHelper.handleDateWithTime,
+      (item) => (!!item.evDetData && JSON.parse(item.evDetData).ArchivalAgreement) ? JSON.parse(item.evDetData).ArchivalAgreement : '', undefined,
+      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
+    ColumnDefinition.makeStaticColumn('evDateTime', 'Début opération', DateService.handleDateWithTime,
       () => ({'width': '100px'}), false),
     ColumnDefinition.makeSpecialValueColumn('Fin opération',
-      (item) => item.events[1].evDateTime, this.archiveUnitHelper.handleDateWithTime,
+      (item) => item.events[1].evDateTime, DateService.handleDateWithTime,
       () => ({'width': '100px'}), false),
     ColumnDefinition.makeIconColumn('Bordereau', ['fa-download'],
       LogbookComponent.downloadManifest, LogbookComponent.displayManifestDownload,
@@ -83,12 +84,11 @@ export class LogbookComponent extends PageComponent {
   ];
   public extraColumns = [
     ColumnDefinition.makeStaticColumn('evIdProc', 'Identifiant de l\'entrée', undefined,
-        () => ({'width': '325px'}), false),
+      () => ({'width': '325px'}), false),
     ColumnDefinition.makeSpecialValueColumn('Profil d\'archivage',
-            (item) => !!item.ArchivalProfile ? item.ArchivalProfile : '', undefined,
-        () => ({'width': '125px'}), false),
-
-    ColumnDefinition.makeStaticColumn('EvDateTimeReq', 'Date', this.archiveUnitHelper.handleDate,
+      (item) => !!item.ArchivalProfile ? item.ArchivalProfile : '', undefined,
+      () => ({'width': '125px'}), false),
+    ColumnDefinition.makeStaticColumn('EvDateTimeReq', 'Date', DateService.handleDate,
       () => ({'width': '100px'}), false),
     ColumnDefinition.makeStaticColumn('ServiceLevel', 'Niveau de service', undefined,
       () => ({'width': '125px'}), false),

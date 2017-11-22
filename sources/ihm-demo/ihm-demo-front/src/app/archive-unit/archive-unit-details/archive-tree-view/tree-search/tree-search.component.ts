@@ -6,6 +6,7 @@ import {TreeNode, NodeData} from '.././tree-node';
 import {ColumnDefinition} from "../../../../common/generic-table/column-definition";
 import {ArchiveUnitHelper} from "../../../archive-unit.helper";
 import {Hits} from "../../../../common/utils/response";
+import {DateService} from "../../../../common/utils/date.service";
 
 @Component({
   selector: 'vitam-tree-search',
@@ -33,8 +34,8 @@ export class TreeSearchComponent implements OnInit {
     ColumnDefinition.makeStaticColumn('Title', 'Titre', undefined, () => ({'width': '200px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeStaticColumn('_unitType', 'Type', this.archiveUnitHelper.transformType, () => ({'width': '100px'})),
     ColumnDefinition.makeStaticColumn('#originating_agency', 'Service Producteur', undefined, () => ({'width': '200px', 'overflow-wrap': 'break-word'})),
-    ColumnDefinition.makeSpecialValueColumn('Date de début', this.archiveUnitHelper.getStartDate, this.archiveUnitHelper.handleDate, () => ({'width': '100px'})),
-    ColumnDefinition.makeSpecialValueColumn('Date de fin', this.archiveUnitHelper.getEndDate, this.archiveUnitHelper.handleDate, () => ({'width': '100px'})),
+    ColumnDefinition.makeSpecialValueColumn('Date de début', this.archiveUnitHelper.getStartDate, DateService.handleDate, () => ({'width': '100px'})),
+    ColumnDefinition.makeSpecialValueColumn('Date de fin', this.archiveUnitHelper.getEndDate, DateService.handleDate, () => ({'width': '100px'})),
   ];
 
   frLocale = {

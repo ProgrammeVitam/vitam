@@ -1,14 +1,15 @@
-import {Component, EventEmitter} from '@angular/core';
-import {PageComponent} from "../../common/page/page-component";
-import {Title} from '@angular/platform-browser';
-import {BreadcrumbElement, BreadcrumbService} from '../../common/breadcrumb.service';
-import {ArchiveUnitService} from "../archive-unit.service";
-import {FieldDefinition} from "../../common/search/field-definition";
-import {Preresult} from "../../common/search/preresult";
-import {ColumnDefinition} from "../../common/generic-table/column-definition";
-import {VitamResponse} from "../../common/utils/response";
-import {ArchiveUnitHelper} from "../archive-unit.helper";
-import {Router} from "@angular/router";
+import { Component, EventEmitter } from '@angular/core';
+import { PageComponent } from "../../common/page/page-component";
+import { Title } from '@angular/platform-browser';
+import { BreadcrumbElement, BreadcrumbService } from '../../common/breadcrumb.service';
+import { ArchiveUnitService } from "../archive-unit.service";
+import { FieldDefinition } from "../../common/search/field-definition";
+import { Preresult } from "../../common/search/preresult";
+import { ColumnDefinition } from "../../common/generic-table/column-definition";
+import { VitamResponse } from "../../common/utils/response";
+import { ArchiveUnitHelper } from "../archive-unit.helper";
+import { Router } from "@angular/router";
+import {DateService} from "../../common/utils/date.service";
 
 const breadcrumb: BreadcrumbElement[] = [
   {label: 'Recherche', routerLink: ''},
@@ -38,21 +39,12 @@ export class ArchiveUnitComponent extends PageComponent {
   ];
 
   public columns = [
-    ColumnDefinition.makeStaticColumn('#id', 'Identifiant', undefined, () => ({
-      'width': '325px',
-      'overflow-wrap': 'break-word'
-    }), false),
-    ColumnDefinition.makeStaticColumn('Title', 'Intitulé', undefined, () => ({
-      'width': '200px',
-      'overflow-wrap': 'break-word'
-    }), false),
+    ColumnDefinition.makeStaticColumn('#id', 'Identifiant', undefined, () => ({'width': '325px', 'overflow-wrap': 'break-word'}), false),
+    ColumnDefinition.makeStaticColumn('Title', 'Intitulé', undefined, () => ({'width': '200px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('#unitType', 'Type', this.archiveUnitHelper.transformType, () => ({'width': '100px'}), false),
-    ColumnDefinition.makeStaticColumn('#originating_agency', 'Service producteur', undefined, () => ({
-      'width': '200px',
-      'overflow-wrap': 'break-word'
-    }), false),
-    ColumnDefinition.makeSpecialValueColumn('Date de début', this.archiveUnitHelper.getStartDate, this.archiveUnitHelper.handleDate, () => ({'width': '100px'}), false),
-    ColumnDefinition.makeSpecialValueColumn('Date de fin', this.archiveUnitHelper.getEndDate, this.archiveUnitHelper.handleDate, () => ({'width': '100px'}), false),
+    ColumnDefinition.makeStaticColumn('#originating_agency', 'Service producteur', undefined, () => ({'width': '200px', 'overflow-wrap': 'break-word'}), false),
+    ColumnDefinition.makeSpecialValueColumn('Date de début', this.archiveUnitHelper.getStartDate, DateService.handleDate, () => ({'width': '100px'}), false),
+    ColumnDefinition.makeSpecialValueColumn('Date de fin', this.archiveUnitHelper.getEndDate, DateService.handleDate, () => ({'width': '100px'}), false),
     ColumnDefinition.makeSpecialIconColumn('Objet(s) disponible(s)',
       (data) => data['#object'] ? ['fa-check'] : ['fa-close greyColor'], () => ({'width': '100px'}), null, null, false),
     ColumnDefinition.makeIconColumn('Cycle de vie', ['fa-pie-chart'], (item) => this.routeToLFC(item), () => true, () => ({'width': '50px'}), null, false)

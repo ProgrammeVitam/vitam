@@ -7,6 +7,7 @@ import { LogbookService } from "../../../ingest/logbook.service";
 import { ColumnDefinition } from "../../../common/generic-table/column-definition";
 import { SelectItem } from "primeng/primeng";
 import { ArchiveUnitHelper } from "../../archive-unit.helper";
+import {DateService} from "../../../common/utils/date.service";
 
 @Component({
   selector: 'vitam-lifecycle',
@@ -36,7 +37,7 @@ export class LifecycleComponent extends PageComponent {
     ColumnDefinition.makeStaticColumn('evType', 'Intitulé de l\'évènement', undefined,
       () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeStaticColumn('evDateTime', 'Date',
-      this.archiveUnitHelper.handleDateWithTime, () => ({'width': '75px', 'overflow-wrap': 'break-word'})),
+      DateService.handleDateWithTime, () => ({'width': '75px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeStaticColumn('outcome', 'Statut', undefined,
       () => ({'width': '75px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeStaticColumn('outMessg', 'Message', undefined,
