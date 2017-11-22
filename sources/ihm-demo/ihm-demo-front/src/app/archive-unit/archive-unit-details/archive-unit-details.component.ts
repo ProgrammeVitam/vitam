@@ -20,14 +20,17 @@ export class ArchiveUnitDetailsComponent extends PageComponent {
   timeout;
 
   constructor(private route: ActivatedRoute, public titleService: Title, public breadcrumbService: BreadcrumbService,
-              private archiveUnitService: ArchiveUnitService, private router: Router, private dialogService: DialogService) {
+              private archiveUnitService: ArchiveUnitService, public router: Router, private dialogService: DialogService) {
     super('Détails de l\'unité archivistique', [], titleService, breadcrumbService);
     router.events.subscribe((val) => {
       if (val instanceof NavigationEnd) {
-        this.pageOnInit()
+        if (val.url.indexOf('search/archiveUnit/') > -1) {
+          this.pageOnInit();
+        }
       }
     });
   }
+
 
   pageOnInit() {
     if (this.timeout) {
