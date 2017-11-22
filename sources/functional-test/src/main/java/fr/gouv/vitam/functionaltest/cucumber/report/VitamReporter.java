@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.report;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -59,8 +60,7 @@ public class VitamReporter implements Reporter, Formatter {
     }
 
     @Override
-    public void uri(String s) {
-    }
+    public void uri(String s) {}
 
     @Override
     public void feature(Feature feature) {
@@ -68,20 +68,18 @@ public class VitamReporter implements Reporter, Formatter {
     }
 
     @Override
-    public void scenarioOutline(ScenarioOutline scenarioOutline) {
-    }
+    public void scenarioOutline(ScenarioOutline scenarioOutline) {}
 
     @Override
-    public void examples(Examples examples) {
-    }
+    public void examples(Examples examples) {}
 
     @Override
     public void startOfScenarioLifeCycle(Scenario scenario) {
+        report.setStart(LocalDateTime.now());
     }
 
     @Override
-    public void background(Background background) {
-    }
+    public void background(Background background) {}
 
     @Override
     public void scenario(Scenario scenario) {
@@ -92,15 +90,16 @@ public class VitamReporter implements Reporter, Formatter {
     }
 
     @Override
-    public void step(Step step) {
-    }
+    public void step(Step step) {}
 
     @Override
     public void endOfScenarioLifeCycle(Scenario scenario) {
+        report.setEnd(LocalDateTime.now());
     }
 
     @Override
     public void done() {
+        reports.setEnd(LocalDateTime.now());
         output.append(JsonHandler.prettyPrint(reports));
     }
 
@@ -110,31 +109,26 @@ public class VitamReporter implements Reporter, Formatter {
     }
 
     @Override
-    public void eof() {
-    }
+    public void eof() {}
 
     @Override
-    public void before(Match match, Result result) {
-    }
+    public void before(Match match, Result result) {}
 
     @Override
     public void result(Result result) {
-        if(result.getStatus().equals(Result.FAILED)) {
+        if (result.getStatus().equals(Result.FAILED)) {
             report.addError(result.getErrorMessage());
         }
     }
 
     @Override
-    public void after(Match match, Result result) {
-    }
+    public void after(Match match, Result result) {}
 
     @Override
-    public void match(Match match) {
-    }
+    public void match(Match match) {}
 
     @Override
-    public void embedding(String s, byte[] bytes) {
-    }
+    public void embedding(String s, byte[] bytes) {}
 
     @Override
     public void write(String operationId) {
