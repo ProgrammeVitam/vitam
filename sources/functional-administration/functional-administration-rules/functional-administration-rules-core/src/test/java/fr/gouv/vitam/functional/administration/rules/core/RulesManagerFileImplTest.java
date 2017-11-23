@@ -28,6 +28,7 @@ package fr.gouv.vitam.functional.administration.rules.core;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
@@ -595,11 +596,9 @@ public class RulesManagerFileImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void shouldRetrieveErrors() throws Exception {
+    public void should_retrieve_FileRulesCsvException_when_csv_with_bad_format_is_upload() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final Select select = new Select();
-        List<FileRules> fileRules = new ArrayList<>();
-
+        
         // mock Storage
         StorageClient storageClient = mock(StorageClient.class);
         when(storageClientFactory.getClient()).thenReturn(storageClient);
@@ -614,19 +613,8 @@ public class RulesManagerFileImplTest {
         when(logbookOperationsClientFactory.getClient()).thenReturn(client);
         when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(STP_IMPORT_RULES, TENANT_ID));
 
-        try {
-            select.setQuery(eq("#tenant", TENANT_ID));
-
-            fileRules = convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
-
-            if (fileRules.size() == 0) {
-                rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)),
-                    FILE_TO_TEST_KO);
-            }
-        } catch (FileRulesException e) {
-            exception.expect(FileRulesException.class);
-            exception.expectMessage(INVALID_CSV_FILE);
-
-        }
+        assertThatThrownBy(() -> rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)),
+            FILE_TO_TEST_KO)).isInstanceOf(FileRulesCsvException.class).hasMessageContaining("Invalid CSV File");
+        
     }
 }
