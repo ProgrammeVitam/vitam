@@ -52,7 +52,8 @@ export class MenuComponent implements OnInit {
             items: [
               {label: 'Tests de performance', routerLink: ['tests/perf']},
               {label: 'Tests fonctionnels', routerLink: ['tests/functional-tests']},
-              {label: 'Tests requêtes DSL', routerLink: ['tests/queryDSL']}
+              {label: 'Tests requêtes DSL', routerLink: ['tests/queryDSL']},
+              {label: 'Visualisation du Graphe', routerLink: ['tests/dag-visualization']}
             ]
           },
           {

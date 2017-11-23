@@ -9,7 +9,7 @@ import {
   DialogModule, MessagesModule, DataTableModule, SharedModule, BreadcrumbModule, DropdownModule,
   GrowlModule, PasswordModule } from 'primeng/primeng';
 import { RouterModule, Routes } from '@angular/router';
-
+import { VisModule, VisNetworkDirective } from 'ng2-vis';
 
 import { AppComponent } from './app.component';
 import { MenuComponent } from './common/menu/menu.component';
@@ -33,6 +33,8 @@ import { PerfService } from './tests/perf/perf.service';
 import { AuthenticationComponent } from './authentication/authentication.component';
 import { AuthenticationService } from './authentication/authentication.service';
 import {TenantService} from "./common/tenant.service";
+import { DagVisualizationComponent } from './tests/dag-visualization/dag-visualization.component';
+import { VisNetworkService } from 'ng2-vis';
 
 const appRoutes: Routes = [
   {
@@ -57,6 +59,9 @@ const appRoutes: Routes = [
     path: 'traceability/logbook', component: LogbookComponent
   },
   {
+    path: 'tests/dag-visualization', component: DagVisualizationComponent
+  },
+  {
     path: '**', redirectTo: 'login', pathMatch: 'full'
   }
 ];
@@ -75,7 +80,9 @@ const appRoutes: Routes = [
     LogbookComponent,
     RemoveItemsComponent,
     GenericTableComponent,
-    AuthenticationComponent
+    AuthenticationComponent,
+    DagVisualizationComponent,
+    VisNetworkDirective
   ],
   imports: [
     RouterModule.forRoot(appRoutes, {useHash: true}),
@@ -107,7 +114,8 @@ const appRoutes: Routes = [
     LogbookService,
     PerfService,
     AuthenticationService,
-    TenantService
+    TenantService,
+    VisNetworkService
   ],
   bootstrap: [AppComponent]
 })
