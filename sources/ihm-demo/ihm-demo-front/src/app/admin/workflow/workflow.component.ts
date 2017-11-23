@@ -1,4 +1,4 @@
-import {Component, EventEmitter, OnInit} from '@angular/core';
+import {Component, EventEmitter, OnDestroy, OnInit} from '@angular/core';
 import {ColumnDefinition} from "../../common/generic-table/column-definition";
 import {ResourcesService} from "../../common/resources.service";
 import {WorkflowService} from "../workflow.service";
@@ -23,12 +23,11 @@ const breadcrumb: BreadcrumbElement[] = [
   templateUrl: './workflow.component.html',
   styleUrls: ['./workflow.component.css']
 })
-export class WorkflowComponent extends PageComponent {
+export class WorkflowComponent extends PageComponent implements OnDestroy {
 
 
   public response: VitamResponse;
-  public initialSearchValues = {"states": ["PAUSE", "RUNNING"]};
-  public searchForm;
+  public searchForm = {"states": ["PAUSE", "RUNNING"]};
   public service;
   public optionsCategories: SelectItem[];
   public optionsStatuses: SelectItem[] = [{
@@ -55,6 +54,7 @@ export class WorkflowComponent extends PageComponent {
   }];
   public optionsWorkflowSteps: DynamicSelectItem[];
   public workflowData;
+  private refreshWorkflow;
 
 
   constructor(public workflowService: WorkflowService,
@@ -90,15 +90,15 @@ export class WorkflowComponent extends PageComponent {
           }
         }
         this.workflowData = [
-          FieldDefinition.createIdField('id', 'Identifiant', 2, 12),
+          FieldDefinition.createIdField('id', 'Identifiant', 4, 12),
+          FieldDefinition.createDateField('startDateMin', 'Date de début', 4, 8),
+          FieldDefinition.createDateField('startDateMax', 'Date de fin', 4, 12),
           FieldDefinition.createSelectMultipleField('categories', 'Process', this.optionsCategories, 4, 12)
             .onChange(WorkflowComponent.updateValues),
           FieldDefinition.createSelectMultipleField('statuses', 'Statut', this.optionsStatuses, 2, 12),
           FieldDefinition.createSelectMultipleField('states', 'États', this.optionsStates, 2, 12),
           FieldDefinition.createDynamicSelectField('steps', 'Dernière étape', this.optionsWorkflowSteps,
-            WorkflowComponent.computeSelectItems, 4, 12),
-          FieldDefinition.createDateField('startDateMin', 'Date de début', 3, 12),
-          FieldDefinition.createDateField('startDateMax', 'Date de fin', 3, 12),
+            WorkflowComponent.computeSelectItems, 4, 12)
         ];
       }
     )
@@ -139,10 +139,17 @@ export class WorkflowComponent extends PageComponent {
 
   pageOnInit(): void {
     this.initSearchForm();
-    this.searchForm = this.preSearchFunction({}).request;
     this.workflowService.getOperations(this.searchForm).subscribe(
       data => this.response = data,
       error => console.error('Error - ', this.response));
+
+    this.refreshWorkflow = setInterval(() => {
+      this.refreshButton();
+    }, 3000);
+  }
+
+  ngOnDestroy() {
+    clearInterval(this.refreshWorkflow);
   }
 
   public columns = [
@@ -151,7 +158,7 @@ export class WorkflowComponent extends PageComponent {
     ColumnDefinition.makeStaticColumn('processType', 'Catégorie de l\'opération', undefined,
       () => ({'width': '130px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeStaticColumn('processDate', 'Date de l\'entrée', DateService.handleDateWithTime,
-      () => ({'width': '100px', 'overflow-wrap': 'break-word'})),
+      () => ({'width': '105px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeSpecialValueColumn('Mode d\'exécution', this.executionMode, undefined,
       () => ({'width': '100px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeStaticColumn('globalState', 'Etat', undefined,
@@ -174,6 +181,7 @@ export class WorkflowComponent extends PageComponent {
   }
 
   public refreshButton() {
+    this.searchForm = this.preSearchFunction({}).request;
     this.workflowService.getOperations(this.searchForm).subscribe(
       (data) => {
         this.response = data;
@@ -266,23 +274,12 @@ export class WorkflowComponent extends PageComponent {
     return preResult;
   }
 
-
-  ngOnInit() {
-    this.initSearchForm();
-    this.workflowService.getOperations(this.initialSearchValues).subscribe(
-      (data) => {
-        this.response = data;
-      }
-    );
-  }
-
-
   executionMode(item) {
     if (item.globalState === 'RUNNING') {
       if (item.stepByStep) {
         return 'Pas à pas';
       } else {
-        return 'En continue';
+        return 'En continu';
       }
     } else {
       return '';
@@ -299,7 +296,7 @@ export class WorkflowComponent extends PageComponent {
       case 'COMPLETED':
         return [];
       default :
-        // For the UNKNOW case we don't no if is still present.
+        // For the UNKNOWN case we don't know if it is still present.
         return ['fa-play fa-2x fa-pull-left', 'fa-forward fa-2x fa-pull-left', 'fa-refresh fa-2x fa-pull-left', 'fa-stop fa-2x fa-pull-left'];
     }
   }
