@@ -49,6 +49,7 @@ import javax.ws.rs.core.Response;
 import javax.xml.stream.XMLStreamException;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.assertj.core.api.Fail;
 
@@ -387,6 +388,27 @@ public class IngestStep {
         InputStream inputStream = response.readEntity(InputStream.class);
         String result = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
         assertThat(result).contains(message);
+    }
+
+    /**
+     * Execute an ingest OK and saves the operationId in test set map.
+     * 
+     * @param fileName name of a sip
+     */
+    @Given("^les données du jeu de test du SIP nommé (.*)")
+    public void use_test_set_from_sip(String fileName) {
+        if (!StringUtils.isNotBlank(World.getOperationId(fileName))) {
+            try {
+                a_sip_named(fileName);
+                upload_this_sip();
+                the_logbook_operation_has_a_status("OK");
+                World.setOperationId(fileName, world.getOperationId());
+            } catch (VitamException | IOException e) {
+                fail("Could not load test set : ingest failure.", e);
+            }
+        } else {
+            this.world.setOperationId(World.getOperationId(fileName));
+        }
     }
 
     @After

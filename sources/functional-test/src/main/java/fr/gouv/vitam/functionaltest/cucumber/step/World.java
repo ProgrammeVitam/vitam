@@ -28,6 +28,8 @@ package fr.gouv.vitam.functionaltest.cucumber.step;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.assertj.core.api.Fail;
 
@@ -75,6 +77,10 @@ public class World {
      * id of the operation
      */
     private String operationId;
+    /**
+     * Map of operations ids by testSet
+     */
+    private static Map<String, String> operationIdsByTestSet = new HashMap<>();
 
     /**
      * ingest external client
@@ -162,6 +168,14 @@ public class World {
     }
 
     /**
+     * Clear the map of operations ids by testSet.
+     */
+    @Given("^les jeux de tests réinitialisés$")
+    public void the_reinit_of_test_set() {
+        operationIdsByTestSet.clear();
+    }
+
+    /**
      * @return tenant ID
      */
     public int getTenantId() {
@@ -221,6 +235,26 @@ public class World {
      */
     public void setOperationId(String operationId) {
         this.operationId = operationId;
+    }
+
+    /**
+     * Get an operation id for the test set
+     * 
+     * @param testSet test set identifier
+     * @return operation id
+     */
+    public static String getOperationId(String testSet) {
+        return operationIdsByTestSet.get(testSet);
+    }
+
+    /**
+     * Set an operation id for a test set
+     * 
+     * @param testSet test set identifier
+     * @param operationId operation id
+     */
+    public static void setOperationId(String testSet, String operationId) {
+        operationIdsByTestSet.put(testSet, operationId);
     }
 
     /**
@@ -285,7 +319,7 @@ public class World {
     /**
      * @return base directory on .feature file
      */
-    public String getBaseDirectory() {        
+    public String getBaseDirectory() {
         return baseDirectory;
     }
 
