@@ -96,6 +96,7 @@ public class ExtractSedaActionHandlerTest {
     private static final String SIP_ADD_UNIT = "extractSedaActionHandler/addUnit/SIP_Add_Unit.xml";
     private static final String OK_EHESS_LIGHT = "extractSedaActionHandler/OK_EHESS_LIGHT.xml";
     private static final String MERCIER = "extractSedaActionHandler/Mercier.xml";
+    private static final String EMPTY_TEXT_TYPE = "extractSedaActionHandler/empty_text_type.xml";
     private static final String SIP_RULES = "extractSedaActionHandler/rules-test.xml";
     private static final String SIP_ARBO_RULES_MD = "extractSedaActionHandler/OK_arbo_RG_MD_complexe.xml";
     private static final String SIP_WITHOUT_ORIGINATING_AGENCY =
@@ -240,6 +241,23 @@ public class ExtractSedaActionHandlerTest {
         final ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenManifestWithEmptyTextTypeThenOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
+        final InputStream seda_arborescence =
+            PropertiesUtils.getResourceAsStream(EMPTY_TEXT_TYPE);
+        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
+        handlerIO.addOutIOParameters(out);
+
+        final ItemStatus response = handler.execute(params, handlerIO);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
+
 
     @Test
     @RunWithCustomExecutor

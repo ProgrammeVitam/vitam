@@ -48,6 +48,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
@@ -63,6 +64,7 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
@@ -74,6 +76,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressed
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -516,6 +519,12 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
                     isEmpty = false;
 
                     final String entryName = entry.getName();
+
+                    if (!SanityChecker.isValidFileName(entryName)) {
+                        throw new ZipFilesNameNotAllowedException(
+                            String.format("%s file or folder not allowed name", entryName));
+                    }
+
                     final Path target = Paths.get(root.toString(), containerName, folderName, entryName);
                     final Path parent = target.getParent();
 

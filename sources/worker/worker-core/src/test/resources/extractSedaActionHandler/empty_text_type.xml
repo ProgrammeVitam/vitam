@@ -1,0 +1,83 @@
+<?xml version="1.0" ?>
+<ArchiveTransfer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 ../../Bureau/BA/Sch%D0%92mas/seda-2.0-main.xsd"
+ xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:pr="info:lc/xmlns/premis-v2"
+ xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="ID1">
+    <Comment>SIP avec règles de gestion et ManagementMD pour la story #2237</Comment>
+
+    <Date>2016-10-18T14:52:27</Date>
+    <MessageIdentifier>SIP avec règles de gestion et ManagementMD pour la story #2237</MessageIdentifier>
+    <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage xml:id="ID2">
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID9"><Content>
+    <DescriptionLevel>Item</DescriptionLevel>
+    <Title>Accepté : Mis(e) à jour: Déjeuner avec le Professeur Gérard TOBELEM, Président de l&apos;Etablissement Français du Sang + C. RATIGNIER</Title>
+    <OriginatingSystemId>&lt;20CBF48095D47140B58E9F5202ADD98009CC7BD32A@KIARA.cab.travail.gouv.fr&gt;</OriginatingSystemId>
+    <Description>Rendez-vous</Description>
+    <Writer>
+        <FirstName>RATIGNIER Christelle</FirstName>
+        <BirthName>RATIGNIER Christelle</BirthName>
+        <Identifier>/O=CABINETS/OU=EXCHANGE ADMINISTRATIVE GROUP (FYDIBOHF23SPDLT)/CN=RECIPIENTS/CN=CHRISTELLE.RASTIGNIER</Identifier>
+    </Writer>
+    <Addressee>
+        <FirstName>BERARD-ANDRIEU Marguerite</FirstName>
+        <BirthName>BERARD-ANDRIEU Marguerite</BirthName>
+        <Identifier>/O=CABINETS/OU=EXCHANGE ADMINISTRATIVE GROUP (FYDIBOHF23SPDLT)/CN=RECIPIENTS/CN=Marguerite.berard-andrieu</Identifier>
+    </Addressee>
+    <SentDate>2011-04-15T07:17:49.49Z</SentDate>
+    <ReceivedDate>2011-04-15T07:17:49.49Z</ReceivedDate>
+    <Event>
+        <EventIdentifier>Byte Array ID[040000008200E00074C5B7101A82E008] Year [0] Month[0] Day[0] CreationTime[Tue Apr 12 17:52:57 CEST 2011] X[0] Size[16] Data[55AC4542BDC8FC40BA9F9BCCAF979BE8]</EventIdentifier>
+        <EventType>RDV Début</EventType>
+        <EventDateTime>2011-04-22T11:00:00Z</EventDateTime>
+        <EventDetail>Localisation : Bureau M. BERARD-ANDRIEU</EventDetail>
+    </Event>
+    <Event>
+        <EventIdentifier>Byte Array ID[040000008200E00074C5B7101A82E008] Year [0] Month[0] Day[0] CreationTime[Tue Apr 12 17:52:57 CEST 2011] X[0] Size[16] Data[55AC4542BDC8FC40BA9F9BCCAF979BE8]</EventIdentifier>
+        <EventType>RDV Fin</EventType>
+        <EventDateTime>2011-04-22T12:30:00Z</EventDateTime>
+        <EventDetail></EventDetail>
+    </Event>
+</Content></ArchiveUnit>
+            
+        </DescriptiveMetadata>
+        <ManagementMetadata>
+            <AppraisalRule>
+                <Rule>APP-00001</Rule>
+                <StartDate>2021-01-01</StartDate>
+                <Rule>APP-00002</Rule>
+                <StartDate>1900-01-01</StartDate>
+                <FinalAction>Keep</FinalAction>
+            </AppraisalRule>
+            <AccessRule>
+                <Rule>ACC-00035</Rule>
+                <StartDate>2020-01-01</StartDate>
+            </AccessRule>
+            <OriginatingAgencyIdentifier>FRAN_NP_009913</OriginatingAgencyIdentifier>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <ArchivalAgency>
+        <Identifier>Identifier4</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>Identifier5</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>

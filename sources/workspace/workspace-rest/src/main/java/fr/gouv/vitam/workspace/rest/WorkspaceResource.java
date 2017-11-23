@@ -26,32 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.rest;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.CommonMediaType;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.VitamHttpHeader;
-import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.common.storage.ContainerInformation;
-import fr.gouv.vitam.common.storage.StorageConfiguration;
-import fr.gouv.vitam.common.storage.constants.ErrorMessage;
-import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.common.CompressInformation;
-import fr.gouv.vitam.workspace.common.RequestResponseError;
-import fr.gouv.vitam.workspace.common.VitamError;
-import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
-import org.apache.commons.compress.archivers.ArchiveException;
-import org.apache.commons.compress.compressors.CompressorException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -67,14 +48,34 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.CommonMediaType;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.storage.ContainerInformation;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.storage.constants.ErrorMessage;
+import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
+import fr.gouv.vitam.workspace.common.CompressInformation;
+import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.apache.commons.compress.compressors.CompressorException;
 
 /**
  * The Workspace Resource.
@@ -375,17 +376,18 @@ public class WorkspaceResource extends ApplicationStatusResource {
             } catch (final ContentAddressableStorageAlreadyExistException e) {
                 LOGGER.info(ErrorMessage.CONTAINER_ALREADY_EXIST.getMessage() + containerName, e);
                 return Response.status(Status.CONFLICT).entity(containerName).build();
+            } catch (final ZipFilesNameNotAllowedException e) {
+                LOGGER.error(e);
+                final VitamError vitamError = getVitamError(VitamCode.WORKSPACE_NOT_ACCEPTABLE_FILES, e.getMessage());
+                return Response.status(Status.NOT_ACCEPTABLE)
+                    .entity(vitamError)
+                    .build();
             } catch (final ContentAddressableStorageCompressedFileException e) {
                 LOGGER.error(e);
                 final Status status = Status.BAD_REQUEST;
-                // TODO P0 : For now it is generic code "0000" since vitam error code have not been defined
+                final VitamError vitamError = getVitamError(VitamCode.WORKSPACE_BAD_REQUEST, e.getMessage());
                 return Response.status(status)
-                    .entity(new RequestResponseError().setError(
-                        new VitamError(status.getStatusCode())
-                            .setContext("WORKSPACE")
-                            .setState("vitam_code")
-                            .setMessage(status.getReasonPhrase())
-                            .setDescription(status.getReasonPhrase())))
+                    .entity(vitamError)
                     .build();
 
             } catch (final ContentAddressableStorageException e) {
@@ -400,6 +402,12 @@ public class WorkspaceResource extends ApplicationStatusResource {
             StreamUtils.closeSilently(stream);
         }
 
+    }
+
+    private VitamError getVitamError(VitamCode vitamCode, String msg) {
+        return new VitamError(vitamCode.name()).setMessage(msg).setState("ko")
+            .setHttpCode(vitamCode.getStatus().getStatusCode()).setDescription(msg)
+            .setContext(vitamCode.getService().getName());
     }
 
     /**

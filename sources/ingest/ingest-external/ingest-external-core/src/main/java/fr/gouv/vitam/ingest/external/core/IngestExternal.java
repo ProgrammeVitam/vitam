@@ -29,11 +29,10 @@ package fr.gouv.vitam.ingest.external.core;
 import java.io.InputStream;
 
 import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.Response;
 
 import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
-import fr.gouv.vitam.ingest.external.core.PreUploadResume;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 
 /**
@@ -51,7 +50,7 @@ public interface IngestExternal {
      * @return PreUploadResume
      * @throws WorkspaceClientServerException error when workspace server is down
      */
-    public PreUploadResume preUploadAndResume(InputStream input, String contextId, String action, GUID guid,
+    PreUploadResume preUploadAndResume(InputStream input, String contextId, String action, GUID guid,
         AsyncResponse asyncResponse)
         throws IngestExternalException, WorkspaceClientServerException;
 
@@ -65,6 +64,6 @@ public interface IngestExternal {
      * @throws IngestExternalException thrown if an error occurred in workflow
      */
     // TODO P0 add the file name as param from a header
-    Response upload(PreUploadResume preUploadResume, GUID guid)
+    StatusCode upload(PreUploadResume preUploadResume, GUID guid)
         throws IngestExternalException;
 }

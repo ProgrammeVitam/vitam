@@ -10,7 +10,6 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
@@ -18,8 +17,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCyclesClientHelper;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -256,11 +253,11 @@ public interface HandlerIO extends VitamAutoCloseable {
     LogbookLifeCyclesClientHelper getHelper();
 
     /**
-     * 
-     * 
+     *
+     *
      * Helper to convert and write a file to Workspace<br/>
      * <br/>
-     * 
+     *
      * @param collectionName : collection type
      * @param workspacePath path within the workspacepath, without the container (implicit)
      * @param jsonNode the json file to write
@@ -279,16 +276,10 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @param uploadedInputStream
      * @param asyncIO asynchronously send and unzip file to/in the workspace
      * @throws ContentAddressableStorageException
-     * @throws ContentAddressableStorageNotFoundException
-     * @throws ContentAddressableStorageAlreadyExistException
-     * @throws ContentAddressableStorageCompressedFileException
-     * @throws ContentAddressableStorageServerException
      */
     void unzipInputStreamOnWorkspace(String container, String folderName, String archiveMimeType,
                                      InputStream uploadedInputStream, boolean asyncIO)
-        throws ContentAddressableStorageException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageAlreadyExistException, ContentAddressableStorageCompressedFileException,
-        ContentAddressableStorageServerException;
+        throws ContentAddressableStorageException;
 
     /**
      * compress list of file or directory in a specific output file
@@ -300,7 +291,7 @@ public interface HandlerIO extends VitamAutoCloseable {
 
     /**
      * If true then start async manager, if false then waitEndOfTransfer and stop asyncManager
-     * 
+     *
      * @param asyncIo
      */
     void enableAsync(boolean asyncIo) throws WorkerspaceQueueException;
@@ -308,7 +299,7 @@ public interface HandlerIO extends VitamAutoCloseable {
 
     /**
      * Remove a specific folder
-     * 
+     *
      * @param folderName the folderName to delete
      * @return true if the folder was removed, false if it does not exist
      * @throws ContentAddressableStorageException when storage error occurs

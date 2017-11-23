@@ -48,7 +48,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -110,6 +109,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressed
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
@@ -376,6 +376,13 @@ public class IngestInternalResource extends ApplicationStatusResource {
         } catch (ContentAddressableStorageServerException e) {
             LOGGER.error("unable to create container", e);
             status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(getErrorStream(status, e.getMessage()))
+                .build();
+
+        } catch (ZipFilesNameNotAllowedException e) {
+            LOGGER.error("Error while unzip : ", e);
+            status = Status.NOT_ACCEPTABLE;
             return Response.status(status)
                 .entity(getErrorStream(status, e.getMessage()))
                 .build();
@@ -784,6 +791,22 @@ public class IngestInternalResource extends ApplicationStatusResource {
                         }
                     }
                 }
+
+            } catch (final ZipFilesNameNotAllowedException e) {
+
+                if (parameters != null) {
+                    try {
+
+                        parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT_UPLOAD);
+                        callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO, INGEST_INT_UPLOAD,
+                            VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.KO));
+                    } catch (final LogbookClientException e1) {
+                        LOGGER.error(e1);
+                    }
+                }
+                LOGGER.error("Error while unzip file : " + e.getMessage(), e);
+                return Response.status(Status.NOT_ACCEPTABLE).build();
+
             } catch (final ContentAddressableStorageException | VitamApplicationServerException e) {
                 if (parameters != null) {
                     try {
@@ -904,17 +927,11 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * @throws LogbookClientBadRequestException
      * @throws LogbookClientServerException
      * @throws ContentAddressableStorageException
-     * @throws ContentAddressableStorageNotFoundException
-     * @throws ContentAddressableStorageAlreadyExistException
-     * @throws ContentAddressableStorageCompressedFileException
-     * @throws ContentAddressableStorageServerException
      */
     private void prepareToStartProcess(InputStream uploadedInputStream, LogbookOperationParameters parameters,
         String archiveMimeType, LogbookOperationsClient logbookOperationsClient, final GUID containerGUID)
         throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException,
-        ContentAddressableStorageException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageAlreadyExistException, ContentAddressableStorageCompressedFileException,
-        ContentAddressableStorageServerException {
+        ContentAddressableStorageException {
 
         LOGGER.debug("Starting up the save file sip");
         LogbookOperationParameters startedParameters = LogbookOperationsClientHelper.copy(parameters);
@@ -1100,9 +1117,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
     private void pushSipStreamToWorkspace(final String containerName,
         final String archiveMimeType,
         final InputStream uploadedInputStream, final LogbookOperationParameters parameters)
-        throws ContentAddressableStorageException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageAlreadyExistException,
-        ContentAddressableStorageCompressedFileException, ContentAddressableStorageServerException {
+        throws ContentAddressableStorageException {
 
 
         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, "Try to push stream to workspace...");

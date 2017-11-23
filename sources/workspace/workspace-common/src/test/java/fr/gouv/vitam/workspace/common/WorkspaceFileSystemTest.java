@@ -27,22 +27,8 @@
 
 package fr.gouv.vitam.workspace.common;
 
-import com.google.common.collect.Lists;
-import fr.gouv.vitam.common.CommonMediaType;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.storage.StorageConfiguration;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.ArchiveInputStream;
-import org.apache.commons.compress.archivers.ArchiveStreamFactory;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -54,8 +40,23 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
+import com.google.common.collect.Lists;
+import fr.gouv.vitam.common.CommonMediaType;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class WorkspaceFileSystemTest {
 
@@ -238,22 +239,31 @@ public class WorkspaceFileSystemTest {
     @Test(expected = ContentAddressableStorageNotFoundException.class)
     public void givenContainerNotFoundWhenUnzipObjectThenRaiseAnException()
         throws IOException, Exception {
-        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, ArchiveStreamFactory.ZIP, getInputStream("sip.zip"));
+        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, getInputStream("sip.zip"));
     }
+
+    @Test(expected = ZipFilesNameNotAllowedException.class)
+    public void givenSIPWithNotAllowedFileOrDirectoryNameThenException()
+        throws Exception {
+        storage.createContainer(CONTAINER_NAME);
+        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, getInputStream("KO_FILE_extension_caractere_special.zip"));
+    }
+
+
 
     @Test(expected = ContentAddressableStorageAlreadyExistException.class)
     public void givenFolderAlreadyExisitsWhenUnzipObjectThenRaiseAnException()
-        throws IOException, Exception {
+        throws Exception {
         storage.createContainer(CONTAINER_NAME);
         storage.createFolder(CONTAINER_NAME, SIP_FOLDER);
-        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, ArchiveStreamFactory.ZIP, getInputStream("sip.zip"));
+        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, getInputStream("sip.zip"));
     }
 
     @Test(expected = ContentAddressableStorageException.class)
     public void givenNullInputStreamWhenUnzipObjectThenRaiseAnException()
-        throws IOException, Exception {
+        throws Exception {
         storage.createContainer(CONTAINER_NAME);
-        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, ArchiveStreamFactory.ZIP, null);
+        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, null);
     }
 
     @Test

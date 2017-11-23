@@ -39,9 +39,25 @@ import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.Lists;
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.config.EncoderConfig;
+import com.jayway.restassured.http.ContentType;
+import fr.gouv.vitam.common.CommonMediaType;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.workspace.common.CompressInformation;
+import fr.gouv.vitam.workspace.common.Entry;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -51,24 +67,6 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.config.EncoderConfig;
-import com.jayway.restassured.http.ContentType;
-
-import fr.gouv.vitam.common.CommonMediaType;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.storage.StorageConfiguration;
-import fr.gouv.vitam.workspace.common.Entry;
-import fr.gouv.vitam.workspace.common.RequestResponseError;
-import fr.gouv.vitam.workspace.common.VitamError;
 
 /**
  */
@@ -484,21 +482,22 @@ public class WorkspaceResourceTest {
             with().then()
                 .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
-
-            final RequestResponseError response = new RequestResponseError().setError(
-                new VitamError(Status.BAD_REQUEST.getStatusCode())
-                    .setContext("WORKSPACE")
-                    .setState("vitam_code")
-                    .setMessage(Status.BAD_REQUEST.getReasonPhrase())
-                    .setDescription(Status.BAD_REQUEST.getReasonPhrase()));
+            final VitamError
+                vitamError = getVitamError(VitamCode.WORKSPACE_BAD_REQUEST, "File is empty");
 
             given().contentType(CommonMediaType.ZIP).body(stream)
                 .when()
                 .put("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_SIP)
-                .then().body(Matchers.equalTo(OBJECT_MAPPER.writeValueAsString(response)))
+                .then().body(Matchers.equalTo(OBJECT_MAPPER.writeValueAsString(vitamError)))
                 .statusCode(Status.BAD_REQUEST.getStatusCode());
 
         }
+    }
+
+    private VitamError getVitamError(VitamCode vitamCode, String msg) {
+        return new VitamError(vitamCode.name()).setMessage(msg).setState("ko")
+            .setHttpCode(vitamCode.getStatus().getStatusCode()).setDescription(msg)
+            .setContext(vitamCode.getService().getName());
     }
 
     // uriList

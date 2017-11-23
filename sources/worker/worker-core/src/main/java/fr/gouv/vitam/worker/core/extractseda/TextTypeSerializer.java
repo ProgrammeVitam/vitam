@@ -67,6 +67,7 @@ public class TextTypeSerializer extends StdSerializer<TextType> {
     public void serialize(TextType textType, JsonGenerator jgen, SerializerProvider provider)
         throws IOException {
         if (Strings.isNullOrEmpty(textType.getValue())) {
+            jgen.writeNull();
             return;
         }
         jgen.writeString(textType.getValue());

@@ -66,6 +66,7 @@ import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFou
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
+import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
 
 
 /**
@@ -132,6 +133,9 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
                 inputStream, archiveMimeType, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             if (Status.ACCEPTED.getStatusCode() == response.getStatus()) {
                 LOGGER.info("SIP uploaded: " + Status.ACCEPTED.getReasonPhrase());
+            } else if (Status.NOT_ACCEPTABLE.getStatusCode() == response.getStatus()) {
+                throw new ZipFilesNameNotAllowedException("File or folder name is not allowed");
+
             } else if (Status.SERVICE_UNAVAILABLE.getStatusCode() == response.getStatus()) {
                 throw new WorkspaceClientServerException("Workspace Server Error");
             } else {
