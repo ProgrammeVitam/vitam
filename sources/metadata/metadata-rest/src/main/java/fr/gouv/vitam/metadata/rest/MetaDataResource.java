@@ -730,9 +730,16 @@ public class MetaDataResource extends ApplicationStatusResource {
         for (Document doc : documents) {
             ObjectGroupPerOriginatingAgency ogpoa = new ObjectGroupPerOriginatingAgency();
             ogpoa.setOriginatingAgency(doc.getString("_id"));
-            ogpoa.setNumberOfGOT(doc.getInteger("totalGOT"));
-            ogpoa.setNumberOfObject(doc.getInteger("totalObject"));
-            ogpoa.setSize(doc.getInteger("totalSize"));
+
+            Number totalGOT = doc.get("totalGOT", Number.class);
+            ogpoa.setNumberOfGOT(totalGOT.longValue());
+
+            Number totalObject = doc.get("totalObject", Number.class);
+            ogpoa.setNumberOfObject(totalObject.longValue());
+
+            Number totalSize = doc.get("totalSize", Number.class);
+            ogpoa.setSize(totalSize.longValue());
+
             responseOK.addResult(ogpoa);
         }
 

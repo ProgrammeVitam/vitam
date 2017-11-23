@@ -469,8 +469,7 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
     }
 
     @Test
-    public void should_validate_accession_register_client_for_object_group()
-        throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
+    public void should_validate_accession_register_client_for_object_group() throws InvalidParseOperationException,
         MetaDataClientServerException {
 
         // Given
@@ -489,7 +488,7 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
         // Then
         assertThat(unitPerOriginatingAgencies).hasSize(2)
             .extracting("originatingAgency", "numberOfObject", "numberOfGOT", "size")
-            .contains(tuple("sp1", 3, 2, 2000), tuple("sp2", 4, 1, 3400));
+            .contains(tuple("sp1", 3L, 2L, 2000L), tuple("sp2", 4L, 1L, 3400L));
     }
 
 }
