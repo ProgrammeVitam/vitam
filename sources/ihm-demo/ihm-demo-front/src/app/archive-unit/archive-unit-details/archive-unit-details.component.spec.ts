@@ -8,6 +8,8 @@ import { BreadcrumbService } from '../../common/breadcrumb.service';
 import { VitamResponse } from "../../common/utils/response";
 import { ArchiveUnitService } from "../archive-unit.service";
 import {DialogService} from "../../common/dialog/dialog.service";
+import {NavigationEnd, Router} from "@angular/router";
+import {SipComponent} from "../../ingest/sip/sip.component";
 
 let DefaultResponse = {
   $context: {},
@@ -29,16 +31,24 @@ describe('ArchiveUnitDetailsComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      imports: [ RouterTestingModule ],
+      imports: [
+        RouterTestingModule.withRoutes([
+          {
+            path: 'search/archiveUnit/:id',
+            component: ArchiveUnitDetailsComponent
+          },{
+            path: 'ingest/sip', component: ArchiveUnitDetailsComponent, data : {permission : 'ingest:create'}
+          }
+        ])
+      ],
       declarations: [ ArchiveUnitDetailsComponent ],
       providers: [
         BreadcrumbService,
-        { provide: ArchiveUnitService, useValue: ArchiveUnitServiceStub },
-        DialogService
+        DialogService,
+        { provide: ArchiveUnitService, useValue: ArchiveUnitServiceStub }
       ],
       schemas: [NO_ERRORS_SCHEMA]
-    })
-    .compileComponents();
+    }).compileComponents();
   }));
 
   beforeEach(() => {
@@ -50,4 +60,28 @@ describe('ArchiveUnitDetailsComponent', () => {
   it('should be created', () => {
     expect(component).toBeTruthy();
   });
+
+  it( 'should reinit page when archiveUnitDetail is called', (done) => {
+    spyOn(component, 'pageOnInit').and.callFake(() => {
+      done();
+    });
+    spyOn(component.router, 'events').and.returnValues(
+      Observable.of(new NavigationEnd(1, 'search/archiveUnit/myId', 'urlAfterRedirect'))
+    );
+    component.router.navigateByUrl('search/archiveUnit/myId');
+  });
+
+  it( 'should not reinit page when other page is called', (done) => {
+    spyOn(component, 'pageOnInit').and.callFake(() => {
+      fail('Should not call pageOnInit');
+    });
+    spyOn(component.router, 'events').and.returnValues(
+      Observable.of(new NavigationEnd(1, 'ingest/sip', 'urlAfterRedirect'))
+    );
+    component.router.navigateByUrl('ingest/sip');
+
+    // If no failure after 2sec, we can consider that the test is OK !
+    setTimeout(done, 2000);
+  });
+
 });
