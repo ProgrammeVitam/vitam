@@ -19,8 +19,6 @@ import {
   VisNetworkOptions
 } from 'ng2-vis';
 
-const visNetwork: string = 'networkId1';
-
 const breadcrumb: BreadcrumbElement[] = [
   { label: 'Tests', routerLink: '' },
   { label: 'Visualisation du Graphe', routerLink: 'tests/dag-visualization' }
@@ -46,6 +44,7 @@ export class DagVisualizationComponent extends PageComponent {
   detail: string;
   visNetworkData: VitamNetworkData;
   visNetworkOptions: VisNetworkOptions;
+  visNetwork: string = 'networkId1';
 
   constructor(public breadcrumbService: BreadcrumbService, public queryDslService: QueryDslService,
     private visNetworkService: VisNetworkService,
@@ -120,7 +119,7 @@ export class DagVisualizationComponent extends PageComponent {
 
   private networkInitialized(): void {
     // now we can use the service to register on events
-    this.visNetworkService.on(visNetwork, 'click');
+    this.visNetworkService.on(this.visNetwork, 'click');
   }
 
 
@@ -189,10 +188,10 @@ export class DagVisualizationComponent extends PageComponent {
     };
 
     // network events
-    this.visNetworkService.on(visNetwork, 'click');
+    this.visNetworkService.on(this.visNetwork, 'click');
 
     this.visNetworkService.click.subscribe((eventData: any[]) => {
-      if (eventData[0] === visNetwork) {
+      if (eventData[0] === this.visNetwork) {
         this.detail = "";
         var nbUnits = units.length;
         for (var i = 0; i < nbUnits; i++) {
