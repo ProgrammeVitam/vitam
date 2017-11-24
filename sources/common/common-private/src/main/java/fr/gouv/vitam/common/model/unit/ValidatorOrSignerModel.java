@@ -90,19 +90,19 @@ public class ValidatorOrSignerModel {
 
     @JsonProperty("Function")
     @XmlElement(name = "Function", namespace = NAMESPACE_URI)
-    private String function;
+    private List<String> function;
 
     @JsonProperty("Activity")
     @XmlElement(name = "Activity", namespace = NAMESPACE_URI)
-    private String activity;
+    private List<String> activity;
 
     @JsonProperty("Position")
     @XmlElement(name = "Position", namespace = NAMESPACE_URI)
-    private String position;
+    private List<String> position;
 
     @JsonProperty("Role")
     @XmlElement(name = "Role", namespace = NAMESPACE_URI)
-    private String role;
+    private List<String> role;
 
     @JsonProperty("SigningTime")
     @XmlElement(name = "SigningTime", namespace = NAMESPACE_URI)
@@ -209,35 +209,35 @@ public class ValidatorOrSignerModel {
         this.identifiers = identifiers;
     }
 
-    public String getFunction() {
+    public List<String> getFunction() {
         return function;
     }
 
-    public void setFunction(String function) {
+    public void setFunction(List<String> function) {
         this.function = function;
     }
 
-    public String getActivity() {
+    public List<String> getActivity() {
         return activity;
     }
 
-    public void setActivity(String activity) {
+    public void setActivity(List<String> activity) {
         this.activity = activity;
     }
 
-    public String getPosition() {
+    public List<String> getPosition() {
         return position;
     }
 
-    public void setPosition(String position) {
+    public void setPosition(List<String> position) {
         this.position = position;
     }
 
-    public String getRole() {
+    public List<String> getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(List<String> role) {
         this.role = role;
     }
 
