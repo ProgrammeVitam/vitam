@@ -465,3 +465,132 @@ Type d'indexation dans ElasticSearch par collection et par champ
 	"Name", "Analysé"
 	"Permissions", "Non analysé"
 
+
+Correspondances des champs spéciaux dans Vitam
+----------------------------------------------
+
+Les champs dont le nom est préfixé d'un "_" ne sont pas accessible directement, une correspondance est nécessaire pour y accéder.
+
+**Collection LogbookOperation**
+
+.. csv-table::
+  :header: "Champ", "Champ interne"
+
+	"#id","_id"
+	"#tenant","_tenant"
+
+**Collection AccessContract**
+
+.. csv-table::
+  :header: "Champ", "Champ interne"
+
+	"#id","_id"
+	"#tenant","_tenant"
+
+**Collection AccessionRegisterDetail**
+
+.. csv-table::
+  :header: "Champ", "Champ interne"
+
+	"#id","_id"
+	"#tenant","_tenant"
+
+**Collection AccessionRegisterSummary**
+
+.. csv-table::
+  :header: "Champ", "Champ interne"
+
+	"#id","_id"
+	"#tenant","_tenant"
+
+**Collection Agencies**
+
+.. csv-table::
+  :header: "Champ", "Champ interne"
+
+	"#id","_id"
+	"#tenant","_tenant"
+
+**Collection Context**
+
+.. csv-table::
+  :header: "Champ", "Champ interne"
+
+	"#id","_id"
+
+**Collection FileFormat**
+
+.. csv-table::
+  :header: "Champ", "Champ interne"
+
+	"#id","_id"
+
+**Collection FileRule**
+
+.. csv-table::
+  :header: "Champ", "Champ interne"
+
+	"#id","_id"
+	"#tenant","_tenant"
+	"#version","_v"
+
+**Collection IngestContract**
+
+.. csv-table::
+  :header: "Champ", "Champ interne"
+
+	"#id","_id"
+	"#tenant","_tenant"
+	
+**Collection Profile**
+
+.. csv-table::
+  :header: "Champ", "Champ interne"
+
+	"#id","_id"
+	"#tenant","_tenant"
+
+**Collection Unit**
+
+.. warning:: Le champs "_uds" n'est pas accessible en externe.
+
+.. csv-table::
+  :header: "Champ", "Champ interne"
+
+	"#id","_id"
+	"#management","_mgt"
+    "#min","_min"
+    "#max","_max"
+    "#nbunits","_nbc"
+    "#object","_og"
+    "#originating_agency","_sp"
+    "#originating_agencies","_sps"
+    "BLOQUÉ","_uds"
+    "#unitups","_up"
+    "#allunitups","_us"
+    "#nbunits","_nbc"
+    "#unitType","_unitType"
+    "#storage","_storage"
+    "#operations","_ops"
+    "#score","_score"
+    "#version","_v"
+	"#tenant","_tenant"
+
+**Collection ObjectGroup**
+
+.. csv-table::
+  :header: "Champ", "Champ interne"
+
+	"#id","_id"
+	"#profil","_profil"
+    "#qualifiers","_qualifiers"
+	"#size","_qualifiers.versions.size"
+    "#nbobjects","_nbc"
+    "#originating_agency","_sp"
+    "#originating_agencies","_sps"
+    "#unitups","_up"
+    "#storage","_storage"
+    "#operations","_ops"
+    "#score","_score"
+    "#version","_v"
+	"#tenant","_tenant"
