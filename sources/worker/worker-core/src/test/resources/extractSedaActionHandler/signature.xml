@@ -226,23 +226,75 @@
                         <EventDetail>Envoi d'une carte postale depuis le front.</EventDetail>
                     </Event>
                     <Signature>
-                        <DateSignature>2017-11-13T17:28:40</DateSignature>
+                        <DateSignature>2017-08-24T14:56:31.000+02:00</DateSignature>
                         <Signer>
-                            <Corpname>Service d'archives</Corpname>
-                            <SigningTime>2017-11-13T19:28:40</SigningTime>
-                        </Signer>
-                        <Signer>
-                            <Corpname>Service d'archives 2</Corpname>
-                            <SigningTime>2017-11-13T19:28:40</SigningTime>
+                            <FirstName>John</FirstName>
+                            <BirthName>Doe</BirthName>
+                            <GivenName>toto</GivenName>
+                            <Gender>Male</Gender>
+                            <BirthDate>1968-12-19</BirthDate>
+                            <BirthPlace>
+                                <Geogname>test</Geogname>
+                                <Address>47, rue de la Chapelle</Address>
+                                <PostalCode>75018</PostalCode>
+                                <City>Paris</City>
+                                <Region>Ile de France</Region>
+                                <Country>France</Country>
+                            </BirthPlace>
+                            <DeathDate>2017-08-25</DeathDate>
+                            <DeathPlace>
+                                <Geogname>test</Geogname>
+                                <Address>47, rue de la Chapelle</Address>
+                                <PostalCode>75018</PostalCode>
+                                <City>Paris</City>
+                                <Region>Ile de France</Region>
+                                <Country>France</Country>
+                            </DeathPlace>
+                            <Nationality>French</Nationality>
+                            <Identifier>Identifier0</Identifier>
+                            <SigningTime>2017-08-24T14:56:31.000+02:00</SigningTime>
+                            <Function>Chef</Function>
+                            <Activity>Grand chef</Activity>
+                            <Position>Chef</Position>
+                            <Role>Chef</Role>
                         </Signer>
                         <Validator>
-                            <FirstName>Laurent</FirstName>
-                            <BirthName>Dupois</BirthName>
-                            <ValidationTime>2016-10-12T16:28:40</ValidationTime>
+                            <FirstName>John</FirstName>
+                            <BirthName>Doe</BirthName>
+                            <GivenName>toto</GivenName>
+                            <Gender>Male</Gender>
+                            <BirthDate>1968-12-19</BirthDate>
+                            <BirthPlace>
+                                <Geogname>test</Geogname>
+                                <Address>47, rue de la Chapelle</Address>
+                                <PostalCode>75018</PostalCode>
+                                <City>Paris</City>
+                                <Region>Ile de France</Region>
+                                <Country>France</Country>
+                            </BirthPlace>
+                            <DeathDate>2017-08-25</DeathDate>
+                            <DeathPlace>
+                                <Geogname>test</Geogname>
+                                <Address>47, rue de la Chapelle</Address>
+                                <PostalCode>75018</PostalCode>
+                                <City>Paris</City>
+                                <Region>Ile de France</Region>
+                                <Country>France</Country>
+                            </DeathPlace>
+                            <Nationality>French</Nationality>
+                            <Identifier>Identifier0</Identifier>
+                            <ValidationTime>2017-08-24T14:56:31.000+02:00</ValidationTime>
+                            <Function>Chef</Function>
+                            <Activity>Grand chef</Activity>
+                            <Position>Chef</Position>
+                            <Role>Chef</Role>
+                            <Role>Super Chef</Role>
                         </Validator>
                         <ReferencedObject>
-                            <SignedObjectId>ID1</SignedObjectId>
-                            <SignedObjectDigest algorithm="SHA-512">942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7</SignedObjectDigest>
+                            <SignedObjectId>ID5</SignedObjectId>
+                            <SignedObjectDigest algorithm="SHA-512">
+                                fec135f80c1996d1f281183aa260609d3dde1a831b593ba3f62c78a794b298fe22e4f305c419ffc54185477098da99b58e9627b9a78429d11fc4a12c6aed125b
+                            </SignedObjectDigest>
                         </ReferencedObject>
                     </Signature>
                     <!-- Groupe 21 : Signature 
