@@ -42,7 +42,14 @@ public class FileFormatModel {
     /**
      * unique id
      */
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     private String id;
+
+    /**
+     * document version
+     */
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_VERSION)
+    private Integer documentVersion;
 
     // TODO: P3 use a date object
     /**
@@ -118,7 +125,6 @@ public class FileFormatModel {
     /**
      * @return id
      */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     public String getId() {
         return id;
     }
@@ -127,16 +133,23 @@ public class FileFormatModel {
      * @param id value to set
      * @return this
      */
-    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_ID)
-    public FileFormatModel setId(String id) {
+    public void setId(String id) {
         this.id = id;
-        return this;
     }
 
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
-    public FileFormatModel setIdExt(String id) {
-        this.id = id;
-        return this;
+
+    /**
+     * @return document version (_v)
+     */
+    public Integer getDocumentVersion() {
+        return documentVersion;
+    }
+
+    /**
+     * @param documentVersion document version (_v)
+     */
+    public void setDocumentVersion(Integer documentVersion) {
+        this.documentVersion = documentVersion;
     }
 
     /**

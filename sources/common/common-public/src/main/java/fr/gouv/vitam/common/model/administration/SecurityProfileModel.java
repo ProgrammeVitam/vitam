@@ -45,9 +45,16 @@ public class SecurityProfileModel {
     private static final String TAG_PERMISSIONS = "Permissions";
 
     /**
-     * unique identifier
+     * unique id
      */
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     private String id;
+
+    /**
+     * document version
+     */
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_VERSION)
+    private Integer version;
 
     @JsonProperty(TAG_IDENTIFIER)
     private String identifier;
@@ -96,7 +103,6 @@ public class SecurityProfileModel {
     /**
      * @return id
      */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     public String getId() {
         return id;
     }
@@ -105,15 +111,23 @@ public class SecurityProfileModel {
      * @param id value to set
      * @return this
      */
-    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_ID)
     public void setId(String id) {
         this.id = id;
     }
 
 
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
-    public void setIdExt(String id) {
-        this.id = id;
+    /**
+     * @return version
+     */
+    public Integer getVersion() {
+        return version;
+    }
+
+    /**
+     * @param version
+     */
+    public void setVersion(Integer version) {
+        this.version = version;
     }
 
     /**

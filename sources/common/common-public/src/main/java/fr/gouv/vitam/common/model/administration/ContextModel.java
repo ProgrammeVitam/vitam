@@ -60,11 +60,17 @@ public class ContextModel {
 
     public static final String TAG_PERMISSIONS = "Permissions";
 
+    /**
+     * unique id
+     */
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
+    private String id;
 
     /**
-     * unique identifier
+     * document version
      */
-    private String id;
+    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_VERSION)
+    private Integer version;
 
     @JsonProperty(TAG_NAME)
     private String name;
@@ -106,28 +112,32 @@ public class ContextModel {
     /**
      * @return id
      */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     public String getId() {
         return id;
     }
 
     /**
-     * @param id
-     * @return ContextModel
+     * @param id value to set
+     * @return this
      */
-    @JsonProperty(ModelConstants.UNDERSCORE + ModelConstants.TAG_ID)
-    public ContextModel setId(String id) {
+    public void setId(String id) {
         this.id = id;
-        return this;
-    }
-
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
-    public ContextModel setIdExt(String id) {
-        this.id = id;
-        return this;
     }
 
 
+    /**
+     * @return version
+     */
+    public Integer getVersion() {
+        return version;
+    }
+
+    /**
+     * @param version
+     */
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
 
     /**
      * @return name

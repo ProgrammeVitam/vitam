@@ -1,6 +1,6 @@
 [
   {
-    "_id" : "guid",
+    "#id" : "guid",
     "Name": "SEC_PROFILE_1",
     "FullAccess": false,
     "Permissions": [
