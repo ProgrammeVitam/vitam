@@ -567,9 +567,33 @@ public class ProfileServiceImplTest {
 
         final ProfileModel acmFound = profileModelListFound.getResults().iterator().next();
         assertThat(acmFound).isNotNull();
-        //FIXEME
-       // assertThat(acmFound.getId()).isEqualTo(id1);
         assertThat(acmFound.getIdentifier()).isEqualTo(identifier);
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void should_update_profil() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok_1.json");
+        final List<ProfileModel> profileModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {
+            });
+        RequestResponse response = profileService.createProfiles(profileModelList);
+
+        assertThat(response.isOk()).isTrue();
+
+        Select select = new Select();
+        select.setQuery(QueryHelper.eq(ProfileModel.TAG_NAME, "PToUpdate"));
+        RequestResponseOK<ProfileModel> result = profileService.findProfiles(select.getFinalSelect());
+        ProfileModel profil = result.getFirstResult();
+        assertThat(profil.getName()).isEqualTo("PToUpdate");
+
+        //profileService.
+        String query = "{\"$query\":{\"$eq\":{\"Identifier\":\"" + profil.getIdentifier() +
+            "\"}},\"$filter\":{},\"$action\":[{\"$set\":{\"Name\":\"profil test \"}}]}";
+        response = profileService.updateProfile(profil, JsonHandler.getFromString(query));
+
+        assertThat(response.isOk()).isTrue();
+    }
 }
