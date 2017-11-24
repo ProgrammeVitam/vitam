@@ -97,7 +97,7 @@ public class ElementMapper {
                     case Node.TEXT_NODE:
                         break;
                     case Node.ELEMENT_NODE:
-                        if (child.hasChildNodes() && child.getChildNodes().getLength() > 1) {
+                        if (child.hasChildNodes() && child.getChildNodes().getLength() >= 1) {
                             objects.add(elementToMap((Element) child));
                             break;
                         }
