@@ -16,6 +16,7 @@ export class GenericTableComponent implements OnInit {
   @Input() selectionMode: string = null;
   @Input() selectedCols: ColumnDefinition[] = [];
   @Input() getClass: () => string = () => '';
+  @Input() specificRowCss: (item, index) => string = () => '';
 
 
 

@@ -30,9 +30,9 @@ export class AuditComponent extends PageComponent {
 
   constructor(public titleService: Title, private searchReferentialsService : ReferentialsService,
               public breadcrumbService: BreadcrumbService, private auditService : AuditService) {
-    super('Recherche du référentiel', [], titleService, breadcrumbService);
+    super('Audit', [], titleService, breadcrumbService);
     let newBreadcrumb = [
-      {label: 'Administration', routerLink: ''},
+      {label: 'Gestion des archives', routerLink: ''},
       {label: 'Audit', routerLink: ''}
     ];
 

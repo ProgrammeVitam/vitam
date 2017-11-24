@@ -300,6 +300,11 @@ $globalDarkPurple: #6f4dff;
                 background-color: $stateHighlightBgColor;
                 color: $stateHighlightTextColor;
             }
+
+            &.disabledRow {
+                background-color: #cccccc;
+                pointer-events: none;
+            }
         }
     }
 
@@ -600,6 +605,10 @@ $globalDarkPurple: #6f4dff;
 
 .fa.greyColor {
     color: lightgrey;
+}
+
+.fa.darkgreyColor {
+    color: #666;
 }
 
 .ui-menubar {

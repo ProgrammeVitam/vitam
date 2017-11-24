@@ -31,7 +31,7 @@
   </div>
 </p-panel>
 <p-panel [header]="'Vérification de l\'opération de sécurisation'" *ngIf="!item">
-  Réccupération des données en cours...
+  Récupération des données en cours...
 </p-panel>
 <p-panel [header]="'Rapport de vérification'" *ngIf="reportGenerated && reportItems">
   <p-paginator [(rows)]="nbRows" (onPageChange)="paginate($event)" [(first)]="firstItem"></p-paginator>
