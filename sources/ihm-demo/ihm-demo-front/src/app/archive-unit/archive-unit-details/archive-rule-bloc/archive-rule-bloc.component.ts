@@ -26,6 +26,7 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
   public saveRunning = false;
   public displayOK = false;
   public displayKO = false;
+  public messageToDisplay;
 
 
   frLocale = {
@@ -187,12 +188,28 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
     let info = this.getUpdatedRules();
     let rules = info.rules;
     if (rules.length > 0) {
+      if (info.categories.length < 2) {
+        this.messageToDisplay =  `Vous vous apprétez à modifier la catégorie ${info.categories} pour:<br />`
+      } else {
+        this.messageToDisplay =  `Vous vous apprétez à modifier les catégories ${info.categories} pour:<br />`
+      }
+      if (info.deleted < 2) {
+        this.messageToDisplay = this.messageToDisplay + `- Supprimer ${info.deleted} règle,<br />`;
+      } else {
+        this.messageToDisplay = this.messageToDisplay +  `- Supprimer ${info.deleted} règles,<br />`;
+      }
+      if (info.updated < 2) {
+        this.messageToDisplay = this.messageToDisplay + `- Modifier ${info.updated} règle,<br />`
+      } else {
+        this.messageToDisplay = this.messageToDisplay + `- Modifier ${info.updated} règles,<br />`
+      }
+      if (info.added < 2) {
+        this.messageToDisplay = this.messageToDisplay + `- Ajouter ${info.added} règle`
+      } else {
+        this.messageToDisplay = this.messageToDisplay + `- Ajouter ${info.added} règles`
+      }
       this.confirmationService.confirm({
-
-        message: `Vous vous apprétez à modifier les catégories ${info.categories} pour:<br />
-      - Supprimer ${info.deleted} règles,<br />
-      - Modifier ${info.updated} règles,<br />
-      - Ajouter ${info.added} règles`,
+        message: this.messageToDisplay,
         accept: () => {
           this.saveRunning = true;
           let request = [];
