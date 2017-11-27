@@ -857,6 +857,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                                     .setApplicationSessionId(getAppSessionId()),
                                                 criteria);
                                             break;
+                                        case AGENCIES:
+                                            result = adminExternalClient.findAgencies(
+                                                new VitamContext(tenantId).setAccessContract(contractId)
+                                                    .setApplicationSessionId(getAppSessionId()),
+                                                criteria);
+                                            break;
                                         default:
                                             throw new UnsupportedOperationException(
                                                 "No implementation found for collection " + requestedCollection);
@@ -904,6 +910,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
                                                 break;
                                             case PROFILE:
                                                 result = adminExternalClient.findProfileById(
+                                                    new VitamContext(tenantId).setAccessContract(contractId)
+                                                        .setApplicationSessionId(getAppSessionId()),
+                                                    objectID);
+                                                break;
+                                            case AGENCIES:
+                                                result = adminExternalClient.findAgencyByID(
                                                     new VitamContext(tenantId).setAccessContract(contractId)
                                                         .setApplicationSessionId(getAppSessionId()),
                                                     objectID);

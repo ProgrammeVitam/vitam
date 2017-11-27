@@ -470,6 +470,22 @@ public class WebApplicationResourceDeleteTest {
         }
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void testDeleteMasterdataAgencyOK() {
+        try {
+            VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+            final GUID idAgency = addData(FunctionalAdminCollections.AGENCIES);
+            assertTrue(existsData(FunctionalAdminCollections.AGENCIES, idAgency.getId()));
+            given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+                    .delete("delete/masterdata/agencies");
+            assertFalse(existsData(FunctionalAdminCollections.AGENCIES, idAgency.getId()));
+        } catch (final Exception e) {
+            LOGGER.error(e);
+            fail("Exception using mongoDbAccess");
+        }
+    }
 
     @Test
     @RunWithCustomExecutor
@@ -545,12 +561,12 @@ public class WebApplicationResourceDeleteTest {
                 .delete("delete");
             // check not deleted
             assertTrue(existsData(FunctionalAdminCollections.FORMATS, idFormat.getId()));
-            assertTrue(existsData(FunctionalAdminCollections.AGENCIES, idAgency.getId()));
             // check deleted
             assertFalse(existsData(FunctionalAdminCollections.PROFILE, idProfile.getId()));
             assertFalse(existsData(FunctionalAdminCollections.ACCESS_CONTRACT, idAccessContract.getId()));
             assertFalse(existsData(FunctionalAdminCollections.INGEST_CONTRACT, idIngestContract.getId()));
             assertFalse(existsData(FunctionalAdminCollections.RULES, idRule.getId()));
+            assertFalse(existsData(FunctionalAdminCollections.AGENCIES, idAgency.getId()));
             assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, idRegisterSummary.getId()));
             assertFalse(existsData(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, idRegisterDetail.getId()));
             assertFalse(existsData(FunctionalAdminCollections.PROFILE, idProfile.getId()));
