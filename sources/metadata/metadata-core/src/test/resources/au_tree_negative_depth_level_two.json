@@ -1,0 +1,28 @@
+{
+  "$roots": ["aeaqaaaaaaegexzwab76uak74nta33aaaaba"],
+  "$query": [
+    {
+      "$and": [
+        {
+          "$in": {
+            "#operations": [
+              "aedqaaaaachtcmknab2okak74ntaehqaaaaq"
+            ]
+          }
+        },
+        {
+          "$eq": {
+            "Title": "Fake"
+          }
+        }
+      ],
+      "$depth": -2
+    }
+  ],
+  "$projection": {
+    "$fields": {
+      "#id": 1,
+      "Title": 1
+    }
+  }
+}

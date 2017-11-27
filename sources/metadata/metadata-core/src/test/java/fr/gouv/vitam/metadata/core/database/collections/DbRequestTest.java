@@ -163,8 +163,15 @@ public class DbRequestTest {
     private static final String VALUE_MY_TITLE = "MyTitle";
     private static final String ARRAY_VAR = "ArrayVar";
     private static final String ARRAY2_VAR = "Array2Var";
-    private static final String EMPTY_VAR = "EmptyVar";
+    private static final String EMPTY_VAR = "EmptyVar";;
+    private static final String _OPS = "_ops";
+    private static final String ROOTS = "$roots";
+    private static final String _UDS = "_uds";
+    private static final String DATA = "$data";
     static final int tenantId = 0;
+
+    private static final String AU_TREE_NEGATIVE_DEPTH_LEVEL_ONE = "au_tree_negative_depth_level_one.json";
+    private static final String AU_TREE_NEGATIVE_DEPTH_LEVEL_TWO = "au_tree_negative_depth_level_two.json";
 
     static final List tenantList = Lists.newArrayList(TENANT_ID_0, TENANT_ID_1, TENANT_ID_2, TENANT_ID_3);
 
@@ -373,6 +380,136 @@ public class DbRequestTest {
         } finally {
             // clean
             MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
+        }
+    }
+
+    /**
+     * Test negative Depth on unit's graph -> depth < -1.
+     */
+    @Test
+    @RunWithCustomExecutor
+    public void testExecRequestWithNegativeDepthLevel_One() {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        final String guidParent1 = "aeaqaaaaaaagsoddab2wcak75hnwm6aaaaba";
+        final String guidParent2 = "aeaqaaaaaaegexzwab76uak74nta33aaaaba";
+        final String guidChild = "aeaqaaaaaadu6tbzablxaak75hfyaoiaaaba";
+        final String operation = "aedqaaaaachtcmknab2okak74ntaehqaaaaq";
+
+        try {
+            final DbRequest dbRequest = new DbRequest();
+            final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
+            final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
+
+            // prepare unit with one parent -> depth_negative_level = -1.
+            final ObjectNode insertReq1 = (ObjectNode) createInsertRequestTreeWithParents(guidParent1, "Fake titre_A", operation);
+            final ObjectNode insertReq2 = (ObjectNode) createInsertRequestTreeWithParents(guidParent2, "Fake titre_B", operation);
+            final ObjectNode insertReq3 = (ObjectNode) createInsertRequestTreeWithParents(guidChild, "Fake titre_C", operation);
+            insertReq3.set(ROOTS, (ArrayNode) JsonHandler.toJsonNode(Arrays.asList(guidParent1, guidParent2)));
+            ObjectNode uds = JsonHandler.createObjectNode().put(guidParent1, 1L).put(guidParent2, 1L);
+            ((ObjectNode) insertReq3.get(DATA)).set(_UDS, uds);
+
+            // Insert data (insertReq1, insertReq2, insertReq3)
+            insertParser.parse(insertReq1);
+            LOGGER.debug("insertParser: {}", insertParser);
+            executeRequest(dbRequest, insertParser);
+
+            insertParser.parse(insertReq2);
+            LOGGER.debug("insertParser: {}", insertParser);
+            executeRequest(dbRequest, insertParser);
+
+            insertParser.parse(insertReq3);
+            LOGGER.debug("insertParser: {}", insertParser);
+            executeRequest(dbRequest, insertParser);
+
+            // prepare select dsl query -> Select parents ot the given root corresponding on the depth (depth < -1)
+            JsonNode selectQuery = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(AU_TREE_NEGATIVE_DEPTH_LEVEL_ONE));
+            selectParser.parse(selectQuery);
+            LOGGER.debug("selectParser: {}", selectParser);
+
+            // get query's results
+            final Result<MetadataDocument<?>> result = dbRequest.execRequest(selectParser, null);
+
+            LOGGER.debug("result size: {}", result.getNbResult());
+            assertEquals(1L, result.getNbResult());
+            final List<MetadataDocument<?>> docs = result.getFinal();
+            assertEquals("Fake titre_A", docs.get(0).getString(TITLE));
+
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        } finally {
+            MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, guidParent1.toString()));
+            MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, guidParent2.toString()));
+            MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, guidChild.toString()));
+        }
+    }
+
+    /**
+     * Test negative Depth on unit's graph -> depth < -2.
+     */
+    @Test
+    @RunWithCustomExecutor
+    public void testExecRequestWithNegativeDepthLevel_Two() {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        final String guidParent = "aeaqaaaaaaagsoddab2wcak75hnwm6aaaaba";
+        final String guidChild1 = "aeaqaaaaaadu6tbzablxaak75hfyaoiaaaba";
+        final String guidChild2 = "aeaqaaaaaaegexzwab76uak74nta33aaaaba";
+        final String operation = "aedqaaaaachtcmknab2okak74ntaehqaaaaq";
+
+        try {
+            final DbRequest dbRequest = new DbRequest();
+            final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
+            final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
+
+            // prepare unit with one parent ==> depth_negative_level = -2.
+            final ObjectNode insertReq1 = (ObjectNode) createInsertRequestTreeWithParents(guidParent, "Fake titre_A", operation);
+
+            final ObjectNode insertReq2 = (ObjectNode) createInsertRequestTreeWithParents(guidChild1, "Fake titre_B", operation);
+            insertReq2.set(ROOTS, (ArrayNode) JsonHandler.toJsonNode(Arrays.asList(guidParent)));
+            ObjectNode uds = JsonHandler.createObjectNode().put(guidParent, 1);
+            ((ObjectNode) insertReq2.get(DATA)).set(_UDS, uds);
+
+            final ObjectNode insertReq3 = (ObjectNode) createInsertRequestTreeWithParents(guidChild2, "Fake titre_C", operation);
+            insertReq3.set(ROOTS, (ArrayNode) JsonHandler.toJsonNode(Arrays.asList(guidParent, guidChild1)));
+            ObjectNode uds1 = JsonHandler.createObjectNode().put(guidParent, 2).put(guidChild1, 1);
+            ((ObjectNode) insertReq3.get(DATA)).set(_UDS, uds1);
+
+            // Insert data (insertReq1, insertReq2, insertReq3)
+            insertParser.parse(insertReq1);
+            LOGGER.debug("insertParser: {}", insertParser);
+            executeRequest(dbRequest, insertParser);
+
+            insertParser.parse(insertReq2);
+            LOGGER.debug("insertParser: {}", insertParser);
+            executeRequest(dbRequest, insertParser);
+
+            insertParser.parse(insertReq3);
+            LOGGER.debug("insertParser: {}", insertParser);
+            executeRequest(dbRequest, insertParser);
+
+            // prepare select dsl query -> Select parents ot the given root corresponding on the depth (depth < -2)
+            JsonNode selectQuery = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(AU_TREE_NEGATIVE_DEPTH_LEVEL_TWO));
+            selectParser.parse(selectQuery);
+            LOGGER.debug("selectParser: {}", selectParser);
+
+            // get query's results
+            final Result<MetadataDocument<?>> result = dbRequest.execRequest(selectParser, null);
+
+            LOGGER.debug("result size: {}", result.getNbResult());
+            assertEquals(2L, result.getNbResult());
+            final List<MetadataDocument<?>> docs = result.getFinal();
+            LOGGER.debug("result1 title: {}", docs.get(0).get(TITLE));
+            ;
+            assertTrue(docs.get(0).getString(TITLE).contains("Fake"));
+            LOGGER.debug("result2 title: {}", docs.get(1).get(TITLE));
+
+        } catch (final Exception e) {
+            e.printStackTrace();
+            fail(e.getMessage());
+        } finally {
+            MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, guidParent.toString()));
+            MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, guidChild1.toString()));
+            MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, guidChild2.toString()));
         }
     }
 
@@ -1892,5 +2029,29 @@ public class DbRequestTest {
         deleteParser.parse(delete.getFinalDelete());
         dbRequest.execRequest(deleteParser, null);
         assertEquals(2, result.nbResult);
+    }
+
+    /**
+     * Create simple insert query tree with one parent.
+     *
+     * @param guid
+     * @param title
+     * @return the created insert query
+     */
+    private JsonNode createInsertRequestTreeWithParents(final String guid, final String title, final String op) {
+        final ObjectNode data = JsonHandler.createObjectNode()
+                .put(id(), guid)
+                .put(TITLE, title)
+                .put(tenant(), tenantId)
+                .put(DESCRIPTION, "Fake description");
+        try {
+            data.putArray(_OPS).addAll((ArrayNode) JsonHandler.toJsonNode(Arrays.asList(op)));
+        } catch (final InvalidParseOperationException e) {
+            fail(e.getMessage());
+        }
+        final InsertMultiQuery insertQuery = new InsertMultiQuery();
+        insertQuery.addData(data);
+
+        return insertQuery.getFinalInsert();
     }
 }
