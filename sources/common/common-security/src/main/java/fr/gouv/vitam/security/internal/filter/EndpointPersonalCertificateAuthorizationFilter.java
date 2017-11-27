@@ -33,17 +33,13 @@ import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
+import fr.gouv.vitam.security.internal.client.InternalSecurityClient;
+import fr.gouv.vitam.security.internal.client.InternalSecurityClientFactory;
+import fr.gouv.vitam.security.internal.common.exception.InternalSecurityException;
+import fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel;
 import fr.gouv.vitam.security.internal.exception.VitamSecurityException;
 
 import javax.ws.rs.container.ContainerRequestContext;
@@ -52,95 +48,103 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 
-/**
- * Handles permission based access authorization for REST endpoints.
- */
-public class EndpointAuthorizationFilter implements ContainerRequestFilter {
+import static fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel.Response.REQUIRED_PERSONAL_CERTIFICATE;
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EndpointAuthorizationFilter.class);
+/**
+ * Handles personal certificate access authorization for REST endpoints.
+ */
+public class EndpointPersonalCertificateAuthorizationFilter implements ContainerRequestFilter {
+
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(EndpointPersonalCertificateAuthorizationFilter.class);
 
     private final String permission;
 
-    private AdminManagementClient adminManagementClient;
+    private InternalSecurityClient internalSecurityClient;
 
     /**
      * Constructor with permission to filter
      *
      * @param permission the permission to filter
      */
-    public EndpointAuthorizationFilter(String permission) {
+    public EndpointPersonalCertificateAuthorizationFilter(String permission) {
         this.permission = permission;
-        this.adminManagementClient = AdminManagementClientFactory.getInstance().getClient();
+        this.internalSecurityClient = InternalSecurityClientFactory.getInstance().getClient();
     }
 
     /**
      * Contructor for tests
+     *
      * @param permission
-     * @param adminManagementClient
+     * @param internalSecurityClient
      */
     @VisibleForTesting
-    public EndpointAuthorizationFilter(String permission,
-                                       AdminManagementClient adminManagementClient) {
+    public EndpointPersonalCertificateAuthorizationFilter(String permission,
+        InternalSecurityClient internalSecurityClient) {
         this.permission = permission;
-        this.adminManagementClient = adminManagementClient;
+        this.internalSecurityClient = internalSecurityClient;
     }
 
     /**
      * Checks authorization filter based of the current security profile permission set.
+     *
      * @param requestContext the invocation context
      * @throws IOException
      */
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
 
-        String securityProfileIdentifier = VitamThreadUtils.getVitamSession().getSecurityProfileIdentifier();
-
         try {
+            boolean isPersonalCertificateRequired = getIsPersonalCertificateRequired();
 
-            // Get security profile by identifier stored in VitamSession
-            RequestResponse<SecurityProfileModel> securityProfileResponse =
-                    adminManagementClient.findSecurityProfileByIdentifier(securityProfileIdentifier);
-
-            SecurityProfileModel securityProfile;
-            if (securityProfileResponse.isOk()) {
-                securityProfile = ((RequestResponseOK<SecurityProfileModel>) securityProfileResponse).getFirstResult();
-            } else {
-                LOGGER.error("Could not retrieve security profile by identifier " + securityProfileIdentifier);
-                VitamError vitamError = (VitamError) securityProfileResponse;
-                requestContext.abortWith(
-                        Response.status(vitamError.getHttpCode()).entity(vitamError).type(MediaType.APPLICATION_JSON_TYPE)
-                                .build());
+            if (!isPersonalCertificateRequired) {
+                LOGGER.debug("Personal certificate check skipped for permission {0}", permission);
                 return;
             }
 
-            // Check for full access security profile
-            if (securityProfile.getFullAccess()) {
-                LOGGER.debug("Full access granted.");
-                return;
-            }
+            LOGGER.debug("Personal certificate check required for permission {0}", permission);
+            checkPersonalCertificate(requestContext);
 
-            // Check for matching security profile permission
-            if (securityProfile.getPermissions() != null
-                    && securityProfile.getPermissions().contains(permission)) {
-                LOGGER.debug("Access granted with permission " + permission);
-                return;
-            }
-
-            LOGGER.warn("Access denied for permission " + permission);
-            throw new VitamSecurityException("Access denied.");
-
-        } catch (InvalidParseOperationException |
-                AdminManagementClientServerException |
-                ReferentialNotFoundException |
-                VitamSecurityException e) {
+        } catch (InternalSecurityException |
+            VitamClientInternalException |
+            VitamSecurityException e) {
             LOGGER.error("An error occured during authorization filter check", e);
             final VitamError vitamError = generateVitamError(e);
 
             requestContext.abortWith(
-                    Response.status(vitamError.getHttpCode()).entity(vitamError).type(MediaType.APPLICATION_JSON_TYPE)
-                            .build());
+                Response.status(vitamError.getHttpCode()).entity(vitamError).type(MediaType.APPLICATION_JSON_TYPE)
+                    .build());
             return;
         }
+    }
+
+    public boolean getIsPersonalCertificateRequired()
+        throws VitamClientInternalException, InternalSecurityException {
+
+        // A cache may be used  (later) for this call
+        IsPersonalCertificateRequiredModel isPersonalCertificateRequired =
+            internalSecurityClient.isPersonalCertificateRequiredByPermission(permission);
+
+        switch (isPersonalCertificateRequired.getResponse()) {
+            case REQUIRED_PERSONAL_CERTIFICATE:
+                return true;
+            case IGNORED_PERSONAL_CERTIFICATE:
+                return false;
+            case ERROR_UNKNOWN_PERMISSION:
+                throw new IllegalStateException(
+                    "Unknown permission " + permission +
+                        ". Please add permission in security-internal personal certificate permission configuration.");
+            default:
+                throw new IllegalStateException(
+                    "Unexpected response " + isPersonalCertificateRequired);
+        }
+    }
+
+    private void checkPersonalCertificate(ContainerRequestContext requestContext) {
+
+        // FIXME
+        LOGGER.warn("Access denied for permission " + permission);
+        throw new VitamSecurityException("Access denied.");
     }
 
     /**
@@ -151,17 +155,17 @@ public class EndpointAuthorizationFilter implements ContainerRequestFilter {
      */
     private VitamError generateVitamError(Exception e) {
         final VitamError vitamError =
-                new VitamError(VitamCodeHelper.getCode(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED));
+            new VitamError(VitamCodeHelper.getCode(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED));
 
         String description = e.getMessage();
         if (Strings.isNullOrEmpty(description)) {
             description = StringUtils.getClassName(e);
         }
         vitamError.setContext(ServerIdentity.getInstance().getJsonIdentity())
-                .setMessage(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED.getMessage())
-                .setDescription(description)
-                .setState(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED.name())
-                .setHttpCode(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED.getStatus().getStatusCode());
+            .setMessage(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED.getMessage())
+            .setDescription(description)
+            .setState(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED.name())
+            .setHttpCode(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED.getStatus().getStatusCode());
         return vitamError;
     }
 

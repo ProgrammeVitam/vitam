@@ -53,10 +53,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Test class of {@link EndpointAuthorizationFilter}
+ * Test class of {@link EndpointPermissionAuthorizationFilter}
  */
 @RunWithCustomExecutor
-public class EndpointAuthorizationFilterTest {
+public class EndpointPermissionAuthorizationFilterTest {
 
     public static final String PERMISSION = "my_permission";
     public static final String SECURITY_PROFILE_IDENTIFIER = "MY_PROFILE_000001";
@@ -76,7 +76,8 @@ public class EndpointAuthorizationFilterTest {
 
         ContainerRequestContext containerRequestContext = spy(ContainerRequestContext.class);
 
-        EndpointAuthorizationFilter instance = new EndpointAuthorizationFilter(PERMISSION, adminManagementClient);
+        EndpointPermissionAuthorizationFilter
+            instance = new EndpointPermissionAuthorizationFilter(PERMISSION, adminManagementClient);
         instance.filter(containerRequestContext);
 
         verify(containerRequestContext, only()).abortWith(anyObject());
@@ -96,7 +97,8 @@ public class EndpointAuthorizationFilterTest {
 
         ContainerRequestContext containerRequestContext = spy(ContainerRequestContext.class);
 
-        EndpointAuthorizationFilter instance = new EndpointAuthorizationFilter(PERMISSION, adminManagementClient);
+        EndpointPermissionAuthorizationFilter
+            instance = new EndpointPermissionAuthorizationFilter(PERMISSION, adminManagementClient);
         instance.filter(containerRequestContext);
 
         verify(containerRequestContext, never()).abortWith(anyObject());
@@ -116,7 +118,8 @@ public class EndpointAuthorizationFilterTest {
 
         ContainerRequestContext containerRequestContext = spy(ContainerRequestContext.class);
 
-        EndpointAuthorizationFilter instance = new EndpointAuthorizationFilter(PERMISSION, adminManagementClient);
+        EndpointPermissionAuthorizationFilter
+            instance = new EndpointPermissionAuthorizationFilter(PERMISSION, adminManagementClient);
         instance.filter(containerRequestContext);
 
         verify(containerRequestContext, never()).abortWith(anyObject());
@@ -136,7 +139,8 @@ public class EndpointAuthorizationFilterTest {
 
         ContainerRequestContext containerRequestContext = spy(ContainerRequestContext.class);
 
-        EndpointAuthorizationFilter instance = new EndpointAuthorizationFilter(PERMISSION, adminManagementClient);
+        EndpointPermissionAuthorizationFilter
+            instance = new EndpointPermissionAuthorizationFilter(PERMISSION, adminManagementClient);
         instance.filter(containerRequestContext);
 
         verify(containerRequestContext, only()).abortWith(anyObject());

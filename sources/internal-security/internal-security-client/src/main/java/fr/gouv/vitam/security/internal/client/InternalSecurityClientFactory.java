@@ -44,7 +44,7 @@ public class InternalSecurityClientFactory extends VitamClientFactory<InternalSe
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(InternalSecurityClientFactory.class);
     private static final InternalSecurityClientFactory ACCESS_CLIENT_FACTORY = new InternalSecurityClientFactory();
 
-    private static final String RESOURCE_PATH = "/v1/api/identity";
+    private static final String RESOURCE_PATH = "/v1/api";
 
     private InternalSecurityClientFactory() {
         super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH);

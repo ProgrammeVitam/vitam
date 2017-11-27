@@ -33,4 +33,16 @@ import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl
  */
 public class InternalSecurityConfiguration extends DbConfigurationImpl {
 
+    /**
+     * Config file path for personal certificate permissions
+     */
+    private String personalCertificatePermissionConfig;
+
+    public String getPersonalCertificatePermissionConfig() {
+        return personalCertificatePermissionConfig;
+    }
+
+    public void setPersonalCertificatePermissionConfig(String personalCertificatePermissionConfig) {
+        this.personalCertificatePermissionConfig = personalCertificatePermissionConfig;
+    }
 }

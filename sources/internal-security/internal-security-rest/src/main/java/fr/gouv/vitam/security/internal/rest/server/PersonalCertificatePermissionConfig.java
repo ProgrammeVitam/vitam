@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,23 +23,33 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
+ *******************************************************************************/
+package fr.gouv.vitam.security.internal.rest.server;
+
+import java.util.Set;
+
+/**
+ * Pojo for personal certificate permission configuration
  */
-package fr.gouv.vitam.security.internal.client;
+public class PersonalCertificatePermissionConfig {
 
-import fr.gouv.vitam.common.client.BasicClient;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.security.internal.common.exception.InternalSecurityException;
-import fr.gouv.vitam.security.internal.common.model.IdentityModel;
-import fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel;
+    private Set<String> permissionsRequiringPersonalCertificate;
+    private Set<String> permissionsWithoutPersonalCertificate;
 
-import java.util.Optional;
+    public Set<String> getPermissionsRequiringPersonalCertificate() {
+        return permissionsRequiringPersonalCertificate;
+    }
 
-public interface InternalSecurityClient extends BasicClient {
+    public void setPermissionsRequiringPersonalCertificate(
+        Set<String> permissionsRequiringPersonalCertificate) {
+        this.permissionsRequiringPersonalCertificate = permissionsRequiringPersonalCertificate;
+    }
 
-    Optional<IdentityModel> findIdentity(byte[] certificate)
-        throws VitamClientInternalException, InternalSecurityException;
+    public Set<String> getPermissionsWithoutPersonalCertificate() {
+        return permissionsWithoutPersonalCertificate;
+    }
 
-    IsPersonalCertificateRequiredModel isPersonalCertificateRequiredByPermission(String permission)
-        throws VitamClientInternalException, InternalSecurityException;
-
+    public void setPermissionsWithoutPersonalCertificate(Set<String> permissionsWithoutPersonalCertificate) {
+        this.permissionsWithoutPersonalCertificate = permissionsWithoutPersonalCertificate;
+    }
 }
