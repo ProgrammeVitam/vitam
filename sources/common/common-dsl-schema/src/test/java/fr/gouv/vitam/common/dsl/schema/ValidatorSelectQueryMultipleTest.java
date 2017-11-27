@@ -175,4 +175,15 @@ public class ValidatorSelectQueryMultipleTest {
             fail();
         }
     }
+
+    @Test
+    public void should_retrieve_errors_when_select_multiple_unknown_key_in_query_dsl() throws Exception {
+        JsonNode test1Json =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_unknown_key.json"));
+        final Schema schema =
+            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
+
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
+            .hasMessageContaining("INVALID_JSON_FIELD: unknown ~ found json: \\\"no_validation\\\" ~ path: []\\n\"");
+    }
 }
