@@ -273,7 +273,7 @@ export class ArchiveUnitHelper {
       'SentDate': 'Date d\'envoi',
       '#originating_agency': 'Service producteur de l\'entrée',
       '#originating_agencies': 'Service ayant des droits  sur l\'unité',
-      'ReceivedDate': 'Date de reception',
+      'ReceivedDate': 'Date de réception',
       'RegisteredDate': 'Date d\'enregistrement',
       'StartDate': 'Date de début',
       'EndDate': 'Date de fin',
