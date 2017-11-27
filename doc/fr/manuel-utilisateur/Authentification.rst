@@ -18,6 +18,7 @@ L'utilisateur doit également choisir le tenant sur lequel il souhaite se connec
 
 Cliquer sur le bouton "Connexion" permet de lancer l'authentification.
 
+
 .. image:: images/form_login.png
 
 Lorsque le couple Identifiant/Mot de passe n'est pas cohérent, c'est-à-dire :
@@ -27,6 +28,7 @@ Lorsque le couple Identifiant/Mot de passe n'est pas cohérent, c'est-à-dire :
 
 Alors, un message d'erreur s'affiche à l'écran, demandant à l'utilisateur de vérifier son identifiant et son mot de passe. Aucune autre information n'est donnée par mesure de sécurité.
 
+
 .. image:: images/form_login_ko.png
 
 Par défaut, après connexion, la page "Transfert de SIP et plan de classement" est affichée.
@@ -35,6 +37,7 @@ Si l'utilisateur souhaite accéder à la plate-forme en saisissant une URL vers 
 Si la session de l'utilisateur est expirée (la durée de la session en cas d'inactivité est de 30 minutes, non paramétrable par le métier), il devra s'authentifier de nouveau et accédera directement à la dernière page consultée.
 
 Le tenant est indiqué à droite du menu.
+
 
 .. image:: images/tenant.png
 
@@ -59,7 +62,7 @@ Deux niveaux de permissions sont gérés au travers des rôles suivants :
 - Consultation des référentiels
 - Consultation des journaux d'opération
 
-Mais n'a pas la posssibilité de transférer un SIP en mode "Pas à pas".
+Mais n'a pas la possibilité de transférer un SIP en mode "Pas à pas".
 	  
 Menu d'administration en vue user :
 
@@ -74,7 +77,8 @@ Déconnexion manuelle
 --------------------
 
 Depuis n'importe quelle page de la solution logicielle Vitam, l'utilisateur a la possibilité de se déconnecter de l'application.
-Pour cela, il clique sur le bouton "Déconnnexion en haut à droite de la page en cours. Le système clos la session de l'utilisateur, et la page d'authentification s'affiche de nouveau.
+Pour cela, il clique sur le bouton "Déconnexion en haut à droite de la page en cours. Le système clos la session de l'utilisateur, et la page d'authentification s'affiche de nouveau.
+
 
 .. image:: images/tenant.png
 

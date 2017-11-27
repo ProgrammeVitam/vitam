@@ -20,9 +20,11 @@ Chacun de ces modes est accessible par un onglet spécifique.
 
 Par défaut, le mode recherche globale est affiché.
 
+
 .. image:: images/au_rechchs.png
 
 En cliquant sur l'onglet "Recherche avancée", la page affiche le formulaire de recherche avancée.
+
 
 .. image:: images/au_rechcha.png
 
@@ -87,6 +89,7 @@ Suite à une recherche, les résultats se présentent sous forme de tableau et a
 
 Lors d'une recherche infructueuse, le message "Aucun résultat" s'affiche sous le formulaire.
 
+
 .. image:: images/au_res_ko.png
 
 Consultation du détail d'une unité archivistique
@@ -94,27 +97,56 @@ Consultation du détail d'une unité archivistique
 
 Depuis la liste des résultats, l'utilisateur peut consulter le détail d'une unité archivistique en cliquant sur la ligne voulue.
 
-La page se recharge et le détail s'affiche.
-
 Détail de l'unité archivistique
 -------------------------------
 
 Cet écran affiche les informations concernant l'unité archivistique et le groupe d'objets associé, informations contenues dans le bordereau SEDA et récupérées lors de l'entrée de l'unité archivistique dans la solution logicielle Vitam.
 
-La page est divisée en plusieurs sections, certaines sont affichées par défaut, afin de visualiser les autres sections, un clique sur le "+" situé sur droite d'une section permet de l'afficher.
+La page est divisée en plusieurs sections, certaines sont affichées par défaut, afin de visualiser les autres sections, un clic sur le "+" situé à droite d'une section permet de l'afficher.
 
 **Contexte de l'unité archivistique**
 
-Elle est affichée par défaut et contient l'arborescence montante et descendante de l'unité archivistique.
+Affichée par défaut, cette section permet de visualiser et naviguer dans l'arborescence montante et descendante de l'unité archivistique.
 Il est possible de cliquer sur les nœuds de l'arborescence pour naviguer entre les unités archivistiques.
 
-L'unité archivistique dont le détail affichée affiche un pictogramme de maison à gauche. Ses parents sont situés au dessus et ses enfants en dessous. Un clique sur un chevron ou un "+" déploie l'arborescence, un clic sur l'intitulé redirige sur la page de l'archive sélectionnée.
+L'unité archivistique dont le détail affichée affiche un pictogramme de maison à gauche. Ses parents sont situés au-dessus et ses enfants en dessous. Un clique sur un chevron ou un "+" déploie l'arborescence, un clic sur l'intitulé redirige sur la page de l'archive sélectionnée.
+
 
 .. image:: images/au_arbo.png
 
+Par défaut, l'unité archivistique affiche 5 parents et enfants directs. Dans le cas où il existe plus de 5 parents ou enfants, un lien "plus de parents" et/ou "plus d'enfants" est affiché.
+
+Un  clic sur ce lien ouvre une fenêtre modale composée d'un formulaire de recherche et sa liste de résultats.
+
+Le formulaire permet de rechercher par titre ou description et dates extrêmes.
+
+
+.. image:: images/au_arbre_rechch.png
+
+Les résultats sont affichés avec les informations suivantes :
+
+- Sélectionné
+- Identifiant
+- Intitulé
+- Type
+- Service producteur
+- Date de début
+- Date de fin
+
+
+.. image:: images/au_arbre_res.png
+
+La colonne "Sélectionné" permet d'ajouter des unités archivistiques afin de les visualiser dans l'arborescence, les 5 unités archivistiques affichées par défaut, sont déjà sélectionné. Un clic sur la case permet de sélectionner ou déselectionner l'unité archivistique correspondante.
+Un fois les choix effectué, unclicsur le bouton "valider" enregistre les sélections et ferme la fenêtre automatiquement.
+
+Un pictogramme de croix, placé en haut à droite de la fenêtre permet églament de la refermer.
+
+
+.. image:: images/au_arbre_close.png
+
 **Description principale**
 
-Elle est affichée par défaut et contient les métadonnées descriptives et de gestion relatives à l'unité archivistique.
+Affichée par défaut, cette section  les métadonnées descriptives et de gestion relatives à l'unité archivistique.
 
 Concernant les services producteurs, il faut différencier :
 
@@ -134,12 +166,13 @@ La plupart des métadonnées descriptives peuvent être modifiées en cliquant s
 
 .. image:: images/au_modif.png
 
-Chaque ligne devient alors éditable, hors identifiant et type.
+Chaque ligne devient alors éditable, excepté les champs identifiant et type.
+
 
 .. image:: images/au_desc_c.png
 
 Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet de les sauvegarder et met à jour les métadonnées.
-Une fois les modifications des métadonnées effectuées, les anciennes valeurs sont enregistrées  à titre informatif dans le Journal du cycle de vie correspondant dans la colonne détail de l'événement de l'étape de mise à jour des métadonnées de l'unité archivistique.
+Cette action est enregistrées dans le Journal du cycle de vie, les anciennes valeurs sont sauvegardées à titre informatif dans la colonne détail de l'événement, au niveau de l'étape de mise à jour des métadonnées de l'unité archivistique.
 
 **Règles de gestion**
 
@@ -175,23 +208,28 @@ La ligne "hérité de" indique quelle unité archivistique est à l'origine de l
 
 Les règles de gestion non héritées peuvent être modifiées ou supprimées en cliquant sur le bouton "Modifier".
 
+
 .. image:: images/au_rg_modif.png
 
 Il est possible d'ajouter une ou plusieurs règles de gestion à toutes les catégories disponibles.
+
 
 .. image:: images/au_rg_ajout.png
 
 Dans cet exemple, une règle est héritée et donc non modifiable, tandis que la seconde est modifiable.
 
+
 .. image:: images/au_rg_nv.png
 
 Un clic sur le bouton "ajouter règle" crée une nouvelle ligne permettant la création d'une règle de gestion.
+
 
 .. image:: images/au_rg_supp.png
 
 La suppression d'une règle s'effectue en cliquant sur la corbeille. Il est possible d'annuler l'action de suppression avant la validation des modifications en cliquant sur le pictogramme "+" situé à droite.
 
-Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" ouvre une fenêtre modale afin de vérifier vos modifcations. Une fois le bouton "Modifier" sélectionné les règles de gestion sont mises à jour et sauvegardées.
+Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" ouvre une fenêtre modale afin de vérifier vos modifications. Une fois le bouton "Modifier" sélectionné les règles de gestion sont mises à jour et sauvegardées.
+
 
 .. image:: images/au_rg_pop.png
 
@@ -199,7 +237,7 @@ Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" ouvre un
 
 **Groupe d'objets techniques**
 
-Si des objets sont disponibles, cette section est visible est affichée par défau. Le ou les objets présents dans le groupe d'objets ainsi que les métadonnées associées pour cette unité archivistique y sont affichés.
+Si des objets sont disponibles, cette section est visible est affichée par défaut. Le ou les objets présents dans le groupe d'objets ainsi que les métadonnées associées pour cette unité archivistique y sont affichés.
 
 Chaque objet est listé dans une ligne du tableau, Les colonnes affichent les informations suivantes :
 
@@ -208,6 +246,7 @@ Chaque objet est listé dans une ligne du tableau, Les colonnes affichent les in
 - Format, l'extension du format de l'objet
 - Date, la date de dernière modification
 - Téléchargement, un clic sur icône de téléchargement permet de consulter l'objet.
+
 
 .. image:: images/au_got.png
 
@@ -231,6 +270,7 @@ Il est possible d'exporter l'unité archivistique sous forme de DIP. Trois choix
 - Unité archivistique et sa descendance
 - Ensemble de l'entrée
 
+
 .. image:: images/au_dip.png
 
 Suite au clic sur le bouton "Exporter" une fenêtre modale s'ouvre et indique que le DIP est en cours de création et qu'il sera téléchargeable dans le journal des opérations. Un bouton "OK" ferme la fenêtre.
@@ -245,6 +285,7 @@ Journal du cycle de vie d'une unité archivistique
 -------------------------------------------------
 
 Le journal du cycle de vie de l'unité archivistique est disponible depuis son détail en cliquant sur l'icône "Journal du cycle de vie" ou dans la liste du résultat de la recherche d'archives.
+
 
 .. image:: images/au_bt_lfca.png
 
@@ -290,6 +331,7 @@ Par défaut, l'écran du journal du cycle de vie du groupe d'objets affiche les 
 - Statut de l'événement
 - Message de l'événement
 
+
 .. image:: images/lfc_got.png
 
 S'il le souhaite, l'utilisateur peut sélectionner des informations disponibles du journal du cycle de vie du groupe d'objet en cliquant sur le bouton "Informations supplémentaires" et en choisissant les options souhaitées dans la liste déroulante.
@@ -318,6 +360,7 @@ Recherche
 
 Pour y accéder, l'utilisateur survole le menu "Recherche", puis sélectionne "Recherche par service producteur".
 
+
 .. image:: images/menu_sp.png
 
 Par défaut, les services producteurs sont affichés sous le formulaire de recherche et sont classées par ordre alphabétique de leur intitulé.
@@ -328,6 +371,7 @@ NB : La recherche n'a pas besoin d'être exacte. L'utilisateur peut saisir une c
 
 Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher".
 La liste du référentiel est alors actualisée avec les résultats correspondants à la recherche souhaitée.
+
 
 .. image:: images/rechch_agents.png
 
@@ -340,6 +384,7 @@ Suite à une recherche, les résultats se présentent sous forme de tableau affi
 - Identifiant
 - Description
 
+
 .. image:: images/res_agents.png
 
 Consultation du détail
@@ -347,17 +392,19 @@ Consultation du détail
 
 Depuis la liste des résultats, l'utilisateur peut consulter le détail du service producteur des fonds pour un service producteur en cliquant sur la ligne voulue. Puis il clique sur le bouton "Registre des fonds" afin d'afficher le détail complet.
 
+
 .. image:: images/detail_sp.png
 
 Consultation du registre des fonds
 ----------------------------------
 
-Depuis le détail du service agent (menu Administration > Référentiels > Services Agents, puis cliquer sur un service agent ayant versé des unités archivistiques), l'utilisateur peut consulter le registre des fonds de ce service.
+Depuis le détail du service agent, l'utilisateur peut consulter le registre des fonds de ce service.
 
 Deux blocs d'informations sont disponibles depuis le détail du registre des fonds :
 
 - Une vue regroupant toutes les unités archivistiques, groupes d'objets et objets ainsi que leurs volumétries, pour un service producteur par fond propres et rattachés
 - Une vue listant toutes les opérations d'entrée effectuées pour ce service producteur
+
 
 .. image:: images/fonds_detail.png
 
@@ -394,7 +441,7 @@ Sous cette partie, la liste des entrées effectuées pour ce service producteur 
 
 Pour chaque entrée, les informations suivantes sont affichées :
 
-- Fond propre : une coche indique de l'entrée provient du fond propre, une croix inqdique qu'elle provient d'un fond rattaché
+- Fond propre : une coche indique de l'entrée provient du fond propre, une croix indique qu'elle provient d'un fond rattaché
 - Identifiant de l'opération attribué par la solution logicielle Vitam (cet identifiant correspond au contenu du champ MessageIdentifier de la notification d'entrée)
 - Service versant
 - Date d'entrée
@@ -419,4 +466,7 @@ Pour chaque entrée, les informations suivantes sont affichées :
 - Type (standard, plan de classement, arbre de positionnement)
 - statut (En stock et complète, En stock et mise à jour, Sortie du stock)
 
-Un bouton "Unités archivistiques associées" permet d'accèder directement à la liste des unités archivistiques liées à ce service producteur.
+Un bouton "Unités archivistiques associées" permet d'accéder directement à la liste des unités archivistiques liées à ce service producteur.
+
+
+.. image:: images/fonds_bouton.png
