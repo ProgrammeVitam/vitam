@@ -37,17 +37,22 @@ import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.security.internal.rest.SimpleMongoDBAccess;
 import fr.gouv.vitam.security.internal.rest.mapper.CertificateExceptionMapper;
 import fr.gouv.vitam.security.internal.rest.mapper.IllegalArgumentExceptionMapper;
 import fr.gouv.vitam.security.internal.rest.repository.IdentityRepository;
+import fr.gouv.vitam.security.internal.rest.repository.PersonalRepository;
 import fr.gouv.vitam.security.internal.rest.resource.IdentityResource;
+import fr.gouv.vitam.security.internal.rest.resource.PersonalCertificateResource;
 import fr.gouv.vitam.security.internal.rest.service.IdentityService;
+import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Context;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.cert.CertificateException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -76,7 +81,12 @@ public class BusinessApplication extends ConfigurationApplication {
             IdentityRepository identityRepository = new IdentityRepository(mongoDbAccess);
             IdentityService identityService = new IdentityService(identityRepository);
 
+            PersonalRepository personalRepository = new PersonalRepository(mongoDbAccess);
+            PersonalCertificateService personalCertificateService = new PersonalCertificateService(
+                LogbookOperationsClientFactory.getInstance(), personalRepository);
+
             singletons.add(new IdentityResource(identityService));
+            singletons.add(new PersonalCertificateResource(personalCertificateService));
 
             singletons.add(new CertificateExceptionMapper());
             singletons.add(new IllegalArgumentExceptionMapper());

@@ -27,7 +27,9 @@
 package fr.gouv.vitam.security.internal.rest.resource;
 
 import fr.gouv.vitam.security.internal.common.model.IdentityModel;
+import fr.gouv.vitam.security.internal.rest.exeption.PersonalCertificateException;
 import fr.gouv.vitam.security.internal.rest.service.IdentityService;
+import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -36,12 +38,15 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import javax.ws.rs.NotFoundException;
+import java.security.cert.CertificateException;
 import java.util.Optional;
 
 import static java.util.Optional.of;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 
 public class IdentityResourceTest {
 
@@ -53,7 +58,8 @@ public class IdentityResourceTest {
 
     @Mock
     private IdentityService identityService;
-
+    @Mock
+    private PersonalCertificateService personalCertificateService;
     @Test
     public void should_read_certificate() throws Exception {
         // Given
@@ -81,5 +87,4 @@ public class IdentityResourceTest {
         assertThatThrownBy(() -> identityResource.findIdentityByCertificate(bytes))
             .isInstanceOf(NotFoundException.class);
     }
-
 }

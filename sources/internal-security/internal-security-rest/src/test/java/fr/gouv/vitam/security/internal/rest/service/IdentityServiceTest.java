@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.security.internal.rest.service;
 
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.security.internal.common.model.IdentityInsertModel;
 import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import fr.gouv.vitam.security.internal.rest.repository.IdentityRepository;
@@ -54,7 +55,6 @@ public class IdentityServiceTest {
 
     @InjectMocks
     private IdentityService identityService;
-
     @Mock
     private IdentityRepository identityRepository;
 
@@ -124,5 +124,4 @@ public class IdentityServiceTest {
             assertThat(identity.getContextId()).isEqualTo(contextId)
         );
     }
-
 }

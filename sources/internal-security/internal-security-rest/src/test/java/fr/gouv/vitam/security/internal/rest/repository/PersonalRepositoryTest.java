@@ -1,0 +1,105 @@
+package fr.gouv.vitam.security.internal.rest.repository;
+
+import com.mongodb.client.MongoCollection;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.security.internal.common.model.PersonalCertificateModel;
+import fr.gouv.vitam.security.internal.rest.SimpleMongoDBAccess;
+import org.bson.Document;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+
+import java.math.BigInteger;
+import java.util.Optional;
+
+import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
+import static fr.gouv.vitam.security.internal.rest.repository.PersonalRepository.CERTIFICATE_COLLECTION;
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class PersonalRepositoryTest {
+    private final static String CLUSTER_NAME = "vitam-cluster";
+
+    @Rule
+    public MongoRule mongoRule = new MongoRule(getMongoClientOptions(), CLUSTER_NAME, CERTIFICATE_COLLECTION);
+
+    private PersonalRepository personalRepository;
+
+    private MongoCollection<Document> certificateCollection;
+
+    @Before
+    public void setUp() throws Exception {
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), CLUSTER_NAME);
+        personalRepository = new PersonalRepository(mongoDbAccess);
+        certificateCollection = mongoRule.getMongoCollection(CERTIFICATE_COLLECTION);
+    }
+
+    @Test
+    public void should_store_certificate() throws InvalidParseOperationException {
+        // Given
+        GUID id = GUIDFactory.newGUID();
+
+        PersonalCertificateModel personalCertificateModel = new PersonalCertificateModel();
+        personalCertificateModel.setIssuerDN("issuerDN");
+        personalCertificateModel.setSubjectDN("distinguishedName");
+        personalCertificateModel.setSerialNumber(BigInteger.TEN);
+        personalCertificateModel.setId(id.toString());
+        personalCertificateModel.setCertificateHash("2f1062f8bf84e7eb83a0f64c98d891fbe2c811b17ffac0bce1a6dc9c7c3dcbb7");
+
+
+        // When
+        personalRepository.createPersonalCertificate(personalCertificateModel);
+
+        // Then
+        Document document = certificateCollection.find(eq("_id", id.toString())).first();
+        assertThat(document)
+            .isNotNull()
+            .containsEntry("IssuerDN", "issuerDN")
+            .containsEntry("SubjectDN", "distinguishedName")
+            .containsEntry("SerialNumber", 10)
+            .containsEntry("Hash", "2f1062f8bf84e7eb83a0f64c98d891fbe2c811b17ffac0bce1a6dc9c7c3dcbb7");
+    }
+
+    @Test
+    public void should_find_identity() throws InvalidParseOperationException {
+        // Given
+        GUID id = GUIDFactory.newGUID();
+
+        PersonalCertificateModel personalCertificateModel = new PersonalCertificateModel();
+        personalCertificateModel.setIssuerDN("issuerDN");
+        personalCertificateModel.setSubjectDN("distinguishedName");
+        personalCertificateModel.setSerialNumber(BigInteger.TEN);
+        personalCertificateModel.setId(id.toString());
+        personalCertificateModel.setCertificateHash("2f1062f8bf84e7eb83a0f64c98d891fbe2c811b17ffac0bce1a6dc9c7c3dcbb7");
+
+        personalRepository.createPersonalCertificate(personalCertificateModel);
+
+        // When
+        Optional<PersonalCertificateModel> result =
+            personalRepository
+                .findIPersonalCertificateByHash("2f1062f8bf84e7eb83a0f64c98d891fbe2c811b17ffac0bce1a6dc9c7c3dcbb7");
+
+        // Then
+        assertThat(result).isPresent().hasValueSatisfying(identity -> {
+            assertThat(identity.getIssuerDN()).isEqualTo("issuerDN");
+            assertThat(identity.getSubjectDN()).isEqualTo("distinguishedName");
+            assertThat(identity.getSerialNumber()).isEqualTo(BigInteger.TEN);
+            assertThat(identity.getId()).isEqualTo(id.toString());
+        });
+    }
+
+    @Test
+    public void should_return_empty_when_identity_is_missing() throws InvalidParseOperationException {
+        // Given / When
+        Optional<PersonalCertificateModel> result = personalRepository.findIPersonalCertificateByHash("invalid_dn");
+
+        // Then
+        assertThat(result).isEmpty();
+    }
+
+
+}
