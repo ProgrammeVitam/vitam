@@ -106,7 +106,6 @@ import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
-import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesUpdateException;
@@ -410,7 +409,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
                     usedUpdatedRules != null ? usedUpdatedRules.toString() : "");
             }
             InputStream errorReportInputStream =
-                rulesManagerFileImpl.generateErrorReport(errors, usedDeletedRules, usedUpdatedRules);
+                rulesManagerFileImpl.generateErrorReport(errors, usedDeletedRules, usedUpdatedRules, StatusCode.OK,
+                    null);
             Map<String, String> headers = new HashMap<>();
             headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
             headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHEMENT_FILENAME);
@@ -427,6 +427,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param errors
      * @param usedDeletedRules
+     * @param usedDeletedRules
      * @param usedUpdatedRules
      * @return response
      */
@@ -436,7 +437,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         try (RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService,
             securisator)) {
             errorReportInputStream =
-                rulesManagerFileImpl.generateErrorReport(errors, usedDeletedRules, usedUpdatedRules);
+                rulesManagerFileImpl.generateErrorReport(errors, usedDeletedRules, usedUpdatedRules, StatusCode.KO,
+                    null);
             Map<String, String> headers = new HashMap<>();
             headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
             headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHEMENT_FILENAME);

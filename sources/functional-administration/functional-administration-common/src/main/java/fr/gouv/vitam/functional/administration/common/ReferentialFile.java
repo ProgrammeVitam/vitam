@@ -44,6 +44,10 @@ import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 
 /**
  * ReferentialFile<E>
@@ -67,7 +71,8 @@ public interface ReferentialFile<E> {
      */
     void importFile(InputStream file, String filename)
         throws ReferentialException, DatabaseConflictException, IOException, InvalidParseOperationException,
-        InvalidCreateOperationException;
+        InvalidCreateOperationException, LogbookClientServerException, StorageException,
+        LogbookClientBadRequestException, LogbookClientAlreadyExistsException;
 
     /**
      * find document based on a given Id
