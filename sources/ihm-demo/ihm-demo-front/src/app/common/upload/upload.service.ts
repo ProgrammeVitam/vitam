@@ -38,6 +38,7 @@ export class UploadService {
     xhr.setRequestHeader('X-REQUEST-ID', requestId);
     xhr.setRequestHeader('X-Chunk-Offset', chunkOffset);
     xhr.setRequestHeader('X-Size-Total', size);
+    xhr.setRequestHeader('X-CSRF-TOKEN', localStorage.getItem('XSRF-TOKEN'));
     xhr.setRequestHeader(contextIdKey, component.contextId);
     xhr.setRequestHeader(actionKey, component.action);
     xhr.setRequestHeader(tenantKey, component.resourcesService.getTenant());
@@ -85,6 +86,7 @@ export class UploadService {
     xhr.setRequestHeader('Content-Type', 'application/octet-stream');
     xhr.setRequestHeader('X-Chunk-Offset', start.toString());
     xhr.setRequestHeader('X-Size-Total', SIZE);
+    xhr.setRequestHeader('X-CSRF-TOKEN', localStorage.getItem('XSRF-TOKEN'));
     xhr.setRequestHeader(contextIdKey, contextId);
     xhr.setRequestHeader(actionKey, action);
     xhr.setRequestHeader(tenantKey, this.resourcesService.getTenant());

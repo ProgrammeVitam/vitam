@@ -71,6 +71,7 @@ import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.configuration.VitamApplicationConfiguration;
 import fr.gouv.vitam.common.tenant.filter.TenantFilter;
+import fr.gouv.vitam.common.xsrf.filter.XSRFFilter;
 
 /**
  * launch vitam server
@@ -81,6 +82,7 @@ public class VitamStarter {
 
     private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
     private static final String SHIRO_FILE = "shiro.ini";
+    private static final String IHM_RECETTE = "/ihm-recette";
 
     private final String role = ServerIdentity.getInstance().getRole();
 
@@ -463,6 +465,12 @@ public class VitamStarter {
         // Authorization Filter
         if (VitamConfiguration.isFilterActivation() && !Strings.isNullOrEmpty(VitamConfiguration.getSecret())) {
             context.addFilter(AuthorizationFilter.class, "/*", EnumSet.of(
+                DispatcherType.INCLUDE, DispatcherType.REQUEST,
+                DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
+        }
+        
+        if (!contextPath.equals(IHM_RECETTE)) {
+            context.addFilter(XSRFFilter.class, "/*", EnumSet.of(
                 DispatcherType.INCLUDE, DispatcherType.REQUEST,
                 DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
         }

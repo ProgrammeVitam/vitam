@@ -104,6 +104,8 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.xsrf.filter.XSRFFilter;
+import fr.gouv.vitam.common.xsrf.filter.XSRFHelper;
 import fr.gouv.vitam.ihmdemo.common.pagination.PaginationHelper;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
@@ -162,6 +164,7 @@ public class WebApplicationResourceTest {
     private static final String NAME_FIELD_QUERY = "Name";
     private static final String ADMIN_EXTERNAL_MODULE = "AdminExternalModule";
     private static final String IHM_DEMO_CONF = "ihm-demo.conf";
+    final static String tokenCSRF = XSRFHelper.generateCSRFToken();
 
     @BeforeClass
     public static void setup() throws Exception {
@@ -185,6 +188,8 @@ public class WebApplicationResourceTest {
         application.start();
         RestAssured.port = port;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
+        
+        XSRFFilter.addToken("testId", tokenCSRF);
     }
 
     @AfterClass
@@ -236,7 +241,9 @@ public class WebApplicationResourceTest {
         PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
             .thenReturn(JsonHandler.createObjectNode());
 
-        given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
+        given().contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/archivesearch/units");
     }
@@ -287,7 +294,8 @@ public class WebApplicationResourceTest {
         String jsonObject = JsonHandler.unprettyPrint(parameters);
         final ResponseBody response =
             given().contentType(ContentType.JSON)
-                .body(jsonObject).expect()
+                .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .body(jsonObject).cookie(COOKIE).expect()
                 .statusCode(Status.OK.getStatusCode()).when()
                 .post("/accesscontracts/azercdsqsdf").getBody();
     }
@@ -299,14 +307,16 @@ public class WebApplicationResourceTest {
         String jsonObject = JsonHandler.unprettyPrint(parameters);
         final ResponseBody response =
             given().contentType(ContentType.JSON)
-                .body(jsonObject).expect()
+                .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+                .body(jsonObject).cookie(COOKIE).expect()
                 .statusCode(Status.OK.getStatusCode()).when()
                 .post("/contracts/azercdsqsdf").getBody();
     }
 
     @Test
     public void testSuccessStatus() {
-        given().expect().statusCode(Status.NO_CONTENT.getStatusCode()).when().get("status");
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
+            .expect().statusCode(Status.NO_CONTENT.getStatusCode()).when().get("status");
     }
 
 
@@ -322,7 +332,8 @@ public class WebApplicationResourceTest {
         PowerMockito.when(UserInterfaceTransactionManager.selectOperation(preparedDslQuery, TENANT_ID, CONTRACT_NAME,
             getAppSessionId()))
             .thenThrow(Exception.class);
-        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+        given().contentType(ContentType.JSON).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when().post("/logbook/operations");
     }
 
@@ -335,7 +346,8 @@ public class WebApplicationResourceTest {
             getAppSessionId()))
             .thenThrow(VitamClientException.class);
 
-        given().param("idOperation", "1").header(new Header(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName)).expect()
+        given().param("idOperation", "1").header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .header(new Header(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName)).cookie(COOKIE).expect()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .post("/logbook/operations/1");
     }
@@ -349,7 +361,8 @@ public class WebApplicationResourceTest {
             getAppSessionId()))
             .thenThrow(Exception.class);
 
-        given().param("idOperation", "1").header(new Header(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName)).expect()
+        given().param("idOperation", "1").header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .header(new Header(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName)).cookie(COOKIE).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .post("/logbook/operations/1");
     }
@@ -358,7 +371,8 @@ public class WebApplicationResourceTest {
     public void testGetLogbookResultByIdLogbookRemainingIllrgalArgumentException()
         throws InvalidParseOperationException, LogbookClientException, InvalidCreateOperationException {
 
-        given().contentType(ContentType.JSON).expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
+            .contentType(ContentType.JSON).expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
             .post("/logbook/operations/1");
     }
 
@@ -374,7 +388,8 @@ public class WebApplicationResourceTest {
         PowerMockito.when(DslQueryHelper.createSelectElasticsearchDSLQuery(searchCriteriaMap))
             .thenThrow(InvalidParseOperationException.class, InvalidCreateOperationException.class);
 
-        given().contentType(ContentType.JSON).body(OPTIONS).expect().statusCode(Status.BAD_REQUEST.getStatusCode())
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
+            .contentType(ContentType.JSON).body(OPTIONS).expect().statusCode(Status.BAD_REQUEST.getStatusCode())
             .when().post("/archivesearch/units");
     }
 
@@ -393,7 +408,8 @@ public class WebApplicationResourceTest {
             getAppSessionId()))
             .thenThrow(AccessExternalClientServerException.class);
 
-        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when().post("/archivesearch/units");
     }
 
@@ -411,6 +427,7 @@ public class WebApplicationResourceTest {
             .thenThrow(AccessExternalClientNotFoundException.class);
 
         given().contentType(ContentType.JSON).body(OPTIONS).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)    
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
             .statusCode(Status.NOT_FOUND.getStatusCode())
             .when()
@@ -432,7 +449,8 @@ public class WebApplicationResourceTest {
             getAppSessionId()))
             .thenThrow(Exception.class);
 
-        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when().post("/archivesearch/units");
     }
 
@@ -452,7 +470,8 @@ public class WebApplicationResourceTest {
                 getAppSessionId()))
             .thenReturn(new RequestResponseOK<JsonNode>().setHttpCode(Status.OK.getStatusCode()));
 
-        given().param("id", "1").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+        given().param("id", "1").header(GlobalDataRest.X_TENANT_ID, TENANT_ID).cookie(COOKIE)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
             .statusCode(Status.OK.getStatusCode()).when()
             .get("/archivesearch/unit/1");
@@ -473,7 +492,8 @@ public class WebApplicationResourceTest {
         PowerMockito.when(DslQueryHelper.createGetByIdDSLSelectMultipleQuery(searchCriteriaMap))
             .thenThrow(InvalidParseOperationException.class, InvalidCreateOperationException.class);
 
-        given().param("id", "1").expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
+            .param("id", "1").expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
             .get("/archivesearch/unit/1");
     }
 
@@ -495,7 +515,8 @@ public class WebApplicationResourceTest {
             .thenThrow(AccessExternalClientServerException.class);
 
         given().param("id", "1").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).cookie(COOKIE).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .get("/archivesearch/unit/1");
     }
@@ -517,7 +538,8 @@ public class WebApplicationResourceTest {
                 getAppSessionId()))
             .thenReturn(new VitamError("vitam_code").setHttpCode(Status.NOT_FOUND.getStatusCode()));
 
-        given().param("id", "1").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+        given().param("id", "1").header(GlobalDataRest.X_TENANT_ID, TENANT_ID).cookie(COOKIE)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get("/archivesearch/unit/1");
@@ -541,7 +563,8 @@ public class WebApplicationResourceTest {
             .thenThrow(Exception.class);
 
         given().param("id", "1").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).cookie(COOKIE).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .get("/archivesearch/unit/1");
     }
@@ -551,7 +574,8 @@ public class WebApplicationResourceTest {
      */
     @Test
     public void testUpdateArchiveUnitWithoutBody() {
-        given().contentType(ContentType.JSON).expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
+            .contentType(ContentType.JSON).expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
             .post("/archiveupdate/units/1");
     }
 
@@ -569,7 +593,8 @@ public class WebApplicationResourceTest {
         PowerMockito.when(DslQueryHelper.createUpdateByIdDSLQuery(updateCriteriaMap, updateRules))
             .thenThrow(InvalidParseOperationException.class, InvalidCreateOperationException.class);
 
-        given().contentType(ContentType.JSON).body(UPDATE).expect()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .contentType(ContentType.JSON).body(UPDATE).cookie(COOKIE).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .post("/archiveupdate/units/1");
     }
@@ -592,10 +617,11 @@ public class WebApplicationResourceTest {
 
         final ResponseBody s = given()
             .headers(WebApplicationResource.X_CHUNK_OFFSET, "1", WebApplicationResource.X_SIZE_TOTAL, "1")
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .contentType(ContentType.BINARY)
             .config(RestAssured.config().encoderConfig(
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
-            .content(stream).expect()
+            .content(stream).cookie(COOKIE).expect()
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/ingest/upload").getBody();
 
@@ -625,11 +651,12 @@ public class WebApplicationResourceTest {
         InputStream stream4 = new ByteArrayInputStream(content, 3145728, 4194304);
         InputStream stream5 = new ByteArrayInputStream(content, 4194304, 5000000);
         final ResponseBody s1 = given()
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .headers(WebApplicationResource.X_SIZE_TOTAL, "5000000", WebApplicationResource.X_CHUNK_OFFSET, "0")
             .contentType(ContentType.BINARY)
             .config(RestAssured.config().encoderConfig(
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
-            .content(stream1).expect()
+            .content(stream1).cookie(COOKIE).expect()
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/ingest/upload").getBody();
         final JsonNode firstRequestId = JsonHandler.getFromString(s1.asString());
@@ -637,6 +664,7 @@ public class WebApplicationResourceTest {
         String reqId = firstRequestId.get(GlobalDataRest.X_REQUEST_ID.toLowerCase()).asText();
         File temporarySipFile = PropertiesUtils.fileFromTmpFolder(reqId);
         given()
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .headers(WebApplicationResource.X_SIZE_TOTAL, "5000000", WebApplicationResource.X_CHUNK_OFFSET, "1048576",
                 GlobalDataRest.X_REQUEST_ID, reqId)
             .contentType(ContentType.BINARY)
@@ -646,6 +674,7 @@ public class WebApplicationResourceTest {
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/ingest/upload").getBody();
         given()
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .headers(WebApplicationResource.X_SIZE_TOTAL, "5000000", WebApplicationResource.X_CHUNK_OFFSET, "2097152",
                 GlobalDataRest.X_REQUEST_ID, reqId)
             .contentType(ContentType.BINARY)
@@ -656,6 +685,7 @@ public class WebApplicationResourceTest {
             .post("/ingest/upload").getBody();
 
         given()
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .headers(WebApplicationResource.X_SIZE_TOTAL, "5000000", WebApplicationResource.X_CHUNK_OFFSET, "3145728",
                 GlobalDataRest.X_REQUEST_ID, reqId)
             .contentType(ContentType.BINARY)
@@ -665,6 +695,7 @@ public class WebApplicationResourceTest {
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/ingest/upload").getBody();
         given()
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .headers(WebApplicationResource.X_SIZE_TOTAL, "5000000", WebApplicationResource.X_CHUNK_OFFSET, "4194304",
                 GlobalDataRest.X_REQUEST_ID, reqId)
             .contentType(ContentType.BINARY)
@@ -701,7 +732,8 @@ public class WebApplicationResourceTest {
             .contentType(ContentType.BINARY)
             .config(RestAssured.config().encoderConfig(
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
-            .content(stream).expect()
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .content(stream).cookie(COOKIE).expect()
             .statusCode(Status.FORBIDDEN.getStatusCode()).when()
             .post("/format/upload");
     }
@@ -724,10 +756,11 @@ public class WebApplicationResourceTest {
 
         given()
             .contentType(ContentType.BINARY)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .header(GlobalDataRest.X_FILENAME, "FF-vitam.xml")
             .config(RestAssured.config().encoderConfig(
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
-            .content(stream).expect()
+            .content(stream).cookie(COOKIE).expect()
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/format/upload");
     }
@@ -749,10 +782,11 @@ public class WebApplicationResourceTest {
 
         given()
             .headers(GlobalDataRest.X_REQUEST_ID, "no_req_id")
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .contentType(ContentType.BINARY)
             .config(RestAssured.config().encoderConfig(
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
-            .content(stream).expect()
+            .content(stream).cookie(COOKIE).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .post("/ingest/upload");
     }
@@ -773,7 +807,8 @@ public class WebApplicationResourceTest {
         PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
             .thenReturn(JsonHandler.createObjectNode());
 
-        given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/admin/formats");
     }
@@ -792,7 +827,9 @@ public class WebApplicationResourceTest {
         PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
             .thenReturn(JsonHandler.createObjectNode());
 
-        given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
+        given().contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
             .post("/admin/formats");
     }
@@ -813,7 +850,9 @@ public class WebApplicationResourceTest {
         PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
             .thenReturn(JsonHandler.createObjectNode());
 
-        given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
+        given().contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .post("/admin/formats");
     }
@@ -828,7 +867,9 @@ public class WebApplicationResourceTest {
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
-        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+        given().contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/admin/formats/1");
     }
@@ -843,7 +884,9 @@ public class WebApplicationResourceTest {
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
-        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+        given().contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .post("/admin/formats/1");
     }
@@ -865,10 +908,11 @@ public class WebApplicationResourceTest {
         IOUtils.toByteArray(stream);
 
         given()
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .contentType(ContentType.BINARY)
             .config(RestAssured.config().encoderConfig(
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
-            .content(stream).expect()
+            .content(stream).cookie(COOKIE).expect()
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/format/check");
     }
@@ -887,6 +931,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), anyObject(),
             anyObject(), anyString())).thenReturn(vitamError);
         given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get("/archiveunit/objects/idOG");
     }
@@ -902,6 +947,7 @@ public class WebApplicationResourceTest {
             .thenReturn(sampleObjectGroup);
 
         given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .expect().statusCode(Status.OK.getStatusCode()).when()
             .get("/archiveunit/objects/idOG");
     }
@@ -915,6 +961,7 @@ public class WebApplicationResourceTest {
             .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN).setHttpCode(400));
 
         given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
             .get("/archiveunit/objects/idOG");
     }
@@ -927,6 +974,7 @@ public class WebApplicationResourceTest {
             .thenThrow(new VitamClientException(""));
 
         given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .get("/archiveunit/objects/idOG");
     }
@@ -939,6 +987,7 @@ public class WebApplicationResourceTest {
             .thenThrow(new NullPointerException(""));
 
         given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .get("/archiveunit/objects/idOG");
     }
@@ -954,6 +1003,7 @@ public class WebApplicationResourceTest {
         given()
             .accept(MediaType.APPLICATION_OCTET_STREAM)
             .body(OPTIONS_DOWNLOAD)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .when()
@@ -987,7 +1037,8 @@ public class WebApplicationResourceTest {
             .when(UserInterfaceTransactionManager.getObjectAsInputStream(anyObject(), anyString(),
                 anyString(), anyInt(), anyString(), anyObject(), anyString(), anyString()))
             .thenReturn(true);
-        given().accept(MediaType.APPLICATION_OCTET_STREAM).expect()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
+            .accept(MediaType.APPLICATION_OCTET_STREAM).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .when()
             .get("/archiveunit/objects/download/idOG?usage=Dissemination&filename=Vitam-Sensibilisation-API" +
@@ -1002,6 +1053,7 @@ public class WebApplicationResourceTest {
             .thenThrow(new NullPointerException());
         given()
             .accept(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .when()
@@ -1017,6 +1069,7 @@ public class WebApplicationResourceTest {
             .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN));
 
         given().contentType(ContentType.JSON).body(TREE_QUERY)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .expect().statusCode(Status.OK.getStatusCode()).when()
             .post("/archiveunit/tree");
     }
@@ -1030,6 +1083,7 @@ public class WebApplicationResourceTest {
             .thenThrow(AccessExternalClientServerException.class);
 
         given().contentType(ContentType.JSON).body(TREE_QUERY)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .post("/archiveunit/tree");
     }
@@ -1043,6 +1097,7 @@ public class WebApplicationResourceTest {
             .thenThrow(AccessExternalClientNotFoundException.class);
 
         given().contentType(ContentType.JSON).body(TREE_QUERY)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .post("/archiveunit/tree/1");
     }
@@ -1068,9 +1123,10 @@ public class WebApplicationResourceTest {
 
         given()
             .contentType(ContentType.BINARY)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .config(RestAssured.config().encoderConfig(
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
-            .content(stream).expect()
+            .content(stream).cookie(COOKIE).expect()
             .statusCode(Status.FORBIDDEN.getStatusCode()).when()
             .post("/rules/upload");
     }
@@ -1094,9 +1150,10 @@ public class WebApplicationResourceTest {
         given()
             .contentType(ContentType.BINARY)
             .header(GlobalDataRest.X_FILENAME, "jeu_donnees_OK_regles_CSV.csv")
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .config(RestAssured.config().encoderConfig(
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
-            .content(stream).expect()
+            .content(stream).cookie(COOKIE).expect()
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/rules/upload");
     }
@@ -1117,7 +1174,8 @@ public class WebApplicationResourceTest {
         PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
             .thenReturn(JsonHandler.createObjectNode());
 
-        given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/admin/rules");
     }
@@ -1138,7 +1196,8 @@ public class WebApplicationResourceTest {
         PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
             .thenReturn(JsonHandler.createObjectNode());
 
-        given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
             .post("/admin/rules");
     }
@@ -1159,7 +1218,8 @@ public class WebApplicationResourceTest {
         PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
             .thenReturn(JsonHandler.createObjectNode());
 
-        given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/admin/rules");
     }
@@ -1174,7 +1234,8 @@ public class WebApplicationResourceTest {
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
-        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .post("/admin/rules/1");
     }
@@ -1195,6 +1256,7 @@ public class WebApplicationResourceTest {
         // Need for test
         IOUtils.toByteArray(stream);
         final com.jayway.restassured.response.Response response = given().contentType(ContentType.BINARY)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .config(RestAssured.config().encoderConfig(
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
             .content(stream).post("/rules/check");
@@ -1210,7 +1272,8 @@ public class WebApplicationResourceTest {
                 getAppSessionId()))
             .thenReturn(result);
 
-        given().param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
+            .param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
             .get("/logbookunitlifecycles/" + FAKE_UNIT_LF_ID);
     }
 
@@ -1223,7 +1286,8 @@ public class WebApplicationResourceTest {
                 CONTRACT_NAME, getAppSessionId()))
             .thenReturn(result);
 
-        given().param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
+            .param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.OK.getStatusCode()).when()
             .get("/logbookobjectslifecycles/" + FAKE_OBG_LF_ID);
     }
 
@@ -1237,6 +1301,7 @@ public class WebApplicationResourceTest {
             .thenThrow(VitamClientException.class);
 
         given().param("id_lc", FAKE_UNIT_LF_ID).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get("/logbookunitlifecycles/" + FAKE_UNIT_LF_ID);
@@ -1252,6 +1317,7 @@ public class WebApplicationResourceTest {
             .thenThrow(NullPointerException.class);
 
         given().param("id_lc", FAKE_UNIT_LF_ID).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .when()
@@ -1268,6 +1334,7 @@ public class WebApplicationResourceTest {
             .thenThrow(VitamClientException.class);
 
         given().param("id_lc", FAKE_OBG_LF_ID).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get("/logbookobjectslifecycles/" + FAKE_OBG_LF_ID);
@@ -1283,6 +1350,7 @@ public class WebApplicationResourceTest {
             .thenThrow(NullPointerException.class);
 
         given().param("id_lc", FAKE_OBG_LF_ID).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .get("/logbookobjectslifecycles/" + FAKE_OBG_LF_ID);
@@ -1298,7 +1366,8 @@ public class WebApplicationResourceTest {
         PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
             .thenReturn(JsonHandler.createObjectNode());
 
-        given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/admin/accession-register");
     }
@@ -1322,7 +1391,8 @@ public class WebApplicationResourceTest {
         PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
             .thenReturn(JsonHandler.createObjectNode());
 
-        given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .post("/admin/accession-register");
     }
@@ -1337,7 +1407,8 @@ public class WebApplicationResourceTest {
         PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
             .thenReturn(JsonHandler.createObjectNode());
 
-        given().contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
             .post("/admin/accession-register");
     }
@@ -1348,7 +1419,8 @@ public class WebApplicationResourceTest {
             anyObject(), anyString()))
             .thenReturn(ClientMockResultHelper.getAccessionRegisterDetail());
 
-        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
+            .contentType(ContentType.JSON).body(OPTIONS).expect()
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/admin/accession-register/1/accession-register-detail");
     }
@@ -1360,7 +1432,8 @@ public class WebApplicationResourceTest {
                 anyObject(), anyString()))
             .thenThrow(new InvalidParseOperationException(""));
 
-        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
+            .contentType(ContentType.JSON).body(OPTIONS).expect()
             .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
             .post("/admin/accession-register/1/accession-register-detail");
     }
@@ -1377,10 +1450,12 @@ public class WebApplicationResourceTest {
             anyObject());
 
         RestAssured.given()
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .when().get(INGEST_URI + "/1/" + IngestCollection.MANIFESTS.getCollectionName())
             .then().statusCode(Status.OK.getStatusCode());
 
         RestAssured.given()
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .when().get(INGEST_URI + "/1/unknown")
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
@@ -1393,6 +1468,7 @@ public class WebApplicationResourceTest {
             anyObject(), anyObject(),
             anyObject());
         RestAssured.given()
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .when().get(INGEST_URI + "/1/" + IngestCollection.MANIFESTS.getCollectionName())
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
 
@@ -1400,6 +1476,7 @@ public class WebApplicationResourceTest {
             anyObject(), anyObject(),
             anyObject());
         RestAssured.given()
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .when().get(INGEST_URI + "/1/" + IngestCollection.MANIFESTS.getCollectionName())
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
@@ -1414,7 +1491,8 @@ public class WebApplicationResourceTest {
                     (Integer) anyInt(), anyString(), anyString()))
             .thenReturn(ClientMockResultHelper.getLogbooksRequestResponse());
 
-        given().contentType(ContentType.JSON).body(TRACEABILITY_CHECK_MAP).expect()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
+            .contentType(ContentType.JSON).body(TRACEABILITY_CHECK_MAP).expect()
             .statusCode(Status.OK.getStatusCode()).when()
             .post(TRACEABILITY_CHECK_URL);
     }
@@ -1438,6 +1516,7 @@ public class WebApplicationResourceTest {
                 .thenReturn(ClientMockResultHelper.getObjectStream());
 
         RestAssured.given()
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .when().get("traceability" + "/1/" + "content?contractId=" + contractName)
             .then().statusCode(Status.OK.getStatusCode());
     }
@@ -1452,17 +1531,20 @@ public class WebApplicationResourceTest {
             PropertiesUtils.getResourceAsStream("token.tsp");
         String encodedTimeStampToken = IOUtils.toString(tokenFile, "UTF-8");
         String timestampExtractMap = "{timestamp: \"" + encodedTimeStampToken + "\"}";
-        given().contentType(ContentType.JSON).body(timestampExtractMap).expect()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
+            .contentType(ContentType.JSON).body(timestampExtractMap).expect()
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/traceability/extractTimestamp");
 
         timestampExtractMap = "{timestamp: \"FakeTimeStamp\"}";
-        given().contentType(ContentType.JSON).body(timestampExtractMap).expect()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
+            .contentType(ContentType.JSON).body(timestampExtractMap).expect()
             .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
             .post("/traceability/extractTimestamp");
 
         timestampExtractMap = "{fakeTimestamp: \"FakeTimeStamp\"}";
-        given().contentType(ContentType.JSON).body(timestampExtractMap).expect()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
+            .contentType(ContentType.JSON).body(timestampExtractMap).expect()
             .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
             .post("/traceability/extractTimestamp");
     }
@@ -1481,7 +1563,8 @@ public class WebApplicationResourceTest {
             .when(adminExternalClient.launchAudit(anyObject(), Mockito.anyObject()))
             .thenReturn(ClientMockResultHelper.checkOperationTraceability());
 
-        given().contentType(ContentType.JSON).body(auditOption).expect()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
+            .contentType(ContentType.JSON).body(auditOption).expect()
             .when().post("audits")
             .then().statusCode(Status.OK.getStatusCode());
     }
@@ -1511,22 +1594,25 @@ public class WebApplicationResourceTest {
         // import agencies
         given().contentType(ContentType.BINARY)
             .content(stream)
-            .expect()
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .cookie(COOKIE).expect()
             .statusCode(Status.OK.getStatusCode())
             .when()
             .post("/agencies").getBody();
 
         // find agencies by DSL
         given().contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .body(new Select().getFinalSelect())
-            .expect()
+            .cookie(COOKIE).expect()
             .statusCode(Status.OK.getStatusCode())
             .when()
             .post("/agencies");
 
         // find agencies by Id
         given().contentType(ContentType.JSON)
-            .expect()
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .cookie(COOKIE).expect()
             .statusCode(Status.OK.getStatusCode())
             .when()
             .get("/agencies/id");
@@ -1544,23 +1630,26 @@ public class WebApplicationResourceTest {
         final InputStream stream2 = PropertiesUtils.getResourceAsStream("FF-vitam-ko.fake");
         // import agencies
         given().contentType(ContentType.BINARY)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .content(stream2)
-            .expect()
+            .cookie(COOKIE).expect()
             .statusCode(Status.FORBIDDEN.getStatusCode())
             .when()
             .post("/agencies").getBody();
 
         // find agencies by DSL
         given().contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .body(new Select().getFinalSelect())
-            .expect()
+            .cookie(COOKIE).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .when()
             .post("/agencies");
 
         // find agencies by Id
         given().contentType(ContentType.JSON)
-            .expect()
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .cookie(COOKIE).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .when()
             .get("/agencies/id");
@@ -1573,7 +1662,8 @@ public class WebApplicationResourceTest {
             anyObject(), anyString()))
             .thenReturn(ClientMockResultHelper.getDipInfo());
 
-        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
+            .contentType(ContentType.JSON).body(OPTIONS).expect()
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/archiveunit/dipexport");
     }
@@ -1585,7 +1675,8 @@ public class WebApplicationResourceTest {
                 anyObject(), anyString()))
             .thenThrow(new InvalidParseOperationException(""));
 
-        given().contentType(ContentType.JSON).body(OPTIONS).expect()
+        given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
+            .contentType(ContentType.JSON).body(OPTIONS).expect()
             .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
             .post("/archiveunit/dipexport");
     }

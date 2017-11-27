@@ -12,6 +12,7 @@ export class UserInformation {
   permissions : string[];
   userName : string;
   sessionTimeout: number;
+  tokenCSRF : string;
 }
 
 @Injectable()
@@ -32,6 +33,7 @@ export class AuthenticationService {
 
   loggedIn(user : UserInformation, tenantId : string) {
     this.cookies.put(LOGGED_IN, 'true');
+    localStorage.setItem('XSRF-TOKEN', user.tokenCSRF);
     this.userInformation = user;
     localStorage.setItem(USER, JSON.stringify(user));
     this.setTenant(tenantId);
@@ -46,6 +48,7 @@ export class AuthenticationService {
   loggedOut() {
     this.cookies.put(LOGGED_IN, 'false');
     this.loginState.next(false);
+    localStorage.removeItem('XSRF-TOKEN');
     localStorage.removeItem(USER);
     this.resourceService.removeSessionInfo();
     this.router.navigate(['login']);

@@ -24,47 +24,22 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.ihmdemo.appserver;
+package fr.gouv.vitam.common.xsrf.filter;
 
-import java.util.List;
+import java.security.SecureRandom;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang.RandomStringUtils;
 
-public class LoginModel {
+/**
+ * XSRF Filter Helper
+ */
+public class XSRFHelper {
 
-    private String userName;
-
-    private List<String> permissions;
-
-    private long sessionTimeout;
-    
-    private String tokenCSRF;
-
-    @JsonCreator
-    public LoginModel(@JsonProperty("userName") String userName,
-        @JsonProperty("permissions") List<String> permissions,
-        @JsonProperty("sessionTimeout") long sessionTimeout,
-        @JsonProperty("tokenCSRF") String tokenCSRF) {
-        this.userName = userName;
-        this.permissions = permissions;
-        this.sessionTimeout = sessionTimeout;
-        this.tokenCSRF = tokenCSRF;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public List<String> getPermissions() {
-        return permissions;
-    }
-
-    public long getSessionTimeout() {
-        return sessionTimeout;
-    }
-    
-    public String getTokenCSRF() {
-        return tokenCSRF;
+    /**
+     * generate CSRF token randomly
+     * @return String
+     */
+    public static final String generateCSRFToken() {
+        return RandomStringUtils.random(20, 0, 0, true, true, null, new SecureRandom());   
     }
 }

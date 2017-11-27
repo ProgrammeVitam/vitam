@@ -97,6 +97,11 @@ public class GlobalDataRest {
      * The X_TIMESTAMP header
      */
     public static final String X_TIMESTAMP = "X-Timestamp";
+    
+    /**
+     * The X_CSRF_TOKEN header
+     */
+    public static final String X_CSRF_TOKEN = "X-CSRF-TOKEN";
 
     /**
      * Ask to request using a http based cursor
