@@ -27,6 +27,9 @@
 
 package fr.gouv.vitam.common.model;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -44,7 +47,9 @@ public class DatabaseCursor {
     private long limit;
     @JsonProperty("size")
     private long size;
+
     @JsonProperty("scrollId")
+    @JsonInclude(Include.NON_NULL)
     private String scrollId;
 
 
