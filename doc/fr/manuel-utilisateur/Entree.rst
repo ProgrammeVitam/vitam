@@ -1,7 +1,7 @@
-Entrée d'un SIP
-###############
+Entrée d'un SIP et plan de classement
+#######################################
 
-Cette partie décrit l'entrée manuelle d'archives dans la solution logicielle Vitam, c'est-à-dire, le processus de transfert du SIP via l'IHM standard, ainsi que le suivi de l'ensemble des transferts via le journal des opérations d'entrées.
+Cette partie décrit l'entrée manuelle d'archives dans la solution logicielle Vitam, c'est-à-dire, le processus de transfert du SIP ou plan de classement via l'IHM standard, ainsi que le suivi de l'ensemble des transferts via le journal des opérations d'entrées.
 
 Dans l’univers numérique, peuvent être transférées à un service d’archives des archives nativement numériques, des versions numérisées d’archives papier, mais aussi des références à des archives physiques, chacune d’elles accompagnée de ses métadonnées.
 
@@ -12,25 +12,27 @@ Transfert d'un SIP
 
 Le transfert d'un SIP dans la solution logicielle Vitam s'effectue depuis l'écran "Transfert SIP et plan de classement". Par défaut, lors de sa connexion, l'utilisateur est dirigé vers cette page. Il peut également y accéder en survolant le menu "Entrée" puis sélectionne sous-menu "Transfert de SIP et plan de classement".
 
+
 .. image:: images/menu_transfert.png
 
-Pour débuter une entrée, l’utilisateur doit sélectionner le lot d’archives (SIP) à transférer dans la solution logicielle Vitam. Pour cela, il est possible de faire glisser le SIP sur l'espace de téléchargement ou de cliquer sur le lien « sélectionner un fichier », alors une nouvelle fenêtre s'ouvre dans laquelle il a la possibilité de sélectionner le SIP.
+Pour débuter une entrée, l’utilisateur doit sélectionner le lot d’archives (SIP) à transférer dans la solution logicielle Vitam. Pour cela, il est possible de faire glisser le SIP sur l'espace de téléchargement ou de cliquer sur le lien « sélectionner un fichier ».
 
 Une fois le SIP sélectionné, il apparaît sur l'écran "Transfert du SIP et plan de classement" et le nom du fichier s'affiche sous le lien "sélectionner un fichier" et une nouvelle ligne apparaît en dessous avec le nom du fichier, sa taille ainsi qu'un champ statut pour l'instant vide.
 
 Plusieurs options sont présentes sur l'écran :
 
-- Mode d'exécution, l'utilisateur a le choix entre :
+- Mode d'exécution :
 	- le mode d'exécution "pas à pas" permettant de réaliser progressivement l'entrée en passant d'une étape à une autre. (NB : Les actions liées au processus d'entrée en mode "pas à pas" se retrouvent dans la partie Administration du manuel utilisateur).
 	- le mode d'exécution "en continu" permettant de lancer le processus d'entrée dans sa globalité en une seule fois. Dans la grande majorité des cas, ce mode d'exécution sera le choix adopté.
 
-- Destination, l'utilisateur peut indiquer la destination de l'entrée d'un SIP
+- Destination :
 	- "en production", option d'entrée classique, l'entrée est réellement effectuée, les objets et métadonnées sont enregistrés dans la solution logicielle Vitam, l'évènement est journalisé.
-	- "à blanc", option permettant de tester une entrée afin de s'assurer de la cohérence du SIP. L'utilisateur pourra ainsi corriger les erreurs éventuelles avant de procéder à une nouvelle entrée.
+	- "à blanc", option permettant de tester une entrée afin de s'assurer de la cohérence du SIP, l'évènement est journalisé. L'utilisateur pourra ainsi corriger les erreurs éventuelles avant de procéder à une nouvelle entrée.
 
-Le mode d'exécution et la destination sont obligatoires. Par défaut le mode d'exécution "continu" et la destination "en production" sont sélectionnés. Lorsque l'utilisateur sélectionne le mode "à blanc".
+Le mode d'exécution et la destination sont obligatoires. Par défaut le mode d'exécution "continu" et la destination "en production" sont sélectionnés.
 
 Pour lancer le transfert du SIP, l’utilisateur clique sur le bouton « Importer ».
+
 
 .. image:: images/entree_sip.png
 
@@ -48,9 +50,11 @@ Un fois le SIP importé, les informations visibles à l'écran sont :
 
 Les formats de SIP attendus sont : ZIP, TAR, TAR.GZ, TAR.BZ2, TAR.GZ2
 
-Si l'utilisateur tente d'importer un SIP au format non conforme, alors la solution logicielle Vitam empêche le téléchargement et une fenêtre de type "modale" affiche l'erreur "fichier invalide".
+Si l'utilisateur tente d'importer un SIP dans format non conforme, alors la solution logicielle Vitam empêche le téléchargement et une fenêtre de type "modale" affiche l'erreur "fichier invalide".
+
 
 .. image:: images/sip_ko_format.png
+   :scale: 50
 
 Toute opération d'entrée fait l'objet d'une écriture dans le journal des opérations. Les entrées abouties (succès, avertissement et échec technique ou métier) génèrent un accusé de réception qui est proposé en téléchargement à l'utilisateur.
 
@@ -87,15 +91,17 @@ Transfert d'un SIP de plan de classement
 
 Le transfert d'un plan de classement dans la solution logicielle Vitam s'effectue depuis l'écran "Transfert SIP et plan de classement". Par défaut, lors de sa connexion, l'utilisateur est dirigé vers cette page. Il peut également y accéder en survolant le menu "Entrée" puis sélectionne sous-menu "Transfert de SIP et plan de classement". Il faut ensuite sélectionner le bouton "Plan de classement"
 
-Pour débuter une entrée, l’utilisateur doit sélectionner le plan, sous le format demandé, à transférer dans la solution logicielle Vitam. Pour cela, il est possible de faire glisser le plan sur l'espace de téléchargement ou de cliquer sur le lien « sélectionner un fichier », alors une nouvelle fenêtre s'ouvre dans laquelle il a la possibilité de sélectionner le plan.
+Pour débuter une entrée, l’utilisateur doit sélectionner le plan, sous le format demandé, à transférer dans la solution logicielle Vitam. Pour cela, il est possible de faire glisser le plan sur l'espace de téléchargement ou de cliquer sur le lien « sélectionner un fichier ».
 
 Une fois celui-ci sélectionné, il apparaît sur l'écran "Téléchargement du plan de classement". Le nom du fichier s'affiche sous le bouton "choisissez un fichier" et une nouvelle ligne apparaît en dessous avec le nom du fichier, sa taille ainsi qu'un champ statut.
 
-Deux listes déroulantes sont présentes sur l'écran :
+Plusieurs options sont présentes sur l'écran :
 
-- Mode d'exécution : l'utilisateur a le choix entre le mode d'exécution "pas à pas" permettant de passer d'une étape à une autre dans le processus d'entrée, et le mode d'exécution "continu" permettant de lancer le processus d'entrée dans sa globalité en une seule fois. Dans la grande majorité des cas, le mode d'exécution "continu" sera le choix adopté. (NB : Les actions liées au processus d'entrée en mode "pas à pas" se retrouvent dans la partie "Administration" du manuel utilisateur)
+- Mode d'exécution :
+	- le mode d'exécution "pas à pas" permettant de réaliser progressivement l'entrée en passant d'une étape à une autre. (NB : Les actions liées au processus d'entrée en mode "pas à pas" se retrouvent dans la partie Administration du manuel utilisateur).
+	- le mode d'exécution "en continu" permettant de lancer le processus d'entrée dans sa globalité en une seule fois. Dans la grande majorité des cas, ce mode d'exécution sera le choix adopté.
 
-- Destination : l'utilisateur peut indiquer la destination du plan. Actuellement, seule l'option "production", pour verser directement le plan, est disponible.
+- Destination : actuellement, seule l'option "production" est disponible pour verser directement le plan.
 
 Le mode d'exécution et la destination sont obligatoires.
 
@@ -113,9 +119,12 @@ Les informations visibles à l'écran sont :
 
 NB : Suite au téléchargement du plan, un temps d'attente est nécessaire, correspondant au traitement du plan par le système avant affichage du statut final. Dans ce cas, une roue de chargement est affichée au niveau du statut.
 
+
 .. image:: images/entree_plan.png
 
-Si l'utilisateur tente d'importer un plan au format non conforme (s'il ne s'agit pas des formats ZIP, TAR, TAR.GZ, TAR.BZ2, TAR.GZ2) alors le système empêche le téléchargement et une fenêtre modale s'ouvre indiquant que le fichier est invalide.
+Les formats de SIP attendus sont : ZIP, TAR, TAR.GZ, TAR.BZ2, TAR.GZ2
+
+Si l'utilisateur tente d'importer un plan dans un format non conforme, alors le système empêche le téléchargement et une fenêtre modale s'ouvre indiquant que le fichier est invalide.
 
 Toute opération d'entrée (succès, avertissement et échec) fait l'objet d'une écriture dans le journal des opérations et génère une notification qui est proposée en téléchargement à l'utilisateur.
 
@@ -142,16 +151,17 @@ En cas de rejet de l'entrée, l'ATR contient les mêmes informations que l'ATR e
 
 La notification comprend ensuite la liste des erreurs rencontrées (échecs ou avertissement), au niveau des unités archivistiques, sous la forme de blocs <event>.
 
+
 Journal des opérations d'entrée
 ===============================
-
 
 Le journal des opérations d'entrée est un extrait du journal des opérations global de la solution logicielle Vitam.
 
 Il propose deux visions, une vision globale des transferts effectués dans la solution logicielle Vitam, et une vision plus détaillée de chaque transfert, explicitant toutes les étapes d'un processus d'entrée.
-Il permet ainsi à l'utilisateur de savoir si son entrée est valide, c'est-à-dire, si les données et objets contenus dans le SIP sont enregistrés dans la solution logicielle Vitam. Dans le cas contraire, il lui permet d'identifier la ou les erreurs expliquant l'échec du transfert.
+Il permet ainsi à l'utilisateur de savoir si son entrée est valide, c'est-à-dire, si les données et objets contenus dans le SIP ou le plan de classement sont enregistrés dans la solution logicielle Vitam. Dans le cas contraire, il lui permet d'identifier la ou les erreurs ayant provoquées l'échec du transfert.
 
-Pour consulter le journal des opérations d'entrée, l'utilisateur clique sur le menu "Entrée" dans la barre de menu, puis clique sur le sous-menu "Suivi des opérations d'entrée".
+Pour consulter le journal des opérations d'entrée, l'utilisateur survole le menu "Entrée" puis sélectionne le sous-menu "Suivi des opérations d'entrée".
+
 
 .. image:: images/menu_jdoe.png
 
@@ -162,9 +172,12 @@ Par défaut, l'ensemble des opérations d'entrée est affiché sous le formulair
 
 Pour effectuer une recherche précise, on utilise le champ "Identifiant de la demande d'entrée" correspondant à l'identifiant du SIP porté par la balise <MessageIdentifier> dans le bordereau de versement SEDA.
 
+Il est possible d'affiner sa recherche en choisissant une catégorie d'opération et/ou en sélectionnant une date de début et si besoin, une date de fin.
+
 Pour initier la recherche, l'utilisateur saisit le nom du SIP et clique sur le bouton "Rechercher".
 
-La recherche s'effectue de façon stricte, c'est-à-dire que seul le nom exact de l'entrée comprenant strictement la chaîne de caractères saisie sera pris en compte. La recherche porte sur toutes les opérations d'entrée quel que soit leur statut (en cours, succès, avertissement et erreur)
+La recherche s'effectue de façon stricte, c'est-à-dire que seul le nom exact de l'entrée comprenant strictement la chaîne de caractères saisie sera pris en compte. La recherche porte sur toutes les opérations d'entrée quel que soit leur statut (en cours, succès, avertissement et erreur).
+
 
 .. image:: images/rechch_jdoe.png
 
@@ -187,7 +200,7 @@ Le résultat de la recherche est affiché sous forme de tableau. Par défaut, le
 .. image:: images/res_jdoe.png
 
 
-Il y a également la possibilité d'afficher d'autres informations, soit en les sélectionnant individuellement, soit en les sélectionnant toutes par un clic sur "Tout sélectionner".
+Il est possible d'afficher d'autres informations en cliquant sur le bouton "Informations supplémentaires".
 
 Les informations supplémentaires disponibles sont :
 
@@ -205,6 +218,7 @@ Suite à la recherche d'une opération d'entrée ou depuis l'écran d'affichage 
 Pour accéder au détail d'une opération d'entrée, l'utilisateur clique sur la ligne souhaitée.
 
 Le détail est composé de deux parties, le descriptif de l'opération qui récapitule les informations de l'opérations avec la possibilité d'afficher les informations supplémentaires.
+
 
 .. image:: images/desc_jdoe.png
 
