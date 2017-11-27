@@ -444,11 +444,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         try {
             idGUID = GUIDReader.getGUID(idUnit);
             idRequest = GUIDReader.getGUID(requestId);
-            if (tenant != idGUID.getTenantId()) {
-                throw new IllegalArgumentException("GUID is not valid for the tenant");
-            }
+            tenant = idGUID.getTenantId();
         } catch (final InvalidGuidOperationException e) {
-            throw new IllegalArgumentException("idUnit is not a valid GUID", e);
+            LOGGER.error("idUnit is not a valid GUID - "+ METADATA_NOT_FOUND_ERROR, e);
+            throw new MetaDataNotFoundException("idUnit is not a valid GUID - " + METADATA_NOT_FOUND_ERROR, e);
         }
         // Check Request is really an Update
         final RequestParserMultiple parser = RequestParserHelper.getParser(queryJson);
