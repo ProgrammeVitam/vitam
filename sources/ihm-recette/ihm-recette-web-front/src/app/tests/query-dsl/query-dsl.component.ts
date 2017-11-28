@@ -36,6 +36,7 @@ const defaultCollections = [
   {label: 'Contexte', value: 'CONTEXTS'},
   {label: 'Règle de gestion', value: 'RULES'},
   {label: 'Format', value: 'FORMATS'},
+  {label: 'Services agents', value: 'AGENCIES'},
   {label: 'Opération', value: 'OPERATIONS'},
   {label: 'Workflow', value: 'WORKFLOWS'},
 ];

@@ -101,6 +101,7 @@ public class WebApplicationResourceDelete {
     private static final String STP_DELETE_MASTERDATA_INGEST_CONTRACT = "STP_DELETE_MASTERDATA_INGEST_CONTRACT";
     private static final String STP_DELETE_MASTERDATA_ACCESS_CONTRACT = "STP_DELETE_MASTERDATA_ACCESS_CONTRACT";
     private static final String STP_DELETE_MASTERDATA_PROFILE = "STP_DELETE_MASTERDATA_PROFILE";
+    private static final String STP_DELETE_MASTERDATA_AGENCIES = "STP_DELETE_MASTERDATA_AGENCIES";
     private static final String STP_DELETE_MASTERDATA_CONTEXT = "STP_DELETE_MASTERDATA_CONTEXT";
 
     private static final String STP_DELETE_ALL = "STP_DELETE_ALL";
@@ -586,6 +587,19 @@ public class WebApplicationResourceDelete {
     }
 
     /**
+     * Delete the masterdata for agencies in database
+     *
+     * @return Response
+     */
+    @Path("masterdata/agencies")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteMasterdataAgencies() {
+        return deleteMasterDataCollection(FunctionalAdminCollections.AGENCIES);
+    }
+
+
+    /**
      * Delete all entries for the context collection
      * except the "admin" context
      *
@@ -748,6 +762,8 @@ public class WebApplicationResourceDelete {
         deleteLogbookLifeCycles(collectionKO, parameters, helper);
 
         deleteProfils(collectionKO, parameters, helper);
+
+        deleteAgencies(collectionKO, parameters, helper);
 
         deleteIngestContracts(collectionKO, parameters, helper);
 
@@ -962,6 +978,27 @@ public class WebApplicationResourceDelete {
             }
             LOGGER.error(e);
             collectionKO.add(FunctionalAdminCollections.PROFILE.name());
+        }
+    }
+
+    private void deleteAgencies(List<String> collectionKO, LogbookOperationParameters parameters,
+                               LogbookOperationsClientHelper helper) {
+        parameters.putParameterValue(LogbookParameterName.eventType,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_AGENCIES, StatusCode.OK))
+                .setStatus(StatusCode.OK).putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_AGENCIES, StatusCode.OK));
+        try (DbRequestResult result = mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.AGENCIES)) {
+            helper.updateDelegate(parameters);
+        } catch (final Exception e) {
+            parameters.setStatus(StatusCode.KO).putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                    VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA_AGENCIES, StatusCode.OK));
+            try {
+                helper.updateDelegate(parameters);
+            } catch (final LogbookClientNotFoundException exc) {
+                LOGGER.error("Cannot update delegate logbook operation", exc);
+            }
+            LOGGER.error(e);
+            collectionKO.add(FunctionalAdminCollections.AGENCIES.name());
         }
     }
 
