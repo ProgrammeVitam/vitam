@@ -48,7 +48,6 @@ class InternalSecurityClientMock extends AbstractMockClient implements InternalS
     }
 
     /**
-     *
      * @param certificate
      * @return
      * @throws VitamClientInternalException
@@ -66,5 +65,12 @@ class InternalSecurityClientMock extends AbstractMockClient implements InternalS
         throws VitamClientInternalException, InternalSecurityException {
         return new IsPersonalCertificateRequiredModel(
             IsPersonalCertificateRequiredModel.Response.IGNORED_PERSONAL_CERTIFICATE);
+    }
+
+    @Override
+    public void checkPersonalCertificate(byte[] certificate, String permission)
+        throws VitamClientInternalException, InternalSecurityException {
+        //nothing to do
+        return;
     }
 }

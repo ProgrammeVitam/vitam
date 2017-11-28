@@ -103,4 +103,31 @@ public class InternalSecurityClientRest extends DefaultClient implements Interna
             consumeAnyEntityAndClose(response);
         }
     }
+
+    @Override
+    public void checkPersonalCertificate(byte[] certificate, String permission)
+        throws VitamClientInternalException, InternalSecurityException {
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, "/personalCertificate/personal-certificate-check/" + permission,
+                new MultivaluedHashMap<>(), certificate,
+                MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            String message;
+            final Status status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    return;
+                case UNAUTHORIZED:
+                    message = response.readEntity(String.class);
+                    LOGGER.error("http status is: {}, content is: {}", status, message);
+                    throw new InternalSecurityException(message);
+                default:
+                    message = response.readEntity(String.class);
+                    LOGGER.error("http status is: {}, content is: {}", status, message);
+                    throw new InternalSecurityException(message);
+            }
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
 }

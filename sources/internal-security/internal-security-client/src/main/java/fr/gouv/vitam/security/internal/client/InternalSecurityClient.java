@@ -32,6 +32,7 @@ import fr.gouv.vitam.security.internal.common.exception.InternalSecurityExceptio
 import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel;
 
+import javax.ws.rs.core.Response;
 import java.util.Optional;
 
 public interface InternalSecurityClient extends BasicClient {
@@ -42,4 +43,6 @@ public interface InternalSecurityClient extends BasicClient {
     IsPersonalCertificateRequiredModel isPersonalCertificateRequiredByPermission(String permission)
         throws VitamClientInternalException, InternalSecurityException;
 
+    void checkPersonalCertificate(byte[] certificate, String permission)
+        throws VitamClientInternalException, InternalSecurityException;
 }
