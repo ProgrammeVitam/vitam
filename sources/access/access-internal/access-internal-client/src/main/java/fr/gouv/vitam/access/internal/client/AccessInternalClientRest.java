@@ -67,7 +67,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String INVALID_PARSE_OPERATION = "Invalid Parse Operation";
     private static final String FORBIDDEN_OPERATION = "Empty query cannot be executed";
     private static final String REQUEST_PRECONDITION_FAILED = "Request precondition failed";
-    private static final String NOT_FOUND_EXCEPTION = "Not Found Exception";
+    private static final String NOT_FOUND_EXCEPTION = "Unit not found";
     private static final String ACCESS_CONTRACT_EXCEPTION = "Access by Contract Exception";
     private static final String NO_WRITING_PERMISSION = "No Writing Permission";
     private static final String BLANK_DSL = "select DSL is blank";
