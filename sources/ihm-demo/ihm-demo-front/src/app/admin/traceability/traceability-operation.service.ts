@@ -5,9 +5,9 @@ import {VitamResponse} from "../../common/utils/response";
 
 @Injectable()
 export class TraceabilityOperationService {
-  TRACEABILITY_OPERATION_DETAIL ='/logbook/operations';
-  EXTRACT_TIMESTAMP = '/traceability/extractTimestamp';
-  CHECK_TRACEABILITY_OPERATION = '/traceability/check';
+  TRACEABILITY_OPERATION_DETAIL ='logbook/operations';
+  EXTRACT_TIMESTAMP = 'traceability/extractTimestamp';
+  CHECK_TRACEABILITY_OPERATION = 'traceability/check';
 
   constructor(private resourceService: ResourcesService) { }
 
