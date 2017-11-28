@@ -29,23 +29,26 @@ package fr.gouv.vitam.security.internal.rest.repository;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.result.DeleteResult;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.security.internal.common.model.PersonalCertificateModel;
-
+import org.bson.Document;
 
 import java.util.Optional;
 
 import static com.mongodb.client.model.Filters.eq;
 
-import org.bson.Document;
-
 /**
  * store Personal certificate in mongo.
  */
 public class PersonalRepository {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PersonalRepository.class);
+
     public static final String CERTIFICATE_COLLECTION = "PersonalCertificate";
 
     private final MongoCollection<Document> personnalCollection;
@@ -75,7 +78,7 @@ public class PersonalRepository {
      * @return
      * @throws InvalidParseOperationException
      */
-    public Optional<PersonalCertificateModel> findIPersonalCertificateByHash(String hash)
+    public Optional<PersonalCertificateModel> findPersonalCertificateByHash(String hash)
         throws InvalidParseOperationException {
 
         FindIterable<Document> models = personnalCollection.find(eq(PersonalCertificateModel.TAG_HASH, hash));
@@ -89,4 +92,16 @@ public class PersonalRepository {
         return Optional.of(JsonHandler.getFromString(first.toJson(), PersonalCertificateModel.class));
     }
 
+    /**
+     * return certificate by hash
+     *
+     * @param hash
+     * @return
+     * @throws InvalidParseOperationException
+     */
+    public void deletePersonalCertificate(String hash) {
+
+        DeleteResult deleteResult = personnalCollection.deleteOne(eq(PersonalCertificateModel.TAG_HASH, hash));
+        LOGGER.debug("Deleted document count: " + deleteResult.getDeletedCount());
+    }
 }

@@ -63,14 +63,15 @@ public class PersonalCertificateResource {
         this.personalCertificateService = personalCertificateService;
     }
 
-    @Path("/personal-certificate-check")
+    @Path("/personal-certificate-check/{permission}")
     @GET
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    public void checkPersonalCertificate(byte[] certificate)
+    public void checkPersonalCertificate(byte[] certificate,
+        @PathParam("permission") String permission)
         throws LogbookClientServerException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException,
         InvalidParseOperationException, PersonalCertificateException {
 
-        personalCertificateService.checkPersonalCertificateExistence(certificate);
+        personalCertificateService.checkPersonalCertificateExistence(certificate, permission);
     }
 
 

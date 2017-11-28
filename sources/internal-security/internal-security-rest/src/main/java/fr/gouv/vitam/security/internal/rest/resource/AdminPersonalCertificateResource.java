@@ -28,16 +28,16 @@ package fr.gouv.vitam.security.internal.rest.resource;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.security.internal.common.model.PersonalCertificateModel;
+import fr.gouv.vitam.security.internal.rest.exeption.PersonalCertificateException;
 import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
-import java.security.cert.CertificateException;
 
 @Path("/v1/api/personalCertificate")
 
@@ -52,12 +52,19 @@ public class AdminPersonalCertificateResource {
 
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    public javax.ws.rs.core.Response createIfNotPresent(byte[] model, @Context UriInfo uri)
-        throws CertificateException, InvalidParseOperationException {
-        ParametersChecker.checkParameter("Certificate cannot be null", model);
-        personalCertificateService.createIdentity(model);
-        return javax.ws.rs.core.Response.created(uri.getRequestUri().normalize()).build();
+    public void createIfNotPresent(byte[] certificate)
+        throws PersonalCertificateException, InvalidParseOperationException {
+        ParametersChecker.checkParameter("Certificate cannot be null", certificate);
 
+        personalCertificateService.createPersonalCertificateIfNotPresent(certificate);
     }
 
+    @DELETE
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    public void delete(byte[] certificate)
+        throws PersonalCertificateException {
+        ParametersChecker.checkParameter("Certificate cannot be null", certificate);
+
+        personalCertificateService.deletePersonalCertificateIfPresent(certificate);
+    }
 }

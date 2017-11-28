@@ -34,13 +34,13 @@ public class PersonalCertificateResourceTest {
         byte[] bytes = new byte[] {1, 2};
 
         doThrow(PersonalCertificateException.class).when(personalCertificateService)
-            .checkPersonalCertificateExistence(bytes);
+            .checkPersonalCertificateExistence(bytes, PERM_1);
 
         PersonalCertificateResource personalCertificateResource =
             new PersonalCertificateResource(null, personalCertificateService);
 
         // When / Then
-        assertThatThrownBy(() -> personalCertificateResource.checkPersonalCertificate(bytes))
+        assertThatThrownBy(() -> personalCertificateResource.checkPersonalCertificate(bytes, PERM_1))
             .isInstanceOf(PersonalCertificateException.class);
     }
 

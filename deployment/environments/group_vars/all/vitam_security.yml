@@ -7,6 +7,7 @@
 admin_context_name: "admin-context"
 # Indicate certificates relative paths under {{inventory_dir}}/certs/client-external/clients
 admin_context_certs: [ "ihm-demo/ihm-demo.crt", "ihm-recette/ihm-recette.crt", "reverse/reverse.crt" ]
+admin_personal_certs: [ "userOK.crt" ]
 admin_context_tenants: "{{vitam_tenant_ids}}"
 
 # Admin security profile name

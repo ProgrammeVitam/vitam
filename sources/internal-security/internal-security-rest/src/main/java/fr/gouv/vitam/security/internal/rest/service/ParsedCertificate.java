@@ -1,0 +1,100 @@
+/*******************************************************************************
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ *
+ * contact.vitam@culture.gouv.fr
+ *
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
+ *
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ *
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
+ *
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
+ *******************************************************************************/
+package fr.gouv.vitam.security.internal.rest.service;
+
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.security.internal.rest.exeption.PersonalCertificateException;
+import org.apache.commons.codec.binary.Hex;
+
+import java.io.ByteArrayInputStream;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
+
+class ParsedCertificate {
+
+    public static final int MAX_CERTIFICATE_LOG_LENGTH = 10240;
+    public static DigestType digestType = DigestType.SHA256;
+
+    private final X509Certificate x509Certificate;
+    private final byte[] rawCertificate;
+    private final String certificateHash;
+
+    public ParsedCertificate(X509Certificate x509Certificate, byte[] rawCertificate, String certificateHash) {
+        this.x509Certificate = x509Certificate;
+        this.rawCertificate = rawCertificate;
+        this.certificateHash = certificateHash;
+    }
+
+    public X509Certificate getX509Certificate() {
+        return x509Certificate;
+    }
+
+    public byte[] getRawCertificate() {
+        return rawCertificate;
+    }
+
+    public String getCertificateHash() {
+        return certificateHash;
+    }
+
+    public static ParsedCertificate parseCertificate(byte[] certificate) throws PersonalCertificateException {
+
+        try {
+
+            CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+            X509Certificate x509certificate =
+                (X509Certificate) certificateFactory.generateCertificate(new ByteArrayInputStream(certificate));
+
+            byte[] rawCertificate = x509certificate.getEncoded();
+            String certificateHash = getCertificateHash(rawCertificate);
+
+            return new ParsedCertificate(x509certificate, rawCertificate, certificateHash);
+
+        } catch (CertificateException ex) {
+            throw new PersonalCertificateException("Could not parse certificate. "
+                + toCertificateHexString(certificate), ex);
+        }
+    }
+
+    private static String getCertificateHash(byte[] rawDerEncodedCertificate) {
+        Digest digest = new Digest(digestType).update(rawDerEncodedCertificate);
+        return digest.digestHex();
+    }
+
+    private static String toCertificateHexString(byte[] certificate) {
+        byte[] certificateToLog;
+        if (certificate.length > MAX_CERTIFICATE_LOG_LENGTH) {
+            certificateToLog = Arrays.copyOf(certificate, MAX_CERTIFICATE_LOG_LENGTH);
+        } else {
+            certificateToLog = certificate;
+        }
+        return Hex.encodeHexString(certificateToLog);
+    }
+}

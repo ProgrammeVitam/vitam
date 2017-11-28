@@ -23,6 +23,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class PersonalRepositoryTest {
     private final static String CLUSTER_NAME = "vitam-cluster";
+    private static final String CERTIFICATE_HASH =
+        "2f1062f8bf84e7eb83a0f64c98d891fbe2c811b17ffac0bce1a6dc9c7c3dcbb7";
 
     @Rule
     public MongoRule mongoRule = new MongoRule(getMongoClientOptions(), CLUSTER_NAME, CERTIFICATE_COLLECTION);
@@ -48,7 +50,8 @@ public class PersonalRepositoryTest {
         personalCertificateModel.setSubjectDN("distinguishedName");
         personalCertificateModel.setSerialNumber(BigInteger.TEN);
         personalCertificateModel.setId(id.toString());
-        personalCertificateModel.setCertificateHash("2f1062f8bf84e7eb83a0f64c98d891fbe2c811b17ffac0bce1a6dc9c7c3dcbb7");
+        personalCertificateModel.setCertificateHash(
+            CERTIFICATE_HASH);
 
 
         // When
@@ -61,7 +64,7 @@ public class PersonalRepositoryTest {
             .containsEntry("IssuerDN", "issuerDN")
             .containsEntry("SubjectDN", "distinguishedName")
             .containsEntry("SerialNumber", 10)
-            .containsEntry("Hash", "2f1062f8bf84e7eb83a0f64c98d891fbe2c811b17ffac0bce1a6dc9c7c3dcbb7");
+            .containsEntry("Hash", CERTIFICATE_HASH);
     }
 
     @Test
@@ -74,14 +77,16 @@ public class PersonalRepositoryTest {
         personalCertificateModel.setSubjectDN("distinguishedName");
         personalCertificateModel.setSerialNumber(BigInteger.TEN);
         personalCertificateModel.setId(id.toString());
-        personalCertificateModel.setCertificateHash("2f1062f8bf84e7eb83a0f64c98d891fbe2c811b17ffac0bce1a6dc9c7c3dcbb7");
+        personalCertificateModel.setCertificateHash(
+            CERTIFICATE_HASH);
 
         personalRepository.createPersonalCertificate(personalCertificateModel);
 
         // When
         Optional<PersonalCertificateModel> result =
             personalRepository
-                .findIPersonalCertificateByHash("2f1062f8bf84e7eb83a0f64c98d891fbe2c811b17ffac0bce1a6dc9c7c3dcbb7");
+                .findPersonalCertificateByHash(
+                    CERTIFICATE_HASH);
 
         // Then
         assertThat(result).isPresent().hasValueSatisfying(identity -> {
@@ -95,11 +100,9 @@ public class PersonalRepositoryTest {
     @Test
     public void should_return_empty_when_identity_is_missing() throws InvalidParseOperationException {
         // Given / When
-        Optional<PersonalCertificateModel> result = personalRepository.findIPersonalCertificateByHash("invalid_dn");
+        Optional<PersonalCertificateModel> result = personalRepository.findPersonalCertificateByHash("invalid_dn");
 
         // Then
         assertThat(result).isEmpty();
     }
-
-
 }

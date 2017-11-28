@@ -27,8 +27,6 @@
 package fr.gouv.vitam.security.internal.rest.service;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -50,24 +48,18 @@ import fr.gouv.vitam.security.internal.common.model.PersonalCertificateModel;
 import fr.gouv.vitam.security.internal.rest.exeption.PersonalCertificateException;
 import fr.gouv.vitam.security.internal.rest.repository.PersonalRepository;
 
-import java.io.ByteArrayInputStream;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.util.Optional;
 
 public class PersonalCertificateService {
 
-    public static DigestType digestType = DigestType.SHA256;
-
     private static final String INVALID_CERTIFICATE = "Invalid certificate";
-    private final static String NO_CERTIFICTATE_MESSAGE = "No certificate transmitted";
+    private final static String NO_CERTIFICATE_MESSAGE = "No certificate transmitted";
     private static final String PERSONAL_LOGBOOK_EVENT = "STP_PERSONAL_CHECK";
 
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IdentityService.class);
     private PersonalRepository personalRepository;
-
 
     public PersonalCertificateService(LogbookOperationsClientFactory logbookOperationsClientFactory,
         PersonalRepository personalRepository) {
@@ -81,71 +73,68 @@ public class PersonalCertificateService {
      * @throws CertificateException
      * @throws InvalidParseOperationException
      */
-    public void createIdentity(byte[] certificate)
-        throws CertificateException, InvalidParseOperationException {
+    public void createPersonalCertificateIfNotPresent(byte[] certificate)
+        throws PersonalCertificateException, InvalidParseOperationException {
+
+        ParsedCertificate parsedCertificate = ParsedCertificate.parseCertificate(certificate);
+
+        if (personalRepository.findPersonalCertificateByHash(parsedCertificate.getCertificateHash()).isPresent()) {
+            LOGGER.info("Personal certificate already exists {0}", parsedCertificate.getCertificateHash());
+            return;
+        }
+
+        LOGGER.info("Personal certificate does not exist {0}. Creating it...", parsedCertificate.getCertificateHash());
 
         PersonalCertificateModel personalModel = new PersonalCertificateModel();
         personalModel.setId(GUIDFactory.newGUID().toString());
 
-        X509Certificate x509certificate = parseCertificate(certificate);
+        personalModel.setCertificate(parsedCertificate.getRawCertificate());
 
-        byte[] rawDerEncodedCertificate = x509certificate.getEncoded();
+        personalModel.setSubjectDN(parsedCertificate.getX509Certificate().getSubjectDN().getName());
+        personalModel.setIssuerDN(parsedCertificate.getX509Certificate().getIssuerDN().getName());
+        personalModel.setSerialNumber(parsedCertificate.getX509Certificate().getSerialNumber());
 
-        personalModel.setCertificate(rawDerEncodedCertificate);
-
-        personalModel.setSubjectDN(x509certificate.getSubjectDN().getName());
-        personalModel.setIssuerDN(x509certificate.getIssuerDN().getName());
-        personalModel.setSerialNumber(x509certificate.getSerialNumber());
-
-        Digest digest = new Digest(DigestType.SHA256).update(rawDerEncodedCertificate);
-
-        personalModel.setCertificateHash(digest.toString());
+        personalModel.setCertificateHash(parsedCertificate.getCertificateHash());
 
         personalRepository.createPersonalCertificate(personalModel);
     }
 
+    public void deletePersonalCertificateIfPresent(byte[] certificate)
+        throws PersonalCertificateException {
 
-    public void checkPersonalCertificateExistence(byte[] certificate)
+        ParsedCertificate parsedCertificate = ParsedCertificate.parseCertificate(certificate);
+
+        personalRepository.deletePersonalCertificate(parsedCertificate.getCertificateHash());
+    }
+
+    public void checkPersonalCertificateExistence(byte[] certificate, String permission)
         throws LogbookClientServerException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException,
         InvalidParseOperationException, PersonalCertificateException {
 
-        X509Certificate x509certificate;
         if (certificate == null) {
-            LOGGER.error(INVALID_CERTIFICATE);
-
-            logNoPersonalCertificate();
-            throw new PersonalCertificateException(NO_CERTIFICTATE_MESSAGE);
+            createNoPersonalCertificateLogbook();
+            throw new PersonalCertificateException(NO_CERTIFICATE_MESSAGE);
         }
 
-        Optional<PersonalCertificateModel> model;
+        ParsedCertificate parsedCertificate = ParsedCertificate.parseCertificate(certificate);
 
-        try {
-
-            x509certificate = parseCertificate(certificate);
-            byte[] rawDerEncodedCertificate = x509certificate.getEncoded();
-
-            Digest digest = new Digest(digestType).update(rawDerEncodedCertificate);
-
-            model = personalRepository.findIPersonalCertificateByHash(digest.toString());
-        } catch (CertificateException e) {
-            //FIX ME HERE Logbase 64 tuncated
-            LOGGER.error(INVALID_CERTIFICATE + certificate, e);
-            logNoPersonalCertificate();
-            throw new PersonalCertificateException(INVALID_CERTIFICATE);
-        }
+        Optional<PersonalCertificateModel> model
+            = personalRepository.findPersonalCertificateByHash(parsedCertificate.getCertificateHash());
 
         if (model.isPresent()) {
-            // FIXE ME story a creer : tracer certificat corrects identifiés.
-            LOGGER.debug("Good message change it");
+            // Access  OK
+            // FIXME story a creer : tracer certificat corrects identifiés.
+            LOGGER.debug("Access OK for permission {0} with valid personal certificate {1}",
+                permission, parsedCertificate.getCertificateHash());
             return;
         }
-        logInvalidPersonalCertificate(x509certificate);
+
+        createInvalidPersonalCertificateLogbook(parsedCertificate, permission);
 
         throw new PersonalCertificateException(INVALID_CERTIFICATE);
     }
 
-
-    private void logNoPersonalCertificate()
+    private void createNoPersonalCertificateLogbook()
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
         InvalidParseOperationException {
 
@@ -163,7 +152,7 @@ public class PersonalCertificateService {
         logbookOperationsClientFactory.getClient().create(logbookParameters);
     }
 
-    private void logInvalidPersonalCertificate(X509Certificate x509certificate)
+    private void createInvalidPersonalCertificateLogbook(ParsedCertificate parsedCertificate, String permission)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
         InvalidParseOperationException {
 
@@ -172,10 +161,10 @@ public class PersonalCertificateService {
 
         final ObjectNode evDetData = JsonHandler.createObjectNode();
         final ObjectNode msg = JsonHandler.createObjectNode();
-        msg.put("CertificateSn", x509certificate.getSerialNumber().toString());
-        msg.put("CertificateSubjectDN", x509certificate.getSubjectDN().toString());
+        msg.put("CertificateSn", parsedCertificate.getX509Certificate().getSerialNumber().toString());
+        msg.put("CertificateSubjectDN", parsedCertificate.getX509Certificate().getSubjectDN().toString());
+        msg.put("Permission", permission);
 
-        msg.put("Permissions", "Change It");
         evDetData.set("Context", msg);
         final String wellFormedJson = SanityChecker.sanitizeJson(evDetData);
 
@@ -192,10 +181,5 @@ public class PersonalCertificateService {
                 StatusCode.KO, VitamLogbookMessages.getCodeOp(PERSONAL_LOGBOOK_EVENT, StatusCode.KO), eip);
     }
 
-    private X509Certificate parseCertificate(byte[] certificate) throws CertificateException {
-        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-
-        return (X509Certificate) certificateFactory.generateCertificate(new ByteArrayInputStream(certificate));
-    }
 
 }
