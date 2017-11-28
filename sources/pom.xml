@@ -98,7 +98,6 @@
         <jclouds-ceph.version>2.0.1</jclouds-ceph.version>
         <thaiopensource.version>20091111</thaiopensource.version>
         <guava.version>20.0</guava.version>
-        <log4j.version>1.2.17</log4j.version>
         <log4j2.version>2.9.1</log4j2.version>
         <commons-logging.version>1.2</commons-logging.version>
         <commons-io.version>2.5</commons-io.version>
@@ -355,9 +354,15 @@
                         <forkCount>2C</forkCount>
                         <reuseForks>false</reuseForks>
                         <trimStackTrace>false</trimStackTrace>
+                        <systemPropertyVariables>
+                            <log4j.configurationFile>${project.basedir}/common/common-private/src/test/resources/log4j2-test.xml</log4j.configurationFile>
+                        </systemPropertyVariables>
                         <!-- Non Parallel mode -->
                         <!-- <parallel>classes</parallel> <threadCount>1</threadCount> <perCoreThreadCount>false</perCoreThreadCount>
                             <forkCount>1</forkCount> <reuseForks>false</reuseForks> -->
+                        <classpathDependencyExcludes>
+                            <classpathDependencyExclude>org.apache.logging.log4j:log4j-to-slf4j</classpathDependencyExclude>
+                        </classpathDependencyExcludes>
                     </configuration>
                     <executions>
                         <execution>
@@ -1169,29 +1174,20 @@
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
-                <artifactId>log4j-over-slf4j</artifactId>
-                <version>${slf4j.version}</version>
-                <!--<scope>provided</scope> -->
-            </dependency>
-            <dependency>
-                <groupId>org.slf4j</groupId>
                 <artifactId>jul-to-slf4j</artifactId>
                 <version>${slf4j.version}</version>
                 <!--<scope>provided</scope> -->
             </dependency>
 
             <!-- ####################### Extra Logger ####################### -->
-
-            <dependency>
-                <groupId>log4j</groupId>
-                <artifactId>log4j</artifactId>
-                <version>${log4j.version}</version>
-                <optional>true</optional>
-            </dependency>
-
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-core</artifactId>
+                <version>${log4j2.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
                 <version>${log4j2.version}</version>
             </dependency>
             <dependency>

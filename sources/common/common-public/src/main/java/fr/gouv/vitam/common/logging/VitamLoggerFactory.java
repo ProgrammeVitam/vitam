@@ -58,16 +58,9 @@ public abstract class VitamLoggerFactory {
             defaultFactory = f;
         } catch (final Exception t1) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(t1);
-            try {
-                f = new Log4JLoggerFactory(null);
-                f.newInstance(name).debug("Using Log4J as the default logging framework",
-                    t1);
-            } catch (final Exception t2) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(t2);
-                f = new JdkLoggerFactory(null);
-                f.newInstance(name).debug(
-                    "Using java.util.logging as the default logging framework", t2);
-            }
+            f = new JdkLoggerFactory(null);
+            f.newInstance(name).debug(
+                "Using java.util.logging as the default logging framework", t1);
         }
 
         defaultFactory = f;
@@ -144,7 +137,6 @@ public abstract class VitamLoggerFactory {
     }
 
     /**
-     *
      * @return the current Level used
      */
     public static VitamLogLevel getLogLevel() {
@@ -168,7 +160,6 @@ public abstract class VitamLoggerFactory {
     }
 
     /**
-     *
      * @return should return the current Level for the specific implementation
      */
     protected abstract VitamLogLevel getLevelSpecific();
