@@ -10,7 +10,7 @@ import {ColumnDefinition} from "../../common/generic-table/column-definition";
 import {DateService} from "../../common/utils/date.service";
 
 const breadcrumb: BreadcrumbElement[] = [
-  {label: 'Admin', routerLink: ''},
+  {label: 'Administration', routerLink: ''},
   {label: 'Journal des opérations', routerLink: 'admin/logbookOperation'}
 ];
 

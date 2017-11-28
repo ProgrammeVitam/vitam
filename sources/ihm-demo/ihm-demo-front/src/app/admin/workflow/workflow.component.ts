@@ -13,7 +13,7 @@ import {SelectItem} from "primeng/primeng";
 import {FormGroup} from "@angular/forms";
 
 const breadcrumb: BreadcrumbElement[] = [
-  {label: 'Admin', routerLink: ''},
+  {label: 'Administration', routerLink: ''},
   {label: 'Gestion des opérations', routerLink: 'admin/workflow'}
 ];
 
