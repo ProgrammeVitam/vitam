@@ -39,6 +39,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.security.internal.rest.SimpleMongoDBAccess;
 import fr.gouv.vitam.security.internal.rest.mapper.CertificateExceptionMapper;
 import fr.gouv.vitam.security.internal.rest.mapper.IllegalArgumentExceptionMapper;
+import fr.gouv.vitam.security.internal.rest.mapper.PersonalCertificateExceptionMapper;
 import fr.gouv.vitam.security.internal.rest.repository.IdentityRepository;
 import fr.gouv.vitam.security.internal.rest.repository.PersonalRepository;
 import fr.gouv.vitam.security.internal.rest.resource.IdentityResource;
@@ -96,6 +97,7 @@ public class BusinessApplication extends ConfigurationApplication {
             singletons.add(new IllegalArgumentExceptionMapper());
             singletons.add(new HeaderIdContainerFilter());
             singletons.add(new JsonParseExceptionMapper());
+            singletons.add(new PersonalCertificateExceptionMapper());
 
         } catch (IOException e) {
             throw new RuntimeException(e);

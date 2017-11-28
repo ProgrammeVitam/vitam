@@ -43,6 +43,7 @@ public class PersonalCertificateExceptionMapper implements ExceptionMapper<Perso
      */
     @Override
     public Response toResponse(PersonalCertificateException exception) {
+        //FIXME loghere
         return Response.status(Response.Status.UNAUTHORIZED).build();
     }
 }
