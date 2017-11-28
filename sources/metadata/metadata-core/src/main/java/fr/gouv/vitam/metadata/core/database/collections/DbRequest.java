@@ -133,6 +133,8 @@ public class DbRequest {
 
     private static final String NO_RESULT_AT_RANK = "No result at rank: ";
 
+    private static final String DEPTH_ARRAY = "deptharray";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequest.class);
 
     /**
@@ -639,7 +641,7 @@ public class DbRequest {
         final Bson match = match(in(MetadataDocument.ID, ids));
         // aggregate all UNITDEPTH in one (ignoring depth value)
         final Bson group = group(new BasicDBObject(MetadataDocument.ID, "all"),
-            addToSet("deptharray", BuilderToken.DEFAULT_PREFIX + Unit.UNITDEPTHS));
+            addToSet(DEPTH_ARRAY, BuilderToken.DEFAULT_PREFIX + Unit.UNITDEPTHS));
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Depth: {} {}", MongoDbHelper.bsonToString(match, false),
                 MongoDbHelper.bsonToString(group, false));
@@ -652,7 +654,8 @@ public class DbRequest {
         final Set<String> set = new HashSet<>();
         if (aggregate != null) {
             @SuppressWarnings("unchecked")
-            final List<Map<String, Integer>> array = (List<Map<String, Integer>>) aggregate.get("deptharray");
+            final List<Map<String, Integer>> array = (List<Map<String, Integer>>) aggregate.get(DEPTH_ARRAY);
+            relativeDepth = Math.abs(relativeDepth);
             for (final Map<String, Integer> map : array) {
                 for (final String key : map.keySet()) {
                     if (map.get(key) <= relativeDepth) {
