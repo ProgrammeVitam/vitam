@@ -1,6 +1,6 @@
 # Authors of Vitam
 
-## Release xx active development team (xx/2017)
+## Release 5 active development team (11/2017)
 
 ### French government team
 
