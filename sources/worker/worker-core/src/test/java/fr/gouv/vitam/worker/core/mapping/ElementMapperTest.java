@@ -83,6 +83,28 @@ public class ElementMapperTest {
         assertThat(metadata.get(1)).containsEntry("Addressee", newArrayList("c"));
     }
 
+    @Test
+    public void should_map_element_to_hashMap_free_tags() throws Exception {
+        // Given
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        Content content = (Content) unmarshaller.unmarshal(getClass().getResourceAsStream(
+            "/element_with_complex_free_data.xml"));
+
+        // When
+        Map<String, Object> map = elementMapper.toMap(content.elements);
+
+        // Then
+        assertThat(map).hasSize(7);
+        assertThat(map.get("DataInTestTab0")).isNotNull();
+        assertThat(map.get("Description")).isNotNull();
+        List<Map> dataInTestTab0 = (List<Map>) map.get("DataInTestTab0");
+        assertThat(dataInTestTab0).hasSize(1);
+        assertThat(
+            dataInTestTab0.toString()
+                .equals("[{DataInTestTab1=[{DataInTestTab2=[{DataInTestTab3=[f, g, h, i, j]}]}]}]"));
+        assertThat((List<String>) map.get("DataInTestNum")).containsExactlyInAnyOrder("1", "20");
+    }
+
     @XmlRootElement(name = "Content")
     private static class Content {
 

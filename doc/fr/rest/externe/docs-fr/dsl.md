@@ -411,8 +411,8 @@ Recherche de tous les documents dont le champ Identifier commence par ABCD suivi
 Recherche plein texte sur des mots clés.
 
 **Format :**
-- `$match : { name : words }` : où *name* est le nom du champ et *words* les mots recherchés, avec un opérator OR entre chaque mots. *$match* cherche donc **au moins un** mot spécifié dans les *words*, dans n'importe quel ordre. 
-- `$match_all : { name : words }` où *name* est le nom du champ, *words* les mots recherchés, dans n'importe quel ordre, avec un opérateur AND entre chaque mots. *$match_all* cherche **tous** les mots spécifiés dans les *words*, dans n'importe quel ordre. 
+- `$match : { name : words }` : où *name* est le nom du champ et *words* les mots recherchés, avec un opérator OR entre chaque mots. *$match* cherche donc **au moins un** mot spécifié dans les *words*, dans n'importe quel ordre.
+- `$match_all : { name : words }` où *name* est le nom du champ, *words* les mots recherchés, dans n'importe quel ordre, avec un opérateur AND entre chaque mots. *$match_all* cherche **tous** les mots spécifiés dans les *words*, dans n'importe quel ordre.
 - `$match_phrase : { name : words }` où *name* est le nom du champ et *words* les mots recherchés, avec un opérator AND entre chaque mots. De plus *$match_phrase_prefix* cherche **tous** les mot spécifiés dans les *words* en tenant également compte de **l'ordre des mots**.
 - `$match_phrase_prefix : { name : words }` où *name* est le nom du champ et *words* les mots recherchés, avec un opérator AND entre chaque mots. De plus *$match_phrase_prefix* cherche **tous** les mot spécifiés dans les *words* en tenant également compte de **l'ordre des mots**. La recherche sur le dernier mot est de type prefixe. Cet opérateur peut être particulièrement adapté à la recherche avec auto-complétion 'as you type'.
 
@@ -683,6 +683,6 @@ Des champs sont protégés dans les requêtes :
       - **Dissemination** pour la version de diffusion compatible avec un accès rapide et via navigateur
       - **Thumbnail** pour les vignettes pour les affichages en qualité très réduite et très rapide en "prévue"
       - **TextContent** pour la partie native texte (ASCII UTF8)
-    - Un raccourci exite : **#usage**
+    - Un raccourci existe : **#usage**
   - **#size** est la taille d'un objet
   - **#format** est le format (PUID) d'un objet
