@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.mapping;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.InputStream;
 import java.util.List;
 
 import javax.xml.bind.JAXBContext;
@@ -38,6 +39,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.vitam.common.model.unit.AgentTypeModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitRoot;
+import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -60,6 +62,7 @@ public class ArchiveUnitMapperTest {
     public void init() throws Exception {
         archiveUnitMapper = new ArchiveUnitMapper(new DescriptiveMetadataMapper(), new RuleMapper());
     }
+
 
     @Test
     public void should_map_element_to_hashMap() throws Exception {
@@ -91,4 +94,134 @@ public class ArchiveUnitMapperTest {
 
     }
 
+    @Test
+    public void should_transform_startDate_to_valid_date_format_when_sip_is_ingest() throws Exception {
+        // Given
+        final InputStream resourceAsStream = getClass().getResourceAsStream(
+            "/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_bad_startDate.xml");
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
+        // When
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "");
+        // Then
+        ArchiveUnitModel archiveUnit = archiveUnitRoot.getArchiveUnit();
+        final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
+        assertThat(descriptiveMetadataModel.getStartDate())
+            .isEqualTo("2012-11-15T00:00:00+03:00");
+    }
+
+    @Test
+    public void should_do_nothing_on_startDate_when_date_format_is_good() throws Exception {
+        // Given
+        final InputStream resourceAsStream = getClass().getResourceAsStream(
+            "/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_good_date_format.xml");
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
+        // When
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "");
+        // Then
+        ArchiveUnitModel archiveUnit = archiveUnitRoot.getArchiveUnit();
+        final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
+        assertThat(descriptiveMetadataModel.getStartDate())
+            .isEqualTo("2012-09-26T15:34:08.284+02:00");
+    }
+
+    @Test
+    public void should_transform_createdDate_to_valid_date_format_when_sip_is_ingest() throws Exception {
+        // Given
+        final InputStream resourceAsStream = getClass().getResourceAsStream(
+            "/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_bad_createdDate.xml");
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
+        // When
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "");
+        // Then
+        ArchiveUnitModel archiveUnit = archiveUnitRoot.getArchiveUnit();
+        final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
+        assertThat(descriptiveMetadataModel.getCreatedDate())
+            .isEqualTo("2012-11-15T00:00:00+03:00");
+    }
+
+    @Test
+    public void should_transform_transactedDate_to_valid_date_format_when_sip_is_ingest() throws Exception {
+        // Given
+        final InputStream resourceAsStream = getClass().getResourceAsStream(
+            "/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_bad_transactedDate.xml");
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
+        // When
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "");
+        // Then
+        ArchiveUnitModel archiveUnit = archiveUnitRoot.getArchiveUnit();
+        final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
+        assertThat(descriptiveMetadataModel.getTransactedDate())
+            .isEqualTo("2012-11-15T00:00:00+03:00");
+    }
+
+    @Test
+    public void should_transform_acquiredDate_to_valid_date_format_when_sip_is_ingest() throws Exception {
+        // Given
+        final InputStream resourceAsStream = getClass().getResourceAsStream(
+            "/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_bad_acquiredDate.xml");
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
+        // When
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "");
+        // Then
+        ArchiveUnitModel archiveUnit = archiveUnitRoot.getArchiveUnit();
+        final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
+        assertThat(descriptiveMetadataModel.getAcquiredDate())
+            .isEqualTo("2012-11-15T00:00:00+03:00");
+    }
+
+    @Test
+    public void should_transform_sentDate_to_valid_date_format_when_sip_is_ingest() throws Exception {
+        // test for BUG #3844
+        // Given
+        final InputStream resourceAsStream = getClass().getResourceAsStream(
+            "/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_bad_sentDate.xml");
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
+        //when
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "");
+        // Then
+        ArchiveUnitModel archiveUnit = archiveUnitRoot.getArchiveUnit();
+        final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
+        assertThat(descriptiveMetadataModel.getSentDate())
+            .isEqualTo("2015-11-15T00:00:00+03:00");
+    }
+
+    @Test
+    public void should_transform_receivedDate_to_valid_date_format_when_sip_is_ingest() throws Exception {
+        // test for BUG #3844
+        // Given
+        final InputStream resourceAsStream = getClass().getResourceAsStream(
+            "/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_bad_receivedDate.xml");
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
+        //when
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "");
+        // Then
+        ArchiveUnitModel archiveUnit = archiveUnitRoot.getArchiveUnit();
+        final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
+        assertThat(descriptiveMetadataModel.getReceivedDate())
+            .isEqualTo("2016-11-15T00:00:00+03:00");
+    }
+
+    @Test
+    public void should_transform_registeredDate_to_valid_date_format_when_sip_is_ingest() throws Exception {
+        // test for BUG #3844
+        // Given
+        final InputStream resourceAsStream = getClass().getResourceAsStream(
+            "/ArchiveUnitDateWithBadFormatInElasticSearch/archive_unit_with_bad_registerDate.xml");
+        Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
+        ArchiveUnitType archiveUnitType = (ArchiveUnitType) unmarshaller.unmarshal(resourceAsStream);
+        //when
+        ArchiveUnitRoot archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, "", "");
+        // Then
+        ArchiveUnitModel archiveUnit = archiveUnitRoot.getArchiveUnit();
+        final DescriptiveMetadataModel descriptiveMetadataModel = archiveUnit.getDescriptiveMetadataModel();
+        assertThat(descriptiveMetadataModel.getRegisteredDate())
+            .isEqualTo("2012-11-15T00:00:00+03:00");
+    }
 }

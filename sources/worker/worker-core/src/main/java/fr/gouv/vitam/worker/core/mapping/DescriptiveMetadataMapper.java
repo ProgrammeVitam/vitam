@@ -35,6 +35,7 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import com.google.common.collect.Iterables;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.TextByLang;
@@ -66,14 +67,14 @@ public class DescriptiveMetadataMapper {
     /**
      * Map jaxb DescriptiveMetadataContentType to local DescriptiveMetadataModel
      *
-     * @param metadataContentType
-     * @return
+     * @param metadataContentType JAXB Object
+     * @return DescriptiveMetadataModel
      */
     public DescriptiveMetadataModel map(DescriptiveMetadataContentType metadataContentType)
         throws DatatypeConfigurationException {
 
         DescriptiveMetadataModel descriptiveMetadataModel = new DescriptiveMetadataModel();
-        descriptiveMetadataModel.setAcquiredDate(metadataContentType.getAcquiredDate());
+        descriptiveMetadataModel.setAcquiredDate(LocalDateUtil.transformIsoOffsetDateToIsoOffsetDateTime(metadataContentType.getAcquiredDate()));
         descriptiveMetadataModel.getAddressee().addAll(metadataContentType.getAddressee());
 
         descriptiveMetadataModel.setAny(elementMapper.toMap(metadataContentType.getAny()));
@@ -83,7 +84,7 @@ public class DescriptiveMetadataMapper {
         descriptiveMetadataModel.setAuthorizedAgent(metadataContentType.getAuthorizedAgent());
 
         descriptiveMetadataModel.setCoverage(metadataContentType.getCoverage());
-        descriptiveMetadataModel.setCreatedDate(metadataContentType.getCreatedDate());
+        descriptiveMetadataModel.setCreatedDate(LocalDateUtil.transformIsoOffsetDateToIsoOffsetDateTime(metadataContentType.getCreatedDate()));
 
         CustodialHistoryModel custodialHistoryModel =
             custodialHistoryMapper.map(metadataContentType.getCustodialHistory());
@@ -106,28 +107,27 @@ public class DescriptiveMetadataMapper {
         descriptiveMetadataModel
             .setOriginatingAgencyArchiveUnitIdentifier(metadataContentType.getOriginatingAgencyArchiveUnitIdentifier());
         descriptiveMetadataModel.setOriginatingSystemId(metadataContentType.getOriginatingSystemId());
-        descriptiveMetadataModel.setReceivedDate(metadataContentType.getReceivedDate());
         descriptiveMetadataModel.getRecipient().addAll(metadataContentType.getRecipient());
 
-        descriptiveMetadataModel.setRegisteredDate(metadataContentType.getRegisteredDate());
+        descriptiveMetadataModel.setRegisteredDate(LocalDateUtil.transformIsoOffsetDateToIsoOffsetDateTime(metadataContentType.getRegisteredDate()));
         descriptiveMetadataModel.setRelatedObjectReference(metadataContentType.getRelatedObjectReference());
         descriptiveMetadataModel.setRestrictionEndDate(metadataContentType.getRestrictionEndDate());
         descriptiveMetadataModel.setRestrictionRuleIdRef(metadataContentType.getRestrictionRuleIdRef());
         descriptiveMetadataModel.setRestrictionValue(metadataContentType.getRestrictionValue());
-        descriptiveMetadataModel.setReceivedDate(metadataContentType.getReceivedDate());
-        descriptiveMetadataModel.setSentDate(metadataContentType.getSentDate());
+        descriptiveMetadataModel.setReceivedDate(LocalDateUtil.transformIsoOffsetDateToIsoOffsetDateTime(metadataContentType.getReceivedDate()));
+        descriptiveMetadataModel.setSentDate(LocalDateUtil.transformIsoOffsetDateToIsoOffsetDateTime(metadataContentType.getSentDate()));
 
         descriptiveMetadataModel.setSignature(metadataContentType.getSignature());
 
         descriptiveMetadataModel.setSource(metadataContentType.getSource());
-        descriptiveMetadataModel.setStartDate(metadataContentType.getStartDate());
+        descriptiveMetadataModel.setStartDate(LocalDateUtil.transformIsoOffsetDateToIsoOffsetDateTime(metadataContentType.getStartDate()));
         descriptiveMetadataModel.setStatus(metadataContentType.getStatus());
         descriptiveMetadataModel.setSubmissionAgency(metadataContentType.getSubmissionAgency());
         descriptiveMetadataModel.setSystemId(metadataContentType.getSystemId());
         descriptiveMetadataModel.setTag(metadataContentType.getTag());
         descriptiveMetadataModel.setTitle(findTextTypeByLang(metadataContentType.getTitle()));
         descriptiveMetadataModel.setTitles(new TextByLang(metadataContentType.getTitle()));
-        descriptiveMetadataModel.setTransactedDate(metadataContentType.getTransactedDate());
+        descriptiveMetadataModel.setTransactedDate(LocalDateUtil.transformIsoOffsetDateToIsoOffsetDateTime(metadataContentType.getTransactedDate()));
         descriptiveMetadataModel.setTransferringAgencyArchiveUnitIdentifier(
             metadataContentType.getTransferringAgencyArchiveUnitIdentifier());
         descriptiveMetadataModel.setType(metadataContentType.getType());
