@@ -6,7 +6,7 @@ staticContent: "{{ vitam_struct.static_content }}"
 
 jettyConfig: jetty-config.xml
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
-secure: true
+authentication: true
 secureMode: {{vitam_struct.secure_mode}}
 sipDirectory: {{ vitam_folder_data }}/test-data
 performanceReportDirectory: {{ vitam_folder_data }}/report/performance

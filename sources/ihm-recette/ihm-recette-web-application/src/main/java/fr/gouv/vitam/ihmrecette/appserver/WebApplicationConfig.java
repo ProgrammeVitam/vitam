@@ -41,6 +41,7 @@ public class WebApplicationConfig extends MetaDataConfiguration {
     private int port;
     private String serverHost;
     private String baseUrl;
+    private String baseUri;
     private String staticContent;
     private boolean secure;
     private String secureMode;
@@ -84,6 +85,15 @@ public class WebApplicationConfig extends MetaDataConfiguration {
      */
     public WebApplicationConfig setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
+        return this;
+    }
+    
+    public String getBaseUri() {
+        return baseUri;
+    }
+
+    public WebApplicationConfig setBaseUri(String baseUri) {
+        this.baseUri = baseUri;
         return this;
     }
 
@@ -262,4 +272,5 @@ public class WebApplicationConfig extends MetaDataConfiguration {
     public void setSecureMode(String secureMode) {
         this.secureMode = secureMode;
     }
+
 }

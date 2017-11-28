@@ -30,7 +30,7 @@ public class ServerApplicationTest {
         final WebApplicationConfig config = PropertiesUtils.readYaml(conf, WebApplicationConfig.class);
         final File newConf = File.createTempFile("test", IHM_RECETTE_CONF, conf.getParentFile());
         PropertiesUtils.writeYaml(newConf, config);
-        new ServerApplicationWithoutMongo(newConf.getAbsolutePath());
+        new IhmRecetteMainWithoutMongo(newConf.getAbsolutePath());
         newConf.delete();
     }
 
@@ -42,7 +42,7 @@ public class ServerApplicationTest {
         final WebApplicationConfig config = PropertiesUtils.readYaml(conf, WebApplicationConfig.class);
         final File newConf = File.createTempFile("test", IHM_RECETTE_CONF, conf.getParentFile());
         PropertiesUtils.writeYaml(newConf, config);
-        final ServerApplicationWithoutMongo application = new ServerApplicationWithoutMongo(newConf.getAbsolutePath());
+        final IhmRecetteMainWithoutMongo application = new IhmRecetteMainWithoutMongo(newConf.getAbsolutePath());
         application.start();
         RestAssured.port = port;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
@@ -54,9 +54,9 @@ public class ServerApplicationTest {
         junitHelper.releasePort(port);
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void givenNullArgumentWhenConfigureApplicationOThenRunServerWithDefaultParms() throws Exception {
-        new ServerApplication((String) null);
+        new IhmRecetteMainWithoutMongo((String) null);
     }
 
     @Test
@@ -67,7 +67,7 @@ public class ServerApplicationTest {
         final WebApplicationConfig config = PropertiesUtils.readYaml(conf, WebApplicationConfig.class);
         final File newConf = File.createTempFile("test-noPort", IHM_RECETTE_NO_PORT_CONF, conf.getParentFile());
         PropertiesUtils.writeYaml(newConf, config);
-        final ServerApplicationWithoutMongo application = new ServerApplicationWithoutMongo(newConf.getAbsolutePath());
+        final IhmRecetteMainWithoutMongo application = new IhmRecetteMainWithoutMongo(newConf.getAbsolutePath());
         application.start();
         RestAssured.port = port;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
@@ -77,17 +77,5 @@ public class ServerApplicationTest {
         application.stop();
         newConf.delete();
         junitHelper.releasePort(port);
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void givenConfigFileWithoutJettyConfigThenRaiseAnException() throws Exception {
-        WebApplicationConfig config = new WebApplicationConfig();
-        config.setMongoDbNodes(new ArrayList<MongoDbNode>());
-        new ServerApplication(config);
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void givenConfigFileWithoutConfigThenRaiseAnException() throws Exception {
-        new ServerApplication((WebApplicationConfig) null);
     }
 }
