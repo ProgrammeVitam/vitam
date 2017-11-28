@@ -1,26 +1,29 @@
 package fr.gouv.vitam.security.internal.rest.resource;
 
-import com.google.common.collect.Sets;
 import fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel;
 import fr.gouv.vitam.security.internal.rest.exeption.PersonalCertificateException;
-import fr.gouv.vitam.security.internal.rest.server.PersonalCertificatePermissionConfig;
+import fr.gouv.vitam.security.internal.rest.service.PermissionService;
 import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import static fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel.Response.ERROR_UNKNOWN_PERMISSION;
+import static fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel.Response.IGNORED_PERSONAL_CERTIFICATE;
+import static fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel.Response.REQUIRED_PERSONAL_CERTIFICATE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 public class PersonalCertificateResourceTest {
 
-    public static final String PERM_1 = "perm1";
-    public static final String PERM_2 = "perm2";
-    public static final String PERM_3 = "perm3";
-    public static final String PERM_4 = "perm4";
+    public static final String PERMISSION = "permission";
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
@@ -28,39 +31,33 @@ public class PersonalCertificateResourceTest {
     @Mock
     private PersonalCertificateService personalCertificateService;
 
+    @Mock
+    private PermissionService permissionService;
+
+    @InjectMocks
+    private PersonalCertificateResource personalCertificateResource;
+
     @Test
     public void should_check_personal_certificate() throws Exception {
         // Given
         byte[] bytes = new byte[] {1, 2};
 
         doThrow(PersonalCertificateException.class).when(personalCertificateService)
-            .checkPersonalCertificateExistence(bytes, PERM_1);
-
-        PersonalCertificateResource personalCertificateResource =
-            new PersonalCertificateResource(null, personalCertificateService);
+            .checkPersonalCertificateExistence(bytes, PERMISSION);
 
         // When / Then
-        assertThatThrownBy(() -> personalCertificateResource.checkPersonalCertificate(bytes, PERM_1))
+        assertThatThrownBy(() -> personalCertificateResource.checkPersonalCertificate(bytes, PERMISSION))
             .isInstanceOf(PersonalCertificateException.class);
     }
 
     @Test
     public void isPersonalCertificateRequiredForPermission() throws Exception {
 
-        PersonalCertificatePermissionConfig config = new PersonalCertificatePermissionConfig();
-        config.setPermissionsRequiringPersonalCertificate(Sets.newHashSet(PERM_1, PERM_2));
-        config.setPermissionsWithoutPersonalCertificate(Sets.newHashSet(PERM_3));
+        IsPersonalCertificateRequiredModel response = mock(IsPersonalCertificateRequiredModel.class);
+        when(permissionService.isPersonalCertificateRequiredForPermission(PERMISSION))
+            .thenReturn(response);
 
-        PersonalCertificateResource instance = new PersonalCertificateResource(config,
-            personalCertificateService);
-
-        assertThat(instance.isPersonalCertificateRequiredForPermission(PERM_1).getResponse()).isEqualTo(
-            IsPersonalCertificateRequiredModel.Response.REQUIRED_PERSONAL_CERTIFICATE);
-
-        assertThat(instance.isPersonalCertificateRequiredForPermission(PERM_3).getResponse()).isEqualTo(
-            IsPersonalCertificateRequiredModel.Response.IGNORED_PERSONAL_CERTIFICATE);
-
-        assertThat(instance.isPersonalCertificateRequiredForPermission(PERM_4).getResponse()).isEqualTo(
-            IsPersonalCertificateRequiredModel.Response.ERROR_UNKNOWN_PERMISSION);
+        assertThat(personalCertificateResource.isPersonalCertificateRequiredForPermission(PERMISSION))
+            .isEqualTo(response);
     }
 }

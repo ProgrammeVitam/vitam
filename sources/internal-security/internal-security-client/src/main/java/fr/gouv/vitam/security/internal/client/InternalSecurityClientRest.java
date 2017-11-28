@@ -115,7 +115,7 @@ public class InternalSecurityClientRest extends DefaultClient implements Interna
             String message;
             final Status status = Status.fromStatusCode(response.getStatus());
             switch (status) {
-                case OK:
+                case NO_CONTENT:
                     return;
                 case UNAUTHORIZED:
                     message = response.readEntity(String.class);

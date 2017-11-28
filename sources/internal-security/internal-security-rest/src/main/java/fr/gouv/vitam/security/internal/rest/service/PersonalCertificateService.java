@@ -53,12 +53,13 @@ import java.util.Optional;
 
 public class PersonalCertificateService {
 
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PersonalCertificateService.class);
+
     private static final String INVALID_CERTIFICATE = "Invalid certificate";
     private final static String NO_CERTIFICATE_MESSAGE = "No certificate transmitted";
-    private static final String PERSONAL_LOGBOOK_EVENT = "STP_PERSONAL_CHECK";
+    private static final String PERSONAL_LOGBOOK_EVENT = "STP_PERSONAL_CERTIFICATE_CHECK";
 
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IdentityService.class);
     private PersonalRepository personalRepository;
 
     public PersonalCertificateService(LogbookOperationsClientFactory logbookOperationsClientFactory,

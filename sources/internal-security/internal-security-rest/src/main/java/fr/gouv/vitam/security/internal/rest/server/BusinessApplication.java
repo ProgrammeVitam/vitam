@@ -45,6 +45,7 @@ import fr.gouv.vitam.security.internal.rest.repository.PersonalRepository;
 import fr.gouv.vitam.security.internal.rest.resource.IdentityResource;
 import fr.gouv.vitam.security.internal.rest.resource.PersonalCertificateResource;
 import fr.gouv.vitam.security.internal.rest.service.IdentityService;
+import fr.gouv.vitam.security.internal.rest.service.PermissionService;
 import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
 
 import javax.servlet.ServletConfig;
@@ -88,10 +89,10 @@ public class BusinessApplication extends ConfigurationApplication {
             PersonalRepository personalRepository = new PersonalRepository(mongoDbAccess);
             PersonalCertificateService personalCertificateService = new PersonalCertificateService(
                 LogbookOperationsClientFactory.getInstance(), personalRepository);
+            PermissionService permissionService = new PermissionService(personalCertificatePermissionConfig);
 
             singletons.add(new IdentityResource(identityService));
-            singletons.add(
-                new PersonalCertificateResource(personalCertificatePermissionConfig, personalCertificateService));
+            singletons.add(new PersonalCertificateResource(permissionService, personalCertificateService));
 
             singletons.add(new CertificateExceptionMapper());
             singletons.add(new IllegalArgumentExceptionMapper());

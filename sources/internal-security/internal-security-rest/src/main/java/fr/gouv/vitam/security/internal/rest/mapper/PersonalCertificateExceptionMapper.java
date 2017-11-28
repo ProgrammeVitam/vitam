@@ -26,12 +26,16 @@
  */
 package fr.gouv.vitam.security.internal.rest.mapper;
 
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.security.internal.rest.exeption.PersonalCertificateException;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 
 public class PersonalCertificateExceptionMapper implements ExceptionMapper<PersonalCertificateException> {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PersonalCertificateExceptionMapper.class);
     /**
      * Map an exception to a {@link Response}. Returning
      * {@code null} results in a {@link Response.Status#NO_CONTENT}
@@ -43,7 +47,7 @@ public class PersonalCertificateExceptionMapper implements ExceptionMapper<Perso
      */
     @Override
     public Response toResponse(PersonalCertificateException exception) {
-        //FIXME loghere
+        LOGGER.error(exception);
         return Response.status(Response.Status.UNAUTHORIZED).build();
     }
 }

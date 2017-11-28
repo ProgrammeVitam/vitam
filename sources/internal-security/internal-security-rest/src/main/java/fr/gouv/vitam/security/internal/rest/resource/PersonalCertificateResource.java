@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.security.internal.rest.resource;
 
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -35,6 +36,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel;
 import fr.gouv.vitam.security.internal.rest.exeption.PersonalCertificateException;
 import fr.gouv.vitam.security.internal.rest.server.PersonalCertificatePermissionConfig;
+import fr.gouv.vitam.security.internal.rest.service.PermissionService;
 import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
 
 import javax.ws.rs.Consumes;
@@ -52,14 +54,14 @@ public class PersonalCertificateResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PersonalCertificateResource.class);
 
-    private final PersonalCertificatePermissionConfig personalCertificatePermissionConfig;
+    private final PermissionService permissionService;
 
     private final PersonalCertificateService personalCertificateService;
 
     public PersonalCertificateResource(
-        PersonalCertificatePermissionConfig personalCertificatePermissionConfig,
+        PermissionService permissionService,
         PersonalCertificateService personalCertificateService) {
-        this.personalCertificatePermissionConfig = personalCertificatePermissionConfig;
+        this.permissionService = permissionService;
         this.personalCertificateService = personalCertificateService;
     }
 
@@ -70,10 +72,10 @@ public class PersonalCertificateResource {
         @PathParam("permission") String permission)
         throws LogbookClientServerException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException,
         InvalidParseOperationException, PersonalCertificateException {
+        ParametersChecker.checkParameter("Permission cannot be null", permission);
 
         personalCertificateService.checkPersonalCertificateExistence(certificate, permission);
     }
-
 
     /**
      * Gets whether personal certificate if required for the provided endpoint permission
@@ -86,28 +88,8 @@ public class PersonalCertificateResource {
     @Produces(MediaType.APPLICATION_JSON)
     public IsPersonalCertificateRequiredModel isPersonalCertificateRequiredForPermission(
         @PathParam("permission") String permission) {
+        ParametersChecker.checkParameter("Permission cannot be null", permission);
 
-        if (personalCertificatePermissionConfig.getPermissionsRequiringPersonalCertificate() != null
-            && personalCertificatePermissionConfig.getPermissionsRequiringPersonalCertificate().contains(permission)) {
-
-            LOGGER.debug("Required personal certificate for permission {0}", permission);
-
-            return new IsPersonalCertificateRequiredModel(
-                IsPersonalCertificateRequiredModel.Response.REQUIRED_PERSONAL_CERTIFICATE);
-        }
-
-        if (personalCertificatePermissionConfig.getPermissionsWithoutPersonalCertificate() != null
-            && personalCertificatePermissionConfig.getPermissionsWithoutPersonalCertificate().contains(permission)) {
-
-            LOGGER.debug("Non required personal certificate for permission {0}", permission);
-
-            return new IsPersonalCertificateRequiredModel(
-                IsPersonalCertificateRequiredModel.Response.IGNORED_PERSONAL_CERTIFICATE);
-        }
-
-        LOGGER.error("Unknown permission {0}", permission);
-
-        return new IsPersonalCertificateRequiredModel(
-            IsPersonalCertificateRequiredModel.Response.ERROR_UNKNOWN_PERMISSION);
+        return permissionService.isPersonalCertificateRequiredForPermission(permission);
     }
 }

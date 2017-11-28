@@ -28,6 +28,7 @@ package fr.gouv.vitam.security.internal.filter;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -47,8 +48,6 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-
-import static fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel.Response.REQUIRED_PERSONAL_CERTIFICATE;
 
 /**
  * Handles personal certificate access authorization for REST endpoints.
@@ -140,11 +139,15 @@ public class EndpointPersonalCertificateAuthorizationFilter implements Container
         }
     }
 
-    private void checkPersonalCertificate(ContainerRequestContext requestContext) {
+    private void checkPersonalCertificate(ContainerRequestContext requestContext)
+        throws InternalSecurityException, VitamClientInternalException {
 
-        // FIXME
-        LOGGER.warn("Access denied for permission " + permission);
-        throw new VitamSecurityException("Access denied.");
+        String headerString = requestContext.getHeaderString(GlobalDataRest.X_PERSONAL_CERTIFICATE);
+
+        byte[] certificate =
+            org.apache.commons.lang.StringUtils.isEmpty(headerString) ? null : headerString.getBytes();
+
+        internalSecurityClient.checkPersonalCertificate(certificate, permission);
     }
 
     /**
