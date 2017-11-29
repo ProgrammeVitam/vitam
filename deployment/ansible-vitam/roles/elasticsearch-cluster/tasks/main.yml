@@ -162,19 +162,6 @@
   notify:
     - restart elasticsearch
 
-- name: apply logging for ES 2.x configuration yml
-  template:
-    src: "{{item}}.j2"
-    dest: "{{elasticsearch_conf_dir}}/{{item}}"
-    owner: "{{ vitam_defaults.users.vitamdb }}"
-    group: "{{ vitam_defaults.users.group }}"
-    mode: "{{ vitam_defaults.folder.conf_permission }}"
-  with_items:
-    - "logging.yml"
-  when: composant.groupe == 'data'
-  notify:
-    - restart elasticsearch
-
 - name: apply elasticsearch sysconfig default
   template:
     src: "elasticsearch.j2"

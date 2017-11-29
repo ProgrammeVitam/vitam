@@ -48,7 +48,5 @@ echo "vitam-elasticsearch-cerebro"
 ${WORKING_FOLDER}/build-elasticsearch-cerebro.sh
 echo "vitam-siegfried"
 ${WORKING_FOLDER}/build-siegfried.sh
-echo "Elasticsearch analysis-icu v2"
-${WORKING_FOLDER}/build-elasticsearch-icu-v2.sh
-echo "Elasticsearch analysis-icu v5"
-${WORKING_FOLDER}/build-elasticsearch-icu-v5.sh
+echo "Elasticsearch analysis-icu"
+${WORKING_FOLDER}/build-elasticsearch-icu.sh

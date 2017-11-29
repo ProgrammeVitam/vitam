@@ -1,8 +1,0 @@
-Package: vitam-elasticsearch-analysis-icu
-Version: 2.4.4
-Section: database
-Priority: optional
-Architecture: all
-Depends: elasticsearch (=2.4.4), vitam-user-vitamdb
-Maintainer: French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
-Description: The ICU Analysis plugin for ElasticSearch integrates Lucene ICU module into elasticsearch, adding ICU relates analysis components.

@@ -15,7 +15,6 @@ Requires:      systemd
 Requires:      java-1.8.0
 Requires:      elasticsearch = %{version}
 Requires:      vitam-user-vitamdb
-Conflicts:     vitam-elasticsearch-data
 Conflicts:     elasticsearch < 5
 Packager:	   Programme VITAM
 

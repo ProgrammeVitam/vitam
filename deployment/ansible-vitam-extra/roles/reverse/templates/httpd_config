@@ -235,8 +235,8 @@
 
     {% if groups['hosts-elasticsearch-data']|length >0 %}
     # Elasticsearch data ; no / at end as still in ES 2.x
-    ProxyPass /{{ elasticsearch.data.baseuri }} http://{{hostvars [groups['hosts-elasticsearch-data'][0]]['ip_service']}}:{{ elasticsearch.data.port_http }}/
-    ProxyPassReverse /{{ elasticsearch.data.baseuri }} http://{{hostvars [groups['hosts-elasticsearch-data'][0]]['ip_service']}}:{{ elasticsearch.data.port_http }}/
+    ProxyPass /{{ elasticsearch.data.baseuri }} http://{{hostvars [groups['hosts-elasticsearch-data'][0]]['ip_service']}}:{{ elasticsearch.data.port_http }}
+    ProxyPassReverse /{{ elasticsearch.data.baseuri }} http://{{hostvars [groups['hosts-elasticsearch-data'][0]]['ip_service']}}:{{ elasticsearch.data.port_http }}
     {% endif %}
 
     {% if groups['hosts-consul-server']|length >0 %}

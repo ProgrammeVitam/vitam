@@ -125,6 +125,16 @@
   notify:
      - reload apache
 
+- name: remove default index page on Debian
+  file:
+    path: /etc/{{ apache_service }}/sites-enabled/000-default.conf
+    state: absent
+  when:  ansible_distribution == "Debian"
+  tags:
+    - update_package_vitam
+  notify:
+     - reload apache
+   
 - name: activate httpd configuration for debian
   file:
     src: /etc/{{ apache_service }}/sites-available/zz_{{ vitam_reverse_external_dns }}.conf
