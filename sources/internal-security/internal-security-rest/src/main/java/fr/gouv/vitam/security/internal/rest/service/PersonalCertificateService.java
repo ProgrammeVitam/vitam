@@ -51,8 +51,9 @@ import fr.gouv.vitam.security.internal.rest.repository.PersonalRepository;
 import java.security.cert.CertificateException;
 import java.util.Optional;
 
-import static fr.gouv.vitam.security.internal.rest.service.ParsedCertificate.toCertificateHexString;
-
+/**
+ * Manages personal certificates
+ */
 public class PersonalCertificateService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PersonalCertificateService.class);
@@ -71,7 +72,7 @@ public class PersonalCertificateService {
     }
 
     /**
-     * create certificate
+     * Create certificate if not present in DB.
      *
      * @throws CertificateException
      * @throws InvalidParseOperationException
@@ -102,6 +103,12 @@ public class PersonalCertificateService {
         personalRepository.createPersonalCertificate(personalModel);
     }
 
+    /**
+     * Delete certificate if present.
+     *
+     * @param certificate
+     * @throws PersonalCertificateException
+     */
     public void deletePersonalCertificateIfPresent(byte[] certificate)
         throws PersonalCertificateException {
 
@@ -110,6 +117,16 @@ public class PersonalCertificateService {
         personalRepository.deletePersonalCertificate(parsedCertificate.getCertificateHash());
     }
 
+    /**
+     * Checks if the personal certificate if valid.
+     * @param certificate the certificate to check
+     * @param permission the permission for which access if checked (required for logbook logging)
+     * @throws LogbookClientServerException
+     * @throws LogbookClientAlreadyExistsException
+     * @throws LogbookClientBadRequestException
+     * @throws InvalidParseOperationException
+     * @throws PersonalCertificateException
+     */
     public void checkPersonalCertificateExistence(byte[] certificate, String permission)
         throws LogbookClientServerException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException,
         InvalidParseOperationException, PersonalCertificateException {
@@ -199,6 +216,5 @@ public class PersonalCertificateService {
             .newLogbookOperationParameters(eip, PERSONAL_LOGBOOK_EVENT, eip, LogbookTypeProcess.CHECK,
                 StatusCode.KO, VitamLogbookMessages.getCodeOp(PERSONAL_LOGBOOK_EVENT, StatusCode.KO), eip);
     }
-
 
 }

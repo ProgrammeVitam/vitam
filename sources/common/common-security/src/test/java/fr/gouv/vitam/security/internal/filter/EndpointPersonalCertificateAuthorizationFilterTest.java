@@ -41,7 +41,7 @@ public class EndpointPersonalCertificateAuthorizationFilterTest {
     @Mock
     ContainerRequestContext context;
 
-    EndpointPersonalCertificateAuthorizationFilter instance;
+    private EndpointPersonalCertificateAuthorizationFilter instance;
 
     @Before
     public void setUp() throws Exception {

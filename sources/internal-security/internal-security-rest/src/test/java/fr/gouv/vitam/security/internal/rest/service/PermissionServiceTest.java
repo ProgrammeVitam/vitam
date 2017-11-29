@@ -2,12 +2,10 @@ package fr.gouv.vitam.security.internal.rest.service;
 
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel;
-import fr.gouv.vitam.security.internal.rest.resource.PersonalCertificateResource;
 import fr.gouv.vitam.security.internal.rest.server.PersonalCertificatePermissionConfig;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
 
 public class PermissionServiceTest {
 

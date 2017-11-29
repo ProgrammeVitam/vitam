@@ -33,6 +33,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 
+/**
+ * Handles PersonalCertificatePermissionConfig loading & validation
+ */
 public class PersonalCertificatePermissionConfigLoader {
 
     /**

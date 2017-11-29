@@ -37,10 +37,13 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 
+/**
+ * Helper class for certificate parsing X509 certificates.
+ */
 class ParsedCertificate {
 
-    public static final int MAX_CERTIFICATE_LOG_LENGTH = 10240;
-    public static DigestType digestType = DigestType.SHA256;
+    private static final int MAX_CERTIFICATE_LOG_LENGTH = 10240;
+    private static DigestType digestType = DigestType.SHA256;
 
     private final X509Certificate x509Certificate;
     private final byte[] rawCertificate;
@@ -64,6 +67,12 @@ class ParsedCertificate {
         return certificateHash;
     }
 
+    /**
+     * Parses a certificate
+     * @param certificate
+     * @return
+     * @throws PersonalCertificateException
+     */
     public static ParsedCertificate parseCertificate(byte[] certificate) throws PersonalCertificateException {
 
         try {
@@ -88,13 +97,18 @@ class ParsedCertificate {
         return digest.digestHex();
     }
 
+    /**
+     * Converts a certificate to Hex for logging (Truncated to MAX_CERTIFICATE_LOG_LENGTH)
+     * @param certificate
+     * @return
+     */
     public static String toCertificateHexString(byte[] certificate) {
-        byte[] certificateToLog;
         if (certificate.length > MAX_CERTIFICATE_LOG_LENGTH) {
-            certificateToLog = Arrays.copyOf(certificate, MAX_CERTIFICATE_LOG_LENGTH);
+            byte[] truncatedCertificateToLog = Arrays.copyOf(certificate, MAX_CERTIFICATE_LOG_LENGTH);
+            return Hex.encodeHexString(truncatedCertificateToLog) + "... [truncated]";
         } else {
-            certificateToLog = certificate;
+            return Hex.encodeHexString(certificate);
         }
-        return Hex.encodeHexString(certificateToLog);
+
     }
 }

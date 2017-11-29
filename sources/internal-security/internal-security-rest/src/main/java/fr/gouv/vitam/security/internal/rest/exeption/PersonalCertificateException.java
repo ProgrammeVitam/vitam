@@ -26,22 +26,15 @@
  */
 package fr.gouv.vitam.security.internal.rest.exeption;
 
-import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamException;
 
+/**
+ * Personal certificate exception
+ */
 public class PersonalCertificateException extends VitamException {
-
-
-    public PersonalCertificateException(VitamError vitamError) {
-        super(vitamError);
-    }
 
     public PersonalCertificateException(String message) {
         super(message);
-    }
-
-    public PersonalCertificateException(Throwable cause) {
-        super(cause);
     }
 
     public PersonalCertificateException(String message, Throwable cause) {

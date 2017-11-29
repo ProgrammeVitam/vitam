@@ -33,6 +33,9 @@ import fr.gouv.vitam.security.internal.rest.exeption.PersonalCertificateExceptio
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 
+/**
+ * Mapper for PersonalCertificateException
+ */
 public class PersonalCertificateExceptionMapper implements ExceptionMapper<PersonalCertificateException> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PersonalCertificateExceptionMapper.class);

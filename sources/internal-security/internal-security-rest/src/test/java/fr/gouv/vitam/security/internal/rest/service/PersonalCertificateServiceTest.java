@@ -5,7 +5,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.security.internal.common.model.PersonalCertificateModel;
@@ -23,7 +22,7 @@ import java.io.InputStream;
 import java.util.Optional;
 
 import static com.google.common.io.ByteStreams.toByteArray;
-import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.*;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventDetailData;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventType;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventTypeProcess;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.outcome;

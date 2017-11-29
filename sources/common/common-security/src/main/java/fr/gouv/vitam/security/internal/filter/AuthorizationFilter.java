@@ -40,7 +40,7 @@ import javax.ws.rs.core.FeatureContext;
 /**
  * Handles permission based access authorization for REST endpoints.
  * <p>
- * Registers for each {@link Secured}-annotated endpoint with an {@link EndpointPermissionAuthorizationFilter}.
+ * Registers for each {@link Secured}-annotated endpoint with authorization filter.
  */
 @PreMatching
 @Priority(Priorities.HEADER_DECORATOR + 40) // must go after InternalSecurityFilter

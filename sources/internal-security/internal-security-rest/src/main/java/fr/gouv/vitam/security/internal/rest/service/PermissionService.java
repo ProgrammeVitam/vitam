@@ -31,6 +31,9 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel;
 import fr.gouv.vitam.security.internal.rest.server.PersonalCertificatePermissionConfig;
 
+/**
+ * Handles personal certificate permission check
+ */
 public class PermissionService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PermissionService.class);
@@ -42,6 +45,10 @@ public class PermissionService {
         this.personalCertificatePermissionConfig = personalCertificatePermissionConfig;
     }
 
+    /**
+     * @param permission the endpoint permission
+     * @return whether endpoin permission requires personal certificate, ignores it, or unknown (missing in configuration).
+     */
     public IsPersonalCertificateRequiredModel isPersonalCertificateRequiredForPermission(
         String permission) {
 
