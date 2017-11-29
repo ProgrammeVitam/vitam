@@ -8,7 +8,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.FileNotFoundException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.ws.rs.core.Response.Status;
@@ -58,6 +60,7 @@ public class CheckOriginatingAgencyHandlerTest {
     private static final Integer TENANT_ID = 0;
     private static final String FAKE_URL = "http://localhost:8083";
     private static final String ORIGINATING_AGENCY_IDENTIFIER = "AG-0000001";
+    private static final String TAG_ORIGINATINGAGENCYIDENTIFIER = "OriginatingAgencyIdentifier";
     
     private static final String AGENCY = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
         "\"_tenant\":\"0\", " +
@@ -85,12 +88,12 @@ public class CheckOriginatingAgencyHandlerTest {
     @Test
     @RunWithCustomExecutor
     public void givenOriginatingAgencyOKThenReturnOK() throws AdminManagementClientServerException, ReferentialException, InvalidParseOperationException {
+
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        Set<String> serviceAgent = new HashSet<String>();
-        serviceAgent.add(ORIGINATING_AGENCY_IDENTIFIER);
+        Map<String, Object> serviceAgent = new HashMap<>();
+        serviceAgent.put(TAG_ORIGINATINGAGENCYIDENTIFIER, ORIGINATING_AGENCY_IDENTIFIER);
 
         when(handlerIO.getInput(0)).thenReturn(serviceAgent);
-
         when(adminClient.getAgencies(anyObject())).thenReturn(ClientMockResultHelper.getAgency().toJsonNode());
 
         final WorkerParameters params =
@@ -103,16 +106,16 @@ public class CheckOriginatingAgencyHandlerTest {
         ItemStatus response = handler.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void givenOriginatingAgencyKOThenReturnKO() throws AdminManagementClientServerException, ReferentialException, InvalidParseOperationException {
+
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        Set<String> serviceAgent = new HashSet<String>();
-        serviceAgent.add(ORIGINATING_AGENCY_IDENTIFIER);
+        Map<String, Object> serviceAgent = new HashMap<>();
+        serviceAgent.put(TAG_ORIGINATINGAGENCYIDENTIFIER, ORIGINATING_AGENCY_IDENTIFIER);
 
         when(handlerIO.getInput(0)).thenReturn(serviceAgent);
-
         when(adminClient.getAgencies(anyObject())).thenReturn(createReponse(AGENCY).toJsonNode());
 
         final WorkerParameters params =
@@ -131,15 +134,22 @@ public class CheckOriginatingAgencyHandlerTest {
 
     }
 
+    /**
+     * Test if no originating agency in the SIP.
+     *
+     * @throws AdminManagementClientServerException
+     * @throws ReferentialException
+     * @throws InvalidParseOperationException
+     */
     @Test
     @RunWithCustomExecutor
     public void givenNoOriginatingAgencyThenReturnKO()
         throws AdminManagementClientServerException, ReferentialException, InvalidParseOperationException {
+
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        Set<String> serviceAgent = new HashSet<String>();
+        Map<String, Object> serviceAgent = new HashMap<>();
 
         when(handlerIO.getInput(0)).thenReturn(serviceAgent);
-
         when(adminClient.getAgencies(anyObject())).thenReturn(createReponse(AGENCY).toJsonNode());
 
         final WorkerParameters params =

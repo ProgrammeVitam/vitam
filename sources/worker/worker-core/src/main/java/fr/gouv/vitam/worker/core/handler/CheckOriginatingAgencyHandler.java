@@ -2,12 +2,14 @@ package fr.gouv.vitam.worker.core.handler;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Strings;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
@@ -69,27 +71,37 @@ public class CheckOriginatingAgencyHandler extends ActionHandler {
 
         try {
             checkMandatoryIOParameter(handler);
-            Set<String> serviceAgentList = (Set<String>) handlerIO.getInput(AGENT_RANK);
 
-            if (!serviceAgentList.isEmpty()) {
-                missingserviceAgents = getMissingServiceAgents(serviceAgentList);
-                if (!missingserviceAgents.isEmpty()) {
-                    itemStatus.increment(StatusCode.KO, missingserviceAgents.size());
-                    itemStatus.setGlobalOutcomeDetailSubcode("UNKNOWN");
-                    ObjectNode evDetData = JsonHandler.createObjectNode();
-                    ArrayNode serviceAgents = JsonHandler.createArrayNode();
-                    missingserviceAgents.forEach(agent -> serviceAgents.add(agent));
-                    evDetData.put(SedaConstants.EV_DET_TECH_DATA, "error originating agency validation"+ JsonHandler.writeAsString(missingserviceAgents));
-                    itemStatus.setEvDetailData(JsonHandler.writeAsString(evDetData));
-                } else {
-                    itemStatus.increment(StatusCode.OK);
-                }
+            Map<String, Object> mandatoryValueMap = (Map<String, Object>) handlerIO.getInput(AGENT_RANK);
 
+            Set<String> serviceAgentList = new HashSet<>();
+            if (mandatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER) != null &&
+                    !Strings.isNullOrEmpty((String) mandatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER))) {
+                serviceAgentList.add((String) mandatoryValueMap.get(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER));
             } else {
-                LOGGER.info("There is no service agent in the SIP");
+                ObjectNode evDetData = JsonHandler.createObjectNode();
+                evDetData.put(SedaConstants.EV_DET_TECH_DATA, "Error originating agency not found in the manifest");
+                itemStatus.setEvDetailData(JsonHandler.writeAsString(evDetData));
                 itemStatus.increment(StatusCode.KO);
-                itemStatus.setGlobalOutcomeDetailSubcode("EMPTY_REQUIRED_FIELD");
+                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+            }
 
+            if (mandatoryValueMap.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER) != null &&
+                    !Strings.isNullOrEmpty((String) mandatoryValueMap.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER))) {
+                serviceAgentList.add((String) mandatoryValueMap.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER));
+            }
+
+            missingserviceAgents = getMissingServiceAgents(serviceAgentList);
+            if (!missingserviceAgents.isEmpty()) {
+                itemStatus.increment(StatusCode.KO, missingserviceAgents.size());
+                itemStatus.setGlobalOutcomeDetailSubcode("UNKNOWN");
+                ObjectNode evDetData = JsonHandler.createObjectNode();
+                ArrayNode serviceAgents = JsonHandler.createArrayNode();
+                missingserviceAgents.forEach(agent -> serviceAgents.add(agent));
+                evDetData.put(SedaConstants.EV_DET_TECH_DATA, "error originating agency validation" + JsonHandler.writeAsString(missingserviceAgents));
+                itemStatus.setEvDetailData(JsonHandler.writeAsString(evDetData));
+            } else {
+                itemStatus.increment(StatusCode.OK);
             }
 
         } catch (final ProcessingException | InvalidParseOperationException e) {
