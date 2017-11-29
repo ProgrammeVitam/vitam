@@ -99,9 +99,7 @@
     "aedqaaaaacfswksuaaqssak6jvwjj3yaaaaq"
   ],
   "#storage": {
-    "_nbc": [
-      2
-    ],
+    "_nbc": 2,
     "strategyId": "default",
     "offerIds": [
       "vitam-iaas-app-02.int",

@@ -39,7 +39,7 @@ public class StorageRacineModel {
     private String strategyId;
 
     @JsonProperty("_nbc")
-    private List<String> nbc;
+    private String nbc;
 
     @JsonProperty("offerIds")
     private List<String> offerIds;
@@ -52,11 +52,11 @@ public class StorageRacineModel {
         this.strategyId = strategyId;
     }
 
-    public List<String> getNbc() {
+    public String getNbc() {
         return nbc;
     }
 
-    public void setNbc(List<String> nbc) {
+    public void setNbc(String nbc) {
         this.nbc = nbc;
     }
 

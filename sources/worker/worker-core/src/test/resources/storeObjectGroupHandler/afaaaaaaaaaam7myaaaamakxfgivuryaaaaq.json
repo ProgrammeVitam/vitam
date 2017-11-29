@@ -13,7 +13,7 @@
 	"_qualifiers": [
 		{
 			"qualifier": "BinaryMaster",
-			"nb": 1,
+			"_nbc": 1,
 			"versions": [
 				{
 					"_id": "aeaaaaaaaaaam7myaaaamakxfgivurqaaaaq",
@@ -38,7 +38,7 @@
 		},
 		{
 			"qualifier": "Dissemination",
-			"nb": 1,
+			"_nbc": 1,
 			"versions": [
 				{
 					"_id": "aeaaaaaaaaaam7myaaaamakxfgivuuiaaaaq",
@@ -67,7 +67,7 @@
 		},
 		{
 			"qualifier": "Thumbnail",
-			"nb": 1,
+			"_nbc": 1,
 			"versions": [
 				{
 					"_id": "aeaaaaaaaaaam7myaaaamakxfgivuuyaaaaq",
@@ -95,7 +95,7 @@
 		},
 		{
 			"qualifier": "TextContent",
-			"nb": 1,
+			"_nbc": 1,
 			"versions": [
 				{
 					"_id": "aeaaaaaaaaaam7myaaaamakxfgivuvaaaaaq",
@@ -121,7 +121,7 @@
 	    "_qualifiers" : [
 			{
         		"qualifier": "BinaryMaster",
-				"nb" : 1,
+				"_nbc" : 1,
 				"versions" : [ {
 					"_id" : "aeaaaaaaaaaam7myaaaamakxfgivurqaaaaq",
 					"Uri" : "content/e3e02a356a2e903a03c6b8b6c7a36e6ad4b50d29c6a5360c79a60719812c54cd5433caa227de9856ee80d95ff9f84f416090a62ee52f681e0a29b9b07d75d51a.odp"
@@ -129,7 +129,7 @@
 			},
 			{
         		"qualifier": "Dissemination",
-				"nb" : 1,
+				"_nbc" : 1,
 				"versions" : [ {
 					"_id" : "aeaaaaaaaaaam7myaaaamakxfgivuuiaaaaq",
 					"Uri" : "content/e3e02a356a2e903a03c6b8b6c7a36e6ad4b50d29c6a5360c79a60719812c54cd5433caa227de9856ee80d95ff9f84f416090a62ee52f681e0a29b9b07d75d51a.pdf"
@@ -137,7 +137,7 @@
 			},
 			{
         		"qualifier": "Thumbnail",
-				"nb" : 1,
+				"_nbc" : 1,
 				"versions" : [ {
 					"_id" : "aeaaaaaaaaaam7myaaaamakxfgivuuyaaaaq",
 					"Uri" : "content/e3e02a356a2e903a03c6b8b6c7a36e6ad4b50d29c6a5360c79a60719812c54cd5433caa227de9856ee80d95ff9f84f416090a62ee52f681e0a29b9b07d75d51a.png"
@@ -145,7 +145,7 @@
 			},
 			{
         		"qualifier": "TextContent",
-				"nb" : 1,
+				"_nbc" : 1,
 				"versions" : [ {
 					"_id" : "aeaaaaaaaaaam7myaaaamakxfgivuvaaaaaq",
 					"Uri" : "content/e3e02a356a2e903a03c6b8b6c7a36e6ad4b50d29c6a5360c79a60719812c54cd5433caa227de9856ee80d95ff9f84f416090a62ee52f681e0a29b9b07d75d51a.txt"
@@ -156,5 +156,5 @@
 	"_up": [
 		"aeaaaaaaaaaam7myaaaamakxfgivuvqaaaaq"
 	],
-	"_nb": 4
+	"_nbc": 4
 }

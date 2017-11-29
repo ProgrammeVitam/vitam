@@ -58,7 +58,7 @@ public class ParserTokens extends BuilderToken {
         "Function", "Activity", "Position", "Role",
         "Geogname", "Address", "PostalCode", "City", "Region", "Country",
         "PhysicalId", "Filename", "MessageDigest", "Size", "FormatIdentification", "FileInfo", "Metadata",
-        "OtherMetadata",
+        "OtherMetadata", "_nbc",
         "Algorithm", "DataObjectGroupId", "DataObjectVersion", "strategyId",
         "EndDate", "Rule", "PreventInheritance", "StartDate", "FinalAction",
         "ClassificationLevel", "ClassificationOwner", "ClassificationReassessingDate", "NeedReassessingAuthorization"
@@ -958,6 +958,7 @@ public class ParserTokens extends BuilderToken {
             case "RegisteredDate":
             case "Signature":
             case "Gps":
+            case "_nbc":
                 // OG
                 return false;
             default:

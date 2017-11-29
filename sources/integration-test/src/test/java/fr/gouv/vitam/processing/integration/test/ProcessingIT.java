@@ -26,6 +26,47 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.integration.test;
 
+import static com.jayway.restassured.RestAssured.get;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENT_DETAILS;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.bson.Document;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -37,6 +78,7 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.Filters;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -121,62 +163,13 @@ import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
-import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.core.plugin.CheckExistenceObjectPlugin;
 import fr.gouv.vitam.worker.core.plugin.CheckIntegrityObjectPlugin;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
-import org.bson.Document;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
-
-import static com.jayway.restassured.RestAssured.get;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENT_DETAILS;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Processing integration test
@@ -675,6 +668,37 @@ public class ProcessingIT {
             assertThat(resp).isInstanceOf(RequestResponseOK.class);
             assertThat(((RequestResponseOK) resp).getHits().getTotal()).isEqualTo(2);
             assertThat(((RequestResponseOK) resp).getHits().getSize()).isEqualTo(1);
+            
+            final MongoDatabase db = mongoClient.getDatabase("Vitam");
+            // check if unit is valid 
+            MongoIterable<Document> resultCheckUnits = db.getCollection("Unit").find();
+            Document unitCheck = resultCheckUnits.first();
+            assertThat(unitCheck.get("_storage")).isNotNull();
+            Document storageUnit = (Document) unitCheck.get("_storage");
+            assertThat(storageUnit.get("_nbc")).isNotNull();
+            assertThat(storageUnit.get("_nbc")).isEqualTo(1);
+
+            // check if units are valid 
+            MongoIterable<Document> resultCheckObjectGroups = db.getCollection("ObjectGroup").find();
+            Document objectGroupCheck = resultCheckObjectGroups.first();
+            assertThat(objectGroupCheck.get("_storage")).isNotNull();
+            Document storageObjectGroup = (Document) objectGroupCheck.get("_storage");
+            assertThat(storageObjectGroup.get("_nbc")).isNotNull();
+            assertThat(storageObjectGroup.get("_nbc")).isEqualTo(1);
+            
+            List<Document> qualifiers = (List<Document>)objectGroupCheck.get("_qualifiers");
+            assertThat(qualifiers.size()).isEqualTo(3);
+            Document binaryMaster = qualifiers.get(0);
+            assertThat(binaryMaster.get("_nbc")).isNotNull();
+            assertThat(binaryMaster.get("_nbc")).isEqualTo(1);
+            
+            List<Document> versions = (List<Document>)binaryMaster.get("versions");
+            assertThat(versions.size()).isEqualTo(1);
+            Document version = versions.get(0);
+            Document storageVersion = (Document) version.get("_storage");
+            assertThat(storageVersion.get("_nbc")).isNotNull();
+            assertThat(storageVersion.get("_nbc")).isEqualTo(1);
+            
         } catch (final Exception e) {
             LOGGER.error(e);
             fail("should not raized an exception" + e);
@@ -2126,7 +2150,7 @@ public class ProcessingIT {
 
         // check got have to units
         assertEquals(db.getCollection("Unit").count(Filters.eq("_og", idGot)), 2);
-
+        
         ArrayList<Document> logbookLifeCycleUnits =
             Lists.newArrayList(db.getCollection("LogbookLifeCycleUnit").find().iterator());
 
@@ -2139,6 +2163,7 @@ public class ProcessingIT {
         List<Document> lifeCycle = events.stream().filter(t -> t.get("outDetail").equals("LFC.CHECK_MANIFEST.OK"))
             .collect(Collectors.toList());
         assertThat(Iterables.getOnlyElement(lifeCycle).getString(EVENT_DETAILS)).containsIgnoringCase(idGot);
+                
         try {
             Files.delete(new File(zipPath).toPath());
         } catch (Exception e) {

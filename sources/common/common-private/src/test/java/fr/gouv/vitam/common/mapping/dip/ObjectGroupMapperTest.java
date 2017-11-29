@@ -64,6 +64,7 @@ import fr.gouv.vitam.common.model.objectgroup.MeasurementModel;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.PhysicalDimensionsModel;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
+import fr.gouv.vitam.common.model.objectgroup.StorageRacineModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
 import org.apache.xerces.dom.ElementNSImpl;
 import org.junit.Test;
@@ -100,6 +101,7 @@ public class ObjectGroupMapperTest {
         StringWriter writer = new StringWriter();
         marshaller.marshal(dataObjectPackageType, writer);
 
+        assertEquals("1",objectGroup.getStorage().getNbc());
         final List<MinimalDataObjectType> binaryDataObjectOrPhysicalDataObject =
             dataObjectPackageType.getBinaryDataObjectOrPhysicalDataObject();
         if (binaryDataObjectOrPhysicalDataObject.get(1) instanceof BinaryDataObjectType) {
