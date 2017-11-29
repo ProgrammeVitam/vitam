@@ -168,6 +168,7 @@ import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDo
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -1180,6 +1181,10 @@ public class ProcessingIT {
                 JsonHandler.createObjectNode()
                     .put(GLOBAL.RULES.exactToken(), 1).put("Title", 1)
                     .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
+
+            JsonNode resultNoScroll = metaDataClient.selectUnits(query.getFinalSelect());
+            assertFalse(JsonHandler.unprettyPrint(resultNoScroll.get("$hits")).contains("scrollId"));
+
             query.setScrollFilter(GlobalDatasDb.SCROLL_ACTIVATE_KEYWORD, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, 100);
             JsonNode result = metaDataClient.selectUnits(query.getFinalSelect());
             assertNotNull(result.get("$results").get(0).get(UnitInheritedRule.INHERITED_RULE).get("StorageRule")
