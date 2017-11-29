@@ -43,7 +43,11 @@ import javax.ws.rs.core.Application;
 import org.apache.shiro.web.env.EnvironmentLoaderListener;
 import org.apache.shiro.web.servlet.ShiroFilter;
 import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
+import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -242,12 +246,7 @@ public class VitamStarter {
 
         context.setVirtualHosts(new String[] {"@admin"});
 
-        if (configuration.isAuthentication()) {
-            addShiroFilter(context);
-        }
-        if (configuration.isTenantFilter()) {
-            addTenantFilter(context, configuration.getTenants());
-        }
+        //no shiro, only internal network
         if (customListeners != null && !customListeners.isEmpty()) {
             customListeners.forEach((listener) -> {
                 context.addEventListener(listener);
@@ -338,5 +337,148 @@ public class VitamStarter {
     public VitamServer getVitamServer() {
         return vitamServer;
     }
+
+    /**
+     *  Method to create VitamStarter only for IHM
+     *
+     * @param configurationType
+     * @param configurationFile
+     * @param businessApplication
+     * @param adminApplication
+     * @param customListeners
+     * @return instance VitamStarter configured
+     */
+    public static VitamStarter createVitamStarterForIHM(
+        Class<? extends VitamApplicationConfiguration> configurationType,
+        String configurationFile,
+        Class<? extends Application> businessApplication,
+        Class<? extends Application> adminApplication,
+        List<ServletContextListener> customListeners) {
+            
+        VitamStarter vitamStarter =
+            new VitamStarter(configurationType, configurationFile, 
+                businessApplication, adminApplication, customListeners);
+
+        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
+            final VitamApplicationConfiguration buildConfiguration =
+                PropertiesUtils.readYaml(yamlIS, vitamStarter.getConfigurationType());
+
+            ContextHandlerCollection contextHandlerCollection =
+                vitamStarter.configureForIHM(buildConfiguration, configurationFile, buildConfiguration.getBaseUrl());
+
+            vitamStarter.startServer(buildConfiguration, contextHandlerCollection);
+        } catch (final IOException | VitamApplicationServerException e) {
+            LOGGER.error(e);
+            throw new IllegalStateException("Cannot start the " + vitamStarter.role + " Application Server", e);
+        }
+
+        return vitamStarter;        
+    }
+
+    /**
+     * Method configure for IHM
+     *
+     * @param configuration
+     * @param configurationFile
+     * @param contextPath
+     * @return ContextHandlerCollection
+     */
+    public final ContextHandlerCollection configureForIHM(VitamApplicationConfiguration configuration,
+        String configurationFile, String contextPath) {
+
+        ContextHandlerCollection applicationHandlers = new ContextHandlerCollection();
+
+        final HandlerList handlerList = new HandlerList();
+
+        // Static Content Ihm V1
+        final ResourceHandler staticContentHandler = new ResourceHandler();
+        staticContentHandler.setDirectoriesListed(true);
+        staticContentHandler.setWelcomeFiles(new String[] {"index.html"});
+        staticContentHandler.setResourceBase(configuration.getStaticContent());
+        final ContextHandler staticContext = new ContextHandler(configuration.getBaseUri());
+        staticContext.setHandler(staticContentHandler);
+        handlerList.addHandler(staticContext);
+
+       // Static Content Ihm V2
+        if (configuration.getBaseUriV2() != null) {
+            final ResourceHandler staticContentHandler2 = new ResourceHandler();
+            staticContentHandler2.setDirectoriesListed(true);
+            staticContentHandler2.setWelcomeFiles(new String[] {"index.html"});
+            staticContentHandler2.setResourceBase(configuration.getStaticContentV2());
+            final ContextHandler staticContext2 = new ContextHandler(configuration.getBaseUriV2());
+            staticContext2.setHandler(staticContentHandler2);
+            handlerList.addHandler(staticContext2);
+        }
+
+        try {
+            handlerList.addHandler(buildApplicationHandler(configurationFile, configuration, contextPath, "@business", true));
+            handlerList.addHandler(new DefaultHandler());
+            applicationHandlers.addHandler(handlerList);
+            applicationHandlers.addHandler(buildAdminHandler(configurationFile, configuration));
+        } catch (final VitamApplicationServerException e) {
+            LOGGER.error(e);
+            throw new IllegalStateException(String.format("Cannot start the %s application server", role), e);
+        }
+
+        return applicationHandlers;
+    }
+
+    private void startServer(VitamApplicationConfiguration configuration, ContextHandlerCollection applicationHandlers)
+        throws VitamApplicationServerException {
+        final String jettyConfig = configuration.getJettyConfig();
+
+        LOGGER.info(role + " starts with jetty config");
+        vitamServer = VitamServerFactory.newVitamServerByJettyConf(jettyConfig);
+        vitamServer.configure(applicationHandlers);
+    }
+    
+    /**
+     * Re Implement this method to construct your application specific handler if necessary. </br>
+     * </br>
+     * If extra register are needed, override the method getResources.</br>
+     * If extra filter or action on context are needed, override setFilter.
+     *
+     * @param configurationFile
+     * @param configuration
+     * @param contextPath
+     * @param virtualHost
+     * @param hasSession
+     * @return the generated Handler
+     * @throws VitamApplicationServerException
+     */
+    protected Handler buildApplicationHandler(String configurationFile, VitamApplicationConfiguration configuration,
+        String contextPath, String virtualHost, boolean hasSession)
+        throws VitamApplicationServerException {
+        final ServletHolder servletHolder = new ServletHolder(new HttpServletDispatcher());
+
+        servletHolder.setInitParameter("javax.ws.rs.Application", businessApplication.getName());
+        servletHolder.setInitParameter(CONFIGURATION_FILE_APPLICATION, configurationFile);
+
+        final ServletContextHandler context = new ServletContextHandler(
+            hasSession ? ServletContextHandler.SESSIONS : ServletContextHandler.NO_SESSIONS);
+
+        context.addServlet(servletHolder, "/*");
+        context.setContextPath(contextPath);
+
+        // Authorization Filter
+        if (VitamConfiguration.isFilterActivation() && !Strings.isNullOrEmpty(VitamConfiguration.getSecret())) {
+            context.addFilter(AuthorizationFilter.class, "/*", EnumSet.of(
+                DispatcherType.INCLUDE, DispatcherType.REQUEST,
+                DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
+        }
+
+        context.setVirtualHosts(new String[] {virtualHost});
+
+        if (configuration.isAuthentication()) {
+            addShiroFilter(context);
+        }
+        if (configuration.isTenantFilter()) {
+            addTenantFilter(context, configuration.getTenants());
+        }
+        StatisticsHandler stats = new StatisticsHandler();
+        stats.setHandler(context);
+        return stats;
+    }
+
 
 }

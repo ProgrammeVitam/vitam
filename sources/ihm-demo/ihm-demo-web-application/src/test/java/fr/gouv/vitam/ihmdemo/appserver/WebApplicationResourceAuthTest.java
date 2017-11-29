@@ -28,6 +28,10 @@ package fr.gouv.vitam.ihmdemo.appserver;
 
 import static com.jayway.restassured.RestAssured.given;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.ws.rs.core.Response.Status;
 
 import org.junit.AfterClass;
@@ -39,6 +43,7 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -65,23 +70,31 @@ public class WebApplicationResourceAuthTest {
     private static final String ALL_PARENTS = "[\"P1\", \"P2\", \"P3\"]";
     private static final String FAKE_STRING_RETURN = "Fake String";
     private static final JsonNode FAKE_JSONNODE_RETURN = JsonHandler.createObjectNode();
+    private static final String IHM_DEMO_CONF = "ihm-demo.conf";
 
     private static JunitHelper junitHelper;
     private static int port;
     private static String sessionId;
-    private static ServerApplication application;
+    private static IhmDemoMain application;
+    private static final List<Integer> tenants = new ArrayList<>();
 
     @BeforeClass
     public static void setup() throws Exception {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
+        tenants.add(0);
+        tenants.add(1);
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
-        application = new ServerApplication(
-            (WebApplicationConfig) new WebApplicationConfig().setPort(port).setBaseUrl(DEFAULT_WEB_APP_CONTEXT)
-                .setServerHost(DEFAULT_HOST).setStaticContent(DEFAULT_STATIC_CONTENT)
-                .setBaseUri(DEFAULT_WEB_APP_CONTEXT).setStaticContentV2(DEFAULT_STATIC_CONTENT_V2)
-                .setBaseUriV2(DEFAULT_WEB_APP_CONTEXT_V2)
-                .setSecure(true).setJettyConfig(JETTY_CONFIG));
+        final WebApplicationConfig webApplicationConfig =
+            (WebApplicationConfig) new WebApplicationConfig().setPort(port)
+            .setServerHost(DEFAULT_HOST).setJettyConfig(JETTY_CONFIG)
+            .setBaseUrl(DEFAULT_WEB_APP_CONTEXT).setAuthentication(true)
+            .setStaticContent(DEFAULT_STATIC_CONTENT).setBaseUri(DEFAULT_WEB_APP_CONTEXT)
+            .setStaticContentV2(DEFAULT_STATIC_CONTENT_V2).setBaseUriV2(DEFAULT_WEB_APP_CONTEXT_V2).setTenants(tenants);;
+        final File conf = PropertiesUtils.findFile(IHM_DEMO_CONF);
+        final File newConf = File.createTempFile("test", IHM_DEMO_CONF, conf.getParentFile());
+        PropertiesUtils.writeYaml(newConf, webApplicationConfig);
+        application = new IhmDemoMain(newConf.getAbsolutePath());
         application.start();
         RestAssured.port = port;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";

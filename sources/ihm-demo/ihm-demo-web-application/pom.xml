@@ -181,7 +181,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>fr.gouv.vitam.ihmdemo.appserver.ServerApplication</mainClass>
+							<mainClass>fr.gouv.vitam.ihmdemo.appserver.IhmDemoMain</mainClass>
 						</manifest>
 					</archive>
 				</configuration>

@@ -24,30 +24,30 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.access.external.rest;
+package fr.gouv.vitam.ihmdemo.appserver;
+
+import javax.ws.rs.core.Application;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 
-import javax.ws.rs.core.Application;
-
 /**
- * Access External web application
+ * Ihm-demo web application
  */
-public class AccessExternalMain {
+public class IhmDemoMain {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalMain.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IhmDemoMain.class);
 
-    private static final String CONF_FILE_NAME = "access-external.conf";
+    private static final String CONF_FILE_NAME = "ihm-demo.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
     private VitamStarter vitamStarter;
 
@@ -56,35 +56,11 @@ public class AccessExternalMain {
      *
      * @param configurationFile
      */
-    public AccessExternalMain(String configurationFile) {
+    public IhmDemoMain(String configurationFile) {
         ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
             CONF_FILE_NAME), configurationFile);
-        vitamStarter = new VitamStarter(AccessExternalConfiguration.class, configurationFile,
-            BusinessApplication.class, AdminApplication.class);
-    }
-
-    /**
-     * This constructor is used for test
-     * To customize BusinessApplication and AdminApplication
-     * @param configurationFile
-     * @param testBusinessApplication
-     * @param testAdminApplication
-     */
-    @VisibleForTesting
-    public AccessExternalMain(String configurationFile,
-        Class<? extends Application> testBusinessApplication,
-        Class<? extends Application> testAdminApplication) {
-        ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-            CONF_FILE_NAME), configurationFile);
-        if (null == testBusinessApplication) {
-            testBusinessApplication =  BusinessApplication.class;
-        }
-
-        if (null == testAdminApplication) {
-            testAdminApplication =  AdminApplication.class;
-        }
-        vitamStarter = new VitamStarter(AccessExternalConfiguration.class, configurationFile,
-            testBusinessApplication, testAdminApplication);
+        vitamStarter = VitamStarter.createVitamStarterForIHM(WebApplicationConfig.class, configurationFile,
+            BusinessApplication.class, AdminApplication.class, Lists.newArrayList());
     }
 
     /**
@@ -99,13 +75,7 @@ public class AccessExternalMain {
                 throw new IllegalArgumentException(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
                     CONF_FILE_NAME));
             }
-            AccessExternalMain main = new AccessExternalMain(args[0]);
-            // Not useful for Storage but instantiate here VitamServiceRegistry if needed
-            // VitamServiceRegistry serviceRegistry = new VitamServiceRegistry();
-            // And the register needed dependencies
-            VitamServiceRegistry serviceRegistry = new VitamServiceRegistry();
-            serviceRegistry.checkDependencies(VitamConfiguration.getRetryNumber(), VitamConfiguration.getRetryDelay());
-
+            IhmDemoMain main = new IhmDemoMain(args[0]);
             main.startAndJoin();
         } catch (Exception e) {
             LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
@@ -129,4 +99,6 @@ public class AccessExternalMain {
     public final VitamStarter getVitamServer() {
         return vitamStarter;
     }
+    
+    
 }

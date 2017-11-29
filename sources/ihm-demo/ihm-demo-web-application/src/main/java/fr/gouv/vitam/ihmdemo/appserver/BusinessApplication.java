@@ -24,18 +24,12 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.ingest.external.rest;
+package fr.gouv.vitam.ihmdemo.appserver;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.dsl.schema.DslDynamicFeature;
-import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
-import fr.gouv.vitam.common.security.rest.SecureEndpointScanner;
-import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
-import fr.gouv.vitam.common.security.waf.SanityDynamicFeature;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
-import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
-import fr.gouv.vitam.security.internal.filter.AuthorizationFilter;
-import fr.gouv.vitam.security.internal.filter.InternalSecurityFilter;
+import fr.gouv.vitam.ihmdemo.common.utils.PermissionReader;
+import org.apache.shiro.authz.annotation.RequiresPermissions;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
@@ -53,25 +47,23 @@ public class BusinessApplication extends Application {
 
     private Set<Object> singletons;
 
+    /**
+     * BusinessApplication Constructor 
+     * 
+     * @param servletConfig
+     */
     public BusinessApplication(@Context ServletConfig servletConfig) {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 
-        SecureEndpointRegistry secureEndpointRegistry = new SecureEndpointRegistry();
-        SecureEndpointScanner secureEndpointScanner = new SecureEndpointScanner(secureEndpointRegistry);
-
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final IngestExternalConfiguration configuration =
-                PropertiesUtils.readYaml(yamlIS, IngestExternalConfiguration.class);
-            commonBusinessApplication = new CommonBusinessApplication(true);
+            final WebApplicationConfig configuration =
+                PropertiesUtils.readYaml(yamlIS, WebApplicationConfig.class);
+            Set<String> permissions =
+                PermissionReader.getMethodsAnnotatedWith(WebApplicationResource.class, RequiresPermissions.class);
+            commonBusinessApplication = new CommonBusinessApplication();
             singletons = new HashSet<>();
-            singletons.add(new InternalSecurityFilter());
-            singletons.add(new AuthorizationFilter());
             singletons.addAll(commonBusinessApplication.getResources());
-            singletons.add(new IngestExternalResource(configuration, secureEndpointRegistry));
-            singletons.add(new SanityCheckerCommonFilter());
-            singletons.add(new SanityDynamicFeature());
-            singletons.add(secureEndpointScanner);
-            singletons.add(new DslDynamicFeature());
+            singletons.add(new WebApplicationResource(configuration, permissions));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
