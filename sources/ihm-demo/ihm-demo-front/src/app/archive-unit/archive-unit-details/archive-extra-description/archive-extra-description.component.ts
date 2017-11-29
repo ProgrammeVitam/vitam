@@ -22,12 +22,18 @@ export class ArchiveExtraDescriptionComponent implements OnInit, OnChanges {
   constructor(private archiveUnitHelper: ArchiveUnitHelper, public archiveUnitService: ArchiveUnitService) {
     this.translations = this.archiveUnitHelper.getTranslationConstants();
     this.keyToLabel = (field: string) => {
-      const value = this.translations[field];
-      if (this.translations[field]) {
-        return value;
-      } else {
-        return field.split('.').pop();
+      let translateObject = this.translations;
+      for (let keyPart of field.split('.')) {
+        if (translateObject && translateObject[keyPart]) {
+          translateObject = translateObject[keyPart];
+        } else {
+          translateObject = keyPart;
+        }
       }
+      if (typeof translateObject === 'object') {
+        translateObject = translateObject['@@'];
+      }
+      return translateObject;
     }
   }
 

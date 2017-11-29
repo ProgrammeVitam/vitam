@@ -28,7 +28,7 @@ export class ArchiveObjectGroupComponent implements OnInit {
       if (this.translations[field]) {
         return value;
       } else {
-        return field;
+        return field.split('.').pop();
       }
     };
 
