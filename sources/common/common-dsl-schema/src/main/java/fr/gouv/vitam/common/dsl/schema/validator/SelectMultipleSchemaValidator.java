@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.dsl.schema.ValidationException;
 import fr.gouv.vitam.common.dsl.schema.Validator;
+import fr.gouv.vitam.common.dsl.schema.meta.ValidatorEngine;
 import fr.gouv.vitam.common.dsl.schema.meta.Schema;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -70,13 +71,13 @@ public class SelectMultipleSchemaValidator implements DslValidator {
             DslSchema.SELECT_MULTIPLE.getFilename());
         try (final InputStream schemaSource =
             PropertiesUtils.getResourceAsStream(DslSchema.SELECT_MULTIPLE.getFilename())) {
-            schema = Schema.load(objectMapper, schemaSource);
+            schema = Schema.withMapper(objectMapper).loadTypes(schemaSource).build();
         }
     }
 
     @Override
     public void validate(JsonNode dsl) throws ValidationException {
-        new Validator(schema).validate(dsl);
+        Validator.validate(schema, "DSL", dsl);
         validateGraph(dsl);
     }
 

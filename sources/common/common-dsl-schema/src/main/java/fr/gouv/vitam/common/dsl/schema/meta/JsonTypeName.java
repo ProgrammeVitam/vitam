@@ -24,19 +24,44 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.dsl.schema;
 
-/**
- * Enum for check if is a primitive value or is not a primitive value.
- */
-public enum PrimitiveAnalysis {
-    NOT_PRIMITIVE, PRIMITIVE_OK, PRIMITIVE_KO;
+package fr.gouv.vitam.common.dsl.schema.meta;
 
-    static PrimitiveAnalysis fromBoolean(boolean ok) {
-        if (ok) {
-            return PRIMITIVE_OK;
-        } else {
-            return PRIMITIVE_KO;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
+
+public enum JsonTypeName {
+    @JsonProperty("object")
+    OBJECT,
+    @JsonProperty("array")
+    ARRAY,
+    @JsonProperty("string")
+    STRING,
+    @JsonProperty("number")
+    NUMBER,
+    @JsonProperty("boolean")
+    BOOLEAN;
+
+    static JsonTypeName fromJsonNodeType(JsonNodeType type) {
+        switch (type) {
+            case OBJECT:
+                return OBJECT;
+            case ARRAY:
+                return ARRAY;
+            case STRING:
+                return STRING;
+            case NUMBER:
+                return NUMBER;
+            case BOOLEAN:
+                return BOOLEAN;
+            default:
+                throw new IllegalArgumentException();
+
         }
+    }
+
+
+    public String toString() {
+        return super.toString().toLowerCase();
     }
 }

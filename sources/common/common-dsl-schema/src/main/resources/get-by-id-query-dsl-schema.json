@@ -1,25 +1,28 @@
 {
-  "root": "DSL",
-  "definitions": {
-    "DSL": {
-      "object": {
-        "$projection": {
-          "type": "PROJECTION",
-          "hint": "Projections to apply on results"
-        }
+  "DSL": {
+    "format": "object",
+    "elements": {
+      "$projection": {
+        "format": "ref",
+        "type": "PROJECTION",
+        "hint": "Projections to apply on results"
       }
-    },
-    "PROJECTION": {
-      "object": {
-        "$fields": {
-          "type": {
-            "anykey": { "enum": [ 1 ] }
-          },
-          "optional": true,
-          "hint": "Fields to retrieve in the result"
-        }
+    }
+  },
+  "PROJECTION": {
+    "format": "object",
+    "elements": {
+      "$fields": {
+        "format": "anykey",
+        "itemtype": {
+          "format": "enum",
+          "values": [
+            1
+          ]
+        },
+        "optional": true,
+        "hint": "Fields to retrieve in the result"
       }
     }
   }
 }
-

@@ -37,7 +37,7 @@ public enum DslSchema {
 
     private String filename;
 
-    private DslSchema(String filename) {
+    DslSchema(String filename) {
         this.filename = filename;
     }
 

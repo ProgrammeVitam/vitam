@@ -1,0 +1,103 @@
+/*******************************************************************************
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ *
+ * contact.vitam@culture.gouv.fr
+ *
+ * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
+ * high volumetry securely and efficiently.
+ *
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
+ *
+ * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
+ * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
+ * successive licensors have only limited liability.
+ *
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * developing or reproducing the software by the user in light of its specific status of free software, that may mean
+ * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
+ * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
+ * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
+ * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * accept its terms.
+ *******************************************************************************/
+package fr.gouv.vitam.common.dsl.schema.meta;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.dsl.schema.ValidationErrorMessage;
+
+import java.util.Map;
+import java.util.function.Consumer;
+
+public class ObjectFormat extends Format {
+
+    @Override protected void resolve(Schema schema) {
+        for (Map.Entry<String, Format> entry : elements.entrySet()) {
+            entry.getValue().setName(entry.getKey());
+        }
+    }
+
+    private Map<String, Format> elements;
+
+    /**
+     * Accessor for Jackson
+     * set the map of the properties allowed for the object.
+     */
+    public void setElements(Map<String, Format> elements) {
+        this.elements = elements;
+    }
+
+    @Override public void validate(JsonNode node, Consumer<String> fieldReport, ValidatorEngine validator) {
+        if (!node.isObject()) {
+            validator.reportError(this, node, ValidationErrorMessage.Code.WRONG_JSON_TYPE, node.getNodeType().name());
+            return;
+        }
+
+        // We are looking for each property of the schema in the document
+        for (Map.Entry<String, Format> entry : elements.entrySet()) {
+            String name = entry.getKey();
+            Format subProperty = entry.getValue();
+
+            validator.pushContext(name);
+
+            JsonNode value = node.get(name);
+            if (value == null) {
+                if (!subProperty.isOptional()) {
+                    validator.reportError(subProperty, node, ValidationErrorMessage.Code.MANDATORY, null);
+                }
+                // else nothing to do. It is optional!
+            } else {
+                fieldReport.accept(name);
+                validator.validate(subProperty, value, null);
+            }
+
+            validator.popContext();
+        }
+
+    }
+
+    @Override public void walk(Consumer<Format> consumer) {
+        consumer.accept(this);
+        for (Format property : elements.values()) {
+            property.walk(consumer);
+        }
+    }
+
+    @Override public String debugInfo() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("{");
+        boolean notFirst = false;
+        for (Map.Entry<String, Format> entry : elements.entrySet()) {
+            if (notFirst)
+                builder.append(", ");
+            builder.append(entry.getKey());
+            builder.append(": ...");
+            notFirst = true;
+        }
+        builder.append("}");
+        return builder.toString();
+    }
+}

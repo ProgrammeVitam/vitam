@@ -41,7 +41,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.dsl.schema.meta.Schema;
-import fr.gouv.vitam.common.dsl.schema.meta.TypeDef;
+import fr.gouv.vitam.common.dsl.schema.meta.Format;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
@@ -51,14 +51,14 @@ import fr.gouv.vitam.common.json.JsonHandler;
 public class ValidatorGetByIdQueryTest {
     private static final String GET_BY_ID_QUERY_DSL_SCHEMA_JSON = "get-by-id-query-dsl-schema.json";
 
-    private Validator loadSchema(ObjectMapper objectMapper, File dslSource) throws IOException {
+    private Schema loadSchema(ObjectMapper objectMapper, File dslSource) throws IOException {
         try (InputStream inputStream = new FileInputStream(dslSource)) {
-            final Schema schema = Schema.load(objectMapper, inputStream);
-            TypeDef dslType = schema.getDefinitions().get("DSL");
+            final Schema schema = Schema.withMapper(objectMapper).loadTypes(inputStream).build();
+            Format dslType = schema.getType("DSL");
             System.out.println(dslType.toString());
-            TypeDef projectionType = schema.getDefinitions().get("PROJECTION");
+            Format projectionType = schema.getType("PROJECTION");
             System.out.println(projectionType.toString());
-            return new Validator(schema);
+            return schema;
         }
     }
 
@@ -67,10 +67,10 @@ public class ValidatorGetByIdQueryTest {
         throws IOException, InvalidParseOperationException {
         JsonNode test1Json =
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("get_by_id_complete.json"));
-        final Validator validator =
+        final Schema schema =
             loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
         try {
-            validator.validate(test1Json);
+            Validator.validate(schema, "DSL", test1Json);
         } catch (ValidationException e) {
             fail();
         }
@@ -81,10 +81,10 @@ public class ValidatorGetByIdQueryTest {
         throws IOException, InvalidParseOperationException {
         JsonNode test1Json =
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("get_by_id_empty_projection.json"));
-        final Validator validator =
+        final Schema schema =
             loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
         try {
-            validator.validate(test1Json);
+            Validator.validate(schema, "DSL", test1Json);
         } catch (ValidationException e) {
             e.printStackTrace();
             fail();
@@ -96,10 +96,10 @@ public class ValidatorGetByIdQueryTest {
         throws IOException, InvalidParseOperationException {
         JsonNode test1Json =
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("get_by_id_no_projection.json"));
-        final Validator validator =
+        final Schema schema =
             loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
-        assertThatThrownBy(() -> validator.validate(test1Json))
-            .hasMessageContaining("$projection: PROJECTION ~ MANDATORY");
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
+            .hasMessageMatching(".*Validating \\$projection: .* ~ MANDATORY.*");
     }
 
     @Test
@@ -107,9 +107,9 @@ public class ValidatorGetByIdQueryTest {
         throws IOException, InvalidParseOperationException {
         JsonNode test1Json =
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("get_by_id_query.json"));
-        final Validator validator =
+        final Schema schema =
             loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
-        assertThatThrownBy(() -> validator.validate(test1Json))
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("INVALID_JSON_FIELD: $query ~ found json: {} ~ path: []");
     }
 }

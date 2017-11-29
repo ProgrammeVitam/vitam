@@ -34,6 +34,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonParser;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -41,7 +43,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.dsl.schema.meta.Schema;
-import fr.gouv.vitam.common.dsl.schema.meta.TypeDef;
+import fr.gouv.vitam.common.dsl.schema.meta.Format;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
@@ -55,27 +57,33 @@ public class ValidatorTest {
 
         JsonNode test1Json = mapper
             .readTree(PropertiesUtils.getResourceFile("test1.json")); // TODO faudra problement renommer test1.json
-        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
-        assertThatThrownBy(() -> validator.validate(test1Json))
+
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("$roots: guid[] ~ INVALID_VALUE: NUMBER ");
     }
 
-    private Validator loadSchema(ObjectMapper objectMapper, File dslSource) throws IOException {
+    private Schema loadSchema(File dslSource) throws IOException {
+
+        JsonFactory f = new JsonFactory();
+        f.enable(JsonParser.Feature.ALLOW_COMMENTS);
+        ObjectMapper objectMapper = new ObjectMapper(f);
+
         try (InputStream inputStream = new FileInputStream(dslSource)) {
-            final Schema schema = Schema.load(objectMapper, inputStream);
-            TypeDef dslType = schema.getDefinitions().get("DSL");
+            final Schema schema = Schema.withMapper(objectMapper).loadTypes(inputStream).build();
+            Format dslType = schema.getType("DSL");
             // System.out.println(dslType.toString());
-            TypeDef queryType = schema.getDefinitions().get("QUERY");
+            Format queryType = schema.getType("QUERY");
             // System.out.println(queryType.toString());
-            return new Validator(schema);
+            return schema;
         }
     }
 
     @Test
     public void should_retrieve_errors_when_validate_null() throws IOException, InvalidParseOperationException {
-        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
         try {
-            validator.validate(null);
+            Validator.validate(schema, "DSL", null);
             fail();
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
@@ -88,32 +96,32 @@ public class ValidatorTest {
     @Test
     public void should_not_retrieve_errors_when_send_match_request() throws Exception {
         JsonNode test1Json = mapper.readTree(PropertiesUtils.getResourceFile("operator_match_request.json"));
-        final Validator validator = loadSchema(mapper, PropertiesUtils.getResourceFile("dsl.json"));
-        validator.validate(test1Json);
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
+        Validator.validate(schema, "DSL", test1Json);
     }
 
     @Test
     public void should_not_retrieve_errors_when_send_in_request() throws Exception {
         JsonNode test1Json =
             mapper.readTree(PropertiesUtils.getResourceFile("operator_in_request.json"));
-        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
-        validator.validate(test1Json);
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
+        Validator.validate(schema, "DSL", test1Json);
     }
 
     @Test
     public void should_not_retrieve_errors_when_send_gte_request() throws Exception {
         JsonNode test1Json =
             mapper.readTree(PropertiesUtils.getResourceFile("operator_gte_request.json"));
-        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
-        validator.validate(test1Json);
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
+        Validator.validate(schema, "DSL", test1Json);
     }
 
     @Test
     public void should_not_retrieve_errors_when_send_lte_request() throws Exception {
         JsonNode test1Json =
             mapper.readTree(PropertiesUtils.getResourceFile("operator_lte_request.json"));
-        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
-        validator.validate(test1Json);
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
+        Validator.validate(schema, "DSL", test1Json);
     }
 
 
@@ -122,16 +130,16 @@ public class ValidatorTest {
     public void should_not_retrieve_errors_when_send_lt_request() throws Exception {
         JsonNode test1Json =
             mapper.readTree(PropertiesUtils.getResourceFile("operator_lt_request.json"));
-        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
-        validator.validate(test1Json);
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
+        Validator.validate(schema, "DSL", test1Json);
     }
 
     @Test
     public void should_not_retrieve_errors_when_send_gt_request() throws Exception {
         JsonNode test1Json =
             mapper.readTree(PropertiesUtils.getResourceFile("operator_gt_request.json"));
-        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
-        validator.validate(test1Json);
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
+        Validator.validate(schema, "DSL", test1Json);
     }
 
 
@@ -139,41 +147,41 @@ public class ValidatorTest {
     public void should_not_retrieve_errors_when_send_match_all_request() throws Exception {
         JsonNode test1Json =
             mapper.readTree(PropertiesUtils.getResourceFile("operator_match_all_request.json"));
-        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
 
-        validator.validate(test1Json);
+        Validator.validate(schema, "DSL", test1Json);
     }
 
     @Test
     public void should_not_retrieve_errors_when_send_match_phrase_request() throws Exception {
         JsonNode test1Json =
             mapper.readTree(PropertiesUtils.getResourceFile("operator_match_phrase_request.json"));
-        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
-        validator.validate(test1Json);
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
+        Validator.validate(schema, "DSL", test1Json);
     }
 
     @Test
     public void should_not_retrieve_errors_when_send_match_phrase_prefix_request() throws Exception {
         JsonNode test1Json =
             mapper.readTree(PropertiesUtils.getResourceFile("operator_match_phrase_prefix_request.json"));
-        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
-        validator.validate(test1Json);
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
+        Validator.validate(schema, "DSL", test1Json);
     }
 
     @Test
     public void should_not_retrieve_errors_when_send_not_request() throws Exception {
         JsonNode test1Json =
             mapper.readTree(PropertiesUtils.getResourceFile("operator_not_request.json"));
-        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
-        validator.validate(test1Json);
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
+        Validator.validate(schema, "DSL", test1Json);
     }
 
     @Test
     public void should_not_retrieve_errors_when_send_ne_request() throws Exception {
         JsonNode test1Json =
             mapper.readTree(PropertiesUtils.getResourceFile("operator_ne_request.json"));
-        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
-        validator.validate(test1Json);
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
+        Validator.validate(schema, "DSL", test1Json);
     }
 
     @Test
@@ -181,8 +189,8 @@ public class ValidatorTest {
         // FIXME with new model range
         JsonNode test1Json =
             mapper.readTree(PropertiesUtils.getResourceFile("operator_range_request.json"));
-        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
-        validator.validate(test1Json);
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
+        Validator.validate(schema, "DSL", test1Json);
     }
 
     @Test
@@ -190,8 +198,8 @@ public class ValidatorTest {
         // FIXME with new model range
         JsonNode test1Json =
             mapper.readTree(PropertiesUtils.getResourceFile("operator_range_empty_or_one_value_request.json"));
-        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
-        assertThatThrownBy(() -> validator.validate(test1Json))
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("ELEMENT_TOO_SHORT: 1 < 2").hasMessageContaining("ELEMENT_TOO_SHORT: 0 < 2");
     }
 
@@ -199,8 +207,8 @@ public class ValidatorTest {
     public void should_retrieve_errors_when_send_exists_request_with_invalid_field() throws Exception {
         JsonNode test1Json =
             mapper.readTree(PropertiesUtils.getResourceFile("operator_exists_with_invalid_field_request.json"));
-        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
-        assertThatThrownBy(() -> validator.validate(test1Json)).hasMessageContaining("$exists: string ~ INVALID_JSON_FIELD: Title")
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json)).hasMessageContaining("$exists: string ~ INVALID_JSON_FIELD: Title")
             .hasMessageContaining("$exists: string ~ INVALID_VALUE: OBJECT ~ found json");
 
     }
@@ -209,16 +217,16 @@ public class ValidatorTest {
     public void should_not_retrieve_errors_when_send_exists() throws Exception {
         JsonNode test1Json =
             mapper.readTree(PropertiesUtils.getResourceFile("operator_exists_request.json"));
-        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
-        validator.validate(test1Json);
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
+        Validator.validate(schema, "DSL", test1Json);
     }
 
     @Test
     public void should_retrieve_errors_when_send_search_request_with_invalid_field() throws Exception {
         JsonNode test1Json =
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("operator_search_invalid_request.json"));
-        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
-        assertThatThrownBy(() -> validator.validate(test1Json))
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining(
                 "Validating $roots: guid[] ~ INVALID_VALUE: STRING ~ hint: Tableau d'identifiants d'AU racines ~ found json: \\\"azdazdazdaz\\\" ~ path: [$roots]")
             .hasMessageContaining(
@@ -229,8 +237,8 @@ public class ValidatorTest {
     public void should_retrieve_errors_when_send_wildcard_request_with_invalid_field() throws Exception {
         JsonNode test1Json =
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("operator_wildcard_invalid_request.json"));
-        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
-        assertThatThrownBy(() -> validator.validate(test1Json))
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining(
                 "Validating $wildcard: {[key]: string} ~ ELEMENT_TOO_SHORT: 0 < 1");
     }
@@ -239,16 +247,16 @@ public class ValidatorTest {
     public void should_not_retrieve_errors_when_send_regex_request() throws Exception {
         JsonNode test1Json =
             mapper.readTree(PropertiesUtils.getResourceFile("operator_regex_request.json"));
-        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
-        validator.validate(test1Json);
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
+        Validator.validate(schema, "DSL", test1Json);
     }
 
     @Test
     public void should_retrieve_errors_when_send_regex_request_with_invalid_field() throws Exception {
         JsonNode test1Json =
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("operator_regex_invalid_request.json"));
-        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
-        assertThatThrownBy(() -> validator.validate(test1Json))
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining(
                 "Validating $regex: {[key]: string} ~ ELEMENT_TOO_SHORT: 0 < 1");
     }
@@ -257,29 +265,29 @@ public class ValidatorTest {
     public void should_not_retrieve_errors_when_send_wildcard_request() throws Exception {
         JsonNode test1Json =
             mapper.readTree(PropertiesUtils.getResourceFile("operator_wildcard_request.json"));
-        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
-        validator.validate(test1Json);
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
+        Validator.validate(schema, "DSL", test1Json);
     }
 
     @Test
     public void should_retrieve_errors_when_send_size_request() throws Exception {
         JsonNode test1Json =
             mapper.readTree(PropertiesUtils.getResourceFile("operator_size_request.json"));
-        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
-        assertThatThrownBy(() -> validator.validate(test1Json)).hasMessageContaining("Validating $query: ROOT_QUERY[]" +
-            " ~ INVALID_JSON_FIELD: $size");
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
+            .hasMessageMatching(".*Validating \\$query: .* ~ INVALID_JSON_FIELD: \\$size.*");
     }
 
     @Test
     public void should_retrieve_errors_when_send_size_request_with_invalid_field() throws Exception {
         JsonNode test1Json =
             mapper.readTree(PropertiesUtils.getResourceFile("operator_size_invalid_request.json"));
-        final Validator validator = loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile("dsl.json"));
-        assertThatThrownBy(() -> validator.validate(test1Json))
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile("dsl.json"));
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining(
                 "Validating $roots: guid[] ~ INVALID_VALUE: STRING ~ hint: Tableau d'identifiants d'AU racines ~ found json: \\\"azdazdazdaz\\\" ~ path: [$roots]")
-            .hasMessageContaining(
-                "Validating $query: ROOT_QUERY[] ~ INVALID_JSON_FIELD: $size");
+            .hasMessageMatching(
+                ".*Validating \\$query: .* ~ INVALID_JSON_FIELD: \\$size.*");
     }
 
 }

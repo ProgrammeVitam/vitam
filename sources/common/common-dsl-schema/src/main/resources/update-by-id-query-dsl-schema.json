@@ -1,39 +1,34 @@
 {
-  "root": "DSL",
-  "definitions": {
-    "DSL": {
-      "object": {
-        "$action": {
-          "type": {
-            "array":"ACTION",
-            "min":1
-          },
-          "optional": false,
-          "hint": "Modification to apply on results"
-        }
+  "DSL": {
+    "format": "object",
+    "elements": {
+      "$action": {
+        "format": "array",
+        "itemtype": "ACTION",
+        "min": 1,
+        "optional": false,
+        "hint": "Modification to apply on results"
+      }
+    }
+  },
+  "ACTION": {
+    "format": "object",
+    "elements": {
+      "$set": {
+        "format": "anykey",
+        "itemtype": "any",
+        "min": 1,
+        "optional": true,
+        "hint": "Fields to update in the result"
+      },
+      "$unset": {
+        "format": "array",
+        "itemtype": "string",
+        "min": 1,
+        "optional": true,
+        "hint": "Fields to remove in the result"
       }
     },
-    "ACTION": {
-      "object": {
-        "$set": {
-          "type": {
-            "anykey": "any",
-            "min": 1
-          },
-          "optional": true,
-          "hint": "Fields to update in the result"
-        },
-        "$unset": {
-          "type": {
-            "array": "string",
-            "min": 1
-          },
-          "optional": true,
-          "hint": "Fields to remove in the result"
-        }
-      },
-      "min": 1
-    }
+    "min": 1
   }
 }
-

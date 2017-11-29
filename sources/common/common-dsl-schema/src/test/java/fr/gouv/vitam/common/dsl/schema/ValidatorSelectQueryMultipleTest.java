@@ -41,7 +41,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.dsl.schema.meta.Schema;
-import fr.gouv.vitam.common.dsl.schema.meta.TypeDef;
+import fr.gouv.vitam.common.dsl.schema.meta.Format;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
@@ -51,17 +51,17 @@ import fr.gouv.vitam.common.json.JsonHandler;
 public class ValidatorSelectQueryMultipleTest {
     private static final String SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON = "select-query-multiple-dsl-schema.json";
 
-    private Validator loadSchema(ObjectMapper objectMapper, File dslSource)
+    private Schema loadSchema(ObjectMapper objectMapper, File dslSource)
         throws IOException, InvalidParseOperationException {
         try (InputStream inputStream = new FileInputStream(dslSource)) {
-            final Schema schema = Schema.load(objectMapper, inputStream);
-            TypeDef dslType = schema.getDefinitions().get("DSL");
+            final Schema schema = Schema.withMapper(objectMapper).loadTypes(inputStream).build();
+            Format dslType = schema.getType("DSL");
             System.out.println(dslType.toString());
-            TypeDef queryType = schema.getDefinitions().get("QUERY");
+            Format queryType = schema.getType("QUERY");
             System.out.println(queryType.toString());
-            TypeDef filterType = schema.getDefinitions().get("FILTER");
+            Format filterType = schema.getType("FILTER");
             System.out.println(filterType.toString());
-            return new Validator(schema);
+            return schema;
         }
     }
 
@@ -70,10 +70,10 @@ public class ValidatorSelectQueryMultipleTest {
         throws IOException, InvalidParseOperationException {
         JsonNode test1Json =
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_complete.json"));
-        final Validator validator =
+        final Schema schema =
             loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
         try {
-            validator.validate(test1Json);
+            Validator.validate(schema, "DSL", test1Json);
         } catch (ValidationException e) {
             e.printStackTrace();
             fail();
@@ -85,10 +85,10 @@ public class ValidatorSelectQueryMultipleTest {
         throws IOException, InvalidParseOperationException {
         JsonNode test1Json =
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_empty_root.json"));
-        final Validator validator =
+        final Schema schema =
             loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
         try {
-            validator.validate(test1Json);
+            Validator.validate(schema, "DSL", test1Json);
         } catch (ValidationException e) {
             e.printStackTrace();
             fail();
@@ -100,10 +100,10 @@ public class ValidatorSelectQueryMultipleTest {
         throws IOException, InvalidParseOperationException {
         JsonNode test1Json =
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_no_root.json"));
-        final Validator validator =
+        final Schema schema =
             loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
         try {
-            validator.validate(test1Json);
+            Validator.validate(schema, "DSL", test1Json);
         } catch (ValidationException e) {
             e.printStackTrace();
             fail();
@@ -115,10 +115,10 @@ public class ValidatorSelectQueryMultipleTest {
         throws IOException, InvalidParseOperationException {
         JsonNode test1Json =
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_root_empty_query.json"));
-        final Validator validator =
+        final Schema schema =
             loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
         try {
-            validator.validate(test1Json);
+            Validator.validate(schema, "DSL", test1Json);
         } catch (ValidationException e) {
             e.printStackTrace();
             fail();
@@ -130,10 +130,10 @@ public class ValidatorSelectQueryMultipleTest {
         throws IOException, InvalidParseOperationException {
         JsonNode test1Json =
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_no_query.json"));
-        final Validator validator =
+        final Schema schema =
             loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
-        assertThatThrownBy(() -> validator.validate(test1Json))
-            .hasMessageContaining("$query: ROOT_QUERY[] ~ MANDATORY");
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
+            .hasMessageMatching(".*Validating \\$query: .*\\[\\] ~ MANDATORY.*");
     }
 
     @Test
@@ -141,9 +141,9 @@ public class ValidatorSelectQueryMultipleTest {
         throws IOException, InvalidParseOperationException {
         JsonNode test1Json =
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_wrong_root.json"));
-        final Validator validator =
+        final Schema schema =
             loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
-        assertThatThrownBy(() -> validator.validate(test1Json))
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("$roots: guid[] ~ INVALID_VALUE: STRING");
     }
 
@@ -152,12 +152,13 @@ public class ValidatorSelectQueryMultipleTest {
         throws IOException, InvalidParseOperationException {
         JsonNode test1Json =
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_query_not_array.json"));
-        final Validator validator =
+        final Schema schema =
             loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
-        assertThatThrownBy(() -> validator.validate(test1Json))
-            .hasMessageContaining("$query: ROOT_QUERY[] ~ WRONG_JSON_TYPE: OBJECT")
-            .hasMessageContaining("$query: ROOT_QUERY[] ~ INVALID_JSON_FIELD")
-            .hasMessageContaining("$query: ROOT_QUERY[] ~ INVALID_JSON_FIELD");
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
+            .hasMessageContaining("$query:")
+            .hasMessageContaining("...} & {$depth: ...}[] ~ WRONG_JSON_TYPE: OBJECT")
+            .hasMessageContaining("...} & {$depth: ...}[] ~ INVALID_JSON_FIELD")
+            .hasMessageContaining("...} & {$depth: ...}[] ~ INVALID_JSON_FIELD");
     }
 
     @Test
@@ -165,10 +166,10 @@ public class ValidatorSelectQueryMultipleTest {
         throws IOException, InvalidParseOperationException {
         JsonNode test1Json =
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_multiple_empty_query.json"));
-        final Validator validator =
+        final Schema schema =
             loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_MULTIPLE_DSL_SCHEMA_JSON));
         try {
-            validator.validate(test1Json);
+            Validator.validate(schema, "DSL", test1Json);
         } catch (ValidationException e) {
             e.printStackTrace();
             fail();

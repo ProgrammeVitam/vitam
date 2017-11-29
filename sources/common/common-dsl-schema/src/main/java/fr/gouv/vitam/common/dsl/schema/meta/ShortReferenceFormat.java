@@ -24,11 +24,23 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+
 package fr.gouv.vitam.common.dsl.schema.meta;
 
-import java.util.Map;
+/**
+ * Shorthand for ReferenceFormat, except that it is defined by a simple string.
+ *
+ * "TYPE" => { format: "ref", reference: "TYPE", optional: false }
+ */
+public class ShortReferenceFormat extends ReferenceFormat {
 
-public interface TDKeyChoice {
-    Map<String, Property> getKeychoice();
+    public ShortReferenceFormat(String type) {
+        setType(type);
+    }
+
+    public ShortReferenceFormat() {
+        // Jackson goes here if it cannot decode a type definition
+        throw new RuntimeException("Unrecognized kind of format");
+    }
 
 }

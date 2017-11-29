@@ -27,7 +27,8 @@
 package fr.gouv.vitam.common.dsl.schema;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.dsl.schema.meta.Property;
+import fr.gouv.vitam.common.dsl.schema.meta.Format;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -39,12 +40,11 @@ public class ValidationErrorMessage {
     /**
      * Error codes
      */
-    enum Code {
+    public enum Code {
         WRONG_JSON_TYPE,
         MANDATORY,
         ELEMENT_TOO_SHORT,
         ELEMENT_TOO_LONG,
-        INVALID_TYPE,
         INVALID_JSON_FIELD,
         NO_VIABLE_ALTERNATIVE,
         INVALID_VALUE
@@ -52,12 +52,12 @@ public class ValidationErrorMessage {
 
 
     private JsonNode node;
-    private Property property;
+    private Format property;
     private Code code;
     private String message;
     private List<Object> context;
 
-    public ValidationErrorMessage(JsonNode node, Property property, Code code, String message, List<Object> context) {
+    public ValidationErrorMessage(JsonNode node, Format property, Code code, String message, List<Object> context) {
         this.node = node;
         this.property = property;
         this.code = code;
@@ -67,7 +67,19 @@ public class ValidationErrorMessage {
 
     @Override
     public String toString() {
-        return "Validating " + property.getName() + ": " + property.getReportingType().debugInfo() + " ~ " + code +
+        String name;
+
+
+        if (!StringUtils.isAllUpperCase(property.getName()) || context.isEmpty()) {
+            // standard case
+            name = property.getName();
+        } else {
+            // case when the Format is a root type (in UPPERCASE) and it is used through a ReferenceFormat
+            // (context not empty).
+            name = context.get(context.size() - 1).toString();
+        }
+
+        return "Validating " + name + ": " + property.getReportingType().debugInfo() + " ~ " + code +
             combineSeparator(": ", message) + combineSeparator(" ~ hint: ", property.getHint()) + " ~ found json: " + node + " ~ path: " + context;
     }
 

@@ -26,8 +26,66 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.dsl.schema.meta;
 
-import java.util.List;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.dsl.schema.ValidationErrorMessage;
 
-public interface TDUnion {
-    List<TypeDef> getUnion();
+import java.util.Map;
+import java.util.function.Consumer;
+
+import static fr.gouv.vitam.common.dsl.schema.meta.JsonTypeName.fromJsonNodeType;
+
+public class TypeChoiceFormat extends Format {
+
+    @Override protected void resolve(Schema schema) {
+        for (Format format : choices.values()) {
+            format.setReportingType(this);
+        }
+    }
+
+    private Map<JsonTypeName, Format> choices;
+
+    /**
+     * Accessor for Jackson
+     * set the map of the json types allowed for the object.
+     */
+    public void setChoices(
+        Map<JsonTypeName, Format> choices) {
+        this.choices = choices;
+    }
+
+    @Override public void validate(JsonNode node, Consumer<String> fieldReport, ValidatorEngine validator) {
+
+        JsonTypeName typeName = fromJsonNodeType(node.getNodeType());
+        Format choosen = choices.get(typeName);
+
+        if (choosen == null) {
+            validator.reportError(this, node, ValidationErrorMessage.Code.NO_VIABLE_ALTERNATIVE, typeName.toString());
+        } else {
+            validator.validate(choosen, node, fieldReport);
+        }
+    }
+
+    @Override public void walk(Consumer<Format> consumer) {
+        consumer.accept(this);
+        for (Format format : choices.values()) {
+            format.walk(consumer);
+        }
+    }
+
+    @Override public String debugInfo() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("{");
+        boolean notFirst = false;
+        for (Map.Entry<JsonTypeName, Format> entry : choices.entrySet()) {
+            if (notFirst)
+                builder.append("}|{");
+            builder.append(entry.getKey());
+            builder.append("-> ");
+            builder.append(entry.getValue().debugInfo());
+            notFirst = true;
+        }
+        builder.append("}");
+        return builder.toString();
+    }
+
 }
