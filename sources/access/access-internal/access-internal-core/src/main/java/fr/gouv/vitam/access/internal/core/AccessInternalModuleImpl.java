@@ -1221,7 +1221,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         throws AccessInternalRuleExecutionException, AccessInternalExecutionException {
         ArrayNode createdRules = JsonHandler.createArrayNode();
         for (JsonNode updateRule : rulesForUpdatedCategory) {
-            if (updateRule.get("Rule") == null || updateRule.get("StartDate") == null) {
+            if (updateRule.get("Rule") == null) {
                 throw new AccessInternalRuleExecutionException(
                     VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES.name());
             }
@@ -1331,7 +1331,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         // FIXME Start of duplicated method, need to add it in a common module
         final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-        String startDateString = updatingRule.get("StartDate").asText();
+        String startDateString = updatingRule.get("StartDate") != null ? updatingRule.get("StartDate").asText() : null;
         String ruleId = updatingRule.get("Rule").asText();
         String currentRuleType = ruleInReferential.get("RuleType").asText();
 
