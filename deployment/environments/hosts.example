@@ -87,6 +87,11 @@ hosts-functional-administration
 hosts-logbook
 hosts-workspace
 hosts-storage-engine
+hosts-security-internal
+
+[hosts-security-internal]
+# TODO: Put here servers where this service will be deployed : security-internal
+
 
 [hosts-logbook]
 # TODO: Put here servers where this service will be deployed : logbook
