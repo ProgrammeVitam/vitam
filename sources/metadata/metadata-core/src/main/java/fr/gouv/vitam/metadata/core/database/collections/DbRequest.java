@@ -947,7 +947,7 @@ public class DbRequest {
                 requestToMongodb.getFinalUpdateActions();
                 final ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJson(requestParser);
                 documentFinal = (MetadataDocument<?>) document.newInstance(updatedJsonDocument);
-                if (!documentId.equals(document)) {
+                if (!documentId.equals(document)) { // FIXME : comparing different types, result is always true !
                     modified = true;
                     documentFinal.put(VitamDocument.VERSION, documentVersion.intValue() + 1);
 

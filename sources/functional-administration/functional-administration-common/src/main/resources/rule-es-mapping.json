@@ -1,29 +1,25 @@
 {
   "properties": {
     "RuleType": {
-      "type": "string",
-      "index": "not_analyzed"
+      "type": "keyword"
     },
     "RuleValue": {
-      "type": "string"
+      "type": "text"
     },
     "RuleDescription": {
-      "type": "string"
+      "type": "text"
     },
     "RuleDuration": {
-      "type": "string",
-      "index": "not_analyzed"
+      "type": "keyword"
     },
     "_tenant": {
       "type": "long"
     },
     "RuleId": {
-      "type": "string",
-      "index": "not_analyzed"
+      "type": "keyword"
     },
     "RuleMeasurement": {
-      "type": "string",
-      "index": "not_analyzed"
+      "type": "keyword"
     },
     "CreationDate": {
       "type": "date",

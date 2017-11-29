@@ -1,8 +1,7 @@
 {
   "properties": {
     "OriginatingAgency": {
-      "type": "string",
-      "index": "not_analyzed"
+      "type": "keyword"
     },
     "creationDate": {
       "type": "date",

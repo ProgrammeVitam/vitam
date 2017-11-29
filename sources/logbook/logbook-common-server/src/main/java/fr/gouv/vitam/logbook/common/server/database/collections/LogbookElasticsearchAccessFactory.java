@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
+import java.io.IOException;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
@@ -51,7 +53,7 @@ public class LogbookElasticsearchAccessFactory {
         try {
             return new LogbookElasticsearchAccess(configuration.getClusterName(),
                 configuration.getElasticsearchNodes());
-        } catch (final VitamException e) {
+        } catch (final VitamException | IOException e) {
             throw new LogbookException(e);
         }
     }

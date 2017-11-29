@@ -45,20 +45,6 @@
     default_release: jessie-backports
   when: ansible_distribution == "Debian"
 
-# FIXME : don't forget t remove the file when updating to 5.x
-- name: copy preferences for APT (force install 2.x elasticsearch on {{ composant.cluster_name }})
-  copy:
-    src: pin-es-data
-    dest: /etc/apt/preferences.d/pin-es-data
-    owner: root
-    group: root
-    mode: 0644
-    remote_src: false
-  tags:
-    - update_package_vitam
-  when: (ansible_distribution == "Debian") and (composant.cluster_name=="elasticsearch-data")
-
-
 # - name: install java on CentOS
 #   yum:
 #     name: java-1.8.0-openjdk

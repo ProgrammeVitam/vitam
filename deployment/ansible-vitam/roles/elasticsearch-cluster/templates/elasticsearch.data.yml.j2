@@ -40,7 +40,7 @@ path.logs: {{ elasticsearch_log_dir }}
 #
 # Lock the memory on startup:
 #
-bootstrap.mlockall: true
+bootstrap.memory_lock: true
 #
 # Make sure that the `ES_HEAP_SIZE` environment variable is set to about half the memory
 # available on the system and that the owner of the process is allowed to use this limit.
@@ -57,14 +57,13 @@ network.host: 0.0.0.0
 http.cors.enabled: true
 http.cors.allow-origin: "*"
 {% else %}
-# KWA TODO: Check it again (ansible_hostname VS inventory_hostname VS ip_service) VS 0.0.0.0
-network.host: 0.0.0.0
+network.host: 0.0.0.0  # KWA : For now, keep 0.0.0.0 as vitam component use the service interface, but cerebro uses the admin interface
+## network.host: {{ ip_service }}
 {% endif %}
 #
 # Set a custom port for HTTP:
 #
 http.port: {{ composant.port_http }}
-network.port: {{ composant.port_tcp }}
 transport.tcp.port: {{ composant.port_tcp }}
 #
 # For more information, see the documentation at:
@@ -102,26 +101,38 @@ discovery.zen.ping.unicast.hosts: [ {% for host in groups['hosts-elasticsearch-d
 # Require explicit names when deleting indices:
 #
 # action.destructive_requires_name: true
-{% if groups['hosts-elasticsearch-data']|length == 1 %}
-index.number_of_replicas: 0
-{% else %}
-index.number_of_replicas: 2
-{% endif %}#
+#{% if groups['hosts-elasticsearch-data']|length == 1 %}
+#index.number_of_replicas: 0
+#{% else %}
+#index.number_of_replicas: 2
+#{% endif %}#
 
-index.refresh_interval: 10s
-indices.memory.index_buffer_size: 30%
-index.translog.flush_threshold_ops: 50000
-refresh_interval_in_millis: 30000
+#index.refresh_interval: 10s
+#indices.memory.index_buffer_size: 30%
+#index.translog.flush_threshold_ops: 50000
+#refresh_interval_in_millis: 30000
 
 # Threadpools configuration
-threadpool:
+#threadpool:
+thread_pool:
     search:
-        size: {{ ansible_processor_cores * ansible_processor_threads_per_core * 2 }}
+        size: {{ ((ansible_processor_cores * ansible_processor_threads_per_core * 3 / 2) + 1) | round (0, 'floor') | int }}
         queue_size: 5000
     bulk:
-        size: {{ ansible_processor_cores * ansible_processor_threads_per_core * 2 }}
+        size: {{ ansible_processor_cores * ansible_processor_threads_per_core + 1 }}  
         queue_size: 5000
     refresh:
-        size: {{ ansible_processor_cores * ansible_processor_threads_per_core * 2 }}
-        keep_alive: 2m
+        max: {{ [ ((ansible_processor_cores * ansible_processor_threads_per_core / 2) + 0.5) | round (0, 'floor') | int , 10 ] | min }}
+        keep_alive: 5m
 
+{# Note : the 0.5 in the previous expression is for there is only 1 CPU (else the thread pool size would be zero) ! ; Note bis : max 10 threads #}
+# Note : in ES5 : the thread pool "refresh" is of type scaling with a keep-alive of 5m and a max of min(10, (# of available processors)/2)
+
+# ES5 changed configuration
+#    search:
+#        size: {{ ansible_processor_cores * ansible_processor_threads_per_core * 2 }}
+#        queue_size: 5000
+#    bulk:
+#        size: {{ ansible_processor_cores * ansible_processor_threads_per_core * 2 }}  
+#        queue_size: 5000
+#

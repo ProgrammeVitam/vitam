@@ -1015,8 +1015,8 @@ public class DbRequestTest {
             RequestParserHelper.getParser(createInsertChild2ParentRequest(uuid2, uuid), mongoDbVarNameAdapter);
         executeRequest(dbRequest, requestParser);
 
-        final QueryBuilder qb1 = QueryBuilders.matchPhrasePrefixQuery("_id", uuid);
-        final QueryBuilder qb2 = QueryBuilders.matchPhrasePrefixQuery("_id", uuid2);
+        final QueryBuilder qb1 = QueryBuilders.matchPhrasePrefixQuery("_id", uuid.toString());
+        final QueryBuilder qb2 = QueryBuilders.matchPhrasePrefixQuery("_id", uuid2.toString());
 
         final SearchRequestBuilder request =
             esClientWithoutVitambBehavior.getClient()
@@ -1377,7 +1377,7 @@ public class DbRequestTest {
         result = checkExistence(dbRequest, uuid2, true);
         assertFalse(result.isError());
 
-        final QueryBuilder qb = QueryBuilders.termQuery("_id", uuid2);
+        final QueryBuilder qb = QueryBuilders.termQuery("_id", uuid2.toString());
 
         // Use new esClient for have full elastic index and not just the id in the response.
         final SearchRequestBuilder request =

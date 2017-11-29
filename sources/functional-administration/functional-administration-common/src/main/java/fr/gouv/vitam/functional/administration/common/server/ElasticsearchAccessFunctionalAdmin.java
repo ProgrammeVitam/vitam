@@ -46,6 +46,8 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
+import org.elasticsearch.common.xcontent.XContentType;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
@@ -89,7 +91,7 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
      * @throws VitamException
      */
     public ElasticsearchAccessFunctionalAdmin(final String clusterName, List<ElasticsearchNode> nodes)
-        throws VitamException {
+        throws VitamException, IOException {
         super(clusterName, nodes);
     }
 
@@ -153,7 +155,7 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
                 final CreateIndexResponse response =
                     client.admin().indices().prepareCreate(collection.getName().toLowerCase())
                         .setSettings(default_builder)
-                        .addMapping(type, mapping)
+                        .addMapping(type, mapping,XContentType.JSON)
                         .get();
                 if (!response.isAcknowledged()) {
                     LOGGER.error(type + ":" + response.isAcknowledged());
@@ -194,8 +196,9 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
         // either use client#prepare, or use Requests# to directly build index/delete requests
         final String type = collection.getType();
         for (final Entry<String, String> val : mapIdJson.entrySet()) {
-            bulkRequest.setRefresh(true).add(client.prepareIndex(collection.getName().toLowerCase(), type,
-                val.getKey()).setSource(val.getValue()));
+        	bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE).add(client.prepareIndex(collection.getName().toLowerCase(), type,
+                    val.getKey()).setSource(val.getValue(), XContentType.JSON));
+                        
         }
         return bulkRequest.execute().actionGet();
     }

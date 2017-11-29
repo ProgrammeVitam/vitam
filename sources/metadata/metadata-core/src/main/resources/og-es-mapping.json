@@ -13,7 +13,7 @@
         "all_string": {
           "match": "*",
           "mapping": {
-            "type": "string"
+            "type": "text"
           }
         }
       }
@@ -22,23 +22,23 @@
       "FileInfo": {
         "properties": {
           "CreatingApplicationName": {
-            "type": "string"
+            "type": "text"
           },
           "CreatingApplicationVersion": {
-            "type": "string"
+            "type": "text"
           },
           "CreatingOs": {
-            "type": "string"
+            "type": "text"
           },
           "CreatingOsVersion": {
-            "type": "string"
+            "type": "text"
           },
           "DateCreatedByApplication": {
             "type": "date",
             "format": "strict_date_optional_time"
           },
           "Filename": {
-            "type": "string"
+            "type": "text"
           },
           "LastModified": {
             "type": "date",
@@ -53,8 +53,7 @@
         "type": "object"
       },
       "_profil": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "_qualifiers": {
         "properties": {
@@ -62,39 +61,36 @@
             "type": "long"
           },
           "qualifier": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           },
           "versions": {
             "properties": {
               "DataObjectGroupId": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "DataObjectVersion": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "FileInfo": {
                 "properties": {
                   "CreatingApplicationName": {
-                    "type": "string"
+                    "type": "text"
                   },
                   "CreatingApplicationVersion": {
-                    "type": "string"
+                    "type": "text"
                   },
                   "CreatingOs": {
-                    "type": "string"
+                    "type": "text"
                   },
                   "CreatingOsVersion": {
-                    "type": "string"
+                    "type": "text"
                   },
                   "DateCreatedByApplication": {
                     "type": "date",
                     "format": "strict_date_optional_time"
                   },
                   "Filename": {
-                    "type": "string"
+                    "type": "text"
                   },
                   "LastModified": {
                     "type": "date",
@@ -105,35 +101,31 @@
               "FormatIdentification": {
                 "properties": {
                   "FormatId": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   },
                   "FormatLitteral": {
-                    "type": "string"
+                    "type": "text"
                   },
                   "MimeType": {
-                    "type": "string"
+                    "type": "text"
                   },
                   "Encoding": {
-                    "type": "string"
+                    "type": "text"
                   }
                 }
               },
               "MessageDigest": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "Algorithm": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "PhysicalDimensions": {
                 "properties": {
                   "Diameter": {
                     "properties": {
                       "unit": {
-                        "type": "string",
-                        "index": "not_analyzed"
+                        "type": "keyword"
                       },
                       "value": {
                         "type": "double"
@@ -143,8 +135,7 @@
                   "Height": {
                     "properties": {
                       "unit": {
-                        "type": "string",
-                        "index": "not_analyzed"
+                        "type": "keyword"
                       },
                       "value": {
                         "type": "double"
@@ -154,8 +145,7 @@
                   "Depth": {
                     "properties": {
                       "unit": {
-                        "type": "string",
-                        "index": "not_analyzed"
+                        "type": "keyword"
                       },
                       "value": {
                         "type": "double"
@@ -163,14 +153,12 @@
                     }
                   },
                   "Shape": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   },
                   "Thickness": {
                     "properties": {
                       "unit": {
-                        "type": "string",
-                        "index": "not_analyzed"
+                        "type": "keyword"
                       },
                       "value": {
                         "type": "double"
@@ -180,8 +168,7 @@
                   "Length": {
                     "properties": {
                       "unit": {
-                        "type": "string",
-                        "index": "not_analyzed"
+                        "type": "keyword"
                       },
                       "value": {
                         "type": "double"
@@ -194,8 +181,7 @@
                   "Weight": {
                     "properties": {
                       "unit": {
-                        "type": "string",
-                        "index": "not_analyzed"
+                        "type": "keyword"
                       },
                       "value": {
                         "type": "double"
@@ -205,8 +191,7 @@
                   "Width": {
                     "properties": {
                       "unit": {
-                        "type": "string",
-                        "index": "not_analyzed"
+                        "type": "keyword"
                       },
                       "value": {
                         "type": "double"
@@ -216,19 +201,16 @@
                 }
               },
               "PhysicalId": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "Size": {
                 "type": "long"
               },
               "Uri": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "_id": {
-                "type": "string",
-                "index": "not_analyzed"
+                "type": "keyword"
               },
               "_storage": {
                 "properties": {
@@ -236,12 +218,10 @@
                     "type": "long"
                   },
                   "offerIds": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   },
                   "strategyId": {
-                    "type": "string",
-                    "index": "not_analyzed"
+                    "type": "keyword"
                   }
                 }
               }
@@ -256,23 +236,19 @@
         "type": "long"
       },
       "_ops": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "_sp": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "_sps": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "_tenant": {
         "type": "long"
       },
       "_up": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "_uds": {
         "type": "object",
@@ -283,8 +259,7 @@
         "enabled": false
       },
       "_us": {
-        "type": "string",
-        "index": "not_analyzed"
+        "type": "keyword"
       },
       "_unused": {
         "type": "object",
@@ -296,12 +271,10 @@
             "type": "long"
           },
           "offerIds": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           },
           "strategyId": {
-            "type": "string",
-            "index": "not_analyzed"
+            "type": "keyword"
           }
         }
       }

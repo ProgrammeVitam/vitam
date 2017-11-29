@@ -1,16 +1,13 @@
 {
   "properties": {
     "OriginatingAgency": {
-      "type": "string",
-      "index": "not_analyzed"
+      "type": "keyword"
     },
     "SubmissionAgency": {
-      "type": "string",
-      "index": "not_analyzed"
+      "type": "keyword"
     },
     "ArchivalAgreement": {
-      "type": "string",
-      "index": "not_analyzed"
+      "type": "keyword"
     },
     "EndDate": {
       "type": "date",
@@ -25,8 +22,7 @@
       "format": "strict_date_optional_time"
     },
     "Status": {
-      "type": "string",
-      "index": "not_analyzed"
+      "type": "keyword"
     },
     "TotalObjectGroups": {
       "properties": {
@@ -117,8 +113,7 @@
       }
     },
     "OperationIds": {
-      "type": "string",
-      "index": "not_analyzed"
+      "type": "keyword"
     },
     "Symbolic": {
       "type": "boolean"

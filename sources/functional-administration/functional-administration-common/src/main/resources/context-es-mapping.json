@@ -1,11 +1,11 @@
 {
   "properties": {
     "Identifier": {
-      "type": "string",
-      "index": "not_analyzed"
+      "type": "keyword"
     },
     "Name": {
-      "type": "string"
+      "type": "text",
+      "fielddata": true
     },
     "Status": {
       "type": "boolean"
@@ -27,14 +27,13 @@
       "format": "strict_date_optional_time"
     },
     "Permissions": {
+      "type": "object",
       "properties": {
         "AccessContracts": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "IngestContracts": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "_tenant": {
           "type": "long"
@@ -45,8 +44,7 @@
       "type": "boolean"
     },
     "SecurityProfile": {
-      "type": "string",
-      "index": "not_analyzed"
+      "type": "keyword"
     },
     "_v": {
       "type": "long"

@@ -41,8 +41,10 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
+import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
@@ -67,7 +69,7 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
      * @param nodes elasticsearch node
      * @throws VitamException if elasticsearch nodes list is empty/null
      */
-    public LogbookElasticsearchAccess(final String clusterName, List<ElasticsearchNode> nodes) throws VitamException {
+    public LogbookElasticsearchAccess(final String clusterName, List<ElasticsearchNode> nodes) throws VitamException, IOException {
         super(clusterName, nodes);
     }
 
@@ -113,7 +115,7 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
                 final CreateIndexResponse response =
                     client.admin().indices().prepareCreate(getIndexName(collection, tenantId))
                         .setSettings(default_builder)
-                        .addMapping(type, mapping)
+                        .addMapping(type, mapping, XContentType.JSON)
                         .get();
                 if (!response.isAcknowledged()) {
                     LOGGER.error(type + ":" + response.isAcknowledged());
@@ -156,8 +158,8 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
         // either use client#prepare, or use Requests# to directly build index/delete requests
         final String type = getTypeUnique(collection);
         for (final Entry<String, String> val : mapIdJson.entrySet()) {
-            bulkRequest.setRefresh(true).add(client.prepareIndex(getIndexName(collection, tenantId), type,
-                val.getKey()).setSource(val.getValue()));
+            	bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE).add(client.prepareIndex(getIndexName(collection, tenantId), type,
+                        val.getKey()).setSource(val.getValue(),XContentType.JSON));//.setSource(val.getValue()));
         }
         return bulkRequest.execute().actionGet();
     }
@@ -174,9 +176,9 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
     final boolean updateEntryIndex(final LogbookCollections collection, final Integer tenantId,
         final String id, final String json) {
         final String type = LogbookOperation.TYPEUNIQUE;
-        return client.prepareUpdate(getIndexName(collection, tenantId), type, id)
-            .setDoc(json).setRefresh(true).execute()
-            .actionGet().getVersion() > 1;
+            return client.prepareUpdate(getIndexName(collection, tenantId), type, id)
+            		.setDoc(json,XContentType.JSON).setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute()
+            		.actionGet().getVersion() > 1;            
     }
 
     /**

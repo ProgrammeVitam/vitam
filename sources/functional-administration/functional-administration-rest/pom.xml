@@ -123,8 +123,12 @@
             <artifactId>wiremock</artifactId>
             <scope>test</scope>
         </dependency>
-
-    </dependencies>
+	    <dependency>
+	        <groupId>org.apache.logging.log4j</groupId>
+	        <artifactId>log4j-core</artifactId>
+	        <scope>test</scope>
+	    </dependency>
+	</dependencies>
 
     <build>
         <pluginManagement>
@@ -239,11 +243,15 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <systemPropertyVariables>
+                        <log4j.configurationFile>log4j2-test.xml</log4j.configurationFile>
                         <org.owasp.esapi.opsteam>AC001</org.owasp.esapi.opsteam>
                         <org.owasp.esapi.devteam>AC001</org.owasp.esapi.devteam>
                         <org.owasp.esapi.resources>../../common/common-private/src/main/resources/esapi
                         </org.owasp.esapi.resources>
                     </systemPropertyVariables>
+                    <classpathDependencyExcludes>
+                        <classpathDependencyExclude>org.apache.logging.log4j:log4j-to-slf4j</classpathDependencyExclude>
+                    </classpathDependencyExcludes>
                 </configuration>
             </plugin>
             <!-- Debian -->

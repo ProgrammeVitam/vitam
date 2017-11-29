@@ -321,7 +321,8 @@ public class MetaDataResourceTest {
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions(QUERY_EXISTS, DATA)).when()
-            .post("/units").then()
+            .post("/units")
+        .then()
             .body(equalTo(generateResponseErrorFromStatus(Status.NOT_FOUND, "Cannot find Parent: [aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab]")))
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }

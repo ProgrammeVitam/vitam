@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.database.translators.elasticsearch;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -35,7 +36,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.MatchQueryBuilder.Operator;
+import org.elasticsearch.index.query.Operator;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
@@ -117,7 +118,7 @@ public class QueryToElasticsearch {
      * <b>Note</b> : if the query contains a match and the collection allows to use score, the socre is added to the
      * sort<br>
      * <br>
-     *
+     * 
      * @param requestParser the original parser
      * @param hasFullText   True to add scoreSort
      * @param score         True will add score first
@@ -387,7 +388,10 @@ public class QueryToElasticsearch {
                 }
             case MLT:
             default:
-                return QueryBuilders.moreLikeThisQuery(names).addLikeText(slike);
+            	// Note : array size increase is now needed (addLikeText(slike) is removed in ES5), and the array is small, so array copy should be relatively painless.
+            	final String[] newNames = Arrays.copyOf(names,names.length + 1);
+            	newNames[names.length] = slike;
+                return QueryBuilders.moreLikeThisQuery(newNames);
         }
     }
 
@@ -480,8 +484,8 @@ public class QueryToElasticsearch {
                 return QueryBuilders.matchQuery(element.getKey(), element.getValue().asText())
                     .maxExpansions(max.asInt()).operator(Operator.AND);
             case MATCH_PHRASE:
-                return QueryBuilders.matchPhraseQuery(element.getKey(), element.getValue().asText())
-                    .maxExpansions(max.asInt());
+                return QueryBuilders.matchPhraseQuery(element.getKey(), element.getValue().asText());
+                // Note : the method maxExpansions(max.asInt()) is removed in ES5, with no documented replacement.
             case MATCH_PHRASE_PREFIX:
                 return QueryBuilders.matchPhrasePrefixQuery(element.getKey(), element.getValue().asText())
                     .maxExpansions(max.asInt());

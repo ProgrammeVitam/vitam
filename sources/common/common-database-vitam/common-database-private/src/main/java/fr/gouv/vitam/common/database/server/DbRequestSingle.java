@@ -50,12 +50,14 @@ import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortBuilder;
+import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -67,7 +69,6 @@ import com.mongodb.MongoWriteException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import com.mongodb.client.model.CountOptions;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 
@@ -309,9 +310,9 @@ public class DbRequestSingle {
 
         // either use client#prepare, or use Requests# to directly build index/delete requests
         for (final Entry<String, String> val : mapIdJson.entrySet()) {
-            bulkRequest.setRefresh(true)
-                .add(client.prepareIndex(vitamCollection.getName().toLowerCase(), VitamCollection.getTypeunique(),
-                    val.getKey()).setSource(val.getValue()));
+            bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE)
+            .add(client.prepareIndex(vitamCollection.getName().toLowerCase(), VitamCollection.getTypeunique(),
+                val.getKey()).setSource(val.getValue(), XContentType.JSON));              
         }
         return bulkRequest.execute().actionGet();
     }
@@ -647,7 +648,7 @@ public class DbRequestSingle {
                     client.prepareDelete(vitamCollection.getName().toLowerCase(), VitamCollection.getTypeunique(), id));
             if (max == 0) {
                 max = VitamConfiguration.getMaxElasticsearchBulk();
-                final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+                final BulkResponse bulkResponse = bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet(); // new
                 // thread
                 if (bulkResponse.hasFailures()) {
                     LOGGER.error("ES delete in error: " + bulkResponse.buildFailureMessage());
@@ -658,7 +659,7 @@ public class DbRequestSingle {
             }
         }
         if (bulkRequest.numberOfActions() > 0) {
-            final BulkResponse bulkResponse = bulkRequest.setRefresh(true).execute().actionGet(); // new
+            final BulkResponse bulkResponse = bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet();
             // thread
             if (bulkResponse.hasFailures()) {
                 LOGGER.error("ES delete in error: " + bulkResponse.buildFailureMessage());
