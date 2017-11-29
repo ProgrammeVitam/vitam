@@ -17,10 +17,13 @@ import { Agency } from './agency';
 })
 export class AgenciesComponent extends PageComponent {
 
+  newBreadcrumb: BreadcrumbElement[];
   agency : Agency;
   hasUnit : boolean;
   id: string;
-  constructor(private activatedRoute: ActivatedRoute, private router : Router,
+  panelHeader: string;
+
+  constructor(private activatedRoute: ActivatedRoute, public router : Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
               private searchReferentialsService : ReferentialsService) {
     super('Détail du service agent', [], titleService, breadcrumbService);
@@ -31,14 +34,27 @@ export class AgenciesComponent extends PageComponent {
     this.activatedRoute.params.subscribe( params => {
       this.id = params['id'];
       this.getDetail();
-      let newBreadcrumb = [
+      this.updateBreadcrumb(params['type']); 
+    });
+  }
+
+  updateBreadcrumb(type: string) {
+    if (type === 'accessionRegister') {
+      this.newBreadcrumb = [
+        {label: 'Recherche', routerLink: ''},
+        {label: 'Recherche par service producteur', routerLink: 'admin/accessionRegister'},
+        {label: 'Détail du service producteur ' + this.id, routerLink: ''}
+      ];
+      this.panelHeader = 'Détail du service producteur';
+    } else {
+      this.newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
         {label: 'Services agents', routerLink: 'admin/search/agencies'},
         {label: 'Détail du service agent ' + this.id, routerLink: ''}
       ];
-
-      this.setBreadcrumb(newBreadcrumb);
-    });
+      this.panelHeader = 'Détail du service agent';
+    }
+    this.setBreadcrumb(this.newBreadcrumb);
   }
 
   getDetail() {
@@ -53,7 +69,11 @@ export class AgenciesComponent extends PageComponent {
   }
 
   goToSummaryRegisterPage() {
-    this.router.navigate(['admin/accessionRegister/' + this.id]);
+    if (this.router.url.indexOf('/agencies/accessionRegister/') > -1) {
+      this.router.navigate(['admin/accessionRegister/accessionRegister/' + this.id]);
+    } else {
+      this.router.navigate(['admin/accessionRegister/all/' + this.id]);
+    }
   }
 
 }

@@ -246,7 +246,7 @@ export class SearchReferentialsComponent extends PageComponent {
             ColumnDefinition.makeStaticColumn('Description', 'Description', undefined,
               () => ({'width': '225px'}))
           ];
-          this.referentialPath = 'admin/agencies';
+          this.referentialPath = 'admin/agencies/all';
           this.referentialIdentifier = 'Identifier';
           break;
 
@@ -267,7 +267,7 @@ export class SearchReferentialsComponent extends PageComponent {
             ColumnDefinition.makeStaticColumn('creationDate', 'Date de la première opération d\'entrée', DateService.handleDateWithTime,
               () => ({'width': '125px'}))
           ];
-          this.referentialPath = 'admin/agencies';
+          this.referentialPath = 'admin/agencies/accessionRegister';
           this.referentialIdentifier = 'OriginatingAgency';
           newBreadcrumb = [
             {label: 'Recherche', routerLink: ''},
