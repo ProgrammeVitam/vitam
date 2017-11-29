@@ -43,7 +43,7 @@ Audit (STP_AUDIT)
 AUDIT_CHECK_OBJECT
 -------------------
 
-* **Règle** : tâche technique pour organiser et lancer l'action d'audit
+* **Règle** : Tâche technique pour organiser et lancer l'action d'audit. A la fin de l'audit de chaque groupe d'objets qui est en KO, la mise à jour en base de son journal de cycle de vie est faite. 
 * **Type** : bloquant
 * **Statuts** :
 	* OK : l'action d'audit s'est terminée en OK (Succès de l'audit de la vérification des objets)
@@ -77,12 +77,6 @@ Audit de l'intégrité des objets (AUDIT_FILE_INTEGRITY)
 	* Warning : il n'y a aucun objet à auditer (cas par exemple d'un producteur sans objets) (AUDIT_CHECK_OBJECT.AUDIT_FILE_INTEGRITY.WARNING=Avertissement lors de l'existence et de l'intégrité des objets)
 	* FATAL : erreur technique lors de l'audit de l'existence des fichiers (AUDIT_CHECK_OBJECT.AUDIT_FILE_INTEGRITY.FATAL=Erreur fatale lors de l'existence et de l'intégrité des objets)
 
-
-Sécurisation des journaux des cycles de vie des groupes d'objets (COMMIT_LIFE_CYCLE_OBJECT_GROUP)
---------------------------------------------------------------------------------------------------------
-
-Sécurisation en base des journaux du cycle de vie des groupes d'objets qui ont été modifiés durant l'audit et uniquement ceux qui ont été modifiés. Pour le reste cette étape est strictement la même que celle décrite dans le processus d'entrée (section "Workflow d'entrée")
-
 .. figure:: images/workflow_audit_file_existing.png
 	:align: center
 
@@ -97,16 +91,3 @@ Notification de la fin d'audit (REPORT_AUDIT)
 * **Statuts** :
 	* OK : le rapport a été créé avec succès (REPORT_AUDIT.OK=Succès de la notification de la fin de l'audit Detail)
 	* FATAL : Une erreur technique est survenue lors de la création du rapport d'audit (REPORT_AUDIT.OK.FATAL=Erreur fatale lors de la notification de la fin de l'audit)
-
-Mise en cohérence des journaux du cycle de vie (ROLL_BACK)
-------------------------------------------------------------
-
-+ **Règle** : purge des collections temporaires des journaux du cycle de vie
-
-+ **Type** : bloquant
-
-+ **Statuts** :
-
-  - OK : la purge s'est correctement déroulée (ROLL_BACK.OK = Succès de la mise en cohérence des journaux du cycle de vie)
-
-  - FATAL : une erreur technique est survenue lors de la purge (ROLL_BACK.FATAL = Erreur fatale lors de la mise en cohérence des journaux du cycle de vie)

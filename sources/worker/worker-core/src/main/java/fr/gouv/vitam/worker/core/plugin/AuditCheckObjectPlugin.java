@@ -1,18 +1,23 @@
 package fr.gouv.vitam.worker.core.plugin;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.guid.GUIDReader;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
@@ -20,8 +25,13 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 public class AuditCheckObjectPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AuditCheckObjectPlugin.class);
@@ -102,6 +112,8 @@ public class AuditCheckObjectPlugin extends ActionHandler {
             }
         }
 
+        writeLfcFromItemStatus(param, itemStatus);
+
         if (actionType != null) {
             return new ItemStatus(HANDLER_ID + "." + actionType).setItemsStatus(HANDLER_ID, itemStatus);
         }
@@ -112,6 +124,55 @@ public class AuditCheckObjectPlugin extends ActionHandler {
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // TODO Auto-generated method stub
 
+    }
+
+    @Override
+    public boolean lfcHandledInternally(){
+        return true;
+    }
+
+    /**
+     * write LFC for KO tasks
+     * 
+     * @param param
+     * @param itemStatus
+     */
+    private void writeLfcFromItemStatus(WorkerParameters param, ItemStatus itemStatus){
+        if(itemStatus.getGlobalStatus().isGreaterOrEqualToKo()){
+            try (LogbookLifeCyclesClient lfcClient = LogbookLifeCyclesClientFactory.getInstance().getClient()){
+                // TODO : check if should write lfc for main task "AUDIT_CHECK_OBJECT" (see fix #3645)
+                // write logbook for subtasks
+                for (ItemStatus subtask: itemStatus.getItemsStatus().values()) {
+                    if(subtask.getGlobalStatus().isGreaterOrEqualToKo()){
+                        String eventType = HANDLER_ID + "." + subtask.getItemId();
+                        LogbookLifeCycleParameters logbookLfcParam = 
+                                LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
+                            GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()),
+                            VitamLogbookMessages.getEventTypeLfc(eventType),
+                            GUIDReader.getGUID(param.getContainerName()),
+                            param.getLogbookTypeProcess(),
+                            StatusCode.KO,
+                            VitamLogbookMessages.getOutcomeDetailLfc(eventType, StatusCode.KO),
+                            VitamLogbookMessages.getCodeLfc(eventType, StatusCode.KO),
+                            GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(param)));
+                        if (!subtask.getEvDetailData().isEmpty()) {
+                            logbookLfcParam.putParameterValue(LogbookParameterName.eventDetailData,
+                                    subtask.getEvDetailData());
+                        }
+                        if (subtask.getData("Detail") != null) {
+                            String outcomeDetailMessage = logbookLfcParam.getParameterValue(
+                                    LogbookParameterName.outcomeDetailMessage) + " " + subtask.getData("Detail");
+                            logbookLfcParam.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                                    outcomeDetailMessage);
+                        }
+                        lfcClient.update(logbookLfcParam, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.error("Error while updating Data Object LFC ", e);
+                itemStatus.increment(StatusCode.FATAL);
+            }
+        }
     }
 
 }

@@ -119,6 +119,14 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     }
 
     @Override
+    public void updateObjectGroup(String idOperation, String idLc, LogbookLifeCycleObjectGroupParameters parameters, boolean commit)
+            throws LogbookNotFoundException, LogbookDatabaseException, IllegalArgumentException,
+            LogbookAlreadyExistsException {
+        checkLifeCyclesObjectGroupArgument(idOperation, idLc, parameters);
+        mongoDbAccess.updateLogbookLifeCycleObjectGroup(idOperation, parameters, commit);
+    }
+
+    @Override
     public LogbookLifeCycleUnit getUnitByOperationIdAndByUnitId(String idOperation, String idLc)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
         return mongoDbAccess.getLogbookLifeCycleUnit(idOperation, idLc);

@@ -3,7 +3,7 @@
   "name": "Default Audit Object Workflow",
   "identifier": "PROCESS_AUDIT",
   "typeProc": "AUDIT",
-  "comment": "Default Update Rules in Archive Units workflow V1",
+  "comment": "Default Audit Object workflow V1",
   "steps": [
     {
       "workerGroupId": "DefaultWorker",
@@ -42,18 +42,6 @@
               }
             ]
           }
-        },
-        {
-          "action": {
-            "actionKey": "COMMIT_LIFE_CYCLE_OBJECT_GROUP",
-            "behavior": "BLOCKING",
-            "in": [
-              {
-                "name": "shouldWriteLogbook",
-                "uri": "MEMORY:shouldWrite"
-              }
-            ]
-          }
         }
       ]
     },
@@ -69,12 +57,6 @@
         {
           "action": {
             "actionKey": "REPORT_AUDIT",
-            "behavior": "BLOCKING"
-          }
-        },
-        {
-          "action": {
-            "actionKey": "ROLL_BACK",
             "behavior": "BLOCKING"
           }
         }

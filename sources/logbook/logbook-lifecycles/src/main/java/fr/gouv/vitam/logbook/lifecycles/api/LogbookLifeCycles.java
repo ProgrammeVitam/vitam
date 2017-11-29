@@ -105,6 +105,21 @@ public interface LogbookLifeCycles {
         LogbookAlreadyExistsException;
 
     /**
+     * Update logbook LifeCycle entries
+     *
+     * @param idOperation the operation identifier
+     * @param idLc the lifecycle identifier
+     * @param parameters the logbook lifecycle parameters
+     * @param commit if true update is done on committed collection otherwise on inProcess one
+     * @throws LogbookNotFoundException if no LifeCycle with the same eventIdentifierProcess exists
+     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
+     * @throws LogbookAlreadyExistsException if the entry already exists
+     */
+    void updateObjectGroup(String idOperation, String idLc, LogbookLifeCycleObjectGroupParameters parameters, boolean commit)
+            throws LogbookNotFoundException, LogbookDatabaseException,
+            LogbookAlreadyExistsException;
+
+    /**
      * Select logbook LifeCycle entries
      *
      * @param select the select request in format of JsonNode

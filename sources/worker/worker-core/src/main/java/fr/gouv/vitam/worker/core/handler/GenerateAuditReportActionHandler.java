@@ -263,27 +263,28 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
         throws InvalidCreateOperationException, LogbookClientException, InvalidParseOperationException {
         ArrayNode reportKO = JsonHandler.createArrayNode();
         Select selectQuery = new Select();
-        selectQuery.setQuery(QueryHelper.and()
-            .add(QueryHelper.eq("events.evTypeProc", AUDIT), QueryHelper.eq("events.outcome", "KO")));
+        // No need to check if evTypeProc is audit and status is KO, as we know the passed
+        // GUID is for an audit Operation and we only log KO for audit events
+        selectQuery.setQuery(QueryHelper.eq("events.evIdProc", auditOperationId));
         try {
             JsonNode result = lfcClient.selectObjectGroupLifeCycle(selectQuery.getFinalSelect());
 
             for (JsonNode res : result.get(RequestResponseOK.TAG_RESULTS)) {
                 String idOp = res.get(EV_ID_PROC).asText();
                 JsonNode events = res.get(EVENT);
-                for (JsonNode event : events) {
-                    if (event.get(EV_TYPE).asText().contains("LFC.AUDIT_CHECK_OBJECT") &&
-                        event.get(LogbookMongoDbName.outcome.getDbname()).asText().equals("KO") &&
-                        event.get(EV_ID_PROC).asText().equals(auditOperationId)) {
+                for (int l = events.size(), i = l-1; i > 0; i--){
+                    JsonNode event = events.get(i);
+                    if(event.get(EV_TYPE).asText().startsWith("LFC.AUDIT_") 
+                            && event.get(EV_ID_PROC).asText().equals(auditOperationId)){
                         JsonNode evDetData = JsonHandler.getFromString(event.get("evDetData").asText());
                         final String originatingAgency = evDetData.get(ORIGINATING_AGENCY).asText();
                         for (JsonNode error : evDetData.get("errors")) {
                             reportKO.add(JsonHandler.createObjectNode().put("IdOp", idOp)
-                                .put(ID_GOT, event.get("obId").asText())
-                                .put(ID_OBJ, error.get(ID_OBJ).asText())
-                                .put(USAGE, error.get(USAGE).asText())
-                                .put(ORIGINATING_AGENCY, originatingAgency)
-                                .put(OUT_DETAIL, event.get("outDetail").asText()));
+                                    .put(ID_GOT, event.get("obId").asText())
+                                    .put(ID_OBJ, error.get(ID_OBJ).asText())
+                                    .put(USAGE, error.get(USAGE).asText())
+                                    .put(ORIGINATING_AGENCY, originatingAgency)
+                                    .put(OUT_DETAIL, event.get("outDetail").asText()));
                         }
 
                         int nb = evDetData.get("nbKO").asInt();
@@ -294,7 +295,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
                             serviceProducteurKO.put(originatingAgency, nb);
                         }
                         break;
-                    }
+                    } 
                 }
             }
         } catch (LogbookClientNotFoundException e) {

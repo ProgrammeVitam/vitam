@@ -294,6 +294,25 @@ public interface LogbookDbAccess {
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
 
     /**
+     * Update one Logbook LifeCycle <br>
+     * <br>
+     * It adds this new entry within the very same Logbook LifeCycle entry in "events" array.
+     * 
+     *
+     * @param idOperation
+     * @param lifecycleItem
+     * @param commit if true update is done on committed collection otherwise on inProcess one
+     * @throws LogbookDatabaseException
+     * @throws LogbookNotFoundException
+     * @throws LogbookAlreadyExistsException
+     * @throws IllegalArgumentException if parameter has null or empty mandatory values
+     */
+    void updateLogbookLifeCycleObjectGroup(final String idOperation,
+                                           LogbookLifeCycleObjectGroupParameters lifecycleItem,
+                                           boolean commit)
+            throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
+
+    /**
      * Rollback one Logbook LifeCycle <br>
      * <br>
      * It adds this new entry within the very same Logbook LifeCycle entry in "events" array.

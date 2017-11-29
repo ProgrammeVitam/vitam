@@ -100,6 +100,19 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
         logInformation(UPDATE, parameters);
     }
 
+    @Override
+    public void update(LogbookLifeCycleParameters parameters, LifeCycleStatusCode lifeCycleStatusCode)
+            throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
+        parameters.putParameterValue(LogbookParameterName.agentIdentifier,
+                SERVER_IDENTITY.getJsonIdentity());
+        parameters.putParameterValue(LogbookParameterName.eventDateTime,
+                LocalDateUtil.now().toString());
+        ParameterHelper
+                .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
+
+        logInformation(UPDATE, parameters);
+    }
+
     @Deprecated
     @Override
     public void commit(LogbookLifeCycleParameters parameters)

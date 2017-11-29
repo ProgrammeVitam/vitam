@@ -938,7 +938,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
         String eventTypeStarted = VitamLogbookMessages.getEventTypeStarted(INGEST_INT_UPLOAD);
         startedParameters.putParameterValue(LogbookParameterName.eventType, eventTypeStarted);
         callLogbookUpdate(logbookOperationsClient, startedParameters, StatusCode.OK,
-            INGEST_INT_UPLOAD, VitamLogbookMessages.getCodeOp(eventTypeStarted, StatusCode.OK));
+                eventTypeStarted, VitamLogbookMessages.getCodeOp(eventTypeStarted, StatusCode.OK));
 
         // set eventType and new eventId
         parameters

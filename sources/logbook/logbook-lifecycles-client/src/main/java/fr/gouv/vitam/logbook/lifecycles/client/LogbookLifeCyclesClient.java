@@ -77,7 +77,21 @@ public interface LogbookLifeCyclesClient extends BasicClient {
     void update(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException;
 
-
+    /**
+     * Update logbook entry <br>
+     * <br>
+     * To be used everywhere except very first time (when eventIdentifierProcess already used once)
+     *
+     * @param parameters the entry parameters
+     * @param lifeCycleStatusCode the lifeCycle status
+     * @throws LogbookClientBadRequestException if the argument is incorrect
+     * @throws LogbookClientNotFoundException if the element was not created before
+     * @throws LogbookClientServerException if the Server got an internal error
+     * @throws IllegalArgumentException if some mandatories parameters are empty or null
+     */
+    void update(LogbookLifeCycleParameters parameters, LifeCycleStatusCode lifeCycleStatusCode)
+            throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException;
+    
     /**
      * Commit logbook entry <br>
      * <br>
