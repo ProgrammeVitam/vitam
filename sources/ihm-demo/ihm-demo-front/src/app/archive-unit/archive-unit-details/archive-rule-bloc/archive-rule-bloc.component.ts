@@ -144,7 +144,10 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
             updateInfo.updated++;
           } else {
             // Non-Updated Old Rule
-            newRules.push(rule);
+            let updatedRule = JSON.parse(JSON.stringify(rule));
+            delete updatedRule.oldId;
+            delete updatedRule.EndDate;
+            newRules.push(updatedRule);
           }
         }
       }
