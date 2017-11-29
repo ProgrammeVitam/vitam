@@ -18,7 +18,7 @@ import java.util.Optional;
 
 import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
-import static fr.gouv.vitam.security.internal.rest.repository.PersonalRepository.CERTIFICATE_COLLECTION;
+import static fr.gouv.vitam.security.internal.rest.repository.PersonalRepository.PERSONAL_COLLECTION;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PersonalRepositoryTest {
@@ -27,7 +27,7 @@ public class PersonalRepositoryTest {
         "2f1062f8bf84e7eb83a0f64c98d891fbe2c811b17ffac0bce1a6dc9c7c3dcbb7";
 
     @Rule
-    public MongoRule mongoRule = new MongoRule(getMongoClientOptions(), CLUSTER_NAME, CERTIFICATE_COLLECTION);
+    public MongoRule mongoRule = new MongoRule(getMongoClientOptions(), CLUSTER_NAME, PERSONAL_COLLECTION);
 
     private PersonalRepository personalRepository;
 
@@ -37,7 +37,7 @@ public class PersonalRepositoryTest {
     public void setUp() throws Exception {
         MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), CLUSTER_NAME);
         personalRepository = new PersonalRepository(mongoDbAccess);
-        certificateCollection = mongoRule.getMongoCollection(CERTIFICATE_COLLECTION);
+        certificateCollection = mongoRule.getMongoCollection(PERSONAL_COLLECTION);
     }
 
     @Test

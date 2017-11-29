@@ -88,7 +88,7 @@ class ParsedCertificate {
         return digest.digestHex();
     }
 
-    private static String toCertificateHexString(byte[] certificate) {
+    public static String toCertificateHexString(byte[] certificate) {
         byte[] certificateToLog;
         if (certificate.length > MAX_CERTIFICATE_LOG_LENGTH) {
             certificateToLog = Arrays.copyOf(certificate, MAX_CERTIFICATE_LOG_LENGTH);

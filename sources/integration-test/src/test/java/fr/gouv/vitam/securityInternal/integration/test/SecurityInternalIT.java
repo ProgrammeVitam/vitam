@@ -27,6 +27,7 @@
 package fr.gouv.vitam.securityInternal.integration.test;
 
 import com.mongodb.MongoClient;
+import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -35,185 +36,169 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
-import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.security.internal.client.InternalSecurityClient;
 import fr.gouv.vitam.security.internal.client.InternalSecurityClientFactory;
 import fr.gouv.vitam.security.internal.common.exception.InternalSecurityException;
-import fr.gouv.vitam.security.internal.common.model.PersonalCertificateModel;
 import fr.gouv.vitam.security.internal.rest.IdentityMain;
-import fr.gouv.vitam.security.internal.rest.SimpleMongoDBAccess;
-import fr.gouv.vitam.security.internal.rest.exeption.PersonalCertificateException;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.util.EntityUtils;
+import org.assertj.core.util.Lists;
 import org.bson.Document;
-import org.jhades.JHades;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.ArgumentCaptor;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import java.io.IOException;
 import java.io.InputStream;
-import java.security.cert.CertificateException;
 
 import static com.google.common.io.ByteStreams.toByteArray;
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
-import static fr.gouv.vitam.security.internal.rest.repository.IdentityRepository.CERTIFICATE_COLLECTION;
+import static fr.gouv.vitam.security.internal.rest.repository.PersonalRepository.PERSONAL_COLLECTION;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.ArgumentCaptor.forClass;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 
 public class SecurityInternalIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SecurityInternalIT.class);
-    private static int logbookPort;
     @Rule
-    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-        VitamThreadPoolExecutor.getDefaultExecutor());
-
-    @Rule
-    public MongoRule mongoRule = new MongoRule(getMongoClientOptions(), CLUSTER_NAME, CERTIFICATE_COLLECTION);
-
-    private static final Integer TENANT_ID = 1;
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
     static JunitHelper junitHelper;
-    static final String DATABASE_HOST = "localhost";
-    static final String DATABASE_NAME = "vitam-test";
+
     final static String CLUSTER_NAME = "vitam-cluster";
     static MongodProcess mongod;
-    static MongoClient client;
     static int mongoPort;
     static MongodExecutable mongodExecutable;
 
-    private static LogbookMain logbookMain;
     private static IdentityMain identityMain;
-    private static final String LOGBOOK_CONF = "security-internal/logbook.conf";
     private static final String IDENTITY_CONF = "security-internal/security-internal.conf";
-    private static String TMP_FOLDER;
+
     @ClassRule
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     private static InternalSecurityClient internalSecurityClient;
-
-
+    private static MongoClient mongoClient;
+    private static MongoCollection<Document> mongoCollection;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        // Identify overlapping in particular jsr311
-        new JHades().overlappingJarsReport();
-        try {
-            TMP_FOLDER = temporaryFolder.newFolder().getAbsolutePath();
-        } catch (IOException e) {
-            TMP_FOLDER = "/vitam/temp";
-        }
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         junitHelper = JunitHelper.getInstance();
         mongoPort = junitHelper.findAvailablePort();
         mongoPort = 12346;
+
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .withLaunchArgument("--enableMajorityReadConcern")
             .version(Version.Main.PRODUCTION)
             .net(new Net(mongoPort, Network.localhostIsIPv6()))
             .build());
-        mongod = mongodExecutable.start();
 
+        mongod = mongodExecutable.start();
+        mongoClient = new MongoClient(new ServerAddress("localhost", mongoPort), getMongoClientOptions());
 
         identityMain = new IdentityMain(IDENTITY_CONF);
+
         identityMain.start();
         internalSecurityClient = InternalSecurityClientFactory.getInstance().getClient();
     }
 
 
-
-    @Test(expected = InternalSecurityException.class)
-    @RunWithCustomExecutor
-    public void should_fail_when_no_valid_certificate_transmited()
-        throws LogbookClientServerException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException,
-        InvalidParseOperationException, PersonalCertificateException, CertificateException, IOException,
-        InternalSecurityException, VitamClientInternalException {
-        // Given
-        InputStream stream = getClass().getResourceAsStream("/certificate.pem");
-        byte[] certificate = toByteArray(stream);
-
-        internalSecurityClient.checkPersonalCertificate(certificate, "tt:read");
-        // When /then
-
-    }
-
-    @Test(expected = InternalSecurityException.class)
-    @RunWithCustomExecutor
-    public void should_fail_when_no_certificate_transmitted()
-        throws LogbookClientServerException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException,
-        InvalidParseOperationException, PersonalCertificateException, CertificateException, IOException,
-        InternalSecurityException, VitamClientInternalException {
-        // Given
-
-        internalSecurityClient.checkPersonalCertificate(null, "tt:read");
-        // When /then
-
+    @Before
+    public void setUp() {
+        mongoCollection = mongoClient.getDatabase(CLUSTER_NAME).getCollection(PERSONAL_COLLECTION);
+        mongoCollection.deleteMany(new Document());
     }
 
     @Test
     @RunWithCustomExecutor
-    public void should_check_valid_certificate_transmitted()
-        throws Exception {
+    public void should_fail_when_no_valid_certificate_transmitted() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/certificate.pem");
         byte[] certificate = toByteArray(stream);
+        //WHEN //THEN
+        assertThatThrownBy(
+            () -> internalSecurityClient.checkPersonalCertificate(certificate, "tt:read"))
+            .isInstanceOf(InternalSecurityException.class);
+    }
 
+    @Test
+    @RunWithCustomExecutor
+    public void should_fail_when_no_certificate_transmitted() throws Exception {
+        // When         // Then
+
+        assertThatThrownBy(
+            () -> internalSecurityClient.checkPersonalCertificate(null, "tt:read"))
+            .isInstanceOf(InternalSecurityException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_check_valid_certificate_transmitted() throws Exception {
+
+        // Given
+        should_create_certificate_transmitted();
+        InputStream stream = getClass().getResourceAsStream("/certificate.pem");
+        byte[] certificate = toByteArray(stream);
+        //when
+        internalSecurityClient.checkPersonalCertificate(certificate, "status:read");
+    }
+
+    //Admin Test resources
+    @Test
+    public void should_create_certificate_transmitted() throws Exception {
+        // Given
+        InputStream stream = getClass().getResourceAsStream("/certificate.pem");
+        byte[] certificate = toByteArray(stream);
         String url = "http://localhost:29003/v1/api/personalCertificate";
-
+        // WHEN
         HttpClient client = HttpClientBuilder.create().build();
         HttpPost post = new HttpPost(url);
         HttpEntity entity = new ByteArrayEntity(certificate);
         post.setEntity(entity);
         HttpResponse response = client.execute(post);
-
-        PersonalCertificateModel personalCertificateModel = new PersonalCertificateModel();
-        internalSecurityClient.checkPersonalCertificate(certificate, "status:read");
+        //Then
+        assertThat(response.getStatusLine().getStatusCode()).isEqualTo(204);
+        assertThat(Lists.newArrayList(mongoCollection.find()).size()).isEqualTo(1);
 
     }
 
     @Test
-    public void should_create_certificate_transmitted()
-        throws LogbookClientServerException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException,
-        InvalidParseOperationException, PersonalCertificateException, CertificateException, IOException {
+    public void should_delete_one_certificate() throws Exception {
         // Given
+
+        should_create_certificate_transmitted();
+        String url = "http://localhost:29003/v1/api/personalCertificate";
         InputStream stream = getClass().getResourceAsStream("/certificate.pem");
         byte[] certificate = toByteArray(stream);
-        ArgumentCaptor<PersonalCertificateModel> argumentCaptor = forClass(PersonalCertificateModel.class);
 
-        // When
-        ///then
+        assertThat(Lists.newArrayList(mongoCollection.find()).size()).isEqualTo(1);
+        //WHEN
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpPost delete = new HttpPost(url) {
+            @Override public String getMethod() {
+                return "DELETE";
+            }
+        };
 
-        // assertThat(argumentCaptor.getValue().getCertificateHash())
-        //  .isEqualTo("2f1062f8bf84e7eb83a0f64c98d891fbe2c811b17ffac0bce1a6dc9c7c3dcbb7");
+        HttpEntity entity = new ByteArrayEntity(certificate);
+        delete.setEntity(entity);
+        HttpResponse response = client.execute(delete);
+        //THEN
+        assertThat(response.getStatusLine().getStatusCode()).isEqualTo(204);
+        assertThat(Lists.newArrayList(mongoCollection.find()).size()).isEqualTo(0);
     }
 }

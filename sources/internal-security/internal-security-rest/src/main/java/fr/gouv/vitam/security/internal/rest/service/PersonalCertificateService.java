@@ -51,6 +51,8 @@ import fr.gouv.vitam.security.internal.rest.repository.PersonalRepository;
 import java.security.cert.CertificateException;
 import java.util.Optional;
 
+import static fr.gouv.vitam.security.internal.rest.service.ParsedCertificate.toCertificateHexString;
+
 public class PersonalCertificateService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PersonalCertificateService.class);
@@ -111,14 +113,18 @@ public class PersonalCertificateService {
     public void checkPersonalCertificateExistence(byte[] certificate, String permission)
         throws LogbookClientServerException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException,
         InvalidParseOperationException, PersonalCertificateException {
-
+        ParsedCertificate parsedCertificate;
         if (certificate == null) {
-            createNoPersonalCertificateLogbook();
+            createNoPersonalCertificateLogbook(permission);
             throw new PersonalCertificateException(NO_CERTIFICATE_MESSAGE);
         }
 
-        ParsedCertificate parsedCertificate = ParsedCertificate.parseCertificate(certificate);
-
+        try {
+            parsedCertificate = ParsedCertificate.parseCertificate(certificate);
+        } catch (PersonalCertificateException e) {
+            createInvalidPersonalCertificateLogbook(permission);
+            throw e;
+        }
         Optional<PersonalCertificateModel> model
             = personalRepository.findPersonalCertificateByHash(parsedCertificate.getCertificateHash());
 
@@ -135,7 +141,7 @@ public class PersonalCertificateService {
         throw new PersonalCertificateException(INVALID_CERTIFICATE);
     }
 
-    private void createNoPersonalCertificateLogbook()
+    private void createNoPersonalCertificateLogbook(String permission)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
         InvalidParseOperationException {
 
@@ -143,23 +149,35 @@ public class PersonalCertificateService {
 
         final ObjectNode evDetData = JsonHandler.createObjectNode();
         final ObjectNode msg = JsonHandler.createObjectNode();
-        msg.put("Certificate", "change it ");
-        msg.put("Permissions", "Change It");
+        msg.put("Certificate", "No certificate");
+        msg.put("Permission", permission);
         evDetData.set("Context", msg);
 
         final String wellFormedJson = SanityChecker.sanitizeJson(evDetData);
         logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);
+        logbookOperationsClientFactory.getClient().create(logbookParameters);
+    }
 
+    private void createInvalidPersonalCertificateLogbook(String permission)
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
+        InvalidParseOperationException {
+
+        final LogbookOperationParameters logbookParameters = getLogbookParametersKo();
+
+        final ObjectNode evDetData = JsonHandler.createObjectNode();
+        final ObjectNode msg = JsonHandler.createObjectNode();
+        msg.put("Certificate", "Invalid certificate");
+        msg.put("Permission", permission);
+        evDetData.set("Context", msg);
+        final String wellFormedJson = SanityChecker.sanitizeJson(evDetData);
+        logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);
         logbookOperationsClientFactory.getClient().create(logbookParameters);
     }
 
     private void createInvalidPersonalCertificateLogbook(ParsedCertificate parsedCertificate, String permission)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
         InvalidParseOperationException {
-
-
         final LogbookOperationParameters logbookParameters = getLogbookParametersKo();
-
         final ObjectNode evDetData = JsonHandler.createObjectNode();
         final ObjectNode msg = JsonHandler.createObjectNode();
         msg.put("CertificateSn", parsedCertificate.getX509Certificate().getSerialNumber().toString());

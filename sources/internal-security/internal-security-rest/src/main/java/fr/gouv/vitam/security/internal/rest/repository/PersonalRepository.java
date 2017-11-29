@@ -49,12 +49,12 @@ public class PersonalRepository {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PersonalRepository.class);
 
-    public static final String CERTIFICATE_COLLECTION = "PersonalCertificate";
+    public static final String PERSONAL_COLLECTION = "PersonalCertificate";
 
     private final MongoCollection<Document> personnalCollection;
 
     public PersonalRepository(MongoDbAccess mongoDbAccess) {
-        personnalCollection = mongoDbAccess.getMongoDatabase().getCollection(CERTIFICATE_COLLECTION);
+        personnalCollection = mongoDbAccess.getMongoDatabase().getCollection(PERSONAL_COLLECTION);
     }
 
     /**

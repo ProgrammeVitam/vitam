@@ -117,7 +117,7 @@ public class EndpointPersonalCertificateAuthorizationFilter implements Container
         }
     }
 
-    public boolean getIsPersonalCertificateRequired()
+    private boolean getIsPersonalCertificateRequired()
         throws VitamClientInternalException, InternalSecurityException {
 
         // A cache may be used  (later) for this call

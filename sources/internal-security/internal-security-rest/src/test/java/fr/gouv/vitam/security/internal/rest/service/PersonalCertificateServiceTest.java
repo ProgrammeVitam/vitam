@@ -5,6 +5,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.security.internal.common.model.PersonalCertificateModel;
@@ -22,6 +23,10 @@ import java.io.InputStream;
 import java.util.Optional;
 
 import static com.google.common.io.ByteStreams.toByteArray;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.*;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventType;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventTypeProcess;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.outcome;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentCaptor.forClass;
@@ -36,7 +41,27 @@ public class PersonalCertificateServiceTest {
     public static final String TEST_PERMISSION = "TEST_PERMISSION";
     public static final String CERTIFICATE_HASH = "2f1062f8bf84e7eb83a0f64c98d891fbe2c811b17ffac0bce1a6dc9c7c3dcbb7";
     public static final String CERTIFICATE_FILE = "/certificate.pem";
+    private static final String evedetData = "{\n" +
+        "  \"Context\" : {\n" +
+        "    \"CertificateSn\" : \"0\",\n" +
+        "    \"CertificateSubjectDN\" : \"EMAILADDRESS=personal-basic@thawte.com, CN=Thawte Personal Basic CA, OU=Certification Services Division, O=Thawte Consulting, L=Cape Town, ST=Western Cape, C=ZA\",\n" +
+        "    \"Permission\" : \"TEST_PERMISSION\"\n" +
+        "  }\n" +
+        "}";
 
+    private static String evedetDataNoCertificate = "{\n" +
+        "  \"Context\" : {\n" +
+        "    \"Certificate\" : \"No certificate\",\n" +
+        "    \"Permission\" : \"TEST_PERMISSION\"\n" +
+        "  }\n" +
+        "}";
+
+    private static String evedetDataInvalidCertificate = "{\n" +
+        "  \"Context\" : {\n" +
+        "    \"Certificate\" : \"Invalid certificate\",\n" +
+        "    \"Permission\" : \"TEST_PERMISSION\"\n" +
+        "  }\n" +
+        "}";
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -63,12 +88,24 @@ public class PersonalCertificateServiceTest {
     public void should_fail_to_parse_invalid_certificate()
         throws Exception {
         // Given
-        given(logbookOperationsClientFactory.getClient()).willReturn(mock(LogbookOperationsClient.class));
+        ArgumentCaptor<LogbookOperationParameters> captor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        LogbookOperationsClient logbookOperationsClient = mock(LogbookOperationsClient.class);
+        given(logbookOperationsClientFactory.getClient()).willReturn(logbookOperationsClient);
+
         // When /then
         assertThatThrownBy(
             () -> personalCertificateService.checkPersonalCertificateExistence(new byte[3], TEST_PERMISSION))
             .isInstanceOf(PersonalCertificateException.class);
-        verifyNoMoreInteractions(personalRepository, logbookOperationsClientFactory);
+        verify(logbookOperationsClient).create(captor.capture());
+
+        LogbookOperationParameters parameters = captor.getValue();
+
+        verifyNoMoreInteractions(personalRepository, logbookOperationsClient);
+        assertThat(parameters.getParameterValue(eventType)).isEqualTo("STP_PERSONAL_CERTIFICATE_CHECK");
+        assertThat(parameters.getParameterValue(eventTypeProcess)).isEqualTo("CHECK");
+        assertThat(parameters.getParameterValue(outcome)).isEqualTo("KO");
+
+        assertThat(parameters.getParameterValue(eventDetailData)).isEqualTo(evedetDataInvalidCertificate);
     }
 
     @Test
@@ -76,13 +113,23 @@ public class PersonalCertificateServiceTest {
     public void should_fail_when_no_certificate_transmitted()
         throws Exception {
         // Given
+        ArgumentCaptor<LogbookOperationParameters> captor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
         LogbookOperationsClient logbookOperationsClient = mock(LogbookOperationsClient.class);
         given(logbookOperationsClientFactory.getClient()).willReturn(logbookOperationsClient);
+
         // When /then
         assertThatThrownBy(() -> personalCertificateService.checkPersonalCertificateExistence(null, TEST_PERMISSION))
             .hasMessageContaining("No certificate transmitted");
-        verify(logbookOperationsClient).create(any(LogbookOperationParameters.class));
+        verify(logbookOperationsClient).create(captor.capture());
+        LogbookOperationParameters parameters = captor.getValue();
+
         verifyNoMoreInteractions(personalRepository, logbookOperationsClient);
+
+        assertThat(parameters.getParameterValue(eventType)).isEqualTo("STP_PERSONAL_CERTIFICATE_CHECK");
+        assertThat(parameters.getParameterValue(eventTypeProcess)).isEqualTo("CHECK");
+        assertThat(parameters.getParameterValue(outcome)).isEqualTo("KO");
+
+        assertThat(parameters.getParameterValue(eventDetailData)).isEqualTo(evedetDataNoCertificate);
     }
 
     @Test
@@ -92,6 +139,7 @@ public class PersonalCertificateServiceTest {
         // Given
         InputStream stream = getClass().getResourceAsStream(CERTIFICATE_FILE);
         byte[] certificate = toByteArray(stream);
+        ArgumentCaptor<LogbookOperationParameters> captor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
 
         LogbookOperationsClient logbookOperationsClient = mock(LogbookOperationsClient.class);
         given(logbookOperationsClientFactory.getClient()).willReturn(logbookOperationsClient);
@@ -103,8 +151,17 @@ public class PersonalCertificateServiceTest {
             .isInstanceOf(PersonalCertificateException.class).hasMessageContaining("Invalid certificate");
         verify(personalRepository)
             .findPersonalCertificateByHash(CERTIFICATE_HASH);
-        verify(logbookOperationsClient).create(any(LogbookOperationParameters.class));
+        verify(logbookOperationsClient).create(captor.capture());
+        LogbookOperationParameters parameters = captor.getValue();
+
         verifyNoMoreInteractions(personalRepository, logbookOperationsClient);
+
+        assertThat(parameters.getParameterValue(eventType)).isEqualTo("STP_PERSONAL_CERTIFICATE_CHECK");
+        assertThat(parameters.getParameterValue(eventTypeProcess)).isEqualTo("CHECK");
+        assertThat(parameters.getParameterValue(outcome)).isEqualTo("KO");
+
+        assertThat(parameters.getParameterValue(eventDetailData)).isEqualTo(evedetData);
+
     }
 
     @Test
