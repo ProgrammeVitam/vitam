@@ -89,7 +89,7 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
                     if (usageName.equals("PhysicalMaster")) {
                         continue;
                     }
-                    JsonNode storageInformation = version.get("_storage");
+                    JsonNode storageInformation = version.get("#storage");
                     final String strategy = storageInformation.get("strategyId").textValue();
                     final List<String> offerIds = new ArrayList<>();
                     for (JsonNode offerId : storageInformation.get("offerIds")) {
@@ -97,10 +97,10 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
                     }
 
                     if (!storageClient.exists(strategy, StorageCollectionType.OBJECTS,
-                        version.get("_id").asText(), offerIds)) {
+                        version.get("#id").asText(), offerIds)) {
                         nbObjectKO += 1;
                         ObjectNode objectError = JsonHandler.createObjectNode();
-                        objectError.put("IdObj", version.get("_id").textValue());
+                        objectError.put("IdObj", version.get("#id").textValue());
                         objectError.put("Usage", version.get("DataObjectVersion").textValue());
                         errors.add(objectError);
                     } else {

@@ -744,7 +744,8 @@ public class IngestInternalIT {
      * @throws Exception
      */
     private void checkUnitTree(JsonNode unit, MetaDataClient metadataClient, List<String> upIds, List<String> usIds,
-        Map<String, Integer> udsIds) throws Exception {
+        Map<String, Integer> udsIds)
+        throws Exception {
         SelectMultiQuery query = new SelectMultiQuery();
         query.setProjection(JsonHandler.getFromString("{\"$fields\": {\"Title\": 1}}"));
         // _up / # up
@@ -753,7 +754,7 @@ public class IngestInternalIT {
         assertEquals(upIds.size(), up.size());
         // Check ids
         JsonNode result;
-        for (int i = 0; i< up.size(); i++) {
+        for (int i = 0; i < up.size(); i++) {
             result = metadataClient.selectUnitbyId(query.getFinalSelectById(), up.get(i).asText());
             assertNotNull(result);
             assertNotNull(result.get("$results"));
@@ -766,7 +767,7 @@ public class IngestInternalIT {
         assertNotNull(us);
         assertEquals(usIds.size(), us.size());
         // Check ids
-        for (int i = 0; i< us.size(); i++) {
+        for (int i = 0; i < us.size(); i++) {
             result = metadataClient.selectUnitbyId(query.getFinalSelectById(), us.get(i).asText());
             assertNotNull(result);
             assertNotNull(result.get("$results"));
@@ -781,7 +782,7 @@ public class IngestInternalIT {
         // Check ids and depth
         String fieldName;
         Iterator fieldNames = uds.fieldNames();
-        while(fieldNames.hasNext()) {
+        while (fieldNames.hasNext()) {
             fieldName = (String) fieldNames.next();
             result = metadataClient.selectUnitbyId(query.getFinalSelectById(), fieldName);
             assertNotNull(result);
@@ -858,7 +859,7 @@ public class IngestInternalIT {
             select.setProjectionSliceOnQualifier();
             final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), og);
             LOGGER.warn("Result: " + jsonResponse);
-            final List<String> valuesAsText = jsonResponse.get("$results").findValuesAsText("_id");
+            final List<String> valuesAsText = jsonResponse.get("$results").findValuesAsText("#id");
             final String objectId = valuesAsText.get(0);
             final StorageClient storageClient = StorageClientFactory.getInstance().getClient();
             Response responseStorage = storageClient.getContainerAsync("default", objectId,
@@ -907,15 +908,15 @@ public class IngestInternalIT {
             SearchHit hit = elasticSearchResponse.getHits().iterator().next();
             assertNotNull(hit);
             // TODO compare
-            
+
             // lets try to update a unit that does not exist, an AccessInternalClientNotFoundException will be thrown
             try {
                 response = accessClient.updateUnitbyId(new UpdateMultiQuery().getFinalUpdate(),
                     "aedqaaaaacfscicjabgwoak7xpw5pwyaaaaq");
                 fail("should raized an exception");
             } catch (AccessInternalClientNotFoundException ex) {
-                LOGGER.error(ex + " | " +response.toString());
-            }            
+                LOGGER.error(ex + " | " + response.toString());
+            }
         } catch (final Exception e) {
             LOGGER.error(e);
             SearchResponse elasticSearchResponse =
@@ -1016,7 +1017,7 @@ public class IngestInternalIT {
             select.setProjectionSliceOnQualifier();
             final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), og);
             LOGGER.warn("Result: " + jsonResponse);
-            final List<String> valuesAsText = jsonResponse.get("$results").findValuesAsText("_id");
+            final List<String> valuesAsText = jsonResponse.get("$results").findValuesAsText("#id");
             final String objectId = valuesAsText.get(0);
             LOGGER.warn("read: " + objectId);
 

@@ -67,14 +67,14 @@ public class CheckIntegrityObjectPlugin extends ActionHandler {
                         continue;
                     }                
 
-                    JsonNode storageInformation = version.get("_storage");
+                    JsonNode storageInformation = version.get("#storage");
                     final String strategy = storageInformation.get("strategyId").textValue();
                     final List<String> offerIds = new ArrayList<>();
                     for (JsonNode offerId : storageInformation.get("offerIds")) {
                         offerIds.add(offerId.textValue());
                     }
                     
-                    JsonNode offerToMetadata = storageClient.getObjectInformation(strategy, version.get("_id").asText(), offerIds);
+                    JsonNode offerToMetadata = storageClient.getObjectInformation(strategy, version.get("#id").asText(), offerIds);
                     for (String offerId : offerIds) {
                         String digest = null;
                         JsonNode metadata = offerToMetadata.findValue(offerId);
@@ -97,7 +97,7 @@ public class CheckIntegrityObjectPlugin extends ActionHandler {
                     } else {
                         nbObjectKO += 1;
                         ObjectNode objectError = JsonHandler.createObjectNode();
-                        objectError.put("IdObj", version.get("_id").textValue());
+                        objectError.put("IdObj", version.get("#id").textValue());
                         objectError.put("Usage", version.get("DataObjectVersion").textValue());
                         errors.add(objectError);
                     }

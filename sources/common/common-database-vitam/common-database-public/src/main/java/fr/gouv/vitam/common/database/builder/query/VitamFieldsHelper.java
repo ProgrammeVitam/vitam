@@ -41,6 +41,7 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.MANAGEMENT;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.MAX;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.MIN;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.NBCHILD;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.NBOBJECTS;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.NBUNITS;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.OBJECT;
@@ -91,6 +92,13 @@ public class VitamFieldsHelper {
     public static final String nbobjects() {
         return NBOBJECTS.exactToken();
     }
+    
+    /**
+     * @return #nbc
+     */
+    public static final String nbc() {
+        return NBCHILD.exactToken();
+    }    
 
     /**
      * @return #all

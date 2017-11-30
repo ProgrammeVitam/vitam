@@ -512,6 +512,10 @@ public abstract class BuilderToken {
          */
         NBOBJECTS("nbobjects"),
         /**
+         * Number of copies or number of children
+         */
+        NBCHILD("nbc"),
+        /**
          * All Dua for the result
          */
         DUA("dua"),

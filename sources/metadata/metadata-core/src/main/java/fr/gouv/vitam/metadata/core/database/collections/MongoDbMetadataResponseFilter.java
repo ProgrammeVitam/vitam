@@ -49,7 +49,7 @@ public class MongoDbMetadataResponseFilter {
         // Empty
     }
 
-    private static final void replace(MetadataDocument<?> document, String originalFieldName, String targetFieldName) {
+    private static final void replace(Document document, String originalFieldName, String targetFieldName) {
         final Object value = document.remove(originalFieldName);
         if (value != null) {
             document.append(targetFieldName, value);
@@ -64,8 +64,8 @@ public class MongoDbMetadataResponseFilter {
      */
     public static final void filterFinalResponse(MetadataDocument<?> document) {
         final boolean isUnit = document instanceof Unit;
-        //Fix me change versions
-        //filterVersions(document);
+        // Fix me change versions
+        // filterVersions(document);
         for (final PROJECTIONARGS projection : ParserTokens.PROJECTIONARGS.values()) {
             switch (projection) {
                 case ID:
@@ -82,7 +82,7 @@ public class MongoDbMetadataResponseFilter {
                     }
                     break;
                 case STORAGE:
-                    replace(document, ObjectGroup.STORAGE, VitamFieldsHelper.storage());
+                    filterStorage(document);
                     break;
                 case OBJECT:
                     replace(document, MetadataDocument.OG, VitamFieldsHelper.object());
@@ -91,7 +91,7 @@ public class MongoDbMetadataResponseFilter {
                     replace(document, MetadataDocument.OPS, VitamFieldsHelper.operations());
                     break;
                 case QUALIFIERS:
-                    replace(document, MetadataDocument.QUALIFIERS, VitamFieldsHelper.qualifiers());
+                    filterQualifiers(document);
                     break;
                 case TYPE:
                     replace(document, MetadataDocument.TYPE, VitamFieldsHelper.type());
@@ -117,8 +117,8 @@ public class MongoDbMetadataResponseFilter {
                 case MANAGEMENT:
                     replace(document, Unit.MANAGEMENT, VitamFieldsHelper.management());
                     break;
-                case UNITTYPE :
-                   replace(document, Unit.UNIT_TYPE, VitamFieldsHelper.unitType());
+                case UNITTYPE:
+                    replace(document, Unit.UNIT_TYPE, VitamFieldsHelper.unitType());
                     break;
                 case PARENTS:
                     replace(document, Unit.PARENTS, VitamFieldsHelper.uds());
@@ -146,6 +146,37 @@ public class MongoDbMetadataResponseFilter {
         }
     }
 
+    private static final void filterStorage(MetadataDocument<?> document) {
+        if (document.get(ObjectGroup.STORAGE) != null) {
+            Object storage = ((Document) document).get(ObjectGroup.STORAGE);
+            replace((Document) storage, MetadataDocument.NBCHILD, VitamFieldsHelper.nbc());
+            replace(document, ObjectGroup.STORAGE, VitamFieldsHelper.storage());
+        }
+    }
+
+    private static final void filterQualifiers(MetadataDocument<?> document) {
+        if (document.get(MetadataDocument.QUALIFIERS) != null) {
+            replace(document, MetadataDocument.QUALIFIERS, VitamFieldsHelper.qualifiers());
+            for (Object qualifier : (List) document.get(VitamFieldsHelper.qualifiers())) {
+                replace((Document) qualifier, MetadataDocument.NBCHILD, VitamFieldsHelper.nbc());
+                List versions = ((List) ((Document) qualifier).remove(VERSION));
+                if (versions != null) {
+                    for (Object version : versions) {
+                        replace((Document) version, MetadataDocument.ID, VitamFieldsHelper.id());
+                        replace((Document) qualifier, MetadataDocument.NBCHILD, VitamFieldsHelper.nbc());
+
+                        Object storage = ((Document) version).get(ObjectGroup.STORAGE);
+                        if (storage != null) {
+                            replace((Document) storage, MetadataDocument.NBCHILD, VitamFieldsHelper.nbc());
+                            replace((Document) version, ObjectGroup.STORAGE, VitamFieldsHelper.storage());
+                        }
+                    }
+                    ((Document) qualifier).put(VERSION, versions);
+                }
+            }
+        }
+    }
+
     static void filterVersions(MetadataDocument<?> document) {
 
         if (document.get(_QUALIFIER) == null || !(document.get(_QUALIFIER) instanceof List)) {
@@ -157,7 +188,7 @@ public class MongoDbMetadataResponseFilter {
 
         }
         Document documentTmp = (Document) ((List) document.get(_QUALIFIER)).get(0);
-        
+
         if (documentTmp.get(VERSION) == null) {
             return;
         }
