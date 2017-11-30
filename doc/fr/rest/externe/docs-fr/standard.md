@@ -73,7 +73,7 @@ Vitam s'assure que l'application Front-Office ait bien l'habilitation nécessair
 
 ## Authentification Personae
 
-Certaines APIs dites "sensibles" nécessitent une authentification renforcée de l'utilisateur. L'utilisateur souhaitant avoir accès à ces API doit s'authentifier de manière forte avec un certificat X509 auprès du SIA. Ce certificat doit être passé par SIA lors de l'appel aux APIs sensisbles dans un dédié header "**X-Personal-Certificate**" (en Base64 au format PEM).
+Certaines APIs dites "sensibles" nécessitent une authentification renforcée de l'utilisateur. L'utilisateur souhaitant avoir accès à ces API doit s'authentifier de manière forte avec un certificat X509 auprès du SIA. Ce certificat doit être passé par SIA lors de l'appel aux APIs sensisbles dans un dédié header "**X-Personal-Certificate**".
 
 ## Identifiant de corrélation
 

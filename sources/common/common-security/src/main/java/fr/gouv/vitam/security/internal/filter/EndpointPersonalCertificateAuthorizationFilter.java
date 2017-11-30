@@ -28,6 +28,7 @@ package fr.gouv.vitam.security.internal.filter;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
+import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.StringUtils;
@@ -94,6 +95,9 @@ public class EndpointPersonalCertificateAuthorizationFilter implements Container
     public void filter(ContainerRequestContext requestContext) throws IOException {
 
         try {
+
+            byte[] certificate = extractPersonalCertificate(requestContext);
+
             boolean isPersonalCertificateRequired = getIsPersonalCertificateRequired();
 
             if (!isPersonalCertificateRequired) {
@@ -102,7 +106,7 @@ public class EndpointPersonalCertificateAuthorizationFilter implements Container
             }
 
             LOGGER.debug("Personal certificate check required for permission {0}", permission);
-            checkPersonalCertificate(requestContext);
+            internalSecurityClient.checkPersonalCertificate(certificate, permission);
 
         } catch (InternalSecurityException |
             VitamClientInternalException |
@@ -115,6 +119,11 @@ public class EndpointPersonalCertificateAuthorizationFilter implements Container
                     .build());
             return;
         }
+    }
+
+    private byte[] extractPersonalCertificate(ContainerRequestContext requestContext) {
+        String base64Certificate = requestContext.getHeaderString(GlobalDataRest.X_PERSONAL_CERTIFICATE);
+        return base64Certificate != null ? BaseXx.getFromBase64(base64Certificate) : null;
     }
 
     private boolean getIsPersonalCertificateRequired()
@@ -137,17 +146,6 @@ public class EndpointPersonalCertificateAuthorizationFilter implements Container
                 throw new IllegalStateException(
                     "Unexpected response " + isPersonalCertificateRequired);
         }
-    }
-
-    private void checkPersonalCertificate(ContainerRequestContext requestContext)
-        throws InternalSecurityException, VitamClientInternalException {
-
-        String headerString = requestContext.getHeaderString(GlobalDataRest.X_PERSONAL_CERTIFICATE);
-
-        byte[] certificate =
-            org.apache.commons.lang.StringUtils.isEmpty(headerString) ? null : headerString.getBytes();
-
-        internalSecurityClient.checkPersonalCertificate(certificate, permission);
     }
 
     /**

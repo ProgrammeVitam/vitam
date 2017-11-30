@@ -40,9 +40,9 @@ public class AuthorizationFilterTest {
             endpointPersonalCertificateAuthorizationFilterArgumentCaptor =
             ArgumentCaptor.forClass(EndpointPersonalCertificateAuthorizationFilter.class);
         verify(context)
-            .register(endpointAuthorizationFilterArgumentCaptor.capture(), Matchers.eq(Priorities.AUTHORIZATION));
+            .register(endpointAuthorizationFilterArgumentCaptor.capture(), Matchers.eq(Priorities.AUTHORIZATION + 10));
         verify(context).register(endpointPersonalCertificateAuthorizationFilterArgumentCaptor.capture(),
-            Matchers.eq(Priorities.AUTHORIZATION + 10));
+            Matchers.eq(Priorities.AUTHORIZATION + 20));
         verifyNoMoreInteractions(context);
         Assert.assertEquals(MY_PERMISSION, endpointAuthorizationFilterArgumentCaptor.getValue().getPermission());
         Assert.assertEquals(MY_PERMISSION,

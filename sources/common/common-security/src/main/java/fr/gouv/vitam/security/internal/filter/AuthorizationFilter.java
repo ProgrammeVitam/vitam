@@ -72,9 +72,11 @@ public class AuthorizationFilter implements DynamicFeature {
                 securedAnnotation.permission(), Secured.class.getName(),
                 resourceInfo.getResourceClass().getName(), resourceInfo.getResourceMethod().getName()));
 
+        // Must go after ExternalHeaderIdContainerFilter
         context.register(new EndpointPermissionAuthorizationFilter(securedAnnotation.permission()),
-            Priorities.AUTHORIZATION);
-        context.register(new EndpointPersonalCertificateAuthorizationFilter(securedAnnotation.permission()),
             Priorities.AUTHORIZATION + 10);
+        // Must go after EndpointPermissionAuthorizationFilter
+        context.register(new EndpointPersonalCertificateAuthorizationFilter(securedAnnotation.permission()),
+            Priorities.AUTHORIZATION + 20);
     }
 }

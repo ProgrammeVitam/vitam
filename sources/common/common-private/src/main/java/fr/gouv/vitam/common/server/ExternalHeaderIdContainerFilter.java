@@ -28,14 +28,19 @@ package fr.gouv.vitam.common.server;
 
 import java.io.IOException;
 
+import javax.annotation.Priority;
+import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
+import javax.ws.rs.container.PreMatching;
 
 /**
  * Manage the headers from the server-side perspective.
  */
+@PreMatching
+@Priority(Priorities.AUTHENTICATION)
 public class ExternalHeaderIdContainerFilter implements ContainerRequestFilter, ContainerResponseFilter  {
 
     /**

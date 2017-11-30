@@ -1,5 +1,6 @@
 package fr.gouv.vitam.security.internal.filter;
 
+import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.security.internal.client.InternalSecurityClient;
 import fr.gouv.vitam.security.internal.common.exception.InternalSecurityException;
@@ -29,8 +30,8 @@ import static org.mockito.Mockito.when;
 public class EndpointPersonalCertificateAuthorizationFilterTest {
 
     private static final String PERMISSION = "PERMISSION";
-    private static final String CERTIFICATE_HEADER = "TEST";
-    private static final byte[] CERTIFICATE = CERTIFICATE_HEADER.getBytes();
+    private static final byte[] CERTIFICATE = "TEST".getBytes();
+    private static final String BASE64_CERTIFICATE = BaseXx.getBase64(CERTIFICATE);
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
@@ -63,6 +64,7 @@ public class EndpointPersonalCertificateAuthorizationFilterTest {
         assertThatThrownBy(() -> instance.filter(context)).isInstanceOf(IllegalStateException.class);
 
         verify(internalSecurityClient).isPersonalCertificateRequiredByPermission(PERMISSION);
+        verify(context).getHeaderString(GlobalDataRest.X_PERSONAL_CERTIFICATE);
     }
 
     @Test
@@ -74,6 +76,7 @@ public class EndpointPersonalCertificateAuthorizationFilterTest {
         instance.filter(context);
 
         verify(internalSecurityClient).isPersonalCertificateRequiredByPermission(PERMISSION);
+        verify(context).getHeaderString(GlobalDataRest.X_PERSONAL_CERTIFICATE);
     }
 
     @Test
@@ -81,7 +84,7 @@ public class EndpointPersonalCertificateAuthorizationFilterTest {
 
         when(internalSecurityClient.isPersonalCertificateRequiredByPermission(PERMISSION))
             .thenReturn(new IsPersonalCertificateRequiredModel(REQUIRED_PERSONAL_CERTIFICATE));
-        when(context.getHeaderString(GlobalDataRest.X_PERSONAL_CERTIFICATE)).thenReturn(CERTIFICATE_HEADER);
+        when(context.getHeaderString(GlobalDataRest.X_PERSONAL_CERTIFICATE)).thenReturn(BASE64_CERTIFICATE);
         doNothing().when(internalSecurityClient).checkPersonalCertificate(eq(CERTIFICATE), eq(PERMISSION));
 
         instance.filter(context);
@@ -96,7 +99,7 @@ public class EndpointPersonalCertificateAuthorizationFilterTest {
 
         when(internalSecurityClient.isPersonalCertificateRequiredByPermission(PERMISSION))
             .thenReturn(new IsPersonalCertificateRequiredModel(REQUIRED_PERSONAL_CERTIFICATE));
-        when(context.getHeaderString(GlobalDataRest.X_PERSONAL_CERTIFICATE)).thenReturn(CERTIFICATE_HEADER);
+        when(context.getHeaderString(GlobalDataRest.X_PERSONAL_CERTIFICATE)).thenReturn(BASE64_CERTIFICATE);
         doThrow(InternalSecurityException.class).when(internalSecurityClient)
             .checkPersonalCertificate(eq(CERTIFICATE), eq(PERMISSION));
 
