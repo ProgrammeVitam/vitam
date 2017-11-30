@@ -880,11 +880,24 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     public void updateLogbookLifeCycleObjectGroup(String idOperation,
         LogbookLifeCycleObjectGroupParameters lifecycleItem)
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException {
+        updateLogbookLifeCycleObjectGroup(idOperation, lifecycleItem, false);
+    }
+
+    @Override
+    public void updateLogbookLifeCycleObjectGroup(String idOperation,
+                                                  LogbookLifeCycleObjectGroupParameters lifecycleItem,
+                                                  boolean commit)
+            throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException {
         if (!lifecycleItem.getParameterValue(LogbookParameterName.eventIdentifierProcess).equals(idOperation)) {
             throw new IllegalArgumentException("Wrong IdOperation set to update the LifeCycle");
         }
 
-        updateLogbookLifeCycle(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS, lifecycleItem);
+        if(commit) {
+            updateLogbookLifeCycle(LogbookCollections.LIFECYCLE_OBJECTGROUP, lifecycleItem);
+        } 
+        else {
+            updateLogbookLifeCycle(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS, lifecycleItem);
+        }
     }
 
     final void rollbackLogbookLifeCycle(LogbookCollections collection, String idOperation, String lifecycleItem)

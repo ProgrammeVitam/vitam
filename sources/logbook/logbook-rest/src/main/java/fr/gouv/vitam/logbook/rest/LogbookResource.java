@@ -1263,8 +1263,13 @@ public class LogbookResource extends ApplicationStatusResource {
                  */
                 logbookLifeCycle.updateObjectGroup(operationId, objGrpId, parameters);
             } else {
-                // Commit the given objectGroup lifeCycle
-                logbookLifeCycle.commitObjectGroup(operationId, objGrpId);
+                if(parameters.getMapParameters().isEmpty()){
+                    // Commit the given objectGroup lifeCycle
+                    logbookLifeCycle.commitObjectGroup(operationId, objGrpId); 
+                } else {
+                    // Update the already committed lifeCycle
+                    logbookLifeCycle.updateObjectGroup(operationId, objGrpId, parameters, true);
+                }
             }
         } catch (final LogbookNotFoundException exc) {
             LOGGER.error(exc);

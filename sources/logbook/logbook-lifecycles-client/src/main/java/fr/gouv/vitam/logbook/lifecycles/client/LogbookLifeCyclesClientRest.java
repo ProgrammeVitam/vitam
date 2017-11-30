@@ -141,25 +141,34 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     @Override
     public void update(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
+        update(parameters, null);
+    }
+
+    @Override
+    public void update(LogbookLifeCycleParameters parameters, LifeCycleStatusCode lifeCycleStatusCode)
+            throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier,
-            SERVER_IDENTITY.getJsonIdentity());
+                SERVER_IDENTITY.getJsonIdentity());
         if (parameters.getParameterValue(LogbookParameterName.eventDateTime) == null) {
             parameters.putParameterValue(LogbookParameterName.eventDateTime,
-                LocalDateUtil.now().toString());
+                    LocalDateUtil.now().toString());
         }
         ParameterHelper
-            .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
+                .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         final String eip = parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
         final String oid = parameters.getParameterValue(LogbookParameterName.objectIdentifier);
 
         // Add X-EVENT-STATUS header
-        MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        headers.add(GlobalDataRest.X_EVENT_STATUS, LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS.toString());
-
+        MultivaluedHashMap<String, Object> headers = null;
+        if(lifeCycleStatusCode != null) {
+            headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_EVENT_STATUS, lifeCycleStatusCode.toString());
+        }
+        
         Response response = null;
         try {
             response = performRequest(HttpMethod.PUT, getServiceUrl(parameters, eip, oid), headers,
-                parameters, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+                    parameters, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
@@ -171,7 +180,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
                 case BAD_REQUEST:
                     LOGGER.error(eip + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
                     throw new LogbookClientBadRequestException(
-                        ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                            ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
                 default:
                     LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
                     throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());

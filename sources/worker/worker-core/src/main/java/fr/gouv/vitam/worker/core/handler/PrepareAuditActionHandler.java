@@ -185,9 +185,7 @@ public class PrepareAuditActionHandler extends ActionHandler {
             }
         }
     }
-
-
-
+    
     private List<String> listOriginatingAgency(ArrayNode originatingAgencyEmpty, String objectId)
         throws AccessUnauthorizedException, InvalidParseOperationException, ReferentialException,
         InvalidCreateOperationException {

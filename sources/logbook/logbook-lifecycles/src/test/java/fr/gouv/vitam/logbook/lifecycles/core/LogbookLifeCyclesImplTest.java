@@ -27,6 +27,7 @@
 package fr.gouv.vitam.logbook.lifecycles.core;
 
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 
 import org.junit.Before;
@@ -176,6 +177,15 @@ public class LogbookLifeCyclesImplTest {
         logbookLifeCyclesImpl.updateObjectGroup(iop.toString(), ioL.toString(), logbookLCOGParameters);
     }
 
+    @Test(expected = LogbookDatabaseException.class)
+    public void givenUpdateAndCommitLCOGWhenErrorInMongoThenThrowLogbookException() throws Exception {
+        Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess)
+                .updateLogbookLifeCycleObjectGroup(anyObject(), anyObject(), eq(true));
+
+        logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
+        logbookLifeCyclesImpl.updateObjectGroup(iop.toString(), ioL.toString(), logbookLCOGParameters, true);
+    }
+
     @Test(expected = LogbookAlreadyExistsException.class)
     public void givenCreateLCOGWhenLCOGAlreadyExistsThenThrowLogbookException() throws Exception {
         Mockito.doThrow(LogbookAlreadyExistsException.class).when(mongoDbAccess)
@@ -192,6 +202,15 @@ public class LogbookLifeCyclesImplTest {
 
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         logbookLifeCyclesImpl.updateObjectGroup(iop.toString(), ioL.toString(), logbookLCOGParameters);
+    }
+
+    @Test(expected = LogbookNotFoundException.class)
+    public void givenUpdateAndCommitOGLCWhenOGLCNotExistsThenThrowLogbookException() throws Exception {
+        Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess)
+                .updateLogbookLifeCycleObjectGroup(anyObject(), anyObject(), eq(true));
+
+        logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
+        logbookLifeCyclesImpl.updateObjectGroup(iop.toString(), ioL.toString(), logbookLCOGParameters, true);
     }
 
     @Test(expected = LogbookNotFoundException.class)

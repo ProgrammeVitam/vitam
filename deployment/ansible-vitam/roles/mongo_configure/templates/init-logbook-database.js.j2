@@ -9,8 +9,10 @@ db.LogbookOperation.createIndex( { "_tenant" : 1 , "evDateTime" : 1 , "evTypePro
 db.LogbookOperation.createIndex( { "_tenant" : 1 , "events.evType" : 1 } )
 db.LogbookOperation.createIndex( { "_tenant" : 1 , "evIdProc" : 1 } )
 
-db.LogbookLifeCycleUnit.createIndex( { "_id" : 1 , "_tenant" : 1 , "evIdProc" : 1 , "events.evIdProc" : 1 } )
-db.LogbookLifeCycleUnit.createIndex( {             "_tenant" : 1 , "obId" : 1 } )
+//db.LogbookLifeCycleUnit.createIndex( { "_id" : 1 , "_tenant" : 1 , "evIdProc" : 1 , "events.evIdProc" : 1 } )
+db.LogbookLifeCycleUnit.createIndex( { "_tenant" : 1 , "events.evIdProc" : 1 } )
+db.LogbookLifeCycleUnit.createIndex( { "_tenant" : 1 , "obId" : 1 } )
 
-db.LogbookLifeCycleObjectGroup.createIndex( { "_id" : 1 , "_tenant" : 1 , "evIdProc" : 1 , "events.evIdProc" : 1 , "_tenant" : 1 } )
-db.LogbookLifeCycleObjectGroup.createIndex( {             "_tenant" : 1 , "obId" : 1 } )
+//db.LogbookLifeCycleObjectGroup.createIndex( { "_id" : 1 , "_tenant" : 1 , "evIdProc" : 1 , "events.evIdProc" : 1 , "_tenant" : 1 } )
+db.LogbookLifeCycleObjectGroup.createIndex( { "_tenant" : 1 , "events.evIdProc" : 1 } )
+db.LogbookLifeCycleObjectGroup.createIndex( { "_tenant" : 1 , "obId" : 1 } )
