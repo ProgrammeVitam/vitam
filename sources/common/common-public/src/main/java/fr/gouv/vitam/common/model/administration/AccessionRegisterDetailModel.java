@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.model.ModelConstants;
 /**
  * POJO java use for mapping @{@link fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail}
  */
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class AccessionRegisterDetailModel {
 
     /**
@@ -129,7 +130,7 @@ public class AccessionRegisterDetailModel {
     private List<String> operationsIds;
 
     @JsonProperty("Symbolic")
-    private boolean symbolic;
+    private Boolean symbolic;
 
     /**
      * Constructor without fields use for jackson
@@ -395,7 +396,7 @@ public class AccessionRegisterDetailModel {
      * @param symbolic specify if a detail is a main detail or a symbolic detail.
      * @return
      */
-    public AccessionRegisterDetailModel setSymbolic(boolean symbolic) {
+    public AccessionRegisterDetailModel setSymbolic(Boolean symbolic) {
         this.symbolic = symbolic;
         return this;
     }
@@ -403,7 +404,7 @@ public class AccessionRegisterDetailModel {
     /**
      * @return symbolic
      */
-    public boolean isSymbolic() {
+    public Boolean isSymbolic() {
         return symbolic;
     }
 }
