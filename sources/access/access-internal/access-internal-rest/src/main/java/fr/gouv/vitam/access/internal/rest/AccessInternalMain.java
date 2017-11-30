@@ -16,7 +16,7 @@ import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 public class AccessInternalMain {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalMain.class);
 
-    private static final String CONF_FILE_NAME = "access-external.conf";
+    private static final String CONF_FILE_NAME = "access-internal.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
     private VitamStarter vitamStarter;
     

@@ -47,7 +47,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
@@ -55,8 +54,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -108,7 +105,6 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.ihmdemo.common.pagination.PaginationHelper;
-import fr.gouv.vitam.ihmdemo.common.utils.PermissionReader;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UiConstants;
@@ -148,7 +144,7 @@ public class WebApplicationResourceTest {
     private static final String INGEST_URI = "/ingests";
     private static JunitHelper junitHelper;
     private static int port;
-    private static ServerApplication application;
+    private static IhmDemoMain application;
     private static final List<Integer> tenants = new ArrayList<>();
 
     private static final String TRACEABILITY_CHECK_URL = "traceability/check";
@@ -161,6 +157,7 @@ public class WebApplicationResourceTest {
     private static final String LAST_UPDATE_FIELD_QUERY = "LastUpdate";
     private static final String NAME_FIELD_QUERY = "Name";
     private static final String ADMIN_EXTERNAL_MODULE = "AdminExternalModule";
+    private static final String IHM_DEMO_CONF = "ihm-demo.conf";
 
     @BeforeClass
     public static void setup() throws Exception {
@@ -171,21 +168,16 @@ public class WebApplicationResourceTest {
 
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
         final WebApplicationConfig webApplicationConfig =
-            (WebApplicationConfig) new WebApplicationConfig().setPort(port).setBaseUrl(DEFAULT_WEB_APP_CONTEXT)
-                .setServerHost(DEFAULT_HOST).setStaticContent(DEFAULT_STATIC_CONTENT)
-                .setBaseUri(DEFAULT_WEB_APP_CONTEXT)
+            (WebApplicationConfig) new WebApplicationConfig().setPort(port)
+                .setServerHost(DEFAULT_HOST)
+                .setBaseUrl(DEFAULT_WEB_APP_CONTEXT)
+                .setStaticContent(DEFAULT_STATIC_CONTENT).setBaseUri(DEFAULT_WEB_APP_CONTEXT)
                 .setStaticContentV2(DEFAULT_STATIC_CONTENT_V2).setBaseUriV2(DEFAULT_WEB_APP_CONTEXT_V2)
-                .setSecure(false)
-                .setSipDirectory(Thread.currentThread().getContextClassLoader().getResource(SIP_DIRECTORY).getPath())
                 .setJettyConfig(JETTY_CONFIG).setTenants(tenants);
-        application = new ServerApplication(webApplicationConfig) {
-            @Override
-            protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-                Set<String> permissions =
-                    PermissionReader.getMethodsAnnotatedWith(WebApplicationResource.class, RequiresPermissions.class);
-                resourceConfig.register(new WebApplicationResource(getConfiguration(), permissions));
-            }
-        };
+        final File conf = PropertiesUtils.findFile(IHM_DEMO_CONF);
+        final File newConf = File.createTempFile("test", IHM_DEMO_CONF, conf.getParentFile());
+        PropertiesUtils.writeYaml(newConf, webApplicationConfig);
+        application = new IhmDemoMain(newConf.getAbsolutePath());
         application.start();
         RestAssured.port = port;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";

@@ -162,6 +162,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
  * Web Application Resource class
  */
 @Path("/v1/api")
+@javax.ws.rs.ApplicationPath("webresources")
 public class WebApplicationResource extends ApplicationStatusResource {
 
     private static final String CONTENT_TYPE = "Content-Type";
@@ -247,7 +248,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
         final List<String> requestIds = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.REQUEST_ID.name());
         Integer tenantId = getTenantId(headers);
-        if (requestIds != null) {
+        if (!requestIds.isEmpty()) {
             requestId = requestIds.get(0);
             // get result from shiro session
             try {
@@ -368,7 +369,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         final List<String> requestIds = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.REQUEST_ID.name());
         Integer tenantId = getTenantId(headers);
         String contractId = getAccessContractId(headers);
-        if (requestIds != null) {
+        if (!requestIds.isEmpty()) {
             requestId = requestIds.get(0);
             // get result from shiro session
             try {
@@ -1131,7 +1132,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         final List<String> requestIds = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.REQUEST_ID.name());
         Integer tenantId = getTenantId(headers);
 
-        if (requestIds != null) {
+        if (!requestIds.isEmpty()) {
             requestId = requestIds.get(0);
             // get result from shiro session
             try {
@@ -1279,8 +1280,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("rules:create")
     public void checkRefRule(@Context HttpHeaders headers, InputStream input,
         @Suspended final AsyncResponse asyncResponse) {
+        int tenant = getTenantId(headers);
         VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> asyncDownloadErrorReport(input, getTenantId(headers), asyncResponse));
+            .execute(() -> asyncDownloadErrorReport(input, tenant, asyncResponse));
     }
 
 
@@ -1379,7 +1381,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         final List<String> requestIds = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.REQUEST_ID.name());
         Integer tenantId = getTenantId(headers);
         String contractName = headers.getHeaderString(GlobalDataRest.X_ACCESS_CONTRAT_ID);
-        if (requestIds != null) {
+        if (!requestIds.isEmpty()) {
             requestId = requestIds.get(0);
             // get result from shiro session
             try {

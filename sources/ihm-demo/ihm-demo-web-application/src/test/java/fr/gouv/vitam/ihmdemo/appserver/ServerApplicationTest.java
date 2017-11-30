@@ -23,11 +23,11 @@ public class ServerApplicationTest {
 
     @Test(expected = IllegalStateException.class)
     public void givenEmptyArgsWhenConfigureApplicationOThenRaiseAnException() throws Exception {
-        new ServerApplication("src/test/resources/notFound.conf");
+        new IhmDemoMain("src/test/resources/notFound.conf");
     }
 
     @Test
-    public void givenFileAlreadyExistsWhenConfigureApplicationOThenRunServer() throws Exception {
+    public void givenFileAlreadyExistsWhenConfigureApplicationThenRunServer() throws Exception {
         final JunitHelper junitHelper = JunitHelper.getInstance();
         final int port = junitHelper.findAvailablePort();
         final File conf = PropertiesUtils.findFile(IHM_DEMO_CONF);
@@ -35,7 +35,7 @@ public class ServerApplicationTest {
         config.setPort(port);
         final File newConf = File.createTempFile("test", IHM_DEMO_CONF, conf.getParentFile());
         PropertiesUtils.writeYaml(newConf, config);
-        new ServerApplication(newConf.getAbsolutePath());
+        new IhmDemoMain(newConf.getAbsolutePath());
         newConf.delete();
         junitHelper.releasePort(port);
     }
@@ -49,7 +49,7 @@ public class ServerApplicationTest {
         config.setPort(port);
         final File newConf = File.createTempFile("test", IHM_DEMO_CONF, conf.getParentFile());
         PropertiesUtils.writeYaml(newConf, config);
-        final ServerApplication application = new ServerApplication(newConf.getAbsolutePath());
+        final IhmDemoMain application = new IhmDemoMain(newConf.getAbsolutePath());
         application.start();
         RestAssured.port = port;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
@@ -67,27 +67,17 @@ public class ServerApplicationTest {
         final WebApplicationConfig config = PropertiesUtils.readYaml(conf, WebApplicationConfig.class);
         final File newConf = File.createTempFile("test", IHM_DEMO_CONF_NO_PORT, conf.getParentFile());
         PropertiesUtils.writeYaml(newConf, config);
-        new ServerApplication(newConf.getAbsolutePath());
+        new IhmDemoMain(newConf.getAbsolutePath());
         newConf.delete();
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void givenNullArgumentWhenConfigureApplicationOThenRunServerWithDefaultParms() throws Exception {
-        new ServerApplication((String) null);
+    @Test(expected = Exception.class)
+    public void givenNullArgumentWhenConfigureApplicationThenRunServerWithDefaultParms() throws Exception {
+        new IhmDemoMain((String) null);
     }
 
     @Test
     public void givenConfigFileFailedWhenConfigureApplicationThenRaiseAnException() throws Exception {
-        new ServerApplication("ihm-demo-test-noPort.conf");
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void givenConfigFileWithoutJettyConfigThenRaiseAnException() throws Exception {
-        new ServerApplication(new WebApplicationConfig());
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void givenConfigFileWithoutConfigThenRaiseAnException() throws Exception {
-        new ServerApplication((WebApplicationConfig) null);
+        new IhmDemoMain("ihm-demo-test-noPort.conf");
     }
 }

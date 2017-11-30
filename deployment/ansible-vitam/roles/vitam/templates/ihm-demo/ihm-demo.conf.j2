@@ -9,5 +9,4 @@ baseUriV2: /{{vitam_struct.baseuri_v2}}
 
 jettyConfig: jetty-config.xml
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
-secure: true
-sipDirectory: {{vitam_folder_data}}
+authentication: true

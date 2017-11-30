@@ -115,6 +115,56 @@ public class VitamServerTest {
             return this;
         }
 
+        @Override
+        public String getBaseUrl() {
+            return null;
+        }
+
+        @Override
+        public VitamApplicationConfigurationInterface setBaseUrl(String baseUrl) {
+            return this;
+        }
+
+        @Override
+        public String getStaticContent() {
+            return null;
+        }
+
+        @Override
+        public VitamApplicationConfigurationInterface setStaticContent(String staticContent) {
+            return this;
+        }
+
+        @Override
+        public String getStaticContentV2() {
+            return null;
+        }
+
+        @Override
+        public VitamApplicationConfigurationInterface setStaticContentV2(String staticContentV2) {
+            return this;
+        }
+
+        @Override
+        public String getBaseUri() {
+            return null;
+        }
+
+        @Override
+        public VitamApplicationConfigurationInterface setBaseUri(String baseUri) {
+            return this;
+        }
+
+        @Override
+        public String getBaseUriV2() {
+            return null;
+        }
+
+        @Override
+        public VitamApplicationConfigurationInterface setBaseUriV2(String baseUriV2) {
+            return this;
+        }
+
     }
     private static abstract class ApplicationAbstractTest<A extends VitamApplicationInterface<A, C>, C extends VitamApplicationConfigurationInterface>
         implements VitamApplicationInterface<A, C> {

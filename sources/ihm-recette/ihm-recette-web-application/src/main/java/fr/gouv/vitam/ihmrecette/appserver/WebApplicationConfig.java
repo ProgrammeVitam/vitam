@@ -82,8 +82,9 @@ public class WebApplicationConfig extends MetaDataConfiguration {
     /**
      * @param baseUrl the base url
      */
-    public void setBaseUrl(String baseUrl) {
+    public WebApplicationConfig setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
+        return this;
     }
 
     /**
@@ -96,8 +97,9 @@ public class WebApplicationConfig extends MetaDataConfiguration {
     /**
      * @param staticContent static content from server
      */
-    public void setStaticContent(String staticContent) {
+    public WebApplicationConfig setStaticContent(String staticContent) {
         this.staticContent = staticContent;
+        return this;
     }
 
     /**

@@ -24,37 +24,89 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.ihmdemo.appserver;
+package fr.gouv.vitam.common.server.application.configuration;
 
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamIHMApplicationConfiguration;
+import fr.gouv.vitam.common.ParametersChecker;
+
+import java.util.List;
 
 /**
- * Web Application Configuration class
+ * Default minimal for Vitam IHM Application Configuration
  */
-public class WebApplicationConfig extends DefaultVitamIHMApplicationConfiguration {
+public abstract class DefaultVitamIHMApplicationConfiguration extends DefaultVitamApplicationConfiguration {
 
-    private String staticContentV2;
-    private String baseUriV2;
+    private String baseUrl;
+    private String staticContent;
+    private String baseUri;
 
-    @Override
-    public String getStaticContentV2() {
-        return staticContentV2;
+    private int port;
+    private String serverHost;
+
+    /**
+     * @return port
+     */
+    public int getPort() {
+        return port;
     }
 
-    @Override
-    public WebApplicationConfig setStaticContentV2(String staticContentV2) {
-        this.staticContentV2 = staticContentV2;
+    /**
+     * @param port port of the web application
+     * @return WebApplicationConfig
+     */
+    public DefaultVitamIHMApplicationConfiguration setPort(int port) {
+        ParametersChecker.checkParameter("port is mandatory", port);
+        this.port = port;
+        return this;
+    }
+
+    /**
+     * @return serverHost
+     */
+    public String getServerHost() {
+        return serverHost;
+    }
+
+    /**
+     * @param serverHost server host of the web application
+     * @return WebApplicationConfig
+     */
+    public DefaultVitamIHMApplicationConfiguration setServerHost(String serverHost) {
+        ParametersChecker.checkParameter("serverHost is mandatory", serverHost);
+        this.serverHost = serverHost;
         return this;
     }
 
     @Override
-    public String getBaseUriV2() {
-        return baseUriV2;
+    public String getBaseUrl() {
+        return baseUrl;
     }
 
     @Override
-    public WebApplicationConfig setBaseUriV2(String baseUriV2) {
-        this.baseUriV2 = baseUriV2;
+    public VitamApplicationConfiguration setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
         return this;
     }
+
+    @Override
+    public String getStaticContent() {
+        return staticContent;
+    }
+
+    @Override
+    public VitamApplicationConfiguration setStaticContent(String staticContent) {
+        this.staticContent = staticContent;
+        return this;
+    }
+
+    @Override
+    public String getBaseUri() {
+        return baseUri;
+    }
+
+    @Override
+    public VitamApplicationConfiguration setBaseUri(String baseUri) {
+        this.baseUri = baseUri;
+        return this;
+    }
+
 }

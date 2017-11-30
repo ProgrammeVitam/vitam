@@ -76,7 +76,7 @@ public interface VitamApplicationConfigurationInterface {
      *
      * @return this
      */
-    public VitamApplicationConfigurationInterface setAuthentication(boolean authentication);
+    VitamApplicationConfigurationInterface setAuthentication(boolean authentication);
 
     /**
      * getter tenantFilter
@@ -85,11 +85,18 @@ public interface VitamApplicationConfigurationInterface {
      */
     boolean isTenantFilter();
 
-    /**
-     * @param tenantFilter the tenantFilter to set
-     *
-     * @return this
-     */
-    public VitamApplicationConfigurationInterface setTenantFilter(boolean tenantFilter);
+    VitamApplicationConfigurationInterface setTenantFilter(boolean tenantFilter);
+    
+    default String getBaseUrl() { return null; }
+    default String getStaticContent() { return null; }
+    default String getStaticContentV2() { return null; }
+    default String getBaseUri() { return null; }
+    default String getBaseUriV2() { return null; }
+
+    default VitamApplicationConfigurationInterface setBaseUrl(String baseUrl) { return this; }
+    default VitamApplicationConfigurationInterface setStaticContent(String staticContent) { return this; }
+    default VitamApplicationConfigurationInterface setStaticContentV2(String staticContentV2) { return this; }
+    default VitamApplicationConfigurationInterface setBaseUri(String baseUri) { return this; }
+    default VitamApplicationConfigurationInterface setBaseUriV2(String baseUriV2) { return this; }
 
 }
