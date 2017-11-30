@@ -119,7 +119,6 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
         } catch (final InvalidParseOperationException e) {
             throw new ProcessingException("Json wrong format", e);
         }
-
     }
 
     @Override
