@@ -52,9 +52,7 @@
     ],
     "_v" : 1,
     "_storage" : {
-        "_nbc" : [ 
-            1
-        ],
+        "_nbc" : 1,
         "strategyId" : "default",
         "offerIds" : [ 
             "localhost"

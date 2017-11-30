@@ -124,9 +124,7 @@
         "FR_ORG_AGEN"
       ],
       "#storage": {
-        "_nbc": [
-          1
-        ],
+        "_nbc":1,
         "strategyId": "default-fake",
         "offerIds": [
           "fakeOfferId"

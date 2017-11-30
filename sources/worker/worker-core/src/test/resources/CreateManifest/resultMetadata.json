@@ -43,9 +43,7 @@
         "FRAN_NP_005568"
       ],
       "#storage": {
-        "_nbc": [
-          1
-        ],
+        "_nbc":1,
         "strategyId": "default-fake",
         "offerIds": [
           "fakeOfferId"
@@ -88,9 +86,7 @@
         "FRAN_NP_005568"
       ],
       "#storage": {
-        "_nbc": [
-          1
-        ],
+        "_nbc": 1,
         "strategyId": "default-fake",
         "offerIds": [
           "fakeOfferId"
@@ -127,9 +123,7 @@
         "FRAN_NP_005568"
       ],
       "#storage": {
-        "_nbc": [
-          1
-        ],
+        "_nbc":1,
         "strategyId": "default-fake",
         "offerIds": [
           "fakeOfferId"
@@ -172,9 +166,7 @@
         "FRAN_NP_005568"
       ],
       "#storage": {
-        "_nbc": [
-          1
-        ],
+        "_nbc":1,
         "strategyId": "default-fake",
         "offerIds": [
           "fakeOfferId"

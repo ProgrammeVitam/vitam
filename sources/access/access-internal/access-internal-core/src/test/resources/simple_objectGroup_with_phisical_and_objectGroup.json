@@ -96,9 +96,7 @@
     "FRAN_NP_050056"
   ],
   "#storage": {
-    "_nbc": [
-      1
-    ],
+    "_nbc":1,
     "strategyId": "default",
     "offerIds": [
       "localhost"

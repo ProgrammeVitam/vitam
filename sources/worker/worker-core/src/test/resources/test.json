@@ -137,9 +137,7 @@
     "Vitam"
   ],
   "#storage": {
-    "_nbc": [
-      1
-    ],
+    "_nbc":1,
     "offerIds": [
       "localhost"
     ],

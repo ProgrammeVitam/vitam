@@ -61,9 +61,7 @@
         "FRAN_NP_005568"
       ],
       "#storage": {
-        "_nbc": [
-          1
-        ],
+        "_nbc": 1,
         "offerIds": [
           "fakeOfferId"
         ],
@@ -124,9 +122,7 @@
         "FRAN_NP_005568"
       ],
       "#storage": {
-        "_nbc": [
-          1
-        ],
+        "_nbc":1,
         "offerIds": [
           "fakeOfferId"
         ],
@@ -187,9 +183,7 @@
         "FRAN_NP_005568"
       ],
       "#storage": {
-        "_nbc": [
-          1
-        ],
+        "_nbc":1,
         "offerIds": [
           "fakeOfferId"
         ],
