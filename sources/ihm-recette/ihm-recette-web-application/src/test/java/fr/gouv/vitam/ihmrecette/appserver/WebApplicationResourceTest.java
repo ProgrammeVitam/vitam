@@ -79,7 +79,7 @@ public class WebApplicationResourceTest {
 
     final int TENANT_ID = 0;
 
-    private static ServerApplicationWithoutMongo application;
+    private static IhmRecetteMainWithoutMongo application;
 
     private static File adminConfigFile;
 
@@ -92,7 +92,7 @@ public class WebApplicationResourceTest {
         final WebApplicationConfig realAdminConfig =
             PropertiesUtils.readYaml(adminConfig, WebApplicationConfig.class);
         realAdminConfig.setSipDirectory(Thread.currentThread().getContextClassLoader().getResource("sip").getPath());
-        realAdminConfig.setSecure(false);
+        realAdminConfig.setAuthentication(false);
         adminConfigFile = File.createTempFile("test", "ihm-recette.conf", adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 
@@ -102,7 +102,7 @@ public class WebApplicationResourceTest {
         sampleLogbookOperation = JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_LOGBOOKOPERATION_FILENAME));
 
         try {
-            application = new ServerApplicationWithoutMongo(adminConfigFile.getAbsolutePath());
+            application = new IhmRecetteMainWithoutMongo(adminConfigFile.getAbsolutePath());
             application.start();
             JunitHelper.unsetJettyPortSystemProperty();
         } catch (final VitamApplicationServerException e) {

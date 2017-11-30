@@ -117,10 +117,11 @@ public class WebApplicationResourceDeleteTest {
     private static final String SECURITY_PROFIL_NAME = "Name";
     private static final String SECURITY_PROFIL_NAME_TO_SAVE = "admin-security-profile";
     // Take it from conf file
-    private static final String DEFAULT_WEB_APP_CONTEXT = "/test-admin";
+    private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-recette";
     private static final String CREDENTIALS = "{\"token\": {\"principal\": \"myName\", \"credentials\": \"myName\"}}";
     private static final String CREDENTIALS_NO_VALID =
         "{\"token\": {\"principal\": \"myName\", \"credentials\": \"myName\"}}";
+    private static final String IHM_RECETTE_CONF = "ihm-recette.conf";
     private static JunitHelper junitHelper;
     private static int serverPort;
     private static int databasePort;
@@ -133,7 +134,7 @@ public class WebApplicationResourceDeleteTest {
     private static LogbookMongoDbAccessImpl mongoDbAccessLogbook;
     private static MongoDbAccessMetadataImpl mongoDbAccessMetadata;
 
-    private static ServerApplication application;
+    private static IhmRecetteMain application;
 
     private static JunitHelper.ElasticsearchTestConfiguration config = null;
     private final static String CLUSTER_NAME = "vitam-cluster";
@@ -168,11 +169,11 @@ public class WebApplicationResourceDeleteTest {
             PropertiesUtils.readYaml(adminConfig, WebApplicationConfig.class);
         realAdminConfig.getMongoDbNodes().get(0).setDbPort(databasePort);
         realAdminConfig.setBaseUrl(DEFAULT_WEB_APP_CONTEXT);
-        realAdminConfig.setSecure(false);
+        realAdminConfig.setAuthentication(false);
         realAdminConfig.setClusterName(CLUSTER_NAME);
         realAdminConfig.setTenants(tenantList);
         realAdminConfig.getElasticsearchNodes().get(0).setTcpPort(config.getTcpPort());
-        adminConfigFile = File.createTempFile("test", "ihm-recette.conf", adminConfig.getParentFile());
+        adminConfigFile = File.createTempFile("test", IHM_RECETTE_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
@@ -211,12 +212,13 @@ public class WebApplicationResourceDeleteTest {
                 realAdminConfig.getClusterName(), realAdminConfig.getElasticsearchNodes(), false,
                 realAdminConfig.getDbUserName(), realAdminConfig.getDbPassword());
         metaDataConfiguration.setTenants(tenantList);
+        
         mongoDbAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration);
         ElasticsearchAccessAdminFactory.create(
             new AdminManagementConfiguration(mongoNodes, realAdminConfig.getMasterdataDbName(), CLUSTER_NAME, esNodes));
 
         try {
-            application = new ServerApplication(realAdminConfig);
+            application = new IhmRecetteMain(adminConfigFile.getAbsolutePath());
             application.start();
             JunitHelper.unsetJettyPortSystemProperty();
         } catch (final VitamApplicationServerException e) {

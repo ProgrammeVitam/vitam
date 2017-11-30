@@ -224,7 +224,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>fr.gouv.vitam.ihmrecette.appserver.ServerApplication</mainClass>
+							<mainClass>fr.gouv.vitam.ihmrecette.appserver.IhmRecetteMain</mainClass>
 						</manifest>
 					</archive>
 				</configuration>

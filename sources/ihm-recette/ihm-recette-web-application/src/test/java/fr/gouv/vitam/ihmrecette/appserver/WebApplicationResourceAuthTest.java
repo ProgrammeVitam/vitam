@@ -53,7 +53,7 @@ public class WebApplicationResourceAuthTest {
     private static JunitHelper junitHelper;
     private static int port;
     private static String sessionId;
-    private static ServerApplicationWithoutMongo application;
+    private static IhmRecetteMainWithoutMongo application;
 
     @BeforeClass
     public static void setup() throws Exception {
@@ -61,7 +61,7 @@ public class WebApplicationResourceAuthTest {
         port = junitHelper.findAvailablePort();
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
         final File adminConfig = PropertiesUtils.findFile("ihm-recette.conf");
-        application = new ServerApplicationWithoutMongo(adminConfig.getAbsolutePath());
+        application = new IhmRecetteMainWithoutMongo(adminConfig.getAbsolutePath());
         application.start();
         RestAssured.port = port;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
