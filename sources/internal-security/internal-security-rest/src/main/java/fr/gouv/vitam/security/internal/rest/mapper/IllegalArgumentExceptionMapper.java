@@ -26,6 +26,9 @@
  */
 package fr.gouv.vitam.security.internal.rest.mapper;
 
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 
@@ -34,6 +37,9 @@ import javax.ws.rs.ext.ExceptionMapper;
  */
 public class IllegalArgumentExceptionMapper implements ExceptionMapper<IllegalArgumentException> {
 
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IllegalArgumentExceptionMapper.class);
+
+
     /**
      *
      * @param exception
@@ -41,6 +47,7 @@ public class IllegalArgumentExceptionMapper implements ExceptionMapper<IllegalAr
      */
     @Override
     public Response toResponse(IllegalArgumentException exception) {
+        LOGGER.error(exception);
         return Response.status(Response.Status.BAD_REQUEST).entity(exception.getMessage()).build();
     }
 

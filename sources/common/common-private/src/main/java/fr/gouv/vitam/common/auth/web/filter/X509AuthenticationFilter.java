@@ -28,15 +28,19 @@
  */
 package fr.gouv.vitam.common.auth.web.filter;
 
+import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
 import org.apache.shiro.ShiroException;
 import org.apache.shiro.authc.AuthenticationToken;
+import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.filter.authc.AuthenticatingFilter;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 import java.security.cert.X509Certificate;
+
+import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE;
 
 /**
  * Based on work: Copyright Paul Merlin 2011 (Apache Licence v2.0)
@@ -71,6 +75,18 @@ public class X509AuthenticationFilter extends AuthenticatingFilter {
             ((HttpServletResponse) response).sendError(403, "Access Denied . Need a valid TLS client certificate");
             return false;
         }
+        return true;
+    }
+
+    protected boolean onLoginSuccess(AuthenticationToken token, Subject subject,
+        ServletRequest request, ServletResponse response) throws Exception {
+
+        X509AuthenticationToken x509Token =(X509AuthenticationToken)token;
+        X509Certificate x509Certificate = x509Token.getX509Certificate();
+        byte[] derEncodedCertificate = x509Certificate.getEncoded();
+        String base64Certificate = BaseXx.getBase64(derEncodedCertificate);
+        request.setAttribute(REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE, base64Certificate);
+
         return true;
     }
 

@@ -43,6 +43,8 @@ public class X509CredentialsSha256Matcher extends AbstractX509CredentialsMatcher
     @Override
     public boolean doX509CredentialsMatch(X509AuthenticationToken token, X509AuthenticationInfo info) {
         try {
+
+            // FIXME : Arrays.equals !!!
             final String clientCertSha256 = new Sha256Hash(token.getX509Certificate().getEncoded()).toHex();
             final String subjectCertSha256 = new Sha256Hash(info.getX509Certificate().getEncoded()).toHex();
 

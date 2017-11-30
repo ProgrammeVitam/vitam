@@ -10,31 +10,43 @@ import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.FeatureContext;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class AuthorizationFilterTest {
+
+    private static final String MY_PERMISSION = "my_permission";
 
     @Test
     public void checkEndpointAuthorizationFilterRegistrationForSecuredMethod() throws Exception {
 
         ResourceInfo resourceInfo = mock(ResourceInfo.class);
         when(resourceInfo.getResourceMethod()).thenReturn(AuthorizationFilterTest.class.getMethod("MySecuredMethod"));
-        when(resourceInfo.getResourceClass()).thenReturn((Class)AuthorizationFilterTest.class);
+        when(resourceInfo.getResourceClass()).thenReturn((Class) AuthorizationFilterTest.class);
 
         FeatureContext context = mock(FeatureContext.class);
 
         AuthorizationFilter instance = new AuthorizationFilter();
         instance.configure(resourceInfo, context);
 
-        ArgumentCaptor<EndpointAuthorizationFilter> endpointAuthorizationFilterArgumentCaptor = ArgumentCaptor.forClass(EndpointAuthorizationFilter.class);
-        verify(context, only()).register(endpointAuthorizationFilterArgumentCaptor.capture(), Matchers.eq(Priorities.AUTHORIZATION));
-        Assert.assertEquals("my_permission", endpointAuthorizationFilterArgumentCaptor.getValue().getPermission());
+        ArgumentCaptor<EndpointPermissionAuthorizationFilter> endpointAuthorizationFilterArgumentCaptor =
+            ArgumentCaptor.forClass(EndpointPermissionAuthorizationFilter.class);
+        ArgumentCaptor<EndpointPersonalCertificateAuthorizationFilter>
+            endpointPersonalCertificateAuthorizationFilterArgumentCaptor =
+            ArgumentCaptor.forClass(EndpointPersonalCertificateAuthorizationFilter.class);
+        verify(context)
+            .register(endpointAuthorizationFilterArgumentCaptor.capture(), Matchers.eq(Priorities.AUTHORIZATION + 10));
+        verify(context).register(endpointPersonalCertificateAuthorizationFilterArgumentCaptor.capture(),
+            Matchers.eq(Priorities.AUTHORIZATION + 20));
+        verifyNoMoreInteractions(context);
+        Assert.assertEquals(MY_PERMISSION, endpointAuthorizationFilterArgumentCaptor.getValue().getPermission());
+        Assert.assertEquals(MY_PERMISSION,
+            endpointPersonalCertificateAuthorizationFilterArgumentCaptor.getValue().getPermission());
     }
 
     @Test
@@ -42,17 +54,17 @@ public class AuthorizationFilterTest {
 
         ResourceInfo resourceInfo = mock(ResourceInfo.class);
         when(resourceInfo.getResourceMethod()).thenReturn(this.getClass().getMethod("MyUnsecuredMethod"));
-        when(resourceInfo.getResourceClass()).thenReturn((Class)AuthorizationFilterTest.class);
+        when(resourceInfo.getResourceClass()).thenReturn((Class) AuthorizationFilterTest.class);
 
         FeatureContext context = mock(FeatureContext.class);
 
         AuthorizationFilter instance = new AuthorizationFilter();
         instance.configure(resourceInfo, context);
 
-        verify(context, never()).register(any(EndpointAuthorizationFilter.class), anyInt());
+        verify(context, never()).register(anyObject(), anyInt());
     }
 
-    @Secured(permission = "my_permission", description = "description")
+    @Secured(permission = MY_PERMISSION, description = "description")
     public void MySecuredMethod() {
         // NOP
     }

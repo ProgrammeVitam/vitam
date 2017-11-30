@@ -30,7 +30,9 @@ import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.security.internal.common.exception.InternalSecurityException;
 import fr.gouv.vitam.security.internal.common.model.IdentityModel;
+import fr.gouv.vitam.security.internal.common.model.IsPersonalCertificateRequiredModel;
 
+import javax.ws.rs.core.Response;
 import java.util.Optional;
 
 public interface InternalSecurityClient extends BasicClient {
@@ -38,4 +40,9 @@ public interface InternalSecurityClient extends BasicClient {
     Optional<IdentityModel> findIdentity(byte[] certificate)
         throws VitamClientInternalException, InternalSecurityException;
 
+    IsPersonalCertificateRequiredModel isPersonalCertificateRequiredByPermission(String permission)
+        throws VitamClientInternalException, InternalSecurityException;
+
+    void checkPersonalCertificate(byte[] certificate, String permission)
+        throws VitamClientInternalException, InternalSecurityException;
 }

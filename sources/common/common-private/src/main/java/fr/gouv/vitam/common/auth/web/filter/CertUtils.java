@@ -41,6 +41,8 @@ import java.security.cert.X509Certificate;
  */
 public class CertUtils {
 
+    public static final String REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE = "Personae";
+
 
     /**
      * Extract certificate from request or from header

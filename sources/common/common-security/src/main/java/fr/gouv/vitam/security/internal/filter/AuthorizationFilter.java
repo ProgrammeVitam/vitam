@@ -40,7 +40,7 @@ import javax.ws.rs.core.FeatureContext;
 /**
  * Handles permission based access authorization for REST endpoints.
  * <p>
- * Registers for each {@link Secured}-annotated endpoint with an {@link EndpointAuthorizationFilter}.
+ * Registers for each {@link Secured}-annotated endpoint with authorization filter.
  */
 @PreMatching
 @Priority(Priorities.HEADER_DECORATOR + 40) // must go after InternalSecurityFilter
@@ -49,7 +49,7 @@ public class AuthorizationFilter implements DynamicFeature {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AuthorizationFilter.class);
 
     /**
-     * Registers an {@link EndpointAuthorizationFilter} for each endpoint resource.
+     * Registers endpoint authorization filters for each @Secured endpoint resource.
      * Invoked for each endpoint resource.
      *
      * @param resourceInfo
@@ -62,15 +62,21 @@ public class AuthorizationFilter implements DynamicFeature {
         Secured securedAnnotation = resourceInfo.getResourceMethod().getAnnotation(Secured.class);
         if (securedAnnotation == null) {
             LOGGER.debug(String.format("Ignoring Non-@%s annotated method %s.%s",
-                    Secured.class.getName(), resourceInfo.getResourceClass().getName(),
-                    resourceInfo.getResourceMethod().getName()));
+                Secured.class.getName(), resourceInfo.getResourceClass().getName(),
+                resourceInfo.getResourceMethod().getName()));
             return;
         }
 
-        LOGGER.debug(String.format("Registering authorization filter with '%s' permission for %s annotated method %s.%s",
+        LOGGER
+            .debug(String.format("Registering authorization filters with '%s' permission for %s annotated method %s.%s",
                 securedAnnotation.permission(), Secured.class.getName(),
                 resourceInfo.getResourceClass().getName(), resourceInfo.getResourceMethod().getName()));
 
-        context.register(new EndpointAuthorizationFilter(securedAnnotation.permission()), Priorities.AUTHORIZATION);
+        // Must go after ExternalHeaderIdContainerFilter
+        context.register(new EndpointPermissionAuthorizationFilter(securedAnnotation.permission()),
+            Priorities.AUTHORIZATION + 10);
+        // Must go after EndpointPermissionAuthorizationFilter
+        context.register(new EndpointPersonalCertificateAuthorizationFilter(securedAnnotation.permission()),
+            Priorities.AUTHORIZATION + 20);
     }
 }

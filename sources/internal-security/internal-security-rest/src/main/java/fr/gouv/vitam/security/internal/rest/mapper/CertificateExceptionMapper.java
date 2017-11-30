@@ -26,6 +26,9 @@
  */
 package fr.gouv.vitam.security.internal.rest.mapper;
 
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import java.security.cert.CertificateException;
@@ -35,6 +38,8 @@ import java.security.cert.CertificateException;
  */
 public class CertificateExceptionMapper implements ExceptionMapper<CertificateException> {
 
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CertificateExceptionMapper.class);
+
     /**
      *
      * @param exception
@@ -42,6 +47,7 @@ public class CertificateExceptionMapper implements ExceptionMapper<CertificateEx
      */
     @Override
     public Response toResponse(CertificateException exception) {
+        LOGGER.error(exception);
         return Response.status(Response.Status.BAD_REQUEST).entity(exception.getMessage()).build();
     }
 
