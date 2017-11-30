@@ -1,7 +1,8 @@
-import {Component, OnInit, OnChanges, Input, Output, EventEmitter, SimpleChanges} from '@angular/core';
+import {Component, OnInit, OnChanges, Input, Output, EventEmitter} from '@angular/core';
 import {ArchiveUnitHelper} from "../../archive-unit/archive-unit.helper";
 import {ReferentialHelper} from "../../referentials/referential.helper";
 import { SelectItem } from 'primeng/primeng';
+import {ObjectsService} from "../utils/objects.service";
 
 
 @Component({
@@ -171,4 +172,23 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
     this.updatedFieldsChange.emit(this.updatedFields);
   }
 
+  getLabels(values: string | string[]) {
+    let labels = [];
+    if (values instanceof Array) {
+      values.forEach(value => {
+        labels.push(this.getLabel(value));
+      });
+    } else {
+      labels.push(this.getLabel(values));
+    }
+    return labels.join(', ');
+  }
+
+  getLabel(value: string) {
+    let matchingOption = this.options.find(option => option.value === value);
+    if (!matchingOption) {
+      return value;
+    }
+    return matchingOption.label;
+  }
 }
