@@ -10,6 +10,7 @@ export class ArchiveUnitService {
   ARCHIVE_UNIT_SEARCH_API = 'archivesearch';
   ARCHIVE_UNIT_API = 'archiveunit';
   ARCHIVE_UPDATE_API = 'archiveupdate';
+  TREE = 'tree';
   UNITS = 'units';
   UNIT = 'unit';
   EXPORT = 'dipexport';
@@ -18,6 +19,10 @@ export class ArchiveUnitService {
   static inputRequest : any;
 
   constructor(private resourceService: ResourcesService) { }
+
+  getByQuery(query): Observable<VitamResponse> {
+    return this.resourceService.post(`${this.ARCHIVE_UNIT_API}/${this.TREE}`, undefined, query);
+  }
 
   getDetails(id): Observable<VitamResponse> {
     return this.resourceService.get(`${this.ARCHIVE_UNIT_SEARCH_API}/${this.UNIT}/${id}`);

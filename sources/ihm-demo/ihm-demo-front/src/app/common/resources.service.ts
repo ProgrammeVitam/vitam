@@ -41,7 +41,6 @@ export class ResourcesService {
 
   put(url, header?: HttpHeaders, body?: any, responsetype?: any): Observable<any> {
     header = this.setDefaultHeader(header);
-    console.log('responsetype', responsetype, 'body', body, 'header', header, 'url', url);
     return this.http.put(`${BASE_URL}${url}`, body, {headers: header, responseType: responsetype || 'json'});
   }
 

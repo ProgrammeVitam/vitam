@@ -217,41 +217,6 @@ public class UserInterfaceTransactionManager {
         return true;
     }
 
-    /**
-     * Build all paths relative to a unit based on its all parents list (_us)
-     *
-     * @param unitId     the unit Id for which all paths will be constructed
-     * @param allParents unit's all parents (_us field value + the unit id)
-     * @return all paths relative to the specified unit
-     * @throws VitamException if error when build the tree
-     */
-    public static JsonNode buildUnitTree(String unitId, JsonNode allParents) throws VitamException {
-        // Construct all parents referential
-        final JsonNode allParentsRef = JsonTransformer.buildAllParentsRef(unitId, allParents);
-        // All paths
-        final ArrayNode allPaths = JsonHandler.createArrayNode();
-
-        // Start by the immediate parents
-        final ArrayNode immediateParents =
-            (ArrayNode) allParentsRef.get(unitId).get(UiConstants.UNITUPS.getResultCriteria());
-
-        // Build all paths
-        for (final JsonNode currentParentNode : immediateParents) {
-            final String currentParentId = currentParentNode.asText();
-            final JsonNode currentParentDetails = allParentsRef.get(currentParentId);
-
-            // Create path node
-            final ArrayNode currentPath = JsonHandler.createArrayNode();
-
-            if (currentParentDetails != null) {
-                currentPath.add(currentParentDetails);
-                buildOnePathForOneParent(currentPath, currentParentDetails, allPaths, allParentsRef);
-            }
-        }
-
-        return allPaths;
-    }
-
     private static void buildOnePathForOneParent(ArrayNode path, JsonNode parent, ArrayNode allPaths,
         JsonNode allParentsRef) {
         final ArrayNode immediateParents = (ArrayNode) parent.get(UiConstants.UNITUPS.getResultCriteria());
