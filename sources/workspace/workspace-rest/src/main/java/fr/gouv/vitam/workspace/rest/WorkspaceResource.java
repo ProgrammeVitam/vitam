@@ -456,9 +456,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
             uriList = workspace.getListUriDigitalObjectFromFolder(containerName, folderName);
 
         } catch (final ContentAddressableStorageNotFoundException eNotFoundException) {
-            LOGGER.error(ErrorMessage.FOLDER_NOT_FOUND.getMessage() + containerName + "/" + folderName,
-                eNotFoundException);
-            return Response.status(Status.NOT_FOUND).entity(containerName).build();
+            LOGGER.error(ErrorMessage.FOLDER_NOT_FOUND.getMessage() + containerName + "/" + folderName);
+            return Response.status(Status.NOT_FOUND).entity(containerName + "/" + folderName).build();
         } catch (final ContentAddressableStorageException eAddressableStorageException) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), eAddressableStorageException);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(Collections.<URI>emptyList()).build();
