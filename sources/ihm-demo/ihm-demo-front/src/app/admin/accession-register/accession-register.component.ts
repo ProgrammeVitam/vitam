@@ -2,12 +2,11 @@ import { Component, EventEmitter } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Title } from '@angular/platform-browser';
 
-import { BreadcrumbService, BreadcrumbElement } from "../../common/breadcrumb.service";
+import { BreadcrumbService } from "../../common/breadcrumb.service";
 import { VitamResponse } from "../../common/utils/response";
 import { PageComponent } from "../../common/page/page-component";
 import { Preresult } from '../../common/search/preresult';
 import { FieldDefinition } from '../../common/search/field-definition';
-import { DateService } from '../../common/utils/date.service';
 import { ColumnDefinition } from '../../common/generic-table/column-definition';
 import { ReferentialsService } from "../../referentials/referentials.service";
 

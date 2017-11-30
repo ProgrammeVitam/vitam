@@ -26,6 +26,7 @@ const PROCESS_TRADUCTION = {
 })
 export class AccessionRegisterComponent  extends PageComponent {
 
+  newBreadcrumb: BreadcrumbElement[];
   register : AccessionRegister;
   registerDetails : AccessionRegisterDetail[];
   mainRegisters : RegisterData[];
@@ -50,16 +51,29 @@ export class AccessionRegisterComponent  extends PageComponent {
     this.activatedRoute.params.subscribe( params => {
       this.id = params['id'];
       this.getDetail();
-      let newBreadcrumb = [
-        {label: 'Administration', routerLink: ''},
-        {label: 'Services agents', routerLink: 'admin/search/agencies'},
-        {label: 'Détail du fond ' + this.id, routerLink: ''}
-      ];
-
-      this.setBreadcrumb(newBreadcrumb);
+      this.updateBreadcrumb(params['type']);
     });
   }
 
+  updateBreadcrumb(type: string) {
+    if (type === 'all') {
+      this.newBreadcrumb = [
+        {label: 'Administration', routerLink: ''},
+        {label: 'Services agents', routerLink: 'admin/search/agencies'},
+        {label: 'Détail du service agent ' + this.id, routerLink: 'admin/agencies/' + this.id},
+        {label: 'Détail du fonds ' + this.id, routerLink: ''}
+      ];
+    } else {
+      this.newBreadcrumb = [
+        {label: 'Recherche', routerLink: ''},
+        {label: 'Recherche par service producteur', routerLink: 'admin/accessionRegister'},
+        {label: 'Détail du service producteur ' + this.id, routerLink: 'admin/agencies/accessionRegister/' + this.id},
+        {label: 'Détail du fonds ' + this.id, routerLink: ''}
+      ];
+    }
+
+    this.setBreadcrumb(this.newBreadcrumb);
+  }
   getDetail() {
     this.searchReferentialsService.getFundRegisterById(this.id).subscribe((value) => {
       this.register = plainToClass(AccessionRegister, value.$results)[0];
