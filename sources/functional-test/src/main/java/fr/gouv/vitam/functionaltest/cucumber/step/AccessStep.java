@@ -136,9 +136,19 @@ public class AccessStep {
      */
     @Then("^les metadonnées sont$")
     public void metadata_are(DataTable dataTable) throws Throwable {
+        metadata_are_for_particular_result(0, dataTable);
+    }
 
-
-        JsonNode firstJsonNode = Iterables.get(results, 0);
+    /**
+     * check if the metadata are valid.
+     *
+     * @param dataTable dataTable
+     * @param resultNumber resultNumber
+     * @throws Throwable
+     */
+    @Then("^les metadonnées pour le résultat (\\d+)$")
+    public void metadata_are_for_particular_result(int resultNumber, DataTable dataTable) throws Throwable {
+        JsonNode jsonNode = Iterables.get(results, resultNumber);
 
         List<List<String>> raws = dataTable.raw();
 
@@ -158,7 +168,7 @@ public class AccessStep {
                 isArray = true;
             }
 
-            String resultValue = getResultValue(firstJsonNode, key);
+            String resultValue = getResultValue(jsonNode, key);
             if (null != resultValue) {
                 resultValue = resultValue.replace("\n", "").replace("\\n", "");
             }
@@ -189,8 +199,7 @@ public class AccessStep {
                 }
             }
         }
-    }
-
+    }    
 
     /**
      * Upload contract with noeud
@@ -778,7 +787,7 @@ public class AccessStep {
                 break;
             case ACCESSION_REGISTERS:
                 requestResponse = world.getAdminClient().findAccessionRegister(
-                    new VitamContext(world.getTenantId()).setAccessContract(null)
+                    new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
                         .setApplicationSessionId(world.getApplicationSessionId()),
                     queryJSON);
                 break;
