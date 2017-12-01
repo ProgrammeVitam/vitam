@@ -5,4 +5,3 @@ Security-Internal
    :maxdepth: 2
 
    introduction.rst
-   security-internal-exploitation.rst

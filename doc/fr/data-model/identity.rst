@@ -25,8 +25,8 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
     "ContextId": "CT-000001",
     "SerialNumber": 254,
     "IssuerDN": "CN=ca_intermediate_client-external, OU=authorities, O=vitam, L=paris, ST=idf, C=fr",
-    "Certificate": "MIIFRjCCAy6gAwIBAgIBAjANBgkqhkiG9w0BAQsFADAtMQswCQYDVQQGEwJGUjE...iaA==",
-    "Hash": "6088f19bc7d328f301168c064d6fda93a6c4ced9d5c56810c4f70e21e77d841d"
+    "Certificate": "MIIGgjCCBGqgAwIBAgICAPgwDQYJKoZIhvcNAQELBQAwezELMAkGA...iaA==",
+    "Hash": "b86d0a6fa4a63d6e4af09f1047e824112a5cd7905c58cdd1e6668b56dffd257e"
  }
 
 Détail des champs du JSON stocké dans la collection
@@ -82,14 +82,14 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
 
 ::
 
-{
+ {
     "_id": "aeaaaaaaaagcksdyabraialabxzw7aqaaaaq",
     "SubjectDN": "O=VITAM, L=Paris, C=FR",
     "SerialNumber": 2,
     "IssuerDN": "O=VITAM, L=Paris, C=FR",
-    "Certificate": "MIIFRjCCAy6gAwIBAgIBAjANBgkqhkiG9w0BAQsFADAtMQswCQYDVQQGEwJGUjE...iaA==",
+    "Certificate": "MIIFRjCCAy6gAwIBAgIBAjANBgkqhkiG9w0BAQsFADAtMQswCQYDV...iaA==",
     "Hash": "6088f19bc7d328f301168c064d6fda93a6c4ced9d5c56810c4f70e21e77d841d"
-}
+ }
 
 Détail des champs du JSON stocké dans la collection
 ---------------------------------------------------
