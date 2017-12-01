@@ -46,15 +46,16 @@ guest = archivesearch:*, archiveunit:*, units:*, unit:*, admin:accession-registe
 {% else %}
 
 contextFactory = org.apache.shiro.realm.ldap.JndiLdapContextFactory
-contextFactory.url = ldap://{{ vitam.ihm_demo.ldap_server }}:{{ vitam.ihm_demo.ldap_port }}
-contextFactory.systemUsername = {{ vitam.ihm_demo.ldap_login }}
-contextFactory.systemPassword = {{ vitam.ihm_demo.ldap_pwd }}
+contextFactory.url = ldap://{{ ldap_authentification.ldap_server }}:{{ ldap_authentification.ldap_port }}
+contextFactory.systemUsername = {{ ldap_authentification.ldap_login }}
+contextFactory.systemPassword = {{ ldap_authentification.ldap_pwd }}
 
 realm = fr.gouv.vitam.common.security.rest.LdapRealm
 realm.ldapContextFactory = $contextFactory
-realm.searchBase = "dc=programmevitam,dc=fr"
-realm.userDnTemplate = uid={0},dc=programmevitam,dc=fr
-realm.groupRolesMap = "gadmins":"admin", "gusers":"user", "gguests":"guest"
+realm.searchBase = "{{ ldap_authentification.ldap_base }}"
+realm.groupRequestFilter = {{ ldap_authentification.ldap_group_request }}
+realm.userDnTemplate = {{ ldap_authentification.ldap_userDn_Template }}
+realm.groupRolesMap = "{{ ldap_authentification.ldap_admin_groups }}":"admin", "{{ ldap_authentification.ldap_user_groups }}":"user", "{{ ldap_authentification.ldap_guest_groups }}":"guest"
 
 realm.rolePermissionsMap = "admin":"*","user":"messages:*, archivesearch:*, logbook:*, ingest:*, archiveupdate:*, archiveunit:*, ingests:read, admin:formats:read, admin:rules:read, admin:accession-register:read, logbookunitlifecycles:*, logbookobjectslifecycles:*","guest":"archivesearch:*, archiveUnit:*, units:*, unit:*"
 

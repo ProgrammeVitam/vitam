@@ -96,10 +96,6 @@ vitam:
         https_enabled: false
         secret_platform: "false"
         authentication_mode: "ini"
-        ldap_server: "localhost"
-        ldap_port: "389"
-        ldap_login: "cn=admin, dc=programmevitam, dc=fr"
-        ldap_pwd: "admin"
     logbook:
         vitam_component: logbook
         host: "logbook.service.{{consul_domain}}"

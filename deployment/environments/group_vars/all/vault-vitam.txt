@@ -34,4 +34,6 @@ vitam_users:
 vitam_offers:
   offer_swift_1:
     swift_password: password
+ldap_authentification:
+    ldap_pwd: "admin"
 
