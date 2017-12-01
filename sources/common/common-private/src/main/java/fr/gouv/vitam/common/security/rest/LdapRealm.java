@@ -65,9 +65,19 @@ public class LdapRealm  extends AbstractLdapRealm {
     private static final String NAMES_DELIMETER = ",";
 
     private String userDnTemplate;
+    private String groupRequestFilter;
     private Map<String, String> rolePermissionsMap;
     private Map<String, String> groupRolesMap;
 
+
+    /**
+     * set the group request filter, defined in shiro.ini
+     *
+     * @param groupRequestFilter
+     */
+    public void setGroupRequestFilter(String groupRequestFilter) {
+        this.groupRequestFilter = groupRequestFilter;
+    }
 
     /**
      * set the map of group role, defined in shiro.ini
@@ -139,10 +149,9 @@ public class LdapRealm  extends AbstractLdapRealm {
         searchCtls.setSearchScope(SearchControls.SUBTREE_SCOPE);
 
         // Search all group contain userName as member
-        String searchFilter = "(&(objectClass=groupOfNames)(member={0}))";
         Object[] searchArguments = new Object[]{userName};
 
-        NamingEnumeration answer = ldapContext.search(searchBase, searchFilter, searchArguments, searchCtls);
+        NamingEnumeration answer = ldapContext.search(searchBase, this.groupRequestFilter, searchArguments, searchCtls);
 
         while (answer.hasMoreElements()) {
             SearchResult sr = (SearchResult) answer.next();
@@ -157,7 +166,7 @@ public class LdapRealm  extends AbstractLdapRealm {
                 NamingEnumeration ae = attrs.getAll();
                 while (ae.hasMore()) {
                     Attribute attr = (Attribute) ae.next();
-                    if (attr.getID().equals("cn")) {
+                    if (attr.getID().equals("dn")) {
 
                         Collection<String> groupNames = LdapUtils.getAllAttributeValues(attr);
 
