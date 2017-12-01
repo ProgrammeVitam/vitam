@@ -11,6 +11,7 @@ Le menu est situé en haut des pages. Il est présent sur toutes les pages et es
 - Administration
 - Gestion des archives
 
+|
 
 .. image:: images/menu_general.png
 
@@ -26,6 +27,7 @@ La racine est toujours inactive (sans lien), elle correspond au nom du menu où 
 Suite à la racine, les pages parentes sont listées et sont séparées par un chevron et, contrairement à la racine, elles sont toutes cliquables.
 Un clic sur un lien redirige sur la page idoine.
 
+|
 
 .. image:: images/ariane.png
 
@@ -39,6 +41,7 @@ Les titres des pages sont visibles sur les onglets des navigateurs Internet. Ils
 - Recherche Référentiel des formats
 - Recherche Référentiel des règles de gestion
 
+|
 
 .. image:: images/titre_IHM_demo.png
 
@@ -58,7 +61,8 @@ Formulaire de recherche globale
 
 Les formulaires de recherche globale sont composés d'un seul champ de recherche.
 
- 
+|
+
 .. image:: images/au_rechchs.png
 
 Formulaire de recherche avancée
@@ -74,16 +78,19 @@ Affichage des résultats
 
 Le nombre de résultats correspondant au résultat d'une recherche est indiqué sous la forme "Résultats (X)".
 
+|
 
 .. image:: images/gen_nombre_resultats.png
 
 Si aucun résultat n'est trouvé par la solution logicielle Vitam, alors un message indique à l'utilisateur qu'aucun résultat n'est disponible pour sa recherche.
 
+|
 
 .. image:: images/au_res_ko.png
 
 Par défaut, les 25 premiers résultats sont affichés. Une pagination permet de naviguer s'il y a un nombre supérieur de résultats.
 
+|
 
 .. image:: images/pagination.png
 
@@ -138,10 +145,18 @@ Il est possible de modifier certaines données d'écrans de détail. Un clic sur
 
 .. image:: images/au_modif.png
 
+**Etiquettes (tags)**
+
+Certains champs possèdent un système d'étiquettes ou tags afin d'ajouter plusieurs éléments (généralement, un identifiant). Pour ajouter un nouveau tag, l'utilisateur saisit l'identifiant et valide en appuyant la touche "entrée", un tag sera alors créé (celui-ci sera encadré par un fond de couleur). Pour supprimer un tag, il faut cliquer directement sur la croix de suppression contenue dans le tag (à droite).
+
+.. image:: images/update_tag.png
+   :scale: 50
+
 Une fois les modifications effectuées, vous pouvez soit les annuler en cliquant sur "Annuler" et tous les champs reviennent à leurs états initiaux soit enregistrer les modifications en cliquant sur "Sauvegarder", les champs modifiés sont alors mis à jour et enregistrés dans la solution logicielle Vitam.
 
 
 .. image:: images/general_modif.png
+   :scale: 50
 
 
 Affichage des dates et heures
@@ -170,10 +185,40 @@ Il existe deux façons d'importer un fichier ou dossier :
 
 Dans les 2 cas, le nom du fichier ou dossier s'inscrit en bas de la zone de téléchargement.
 
+|
+
 .. image:: images/zone_dl.png
    :scale: 50
    
 .. image:: images/zone_dl_file.png
+   :scale: 50
+   
+   
+Référentiels
+-------------
+
+Le processus d'import du référentiel se décrit comme ceci :
+
+- aller sur l'interface d'import du référentiel
+- cliquer sur le bouton "sélectionner un fichier" ou faire glisser le fichier sur l'espace de téléchargement
+- le fichier sélectionné doit être au bon format
+- cliquer sur le bouton "Importer"
+- le système vérifie l'intégrité et la cohérence du fichier
+
+A l'issue de ce contrôle, deux cas sont possibles :
+
+- En cas d'erreur de fichier : la solution logicielle Vitam détecte des erreurs contenues dans le fichier, l'import de ce dernier n'est pas possible, un message d'erreur s'affiche. L'utilisateur doit corriger ces erreurs et soumettre à nouveau le fichier s'il souhaite toujours effectuer son import.
+
+|
+
+.. image:: images/import_ko.png
+   :scale: 50
+
+- En cas de succès : La solution logicielle Vitam crée le référentiel à partir des informations contenues dans le fichier soumis et affiche un message de succès.
+
+|
+
+.. image:: images/profils_import_ok.png
    :scale: 50
 
 Gestion des erreurs techniques
@@ -181,5 +226,6 @@ Gestion des erreurs techniques
 
 En cas d'erreur technique non gérée par le système, une fenêtre pop-up avertit l'utilisateur qu'un problème a eu lieu au travers d'un message généraliste, et lui indique des informations à transmettre à son administrateur technique.
 
+|
 
 .. image:: images/error_popup.png
