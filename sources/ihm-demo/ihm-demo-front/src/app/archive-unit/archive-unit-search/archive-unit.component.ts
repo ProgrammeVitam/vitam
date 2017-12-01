@@ -100,6 +100,7 @@ export class ArchiveUnitComponent extends PageComponent {
           }
           criteriaSearch.StartDate = request.startDate;
           criteriaSearch.EndDate = request.endDate;
+          criteriaSearch.EndDate.setDate(criteriaSearch.EndDate.getDate() + 1)
         } else if (isStartDate || isEndDate) {
           preResult.searchProcessError = 'Une date de début et une date de fin doivent être indiquées.';
           return preResult;

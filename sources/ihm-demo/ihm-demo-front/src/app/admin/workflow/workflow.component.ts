@@ -265,6 +265,7 @@ export class WorkflowComponent extends PageComponent implements OnDestroy {
     if (!request.startDateMax) {
       delete request.startDateMax;
     } else {
+      request.startDateMax.setDate(request.startDateMax.getDate() + 1);
       request.startDateMax = DateService.handleDate(request.startDateMax);
     }
 

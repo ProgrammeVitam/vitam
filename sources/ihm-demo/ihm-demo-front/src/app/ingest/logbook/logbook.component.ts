@@ -167,6 +167,7 @@ export class LogbookComponent extends PageComponent {
           delete request[i];
         }
       }
+
       if (request.evType) {
         if (typeof request.evType == 'object') {
           if (request.evType.length === 1) {
@@ -175,6 +176,10 @@ export class LogbookComponent extends PageComponent {
             delete request.evType;
           }
         }
+      }
+
+      if (request.IngestEndDate) {
+        request.IngestEndDate.setDate(request.IngestEndDate.getDate() + 1);
       }
     }
 

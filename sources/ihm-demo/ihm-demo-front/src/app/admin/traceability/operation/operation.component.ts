@@ -101,6 +101,9 @@ export class OperationComponent extends PageComponent {
         delete request[i];
       }
     }
+    if (request.TraceabilityEndDate) {
+      request.TraceabilityEndDate.setDate(request.TraceabilityEndDate.getDate() + 1);
+    }
     preResult.request = request;
     preResult.searchProcessSkip = false;
     preResult.success = true;
