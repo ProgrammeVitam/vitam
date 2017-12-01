@@ -47,7 +47,7 @@ public class IhmRecetteMain {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IhmRecetteMain.class);
 
-    private static final String CONF_FILE_NAME = "ihm-demo.conf";
+    private static final String CONF_FILE_NAME = "ihm-recette.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
     private VitamStarter vitamStarter;
     
