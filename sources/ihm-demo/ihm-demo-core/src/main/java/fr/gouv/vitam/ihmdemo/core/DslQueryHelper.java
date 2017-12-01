@@ -266,6 +266,7 @@ public final class DslQueryHelper {
                         if ("true".equals(searchValue)) {
                             BooleanQuery queryOrTraceability = or();
                             queryOrTraceability.add(eq(EVENT_OUT_DETAIL, "STP_OP_SECURISATION.OK"));
+                            queryOrTraceability.add(eq(EVENT_OUT_DETAIL, "STP_STORAGE_SECURISATION.OK"));
                             queryOrTraceability.add(eq(EVENT_OUT_DETAIL, "LOGBOOK_LC_SECURISATION.OK"));
                             query.add(queryOrTraceability);
                         }

@@ -19,6 +19,7 @@ export class ResultsComponent implements OnInit {
   @Input() getClass: () => string;
   @Input() service: any;
   @Input() searchForm: any;
+  @Input() specificRowCss: (item, index) => string; 
 
   errorOnResults = false;
 

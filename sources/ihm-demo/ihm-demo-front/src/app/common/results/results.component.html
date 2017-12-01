@@ -11,7 +11,8 @@
     </div>
     <div style="clear: both"></div>
     <p-paginator [(rows)]="nbRows" [rowsPerPageOptions]="[5, 25, 125]" (onPageChange)="paginate($event)" [totalRecords]="hits.total" [(first)]="firstItem"></p-paginator>
-    <vitam-generic-table [items]="displayedItems" [selectedCols]="selectedCols" [path]="path" [getClass]="getClass" [identifier]="identifier"></vitam-generic-table>
+    <vitam-generic-table [items]="displayedItems" [selectedCols]="selectedCols" [path]="path" [getClass]="getClass"
+                         [identifier]="identifier" [specificRowCss]="specificRowCss"></vitam-generic-table>
 </p-panel>
 <p-panel header="Résultats" *ngIf="errorOnResults">
     <vitam-generic-table [items]="[]" [selectedCols]="selectedCols"></vitam-generic-table>

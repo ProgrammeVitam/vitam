@@ -1,6 +1,6 @@
 <p-dataTable [(value)]="items" (onRowClick)="navigateTo($event)" [sortField]="filter"
              [selectionMode]="selectionMode" scrollable="true" scrollWidth="100%"
-             scrollHeight="400px" [emptyMessage]="'Aucun résultat'">
+             scrollHeight="400px" [emptyMessage]="'Aucun résultat'" [rowStyleClass]="specificRowCss">
   <p-column *ngFor="let col of selectedCols" [field]="col.field" [header]="col.label" [style]="col.computeCss()"
             [styleClass]="clickable(col)" [sortable]="col.sortable" (sortFunction)="col.sortFunction(items, $event)">
     <ng-template let-item="rowData" pTemplate="body">

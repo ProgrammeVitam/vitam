@@ -17,7 +17,7 @@ export class LifecycleComponent extends PageComponent {
   id: string;
   events: Event[] = [];
   lifecycleTenantId: string;
-  panelHeader = "Journal de cycle de vie";
+  panelHeader = "Journal du cycle de vie";
   urlCompletion = "";
   lifecycleType: string;
 
@@ -65,18 +65,18 @@ export class LifecycleComponent extends PageComponent {
   constructor(private route: ActivatedRoute, public titleService: Title,
               public breadcrumbService: BreadcrumbService, private changeDetectorRef: ChangeDetectorRef,
               private logbookService: LogbookService, private archiveUnitHelper: ArchiveUnitHelper) {
-    super('Journal de cycle de vie', [], titleService, breadcrumbService);
+    super('Journal du cycle de vie', [], titleService, breadcrumbService);
   }
 
   pageOnInit() {
     this.route.paramMap
       .switchMap((params: ParamMap) => {
         if (this.route.snapshot.url[this.route.snapshot.url.length - 1].path.indexOf('unit') > -1) {
-          this.panelHeader = 'Journal de cycle de vie de l\'unité archivistique';
+          this.panelHeader = 'Journal du cycle de vie de l\'unité archivistique';
           this.urlCompletion = 'unitlifecycle';
           this.lifecycleType = 'UNIT';
         } else if (this.route.snapshot.url[this.route.snapshot.url.length - 1].path.indexOf('objectgroup') > -1) {
-          this.panelHeader = 'Journal de cycle de vie du groupe d\'objets techniques';
+          this.panelHeader = 'Journal du cycle de vie du groupe d\'objets techniques';
           this.urlCompletion = 'objectgrouplifecycle';
           this.lifecycleType = 'OBJECTGROUP';
         }

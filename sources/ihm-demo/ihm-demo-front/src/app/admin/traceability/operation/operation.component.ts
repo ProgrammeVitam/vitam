@@ -1,11 +1,9 @@
 import {Component, EventEmitter} from '@angular/core';
-import {DatePipe} from '@angular/common';
 import {Title} from '@angular/platform-browser';
 
 
 import {ColumnDefinition} from '../../../common/generic-table/column-definition';
 import {LogbookService} from "../../../ingest/logbook.service";
-import { IngestUtilsService } from '../../../common/utils/ingest-utils.service';
 import {FieldDefinition} from '../../../common/search/field-definition';
 import {Preresult} from '../../../common/search/preresult';
 import {VitamResponse} from "../../../common/utils/response";
@@ -18,7 +16,8 @@ const breadcrumb: BreadcrumbElement[] = [
   {label: 'Administration', routerLink: ''},
   {label: 'Opérations de sécurisation', routerLink: ''}
 ];
-const searchAttribut = ['TraceabilityEndDate', 'TraceabilityId', 'TraceabilityStartDate', 'TraceabilityLogType'];
+const searchAttribut = ['TraceabilityEndDate', 'TraceabilityId', 'TraceabilityStartDate', 'evType'];
+const storageSecuringEventKey = 'STP_STORAGE_SECURISATION';
 
 @Component({
   selector: 'vitam-operation',
@@ -32,17 +31,16 @@ export class OperationComponent extends PageComponent {
   public searchForm: any = {};
   public options = [
     {label : "--", value : ""},
-    {label : "Journal des écritures", value : "WRITE"},
-    {label : "Journal des opérations", value : "OPERATION"},
-    {label : "Cycle de vie Groupe d'Objets", value : "LFC_OG"},
-    {label : "Cycle de vie Unité Archivistique", value : "LFC_UNIT"}
+    {label : "Journal des écritures", value : "STP_STORAGE_SECURISATION"},
+    {label : "Journal des opérations", value : "STP_OP_SECURISATION"},
+    {label : "Journaux de cycle de vie", value : "LOGBOOK_LC_SECURISATION"},
   ];
     
   public logbookData = [
     FieldDefinition.createIdField('TraceabilityId', 'Identifiant de l\'objet', 3, 12),
     FieldDefinition.createDateField('TraceabilityStartDate', 'Date de début', 3, 12),
     FieldDefinition.createDateField('TraceabilityEndDate', 'Date de fin', 3, 12),
-    FieldDefinition.createSelectField('TraceabilityLogType', 'Type de journal sécurisé', '', this.options, 3, 12)
+    FieldDefinition.createSelectField('evType', 'Type de journal sécurisé', '', this.options, 3, 12)
   ];
 
   public initialSearch(service: any, responseEvent: EventEmitter<any>, form: any, offset) {
@@ -60,16 +58,19 @@ export class OperationComponent extends PageComponent {
 
   public columns = [
     ColumnDefinition.makeSpecialValueColumn('Type de journal sécurisé',
-      (item) => !!item.evDetData ? JSON.parse(item.evDetData).LogType : '' , undefined,
-      () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
+      (item) => item.evType === storageSecuringEventKey ? 'STORAGE' :
+          !!item.evDetData ? JSON.parse(item.evDetData).LogType : '',
+        undefined, () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeSpecialValueColumn('Date de début',
-      (item) => !!item.evDetData ? JSON.parse(item.evDetData).StartDate : '', DateService.handleDateWithTime,
-      () => ({'width': '200px', 'overflow-wrap': 'break-word'})),
+      (item) => item.evType === storageSecuringEventKey ? item.evDateTime :
+          !!item.evDetData ? JSON.parse(item.evDetData).StartDate : '',
+        DateService.handleDateWithTime, () => ({'width': '200px', 'overflow-wrap': 'break-word'})),
     ColumnDefinition.makeSpecialValueColumn('Date de fin',
-      (item) => !!item.evDetData ? JSON.parse(item.evDetData).EndDate : '', DateService.handleDateWithTime,
-      () => ({'width': '125px'})),
+      (item) => item.evType === storageSecuringEventKey ? item.events[item.events.length - 1].evDateTime :
+          !!item.evDetData ? JSON.parse(item.evDetData).EndDate : '',
+        DateService.handleDateWithTime, () => ({'width': '125px'})),
     ColumnDefinition.makeSpecialIconColumn('Télécharger',
-      (item) => item.events[1].outcome === 'OK' ? ['fa-download'] : [],
+      (item) => (item.events.length > 1 && item.events[1].outcome) === 'OK' ? ['fa-download'] : [],
       () => ({'width': '125px', 'overflow-wrap': 'break-word'}), OperationComponent.downloadReports, this.logbookService)
   ];
   public extraColumns = [];
@@ -109,6 +110,14 @@ export class OperationComponent extends PageComponent {
   onNotify(event) {
     this.response = event.response;
     this.searchForm = event.form;
+  }
+
+  handleRowCss(row, rowIndex) {
+    if (row.evType === storageSecuringEventKey) {
+      return 'disabledRow';
+    } else {
+      return '';
+    }
   }
 
 }
