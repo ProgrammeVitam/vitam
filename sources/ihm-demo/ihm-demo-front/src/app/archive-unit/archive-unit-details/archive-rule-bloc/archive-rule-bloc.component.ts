@@ -1,5 +1,5 @@
-import {Component, OnInit, Input, OnChanges} from '@angular/core';
-import {DatePipe} from '@angular/common';
+import {Component, Input, OnChanges, OnInit} from "@angular/core";
+import {DatePipe} from "@angular/common";
 import {ArchiveUnitHelper} from "../../archive-unit.helper";
 import {ArchiveUnitService} from "../../archive-unit.service";
 import {ConfirmationService} from "primeng/primeng";
@@ -26,7 +26,7 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
   public saveRunning = false;
   public displayOK = false;
   public displayKO = false;
-  public messageToDisplay;
+  public messageToDisplay: string;
 
 
   frLocale = {
@@ -191,15 +191,16 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
     let info = this.getUpdatedRules();
     let rules = info.rules;
     if (rules.length > 0) {
-      if (info.categories.length < 2) {
-        this.messageToDisplay =  `Vous vous apprétez à modifier la catégorie ${info.categories} pour:<br />`
+      this.messageToDisplay = "";
+      if (info.categories.length == 1) {
+        this.messageToDisplay = `Vous vous apprêtez à modifier la catégorie ${info.categories} pour :<br />`
       } else {
-        this.messageToDisplay =  `Vous vous apprétez à modifier les catégories ${info.categories} pour:<br />`
+        this.messageToDisplay = `Vous vous apprêtez à modifier les catégories ${info.categories.join(', ')} pour :<br />`
       }
       if (info.deleted < 2) {
         this.messageToDisplay = this.messageToDisplay + `- Supprimer ${info.deleted} règle,<br />`;
       } else {
-        this.messageToDisplay = this.messageToDisplay +  `- Supprimer ${info.deleted} règles,<br />`;
+        this.messageToDisplay = this.messageToDisplay + `- Supprimer ${info.deleted} règles,<br />`;
       }
       if (info.updated < 2) {
         this.messageToDisplay = this.messageToDisplay + `- Modifier ${info.updated} règle,<br />`
