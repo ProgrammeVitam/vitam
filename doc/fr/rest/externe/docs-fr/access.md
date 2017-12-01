@@ -56,7 +56,7 @@ La structuration d'un Unit est la suivante :
     "#nbunits": 1, // Nombre de Unit fils
     "#operations" : [ "id", "id" ], // liste des opérations auxquelles cette AU a participées
     "#allunitsups": [ "unitParentId", "unitParentId"], // liste de tous les parents jusqu'au sommet
-    "#storage": { "_nbc": [ 2 ]  } // information de stockage,
+    "#storage": { "_nbc": 2  } // information de stockage,
     "#originating_agency": "originationAgencyId",
     "#originating_agencies": [ "originationAgencyId" ],
     "#operations" : [ "operationId" ] // liste des opérations auxquelles cette AU a participées
@@ -166,7 +166,7 @@ La structuration d'un Object est la suivante :
     ],
     "#unitups": [ "unitParentId", "unitParentId"],
     "#nbobjects": 1, // Nombre de versions d'objets contenus pour tous les usages
-    "#storage": { "_nbc": [ 2 ]  }, // information de stockage,
+    "#storage": { "_nbc": 2  }, // information de stockage,
     "#originating_agency": "originationAgencyId",
     "#originating_agencies": [ "originationAgencyId" ],
     "#operations" : [ "operationId" ] // liste des opérations auxquelles ce groupe d'objets a participées
