@@ -252,19 +252,6 @@ public class AccessContractImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenAccessContractsTestDuplicateNames() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_duplicate.json");
-        final List<AccessContractModel> accessContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
-            });
-        final RequestResponse response = accessContractService.createContracts(accessContractModelList);
-
-        assertThat(response.isOk()).isFalse();
-    }
-
-    @Test
-    @RunWithCustomExecutor
     public void givenAccessContractsTestNotAllowedNotNullIdInCreation() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
@@ -286,7 +273,7 @@ public class AccessContractImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenAccessContractsTestAlreadyExistsContract() throws Exception {
+    public void givenAccessContractsTestNotUniqueName() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
 
@@ -305,7 +292,7 @@ public class AccessContractImplTest {
             });
         response = accessContractService.createContracts(accessContractModelList);
 
-        assertThat(response.isOk()).isFalse();
+        assertThat(response.isOk()).isTrue();
     }
 
 

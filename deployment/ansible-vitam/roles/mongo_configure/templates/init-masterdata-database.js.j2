@@ -19,15 +19,12 @@ db.AccessionRegisterDetail.createIndex( { "_tenant" : 1 } )
 db.AccessionRegisterDetail.createIndex( { "OriginatingAgency" : 1 } )
 db.AccessionRegisterDetail.createIndex( { "SubmissionAgency" : 1 } )
 
-db.IngestContract.createIndex( { "_tenant" : 1 , "Name" : 1 } , { unique: true } )
 db.IngestContract.createIndex( { "_tenant" : 1 , "Identifier" : 1 } , { unique: true } )
 
-db.AccessContract.createIndex( { "_tenant" : 1 , "Name" : 1 } , { unique: true } )
 db.AccessContract.createIndex( { "_tenant" : 1 , "Identifier" : 1 } , { unique: true } )
 
 db.Profile.createIndex( { "_tenant" : 1 , "Identifier" : 1 } , { unique: true } )
 
-db.Context.createIndex ( { "Name" : 1  } , { unique: true } )
 db.Context.createIndex ( { "Identifier" : 1 } , { unique: true } )
 
 db.SecurityProfile.createIndex ( { "Name" : 1  } , { unique: true } )

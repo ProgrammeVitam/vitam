@@ -26,6 +26,15 @@
  */
 package fr.gouv.vitam.functionnal.administration.security.profile.core;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoClient;
@@ -69,14 +78,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 
 public class SecurityProfileServiceTest {
@@ -291,8 +292,8 @@ public class SecurityProfileServiceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File securityProfileFiles = PropertiesUtils.getResourceFile("security_profile_ok_full_access.json");
         final List<SecurityProfileModel> securityProfileModelList =
-                JsonHandler.getFromFileAsTypeRefence(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {
-                });
+            JsonHandler.getFromFileAsTypeRefence(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {
+            });
         final RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
         assertThat(response.isOk()).isTrue();
@@ -302,10 +303,11 @@ public class SecurityProfileServiceTest {
     @RunWithCustomExecutor
     public void givenSecurityProfileWithUnauthorizedPermissionSetForFullAccessReturnBadRequest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final File securityProfileFiles = PropertiesUtils.getResourceFile("security_profile_ko_permissions_with_full_access_mode.json");
+        final File securityProfileFiles =
+            PropertiesUtils.getResourceFile("security_profile_ko_permissions_with_full_access_mode.json");
         final List<SecurityProfileModel> securityProfileModelList =
-                JsonHandler.getFromFileAsTypeRefence(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {
-                });
+            JsonHandler.getFromFileAsTypeRefence(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {
+            });
         final RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
         assertThat(response.isOk()).isFalse();
@@ -391,14 +393,15 @@ public class SecurityProfileServiceTest {
         String identifier = createResponseCast.getResults().get(0).getIdentifier();
 
         // Find one profile by identifier
-        final SecurityProfileModel findResponse =
+        final Optional<SecurityProfileModel> findResponse =
             securityProfileService.findOneByIdentifier(identifier);
 
-        assertThat(findResponse.getId()).isNotEmpty();
-        assertThat(findResponse.getIdentifier()).isEqualTo(identifier);
-        assertThat(findResponse.getName()).isEqualTo("SEC_PROFILE_1");
-        assertThat(findResponse.getPermissions().size()).isEqualTo(3);
-        assertThat(findResponse.getPermissions()).contains("permission_one:read");
+        assertThat(findResponse.isPresent()).isTrue();
+        assertThat(findResponse.get().getId()).isNotEmpty();
+        assertThat(findResponse.get().getIdentifier()).isEqualTo(identifier);
+        assertThat(findResponse.get().getName()).isEqualTo("SEC_PROFILE_1");
+        assertThat(findResponse.get().getPermissions().size()).isEqualTo(3);
+        assertThat(findResponse.get().getPermissions()).contains("permission_one:read");
     }
 
     @Test
@@ -406,10 +409,10 @@ public class SecurityProfileServiceTest {
     public void givenSecurityProfileTestFindOneByIdentifierWithFakeIdentifer() throws Exception {
 
         // Find one profile by identifier
-        final SecurityProfileModel findResponse =
+        final Optional<SecurityProfileModel> findResponse =
             securityProfileService.findOneByIdentifier("FakeIdentifier");
 
-        assertThat(findResponse).isNull();
+        assertThat(findResponse.isPresent()).isTrue();
     }
 
     @Test
@@ -435,12 +438,12 @@ public class SecurityProfileServiceTest {
         String identifier = responseCast.getResults().get(0).getIdentifier();
 
         // Find security profile
-        final SecurityProfileModel securityProfileModel =
+        final Optional<SecurityProfileModel> securityProfileModel =
             securityProfileService.findOneByIdentifier(identifier);
 
-        assertThat(securityProfileModel).isNotNull();
-        assertThat(securityProfileModel.getName()).isEqualTo("SEC_PROFILE_1");
-        assertThat(securityProfileModel.getPermissions().size()).isEqualTo(3);
+        assertThat(securityProfileModel.isPresent()).isTrue();
+        assertThat(securityProfileModel.get().getName()).isEqualTo("SEC_PROFILE_1");
+        assertThat(securityProfileModel.get().getPermissions().size()).isEqualTo(3);
 
         // Add permission
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
@@ -452,17 +455,17 @@ public class SecurityProfileServiceTest {
         final JsonNode queryDslForUpdate = updateParser.getRequest().getFinalUpdate();
 
         RequestResponse<SecurityProfileModel> updateContractStatus =
-            securityProfileService.updateSecurityProfile(securityProfileModel.getIdentifier(), queryDslForUpdate);
+            securityProfileService.updateSecurityProfile(securityProfileModel.get().getIdentifier(), queryDslForUpdate);
         assertThat(updateContractStatus.isOk()).isTrue();
 
         // Retry finding security profiles
-        final SecurityProfileModel securityProfileModel2 =
+        final Optional<SecurityProfileModel> securityProfileModel2 =
             securityProfileService.findOneByIdentifier(identifier);
 
-        assertThat(securityProfileModel2).isNotNull();
-        assertThat(securityProfileModel2.getName()).isEqualTo("SEC_PROFILE_1");
-        assertThat(securityProfileModel2.getPermissions().size()).isEqualTo(4);
-        assertThat(securityProfileModel2.getPermissions()).contains(NewPermission);
+        assertThat(securityProfileModel2.isPresent()).isTrue();
+        assertThat(securityProfileModel2.get().getName()).isEqualTo("SEC_PROFILE_1");
+        assertThat(securityProfileModel2.get().getPermissions().size()).isEqualTo(4);
+        assertThat(securityProfileModel2.get().getPermissions()).contains(NewPermission);
     }
 
     @Test

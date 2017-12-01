@@ -29,18 +29,15 @@ package fr.gouv.vitam.functional.administration.security.profile.core;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -80,6 +77,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 
 public class SecurityProfileService implements VitamAutoCloseable {
 
@@ -95,8 +94,6 @@ public class SecurityProfileService implements VitamAutoCloseable {
         "One or many security profiles in the imported list have the same identifier : %s";
 
     public static String ERR_MISSING_SECURITY_PROFILE_NAME = "Security profile name is mandatory (%s)";
-    public static final String ERR_DUPLICATE_NAME_IN_CREATE =
-        "One or many security profiles in the imported list have the same name : %s";
 
     public static String ERR_UNEXPECTED_PERMISSION_SET_WITH_FULL_ACCESS =
         "Permission set cannot be set with full access mode : %s";
@@ -194,7 +191,6 @@ public class SecurityProfileService implements VitamAutoCloseable {
 
         boolean slaveMode = isSlaveMode();
 
-        final Set<String> securityProfileNames = new HashSet<>();
         final Set<String> securityProfileIdentifiers = new HashSet<>();
 
         for (SecurityProfileModel securityProfile : securityProfileList) {
@@ -233,16 +229,6 @@ public class SecurityProfileService implements VitamAutoCloseable {
                 continue;
             }
 
-            // Check duplicate security profile names
-            if (securityProfileNames.contains(securityProfile.getName())) {
-                error.addToErrors(new VitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem()).setMessage(
-                    String.format(ERR_DUPLICATE_NAME_IN_CREATE, securityProfile.getName())));
-                continue;
-            }
-
-            // mark the current security profile name as treated
-            securityProfileNames.add(securityProfile.getName());
-
             if (securityProfile.getFullAccess()) {
 
                 // Permission set incompatible with full access mode
@@ -255,7 +241,7 @@ public class SecurityProfileService implements VitamAutoCloseable {
         }
     }
 
-    public SecurityProfileModel findOneByIdentifier(String identifier)
+    public Optional<SecurityProfileModel> findOneByIdentifier(String identifier)
         throws ReferentialException, InvalidParseOperationException {
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         parser.parse(new Select().getFinalSelect());
@@ -271,9 +257,9 @@ public class SecurityProfileService implements VitamAutoCloseable {
             final List<SecurityProfileModel> list =
                 result.getDocuments(SecurityProfile.class, SecurityProfileModel.class);
             if (list.isEmpty()) {
-                return null;
+                return Optional.empty();
             }
-            return list.get(0);
+            return Optional.of(list.get(0));
         }
     }
 
@@ -296,12 +282,13 @@ public class SecurityProfileService implements VitamAutoCloseable {
             return error;
         }
 
-        final SecurityProfileModel securityProfileModel = findOneByIdentifier(identifier);
-        if (securityProfileModel == null) {
+        final Optional<SecurityProfileModel> securityProfileModelOps = findOneByIdentifier(identifier);
+        if (!securityProfileModelOps.isPresent()) {
             error.setHttpCode(Response.Status.NOT_FOUND.getStatusCode());
             return error.addToErrors(new VitamError(VitamCode.SECURITY_PROFILE_VALIDATION_ERROR.getItem()).setMessage(
                 SECURITY_PROFILE_NOT_FOUND + identifier));
         }
+        SecurityProfileModel securityProfileModel = securityProfileModelOps.get();
         manager.logUpdateStarted(securityProfileModel.getId());
 
         try {
