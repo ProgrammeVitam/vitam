@@ -16,17 +16,8 @@ L'accès à deux modes de recherche est proposé sur la page "Recherche d'archiv
 - l'un simple, de type recherche libre
 - l'autre, complexe ciblant certains types de métadonnées.
 
-Chacun de ces modes est accessible par un onglet spécifique.
+Chacun de ces modes est accessible par un onglet spécifique. Par défaut, le mode recherche globale est affiché. Un clic sur l'onglet "Recherche avancée" affiche le formulaire de recherche avancée.
 
-Par défaut, le mode recherche globale est affiché.
-
-
-.. image:: images/au_rechchs.png
-
-En cliquant sur l'onglet "Recherche avancée", la page affiche le formulaire de recherche avancée.
-
-
-.. image:: images/au_rechcha.png
 
 Recherche globale
 -------------------
@@ -43,6 +34,8 @@ Les caractéristiques du mode de recherche sont les suivantes :
 - Les résultats ne tiennent pas compte des accents ou graphèmes divers (ç, ß, etc.)
 - Les résultats ignorent les caractères spéciaux
 
+.. image:: images/au_rechchs.png
+
 Recherche avancée
 -----------------
 
@@ -58,7 +51,12 @@ Le ou les mots saisis vont être recherchés dans les métadonnées suivantes :
 
 Pour initier la recherche avancée, l'utilisateur saisit ses éléments dans les champs disponibles, puis clique sur le bouton "Rechercher".
 
-NB 1 : lorsqu'un utilisateur souhaite faire une recherche par dates extrêmes, un contrôle sur ces dates est effectué :
+
+.. image:: images/au_rechcha.png
+
+*Recherche par dates extrêmes*
+
+Lorsqu'un utilisateur souhaite faire une recherche par dates extrêmes, un contrôle sur ces dates est effectué :
 
 - la date de début doit être antérieure à la date de fin
 - les deux champs dates doivent être renseignés
@@ -68,12 +66,15 @@ Dans le cas contraire, un message d'erreur est affiché.
 
 .. image:: images/au_date_ko.png
 
-NB 2 : La recherche par identifiant est particulière. L'identifiant étant unique, il n'est pas possible d'effectuer une recherche croisée par identifiant et tout autre champ. L'identifiant est l'identifiant système attribué par VITAM (SystemId) et peut être retrouvé via la notification (ATR).
+*Recherche par identifiant* 
+
+La recherche par identifiant est particulière. L'identifiant étant unique, il n'est pas possible d'effectuer une recherche croisée par identifiant et tout autre champ. L'identifiant est l'identifiant système attribué par VITAM (SystemId) et peut être retrouvé via la notification (ATR).
+
 
 Résultats de recherche
 ----------------------
 
-Suite à une recherche, les résultats se présentent sous forme de tableau et affichent les informations suivantes :
+Suite à la recherche, les résultats sont affichés sous forme de tableau, comportant les informations suivantes : :
 
 - Identifiant
 - Intitulé
@@ -84,10 +85,11 @@ Suite à une recherche, les résultats se présentent sous forme de tableau et a
 - Objet(s) disponible(s) (une coche est affichée si l'unité archivistique dispose d'un ou de plusieurs objets, dans le cas contraire, une croix est affichée)
 - Cycle de vie
 
+| 
 
 .. image:: images/res_au.png
 
-Lors d'une recherche infructueuse, le message "Aucun résultat" s'affiche sous le formulaire.
+En cas de recherche infructueuse, le message "Aucun résultat" s'affiche sous le formulaire.
 
 
 .. image:: images/au_res_ko.png
@@ -133,26 +135,27 @@ Les résultats sont affichés avec les informations suivantes :
 - Date de début
 - Date de fin
 
+|
 
 .. image:: images/au_arbre_res.png
 
-La colonne "Sélectionné" permet d'ajouter des unités archivistiques afin de les visualiser dans l'arborescence, les 5 unités archivistiques affichées par défaut, sont déjà sélectionné. Un clic sur la case permet de sélectionner ou déselectionner l'unité archivistique correspondante.
-Un fois les choix effectué, unclicsur le bouton "valider" enregistre les sélections et ferme la fenêtre automatiquement.
+La colonne "Sélectionné" permet d'ajouter des unités archivistiques afin de les visualiser dans l'arborescence, les 5 unités archivistiques affichées par défaut, sont déjà sélectionné. Un clic sur la case permet de sélectionner ou désélectionner l'unité archivistique correspondante.
+Un fois les choix effectué, un clic sur le bouton "valider" enregistre les sélections et ferme la fenêtre automatiquement.
 
-Un pictogramme de croix, placé en haut à droite de la fenêtre permet églament de la refermer.
+Un pictogramme de croix, placé en haut à droite de la fenêtre permet également de la refermer.
 
 
 .. image:: images/au_arbre_close.png
 
 **Description principale**
 
-Affichée par défaut, cette section  les métadonnées descriptives et de gestion relatives à l'unité archivistique.
+Affichée par défaut, cette section contient les métadonnées descriptives et de gestion relatives à l'unité archivistique.
 
 Concernant les services producteurs, il faut différencier :
 
  - Identifiant service producteur, le service producteur de l'unité archivistique, repris du bloc <content> du bordereau
  - Service producteur de l'entrée, l'information correspondant à la valeur de l'OriginatingAgencyIdentifier déclarée dans le SIP
- - Services ayant des droits sur l'entrée, correspondants aux services producteur de l'entrée et à ceux des entrées des parents auxquels des unités archivistiques ont été rattachées
+ - Services ayant des droits sur l'entrée, correspondants aux services producteurs de l'entrée et à ceux des entrées des parents auxquels des unités archivistiques ont été rattachées
 
 
  .. image:: images/au_desc.png
@@ -172,7 +175,7 @@ Chaque ligne devient alors éditable, excepté les champs identifiant et type.
 .. image:: images/au_desc_c.png
 
 Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet de les sauvegarder et met à jour les métadonnées.
-Cette action est enregistrées dans le Journal du cycle de vie, les anciennes valeurs sont sauvegardées à titre informatif dans la colonne détail de l'événement, au niveau de l'étape de mise à jour des métadonnées de l'unité archivistique.
+Cette action est enregistrée dans le Journal du cycle de vie. Les anciennes valeurs sont sauvegardées à titre informatif dans la colonne détail de l'événement située au niveau de l'étape de "mise à jour des métadonnées de l'unité archivistique.
 
 **Règles de gestion**
 
@@ -192,7 +195,7 @@ Ces règles ont les attributs suivants :
 - Date de fin : date de fin d'application de la règle
 - Sort final : optionnel, dans le cas où la règle possède un sort final
 - Héritage
-- Détail
+- Détail : indique l'origine de la règle
 
 Le fait qu'une ou plusieurs règles soient bloquées est affiché au travers deux mentions :
 
@@ -200,7 +203,7 @@ Le fait qu'une ou plusieurs règles soient bloquées est affiché au travers deu
 
 - "Cette unité archivistique n'hérite d'aucune règle" indique que toutes les règles de cette catégorie (DUA, DUC, Règle de communicabilité, etc.) provenant des parents ne sont plus appliquées à partir de cette unité archivistique.
 
-Chaque règle possède un détail qu'il est possible de consulter en cliquant sur la ligne de la règle en question. Ce détail reprend l'ensemble affiche le champ "hérité de :" qui permet de visualiser d'où provient la règle.
+Chaque règle possède un détail qu'il est possible de consulter en cliquant sur la ligne de la règle en question. Ce détail reprend l'ensemble affiche le champ "hérité de :" qui permet de visualiser le nom de l'unité archivistique d'origine de la règle.
 La ligne "hérité de" indique quelle unité archivistique est à l'origine de l'application de la règle sur l'unité consultée. Cette origine est cliquable et mène sur le détail de l'unité mentionnée.
 
 
@@ -215,25 +218,29 @@ Il est possible d'ajouter une ou plusieurs règles de gestion à toutes les cat�
 
 
 .. image:: images/au_rg_ajout.png
+   :scale: 50
 
 Dans cet exemple, une règle est héritée et donc non modifiable, tandis que la seconde est modifiable.
 
 
 .. image:: images/au_rg_nv.png
+   :scale: 50
 
 Un clic sur le bouton "ajouter règle" crée une nouvelle ligne permettant la création d'une règle de gestion.
 
 
 .. image:: images/au_rg_supp.png
+   :scale: 50
 
 La suppression d'une règle s'effectue en cliquant sur la corbeille. Il est possible d'annuler l'action de suppression avant la validation des modifications en cliquant sur le pictogramme "+" situé à droite.
 
-Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" ouvre une fenêtre modale afin de vérifier vos modifications. Une fois le bouton "Modifier" sélectionné les règles de gestion sont mises à jour et sauvegardées.
+Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" ouvre une fenêtre modale afin de vérifier vos modifications. Un clic suer le bouton "Modifier" met à jour et sauvegarfe les règles de gestion.
 
 
 .. image:: images/au_rg_pop.png
 
 .. image:: images/au_rg_ok.png
+   :scale: 50
 
 **Groupe d'objets techniques**
 
@@ -247,10 +254,11 @@ Chaque objet est listé dans une ligne du tableau, Les colonnes affichent les in
 - Date, la date de dernière modification
 - Téléchargement, un clic sur icône de téléchargement permet de consulter l'objet.
 
+|
 
 .. image:: images/au_got.png
 
-Un clique sur le pictogramme situé à droite de l'objet permet de consulter ses métadonnées.
+Un clic sur le pictogramme situé à droite de l'objet permet de consulter ses métadonnées.
 
 
 .. image:: images/au_got_detail.png
@@ -270,6 +278,7 @@ Il est possible d'exporter l'unité archivistique sous forme de DIP. Trois choix
 - Unité archivistique et sa descendance
 - Ensemble de l'entrée
 
+|
 
 .. image:: images/au_dip.png
 
@@ -286,10 +295,11 @@ Journal du cycle de vie d'une unité archivistique
 
 Le journal du cycle de vie de l'unité archivistique est disponible depuis son détail en cliquant sur l'icône "Journal du cycle de vie" ou dans la liste du résultat de la recherche d'archives.
 
+|
 
 .. image:: images/au_bt_lfca.png
 
-Après avoir cliqué, le détail du journal du cycle de vie s'affiche.
+Un clic sur ce bouton affiche le détail du journal du cycle de vie.
 
 Par défaut, l'écran du journal du cycle de vie de l'unité archivistique affiche les informations suivantes :
 
@@ -298,6 +308,7 @@ Par défaut, l'écran du journal du cycle de vie de l'unité archivistique affic
 - Statut de l'événement
 - Message de l'événement
 
+|
 
 .. image:: images/lfc_au.png
 
@@ -320,9 +331,11 @@ Journal du cycle de vie du groupe d'objet
 
 Le journal du cycle de vie du groupe d'objets est disponible depuis le détail de l'unité archivistique, dans la partie groupe d'objets.
 
+|
+
 .. image:: images/au_bt_lfcg.png
 
-Pour y accéder, l'utilisateur clique sur le bouton "Journal du cycle de vie du groupe d'objets".
+Un clic sur ce bouton affiche le journal du cycle de vie du groupe d'objets.
 
 Par défaut, l'écran du journal du cycle de vie du groupe d'objets affiche les informations suivantes :
 
@@ -331,6 +344,7 @@ Par défaut, l'écran du journal du cycle de vie du groupe d'objets affiche les 
 - Statut de l'événement
 - Message de l'événement
 
+|
 
 .. image:: images/lfc_got.png
 
@@ -360,6 +374,7 @@ Recherche
 
 Pour y accéder, l'utilisateur survole le menu "Recherche", puis sélectionne "Recherche par service producteur".
 
+|
 
 .. image:: images/menu_sp.png
 
@@ -384,6 +399,7 @@ Suite à une recherche, les résultats se présentent sous forme de tableau affi
 - Identifiant
 - Description
 
+|
 
 .. image:: images/res_agents.png
 
@@ -405,6 +421,7 @@ Deux blocs d'informations sont disponibles depuis le détail du registre des fon
 - Une vue regroupant toutes les unités archivistiques, groupes d'objets et objets ainsi que leurs volumétries, pour un service producteur par fond propres et rattachés
 - Une vue listant toutes les opérations d'entrée effectuées pour ce service producteur
 
+|
 
 .. image:: images/fonds_detail.png
 

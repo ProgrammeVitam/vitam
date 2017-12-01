@@ -196,6 +196,7 @@ Le résultat de la recherche est affiché sous forme de tableau. Par défaut, le
 - Bordereau : permet le téléchargement du manifest.xml
 - AR : permet le téléchargement de l'accusé de réception (ATR)
 
+|
 
 .. image:: images/res_jdoe.png
 
