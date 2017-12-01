@@ -60,7 +60,7 @@ ldap_authentification:
     ldap_base: "dc=programmevitam,dc=fr"
     ldap_login: "cn=admin, dc=programmevitam, dc=fr"
     uid_field: "uid"
-    ldap_userDn_Template: "{{ ldap_authentification.uid_field }}={0},{{ldap_authentification.ldap_base}}"
+    ldap_userDn_Template: "uid={0},dc=programmevitam,dc=fr"
     ldap_group_request: "(&(objectClass=groupOfNames)(member={0}))"
     ldap_admin_groups: "cn=admin,ou=groups,dc=programmevitam, dc=fr"
     ldap_user_groups: "cn=users,ou=groups,dc=programmevitam, dc=fr"
