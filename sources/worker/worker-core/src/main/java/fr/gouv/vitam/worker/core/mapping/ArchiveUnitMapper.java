@@ -218,10 +218,6 @@ public class ArchiveUnitMapper {
         if (appraisalRule != null && appraisalRule.getFinalAction() != null && appraisalRuleCategory == null) {
             // that means we only have FinalAction set in the rule
             appraisalRuleCategory = new RuleCategoryModel();
-            List<RuleModel> rules = new ArrayList<>();
-            RuleModel newRule = new RuleModel();
-            rules.add(newRule);
-            appraisalRuleCategory.getRules().addAll(rules);
         }
 
         if (archiveUnit.getManagement().getAppraisal() != null) {

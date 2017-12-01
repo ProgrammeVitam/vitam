@@ -170,7 +170,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 
-
 /**
  * Processing integration test
  */
@@ -288,6 +287,7 @@ public class ProcessingIT {
     private static String SIP_MANIFEST_INCORRECT_REFERENCE = "integration-processing/KO_Reference_Unexisting.zip";
     private static String SIP_REFERENCE_CONTRACT_KO = "integration-processing/KO_SIP_2_GO_contract.zip";
     private static String SIP_COMPLEX_RULES = "integration-processing/OK_RULES_COMPLEXE_COMPLETE.zip";
+    private static String SIP_APPRAISAL_RULES = "integration-processing/bug_appraisal.zip";
 
     private static String SIP_FILE_KO_AU_REF_BDO = "integration-processing/SIP_KO_ArchiveUnit_ref_BDO.zip";
     private static String SIP_BUG_2182 = "integration-processing/SIP_bug_2182.zip";
@@ -668,7 +668,7 @@ public class ProcessingIT {
             assertThat(resp).isInstanceOf(RequestResponseOK.class);
             assertThat(((RequestResponseOK) resp).getHits().getTotal()).isEqualTo(2);
             assertThat(((RequestResponseOK) resp).getHits().getSize()).isEqualTo(1);
-            
+
             final MongoDatabase db = mongoClient.getDatabase("Vitam");
             // check if unit is valid 
             MongoIterable<Document> resultCheckUnits = db.getCollection("Unit").find();
@@ -685,20 +685,20 @@ public class ProcessingIT {
             Document storageObjectGroup = (Document) objectGroupCheck.get("_storage");
             assertThat(storageObjectGroup.get("_nbc")).isNotNull();
             assertThat(storageObjectGroup.get("_nbc")).isEqualTo(1);
-            
-            List<Document> qualifiers = (List<Document>)objectGroupCheck.get("_qualifiers");
+
+            List<Document> qualifiers = (List<Document>) objectGroupCheck.get("_qualifiers");
             assertThat(qualifiers.size()).isEqualTo(3);
             Document binaryMaster = qualifiers.get(0);
             assertThat(binaryMaster.get("_nbc")).isNotNull();
             assertThat(binaryMaster.get("_nbc")).isEqualTo(1);
-            
-            List<Document> versions = (List<Document>)binaryMaster.get("versions");
+
+            List<Document> versions = (List<Document>) binaryMaster.get("versions");
             assertThat(versions.size()).isEqualTo(1);
             Document version = versions.get(0);
             Document storageVersion = (Document) version.get("_storage");
             assertThat(storageVersion.get("_nbc")).isNotNull();
             assertThat(storageVersion.get("_nbc")).isEqualTo(1);
-            
+
         } catch (final Exception e) {
             LOGGER.error(e);
             fail("should not raized an exception" + e);
@@ -2150,7 +2150,7 @@ public class ProcessingIT {
 
         // check got have to units
         assertEquals(db.getCollection("Unit").count(Filters.eq("_og", idGot)), 2);
-        
+
         ArrayList<Document> logbookLifeCycleUnits =
             Lists.newArrayList(db.getCollection("LogbookLifeCycleUnit").find().iterator());
 
@@ -2163,7 +2163,7 @@ public class ProcessingIT {
         List<Document> lifeCycle = events.stream().filter(t -> t.get("outDetail").equals("LFC.CHECK_MANIFEST.OK"))
             .collect(Collectors.toList());
         assertThat(Iterables.getOnlyElement(lifeCycle).getString(EVENT_DETAILS)).containsIgnoringCase(idGot);
-                
+
         try {
             Files.delete(new File(zipPath).toPath());
         } catch (Exception e) {
@@ -3076,7 +3076,9 @@ public class ProcessingIT {
                     Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
 
             assertNotNull(ret);
+
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
 
             wait(containerName);
             ProcessWorkflow processWorkflow =
@@ -3440,6 +3442,60 @@ public class ProcessingIT {
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
+
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void should_not_insert_empty_arrayNode_in_appraisal_rule_when_ingest_SIP() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
+        // 1. First we create an AU by sip
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
+        final String containerName = objectGuid.getId();
+        createLogbookOperation(operationGuid, objectGuid);
+
+        // workspace client dezip SIP in workspace
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(SIP_APPRAISAL_RULES);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        workspaceClient.createContainer(containerName);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
+            zipInputStreamSipObject);
+        // call processing
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
+
+        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
+        final RequestResponse<JsonNode> ret =
+            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
+                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+
+        assertNotNull(ret);
+
+        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
+
+
+        wait(containerName);
+        ProcessWorkflow processWorkflow =
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.OK, processWorkflow.getStatus());
+
+        final MongoDatabase db = mongoClient.getDatabase("Vitam");
+        MongoIterable<Document> resultUnits = db.getCollection("Unit").find(Filters.eq("Title", "Porte de Pantin"));
+        final Document unitToAssert = resultUnits.first();
+        Document appraisalRule = ((Document) ((Document) unitToAssert.get("_mgt")).get("AppraisalRule"));
+        final List<Object> rules = ((List<Object>) appraisalRule.get("Rules"));
+        final String finalAction = (String) appraisalRule.get("FinalAction");
+        assertThat(finalAction).isNotNull().isEqualTo("Keep");
+        assertThat(rules).isNull();
 
     }
 
