@@ -26,20 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.json;
 
-import static org.joda.time.DateTimeFieldType.dayOfMonth;
-import static org.joda.time.DateTimeFieldType.hourOfDay;
-import static org.joda.time.DateTimeFieldType.millisOfSecond;
-import static org.joda.time.DateTimeFieldType.minuteOfHour;
-import static org.joda.time.DateTimeFieldType.monthOfYear;
-import static org.joda.time.DateTimeFieldType.secondOfMinute;
-import static org.joda.time.DateTimeFieldType.year;
-
-import java.util.List;
-
-import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.DateTimeFormatterBuilder;
-import org.joda.time.format.DateTimeParser;
-
 import com.github.fge.jackson.NodeType;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
@@ -48,6 +34,19 @@ import com.github.fge.jsonschema.format.FormatAttribute;
 import com.github.fge.jsonschema.processors.data.FullData;
 import com.github.fge.msgsimple.bundle.MessageBundle;
 import com.google.common.collect.ImmutableList;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.DateTimeFormatterBuilder;
+import org.joda.time.format.DateTimeParser;
+
+import java.util.List;
+
+import static org.joda.time.DateTimeFieldType.dayOfMonth;
+import static org.joda.time.DateTimeFieldType.hourOfDay;
+import static org.joda.time.DateTimeFieldType.millisOfSecond;
+import static org.joda.time.DateTimeFieldType.minuteOfHour;
+import static org.joda.time.DateTimeFieldType.monthOfYear;
+import static org.joda.time.DateTimeFieldType.secondOfMinute;
+import static org.joda.time.DateTimeFieldType.year;
 
 /**
  * Vitam version of Validator for the {@code date-time-vitam} format attribute

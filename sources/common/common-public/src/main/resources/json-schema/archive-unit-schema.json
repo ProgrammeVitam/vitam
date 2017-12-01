@@ -34,7 +34,7 @@
                   "StartDate": {
                     "title": "The Startdate schema.",
                     "description": "pattern: Date",
-                    "oneOf": [
+                    "anyOf": [
                       {
                         "type": "string",
                         "pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
@@ -44,7 +44,7 @@
                   "EndDate": {
                     "title": "The Enddate schema.",
                     "description": "pattern: Date",
-                    "oneOf": [
+                    "anyOf": [
                       {
                         "type": "string",
                         "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
@@ -112,7 +112,7 @@
                   "StartDate": {
                     "title": "The Startdate schema.",
                     "description": "pattern: Date",
-                    "oneOf": [
+                    "anyOf": [
                       {
                         "type": "string",
                         "pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
@@ -122,7 +122,7 @@
                   "EndDate": {
                     "title": "The Enddate schema.",
                     "description": "pattern: Date",
-                    "oneOf": [
+                    "anyOf": [
                       {
                         "type": "string",
                         "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
@@ -207,7 +207,7 @@
                   "StartDate": {
                     "title": "The Startdate schema.",
                     "description": "pattern: Date",
-                    "oneOf": [
+                    "anyOf": [
                       {
                         "type": "string",
                         "pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
@@ -217,7 +217,7 @@
                   "EndDate": {
                     "title": "The Enddate schema.",
                     "description": "pattern: Date",
-                    "oneOf": [
+                    "anyOf": [
                       {
                         "type": "string",
                         "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
@@ -231,7 +231,7 @@
                     "type": "string"
                   },
                   "ClassificationReassessingDate": {
-                    "oneOf": [
+                    "anyOf": [
                       {
                         "type": "string",
                         "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
@@ -310,7 +310,7 @@
                   "StartDate": {
                     "title": "The Startdate schema.",
                     "description": "pattern: Date",
-                    "oneOf": [
+                    "anyOf": [
                       {
                         "type": "string",
                         "pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
@@ -320,7 +320,7 @@
                   "EndDate": {
                     "title": "The Enddate schema.",
                     "description": "pattern: Date",
-                    "oneOf": [
+                    "anyOf": [
                       {
                         "type": "string",
                         "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
@@ -393,7 +393,7 @@
                   "StartDate": {
                     "title": "The Startdate schema.",
                     "description": "pattern: Date",
-                    "oneOf": [
+                    "anyOf": [
                       {
                         "type": "string",
                         "pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
@@ -403,7 +403,7 @@
                   "EndDate": {
                     "title": "The Enddate schema.",
                     "description": "pattern: Date",
-                    "oneOf": [
+                    "anyOf": [
                       {
                         "type": "string",
                         "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
@@ -471,7 +471,7 @@
                   "StartDate": {
                     "title": "The Startdate schema.",
                     "description": "pattern: Date",
-                    "oneOf": [
+                    "anyOf": [
                       {
                         "type": "string",
                         "pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
@@ -481,7 +481,7 @@
                   "EndDate": {
                     "title": "The Enddate schema.",
                     "description": "pattern: Date",
-                    "oneOf": [
+                    "anyOf": [
                       {
                         "type": "string",
                         "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
@@ -800,7 +800,7 @@
         },
         "BirthDate": {
           "description": "pattern: Date",
-          "oneOf": [
+          "anyOf": [
             {
               "type": "string",
               "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
@@ -837,7 +837,7 @@
         },
         "DeathDate": {
           "description": "pattern: Date",
-          "oneOf": [
+          "anyOf": [
             {
               "type": "string",
               "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
@@ -888,7 +888,7 @@
           "type": "string"
         }
       },
-      "oneOf": [
+      "anyOf": [
         {
           "anyOf": [
             {
@@ -978,7 +978,7 @@
           },
           "BirthDate": {
             "description": "pattern: Date",
-            "oneOf": [
+            "anyOf": [
               {
                 "type": "string",
                 "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}[Z]?$"
@@ -1015,7 +1015,7 @@
           },
           "DeathDate": {
             "description": "pattern: Date",
-            "oneOf": [
+            "anyOf": [
               {
                 "type": "string",
                 "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}[Z]?$"
@@ -1120,7 +1120,7 @@
           },
           "BirthDate": {
             "description": "pattern: Date",
-            "oneOf": [
+            "anyOf": [
               {
                 "type": "string",
                 "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
@@ -1157,7 +1157,7 @@
           },
           "DeathDate": {
             "description": "pattern: Date",
-            "oneOf": [
+            "anyOf": [
               {
                 "type": "string",
                 "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
@@ -1211,7 +1211,7 @@
             "type": "string"
           }
         },
-        "oneOf": [
+        "anyOf": [
           {
             "anyOf": [
               {
@@ -1299,7 +1299,7 @@
           },
           "BirthDate": {
             "description": "pattern: Date",
-            "oneOf": [
+            "anyOf": [
               {
                 "type": "string",
                 "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
@@ -1336,7 +1336,7 @@
           },
           "DeathDate": {
             "description": "pattern: Date",
-            "oneOf": [
+            "anyOf": [
               {
                 "type": "string",
                 "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
@@ -1390,7 +1390,7 @@
             "type": "string"
           }
         },
-        "oneOf": [
+        "anyOf": [
           {
             "anyOf": [
               {
@@ -1743,7 +1743,7 @@
     },
     "EndDate": {
       "description": "pattern: Date",
-      "oneOf": [
+      "anyOf": [
         {
           "type": "string",
           "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
@@ -1776,7 +1776,7 @@
           },
           "EventDateTime": {
             "description": "pattern: Date",
-            "oneOf": [
+            "anyOf": [
               {
                 "type": "string",
                 "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
@@ -1803,7 +1803,7 @@
       "properties": {
         "DateSignature": {
           "description": "pattern: Date",
-          "oneOf": [
+          "anyOf": [
             {
               "type": "string",
               "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
@@ -1827,7 +1827,7 @@
             },
             "BirthDate": {
               "description": "pattern: Date",
-              "oneOf": [
+              "anyOf": [
                 {
                   "type": "string",
                   "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
@@ -1864,7 +1864,7 @@
             },
             "DeathDate": {
               "description": "pattern: Date",
-              "oneOf": [
+              "anyOf": [
                 {
                   "type": "string",
                   "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
@@ -1916,7 +1916,7 @@
             },
             "SigningTime": {
               "description": "pattern: Date",
-              "oneOf": [
+              "anyOf": [
                 {
                   "type": "string",
                   "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
@@ -1948,7 +1948,7 @@
               }
             }
           },
-          "oneOf": [
+          "anyOf": [
             {
               "anyOf": [
                 {
@@ -2021,7 +2021,7 @@
             },
             "BirthDate": {
               "description": "pattern: Date",
-              "oneOf": [
+              "anyOf": [
                 {
                   "type": "string",
                   "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
@@ -2058,7 +2058,7 @@
             },
             "DeathDate": {
               "description": "pattern: Date",
-              "oneOf": [
+              "anyOf": [
                 {
                   "type": "string",
                   "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
@@ -2110,7 +2110,7 @@
             },
             "ValidationTime": {
               "description": "pattern: Date",
-              "oneOf": [
+              "anyOf": [
                 {
                   "type": "string",
                   "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
@@ -2142,7 +2142,7 @@
               }
             }
           },
-          "oneOf": [
+          "anyOf": [
             {
               "anyOf": [
                 {

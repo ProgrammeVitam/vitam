@@ -1,0 +1,74 @@
+<ArchiveUnit xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:pr="info:lc/xmlns/premis-v2"
+             xmlns="fr:gouv:culture:archivesdefrance:seda:v2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.0 seda-2.0-main.xsd" id="ID3">
+    <Content restrictionValue="Valeur de restrictionValue" restrictionEndDate="2016-09-26Z">
+        <DescriptionLevel>RecordGrp</DescriptionLevel>
+        <Title xml:lang="fr">Versement des synthèses du plan national de formation au
+            SIAM et des livrables des ateliers du groupe de travail ministériel sur
+            l'archivage électronique.
+        </Title>
+        <Title xml:lang="en">English title</Title>
+        <FilePlanPosition>Valeur de filePlanPosition</FilePlanPosition>
+        <SystemId>abc</SystemId>
+        <OriginatingSystemId>Valeur de OriginatingSystemId</OriginatingSystemId>
+        <ArchivalAgencyArchiveUnitIdentifier>Valeur de
+            archivalAgencyArchiveUnitIdentifier
+        </ArchivalAgencyArchiveUnitIdentifier>
+        <OriginatingAgencyArchiveUnitIdentifier>Valeur de
+            originatingAgencyArchiveUnitIdentifier
+        </OriginatingAgencyArchiveUnitIdentifier>
+        <TransferringAgencyArchiveUnitIdentifier>Valeur de
+            transferringAgencyArchiveUnitIdentifier
+        </TransferringAgencyArchiveUnitIdentifier>
+        <Description xml:lang="fr">Dossiers versés par la Mission des archives publiques
+            pour l'année 2015 : Un ensemble de documents relatifs aux actions nationales
+            de formation à l'outil SIAM et un ensemble de documents relatif aux ateliers
+            du groupe de travail ministériel archivage électronique piloté par la
+            MAP.
+        </Description>
+        <Description xml:lang="en">English Description</Description>
+        <Type xml:lang="fr">Valeur du type</Type>
+        <DocumentType>Documents de présentation et de synthèse</DocumentType>
+        <Language>FR</Language>
+        <DescriptionLanguage>FR</DescriptionLanguage>
+        <Status>Valeur de Status</Status>
+        <Version>Valeur de version</Version>
+        <Tag>Formation</Tag>
+        <Tag>GTAE</Tag>
+        <Tag>Chaplain</Tag>
+        <Tag>Armand</Tag>
+        <Tag>Gaston</Tag>
+        <Tag>Camus</Tag>
+        <Tag>Adso</Tag>
+        <Coverage>
+            <Spatial xml:lang="fr">Valeur de Spatial</Spatial>
+            <Temporal xml:lang="fr">Valeur de temporal</Temporal>
+            <Juridictional xml:lang="fr">Valeur de juridictional</Juridictional>
+        </Coverage>
+        <OriginatingAgency>
+            <Identifier>Identifiant de l'OriginatingAgency</Identifier>
+        </OriginatingAgency>
+        <SubmissionAgency>
+            <Identifier>Identifiant de l'OriginatingAgency</Identifier>
+        </SubmissionAgency>
+        <Writer>
+            <FirstName>Valeur de FirstName</FirstName>
+            <BirthName>Valeur de BirthName</BirthName>
+            <GivenName>Valeur de GivenName</GivenName><!--           <BirthDate>2016-09-26Z</BirthDate>
+                        <DeathDate>2016-09-26Z</DeathDate>-->
+        </Writer>
+        <Source>Valeur de Source</Source>
+        <CreatedDate>2016-09-26T15:34:08.284+02:00</CreatedDate>
+        <TransactedDate>2012-11-15+03:00</TransactedDate>
+        <AcquiredDate>2016-09-26T15:34:08.284+02:00</AcquiredDate>
+        <SentDate>2016-09-26T15:34:08.284+02:00</SentDate>
+        <ReceivedDate>2016-09-26T15:34:08.284+02:00</ReceivedDate>
+        <StartDate>2012-09-26T15:34:08.284+02:00</StartDate>
+        <EndDate>2016-01-15T16:40:37</EndDate>
+        <Event>
+            <EventIdentifier>Identifiant de l'évenement</EventIdentifier>
+            <EventType>Type de l'évenement</EventType>
+            <EventDateTime>2016-09-26T13:34:08.284Z</EventDateTime>
+        </Event>
+    </Content>
+</ArchiveUnit>

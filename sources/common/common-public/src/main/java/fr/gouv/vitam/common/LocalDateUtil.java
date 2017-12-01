@@ -33,9 +33,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalAccessor;
 import java.util.Date;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -48,13 +51,18 @@ public final class LocalDateUtil {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LocalDateUtil.class);
 
-    public static final DateTimeFormatter DATE_FORMATTER = new DateTimeFormatterBuilder().parseCaseInsensitive()
+    private static final DateTimeFormatter DATE_FORMATTER = new DateTimeFormatterBuilder().parseCaseInsensitive()
         .append(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
         .appendPattern("[zz]")
         .toFormatter();
-    public static final DateTimeFormatter ZONED_DATE_TIME_FORMAT =
+    private static final DateTimeFormatter ZONED_DATE_TIME_FORMAT =
         DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm[:ss][.SSS][zz]");
     private static final DateTimeFormatter SLASHED_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter ISO_OFFSET_DATE_FORMATTER = new DateTimeFormatterBuilder()
+        .append(DateTimeFormatter.ISO_OFFSET_DATE)
+        .parseDefaulting(ChronoField.SECOND_OF_DAY, 0)
+        .toFormatter();
+    private static final DateTimeFormatter ISO_OFFSET_DATE_TIME_FORMATTER = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 
     private static final int THOUSAND = 1000;
     private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZZ";
@@ -76,14 +84,14 @@ public final class LocalDateUtil {
      * @param date in format date to transform
      * @return the ISO Date Time
      */
-    public static final String getString(Date date) {
+    public static String getString(Date date) {
         return fromDate(date).format(DateTimeFormatter.ISO_DATE_TIME);
     }
 
     /**
      * @return the LocalDateTime now in UTC
      */
-    public static final LocalDateTime now() {
+    public static LocalDateTime now() {
         return LocalDateTime.now(ZoneOffset.UTC);
     }
 
@@ -93,7 +101,7 @@ public final class LocalDateUtil {
      * @throws ParseException
      * @throws IllegalArgumentException date null or empty
      */
-    public static final Date getDate(String date) throws ParseException {
+    public static Date getDate(String date) throws ParseException {
         ParametersChecker.checkParameter("Date", date);
         if (date.length() == SIMPLE_DATE_FORMAT.length()) {
             return getSimpleFormattedDate(date);
@@ -109,7 +117,7 @@ public final class LocalDateUtil {
      * @param millis in format long to transform
      * @return the corresponding LocalDateTime in UTC
      */
-    public static final LocalDateTime fromMillis(long millis) {
+    public static LocalDateTime fromMillis(long millis) {
         if (millis < 0) {
             return LocalDateTime.now(ZoneOffset.UTC);
         }
@@ -122,7 +130,7 @@ public final class LocalDateUtil {
      * @return the millis in epoch
      * @throws IllegalArgumentException ldt null or empty
      */
-    public static final long getMillis(LocalDateTime ldt) {
+    public static long getMillis(LocalDateTime ldt) {
         ParametersChecker.checkParameter("LocalDateTime", ldt);
         return ldt.toInstant(ZoneOffset.UTC).toEpochMilli();
     }
@@ -131,7 +139,7 @@ public final class LocalDateUtil {
      * @param date in format Date to transform
      * @return the corresponding LocalDateTime in UTC
      */
-    public static final LocalDateTime fromDate(Date date) {
+    public static LocalDateTime fromDate(Date date) {
         if (date == null) {
             return LocalDateTime.now(ZoneOffset.UTC);
         }
@@ -142,7 +150,7 @@ public final class LocalDateUtil {
      * @param fileTime in format FileTime to transform
      * @return the corresponding LocalDateTime in UTC
      */
-    public static final LocalDateTime fromDate(FileTime fileTime) {
+    public static LocalDateTime fromDate(FileTime fileTime) {
         if (fileTime == null) {
             return LocalDateTime.now(ZoneOffset.UTC);
         }
@@ -153,7 +161,7 @@ public final class LocalDateUtil {
      * @param ldt in format LocalDateTime to transform
      * @return the corresponding date
      */
-    public static final Date getDate(LocalDateTime ldt) {
+    public static Date getDate(LocalDateTime ldt) {
         if (ldt == null) {
             return new Date();
         }
@@ -161,20 +169,20 @@ public final class LocalDateUtil {
     }
 
     /**
-     * @param date
+     * @param date date
      * @return formatted date
      */
-    public static final String getFormattedDate(Date date) {
+    public static String getFormattedDate(Date date) {
         final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
         return dateFormat.format(date);
     }
 
     /**
-     * @param date
+     * @param date date
      * @return formatted date
      * @throws ParseException
      */
-    public static final Date getSimpleFormattedDate(final String date) throws ParseException {
+    public static Date getSimpleFormattedDate(final String date) throws ParseException {
         final SimpleDateFormat dateFormat = new SimpleDateFormat(SIMPLE_DATE_FORMAT);
         return dateFormat.parse(date);
     }
@@ -210,11 +218,32 @@ public final class LocalDateUtil {
     }
 
     /**
+     * Transform ISO_OFFSET_DATE to ISO_OFFSET_DATE_TIME
+     *
+     * @param date the date to format for elastic
+     * @return the formatted date for elastic
+     */
+    public static String transformIsoOffsetDateToIsoOffsetDateTime(String date) {
+        // BUG #3844
+        if (date == null) {
+            return null;
+        }
+        try {
+            final TemporalAccessor parse1 = ISO_OFFSET_DATE_FORMATTER.parse(date);
+            return ZonedDateTime.from(parse1).format(ISO_OFFSET_DATE_TIME_FORMATTER);
+        } catch (DateTimeParseException exc) {
+            // We do nothing on the date if the date is not in ISO_OFFSET_DATE format
+            return date;
+        }
+    }
+
+    /**
      * Use to have homogeneous String date format on database
      *
      * @param date the date to format for database
      * @return the formatted date for database
      */
+
     public static String getFormattedDateForMongo(LocalDateTime date) {
         return date.format(ZONED_DATE_TIME_FORMAT);
     }
