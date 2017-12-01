@@ -107,7 +107,7 @@ export class LogbookOperationComponent extends PageComponent {
 
   static handleReports(item): string[] {
     const evType = item.evTypeProc.toUpperCase();
-    if (['AUDIT','EXPORT_DIP','INGEST'].indexOf(evType) > -1 || item.evType.toUpperCase() === 'STP_IMPORT_RULES') {
+    if (['AUDIT','EXPORT_DIP','INGEST'].indexOf(evType) > -1 || item.evType.toUpperCase() === 'STP_IMPORT_RULES' || item.evType.toUpperCase() == 'STP_IMPORT_AGENCIES') {
       return ['fa-download']
     }else {
       return [];
@@ -171,7 +171,7 @@ export class LogbookOperationComponent extends PageComponent {
         logbookService.downloadDIP(item.evIdProc);
         break;
       case 'MASTERDATA':
-        if(item.evType.toUpperCase() == 'STP_IMPORT_RULES') {
+        if(item.evType.toUpperCase() == 'STP_IMPORT_RULES' || item.evType.toUpperCase() == 'STP_IMPORT_AGENCIES') {
           logbookService.downloadReport(item.evIdProc);
         }
         break;
