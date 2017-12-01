@@ -107,9 +107,7 @@ Les champs présentés dans l'exemple ci-après ne fait pas état de l'exhaustiv
           "aeaqaaaaaahccnklabtgyak7pkvypgyaaaba": 1
       },
       "_storage": {
-          "_nbc": [
-              2
-          ],
+          "_nbc": 2,
           "strategyId": "default",
           "offerIds": [
               "vitam-iaas-app-02.int",
@@ -447,9 +445,7 @@ Les champs présentés dans l'exemple ci-après ne font pas état de l'exhaustiv
           "Vitam"
       ],
       "_storage": {
-          "_nbc": [
-              2
-          ],
+          "_nbc": 2,
           "offerIds": [
               "vitam-iaas-app-02.int",
               "vitam-iaas-app-03.int"
@@ -492,7 +488,7 @@ Détail des champs du JSON
   - "qualifier": usage de l'objet.
     Ceci correspond à la valeur contenue dans le champ <DataObjectVersion> du bordereau. Par exemple pour <DataObjectVersion>BinaryMaster_1</DataObjectVersion>, c'est la valeur "BinaryMaster" qui est reportée.
 
-    - "nb": nombre d'objets correspondant à cet usage.
+    - "_nbc": nombre d'objets correspondant à cet usage.
     - "versions": tableau des objets par version (une version = une entrée dans le tableau). Ces informations sont toutes issues du bordereau.
 
       - "_id": identifiant de l'objet. Il s'agit d'une chaîne de 36 caractères corresppondant à un GUID.
