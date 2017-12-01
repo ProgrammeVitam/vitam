@@ -7,7 +7,7 @@ import { LogbookService } from "../../../ingest/logbook.service";
 import { ColumnDefinition } from "../../../common/generic-table/column-definition";
 import { SelectItem } from "primeng/primeng";
 import { ArchiveUnitHelper } from "../../archive-unit.helper";
-import {DateService} from "../../../common/utils/date.service";
+import { DateService } from "../../../common/utils/date.service";
 
 @Component({
   selector: 'vitam-lifecycle',
@@ -17,9 +17,11 @@ export class LifecycleComponent extends PageComponent {
   id: string;
   events: Event[] = [];
   lifecycleTenantId: string;
-  panelHeader = "Journal du cycle de vie";
-  urlCompletion = "";
+  panelHeader = 'Journal du cycle de vie';
+  urlCompletion = '';
   lifecycleType: string;
+  unitId: string; // Used for object group to store unit ID
+  objectId = '';
 
   data: any;
   selectedCols: ColumnDefinition[] = [];
@@ -62,7 +64,7 @@ export class LifecycleComponent extends PageComponent {
         undefined, () => ({'width': '75px', 'overflow-wrap': 'break-word'}))
   ];
 
-  constructor(private route: ActivatedRoute, public titleService: Title,
+  constructor(public route: ActivatedRoute, public titleService: Title,
               public breadcrumbService: BreadcrumbService, private changeDetectorRef: ChangeDetectorRef,
               private logbookService: LogbookService, private archiveUnitHelper: ArchiveUnitHelper) {
     super('Journal du cycle de vie', [], titleService, breadcrumbService);
@@ -71,21 +73,14 @@ export class LifecycleComponent extends PageComponent {
   pageOnInit() {
     this.route.paramMap
       .switchMap((params: ParamMap) => {
-        if (this.route.snapshot.url[this.route.snapshot.url.length - 1].path.indexOf('unit') > -1) {
-          this.panelHeader = 'Journal du cycle de vie de l\'unité archivistique';
-          this.urlCompletion = 'unitlifecycle';
-          this.lifecycleType = 'UNIT';
-        } else if (this.route.snapshot.url[this.route.snapshot.url.length - 1].path.indexOf('objectgroup') > -1) {
-          this.panelHeader = 'Journal du cycle de vie du groupe d\'objets techniques';
-          this.urlCompletion = 'objectgrouplifecycle';
-          this.lifecycleType = 'OBJECTGROUP';
-        }
-        this.id =  params.get('id');
+        this.id = params.get('id');
+        this.setObjectVariables(params.get('lifecycleType'));
+        this.unitId = params.get('unitId') ? params.get('unitId') : params.get('id');
         let newBreadcrumb = [
           {label: 'Recherche', routerLink: ''},
           {label: 'Recherche d\'archives', routerLink: 'search/archiveUnit'},
-          {label: 'Détails de l\'unité archivistique ' + this.id, routerLink: 'search/archiveUnit/' + this.id},
-          {label: this.panelHeader, routerLink: 'search/archiveUnit/' + this.id + '/' + this.urlCompletion}
+          {label: 'Détails de l\'unité archivistique ' + this.unitId, routerLink: 'search/archiveUnit/' + this.unitId},
+          {label: 'Journal du cycle de vie', routerLink: 'search/archiveUnit/' + this.unitId + '/' + this.urlCompletion}
         ];
         this.setBreadcrumb(newBreadcrumb);
         this.titleService.setTitle(`VITAM - ${this.panelHeader}`);
@@ -106,6 +101,18 @@ export class LifecycleComponent extends PageComponent {
         }
       }
     );
+  }
+
+  setObjectVariables(type: string){
+    if (type && type === 'unitlifecycle') {
+      this.panelHeader = 'Journal du cycle de vie de l\'unité archivistique';
+      this.urlCompletion = 'unitlifecycle';
+      this.lifecycleType = 'UNIT';
+    } else if (type && type === 'objectgrouplifecycle') {
+      this.panelHeader = 'Journal du cycle de vie du groupe d\'objets techniques';
+      this.urlCompletion = 'objectgrouplifecycle/' + this.id;
+      this.lifecycleType = 'OBJECTGROUP';
+    }
   }
 
   ngOnChanges(changes: SimpleChanges) {

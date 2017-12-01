@@ -7,9 +7,8 @@ import { ArchiveUnitDetailsComponent } from './archive-unit-details.component';
 import { BreadcrumbService } from '../../common/breadcrumb.service';
 import { VitamResponse } from "../../common/utils/response";
 import { ArchiveUnitService } from "../archive-unit.service";
-import {DialogService} from "../../common/dialog/dialog.service";
-import {NavigationEnd, Router} from "@angular/router";
-import {SipComponent} from "../../ingest/sip/sip.component";
+import { DialogService } from "../../common/dialog/dialog.service";
+import { NavigationEnd } from "@angular/router";
 
 let DefaultResponse = {
   $context: {},
@@ -61,7 +60,7 @@ describe('ArchiveUnitDetailsComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it( 'should reinit page when archiveUnitDetail is called', (done) => {
+  it('should reinit page when archiveUnitDetail is called', (done) => {
     spyOn(component, 'pageOnInit').and.callFake(() => {
       done();
     });
@@ -71,13 +70,14 @@ describe('ArchiveUnitDetailsComponent', () => {
     component.router.navigateByUrl('search/archiveUnit/myId');
   });
 
-  it( 'should not reinit page when other page is called', (done) => {
+  it('should not reinit page when other page is called', (done) => {
     spyOn(component, 'pageOnInit').and.callFake(() => {
       fail('Should not call pageOnInit');
     });
     spyOn(component.router, 'events').and.returnValues(
       Observable.of(new NavigationEnd(1, 'ingest/sip', 'urlAfterRedirect'))
     );
+    component.ngOnDestroy();
     component.router.navigateByUrl('ingest/sip');
 
     // If no failure after 2sec, we can consider that the test is OK !
