@@ -35,6 +35,8 @@ import java.math.BigInteger;
  */
 public class IdentityModel {
 
+    public static final String TAG_HASH = "Hash";
+
     @JsonProperty("_id")
     private String id;
 
@@ -47,6 +49,9 @@ public class IdentityModel {
     private String issuerDN;
 
     private byte[] certificate;
+
+    @JsonProperty(TAG_HASH)
+    private String certificateHash;
 
     public IdentityModel() {
     }
@@ -97,5 +102,13 @@ public class IdentityModel {
 
     public void setCertificate(byte[] certificate) {
         this.certificate = certificate;
+    }
+
+    public String getCertificateHash() {
+        return certificateHash;
+    }
+
+    public void setCertificateHash(String certificateHash) {
+        this.certificateHash = certificateHash;
     }
 }

@@ -78,7 +78,7 @@ public class PersonalCertificateService {
      * @throws InvalidParseOperationException
      */
     public void createPersonalCertificateIfNotPresent(byte[] certificate)
-        throws PersonalCertificateException, InvalidParseOperationException {
+        throws CertificateException, InvalidParseOperationException {
 
         ParsedCertificate parsedCertificate = ParsedCertificate.parseCertificate(certificate);
 
@@ -107,10 +107,10 @@ public class PersonalCertificateService {
      * Delete certificate if present.
      *
      * @param certificate
-     * @throws PersonalCertificateException
+     * @throws CertificateException
      */
     public void deletePersonalCertificateIfPresent(byte[] certificate)
-        throws PersonalCertificateException {
+        throws CertificateException {
 
         ParsedCertificate parsedCertificate = ParsedCertificate.parseCertificate(certificate);
 
@@ -129,7 +129,7 @@ public class PersonalCertificateService {
      */
     public void checkPersonalCertificateExistence(byte[] certificate, String permission)
         throws LogbookClientServerException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException,
-        InvalidParseOperationException, PersonalCertificateException {
+        InvalidParseOperationException, PersonalCertificateException, CertificateException {
         ParsedCertificate parsedCertificate;
         if (certificate == null) {
             createNoPersonalCertificateLogbook(permission);
@@ -138,7 +138,7 @@ public class PersonalCertificateService {
 
         try {
             parsedCertificate = ParsedCertificate.parseCertificate(certificate);
-        } catch (PersonalCertificateException e) {
+        } catch (CertificateException e) {
             createInvalidPersonalCertificateLogbook(permission);
             throw e;
         }

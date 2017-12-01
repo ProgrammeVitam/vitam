@@ -45,6 +45,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import java.security.cert.CertificateException;
 
 /**
  * public resource to personal resource
@@ -71,7 +72,7 @@ public class PersonalCertificateResource {
     public void checkPersonalCertificate(byte[] certificate,
         @PathParam("permission") String permission)
         throws LogbookClientServerException, LogbookClientAlreadyExistsException, LogbookClientBadRequestException,
-        InvalidParseOperationException, PersonalCertificateException {
+        InvalidParseOperationException, PersonalCertificateException, CertificateException {
         ParametersChecker.checkParameter("Permission cannot be null", permission);
 
         personalCertificateService.checkPersonalCertificateExistence(certificate, permission);
