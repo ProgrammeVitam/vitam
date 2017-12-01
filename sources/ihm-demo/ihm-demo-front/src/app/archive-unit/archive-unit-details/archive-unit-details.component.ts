@@ -1,36 +1,38 @@
-import {Component} from '@angular/core';
-import {ActivatedRoute, ParamMap, Router, NavigationEnd} from '@angular/router';
-import {PageComponent} from "../../common/page/page-component";
-import {Title} from '@angular/platform-browser';
-import {BreadcrumbService} from '../../common/breadcrumb.service';
+import { Component, OnDestroy } from '@angular/core';
+import { ActivatedRoute, ParamMap, Router, NavigationEnd } from '@angular/router';
+import { PageComponent } from "../../common/page/page-component";
+import { Title } from '@angular/platform-browser';
+import { BreadcrumbService } from '../../common/breadcrumb.service';
 import 'rxjs/add/operator/switchMap';
-import {ArchiveUnitService} from "../archive-unit.service";
-import {DialogService} from "../../common/dialog/dialog.service";
+import { ArchiveUnitService } from "../archive-unit.service";
+import { DialogService } from "../../common/dialog/dialog.service";
 
 @Component({
   selector: 'vitam-archive-unit-details',
   templateUrl: './archive-unit-details.component.html',
   styleUrls: ['./archive-unit-details.component.css']
 })
-export class ArchiveUnitDetailsComponent extends PageComponent {
+export class ArchiveUnitDetailsComponent extends PageComponent implements OnDestroy {
   data;
   objects;
   id: string;
   objectDisplayable: boolean;
   timeout;
+  routerObserver: any;
 
   constructor(private route: ActivatedRoute, public titleService: Title, public breadcrumbService: BreadcrumbService,
               private archiveUnitService: ArchiveUnitService, public router: Router, private dialogService: DialogService) {
     super('Détails de l\'unité archivistique', [], titleService, breadcrumbService);
-    router.events.subscribe((val) => {
+    this.routerObserver = router.events.subscribe((val) => {
       if (val instanceof NavigationEnd) {
-        if (val.url.indexOf('search/archiveUnit/') > -1) {
-          this.pageOnInit();
-        }
+        this.pageOnInit();
       }
     });
   }
 
+  ngOnDestroy() {
+    this.routerObserver.unsubscribe();
+  }
 
   pageOnInit() {
     if (this.timeout) {

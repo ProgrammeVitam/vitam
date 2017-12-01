@@ -73,7 +73,7 @@ export class ArchiveObjectGroupComponent implements OnInit {
   }
 
   goToUnitLifecycles() {
-    this.router.navigate(['search/archiveUnit/' + this.objectGroupId + '/objectgrouplifecycle']);
+    this.router.navigate(['search/archiveUnit/' + this.unitId + '/objectgrouplifecycle/' + this.objectGroupId]);
   }
 
 }

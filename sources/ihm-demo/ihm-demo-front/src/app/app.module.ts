@@ -98,10 +98,10 @@ const appRoutes: Routes = [
     path: 'search/archiveUnit/:id', component: ArchiveUnitDetailsComponent, data : {permission : 'archivesearch:units:read'}
   },
   {
-    path: 'search/archiveUnit/:id/unitlifecycle', component: LifecycleComponent, data : {permission : 'archivesearch:units:read'}
+    path: 'search/archiveUnit/:id/:lifecycleType', component: LifecycleComponent, data : {permission : 'archivesearch:units:read'}
   },
   {
-    path: 'search/archiveUnit/:id/objectgrouplifecycle', component: LifecycleComponent, data : {permission : 'archivesearch:units:read'}
+    path: 'search/archiveUnit/:unitId/:lifecycleType/:id', component: LifecycleComponent, data : {permission : 'archivesearch:units:read'}
   },
   {
     path: 'login', component: AuthenticationComponent

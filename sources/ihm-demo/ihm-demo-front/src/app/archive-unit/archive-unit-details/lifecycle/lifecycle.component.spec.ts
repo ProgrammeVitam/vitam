@@ -148,14 +148,14 @@ const ActivatedRouteStub = {
   'snapshot': {
     'url': 'search/archiveUnit/aebaaaaaaahxyyj7aaaviak7s5u6dvqaaaaq/objectgrouplifecycle'
   },
-  paramMap: {
+  paramMap: Observable.of({
     get : (id) => Observable.of("aebaaaaaaahxyyj7aaaviak7s5u6dvqaaaaq"),
     switchMap: () => Observable.of({
       Reports : mockResults,
       NumberOfTestOK : 1,
       NumberOfTestKO : 0
     })
-  },
+  })
 };
 
 describe('LifecycleComponent', () => {
@@ -185,5 +185,17 @@ describe('LifecycleComponent', () => {
 
   it('should be created', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should adapt panel header & lifecycleType variable regarding lifecycle type', () => {
+    component.setObjectVariables('unitlifecycle');
+    expect(component.panelHeader)
+        .toBe('Journal du cycle de vie de l\'unité archivistique');
+    expect(component.lifecycleType).toEqual('UNIT');
+
+    component.setObjectVariables('objectgrouplifecycle');
+    expect(component.panelHeader)
+        .toBe('Journal du cycle de vie du groupe d\'objets techniques');
+    expect(component.lifecycleType).toEqual('OBJECTGROUP');
   });
 });
