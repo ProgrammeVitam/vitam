@@ -28,20 +28,21 @@ package fr.gouv.vitam.security.internal.rest.service;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.security.internal.common.model.IdentityInsertModel;
 import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import fr.gouv.vitam.security.internal.rest.repository.IdentityRepository;
 
-import java.io.ByteArrayInputStream;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.util.Optional;
 
 /**
  * manage certificate.
  */
 public class IdentityService {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IdentityService.class);
 
     private IdentityRepository identityRepository;
 
@@ -59,16 +60,25 @@ public class IdentityService {
     public void createIdentity(IdentityInsertModel identityInsertModel)
         throws CertificateException, InvalidParseOperationException {
 
+        ParsedCertificate parsedCertificate = ParsedCertificate.parseCertificate(identityInsertModel.getCertificate());
+
+        if (identityRepository.findIdentity(parsedCertificate.getCertificateHash()).isPresent()) {
+            LOGGER.info("Identity certificate already exists {0}", parsedCertificate.getCertificateHash());
+            return;
+        }
+
+        LOGGER.info("Identity certificate does not exist {0}. Creating it...", parsedCertificate.getCertificateHash());
+
         IdentityModel identityModel = new IdentityModel();
         identityModel.setId(GUIDFactory.newGUID().toString());
         identityModel.setContextId(identityInsertModel.getContextId());
-        identityModel.setCertificate(identityInsertModel.getCertificate());
+        identityModel.setCertificate(parsedCertificate.getRawCertificate());
 
-        X509Certificate certificate = parseCertificate(identityInsertModel.getCertificate());
+        identityModel.setSubjectDN(parsedCertificate.getX509Certificate().getSubjectDN().getName());
+        identityModel.setIssuerDN(parsedCertificate.getX509Certificate().getIssuerDN().getName());
+        identityModel.setSerialNumber(parsedCertificate.getX509Certificate().getSerialNumber());
 
-        identityModel.setSubjectDN(certificate.getSubjectDN().getName());
-        identityModel.setIssuerDN(certificate.getIssuerDN().getName());
-        identityModel.setSerialNumber(certificate.getSerialNumber());
+        identityModel.setCertificateHash(parsedCertificate.getCertificateHash());
 
         identityRepository.createIdentity(identityModel);
     }
@@ -81,15 +91,15 @@ public class IdentityService {
      */
     public Optional<IdentityModel> linkContextToIdentity(IdentityInsertModel identityInsertModel)
         throws CertificateException, InvalidParseOperationException {
-        X509Certificate x509Certificate = parseCertificate(identityInsertModel.getCertificate());
+
+        ParsedCertificate parsedCertificate = ParsedCertificate.parseCertificate(identityInsertModel.getCertificate());
 
         Optional<IdentityModel> identityModel = identityRepository.findIdentity(
-            x509Certificate.getSubjectDN().getName(), x509Certificate.getSerialNumber());
+            parsedCertificate.getCertificateHash());
 
         identityModel.ifPresent(identity -> {
             identity.setContextId(identityInsertModel.getContextId());
-            identityRepository.linkContextToIdentity(identity.getSubjectDN(), identity.getContextId(),
-                identity.getSerialNumber());
+            identityRepository.linkContextToIdentity(parsedCertificate.getCertificateHash(), identity.getContextId());
         });
         return identityModel;
     }
@@ -102,14 +112,10 @@ public class IdentityService {
      */
     public Optional<IdentityModel> findIdentity(byte[] certificate)
         throws CertificateException, InvalidParseOperationException {
-        X509Certificate x509Certificate = parseCertificate(certificate);
+
+        ParsedCertificate parsedCertificate = ParsedCertificate.parseCertificate(certificate);
+
         return identityRepository
-            .findIdentity(x509Certificate.getSubjectDN().getName(), x509Certificate.getSerialNumber());
+            .findIdentity(parsedCertificate.getCertificateHash());
     }
-
-    private X509Certificate parseCertificate(byte[] certificate) throws CertificateException {
-        CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-        return (X509Certificate) certificateFactory.generateCertificate(new ByteArrayInputStream(certificate));
-    }
-
 }

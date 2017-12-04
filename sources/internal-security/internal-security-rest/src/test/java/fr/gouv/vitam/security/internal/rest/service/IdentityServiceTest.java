@@ -42,12 +42,17 @@ import java.math.BigInteger;
 import java.util.Optional;
 
 import static com.google.common.io.ByteStreams.toByteArray;
+import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 
 public class IdentityServiceTest {
+
+    public static final String CERTIFICATE_HASH = "2f1062f8bf84e7eb83a0f64c98d891fbe2c811b17ffac0bce1a6dc9c7c3dcbb7";
+    public static final String CERTIFICATE_FILE = "/certificate.pem";
+    public static final String RAW_DER_CERTIFICATE_FILE = "/certificate.der";
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
@@ -62,10 +67,12 @@ public class IdentityServiceTest {
         // Given
         IdentityInsertModel identityInsertModel = new IdentityInsertModel();
         identityInsertModel.setContextId("contextId");
-        InputStream stream = getClass().getResourceAsStream("/certificate.pem");
+        InputStream stream = getClass().getResourceAsStream(CERTIFICATE_FILE);
         byte[] certificate = toByteArray(stream);
 
         identityInsertModel.setCertificate(certificate);
+
+        given(identityRepository.findIdentity(CERTIFICATE_HASH)).willReturn(empty());
 
         // When
         identityService.createIdentity(identityInsertModel);
@@ -80,36 +87,36 @@ public class IdentityServiceTest {
         assertThat(identityModel.getSerialNumber()).isEqualTo(BigInteger.ZERO);
         assertThat(identityModel.getIssuerDN()).isEqualTo(
             "EMAILADDRESS=personal-basic@thawte.com, CN=Thawte Personal Basic CA, OU=Certification Services Division, O=Thawte Consulting, L=Cape Town, ST=Western Cape, C=ZA");
-        assertThat(identityModel.getCertificate()).isEqualTo(certificate);
+        assertThat(identityModel.getCertificateHash()).isEqualTo(CERTIFICATE_HASH);
+
+        byte[] rawCertificate = toByteArray(getClass().getResourceAsStream(RAW_DER_CERTIFICATE_FILE));
+        assertThat(identityModel.getCertificate()).isEqualTo(rawCertificate);
     }
 
     @Test
     public void should_read_certificate() throws Exception {
         // Given
-        InputStream stream = getClass().getResourceAsStream("/certificate.pem");
+        InputStream stream = getClass().getResourceAsStream(CERTIFICATE_FILE);
 
         // When
         identityService.findIdentity(toByteArray(stream));
 
         // Then
         then(identityRepository).should().findIdentity(
-            "EMAILADDRESS=personal-basic@thawte.com, CN=Thawte Personal Basic CA, OU=Certification Services Division, O=Thawte Consulting, L=Cape Town, ST=Western Cape, C=ZA",
-            BigInteger.ZERO);
+            CERTIFICATE_HASH);
     }
 
     @Test
     public void should_update_certificate() throws Exception {
         // Given
         IdentityInsertModel identityInsertModel = new IdentityInsertModel();
-        InputStream stream = getClass().getResourceAsStream("/certificate.pem");
+        InputStream stream = getClass().getResourceAsStream(CERTIFICATE_FILE);
         identityInsertModel.setCertificate(toByteArray(stream));
         String contextId = "contextId";
 
-        identityService.createIdentity(identityInsertModel);
         IdentityModel identityModel = new IdentityModel();
         given(identityRepository.findIdentity(
-            "EMAILADDRESS=personal-basic@thawte.com, CN=Thawte Personal Basic CA, OU=Certification Services Division, O=Thawte Consulting, L=Cape Town, ST=Western Cape, C=ZA",
-            BigInteger.ZERO)).willReturn(of(identityModel));
+            CERTIFICATE_HASH)).willReturn(of(identityModel));
 
         // When
         identityInsertModel.setContextId(contextId);
@@ -117,8 +124,7 @@ public class IdentityServiceTest {
 
         // Then
         then(identityRepository).should()
-            .linkContextToIdentity(identityModel.getSubjectDN(), identityModel.getContextId(),
-                identityModel.getSerialNumber());
+            .linkContextToIdentity(CERTIFICATE_HASH, identityModel.getContextId());
         assertThat(result).isPresent().hasValueSatisfying(identity ->
             assertThat(identity.getContextId()).isEqualTo(contextId)
         );

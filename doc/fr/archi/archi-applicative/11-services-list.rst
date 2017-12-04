@@ -157,7 +157,9 @@ Rôle :
 
 Fonctions :
 
-* Gestion des certificats d'accès des applications
+* Gestion des certificats d'accès des applications (SIA)
+* Gestion des certificats personnels
+* Gestion des endpoints nécessitant le contrôle des certificats personnels.
 * Gestion des contextes
 
 Données gérées :
@@ -222,9 +224,10 @@ Données gérées :
 Internal security
 =====================================
 
-* Rôle :Permettre l'authentification des  utilisateurs vitam
-    permet de stocker les certificats
-    il permet aussi l'authentification personae
+* Rôle : Permettre l'authentification des  utilisateurs vitam
+
+  - permet de stocker les certificats des applications appelant Vitam (SIA).
+  - permet de stocker les certificates personnels (pour les endpoints nécessitant une authentification personae)
 
 
 .. A terme, il y aura les journaux d'accès

@@ -39,6 +39,7 @@ import javax.ws.rs.ext.ExceptionMapper;
 public class PersonalCertificateExceptionMapper implements ExceptionMapper<PersonalCertificateException> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PersonalCertificateExceptionMapper.class);
+
     /**
      * Map an exception to a {@link Response}. Returning
      * {@code null} results in a {@link Response.Status#NO_CONTENT}

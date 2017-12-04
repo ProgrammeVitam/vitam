@@ -36,6 +36,7 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
+import java.security.cert.CertificateException;
 
 /**
  * Admin resource for personal certificate
@@ -53,7 +54,7 @@ public class AdminPersonalCertificateResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     public void createIfNotPresent(byte[] certificate)
-        throws PersonalCertificateException, InvalidParseOperationException {
+        throws CertificateException, InvalidParseOperationException {
         ParametersChecker.checkParameter("Certificate cannot be null", certificate);
 
         personalCertificateService.createPersonalCertificateIfNotPresent(certificate);
@@ -62,7 +63,7 @@ public class AdminPersonalCertificateResource {
     @DELETE
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     public void delete(byte[] certificate)
-        throws PersonalCertificateException {
+        throws CertificateException {
         ParametersChecker.checkParameter("Certificate cannot be null", certificate);
 
         personalCertificateService.deletePersonalCertificateIfPresent(certificate);

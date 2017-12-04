@@ -35,10 +35,8 @@ import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import java.math.BigInteger;
 import java.util.Optional;
 
-import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.set;
 
@@ -67,17 +65,16 @@ public class IdentityRepository {
     }
 
     /**
-     * return certificate according to subjectDN and serilanumber
+     * return certificate by hash
      *
-     * @param subjectDN
-     * @param serialNumber
+     * @param hash
      * @return
      * @throws InvalidParseOperationException
      */
-    public Optional<IdentityModel> findIdentity(String subjectDN, BigInteger serialNumber)
+    public Optional<IdentityModel> findIdentity(String hash)
         throws InvalidParseOperationException {
         FindIterable<Document> models =
-            identityCollection.find(filterBySubjectDNAndSerialNumber(subjectDN, serialNumber));
+            identityCollection.find(filterByHash(hash));
         Document first = models.first();
         if (first == null) {
             return Optional.empty();
@@ -86,18 +83,17 @@ public class IdentityRepository {
     }
 
     /**
-     * @param subjectDN
+     * @param hash
      * @param contextId
-     * @param serialNumber
      */
-    public void linkContextToIdentity(String subjectDN, String contextId, BigInteger serialNumber) {
+    public void linkContextToIdentity(String hash, String contextId) {
         identityCollection.updateOne(
-            filterBySubjectDNAndSerialNumber(subjectDN, serialNumber),
+            filterByHash(hash),
             set("ContextId", contextId));
     }
 
-    private Bson filterBySubjectDNAndSerialNumber(String subjectDN, BigInteger serialNumber) {
-        return and(eq("SubjectDN", subjectDN), eq("SerialNumber", serialNumber.intValue()));
+    private Bson filterByHash(String hash) {
+        return eq(IdentityModel.TAG_HASH, hash);
     }
 
 }
