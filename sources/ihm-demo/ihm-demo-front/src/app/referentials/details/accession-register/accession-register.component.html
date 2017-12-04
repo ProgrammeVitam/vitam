@@ -38,12 +38,12 @@
       <p-panel [header]="'Liste par opération'" [styleClass]="'overflow-wrap-content'">
         <div class="ui-g">
           <p-dataTable #dt [value]="registerDetails" [emptyMessage]="'Aucun résultat'">
-            <p-column field="Symbolic" header="Fond propre">
+            <p-column field="Symbolic" header="Fonds propre">
               <ng-template let-detail="rowData" pTemplate="body">
                 <i [ngClass]="getDetailIcon(detail)" aria-hidden="true"></i>
               </ng-template>
             </p-column>
-            <p-column field="_id" header="Identifiant"></p-column>
+            <p-column field="#id" header="Identifiant"></p-column>
             <p-column field="SubmissionAgency" header="Service versant"></p-column>
             <p-column field="LastUpdate" header="Date d'entrée">
               <ng-template let-detail="rowData" pTemplate="body">
