@@ -136,18 +136,14 @@ public class CheckHeaderActionHandler extends ActionHandler {
         }
 
         if (shouldCheckContract) {
-            if (mandatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT) != null) {
-                final String contractIdentifier = (String) mandatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
-                handlerIO.getInput().clear();
-                handlerIO.getInput().add(contractIdentifier);
-                CheckIngestContractActionHandler checkIngestContractActionHandler =
-                        new CheckIngestContractActionHandler();
-                final ItemStatus checkContratItemStatus = checkIngestContractActionHandler.execute(params, handlerIO);
-                itemStatus.setItemsStatus(CheckIngestContractActionHandler.getId(), checkContratItemStatus);
-                checkIngestContractActionHandler.close();
-                if (checkContratItemStatus.shallStop(true)) {
-                    return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
-                }
+            handlerIO.getInput().clear();
+            handlerIO.getInput().add(mandatoryValueMap);
+            CheckIngestContractActionHandler checkIngestContractActionHandler = new CheckIngestContractActionHandler();
+            final ItemStatus checkContratItemStatus = checkIngestContractActionHandler.execute(params, handlerIO);
+            itemStatus.setItemsStatus(CheckIngestContractActionHandler.getId(), checkContratItemStatus);
+            checkIngestContractActionHandler.close();
+            if (checkContratItemStatus.shallStop(true)) {
+                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             }
         }
 

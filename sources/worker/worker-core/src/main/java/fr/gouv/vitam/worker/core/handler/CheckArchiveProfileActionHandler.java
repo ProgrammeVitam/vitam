@@ -140,7 +140,7 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
             } else {
                 throw new ProfileNotFoundException(profileIdentifier + NOT_FOUND);
             }
-        } catch (InvalidCreateOperationException | AdminManagementClientServerException | InvalidParseOperationException e) {
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(CAN_NOT_SEARCH_PROFILE, e);
             itemStatus.increment(StatusCode.KO);
             itemStatus.setData(CAN_NOT_SEARCH_PROFILE, profileIdentifier);
