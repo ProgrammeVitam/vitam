@@ -101,6 +101,7 @@ import fr.gouv.vitam.functional.administration.common.AgenciesParser;
 import fr.gouv.vitam.functional.administration.common.ErrorReportAgencies;
 import fr.gouv.vitam.functional.administration.common.FileAgenciesErrorCode;
 import fr.gouv.vitam.functional.administration.common.FilesSecurisator;
+import fr.gouv.vitam.functional.administration.common.ReportConstants;
 import fr.gouv.vitam.functional.administration.common.exception.AgencyImportDeletionException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
@@ -142,9 +143,7 @@ public class AgenciesService implements VitamAutoCloseable {
 
     private static final String INVALID_CSV_FILE = "Invalid CSV File";
 
-    private static final String ADDITIONAL_INFORMATION = "Information additionnelle";
     private static final String MESSAGE_ERROR = "Import agency error > ";
-    private static final String FILE_INVALID = "File invalid -- lack of column ";
     private static final String _ID = "_id";
     private static final String _TENANT = "_tenant";
 
@@ -323,7 +322,7 @@ public class AgenciesService implements VitamAutoCloseable {
         usedAgenciesByAU.forEach(agency -> usedAgenciesAUNode.add(agency.getIdentifier()));
 
         final ObjectNode data = JsonHandler.createObjectNode();
-        data.set(ADDITIONAL_INFORMATION, usedAgenciesAUNode);
+        data.set(ReportConstants.ADDITIONAL_INFORMATION, usedAgenciesAUNode);
 
         manager.setEvDetData(data);
 
@@ -363,7 +362,7 @@ public class AgenciesService implements VitamAutoCloseable {
         usedAgenciesByContracts.forEach(agency -> usedAgenciesContractNode.add(agency.getIdentifier()));
 
         final ObjectNode data = JsonHandler.createObjectNode();
-        data.set(ADDITIONAL_INFORMATION, usedAgenciesContractNode);
+        data.set(ReportConstants.ADDITIONAL_INFORMATION, usedAgenciesContractNode);
 
         manager.setEvDetData(data);
 
@@ -434,13 +433,13 @@ public class AgenciesService implements VitamAutoCloseable {
             } catch (IllegalArgumentException e) {
                 String message = e.getMessage();
                 if (message.contains("Name not found")) {
-                    message = FILE_INVALID + "Name";
+                    message = ReportConstants.FILE_INVALID + "Name";
                 }
                 if (message.contains("Identifier not found")) {
-                    message = FILE_INVALID + "Identifier";
+                    message = ReportConstants.FILE_INVALID + "Identifier";
                 }
                 if (message.contains("Description not found")) {
-                    message = FILE_INVALID + "Description";
+                    message = ReportConstants.FILE_INVALID + "Description";
                 }
                 throw new ReferentialException(message);
             } catch (Exception e) {
@@ -762,10 +761,9 @@ public class AgenciesService implements VitamAutoCloseable {
         final ArrayNode agenciesTodelete = JsonHandler.createArrayNode();
         final ArrayNode allAgencies = JsonHandler.createArrayNode();
 
-
-        guidmasterNode.put("evType", AGENCIES_IMPORT_EVENT);
-        guidmasterNode.put("evDateTime", LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
-        guidmasterNode.put("evId", eip.toString());
+        guidmasterNode.put(ReportConstants.EV_TYPE, AGENCIES_IMPORT_EVENT);
+        guidmasterNode.put(ReportConstants.EV_DATE_TIME, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        guidmasterNode.put(ReportConstants.EV_ID, eip.toString());
 
         agenciesToInsert.forEach(agency -> insertAgenciesNode.add(agency.getIdentifier()));
 
@@ -779,7 +777,7 @@ public class AgenciesService implements VitamAutoCloseable {
 
         agenciesToImport.forEach(agency -> allAgencies.add(agency.getIdentifier()));
 
-        reportFinal.set("Journal des opérations", guidmasterNode);
+        reportFinal.set(ReportConstants.JDO_DISPLAY, guidmasterNode);
         reportFinal.set("AgenciesToImport", allAgencies);
         reportFinal.set("InsertAgencies", insertAgenciesNode);
         reportFinal.set("UpdatedAgencies", updateAgenciesNode);
@@ -808,15 +806,15 @@ public class AgenciesService implements VitamAutoCloseable {
             List<ErrorReportAgencies> errorsReports = errorsMap.get(line);
             for (ErrorReportAgencies error : errorsReports) {
                 final ObjectNode errorNode = JsonHandler.createObjectNode();
-                errorNode.put("Code", error.getCode().name() + ".KO");
-                errorNode.put("Message", VitamErrorMessages.getFromKey(error.getCode().name()));
+                errorNode.put(ReportConstants.CODE, error.getCode().name() + ".KO");
+                errorNode.put(ReportConstants.MESSAGE, VitamErrorMessages.getFromKey(error.getCode().name()));
                 switch (error.getCode()) {
                     case STP_IMPORT_AGENCIES_MISSING_INFORMATIONS:
-                        errorNode.put(ADDITIONAL_INFORMATION,
+                        errorNode.put(ReportConstants.ADDITIONAL_INFORMATION,
                             error.getMissingInformations());
                         break;
                     case STP_IMPORT_AGENCIES_ID_DUPLICATION:
-                        errorNode.put(ADDITIONAL_INFORMATION,
+                        errorNode.put(ReportConstants.ADDITIONAL_INFORMATION,
                             error.getFileAgenciesModel().getId());
                         break;
                     case STP_IMPORT_AGENCIES_NOT_CSV_FORMAT:
@@ -829,7 +827,7 @@ public class AgenciesService implements VitamAutoCloseable {
             }
             lineNode.set(String.format("line %s", line), messagesArrayNode);
         }
-        reportFinal.set("error", lineNode);
+        reportFinal.set(ReportConstants.ERROR, lineNode);
         return new ByteArrayInputStream(JsonHandler.unprettyPrint(reportFinal).getBytes(StandardCharsets.UTF_8));
     }
 

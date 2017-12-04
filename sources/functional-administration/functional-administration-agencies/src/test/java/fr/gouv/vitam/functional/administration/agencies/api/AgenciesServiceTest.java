@@ -20,36 +20,19 @@ package fr.gouv.vitam.functional.administration.agencies.api;
 import static fr.gouv.vitam.common.PropertiesUtils.getResourceFile;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assume.assumeTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.administration.AgenciesModel;
-import fr.gouv.vitam.functional.administration.common.Agencies;
-import fr.gouv.vitam.functional.administration.common.exception.AgencyImportDeletionException;
-import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
-import fr.gouv.vitam.functional.administration.common.FilesSecurisator;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.io.IOUtils;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -58,15 +41,17 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Matchers;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -75,22 +60,35 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.Agencies;
+import fr.gouv.vitam.functional.administration.common.FilesSecurisator;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import org.mockito.Matchers;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 
 public class AgenciesServiceTest {
@@ -154,7 +152,7 @@ public class AgenciesServiceTest {
         securisator = mock(FilesSecurisator.class);
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode(HOST_NAME, esConfig.getTcpPort()));
-        final List tenants = new ArrayList<>();
+        final List<Integer> tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
         vitamCounterService = new VitamCounterService(dbImpl, tenants, new HashMap<>());
 
@@ -196,30 +194,61 @@ public class AgenciesServiceTest {
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
         when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
             .thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
-
+        
         agencyService = new AgenciesService(dbImpl, vitamCounterService, securisator, logbookOperationsClientFactory,
             storageClientFactory, workspaceClientFactory);
 
-        File fileAgencies = getResourceFile("agencies.csv");
+        // import initial
+        Mockito.reset(securisator);
+        saveReportWhenSecure("report_agencies.json");
+        File fileAgencies1 = getResourceFile("agencies.csv");
 
-        RequestResponse<AgenciesModel> response = agencyService.importAgencies(new FileInputStream(fileAgencies));
+        RequestResponse<AgenciesModel> response = agencyService.importAgencies(new FileInputStream(fileAgencies1));
         assertThat(response.isOk()).isTrue();
-        fileAgencies = getResourceFile("agencies2.csv");
+        JsonNode report1 = getReportJsonAdnCleanFile("report_agencies.json");
+        assertThat(report1.get("JDO")).isNotNull();
 
+        // import 2
+        Mockito.reset(securisator);
+        saveReportWhenSecure("report_agencies2.json");
+        File fileAgencies2 = getResourceFile("agencies2.csv");
+
+        response = agencyService.importAgencies(new FileInputStream(fileAgencies2));
+        assertThat(response.isOk()).isTrue();
+        JsonNode report2 = getReportJsonAdnCleanFile("report_agencies2.json");
+        assertThat(report2.get("JDO")).isNotNull();
+
+        // import 3 error invalid
+        Mockito.reset(securisator);
+        saveReportWhenSecure("report_agencies3.json");
         agencyService = new AgenciesService(dbImpl, vitamCounterService, securisator, logbookOperationsClientFactory,
             storageClientFactory, workspaceClientFactory);
+        File fileAgencies3 = getResourceFile("agencies3.csv");
 
-        response = agencyService.importAgencies(new FileInputStream(fileAgencies));
-        assertThat(response.isOk()).isTrue();
-
-        Agencies doc = (Agencies) agencyService.findDocumentById("AG-000001");
-
-        assertThat(doc.getName()).isEqualTo("agency222");
-        fileAgencies = getResourceFile("agencies_delete.csv");
-        response = agencyService.importAgencies(new FileInputStream(fileAgencies));
+        response = agencyService.importAgencies(new FileInputStream(fileAgencies3));
         assertThat(response.isOk()).isFalse();
+        JsonNode report3 = getReportJsonAdnCleanFile("report_agencies3.json");
+        assertThat(report3.get("JDO")).isNotNull();
+        assertThat(((ArrayNode) report3.get("error").get("line 4")).get(0).get("Code").textValue())
+            .isEqualTo("STP_IMPORT_AGENCIES_MISSING_INFORMATIONS.KO");
+        assertThat(((ArrayNode) report3.get("error").get("line 4")).get(0).get("Information additionnelle").textValue())
+            .isEqualTo("Name");
 
-
+        // import 4 error delete
+        Mockito.reset(securisator);
+        saveReportWhenSecure("report_agencies4.json");
+        agencyService = new AgenciesService(dbImpl, vitamCounterService, securisator, logbookOperationsClientFactory,
+            storageClientFactory, workspaceClientFactory);
+        Agencies doc = (Agencies) agencyService.findDocumentById("AG-000001");
+        assertThat(doc.getName()).isEqualTo("agency222");
+        
+        File fileAgencies4 = getResourceFile("agencies_delete.csv");
+        response = agencyService.importAgencies(new FileInputStream(fileAgencies4));
+        assertThat(response.isOk()).isFalse();
+        JsonNode report4 = getReportJsonAdnCleanFile("report_agencies4.json");
+        assertThat(report4.get("JDO")).isNotNull();
+        assertThat(((ArrayNode) report4.get("UsedAgencies to Delete")).get(0).textValue())
+        .startsWith("AG-00000");
 
     }
 
@@ -229,6 +258,7 @@ public class AgenciesServiceTest {
     @RunWithCustomExecutor
     public void givenFileTestChekFile() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        Mockito.reset(securisator);
         LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
         when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
@@ -259,6 +289,7 @@ public class AgenciesServiceTest {
         "    \"EveryDataObjectVersion\": false,\n" +
         "    \"_v\": 0\n" +
         "}";
+
     private JsonNode getJsonResult(String outcome, int tenantId) throws Exception {
         return JsonHandler.getFromString(String.format("{\n" +
             "     \"httpCode\": 200,\n" +
@@ -300,5 +331,42 @@ public class AgenciesServiceTest {
             "          }\n" +
             "     }\n" +
             "}", outcome, tenantId));
+    }
+
+    private void saveReportWhenSecure(String filename)
+        throws StorageException, LogbookClientServerException, LogbookClientBadRequestException,
+        LogbookClientAlreadyExistsException {
+        Mockito.doAnswer(new Answer<Void>() {
+            public Void answer(InvocationOnMock invocation) {
+                Object[] args = invocation.getArguments();
+                try {
+                    File file = tempFolder.newFile(filename);
+                    FileOutputStream output = new FileOutputStream(file);
+                    IOUtils.copy((InputStream) args[0], output);
+                    IOUtils.closeQuietly(output);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                return null;
+            }
+        }).when(securisator).secureFiles(
+            Matchers.anyObject(),
+            Matchers.anyObject(),
+            Matchers.anyObject(),
+            Matchers.anyObject(),
+            Matchers.anyObject(),
+            Matchers.anyObject(),
+            Matchers.anyObject());
+    }
+
+    private JsonNode getReportJsonAdnCleanFile(String filename) throws InvalidParseOperationException {
+        File[] reports = tempFolder.getRoot().listFiles((dir, name) -> {
+            return filename.equals(name);
+        });
+        JsonNode reportNode = JsonHandler.getFromFile(reports[0]);
+        for(File report : reports) {
+            report.delete();
+        }
+        return reportNode;
     }
 }
