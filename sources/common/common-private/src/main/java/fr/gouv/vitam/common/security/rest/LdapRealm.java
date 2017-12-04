@@ -48,6 +48,7 @@ import javax.naming.directory.Attributes;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.LdapContext;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -160,48 +161,30 @@ public class LdapRealm  extends AbstractLdapRealm {
                 LOGGER.debug("Retrieving group names for user [" + sr.getName() + "]");
             }
 
-            Attributes attrs = sr.getAttributes();
-
-            if (attrs != null) {
-                NamingEnumeration ae = attrs.getAll();
-                while (ae.hasMore()) {
-                    Attribute attr = (Attribute) ae.next();
-                    if (attr.getID().equals("dn")) {
-
-                        Collection<String> groupNames = LdapUtils.getAllAttributeValues(attr);
-
-                        if (LOGGER.isDebugEnabled()) {
-                            LOGGER.debug("Groups found for user [" + userName + "]: " + groupNames);
-                        }
-
-                        Collection<String> rolesForGroups = getRoleNamesForGroups(groupNames);
-                        roleNames.addAll(rolesForGroups);
-                        break;
-                    }
-                }
+            String fullName = sr.getNameInNamespace();
+            String roleForGroup = getRoleNamesForGroups(fullName);
+            if (roleForGroup != null) {
+                roleNames.add(roleForGroup);
             }
         }
-        SimpleAuthorizationInfo authInfo = new SimpleAuthorizationInfo(roleNames);
-        final String role = roleNames.iterator().next();
-        List<String> permissions = Arrays.asList(this.rolePermissionsMap.get(role).split(NAMES_DELIMETER));
 
-        Set<Permission> permissionsSet = new HashSet<>(permissions.size());
+        SimpleAuthorizationInfo authInfo = new SimpleAuthorizationInfo(roleNames);
         WildcardPermissionResolver wpResolver = new WildcardPermissionResolver();
-        for (String pem : permissions) {
-            permissionsSet.add(wpResolver.resolvePermission(pem));
+        Set<Permission> permissionsSet = new HashSet<>();
+        for (String role : roleNames) {
+            for (String permission : this.rolePermissionsMap.get(role).split(NAMES_DELIMETER)) {
+                permissionsSet.add(wpResolver.resolvePermission(permission));
+            }
         }
+
         authInfo.setObjectPermissions(permissionsSet);
         return authInfo;
     }
 
-    protected Collection<String> getRoleNamesForGroups(Collection<String> groupNames) {
-        Set<String> roleNames = new HashSet<>(groupNames.size());
+    private String getRoleNamesForGroups(String groupName) {
         if (groupRolesMap != null) {
-            for (String groupName : groupNames) {
-                String strRoleNames = groupRolesMap.get(groupName);
-                roleNames.add(strRoleNames);
-            }
+            return groupRolesMap.get(groupName);
         }
-        return roleNames;
+        return "";
     }
 }
