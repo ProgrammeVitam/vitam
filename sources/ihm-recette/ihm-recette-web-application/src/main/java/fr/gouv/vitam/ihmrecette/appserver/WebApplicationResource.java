@@ -384,7 +384,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.BAD_REQUEST).build();
         }
         final List<String> requestIds = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.REQUEST_ID.name());
-        if (requestIds != null) {
+        if (requestIds != null && !requestIds.isEmpty()) {
             requestId = requestIds.get(0);
             // get result from shiro session
             try {
@@ -614,7 +614,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
         final List<String> requestIds = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.REQUEST_ID.name());
 
-        if (requestIds != null) {
+        if (requestIds != null && !requestIds.isEmpty()) {
             requestId = requestIds.get(0);
             // get result from shiro session
             try {
