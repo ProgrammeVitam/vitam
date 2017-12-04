@@ -1124,63 +1124,29 @@ public class WebApplicationResource extends ApplicationStatusResource {
         String options) {
 
         ParametersChecker.checkParameter("cookie is mandatory", sessionId);
-        String requestId = null;
-        RequestResponse result = null;
-        OffsetBasedPagination pagination = null;
-
-
-        final List<String> requestIds = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.REQUEST_ID.name());
         Integer tenantId = getTenantId(headers);
 
-        if (!requestIds.isEmpty()) {
-            requestId = requestIds.get(0);
-            // get result from shiro session
-            try {
-                result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(sessionId, pagination));
-
-                // save result
-                PaginationHelper.setResult(sessionId, result.toJsonNode());
-                // pagination
-                result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(result.toJsonNode(), pagination));
-
-                return Response.status(Status.OK).entity(result).header(GlobalDataRest.X_REQUEST_ID, requestId)
-                    .header(IhmDataRest.X_OFFSET, pagination != null ? pagination.getOffset() : 0)
-                    .header(IhmDataRest.X_LIMIT, pagination != null ? pagination.getLimit() : 0).build();
-            } catch (final VitamException e) {
-                LOGGER.error("Bad request Exception ", e);
-                return Response.status(Status.BAD_REQUEST).header(GlobalDataRest.X_REQUEST_ID, requestId).build();
-            }
-        } else {
-            requestId = GUIDFactory.newRequestIdGUID(tenantId).toString();
-
-            ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
-            try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
-                SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
-                final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
-                final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
-                result = adminClient
-                    .findRules(
-                        new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers))
-                            .setApplicationSessionId(getAppSessionId()),
-                        query);
-
-                // save result
-                PaginationHelper.setResult(sessionId, result.toJsonNode());
-                // pagination
-                result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(result.toJsonNode(), pagination));
-
-                return Response.status(Status.OK).entity(result).build();
-            } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
-                LOGGER.error("Bad request Exception ", e);
-                return Response.status(Status.BAD_REQUEST).build();
-            } catch (final VitamClientException e) {
-                LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
-                return Response.status(Status.OK)
-                    .entity(new RequestResponseOK<>().setHttpCode(Status.OK.getStatusCode())).build();
-            } catch (final Exception e) {
-                LOGGER.error(INTERNAL_SERVER_ERROR_MSG);
-                return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-            }
+        ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, options);
+        try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
+            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
+            final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
+            final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+            RequestResponse result = adminClient
+                .findRules(
+                    new VitamContext(getTenantId(headers)).setAccessContract(getAccessContractId(headers))
+                        .setApplicationSessionId(getAppSessionId()),
+                    query);
+            return Response.status(Status.OK).entity(result).build();
+        } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
+            LOGGER.error("Bad request Exception ", e);
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (final VitamClientException e) {
+            LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
+            return Response.status(Status.OK)
+                .entity(new RequestResponseOK<>().setHttpCode(Status.OK.getStatusCode())).build();
+        } catch (final Exception e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR_MSG);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 
