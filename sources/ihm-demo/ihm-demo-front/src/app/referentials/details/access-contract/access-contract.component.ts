@@ -7,34 +7,15 @@ import { BreadcrumbService } from "../../../common/breadcrumb.service";
 import { ReferentialsService } from "../../referentials.service";
 import { ObjectsService } from '../../../common/utils/objects.service';
 import { PageComponent } from "../../../common/page/page-component";
-import { DialogService } from "../../../common/dialog/dialog.service";
 import { AccessContract } from "./access-contract";
-
-
-const ACCESS_CONTRACT_KEY_TRANSLATION = {
-  Identifier: 'Identifiant',
-  CreationDate : 'Date de création',
-  LastUpdate : 'Date de mise à jour',
-  ActivationDate : 'Date d\'activation',
-  DeactivationDate : 'Date de désactivation',
-  Name : 'Intitulé',
-  Status : 'Statut',
-  WritingPermission : 'Droit d\'écriture',
-  Description : 'Description',
-  DataObjectVersion : 'Usage',
-  RootUnits : 'Noeuds de consultation',
-  '#tenant' : 'Tenant',
-  OriginatingAgencies : "Service producteur",
-  EveryOriginatingAgency : 'Tous les services producteurs',
-  EveryDataObjectVersion : 'Tous les usages'
-};
+import {ReferentialHelper} from "../../referential.helper";
+import {DialogService} from "../../../common/dialog/dialog.service";
 
 @Component({
   selector: 'vitam-access-contract',
   templateUrl: './access-contract.component.html',
   styleUrls: ['./access-contract.component.css']
 })
-
 export class AccessContractComponent  extends PageComponent {
 
   contract : AccessContract;
@@ -71,19 +52,29 @@ export class AccessContractComponent  extends PageComponent {
     this.updatedFields = {};
     if (!this.update) {
       this.modifiedContract =  ObjectsService.clone(this.contract);
+      this.isActif = this.modifiedContract.Status === 'ACTIVE';
     }
   }
 
   changeStatus() {
     if (this.isActif) {
-      this.updatedFields['Status'] = 'ACTIVE';
+      this.updatedFields.Status = 'ACTIVE';
     } else {
-      this.updatedFields['Status'] = 'INACTIVE';
+      this.updatedFields.Status = 'INACTIVE';
     }
   }
 
   changeBooleanValue(key : string) {
     this.updatedFields[key] = this.modifiedContract[key];
+    if (key === 'EveryDataObjectVersion') {
+      if (this.updatedFields[key] === true) {
+        ObjectsService.pushAllWithoutDuplication(this.modifiedContract.DataObjectVersion, ReferentialHelper.optionLists.DataObjectVersion);
+        this.updatedFields.DataObjectVersion = this.modifiedContract.DataObjectVersion;
+      } else {
+        ObjectsService.pushAllWithoutDuplication(this.modifiedContract.DataObjectVersion, this.contract.DataObjectVersion);
+        delete this.updatedFields.DataObjectVersion;
+      }
+    }
   }
 
   saveUpdate() {
@@ -125,6 +116,6 @@ export class AccessContractComponent  extends PageComponent {
   initData(value) {
     this.contract = plainToClass(AccessContract, value.$results)[0];
     this.modifiedContract =  ObjectsService.clone(this.contract);
-    this.isActif = this.modifiedContract.Status === 'ACTIVE' ? true : false;
+    this.isActif = this.modifiedContract.Status === 'ACTIVE';
   }
 }

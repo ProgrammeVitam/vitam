@@ -1,4 +1,4 @@
-<p-panel [header]="isIngestOperation ? 'Descriptif de l\'opération entrée' : 'Descriptif de l\'opération'" [toggleable]="true" *ngIf="data && items">
+<p-panel [header]="isIngestOperation ? 'Descriptif de l\'opération d\'entrée' : 'Descriptif de l\'opération'" [toggleable]="true" *ngIf="data && items">
     <div style="float: left; padding: 5px;" *ngIf="!!extraCols && extraCols.length > 0">
         <button pButton class="secondaryButton" [icon]="displayOptions ? 'fa-chevron-up' : 'fa-chevron-down'" iconPos="right"
                 (click)="displayOptions=!displayOptions" [label]="'Informations supplémentaires'"></button>

@@ -4,8 +4,9 @@
     <label class="label fieldLabel">{{title}}</label>
   </div>
   <div [ngClass]="inputClass" class="ui-g-nopad value" *ngIf="!updateMode || !canUpdate">
-    <span *ngIf="!dateValue" class="overflow-break-words" >{{value}}</span>
+    <span *ngIf="!dateValue && displayMode !== 'MultiSelect' && displayMode !== 'DropDown'" class="overflow-break-words" >{{value}}</span>
     <span *ngIf="dateValue" class="overflow-break-words" >{{value | date:'dd/MM/yyyy'}}</span>
+    <span *ngIf="displayMode === 'MultiSelect' || displayMode === 'DropDown'" class="overflow-break-words">{{getLabels(value)}}</span>
   </div>
   <div [ngClass]="inputClass" class="ui-g-nopad value" *ngIf="updateMode && canUpdate">
     <p-calendar *ngIf="displayMode === 'Date'" [(ngModel)]="dateValue" [inputStyle]="{'width':'100%'}" (onSelect)="valueChange()"
@@ -15,7 +16,7 @@
     <input pInputText *ngIf="displayMode === 'TextInput'" [(ngModel)]="value" class="allDiv" (change)="valueChange()" (blur)="valueChange()"/>
     <p-toggleButton *ngIf="displayMode === 'SwitchButton'" onLabel="Oui" offLabel="Non" [(ngModel)]="value" (onChange)="valueChange()"></p-toggleButton>
     <p-chips [disabled]="disabled" *ngIf="displayMode === 'Chips'" [(ngModel)]="value" (onAdd)="valueChange()" (onRemove)="valueChange()"></p-chips>
-    <p-multiSelect [disabled]="disabled"  *ngIf="displayMode === 'MultiSelect'" [options]="options" [(ngModel)]="value" (onChange)="valueChange()"></p-multiSelect>
+    <p-multiSelect [disabled]="disabled" *ngIf="displayMode === 'MultiSelect'" [options]="options" [(ngModel)]="value" (onChange)="valueChange()"></p-multiSelect>
   </div>
 </ng-container>
 

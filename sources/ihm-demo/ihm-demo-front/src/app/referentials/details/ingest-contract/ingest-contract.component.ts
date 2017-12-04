@@ -10,20 +10,6 @@ import { PageComponent } from "../../../common/page/page-component";
 import { DialogService } from "../../../common/dialog/dialog.service";
 import { IngestContract } from './ingest-contract';
 
-const INGEST_CONTRACT_KEY_TRANSLATION = {
-  Identifier: 'Identifiant',
-  CreationDate : 'Date de création',
-  LastUpdate : 'Date de mise à jour',
-  ActivationDate : 'Date d\'activation',
-  DeactivationDate : 'Date de désactivation',
-  Name : 'Intitulé',
-  Status : 'Statut',
-  Description : 'Description',
-  FilingParentId : 'Noeuds de rattachement',
-  ArchiveProfiles : 'Profils d\'archivage',
-  '#tenant' : 'Tenant',
-};
-
 @Component({
   selector: 'vitam-ingest-contract',
   templateUrl: './ingest-contract.component.html',
@@ -66,14 +52,15 @@ export class IngestContractComponent extends PageComponent {
     this.updatedFields = {};
     if (!this.update) {
       this.modifiedContract =  ObjectsService.clone(this.contract);
+      this.isActif = this.modifiedContract.Status === 'ACTIVE';
     }
   }
 
   changeStatus() {
     if (this.isActif) {
-      this.updatedFields['Status'] = 'ACTIVE';
+      this.updatedFields.Status = 'ACTIVE';
     } else {
-      this.updatedFields['Status'] = 'INACTIVE';
+      this.updatedFields.Status = 'INACTIVE';
     }
   }
 
@@ -120,6 +107,6 @@ export class IngestContractComponent extends PageComponent {
   initData(value) {
     this.contract = plainToClass(IngestContract, value.$results)[0];
     this.modifiedContract =  ObjectsService.clone(this.contract);
-    this.isActif = this.modifiedContract.Status === 'ACTIVE' ? true : false;
+    this.isActif = this.modifiedContract.Status === 'ACTIVE';
   }
 }

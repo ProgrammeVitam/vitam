@@ -93,11 +93,12 @@
                               class="ui-g-4 " [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
         <div class="ui-g-4" *ngIf="modifiedContract.EveryOriginatingAgency"  >
         </div>
-        <vitam-metadata-field *ngIf="!modifiedContract.EveryDataObjectVersion" [title]="'Liste blanche des usages'"
-                              [originalTitle]="'DataObjectVersion'"  [value]="modifiedContract.DataObjectVersion" [labelSize]="4"
-                              class="ui-g-4 " [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
-        <div class="ui-g-4" *ngIf="modifiedContract.EveryDataObjectVersion"  >
-        </div>
+        <vitam-metadata-field *ngIf="update" [title]="'Liste blanche des usages'" [updateMode]="!modifiedContract.EveryDataObjectVersion"
+                              [originalTitle]="'DataObjectVersion'" [value]="modifiedContract.DataObjectVersion" [labelSize]="4"
+                              class="ui-g-4" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+        <vitam-metadata-field *ngIf="!update" [title]="'Liste blanche des usages'" [updateMode]="false"
+                              [originalTitle]="'DataObjectVersion'" [value]="modifiedContract.DataObjectVersion" [labelSize]="4"
+                              class="ui-g-4" [(updatedFields)]="updatedFields"></vitam-metadata-field>
         <vitam-metadata-field [title]="'Noeuds de consultation'"  [originalTitle]="'RootUnits'" [value]="modifiedContract.RootUnits" [labelSize]="5"
                               class="ui-g-4 " [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
       </div>

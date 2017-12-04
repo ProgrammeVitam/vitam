@@ -8,34 +8,29 @@ export class ReferentialHelper {
   constructor() { }
 
   useSwitchButton(key : string) {
-    if (['Status','EveryDataObjectVersion', 'WritingPermission', 'EveryOriginatingAgency'].indexOf(key) > -1) {
-      return true;
-    }
-    return false;
+    return ['Status','EveryDataObjectVersion', 'WritingPermission', 'EveryOriginatingAgency'].indexOf(key) > -1;
   }
 
   useChips(key : string) {
-    if (['OriginatingAgencies', 'ArchiveProfiles', 'RootUnits'].indexOf(key) > -1) {
-      return true;
-    }
-    return false;
+    return ['OriginatingAgencies', 'ArchiveProfiles', 'RootUnits'].indexOf(key) > -1;
   }
 
   useMultiSelect(key : string) {
-    if (['DataObjectVersion'].indexOf(key) > -1) {
-      return true;
-    }
-    return false;
+    return ['DataObjectVersion'].indexOf(key) > -1;
   }
 
   public selectionOptions = {
     'DataObjectVersion': [
-      {label: 'BinaryMaster', value: 'Original numérique'},
-      {label: 'Dissemination', value: 'Diffusion'},
-      {label: 'Thumbnail', value: 'Vignette'},
-      {label: 'TextContent', value: 'Contenu brut'},
-      {label: 'PhysicalMaster', value: 'Original papier'}
+      {label: 'Original numérique', value: 'BinaryMaster'},
+      {label: 'Diffusion', value: 'Dissemination'},
+      {label: 'Vignette', value: 'Thumbnail'},
+      {label: 'Contenu brut', value: 'TextContent'},
+      {label: 'Original papier', value: 'PhysicalMaster'}
     ]
+  };
+
+  static optionLists = {
+    'DataObjectVersion': ['BinaryMaster', 'Dissemination', 'Thumbnail', 'TextContent', 'PhysicalMaster']
   };
 
   getOptions(field: string): any[] {
