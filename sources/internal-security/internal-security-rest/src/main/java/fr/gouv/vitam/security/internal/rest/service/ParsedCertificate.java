@@ -71,7 +71,7 @@ class ParsedCertificate {
      * Parses a certificate
      *
      * @param certificate
-     * @return
+     * @return the ParsedCertificate
      * @throws PersonalCertificateException
      */
     public static ParsedCertificate parseCertificate(byte[] certificate) throws CertificateException {
