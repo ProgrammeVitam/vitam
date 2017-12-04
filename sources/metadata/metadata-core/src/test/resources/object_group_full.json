@@ -1,0 +1,61 @@
+{
+    "_id": "aebaaaaaaafegzdyaafpsalabsrm5oyaaaaq",
+    "_tenant": 0,
+    "_profil": "",
+    "FileInfo": {
+        "Filename": "Montparnasse.txt",
+        "LastModified": "2017-04-04T08:07:06.487+02:00"
+    },
+    "_qualifiers": [
+        {
+            "qualifier": "BinaryMaster",
+            "_nbc": 1,
+            "versions": [
+                {
+                    "_id": "aeaaaaaaaafegzdyaafpsalabsrm5oqaaaaq",
+                    "DataObjectGroupId": "aebaaaaaaafegzdyaafpsalabsrm5oyaaaaq",
+                    "DataObjectVersion": "BinaryMaster_1",
+                    "FormatIdentification": {
+                        "FormatLitteral": "Plain Text File",
+                        "MimeType": "text/plain",
+                        "FormatId": "x-fmt/111"
+                    },
+                    "FileInfo": {
+                        "Filename": "Montparnasse.txt",
+                        "LastModified": "2017-04-04T08:07:06.487+02:00"
+                    },
+                    "Size": 6,
+                    "Uri": "Content/ID13.txt",
+                    "MessageDigest": "86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1",
+                    "Algorithm": "SHA-512",
+                    "_storage": {
+                        "_nbc": 1,
+                        "offerIds": [
+                            "localhost"
+                        ],
+                        "strategyId": "default"
+                    }
+                }
+            ]
+        }
+    ],
+    "_up": [
+        "aeaqaaaaaafegzdyaafpsalabsrm5tqaaaaq"
+    ],
+    "_nbc": 0,
+    "_ops": [
+        "aedqaaaaacedcit2aagrkalabsrmwwiaaaaq"
+    ],
+    "_sp": "RATP",
+    "_sps": [
+        "RATP"
+    ],
+    "_storage": {
+        "_nbc": 1,
+        "offerIds": [
+            "localhost"
+        ],
+        "strategyId": "default"
+    },
+    "_v": 1
+}

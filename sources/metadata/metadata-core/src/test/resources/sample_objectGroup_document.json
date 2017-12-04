@@ -11,7 +11,7 @@
     "CreatingOsVersion": "CreatingOsVersion0",
     "LastModified": "2006-05-04T18:13:51.0"
   },
-  "_qualifiers": {
+  "_qualifiers": [{
     "BinaryMaster": {
       "nb": 1,
       "versions": [
@@ -43,7 +43,7 @@
         }
       ]
     }
-  },
+  }],
   "_up": [
     "aeaaaaaaaaaam7mxaaaamakwkuhqtgaaaabq",
     "aeaaaaaaaaaam7mxaaaamakwkuhqt5iaaacq"

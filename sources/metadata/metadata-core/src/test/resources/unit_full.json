@@ -1,0 +1,55 @@
+{
+    "_id": "aeaqaaaaaafegzdyaafpsalabsrm5tqaaaaq",
+    "_og": "aebaaaaaaafegzdyaafpsalabsrm5oyaaaaq",
+    "_mgt": {
+        "OriginatingAgency": "RATP"
+    },
+    "DescriptionLevel": "Item",
+    "Title": "Montparnasse.txt",
+    "Titles": {
+        "fr": "Montparnasse.txt"
+    },
+    "Descriptions": {},
+    "TransactedDate": "2017-04-04T08:07:06",
+    "_sps": [
+        "RATP"
+    ],
+    "_sp": "RATP",
+    "_ops": [
+        "aedqaaaaacedcit2aagrkalabsrmwwiaaaaq"
+    ],
+    "_unitType": "INGEST",
+    "_max": 5,
+    "_min": 1,
+    "_up": [
+        "aeaqaaaaaafegzdyaafpsalabsrm5tiaaaba"
+    ],
+    "_nbc": 0,
+    "_us": [
+        "aeaqaaaaaafegzdyaafpsalabsrm5qqaaaba",
+        "aeaqaaaaaafegzdyaafpsalabsrm5ryaaabq",
+        "aeaqaaaaaafegzdyaafpsalabsrm5syaaaba",
+        "aeaqaaaaaafegzdyaafpsalabsrm5tyaaaba",
+        "aeaqaaaaaafegzdyaafpsalabsrm5uaaaaba",
+        "aeaqaaaaaafegzdyaafpsalabsrm5uiaaaba",
+        "aeaqaaaaaafegzdyaafpsalabsrm5tiaaaba"
+    ],
+    "_uds": {
+        "aeaqaaaaaafegzdyaafpsalabsrm5syaaaba": 2,
+        "aeaqaaaaaafegzdyaafpsalabsrm5uaaaaba": 3,
+        "aeaqaaaaaafegzdyaafpsalabsrm5tyaaaba": 4,
+        "aeaqaaaaaafegzdyaafpsalabsrm5qqaaaba": 4,
+        "aeaqaaaaaafegzdyaafpsalabsrm5ryaaabq": 3,
+        "aeaqaaaaaafegzdyaafpsalabsrm5uiaaaba": 2,
+        "aeaqaaaaaafegzdyaafpsalabsrm5tiaaaba": 1
+    },
+    "_v": 1,
+    "_tenant": 0,
+    "_storage": {
+        "_nbc":1,
+        "strategyId": "default",
+        "offerIds": [
+            "localhost"
+        ]
+    }
+}
