@@ -69,12 +69,11 @@ class ParsedCertificate {
 
     /**
      * Parses a certificate
-     *
      * @param certificate
-     * @return the ParsedCertificate
+     * @return
      * @throws PersonalCertificateException
      */
-    public static ParsedCertificate parseCertificate(byte[] certificate) throws CertificateException {
+    public static ParsedCertificate parseCertificate(byte[] certificate) throws PersonalCertificateException {
 
         try {
 
@@ -88,7 +87,7 @@ class ParsedCertificate {
             return new ParsedCertificate(x509certificate, rawCertificate, certificateHash);
 
         } catch (CertificateException ex) {
-            throw new CertificateException("Could not parse certificate. "
+            throw new PersonalCertificateException("Could not parse certificate. "
                 + toCertificateHexString(certificate), ex);
         }
     }
@@ -100,7 +99,6 @@ class ParsedCertificate {
 
     /**
      * Converts a certificate to Hex for logging (Truncated to MAX_CERTIFICATE_LOG_LENGTH)
-     *
      * @param certificate
      * @return
      */
@@ -111,5 +109,6 @@ class ParsedCertificate {
         } else {
             return Hex.encodeHexString(certificate);
         }
+
     }
 }

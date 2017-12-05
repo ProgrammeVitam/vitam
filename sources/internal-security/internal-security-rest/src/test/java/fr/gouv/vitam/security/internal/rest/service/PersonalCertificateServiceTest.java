@@ -19,7 +19,6 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.io.InputStream;
-import java.security.cert.CertificateException;
 import java.util.Optional;
 
 import static com.google.common.io.ByteStreams.toByteArray;
@@ -95,7 +94,7 @@ public class PersonalCertificateServiceTest {
         // When /then
         assertThatThrownBy(
             () -> personalCertificateService.checkPersonalCertificateExistence(new byte[3], TEST_PERMISSION))
-            .isInstanceOf(CertificateException.class);
+            .isInstanceOf(PersonalCertificateException.class);
         verify(logbookOperationsClient).create(captor.capture());
 
         LogbookOperationParameters parameters = captor.getValue();
