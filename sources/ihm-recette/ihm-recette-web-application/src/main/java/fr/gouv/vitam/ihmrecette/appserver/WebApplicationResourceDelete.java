@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -609,18 +610,7 @@ public class WebApplicationResourceDelete {
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteMasterdataContext() {
-        Delete delete = null;
-
-        try {
-            delete = queryDeleteContext();
-
-            mongoDbAccessAdmin.deleteCollection(FunctionalAdminCollections.CONTEXT, delete);
-
-            return Response.status(Status.OK).build();
-        } catch (InvalidCreateOperationException | DatabaseException | ReferentialException e) {
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        }
-
+        return deleteMasterDataCollection(FunctionalAdminCollections.CONTEXT);
     }
 
     /**
@@ -656,7 +646,15 @@ public class WebApplicationResourceDelete {
         )) {
             throw new IllegalArgumentException("unsupported collection");
         }
-
+        boolean fakeTenant = false;
+        if (FunctionalAdminCollections.CONTEXT.equals(collection)) {
+            // HACK: context is a multi tenant collection, so it is possible to not have tenant in session when
+            // delete them
+            if (VitamThreadUtils.getVitamSession().getTenantId() == null) {
+                fakeTenant = true;
+                VitamThreadUtils.getVitamSession().setTenantId(0);
+            }
+        }
         final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters(
             eip, STP_DELETE_MASTERDATA + "_" + collection.name(), eip,
@@ -665,7 +663,12 @@ public class WebApplicationResourceDelete {
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         try {
             helper.createDelegate(parameters);
-            mongoDbAccessAdmin.deleteCollection(collection).close();
+            if (FunctionalAdminCollections.CONTEXT.equals(collection)) {
+                // HACK: CT-0001, admin-context have not to be deleted
+                mongoDbAccessAdmin.deleteCollection(collection, queryDeleteContext()).close();
+            } else {
+                mongoDbAccessAdmin.deleteCollection(collection).close();
+            }
             parameters.setStatus(StatusCode.OK).putParameterValue(LogbookParameterName.outcomeDetailMessage,
                 VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA + "_" + collection.name(), StatusCode.OK));
             helper.updateDelegate(parameters);
@@ -681,7 +684,13 @@ public class WebApplicationResourceDelete {
                 LOGGER.error(CANNOT_UPDATE_DELEGATE_LOGBOOK_OPERATION, e);
             }
             return updateLogbookAndGetErrorResponse(helper, eip, exc);
+        } finally {
+            // HACK: context is a multi tenant collection, rollback tenantID
+            if (fakeTenant) {
+                VitamThreadUtils.getVitamSession().setTenantId(null);
+            }
         }
+
     }
 
     /**
