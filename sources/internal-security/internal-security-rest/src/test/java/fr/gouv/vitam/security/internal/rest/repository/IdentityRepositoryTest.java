@@ -53,8 +53,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class IdentityRepositoryTest {
 
     private final static String CLUSTER_NAME = "vitam-cluster";
-    private static final String CERTIFICATE_HASH =
-        "2f1062f8bf84e7eb83a0f64c98d891fbe2c811b17ffac0bce1a6dc9c7c3dcbb7";
 
     @Rule
     public MongoRule mongoRule = new MongoRule(getMongoClientOptions(), CLUSTER_NAME, CERTIFICATE_COLLECTION);
@@ -81,7 +79,6 @@ public class IdentityRepositoryTest {
         identityModel.setSubjectDN("distinguishedName");
         identityModel.setSerialNumber(BigInteger.TEN);
         identityModel.setId(id.toString());
-        identityModel.setCertificateHash(CERTIFICATE_HASH);
 
         // When
         identityRepository.createIdentity(identityModel);
@@ -92,8 +89,7 @@ public class IdentityRepositoryTest {
             .isNotNull()
             .containsEntry("IssuerDN", "issuerDN")
             .containsEntry("SubjectDN", "distinguishedName")
-            .containsEntry("SerialNumber", 10)
-            .containsEntry(IdentityModel.TAG_HASH, CERTIFICATE_HASH);
+            .containsEntry("SerialNumber", 10);
     }
 
     @Test
@@ -107,12 +103,11 @@ public class IdentityRepositoryTest {
         identityModel.setSubjectDN("distinguishedName");
         identityModel.setSerialNumber(BigInteger.TEN);
         identityModel.setId(id.toString());
-        identityModel.setCertificateHash(CERTIFICATE_HASH);
 
         identityRepository.createIdentity(identityModel);
 
         // When
-        Optional<IdentityModel> result = identityRepository.findIdentity(CERTIFICATE_HASH);
+        Optional<IdentityModel> result = identityRepository.findIdentity("distinguishedName", BigInteger.TEN);
 
         // Then
         assertThat(result).isPresent().hasValueSatisfying(identity -> {
@@ -120,14 +115,13 @@ public class IdentityRepositoryTest {
             assertThat(identity.getSubjectDN()).isEqualTo("distinguishedName");
             assertThat(identity.getSerialNumber()).isEqualTo(BigInteger.TEN);
             assertThat(identity.getId()).isEqualTo(id.toString());
-            assertThat(identity.getCertificateHash()).isEqualTo(CERTIFICATE_HASH);
         });
     }
 
     @Test
     public void should_return_empty_when_identity_is_missing() throws InvalidParseOperationException {
         // Given / When
-        Optional<IdentityModel> result = identityRepository.findIdentity(CERTIFICATE_HASH);
+        Optional<IdentityModel> result = identityRepository.findIdentity("invalid_dn", BigInteger.ZERO);
 
         // Then
         assertThat(result).isEmpty();
@@ -144,13 +138,13 @@ public class IdentityRepositoryTest {
         identityModel.setSubjectDN("distinguishedName");
         identityModel.setSerialNumber(BigInteger.TEN);
         identityModel.setId(id.toString());
-        identityModel.setCertificateHash(CERTIFICATE_HASH);
 
         identityRepository.createIdentity(identityModel);
 
         // When
         identityModel.setContextId(contextId);
-        identityRepository.linkContextToIdentity(CERTIFICATE_HASH, identityModel.getContextId());
+        identityRepository.linkContextToIdentity(identityModel.getSubjectDN(), identityModel.getContextId(),
+            identityModel.getSerialNumber());
 
         // Then
         Document document = certificateCollection.find(eq("_id", id.toString())).first();
@@ -158,4 +152,5 @@ public class IdentityRepositoryTest {
             .isNotNull()
             .containsEntry("ContextId", contextId);
     }
+
 }
