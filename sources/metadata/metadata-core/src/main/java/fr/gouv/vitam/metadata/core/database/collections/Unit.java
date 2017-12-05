@@ -105,10 +105,6 @@ public class Unit extends MetadataDocument<Unit> {
      * UnitType : normal or holding scheme
      */
     public static final String UNIT_TYPE = "_unitType";
-    /**
-     * List of all parents
-     */
-    public static final String PARENTS = "_uds";
 
     @Override
     public MetadataDocument<Unit> newInstance(JsonNode content) {
