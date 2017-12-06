@@ -248,19 +248,6 @@ public class IngestContractImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenIngestContractsTestDuplicateNames() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_duplicate.json");
-        final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
-            });
-        final RequestResponse response = ingestContractService.createContracts(IngestContractModelList);
-
-        assertThat(!response.isOk());
-    }
-
-    @Test
-    @RunWithCustomExecutor
     public void givenIngestContractsTestNotAllowedNotNullIdInCreation() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
@@ -282,7 +269,7 @@ public class IngestContractImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenIngestContractsTestAlreadyExistsContract() throws Exception {
+    public void givenIngestContractsTestNotUniqueName() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
 

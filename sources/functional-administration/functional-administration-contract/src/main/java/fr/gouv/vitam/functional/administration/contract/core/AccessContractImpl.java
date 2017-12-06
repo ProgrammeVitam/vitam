@@ -173,7 +173,6 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
         manager.logStarted();
 
-        final Set<String> contractNames = new HashSet<>();
         ArrayNode contractsToPersist;
 
         final VitamError error = new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem())
@@ -188,17 +187,9 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                             GenericRejectionCause.rejectIdNotAllowedInCreate(acm.getName()).getReason()));
                     continue;
                 }
-                // if a contract with the same name is already treated mark the current one as duplicated
-                if (contractNames.contains(acm.getName())) {
-                    error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem())
-                        .setMessage(GenericRejectionCause.rejectDuplicatedEntry(acm.getName()).getReason()));
-                    continue;
-                }
-                // mark the current contract as treated
-                contractNames.add(acm.getName());
+
                 // validate contract
                 if (manager.validateContract(acm, acm.getName(), error)) {
-                    // TODO: 5/16/17 newIngestContractGUID used for access contract, should create
                     // TODO: 5/16/17 newIngestContractGUID used for access contract, should create
                     // newAccessContractGUID?
                     acm.setId(GUIDFactory.newIngestContractGUID(ParameterHelper.getTenantParameter()).getId());
@@ -272,13 +263,14 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         if (!slaveMode) {
             final String code =
                 vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(),
-                    SequenceType.ACCESS_CONTRACT_SEQUENCE.getName());
+                    SequenceType.ACCESS_CONTRACT_SEQUENCE);
             acm.setIdentifier(code);
         }
     }
 
     @Override
-    public AccessContractModel findByIdentifier(String identifier) throws ReferentialException, InvalidParseOperationException {
+    public AccessContractModel findByIdentifier(String identifier)
+        throws ReferentialException, InvalidParseOperationException {
         SanityChecker.checkParameter(identifier);
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         parser.parse(new Select().getFinalSelect());
@@ -613,16 +605,17 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
          */
         private AccessContractValidator createCheckDuplicateInDatabaseValidator() {
             return (contract, contractName) -> {
-                GenericRejectionCause rejection = null;
-                final int tenant = ParameterHelper.getTenantParameter();
-                final Bson clause =
-                    and(Filters.eq(VitamDocument.TENANT_ID, tenant),
-                        Filters.eq(AccessContract.NAME, contract.getName()));
-                final boolean exist = FunctionalAdminCollections.ACCESS_CONTRACT.getCollection().count(clause) > 0;
-                if (exist) {
-                    rejection = GenericRejectionCause.rejectDuplicatedInDatabase(contractName);
+                if (ParametersChecker.isNotEmpty(contract.getIdentifier())) {
+                    final int tenant = ParameterHelper.getTenantParameter();
+                    final Bson clause =
+                        and(Filters.eq(VitamDocument.TENANT_ID, tenant),
+                            Filters.eq(AccessContract.IDENTIFIER, contract.getIdentifier()));
+                    final boolean exist = FunctionalAdminCollections.ACCESS_CONTRACT.getCollection().count(clause) > 0;
+                    if (exist) {
+                        return Optional.of(GenericRejectionCause.rejectDuplicatedInDatabase(contractName));
+                    }
                 }
-                return rejection == null ? Optional.empty() : Optional.of(rejection);
+                return Optional.empty();
             };
         }
 
@@ -679,7 +672,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 if (null == rootUnits) {
                     return Optional.empty();
                 }
-                
+
                 rootUnits.removeIf(unit -> unit.trim().isEmpty());
                 if (rootUnits.isEmpty()) {
                     return Optional.empty();

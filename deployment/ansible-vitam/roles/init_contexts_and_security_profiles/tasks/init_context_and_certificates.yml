@@ -11,7 +11,7 @@
 - name: Check if context already exists in functional-admin
   uri:
     method: GET
-    body: "{ \"$query\":{\"$and\":[{\"$eq\":{\"Name\":\"{{admin_context_name}}\"}}]},\"$filter\":{\"$orderby\":{\"Name\":1}},\"$projection\":{} }"
+    body: "{ \"$query\":{\"$eq\":{\"Name\":\"{{admin_context_name}}\"}},\"$filter\":{},\"$projection\":{} }"
     status_code: 200
     url: "http://{{hostvars[groups['hosts-functional-administration'][0]]['ip_admin']}}:{{vitam.functional_administration.port_admin}}/v1/admin/contexts"
     body_format: "json"

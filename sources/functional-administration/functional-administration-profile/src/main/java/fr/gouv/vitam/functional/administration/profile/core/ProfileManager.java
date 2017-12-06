@@ -42,6 +42,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
@@ -441,14 +442,15 @@ public class ProfileManager {
      */
     public ProfileValidator createCheckDuplicateInDatabaseValidator() {
         return (profile) -> {
-            RejectionCause rejection = null;
-            int tenant = ParameterHelper.getTenantParameter();
-            Bson clause = and(eq(VitamDocument.TENANT_ID, tenant), eq(Profile.IDENTIFIER, profile.getIdentifier()));
-            boolean exist = FunctionalAdminCollections.PROFILE.getCollection().count(clause) > 0;
-            if (exist) {
-                rejection = RejectionCause.rejectDuplicatedInDatabase(profile.getName());
+            if (ParametersChecker.isNotEmpty(profile.getIdentifier())) {
+                int tenant = ParameterHelper.getTenantParameter();
+                Bson clause = and(eq(VitamDocument.TENANT_ID, tenant), eq(Profile.IDENTIFIER, profile.getIdentifier()));
+                boolean exist = FunctionalAdminCollections.PROFILE.getCollection().count(clause) > 0;
+                if (exist) {
+                    return Optional.of(RejectionCause.rejectDuplicatedInDatabase(profile.getName()));
+                }
             }
-            return (rejection == null) ? Optional.empty() : Optional.of(rejection);
+            return Optional.empty();
 
         };
     }

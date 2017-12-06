@@ -33,7 +33,6 @@ import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.TENANT_
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -41,13 +40,9 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
 
-import org.apache.commons.lang.StringUtils;
-import org.bson.conversions.Bson;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.Query;
@@ -101,6 +96,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import org.apache.commons.lang.StringUtils;
+import org.bson.conversions.Bson;
 
 public class ContextServiceImpl implements ContextService {
     private static final String INVALID_IDENTIFIER_OF_THE_ACCESS_CONTRACT =
@@ -151,7 +148,6 @@ public class ContextServiceImpl implements ContextService {
         manager.logStarted();
 
         final List<ContextModel> contextsListToPersist = new ArrayList<>();
-        final Set<String> contextNames = new HashSet<>();
         final VitamError error = new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem())
             .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
@@ -163,7 +159,7 @@ public class ContextServiceImpl implements ContextService {
                 if (!slaveMode) {
                     final String code = vitamCounterService
                         .getNextSequenceAsString(ParameterHelper.getTenantParameter(),
-                            SequenceType.CONTEXT_SEQUENCE.getName());
+                            SequenceType.CONTEXT_SEQUENCE);
                     cm.setIdentifier(code);
                 }
                 // if a contract have an id
@@ -172,16 +168,6 @@ public class ContextServiceImpl implements ContextService {
                         ContextRejectionCause.rejectIdNotAllowedInCreate(cm.getName()).getReason()));
                     continue;
                 }
-
-                // if a contract with the same name is already treated mark the current one as duplicated
-                if (contextNames.contains(cm.getName())) {
-                    error.addToErrors(new VitamError(VitamCode.CONTEXT_VALIDATION_ERROR.getItem()).setMessage(
-                        ContextRejectionCause.rejectDuplicatedEntry(cm.getName()).getReason()));
-                    continue;
-                }
-
-                // mark the current contract as treated
-                contextNames.add(cm.getName());
 
                 // validate context
                 if (manager.validateContext(cm, error)) {
@@ -242,7 +228,8 @@ public class ContextServiceImpl implements ContextService {
     }
 
     @Override
-    public ContextModel findOneContextById(String id) throws ReferentialNotFoundException, ReferentialException, InvalidParseOperationException {
+    public ContextModel findOneContextById(String id)
+        throws ReferentialNotFoundException, ReferentialException, InvalidParseOperationException {
         SanityChecker.checkParameter(id);
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         parser.parse(new Select().getFinalSelect());
@@ -517,7 +504,7 @@ public class ContextServiceImpl implements ContextService {
         private ContextValidator securityProfileIdentifierValidator() {
             return (context) -> {
 
-                SecurityProfileModel securityProfileModel = null;
+                Optional<SecurityProfileModel> securityProfileModel = Optional.empty();
                 try {
                     securityProfileModel =
                         securityProfileService.findOneByIdentifier(context.getSecurityProfileIdentifier());
@@ -526,7 +513,7 @@ public class ContextServiceImpl implements ContextService {
                     LOGGER.warn("An error occurred during security profile validation", e);
                 }
 
-                if (securityProfileModel == null) {
+                if (!securityProfileModel.isPresent()) {
                     return Optional.of(ContextValidator.ContextRejectionCause
                         .invalidSecurityProfile(context.getSecurityProfileIdentifier()));
                 } else {
@@ -544,13 +531,15 @@ public class ContextServiceImpl implements ContextService {
          */
         private ContextValidator createCheckDuplicateInDatabaseValidator() {
             return (context) -> {
-                ContextValidator.ContextRejectionCause rejection = null;
-                final Bson clause = eq(IngestContract.NAME, context.getName());
-                final boolean exist = FunctionalAdminCollections.CONTEXT.getCollection().count(clause) > 0;
-                if (exist) {
-                    rejection = ContextValidator.ContextRejectionCause.rejectDuplicatedInDatabase(context.getName());
+                if (ParametersChecker.isNotEmpty(context.getIdentifier())) {
+                    final Bson clause = eq(IngestContract.IDENTIFIER, context.getIdentifier());
+                    final boolean exist = FunctionalAdminCollections.CONTEXT.getCollection().count(clause) > 0;
+                    if (exist) {
+                        return Optional
+                            .of(ContextValidator.ContextRejectionCause.rejectDuplicatedInDatabase(context.getName()));
+                    }
                 }
-                return rejection == null ? Optional.empty() : Optional.of(rejection);
+                return Optional.empty();
             };
         }
 

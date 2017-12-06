@@ -284,7 +284,7 @@ public class ProfileServiceImpl implements ProfileService {
         throws InvalidCreateOperationException, InvalidParseOperationException, ReferentialException {
         if (!slaveMode) {
             String code = vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(),
-                SequenceType.PROFILE_SEQUENCE.getName());
+                SequenceType.PROFILE_SEQUENCE);
             pm.setIdentifier(code);
         }
     }
