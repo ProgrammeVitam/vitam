@@ -70,7 +70,7 @@ describe('ArchiveRuleBlocComponent', () => {
     });
     spyOn(component, 'checkUpdate').and.returnValue(() => true);
     component.updatedFields = {
-      AccessRules: {
+      AccessRule: {
         Rules: [{
           Rule: "ACC-00003",
           StartDate: "Mon Nov 20 2017 01:00:00 GMT+0100 (CET)",
