@@ -390,7 +390,7 @@ Recherche de tous les documents dont le champ DescriptionLevel commence par "Re"
 - Cet opérateur ne doit être utilisé que pour les champs de type chaîne non analysée, date, nombre et booléen. Le comportement dans le cas d'un champ de type texte analysé ou null est non supporté.
 
 
-### $regex : recherche via une expression régulière
+### Opérateur $regex : recherche via une expression régulière
 La syntaxe utilisée est celle du moteur d'indexation elasticsearch.
 
 **Format :**
@@ -460,7 +460,7 @@ Pour $match_phrase_prefix
 { "$match_phrase_prefix" : { "Title" : "Dessert chocolat" } } /* KO (Pas de correspondance) */
 ```
 
-### $search : recherche approchante avec opérateurs
+### Opérateur $search : recherche approchante avec opérateurs
 
 Permet des recherches approchantes avec des expression exactes, des opérateurs ET  / OU / NON, préfixes...
 
