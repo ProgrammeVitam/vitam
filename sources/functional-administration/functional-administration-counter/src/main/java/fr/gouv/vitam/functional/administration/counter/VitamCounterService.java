@@ -26,19 +26,25 @@
  */
 package fr.gouv.vitam.functional.administration.counter;
 
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Sorts.descending;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObject;
-import com.mongodb.client.model.Filters;
-
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Sorts.descending;
-
-
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
@@ -50,6 +56,7 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.HeaderIdHelper;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.VitamSequence;
@@ -57,13 +64,6 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import org.bson.conversions.Bson;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 
 
@@ -76,7 +76,7 @@ public class VitamCounterService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamCounterService.class);
     private final MongoDbAccessAdminImpl mongoAccess;
     private final Map<Integer, Integer> tenants;
-    private final Map<String, FunctionalAdminCollections> collections = new HashMap<>();
+    private final Map<SequenceType, FunctionalAdminCollections> collections = new HashMap<>();
     private final Map<Integer, List<FunctionalAdminCollections>> externalIdentifiers;
 
     /**
@@ -97,7 +97,7 @@ public class VitamCounterService {
         mongoAccess = dbConfiguration;
 
         Collections.addAll(sequences, SequenceType.values());
-        sequences.forEach(i -> collections.put(i.getName(), i.getCollection()));
+        sequences.forEach(i -> collections.put(i, i.getCollection()));
 
         tenants.forEach((i) -> {
             this.tenants.put(i, i);
@@ -106,16 +106,17 @@ public class VitamCounterService {
         initExternalIds(externalIdentifiers);
     }
 
-    private void initExternalIds( Map<Integer, List<String>> externalIdentifiers){
-        if (externalIdentifiers != null )
+    private void initExternalIds(Map<Integer, List<String>> externalIdentifiers) {
+        if (externalIdentifiers != null)
             for (Map.Entry<Integer, List<String>> identifiers : externalIdentifiers.entrySet()) {
                 List<FunctionalAdminCollections> functionalAdminCollections = new ArrayList<>();
                 for (String collection : identifiers.getValue()) {
                     functionalAdminCollections.add(FunctionalAdminCollections.valueOf(collection));
                 }
-                    this.externalIdentifiers.put(identifiers.getKey(), functionalAdminCollections);
+                this.externalIdentifiers.put(identifiers.getKey(), functionalAdminCollections);
             }
     }
+
     /**
      * @throws VitamException
      */
@@ -125,12 +126,12 @@ public class VitamCounterService {
                 runInVitamThread(() -> {
                     VitamThreadUtils.getVitamSession().setTenantId(tenantId);
                     try {
-                        for (Map.Entry<String, FunctionalAdminCollections> entry : collections.entrySet()) {
+                        for (Map.Entry<SequenceType, FunctionalAdminCollections> entry : collections.entrySet()) {
                             JsonNode query = generateQuery(entry.getKey());
                             try (DbRequestResult result =
                                 mongoAccess.findDocuments(query, FunctionalAdminCollections.VITAM_SEQUENCE)) {
                                 if (!result.hasResult()) {
-                                    createSequence(tenantId, entry);
+                                    createSequence(tenantId, entry.getKey());
                                 }
                             }
                         }
@@ -144,22 +145,26 @@ public class VitamCounterService {
         }
     }
 
-    private JsonNode generateQuery(String code) throws InvalidParseOperationException, InvalidCreateOperationException {
+    private JsonNode generateQuery(SequenceType sequenceType)
+        throws InvalidParseOperationException, InvalidCreateOperationException {
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         parser.parse(new Select().getFinalSelect());
-        parser.addCondition(QueryHelper.eq(VitamSequence.NAME, code));
+        parser.addCondition(QueryHelper.eq(VitamSequence.NAME, sequenceType.getName()));
+        if (sequenceType.getCollection().isMultitenant()) {
+            parser.addCondition(QueryHelper.eq(VitamFieldsHelper.tenant(), HeaderIdHelper.getTenantId()));
+        }
         return parser.getRequest().getFinalSelect();
     }
 
     /**
      * @param tenant
-     * @param entry
+     * @param sequenceType
      * @throws VitamException
      */
-    private void createSequence(Integer tenant, Map.Entry<String, FunctionalAdminCollections> entry)
+    private void createSequence(Integer tenant, SequenceType sequenceType)
         throws VitamException {
         ObjectNode node = JsonHandler.createObjectNode();
-        node.put(VitamSequence.NAME, entry.getKey());
+        node.put(VitamSequence.NAME, sequenceType.getName());
         node.put(VitamSequence.COUNTER, 0);
         node.put(VitamSequence.TENANT_ID, tenant);
         JsonNode firstSequence = JsonHandler.getFromString(node.toString());
@@ -171,34 +176,42 @@ public class VitamCounterService {
      * Atomically find a sequence  and update it.
      *
      * @param tenant
-     * @param code
+     * @param sequenceType
      * @return the sequence concatened with it name the name
      * @throws InvalidCreateOperationException
      * @throws InvalidParseOperationException
      * @throws ReferentialException
      */
-    public String getNextSequenceAsString(Integer tenant, String code) throws InvalidCreateOperationException,
+    public String getNextSequenceAsString(Integer tenant, SequenceType sequenceType)
+        throws InvalidCreateOperationException,
         InvalidParseOperationException, ReferentialException {
-        Integer sequence = getNextSequence(tenant, code);
-        return code + "-" + String.format("%06d", sequence);
+        Integer sequence = getNextSequence(tenant, sequenceType);
+        return sequenceType.getName() + "-" + String.format("%06d", sequence);
     }
+
 
     /**
      * Atomically find a sequence  and update it.
      *
      * @param tenant
-     * @param code
+     * @param sequenceType
      * @return the sequence
      * @throws InvalidCreateOperationException
      * @throws InvalidParseOperationException
      * @throws ReferentialException
      */
-    public Integer getNextSequence(Integer tenant, String code) throws ReferentialException {
+    public Integer getNextSequence(Integer tenant, SequenceType sequenceType) throws ReferentialException {
         final BasicDBObject incQuery = new BasicDBObject();
         incQuery.append("$inc", new BasicDBObject(VitamSequence.COUNTER, 1));
-        Bson query = and(
-            Filters.eq(VitamSequence.NAME, code),
-            Filters.eq(VitamDocument.TENANT_ID, tenant));
+        Bson query;
+        if (sequenceType.getCollection().isMultitenant()) {
+            query = and(
+                eq(VitamSequence.NAME, sequenceType.getName()),
+                eq(VitamDocument.TENANT_ID, tenant));
+        } else {
+            query = eq(VitamSequence.NAME, sequenceType.getName());
+        }
+
         FindOneAndUpdateOptions findOneAndUpdateOptions = new FindOneAndUpdateOptions();
         findOneAndUpdateOptions.returnDocument(ReturnDocument.AFTER);
         try {
@@ -228,17 +241,23 @@ public class VitamCounterService {
      * Get the last sequence Functiontionnal collection
      *
      * @param tenant
-     * @param code
+     * @param sequenceType
      * @return
      * @throws ReferentialException
      * @throws InvalidParseOperationException
      */
-    public Integer getSequence(Integer tenant, String code) throws ReferentialException,
+    public Integer getSequence(Integer tenant, SequenceType sequenceType) throws ReferentialException,
         InvalidParseOperationException {
-        Integer sequence = null;
-        Bson query = and(
-            Filters.eq(VitamSequence.NAME, code),
-            Filters.eq(VitamDocument.TENANT_ID, tenant));
+        Integer sequence;
+        Bson query;
+        if (sequenceType.getCollection().isMultitenant()) {
+            query = and(
+                eq(VitamSequence.NAME, sequenceType.getName()),
+                eq(VitamDocument.TENANT_ID, tenant));
+        } else {
+            query = eq(VitamSequence.NAME, sequenceType.getName());
+        }
+
         try {
             final Collection<FunctionalAdminCollections>
                 result =

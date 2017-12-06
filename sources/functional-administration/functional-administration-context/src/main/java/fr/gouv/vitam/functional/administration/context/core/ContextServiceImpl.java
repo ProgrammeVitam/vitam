@@ -159,7 +159,7 @@ public class ContextServiceImpl implements ContextService {
                 if (!slaveMode) {
                     final String code = vitamCounterService
                         .getNextSequenceAsString(ParameterHelper.getTenantParameter(),
-                            SequenceType.CONTEXT_SEQUENCE.getName());
+                            SequenceType.CONTEXT_SEQUENCE);
                     cm.setIdentifier(code);
                 }
                 // if a contract have an id

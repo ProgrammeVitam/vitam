@@ -189,7 +189,7 @@ public class SecurityProfileServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenSecurityProfilesTestDuplicateNames() throws Exception {
+    public void givenSecurityProfilesTestNotUniqueNames() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File securityProfileFiles = PropertiesUtils.getResourceFile("security_profile_ko_duplicate_names.json");
         final List<SecurityProfileModel> securityProfileModelList =
@@ -197,7 +197,7 @@ public class SecurityProfileServiceTest {
             });
         final RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
-        assertThat(response.isOk()).isFalse();
+        assertThat(response.isOk()).isTrue();
     }
 
     @Test
@@ -412,7 +412,7 @@ public class SecurityProfileServiceTest {
         final Optional<SecurityProfileModel> findResponse =
             securityProfileService.findOneByIdentifier("FakeIdentifier");
 
-        assertThat(findResponse.isPresent()).isTrue();
+        assertThat(findResponse).isEmpty();
     }
 
     @Test

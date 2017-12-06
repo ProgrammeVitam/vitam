@@ -88,7 +88,7 @@ public enum FunctionalAdminCollections {
      * Access contract collection
      *
      */
-    VITAM_SEQUENCE(VitamSequence.class, true, false),
+    VITAM_SEQUENCE(VitamSequence.class, false, false),
 
     /**
      * Profile collection
@@ -103,7 +103,6 @@ public enum FunctionalAdminCollections {
      * Context collection
      */
     CONTEXT(Context.class, false, false),
-
 
     /**
      * Security profile collection

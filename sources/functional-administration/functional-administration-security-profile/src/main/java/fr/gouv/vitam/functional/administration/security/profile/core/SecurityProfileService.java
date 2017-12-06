@@ -155,7 +155,7 @@ public class SecurityProfileService implements VitamAutoCloseable {
                 if (!slaveMode) {
                     String code = vitamCounterService
                         .getNextSequenceAsString(ParameterHelper.getTenantParameter(),
-                            SequenceType.SECURITY_PROFILE_SEQUENCE.getName());
+                            SequenceType.SECURITY_PROFILE_SEQUENCE);
                     securityProfile.setIdentifier(code);
                 }
             }

@@ -263,7 +263,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         if (!slaveMode) {
             final String code =
                 vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(),
-                    SequenceType.ACCESS_CONTRACT_SEQUENCE.getName());
+                    SequenceType.ACCESS_CONTRACT_SEQUENCE);
             acm.setIdentifier(code);
         }
     }

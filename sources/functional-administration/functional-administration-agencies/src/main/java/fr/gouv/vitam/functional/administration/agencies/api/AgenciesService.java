@@ -51,15 +51,10 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
 
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -121,6 +116,9 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 
 /**
  * AgenciesService class allowing multiple operation on AgenciesService collection
@@ -659,7 +657,7 @@ public class AgenciesService implements VitamAutoCloseable {
         throws InvalidParseOperationException, ReferentialException, InvalidCreateOperationException {
 
         Integer sequence = vitamCounterService
-            .getNextSequence(ParameterHelper.getTenantParameter(), SequenceType.AGENCIES_SEQUENCE.getName());
+            .getNextSequence(ParameterHelper.getTenantParameter(), SequenceType.AGENCIES_SEQUENCE);
 
         for (AgenciesModel agency : agenciesToUpdate) {
             updateAgency(agency, sequence);
@@ -849,7 +847,7 @@ public class AgenciesService implements VitamAutoCloseable {
         LogbookClientAlreadyExistsException {
 
         Integer sequence = vitamCounterService
-            .getSequence(ParameterHelper.getTenantParameter(), SequenceType.AGENCIES_SEQUENCE.getName());
+            .getSequence(ParameterHelper.getTenantParameter(), SequenceType.AGENCIES_SEQUENCE);
 
         securisator.secureFiles(sequence, stream, extension, eip, digest, LogbookTypeProcess.STORAGE_AGENCIES,
             StorageCollectionType.AGENCIES, AGENCIES_IMPORT_EVENT, file_name);

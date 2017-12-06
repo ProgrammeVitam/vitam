@@ -651,7 +651,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         boolean secureRules = false;
         try {
             Integer sequence = vitamCounterService
-                .getSequence(ParameterHelper.getTenantParameter(), SequenceType.RULES_SEQUENCE.getName());
+                .getSequence(ParameterHelper.getTenantParameter(), SequenceType.RULES_SEQUENCE);
             for (FileRulesModel fileRulesModel : fileRulesModelToUpdate) {
                 updateFileRules(fileRulesModel, sequence);
             }
@@ -685,7 +685,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         throws ReferentialException, LogbookClientServerException, StorageException, LogbookClientBadRequestException,
         LogbookClientAlreadyExistsException, InvalidParseOperationException, InvalidCreateOperationException {
         Integer sequence = vitamCounterService
-            .getNextSequence(ParameterHelper.getTenantParameter(), SequenceType.RULES_SEQUENCE.getName());
+            .getNextSequence(ParameterHelper.getTenantParameter(), SequenceType.RULES_SEQUENCE);
         mongoAccess.insertDocuments(validatedRules, FunctionalAdminCollections.RULES, sequence);
 
     }
@@ -695,7 +695,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         LogbookClientServerException, StorageException, LogbookClientBadRequestException,
         LogbookClientAlreadyExistsException {
         Integer sequence = vitamCounterService
-            .getSequence(ParameterHelper.getTenantParameter(), SequenceType.RULES_SEQUENCE.getName());
+            .getSequence(ParameterHelper.getTenantParameter(), SequenceType.RULES_SEQUENCE);
         securisator.secureFiles(sequence, stream, extension, eipMaster, digest, LogbookTypeProcess.STORAGE_RULE,
             StorageCollectionType.RULES, STP_IMPORT_RULES, STORAGE_RULES_WORKSPACE);
     }

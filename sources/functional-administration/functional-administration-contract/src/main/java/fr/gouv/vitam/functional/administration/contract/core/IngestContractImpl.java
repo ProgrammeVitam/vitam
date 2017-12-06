@@ -259,7 +259,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         if (!slaveMode) {
             final String code = vitamCounterService
                 .getNextSequenceAsString(ParameterHelper.getTenantParameter(),
-                    SequenceType.INGEST_CONTRACT_SEQUENCE.getName());
+                    SequenceType.INGEST_CONTRACT_SEQUENCE);
             acm.setIdentifier(code);
         }
     }
