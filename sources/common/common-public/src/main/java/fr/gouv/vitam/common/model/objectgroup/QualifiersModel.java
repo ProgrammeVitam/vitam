@@ -38,7 +38,7 @@ public class QualifiersModel {
     @JsonProperty("qualifier")
     private String qualifier;
 
-    @JsonProperty("_nbc")
+    @JsonProperty("#nbc")
     private String nbc;
 
     @JsonProperty("versions")

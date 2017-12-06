@@ -112,7 +112,7 @@ public final class JsonTransformer {
      */
     private static ObjectNode getDataObject(final Map<String, Integer> usages, final JsonNode object) {
         final ObjectNode objectNode = JsonHandler.createObjectNode();
-        objectNode.put("#id", object.get("_id").asText());
+        objectNode.put("#id", object.get(UiConstants.ID.getResultCriteria()).asText());
         final String usage = object.get("DataObjectVersion").asText();
         final JsonNode finalInfo = object.get("FileInfo");
         if (usages.containsKey(usage)) {

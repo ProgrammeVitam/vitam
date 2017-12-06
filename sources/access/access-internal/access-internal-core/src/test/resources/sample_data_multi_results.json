@@ -1,26 +1,59 @@
-{$results:[
 {
-  "#qualifiers" : {
-    "Thumbnail" : {
-      "versions" : [ {
-        "_id" : "aeaaaaaaaaaam7mxab574akys2qtseaaaaaq",
-        "FormatIdentification" : {
-          "Filename" : "Wrong name",
-          "FormatLitteral" : "Portable Network Graphics",
-          "MimeType" : "image/png",
-          "FormatId" : "fmt/12"
-        },
-        "FileInfo" : {
-          "Filename" : "Vitam-S\u00E9nsibilisation de l' API-V1.0.png",
-          "MimeType" : "plain/text",
-          "CreatingApplicationName" : "LibreOffice/Impress",
-          "CreatingApplicationVersion" : "5.0.5.2",
-          "CreatingOs" : "Windows_X86_64",
-          "CreatingOsVersion" : 10,
-          "LastModified" : "2016-06-23T12:45:20"
-        }
-      } ]
-    }
-  }
+	"httpCode": 200,
+	"$hits": {
+		"total": 1,
+		"offset": 0,
+		"limit": 0,
+		"size": 1
+	},
+	"$results": [
+		{
+			"#qualifiers": [
+				{
+					"qualifier": "Thumbnail",
+					"#nbc": 1,
+					"versions": [
+						{
+							"DataObjectGroupId": "aebaaaaaaahca4jbaagvsalafrpk4yaaaaaq",
+							"DataObjectVersion": "Thumbnail_1",
+							"FormatIdentification": {
+								"Filename": "Wrong name",
+								"FormatLitteral": "Portable Network Graphics",
+								"MimeType": "image/png",
+								"FormatId": "fmt/12"
+							},
+							"FileInfo": {
+								"Filename": "Vitam-Sénsibilisation de l' API-V1.0.png",
+								"MimeType": "plain/text",
+								"CreatingApplicationName": "LibreOffice/Impress",
+								"CreatingApplicationVersion": "5.0.5.2",
+								"CreatingOs": "Windows_X86_64",
+								"CreatingOsVersion": 10,
+								"LastModified": "2016-06-23T12:45:20"
+							},
+							"Size": 6,
+							"Uri": "Content/ID67.txt",
+							"MessageDigest": "86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1",
+							"Algorithm": "SHA-512",
+							"#id": "aeaaaaaaaaaam7mxab574akys2qtseaaaaaq",
+							"#storage": {
+								"offerIds": [
+									"localhost"
+								],
+								"strategyId": "default",
+								"#nbc": 1
+							}
+						}
+					]
+				}
+			]
+		}
+	],
+	"$context": {
+		"$projection": {
+			"$fields": {
+				"#qualifiers": 1
+			}
+		}
+	}
 }
-]}

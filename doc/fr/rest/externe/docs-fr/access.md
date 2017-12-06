@@ -56,7 +56,7 @@ La structuration d'un Unit est la suivante :
     "#nbunits": 1, // Nombre de Unit fils
     "#operations" : [ "id", "id" ], // liste des opérations auxquelles cette AU a participées
     "#allunitsups": [ "unitParentId", "unitParentId"], // liste de tous les parents jusqu'au sommet
-    "#storage": { "_nbc": 2  } // information de stockage,
+    "#storage": { "#nbc": 2  } // information de stockage,
     "#originating_agency": "originationAgencyId",
     "#originating_agencies": [ "originationAgencyId" ],
     "#operations" : [ "operationId" ] // liste des opérations auxquelles cette AU a participées
@@ -106,7 +106,7 @@ La structuration d'un Object est la suivante :
     },
     "#qualifiers": [{
       "qualifier": "PhysicalMaster",
-      "_nbc": 1,
+      "#nbc": 1,
       "versions": [
         {
           "#id": "abcdef",
@@ -119,7 +119,7 @@ La structuration d'un Object est la suivante :
       ]},
       {
       "qualifier": "BinaryMaster",  // Version numérique
-      "_nbc": 1, // nombre de versions
+      "#nbc": 1, // nombre de versions
       "versions": [
         {
           "#id": "abcdef",
@@ -144,21 +144,21 @@ La structuration d'un Object est la suivante :
       },
       {
         "qualifier": "Dissemination",  // Version de diffusion
-        "_nbc": 1, // nombre de versions
+        "#nbc": 1, // nombre de versions
         "versions": [
           {//idem à BinaryMaster}
         ]
       },
       {
         "qualifier": "TextContent",  // Contenu brut
-        "_nbc": 1, // nombre de versions
+        "#nbc": 1, // nombre de versions
         "versions": [
           {//idem à BinaryMaster}
         ]
       },
       {
         "qualifier": "Thumbnail",  // Vignette
-        "_nbc": 1, // nombre de versions
+        "#nbc": 1, // nombre de versions
         "versions": [
           {//idem à BinaryMaster}
         ]
@@ -166,7 +166,7 @@ La structuration d'un Object est la suivante :
     ],
     "#unitups": [ "unitParentId", "unitParentId"],
     "#nbobjects": 1, // Nombre de versions d'objets contenus pour tous les usages
-    "#storage": { "_nbc": 2  }, // information de stockage,
+    "#storage": { "#nbc": 2  }, // information de stockage,
     "#originating_agency": "originationAgencyId",
     "#originating_agencies": [ "originationAgencyId" ],
     "#operations" : [ "operationId" ] // liste des opérations auxquelles ce groupe d'objets a participées

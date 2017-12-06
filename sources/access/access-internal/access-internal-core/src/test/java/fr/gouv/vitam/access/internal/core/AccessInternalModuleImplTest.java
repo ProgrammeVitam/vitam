@@ -694,10 +694,10 @@ public class AccessInternalModuleImplTest {
         byte[] src = output.toByteArray();
         JsonNode jsonNode = JsonHandler.getFromBytes(src);
         assertNotNull(jsonNode);
-        assertEquals(jsonNode.get("$results").get(0).get("#qualifiers").get("Thumbnail").get("versions").get(0)
+        assertEquals(jsonNode.get("$results").get(0).get("#qualifiers").get(0).get("versions").get(0)
             .get("FormatIdentification").get("MimeType").asText(), "image/png");
         assertEquals(
-            jsonNode.get("$results").get(0).get("#qualifiers").get("Thumbnail").get("versions").get(0).get("FileInfo")
+            jsonNode.get("$results").get(0).get("#qualifiers").get(0).get("versions").get(0).get("FileInfo")
                 .get("Filename").asText(), "Vitam-S\u00E9nsibilisation de l' API-V1.0.png");
     }
 
@@ -712,7 +712,7 @@ public class AccessInternalModuleImplTest {
             .thenReturn(PropertiesUtils.getResourceAsStream(REAL_DATA_RESULT_MULTI_PATH));
         when(storageClient.getContainerAsync(anyString(), anyString(), anyObject()))
             .thenReturn(responseMock);
-        Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0);
+        Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(ID, "Thumbnail", 0);
         assertNotNull(reponseFinal);
 
         InputStream entity = (InputStream) reponseFinal.getEntity();
@@ -722,9 +722,9 @@ public class AccessInternalModuleImplTest {
         byte[] src = output.toByteArray();
         JsonNode jsonNode = JsonHandler.getFromBytes(src);
         assertNotNull(jsonNode);
-        assertEquals(jsonNode.get("$results").get(0).get("#qualifiers").get("Thumbnail").get("versions").get(0)
+        assertEquals(jsonNode.get("$results").get(0).get("#qualifiers").get(0).get("versions").get(0)
             .get("FormatIdentification").get("MimeType").asText(), "image/png");
-        assertEquals(jsonNode.get("$results").get(0).get("#qualifiers").get("Thumbnail").get("versions").get(0)
+        assertEquals(jsonNode.get("$results").get(0).get("#qualifiers").get(0).get("versions").get(0)
             .get("FormatIdentification").get("Filename").asText(), "Wrong name");
 
         /*

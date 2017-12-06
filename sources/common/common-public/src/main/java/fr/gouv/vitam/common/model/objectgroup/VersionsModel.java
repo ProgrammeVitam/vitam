@@ -26,16 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.objectgroup;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Object mapping VersionsResponse
@@ -47,7 +45,7 @@ public class VersionsModel {
     @JsonProperty("_rank")
     private int rank;
 
-    @JsonProperty("_id")
+    @JsonProperty("#id")
     private String id;
 
     @JsonProperty("DataObjectVersion")

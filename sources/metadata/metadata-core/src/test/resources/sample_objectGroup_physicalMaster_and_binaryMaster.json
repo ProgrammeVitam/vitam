@@ -14,10 +14,10 @@
     "#qualifiers": [
         {
             "qualifier": "PhysicalMaster",
-            "_nbc": 1,
+            "#nbc": 1,
             "versions": [
                 {
-                    "_id": "aeaaaaaaaagbcaacabzxmak4tu7hyiiaaaaq",
+                    "#id": "aeaaaaaaaagbcaacabzxmak4tu7hyiiaaaaq",
                     "DataObjectGroupId": "aebaaaaaaagbcaacabzxmak4tu7hyfiaaaaq",
                     "DataObjectVersion": "PhysicalMaster_1",
                     "PhysicalId": 123456789,
@@ -48,8 +48,8 @@
                         },
                         "NumberOfPage": 20
                     },
-                    "storage": {
-                        "_nbc": 1,
+                    "#storage": {
+                        "#nbc": 1,
                         "offerIds": [
                             "localhost"
                         ],
@@ -60,10 +60,10 @@
         },
         {
             "qualifier": "BinaryMaster",
-            "_nbc": 1,
+            "#nbc": 1,
             "versions": [
                 {
-                    "_id": "aeaaaaaaaagbcaacabzxmak4tu7hyfaaaaaq",
+                    "#id": "aeaaaaaaaagbcaacabzxmak4tu7hyfaaaaaq",
                     "DataObjectGroupId": "aebaaaaaaagbcaacabzxmak4tu7hyfiaaaaq",
                     "DataObjectVersion": "BinaryMaster_1",
                     "FormatIdentification": {
@@ -84,8 +84,8 @@
                     "Uri": "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf",
                     "MessageDigest": "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
                     "Algorithm": "SHA-512",
-                    "storage": {
-                        "_nbc": 1,
+                    "#storage": {
+                        "#nbc": 1,
                         "offerIds": [
                             "localhost"
                         ],
@@ -102,8 +102,15 @@
     "#operations": [
         "aedqaaaaacgbcaacab3mmak4tu7hv5yaaaaq"
     ],
-    "OriginatingAgency": "FRAN_NP_050056",
+    "#originating_agency": "FRAN_NP_050056",
     "#originating_agencies": [
         "FRAN_NP_050056"
-    ]
+    ],
+    "#storage": {
+        "#nbc": 1,
+        "offerIds": [
+            "localhost"
+        ],
+        "strategyId": "default"
+    }
 }

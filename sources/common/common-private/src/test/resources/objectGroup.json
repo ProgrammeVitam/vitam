@@ -7,10 +7,10 @@
   "#qualifiers": [
     {
       "qualifier": "PhysicalMaster",
-      "_nbc": 1,
+      "#nbc": 1,
       "versions": [
         {
-          "_id": "aeaaaaaaaafh4xklaacvcak6julzchyaaaba",
+          "#id": "aeaaaaaaaafh4xklaacvcak6julzchyaaaba",
           "DataObjectGroupId": "aebaaaaaaafh4xklaacvcak6julzajiaaaaq",
           "DataObjectVersion": "PhysicalMaster_1",
           "PhysicalId": "1 Num 416/70",
@@ -36,21 +36,16 @@
           "Dimensions": "10,5cm x 14,8cm",
           "Color": "Noir et blanc",
           "Framing": "Paysage",
-          "Technique": "Phototypie",
-          "_storage": {
-            "_nbc": 0,
-            "offerIds": [],
-            "strategyId": "default"
-          }
+          "Technique": "Phototypie"
         }
       ]
     },
     {
       "qualifier": "BinaryMaster",
-      "_nbc": 1,
+      "#nbc": 1,
       "versions": [
         {
-          "_id": "aeaaaaaaaafh4xklaacvcak6julzajaaaaaq",
+          "#id": "aeaaaaaaaafh4xklaacvcak6julzajaaaaaq",
           "DataObjectGroupId": "aebaaaaaaafh4xklaacvcak6julzajiaaaaq",
           "DataObjectVersion": "BinaryMaster_1",
           "FormatIdentification": {
@@ -80,8 +75,8 @@
           "Uri": "Content/1NUM_4.JPG",
           "MessageDigest": "3adb5ccfef14423678c2fb6a437ec104a6ee053f34b1c6a7755abc22eb54fb95133bef03fb142c6182377dbdadc9fa8ae8dd31dc3bb0fb038d93f51cafd90239",
           "Algorithm": "SHA-512",
-          "_storage": {
-            "_nbc": 1,
+          "#storage": {
+            "#nbc": 1,
             "offerIds": [
               "localhost"
             ],
@@ -104,7 +99,7 @@
     "Identifier0"
   ],
   "#storage": {
-    "_nbc": 1,
+    "#nbc": 1,
     "strategyId": "default",
     "offerIds": [
       "localhost"
