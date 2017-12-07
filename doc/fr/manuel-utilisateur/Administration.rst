@@ -739,7 +739,7 @@ Lorsqu'un profil SEDA de règle a été associé au profil, une flèche indiquan
 
 |
 
-.. image:: images/res_profils.png
+.. image:: images/res_profil.png
 
 Détail d'un profil d'archivage
 -------------------------------
