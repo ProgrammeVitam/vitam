@@ -192,10 +192,16 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
     let rules = info.rules;
     if (rules.length > 0) {
       this.messageToDisplay = "";
+      let rulesCategoriesFr =
+        info.categories.map(
+          title => {
+            let filter = this.rulesCategories.filter(x => x.rule === title);
+            return filter[0].label
+          });
       if (info.categories.length == 1) {
-        this.messageToDisplay = `Vous vous apprêtez à modifier la catégorie ${info.categories} pour :<br />`
+        this.messageToDisplay = `Vous vous apprêtez à modifier la catégorie ${rulesCategoriesFr} pour :<br />`
       } else {
-        this.messageToDisplay = `Vous vous apprêtez à modifier les catégories ${info.categories.join(', ')} pour :<br />`
+        this.messageToDisplay = `Vous vous apprêtez à modifier les catégories ${rulesCategoriesFr.join(', ')} pour :<br />`
       }
       if (info.deleted < 2) {
         this.messageToDisplay = this.messageToDisplay + `- Supprimer ${info.deleted} règle,<br />`;
