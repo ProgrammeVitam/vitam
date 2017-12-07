@@ -31,9 +31,7 @@ import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import org.bson.Document;
-import sun.security.pkcs11.wrapper.CK_VERSION;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -41,12 +39,20 @@ import java.util.List;
  */
 public class MongoDbMetadataResponseFilter {
 
-    private static final String _ID = "_id";
-    private static final String _QUALIFIER = "_qualifiers";
     private static final String VERSION = "versions";
 
     private MongoDbMetadataResponseFilter() {
         // Empty
+    }
+
+    /**
+     * Removes a field from document
+     *
+     * @param document  the document to update
+     * @param fieldName the field to remove
+     */
+    private static final void remove(Document document, String fieldName) {
+        document.remove(fieldName);
     }
 
     private static final void replace(Document document, String originalFieldName, String targetFieldName) {
@@ -121,7 +127,7 @@ public class MongoDbMetadataResponseFilter {
                     replace(document, Unit.UNIT_TYPE, VitamFieldsHelper.unitType());
                     break;
                 case PARENTS:
-                    replace(document, Unit.PARENTS, VitamFieldsHelper.uds());
+                    remove(document, Unit.UNITDEPTHS);
                     break;
                 case ORIGINATING_AGENCY:
                     replace(document, MetadataDocument.ORIGINATING_AGENCY, VitamFieldsHelper.originatingAgency());
@@ -175,34 +181,5 @@ public class MongoDbMetadataResponseFilter {
                 }
             }
         }
-    }
-
-    static void filterVersions(MetadataDocument<?> document) {
-
-        if (document.get(_QUALIFIER) == null || !(document.get(_QUALIFIER) instanceof List)) {
-            return;
-        }
-        if (((List) document.get(_QUALIFIER)).size() > 0 &&
-            ((List) document.get(_QUALIFIER)).get(0) == null) {
-            return;
-
-        }
-        Document documentTmp = (Document) ((List) document.get(_QUALIFIER)).get(0);
-
-        if (documentTmp.get(VERSION) == null) {
-            return;
-        }
-        if (((List) documentTmp.get(VERSION)).size() == 0) {
-            return;
-        }
-        List docs = ((List) documentTmp.get(VERSION));
-        for (Object doc : docs) {
-            String id = (String) ((Document) doc).remove(_ID);
-
-            if (id != null) {
-                ((Document) doc).put(PROJECTIONARGS.ID.exactToken(), id);
-            }
-        }
-
     }
 }

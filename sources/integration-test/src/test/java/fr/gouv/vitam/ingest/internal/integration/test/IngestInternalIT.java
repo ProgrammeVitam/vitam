@@ -50,6 +50,11 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import com.mongodb.MongoClient;
+import com.mongodb.ServerAddress;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -164,6 +169,7 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 public class IngestInternalIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalIT.class);
     private static final int DATABASE_PORT = 12346;
+    public static final String MONGO_DB_NAME = "Vitam";
     private static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
     private static LogbookElasticsearchAccess esClient;
@@ -176,6 +182,7 @@ public class IngestInternalIT {
 
     @ClassRule
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
+
 
     private static final long SLEEP_TIME = 100l;
     private static final long NB_TRY = 9600; // equivalent to 16 minute
@@ -775,22 +782,35 @@ public class IngestInternalIT {
             assertNotNull(result.get("$results").get(0).get("Title"));
             assertTrue(usIds.remove(result.get("$results").get(0).get("Title").asText()));
         }
+
         // _uds / #uds
-        final JsonNode uds = unit.get("#uds");
-        assertNotNull(uds);
-        assertEquals(udsIds.size(), uds.size());
-        // Check ids and depth
-        String fieldName;
-        Iterator fieldNames = uds.fieldNames();
-        while (fieldNames.hasNext()) {
-            fieldName = (String) fieldNames.next();
-            result = metadataClient.selectUnitbyId(query.getFinalSelectById(), fieldName);
-            assertNotNull(result);
-            assertEquals(1, result.get("$results").size());
-            assertNotNull(result.get("$results").get(0).get("Title"));
-            assertNotNull(udsIds.get(result.get("$results").get(0).get("Title").asText()));
-            assertEquals(udsIds.get(result.get("$results").get(0).get("Title").asText()).intValue(), uds.get(fieldName)
-                .asInt());
+        assertThat(unit.get("#uds")).isNull();
+        assertThat(unit.get(Unit.UNITDEPTHS)).isNull();
+
+        try(MongoClient mongoClient = new MongoClient(new ServerAddress("localhost", DATABASE_PORT))) {
+            MongoCollection<Document> collection =
+                mongoClient.getDatabase(MONGO_DB_NAME).getCollection(Unit.class.getSimpleName());
+
+            FindIterable<Document> documents = collection.find(com.mongodb.client.model.Filters.eq("_id", unit.get("#id").asText()));
+            Document first = documents.iterator().next();
+
+            final JsonNode uds = JsonHandler.getFromString(first.toJson()).get(Unit.UNITDEPTHS);
+
+            assertNotNull(uds);
+            assertEquals(udsIds.size(), uds.size());
+            // Check ids and depth
+            String fieldName;
+            Iterator fieldNames = uds.fieldNames();
+            while (fieldNames.hasNext()) {
+                fieldName = (String) fieldNames.next();
+                result = metadataClient.selectUnitbyId(query.getFinalSelectById(), fieldName);
+                assertNotNull(result);
+                assertEquals(1, result.get("$results").size());
+                assertNotNull(result.get("$results").get(0).get("Title"));
+                assertNotNull(udsIds.get(result.get("$results").get(0).get("Title").asText()));
+                assertEquals(udsIds.get(result.get("$results").get(0).get("Title").asText()).intValue(), uds.get(fieldName)
+                    .asInt());
+            }
         }
     }
 
