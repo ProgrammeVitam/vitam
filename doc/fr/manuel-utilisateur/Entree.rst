@@ -1,18 +1,18 @@
 Entrée d'un SIP et plan de classement
 #######################################
 
-Cette partie décrit l'entrée manuelle d'archives dans la solution logicielle Vitam, c'est-à-dire, le processus de transfert du SIP ou plan de classement via l'IHM standard, ainsi que le suivi de l'ensemble des transferts via le journal des opérations d'entrées.
+Cette partie décrit l'entrée manuelle d'archives dans la solution logicielle Vitam, c'est-à-dire, le processus de transfert du SIP ou plan de classement via l'IHM standard vers la solution logicielle Vitam, ainsi que le suivi de l'ensemble des transferts via le journal des opérations d'entrées.
 
 Dans l’univers numérique, peuvent être transférées à un service d’archives des archives nativement numériques, des versions numérisées d’archives papier, mais aussi des références à des archives physiques, chacune d’elles accompagnée de ses métadonnées.
 
-Le SIP est un fichier compressé comportant le bordereau de versement SEDA au format XML et les objets à archiver (pour la formalisation des SIP, se référer au livrable "Structuration des submissions information Package (SIP)").
+Le SIP est un fichier compressé comportant le bordereau de versement SEDA au format XML et les objets à archiver (pour la formalisation des SIP, se référer au document "Structuration des submissions information Package (SIP)").
 
 Transfert d'un SIP 
 ===================
 
 Le transfert d'un SIP dans la solution logicielle Vitam s'effectue depuis l'écran "Transfert SIP et plan de classement". Par défaut, lors de sa connexion, l'utilisateur est dirigé vers cette page. Il peut également y accéder en survolant le menu "Entrée" puis sélectionne sous-menu "Transfert de SIP et plan de classement".
 
-
+|
 .. image:: images/menu_transfert.png
 
 Pour débuter une entrée, l’utilisateur doit sélectionner le lot d’archives (SIP) à transférer dans la solution logicielle Vitam. Pour cela, il est possible de faire glisser le SIP sur l'espace de téléchargement ou de cliquer sur le lien « sélectionner un fichier ».
@@ -33,16 +33,16 @@ Le mode d'exécution et la destination sont obligatoires. Par défaut le mode d'
 
 Pour lancer le transfert du SIP, l’utilisateur clique sur le bouton « Importer ».
 
-
+|
 .. image:: images/entree_sip.png
 
-Un fois le SIP importé, les informations visibles à l'écran sont :
+Les informations visibles à l'écran sont :
 
 - Un tableau comportant les champs suivants :
 
   - Nom du fichier,
   - Taille : affiche la taille du SIP en Ko, Mo ou Go en fonction de la taille arrondie au dixième près.
-  - Statut : succès, erreur ou avertissement
+  - Statut : succès, erreur ou avertissement sous forme de pictogramme, respectivement "coche", "triangle", "croix"
 
 - Une barre de progression affichant l’avancement du téléchargement du SIP dans la solution logicielle Vitam (une barre de progression complète signifie que le téléchargement est achevé).
 
@@ -50,7 +50,7 @@ Un fois le SIP importé, les informations visibles à l'écran sont :
 
 Les formats de SIP attendus sont : ZIP, TAR, TAR.GZ, TAR.BZ2, TAR.GZ2
 
-Si l'utilisateur tente d'importer un SIP dans format non conforme, alors la solution logicielle Vitam empêche le téléchargement et une fenêtre de type "modale" affiche l'erreur "fichier invalide".
+Si l'utilisateur tente d'importer un SIP dans un format non conforme, alors la solution logicielle Vitam empêche le téléchargement et une fenêtre de type "modale" affiche l'erreur "fichier invalide".
 
 
 .. image:: images/sip_ko_format.png
@@ -66,7 +66,8 @@ Lors d'une entrée en succès dans la solution logicielle Vitam, l'ATR comprend 
 - MessageIdentifier : identifiant de l'ATR. Cet identifiant correspond à l'identification attribuée à la demande de transfert par la solution logicielle Vitam
 - ArchivalAgreement : contrat d'entrée
 - CodeListVersion : la liste des référentiels utilisés
-- La liste des unités archivistiques avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle Vitam (SystemId) et la liste des groupes d'objets avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle Vitam (SystemId)
+- La liste des unités archivistiques avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle Vitam (SystemId) 
+- La liste des groupes d'objets avec l'identifiant fourni dans la demande de transfert et l'identifiant généré par la solution logicielle Vitam (SystemId)
 - ReplyCode : statut final de l'entrée
 - GrantDate : date de prise en charge du SIP
 - ArchivalAgency : service d'archives
@@ -89,9 +90,9 @@ La notification comprend ensuite la liste des erreurs rencontrées (échec ou av
 Transfert d'un SIP de plan de classement
 =========================================
 
-Le transfert d'un plan de classement dans la solution logicielle Vitam s'effectue depuis l'écran "Transfert SIP et plan de classement". Par défaut, lors de sa connexion, l'utilisateur est dirigé vers cette page. Il peut également y accéder en survolant le menu "Entrée" puis sélectionne sous-menu "Transfert de SIP et plan de classement". Il faut ensuite sélectionner le bouton "Plan de classement"
+Le transfert d'un plan de classement dans la solution logicielle Vitam s'effectue depuis l'écran "Transfert de SIP et plan de classement". Par défaut, lors de sa connexion, l'utilisateur est dirigé vers cette page. Il peut également y accéder en survolant le menu "Entrée" puis sélectionne sous-menu "Transfert de SIP et plan de classement". Il faut ensuite cliquer sur le bouton "Plan de classement".
 
-Pour débuter une entrée, l’utilisateur doit sélectionner le plan, sous le format demandé, à transférer dans la solution logicielle Vitam. Pour cela, il est possible de faire glisser le plan sur l'espace de téléchargement ou de cliquer sur le lien « sélectionner un fichier ».
+Pour débuter une entrée, l’utilisateur doit sélectionner le plan, qui prend la forme d'un SIP sans objets, à transférer dans la solution logicielle Vitam. Pour cela, il est possible de faire glisser le plan sur l'espace de téléchargement ou de cliquer sur le lien « sélectionner un fichier ».
 
 Une fois celui-ci sélectionné, il apparaît sur l'écran "Téléchargement du plan de classement". Le nom du fichier s'affiche sous le bouton "choisissez un fichier" et une nouvelle ligne apparaît en dessous avec le nom du fichier, sa taille ainsi qu'un champ statut.
 
@@ -101,7 +102,7 @@ Plusieurs options sont présentes sur l'écran :
 	- le mode d'exécution "pas à pas" permettant de réaliser progressivement l'entrée en passant d'une étape à une autre. (NB : Les actions liées au processus d'entrée en mode "pas à pas" se retrouvent dans la partie Administration du manuel utilisateur).
 	- le mode d'exécution "en continu" permettant de lancer le processus d'entrée dans sa globalité en une seule fois. Dans la grande majorité des cas, ce mode d'exécution sera le choix adopté.
 
-- Destination : actuellement, seule l'option "production" est disponible pour verser directement le plan.
+- Destination : actuellement, seule l'option "production" est disponible pour transférer directement le plan.
 
 Le mode d'exécution et la destination sont obligatoires.
 
@@ -157,12 +158,12 @@ Journal des opérations d'entrée
 
 Le journal des opérations d'entrée est un extrait du journal des opérations global de la solution logicielle Vitam.
 
-Il propose deux visions, une vision globale des transferts effectués dans la solution logicielle Vitam, et une vision plus détaillée de chaque transfert, explicitant toutes les étapes d'un processus d'entrée.
+Il propose deux visions, une vision générale des transferts effectués dans la solution logicielle Vitam, et une vision plus détaillée de chaque transfert, explicitant toutes les étapes d'un processus d'entrée.
 Il permet ainsi à l'utilisateur de savoir si son entrée est valide, c'est-à-dire, si les données et objets contenus dans le SIP ou le plan de classement sont enregistrés dans la solution logicielle Vitam. Dans le cas contraire, il lui permet d'identifier la ou les erreurs ayant provoquées l'échec du transfert.
 
 Pour consulter le journal des opérations d'entrée, l'utilisateur survole le menu "Entrée" puis sélectionne le sous-menu "Suivi des opérations d'entrée".
 
-
+|
 .. image:: images/menu_jdoe.png
 
 Formulaire de recherche d'une entrée
@@ -172,11 +173,11 @@ Par défaut, l'ensemble des opérations d'entrée est affiché sous le formulair
 
 Pour effectuer une recherche précise, on utilise le champ "Identifiant de la demande d'entrée" correspondant à l'identifiant du SIP porté par la balise <MessageIdentifier> dans le bordereau de versement SEDA.
 
-Il est possible d'affiner sa recherche en choisissant une catégorie d'opération et/ou en sélectionnant une date de début et si besoin, une date de fin.
+Il est également possible d'effectuer une recherche en choisissant une catégorie d'opération et/ou en sélectionnant une date de début et si besoin, une date de fin.
 
-Pour initier la recherche, l'utilisateur saisit le nom du SIP et clique sur le bouton "Rechercher".
+Pour initier la recherche, l'utilisateur clique sur le bouton "Rechercher".
 
-La recherche s'effectue de façon stricte, c'est-à-dire que seul le nom exact de l'entrée comprenant strictement la chaîne de caractères saisie sera pris en compte. La recherche porte sur toutes les opérations d'entrée quel que soit leur statut (en cours, succès, avertissement et erreur).
+La recherche s'effectue de façon stricte, c'est-à-dire que seul l'identifiant exact sera pris en compte. La recherche porte sur toutes les opérations d'entrée quel que soit leur statut (en cours, succès, avertissement et erreur).
 
 
 .. image:: images/rechch_jdoe.png
@@ -186,9 +187,9 @@ Affichage des résultats
 
 Le résultat de la recherche est affiché sous forme de tableau. Par défaut, les colonnes sont triées par date de versement, du plus récent au plus ancien. Les éléments suivants sont affichés :
 
-- Identifiant de la demande d'entrée : correspond à l'identifiant du SIP porté par la balise <MessageIdentifier> du bordereau de versement SEDA
+- Identifiant de la demande d'entrée : correspond à l'identifiant du SIP porté par la balise <MessageIdentifier> du bordereau de transfert SEDA
 - Intitulé
-- Statut : Succès, Erreur, En cours, Alerte (WARNING)
+- Statut : Succès, Erreur, En cours, Avertissement (WARNING)
 - Service Versant
 - Contrat
 - Date de début d'opération d'entrée
@@ -197,7 +198,6 @@ Le résultat de la recherche est affiché sous forme de tableau. Par défaut, le
 - AR : permet le téléchargement de l'accusé de réception (ATR)
 
 |
-
 .. image:: images/res_jdoe.png
 
 
@@ -215,22 +215,24 @@ Les informations supplémentaires disponibles sont :
 Consultation du détail
 ----------------------
 
-Suite à la recherche d'une opération d'entrée ou depuis l'écran d'affichage par défaut, l'utilisateur peut choisir de consulter le détail des événements intervenus durant le processus d'entrée.
+Suite à la recherche d'une opération d'entrée ou depuis la page par défaut du journal des opérations d'entrée, l'utilisateur peut choisir de consulter le détail des événements intervenus durant le processus d'entrée.
 Pour accéder au détail d'une opération d'entrée, l'utilisateur clique sur la ligne souhaitée.
 
-Le détail est composé de deux parties, le descriptif de l'opération qui récapitule les informations de l'opérations avec la possibilité d'afficher les informations supplémentaires.
+Le détail d'une opération d'entrée est composé de deux parties : 
+
+Le descriptif de l'opération qui récapitule les informations de l'opérations avec la possibilité d'afficher les informations supplémentaires.
 
 
 .. image:: images/desc_jdoe.png
 
-Puis, les détails de l'opération qui sont présentés sous forme de liste comportant, pour chaque événement, les éléments suivants :
+Le détail de l'opération présenté sous forme de liste comportant, pour chaque événement, les éléments suivants :
 
 - le nom de l'étape
 - la date à laquelle l'étape a été effectuée
 - le message expliquant le statut de cette étape
 - le statut présenté sous forme de pictogramme
 
-Un clique sur la flèche située à côté du message permet d'afficher plus de détail concernant cette étape. Un clic sur un signe "+" situé à côté d'un message affiche les détails des données de l'évènement.
+Un clic sur la flèche située à côté du message permet d'afficher plus de détail concernant cette étape. Un clic sur un signe "+" situé à côté d'un message affiche le détail des données de l'évènement.
 
-
+|
 .. image:: images/detail_jdoe.png
