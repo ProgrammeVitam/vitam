@@ -149,6 +149,7 @@ public class RulesManagerFileImplTest {
     private static final String FILE_TO_TEST_RULES_DURATION_KO = "jeu_donnees_KO_regles_CSV_test.csv";
     private static final String FILE_TO_COMPARE = "jeu_donnees_OK_regles_CSV.csv";
     private static final String FILE_UPDATE_RULE_TYPE = "jeu_donnees_OK_regles_CSV_update_ruleType.csv";
+    private static final String FILE_TO_TEST_KO_INVALID_FORMAT = "jeu_donnees_KO_regles_CSV_invalid_format.csv";
     private static final Integer TENANT_ID = 0;
     private static final String STP_IMPORT_RULES = "STP_IMPORT_RULES";
     private static final String USED_UPDATED_RULE_RESULT = "used_updated_rule_result.json";
@@ -636,9 +637,6 @@ public class RulesManagerFileImplTest {
     public void should_retrieve_FileRulesCsvException_when_csv_with_bad_format_is_upload() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        final Select select = new Select();
-        List<FileRules> fileRules;
-
         // mock Storage
         StorageClient storageClient = mock(StorageClient.class);
         when(storageClientFactory.getClient()).thenReturn(storageClient);
@@ -667,7 +665,7 @@ public class RulesManagerFileImplTest {
     @RunWithCustomExecutor
     public void should_not_duplicate_error_on_each_line_in_report_when_error_append()
         throws Exception {
-        final InputStream inputStream = getInputStreamAndInitialiseMockWhenCheckRulesFile();
+        final InputStream inputStream = getInputStreamAndInitialiseMockWhenCheckRulesFile(FILE_TO_TEST_RULES_DURATION_KO);
 
         // Then
         final JsonNode errorReportAtJson = JsonHandler.getFromInputStream(inputStream);
@@ -693,16 +691,31 @@ public class RulesManagerFileImplTest {
         throws Exception {
         //Given
         // mock Storage
-        final InputStream inputStream = getInputStreamAndInitialiseMockWhenCheckRulesFile();
+        final InputStream inputStream = getInputStreamAndInitialiseMockWhenCheckRulesFile(FILE_TO_TEST_RULES_DURATION_KO);
         // Then
         final JsonNode errorReportAtJson = JsonHandler.getFromInputStream(inputStream);
-        final JsonNode errorNode = errorReportAtJson.get("Journal des opérations");
+        final JsonNode errorNode = errorReportAtJson.get("JDO");
 
         assertThat(errorNode.get("outMessg").asText())
             .isEqualTo("Échec du processus d'import du référentiel des règles de gestion");
     }
 
-    private InputStream getInputStreamAndInitialiseMockWhenCheckRulesFile()
+    @Test
+    @RunWithCustomExecutor
+    public void should_contains_outMessg_in_error_report_when_csv_with_no_rule_type_is_upload()
+        throws Exception {
+        //Given
+        // mock Storage
+        final InputStream inputStream = getInputStreamAndInitialiseMockWhenCheckRulesFile(FILE_TO_TEST_KO_INVALID_FORMAT);
+        // Then
+        final JsonNode errorReportAtJson = JsonHandler.getFromInputStream(inputStream);
+        final JsonNode errorNode = errorReportAtJson.get("JDO");
+
+        assertThat(errorNode.get("outMessg").asText())
+            .isEqualTo("Échec du processus d'import du référentiel des règles de gestion");
+    }
+
+    private InputStream getInputStreamAndInitialiseMockWhenCheckRulesFile(String filename)
         throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException,
         MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
         MetaDataClientServerException, FileRulesException {
@@ -738,7 +751,7 @@ public class RulesManagerFileImplTest {
 
         // When
         assertThatThrownBy(() -> rulesFileManager
-            .checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_RULES_DURATION_KO)), errorsMap,
+            .checkFile(new FileInputStream(PropertiesUtils.findFile(filename)), errorsMap,
                 usedDeletedRules, usedUpdatedRules, notUsedDeletedRules, notUsedUpdatedRules))
             .isInstanceOf(ReferentialException.class);
 
@@ -779,7 +792,7 @@ public class RulesManagerFileImplTest {
         // then
         verify(workspaceClient, times(1)).putObject(anyString(), anyString(), any(InputStream.class));
         final JsonNode fromFile = JsonHandler.getFromFile(report.toFile());
-        final JsonNode jdoNode = fromFile.get("Journal des opérations");
+        final JsonNode jdoNode = fromFile.get("JDO");
         final String evId = jdoNode.get("evId").asText();
         final String outMessg = jdoNode.get("outMessg").asText();
         assertThat(evId).isNotEmpty();
@@ -809,8 +822,7 @@ public class RulesManagerFileImplTest {
         assertEquals(22, fileRulesAfterInsert.size());
 
         final JsonNode reportAfterUpdateNode = JsonHandler.getFromFile(reportAfterUpdate.toFile());
-        final JsonNode jdoAfterUpdateNode = reportAfterUpdateNode.get("Journal des opérations");
-        final JsonNode usedUpdatedRules = reportAfterUpdateNode.get("usedUpdatedRules");
+        final JsonNode jdoAfterUpdateNode = reportAfterUpdateNode.get("JDO");
         final String evIdAfterUpdate = jdoAfterUpdateNode.get("evId").asText();
         final String outMessgAfterUpdate = jdoNode.get("outMessg").asText();
         assertThat(evIdAfterUpdate).isNotEmpty();
@@ -855,7 +867,7 @@ public class RulesManagerFileImplTest {
         // then
         verify(workspaceClient, times(1)).putObject(anyString(), anyString(), any(InputStream.class));
         final JsonNode fromFile = JsonHandler.getFromFile(report.toFile());
-        final JsonNode jdoNode = fromFile.get("Journal des opérations");
+        final JsonNode jdoNode = fromFile.get("JDO");
         final String evId = jdoNode.get("evId").asText();
         final String outMessg = jdoNode.get("outMessg").asText();
         assertThat(evId).isNotEmpty();
@@ -885,8 +897,7 @@ public class RulesManagerFileImplTest {
             convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
         assertEquals(22, fileRulesAfterInsert.size());
         final JsonNode reportAfterUpdateNode = JsonHandler.getFromFile(reportAfterUpdate.toFile());
-        final JsonNode jdoAfterUpdateNode = reportAfterUpdateNode.get("Journal des opérations");
-        final JsonNode usedUpdatedRules = reportAfterUpdateNode.get("usedUpdatedRules");
+        final JsonNode jdoAfterUpdateNode = reportAfterUpdateNode.get("JDO");
         final String evIdAfterUpdate = jdoAfterUpdateNode.get("evId").asText();
         final String outMessgAfterUpdate = jdoAfterUpdateNode.get("outMessg").asText();
         assertThat(evIdAfterUpdate).isNotEmpty();
