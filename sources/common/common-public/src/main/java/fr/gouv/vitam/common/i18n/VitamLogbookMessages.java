@@ -192,6 +192,19 @@ public class VitamLogbookMessages {
      *
      * @param stepOrHandler step or handler name or full name 
      * @param transaction transaction transaction name (within this handler)
+     * @param detailedOutcome the detailed outcome for the transaction
+     * @param code the code from which the message is needed
+     * @return the code to place within outcomeDetail (Logbooks)
+     */
+    public static final String getOutcomeDetailLfc(String stepOrHandler, String transaction, String detailedOutcome, 
+        StatusCode code) {
+        return getEventTypeLfc(stepOrHandler) + SEPARATOR + transaction + SEPARATOR + detailedOutcome + SEPARATOR + code;
+    }
+
+    /**
+     *
+     * @param stepOrHandler step or handler name or full name 
+     * @param transaction transaction transaction name (within this handler)
      * @param code the code from which the message is needed
      * @return the code to place within outcomeDetail (Logbooks)
      */
@@ -294,6 +307,22 @@ public class VitamLogbookMessages {
      */
     public static final String getCodeLfc(String stepOrHandler, String transaction, StatusCode code, Object... args) {
         return VITAM_MESSAGES.messages.getStringNotEmpty(getOutcomeDetailLfc(stepOrHandler, transaction, code), args);
+    }
+
+    /**
+     * Lifecycle Logbook context
+     *
+     * @param stepOrHandler step or handler name or full name (on Front Office Application)
+     * @param transaction transaction name (within this handler)
+     * @param detailedOutcome the detailed outcome for the transaction
+     * @param code the code from which the message is needed
+     * @param args list of extra argument to apply as MessageFormat.format(message, args)
+     * @return the code label of this step or handler or full named with sub transaction
+     */
+    public static final String getCodeLfc(String stepOrHandler, String transaction, String detailedOutcome,
+        StatusCode code, Object... args) {
+        return VITAM_MESSAGES.messages.getStringNotEmpty(getOutcomeDetailLfc(stepOrHandler, transaction, 
+            detailedOutcome, code), args);
     }
 
     /**
