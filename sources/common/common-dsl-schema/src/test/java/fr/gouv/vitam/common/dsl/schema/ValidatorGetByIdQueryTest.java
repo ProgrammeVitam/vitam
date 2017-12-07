@@ -112,4 +112,16 @@ public class ValidatorGetByIdQueryTest {
         assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("INVALID_JSON_FIELD: $query ~ found json: {} ~ path: []");
     }
+
+    @Test
+    public void should_retrieve_errors_when_unknown_key_is_present_in_get_by_id() throws Exception {
+        JsonNode test1Json =
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("get_by_id_unknown_key.json"));
+        final Schema schema =
+            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
+            .hasMessageContaining("INVALID_JSON_FIELD: $unknownKey ~ found json: \\\"novalidation\\\" ~ path: []")
+            .hasMessageContaining("INVALID_JSON_FIELD: $unknown2 ~ found json: {} ~ path: []");
+
+    }
 }
