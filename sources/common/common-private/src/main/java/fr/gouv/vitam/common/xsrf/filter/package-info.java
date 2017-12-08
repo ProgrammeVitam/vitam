@@ -24,47 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.ihmdemo.appserver;
-
-import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-public class LoginModel {
-
-    private String userName;
-
-    private List<String> permissions;
-
-    private long sessionTimeout;
-    
-    private String tokenCSRF;
-
-    @JsonCreator
-    public LoginModel(@JsonProperty("userName") String userName,
-        @JsonProperty("permissions") List<String> permissions,
-        @JsonProperty("sessionTimeout") long sessionTimeout,
-        @JsonProperty("tokenCSRF") String tokenCSRF) {
-        this.userName = userName;
-        this.permissions = permissions;
-        this.sessionTimeout = sessionTimeout;
-        this.tokenCSRF = tokenCSRF;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public List<String> getPermissions() {
-        return permissions;
-    }
-
-    public long getSessionTimeout() {
-        return sessionTimeout;
-    }
-    
-    public String getTokenCSRF() {
-        return tokenCSRF;
-    }
-}
+/**
+ * Security Filters
+ */
+package fr.gouv.vitam.common.xsrf.filter;

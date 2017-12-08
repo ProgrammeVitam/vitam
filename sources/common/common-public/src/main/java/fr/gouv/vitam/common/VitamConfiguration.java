@@ -62,6 +62,18 @@ public class VitamConfiguration {
      */
     public static final String TENANTS_URL = "/tenants";
     /**
+     * login path
+     */
+    public static final String LOGIN_URL = "/login";
+    /**
+     * logout path
+     */
+    public static final String LOGOUT_URL = "/logout";
+    /**
+     * path for messages/logbook
+     */
+    public static final String MESSAGES_LOGBOOK_URL = "/messages/logbook";
+    /**
      * Property Vitam Config Folder
      */
     protected static final String VITAM_CONFIG_PROPERTY = "vitam.config.folder";

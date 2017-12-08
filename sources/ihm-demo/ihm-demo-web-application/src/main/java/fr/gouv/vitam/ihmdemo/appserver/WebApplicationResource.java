@@ -123,6 +123,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.VitamConstants;
+import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
@@ -142,6 +143,8 @@ import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResour
 import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.xsrf.filter.XSRFFilter;
+import fr.gouv.vitam.common.xsrf.filter.XSRFHelper;
 import fr.gouv.vitam.ihmdemo.common.api.IhmDataRest;
 import fr.gouv.vitam.ihmdemo.common.api.IhmWebAppHeader;
 import fr.gouv.vitam.ihmdemo.common.pagination.OffsetBasedPagination;
@@ -1485,7 +1488,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
 
         final UsernamePasswordToken token = new UsernamePasswordToken(username, password);
-
+        final String tokenCSRF = XSRFHelper.generateCSRFToken();
+        XSRFFilter.addToken(httpRequest.getSession().getId(), tokenCSRF);
+        
         try {
             subject.login(token);
             int timeoutInSeconds = httpRequest.getSession().getMaxInactiveInterval() * 1000;
@@ -1493,7 +1498,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             LOGGER.info("Login success: " + username);
             List<String> permissionsByUser = PermissionReader.filterPermission(permissions, subject);
 
-            return Response.status(Status.OK).entity(new LoginModel(username, permissionsByUser, timeoutInSeconds))
+            return Response.status(Status.OK).entity(new LoginModel(username, permissionsByUser, timeoutInSeconds, tokenCSRF))
                 .build();
         } catch (final Exception uae) {
             LOGGER.debug("Login fail: " + username);

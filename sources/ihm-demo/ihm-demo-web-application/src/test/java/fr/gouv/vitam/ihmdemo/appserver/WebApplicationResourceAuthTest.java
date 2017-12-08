@@ -41,6 +41,7 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
+import com.jayway.restassured.response.Response;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -77,7 +78,11 @@ public class WebApplicationResourceAuthTest {
     private static String sessionId;
     private static IhmDemoMain application;
     private static final List<Integer> tenants = new ArrayList<>();
+    private static String tokenCSRF;
 
+    /**
+     * @throws Exception
+     */
     @BeforeClass
     public static void setup() throws Exception {
         junitHelper = JunitHelper.getInstance();
@@ -99,12 +104,15 @@ public class WebApplicationResourceAuthTest {
         RestAssured.port = port;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
 
-        sessionId = given()
+        Response response = given()
             .contentType(ContentType.JSON)
             .body(CREDENTIALS)
-            .post("/login")
-            .getCookie("JSESSIONID");
+            .post("/login");
+        JsonNode body= JsonHandler.getFromString(response.body().asString());
 
+        sessionId = response.getCookie("JSESSIONID");
+        tokenCSRF = body.get("tokenCSRF").asText();
+        
     }
 
     @AfterClass
@@ -115,7 +123,8 @@ public class WebApplicationResourceAuthTest {
 
     @Test
     public void givenEmptyPayloadWhenSearchOperationsThenReturnBadRequest() {
-        given().cookie("JSESSIONID", sessionId).contentType(ContentType.JSON).body("{}").expect()
+        given().cookie("JSESSIONID", sessionId).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .contentType(ContentType.JSON).body("{}").expect()
             .statusCode(Status.BAD_REQUEST.getStatusCode()).when()
             .post("/logbook/operations");
     }
@@ -124,7 +133,8 @@ public class WebApplicationResourceAuthTest {
     public void testSuccessGetLogbookResult()
         throws InvalidParseOperationException, LogbookClientException, InvalidCreateOperationException {
 
-        given().cookie("JSESSIONID", sessionId).contentType(ContentType.JSON).body(OPTIONS).expect()
+        given().cookie("JSESSIONID", sessionId).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .contentType(ContentType.JSON).body(OPTIONS).expect()
             .statusCode(Status.OK.getStatusCode()).when()
             .post("/logbook/operations");
     }
@@ -134,12 +144,14 @@ public class WebApplicationResourceAuthTest {
     public void testSuccessGetLogbookResultFromSession()
         throws InvalidParseOperationException, LogbookClientException, InvalidCreateOperationException {
 
-        final String requestId = given().cookie("JSESSIONID", sessionId).contentType(ContentType.JSON).body(OPTIONS)
+        final String requestId = given().cookie("JSESSIONID", sessionId)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).contentType(ContentType.JSON).body(OPTIONS)
             .expect().statusCode(Status.OK.getStatusCode()).when()
             .post("/logbook/operations").header(GlobalDataRest.X_REQUEST_ID);
 
 
-        given().cookie("JSESSIONID", sessionId).header(GlobalDataRest.X_REQUEST_ID, requestId)
+        given().cookie("JSESSIONID", sessionId).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .header(GlobalDataRest.X_REQUEST_ID, requestId)
             .contentType(ContentType.JSON).body(OPTIONS).expect().statusCode(Status.OK.getStatusCode()).when()
             .post("/logbook/operations").header(GlobalDataRest.X_REQUEST_ID);
 
@@ -149,7 +161,8 @@ public class WebApplicationResourceAuthTest {
     public void testErrorGetLogbookResultUsingPagination()
         throws InvalidParseOperationException, LogbookClientException, InvalidCreateOperationException {
 
-        given().cookie("JSESSIONID", sessionId).header(IhmDataRest.X_LIMIT, "1A")
+        given().cookie("JSESSIONID", sessionId).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .header(IhmDataRest.X_LIMIT, "1A")
             .contentType(ContentType.JSON).body(OPTIONS).expect().statusCode(Status.BAD_REQUEST.getStatusCode()).when()
             .post("/logbook/operations").header(GlobalDataRest.X_REQUEST_ID);
 

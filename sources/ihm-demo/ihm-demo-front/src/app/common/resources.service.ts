@@ -88,6 +88,9 @@ export class ResourcesService {
     if (this.getAccessContract()) {
       header = header.set('X-Access-Contract-Id', this.getAccessContract());
     }
+    if (localStorage.getItem('XSRF-TOKEN')) {
+      header = header.set('X-CSRF-TOKEN', localStorage.getItem('XSRF-TOKEN'));
+    }
     return header;
   }
 
