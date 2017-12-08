@@ -219,7 +219,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
                 throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new AccessInternalClientServerException(response.getStatusInfo().getReasonPhrase());
+                throw new IllegalArgumentException(response.getStatusInfo().getReasonPhrase());
             } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
                 throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
             }
