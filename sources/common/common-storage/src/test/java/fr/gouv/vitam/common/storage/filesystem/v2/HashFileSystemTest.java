@@ -26,30 +26,39 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.storage.filesystem.v2;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageTestAbstract;
 import fr.gouv.vitam.common.storage.constants.ExtendedAttributes;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 public class HashFileSystemTest extends ContentAddressableStorageTestAbstract {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(HashFileSystemTest.class);
 
-    public static final String ROOT_CONTAINER = "container";
-    public static final String FILE = "test1";
-    public static final String DIGEST_EXTENDED_ATTRIBUTE =
+    private static final String ROOT_CONTAINER = "container";
+    private static final String FILE = "test1";
+    private static final String DIGEST_EXTENDED_ATTRIBUTE =
         "SHA-512:a7c976db1723adb41274178dc82e9b777941ab201c69de61d0f2bc6d27a3598f594fa748e50d88d3c2bf1e2c2e72c3cfef78c3c6d4afa90391f7e33ababca48e";
-
+    private static final String HASH = 
+        "9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418";
+    
     @Before
     public void setup() throws IOException {
         final StorageConfiguration configuration = new StorageConfiguration();
@@ -91,4 +100,34 @@ public class HashFileSystemTest extends ContentAddressableStorageTestAbstract {
         }
     }
 
+    /**
+     * THis test work only if your temporary folder support linux extended attribute
+     *
+     * @throws Exception
+     */
+    @Test
+    public void should_recalculate_and_update_extended_attribute_when_check_digest() throws Exception {
+        String containerName = TENANT_ID + "_" + TYPE;
+
+        storage.createContainer(containerName);
+
+        storage.putObject(containerName, OBJECT_ID, getInputStream("file1.pdf"), DigestType.MD5);
+
+        // get current SH512 saved Hash in metadatas of file
+        String currentDigest = ((HashFileSystem) storage).getObjectDigestFromMD(containerName, OBJECT_ID, DigestType.SHA512);
+        // should be null as we write an MD5 Hash and not a SH521
+        assertNull(currentDigest); 
+
+        // check if digest has been updated when call getMetadatas
+        MetadatasObject result = storage.getObjectMetadatas(containerName, OBJECT_ID);
+        assertNotNull(result);
+        assertEquals(OBJECT_ID, result.getObjectName());
+        assertEquals(TYPE, result.getType());
+        assertEquals(HASH, result.getDigest());
+    }
+
+    private InputStream getInputStream(String file) throws IOException {
+        return PropertiesUtils.getResourceAsStream(file);
+    }
+    
 }
