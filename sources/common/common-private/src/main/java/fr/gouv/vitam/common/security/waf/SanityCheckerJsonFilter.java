@@ -37,7 +37,7 @@ public class SanityCheckerJsonFilter implements ContainerRequestFilter {
         try {
             SanityChecker.checkJsonAll(JsonHandler.getFromBytes(bout.toByteArray()));
             requestContext.setEntityStream(new ByteArrayInputStream(bout.toByteArray()));
-        } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
+        } catch (final IllegalArgumentException | InvalidParseOperationException exc) {
             LOGGER.error(exc);
             requestContext.abortWith(
                 Response.status(Status.PRECONDITION_FAILED).entity(getErrorEntity(Status.PRECONDITION_FAILED, exc.getMessage())).build());

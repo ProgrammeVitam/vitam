@@ -44,6 +44,7 @@ import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import org.apache.commons.io.IOUtils;
 import org.owasp.esapi.Validator;
 import org.owasp.esapi.errors.IntrusionException;
 import org.owasp.esapi.errors.ValidationException;
@@ -53,6 +54,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.json.JsonSanitizer;
 
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -201,6 +203,18 @@ public class SanityChecker {
         for (final String param : params) {
             checkParam(param);
         }
+    }
+    
+    /**
+     * checkInputStream : Check sanity of InputStream: no javascript/xml tag, neither html tag
+     * 
+     * @param stream
+     * @throws InvalidParseOperationException
+     * @throws IOException
+     */
+    public static final void checkInputStream(InputStream stream) throws InvalidParseOperationException, IOException {
+        String text = IOUtils.toString(stream, CharsetUtils.UTF_8.toString());
+        SanityChecker.checkParameter(text);
     }
 
     /**
@@ -458,26 +472,33 @@ public class SanityChecker {
      * @throws InvalidParseOperationException when Sanity Check is in error
      */
     protected static final void checkJsonSanity(JsonNode json) throws InvalidParseOperationException {
-        final Iterator<Map.Entry<String, JsonNode>> fields = json.fields();
-        while (fields.hasNext()) {
-            final Map.Entry<String, JsonNode> entry = fields.next();
-            final String key = entry.getKey();
-            checkSanityTags(key, getLimitFieldSize());
-            final JsonNode value = entry.getValue();
+        if (json.isArray()) {
+            ArrayNode nodes = (ArrayNode) json;
+            for (JsonNode element : nodes) {
+                checkJsonSanity(element);
+            }
+        } else {
+            final Iterator<Map.Entry<String, JsonNode>> fields = json.fields();
+            while (fields.hasNext()) {
+                final Map.Entry<String, JsonNode> entry = fields.next();
+                final String key = entry.getKey();
+                checkSanityTags(key, getLimitFieldSize());
+                final JsonNode value = entry.getValue();
 
-            if (value.isArray()) {
-                ArrayNode nodes = (ArrayNode) value;
-                for (JsonNode jsonNode : nodes) {
-                    if (!jsonNode.isValueNode()) {
-                        checkJsonSanity(jsonNode);
-                    } else {
-                        validateJSONField(value);
+                if (value.isArray()) {
+                    ArrayNode nodes = (ArrayNode) value;
+                    for (JsonNode jsonNode : nodes) {
+                        if (!jsonNode.isValueNode()) {
+                            checkJsonSanity(jsonNode);
+                        } else {
+                            validateJSONField(value);
+                        }
                     }
+                } else if (!value.isValueNode()) {
+                    checkJsonSanity(value);
+                } else {
+                    validateJSONField(value);
                 }
-            } else if (!value.isValueNode()) {
-                checkJsonSanity(value);
-            } else {
-                validateJSONField(value);
             }
         }
     }

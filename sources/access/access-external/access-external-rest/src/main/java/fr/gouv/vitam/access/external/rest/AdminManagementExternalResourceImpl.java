@@ -51,6 +51,8 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.io.IOUtils;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -59,6 +61,7 @@ import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
+import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.IngestCollection;
@@ -130,6 +133,7 @@ public class AdminManagementExternalResourceImpl {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementExternalResourceImpl.class);
     private static final String ACCESS_EXTERNAL_MODULE = "ADMIN_EXTERNAL";
     private static final String CODE_VITAM = "code_vitam";
+    private static final String HTML_CONTENT_MSG_ERROR = "document has toxic HTML content";
 
     private final SecureEndpointRegistry secureEndpointRegistry;
 
@@ -356,6 +360,10 @@ public class AdminManagementExternalResourceImpl {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         try {
             ParametersChecker.checkParameter("document is a mandatory parameter", document);
+            
+            // Check Html Pattern
+            SanityChecker.checkInputStream(document);
+            
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 Status status = client.importRulesFile(document, filename);
 
@@ -375,10 +383,15 @@ public class AdminManagementExternalResourceImpl {
                 return Response.status(Status.BAD_REQUEST)
                     .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
             }
-        } catch (final IllegalArgumentException e) {
+        } catch (final IllegalArgumentException | IOException e) {
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        } catch (InvalidParseOperationException e) {
+            // TODO: LOG alert
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, HTML_CONTENT_MSG_ERROR, null)).build();
         } finally {
             StreamUtils.closeSilently(document);
         }
@@ -428,7 +441,6 @@ public class AdminManagementExternalResourceImpl {
         addRequestId();
         ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            SanityChecker.checkJsonAll(select);
             Status status = client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
                 new TypeReference<List<IngestContractModel>>() {}));
 
@@ -464,7 +476,6 @@ public class AdminManagementExternalResourceImpl {
         addRequestId();
         ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            SanityChecker.checkJsonAll(select);
             Status status = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
                 new TypeReference<List<AccessContractModel>>() {}));
 
@@ -499,7 +510,6 @@ public class AdminManagementExternalResourceImpl {
         addRequestId();
         ParametersChecker.checkParameter("Json select is a mandatory parameter", select);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            SanityChecker.checkJsonAll(select);
             Status status = client.importContexts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
                 new TypeReference<List<ContextModel>>() {}));
 
@@ -933,6 +943,7 @@ public class AdminManagementExternalResourceImpl {
      * @param headers http headers
      * @param document inputStream representing the data to import
      * @return The jaxRs Response
+     * @throws InvalidParseOperationException 
      */
     @Path("/agencies")
     @POST
@@ -946,6 +957,10 @@ public class AdminManagementExternalResourceImpl {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         try {
             ParametersChecker.checkParameter("document is a mandatory parameter", document);
+            
+            // Check Html Pattern
+            SanityChecker.checkInputStream(document);
+            
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 Status status = client.importAgenciesFile(document, filename);
 
@@ -957,10 +972,15 @@ public class AdminManagementExternalResourceImpl {
                 return Response.status(Status.BAD_REQUEST)
                     .entity(getErrorEntity(Status.BAD_REQUEST, e.getMessage(), null)).build();
             }
-        } catch (final IllegalArgumentException e) {
+        } catch (final IllegalArgumentException | IOException e) {
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
+        } catch (InvalidParseOperationException e) {
+            // TODO: LOG alert
+            LOGGER.error(e);
+            final Status status = Status.BAD_REQUEST;
+            return Response.status(status).entity(getErrorEntity(status, HTML_CONTENT_MSG_ERROR, null)).build();
         } finally {
             StreamUtils.closeSilently(document);
         }
