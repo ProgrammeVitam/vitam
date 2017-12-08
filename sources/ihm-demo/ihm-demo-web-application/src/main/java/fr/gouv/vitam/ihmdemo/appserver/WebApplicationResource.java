@@ -2771,9 +2771,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("dipexport:read")
     public void getDIPAsInputStreamAsync(@Context HttpHeaders headers,
         @PathParam("id") String id, @Suspended final AsyncResponse asyncResponse) {
+        Integer tenantId = getTenantId(headers);
+        String accessContractId = getAccessContractId(headers);
+        String appSessionId = getAppSessionId();
         threadPoolExecutor
-            .execute(() -> asyncGetDIPStream(asyncResponse, id, getTenantId(headers), getAccessContractId(headers),
-                getAppSessionId()));
+            .execute(() -> {
+                asyncGetDIPStream(asyncResponse, id, tenantId, accessContractId,
+                    appSessionId);
+            });
     }
 
     private void asyncGetDIPStream(AsyncResponse asyncResponse, String dipId, Integer tenantId, String contractId,
