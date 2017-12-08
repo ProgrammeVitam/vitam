@@ -77,7 +77,6 @@ export class ReferentialsService {
       if (!body.RuleValue) {
         body.RuleValue = '';
       }
-      body.orderby = {"field":"RuleValue","sortType":"ASC"};
     }
 
     if (this.searchAPI === 'contracts' || this.searchAPI === 'accesscontracts' ) {
