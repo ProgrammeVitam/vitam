@@ -48,7 +48,9 @@
                     <div class="ui-g-2">{{details.EndDate | date:'dd/MM/yyyy'}}</div>
                     <div class="ui-g-1">{{isInherited(id)}}</div>
                     <div class="ui-g-2" *ngIf="category.rule === 'StorageRule' || category.rule === 'AppraisalRule'">
+                      <span *ngIf="category.rule && details.FinalAction">
                       {{finalActions[category.rule][details.FinalAction].label}}
+                      </span>
                     </div>
                     <div class="ui-g-1" (click)="toogleDetails(category.rule, rule, id)">
                       <i class="fa fa-chevron-up clickableDiv" *ngIf="displayDetails[rule + '.' + id]"></i>
