@@ -240,10 +240,10 @@ export class SearchReferentialsComponent extends PageComponent {
           this.columns = [
             ColumnDefinition.makeStaticColumn('Name', 'Intitulé', undefined,
               () => ({'width': '125px'})),
-            ColumnDefinition.makeStaticColumn('Identifier', 'Identifiant', undefined,
-              () => ({'width': '125px'})),
             ColumnDefinition.makeStaticColumn('Description', 'Description', undefined,
-              () => ({'width': '225px'}))
+              () => ({'width': '225px'})),
+            ColumnDefinition.makeStaticColumn('Identifier', 'Identifiant', undefined,
+              () => ({'width': '125px'}))
           ];
           this.referentialPath = 'admin/agencies/all';
           this.referentialIdentifier = 'Identifier';
