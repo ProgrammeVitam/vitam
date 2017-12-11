@@ -400,7 +400,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
             }
 
             return Response.status(st).entity(result).build();
-        } catch (final InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException | IllegalArgumentException e) {
             LOGGER.error(e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
