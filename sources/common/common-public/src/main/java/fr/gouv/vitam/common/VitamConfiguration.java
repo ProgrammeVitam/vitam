@@ -74,6 +74,14 @@ public class VitamConfiguration {
      */
     public static final String MESSAGES_LOGBOOK_URL = "/messages/logbook";
     /**
+     * path for download object data
+     */
+    public static final String OBJECT_DOWNLOAD_URL = "/archiveunit/objects/download";;
+    /**
+     * path for exporting DIP
+     */
+    public static final String DIP_EXPORT_URL = "/archiveunit/dipexport";
+    /**
      * Property Vitam Config Folder
      */
     protected static final String VITAM_CONFIG_PROPERTY = "vitam.config.folder";

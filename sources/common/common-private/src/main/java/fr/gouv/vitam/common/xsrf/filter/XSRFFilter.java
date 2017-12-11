@@ -65,9 +65,12 @@ public class XSRFFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
         throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
-        if (req.getRequestURI().contains(VitamConfiguration.LOGIN_URL) ||
-            req.getRequestURI().contains(VitamConfiguration.TENANTS_URL) ||
-            req.getRequestURI().contains(VitamConfiguration.MESSAGES_LOGBOOK_URL)) {
+        String requestURI = req.getRequestURI();
+        if (requestURI.contains(VitamConfiguration.LOGIN_URL) ||
+            requestURI.contains(VitamConfiguration.TENANTS_URL) ||
+            requestURI.contains(VitamConfiguration.MESSAGES_LOGBOOK_URL) ||
+            requestURI.contains(VitamConfiguration.OBJECT_DOWNLOAD_URL) ||
+            requestURI.contains(VitamConfiguration.DIP_EXPORT_URL)) {
             chain.doFilter(request, response);
             return;
         }
