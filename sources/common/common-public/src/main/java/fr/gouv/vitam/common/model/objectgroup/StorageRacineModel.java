@@ -38,7 +38,7 @@ public class StorageRacineModel {
     @JsonProperty("strategyId")
     private String strategyId;
 
-    @JsonProperty("_nbc")
+    @JsonProperty("#nbc")
     private String nbc;
 
     @JsonProperty("offerIds")

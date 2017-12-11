@@ -1,33 +1,8 @@
 {
-  "_id": "aeaaaaaaaaaam7mxaaaamakwkuhqteiaaaba",
-  "_tenantId": 0,
-  "_profil": "Text",
-  "FileInfo": {
-    "Filename": "Filename0",
-    "CreatingApplicationName": "CreatingApplicationName0",
-    "CreatingApplicationVersion": "CreatingApplicationVersion0",
-    "DateCreatedByApplication": "2006-05-04T18:13:51.0",
-    "CreatingOs": "CreatingOs0",
-    "CreatingOsVersion": "CreatingOsVersion0",
-    "LastModified": "2006-05-04T18:13:51.0"
-  },
-  "_qualifiers": {
-    "BinaryMaster": {
-      "nb": 1,
-      "versions": [
-        {
-          "_id": "ID009",
-          "DataObjectGroupId": "aeaaaaaaaaaam7mxaaaamakwkuhqteiaaaba",
-          "DataObjectVersion": "BinaryMaster",
-          "MessageDigest": "e3e02a356a2e903a03c6b8b6c7a36e6ad4b50d29c6a5360c79a60719812c54cd5433caa227de9856ee80d95ff9f84f416090a62ee52f681e0a29b9b07d75d51a",
-          "Size": "226224",
-          "FormatIdentification": {
-            "FormatLitteral": "FormatLitteral0",
-            "MimeType": "MimeType0",
-            "FormatId": "FormatId0",
-            "Encoding": "Encoding0"
-          },
-          "FileInfo": {
+    "_id": "aebaaaaaaahca4jbaagvsalafrqsh5yaaaaq",
+    "_tenant": 0,
+    "_profil": "Text",
+    "FileInfo": {
             "Filename": "Filename0",
             "CreatingApplicationName": "CreatingApplicationName0",
             "CreatingApplicationVersion": "CreatingApplicationVersion0",
@@ -35,20 +10,63 @@
             "CreatingOs": "CreatingOs0",
             "CreatingOsVersion": "CreatingOsVersion0",
             "LastModified": "2006-05-04T18:13:51.0"
-          },
-          "Metadata": {
-            "Text": "\n                "
-          },
-          "OtherMetadata": "\n            "
+    },
+    "_qualifiers": [
+        {
+            "qualifier": "BinaryMaster",
+            "_nbc": 1,
+            "versions": [
+                {
+                    "_id": "aeaaaaaaaahca4jbaagvsalafrqsh5qaaaaq",
+                    "DataObjectGroupId": "aebaaaaaaahca4jbaagvsalafrqsh5yaaaaq",
+                    "DataObjectVersion": "BinaryMaster_1",
+                    "FormatIdentification": {
+            "FormatLitteral": "FormatLitteral0",
+            "MimeType": "MimeType0",
+            "FormatId": "FormatId0",
+            "Encoding": "Encoding0"
+                    },
+                    "FileInfo": {
+            "Filename": "Filename0",
+            "CreatingApplicationName": "CreatingApplicationName0",
+            "CreatingApplicationVersion": "CreatingApplicationVersion0",
+            "DateCreatedByApplication": "2006-05-04T18:13:51.0",
+            "CreatingOs": "CreatingOs0",
+            "CreatingOsVersion": "CreatingOsVersion0",
+            "LastModified": "2006-05-04T18:13:51.0"
+                    },
+                    "Size": 226224,
+                    "Uri": "Content/ID13.pdf",
+                    "MessageDigest": "e3e02a356a2e903a03c6b8b6c7a36e6ad4b50d29c6a5360c79a60719812c54cd5433caa227de9856ee80d95ff9f84f416090a62ee52f681e0a29b9b07d75d51a",
+                    "Algorithm": "SHA-512",
+                    "_storage": {
+                        "_nbc": 1,
+                        "offerIds": [
+                            "localhost"
+                        ],
+                        "strategyId": "default"
+                    }
+                }
+            ]
         }
-      ]
-    }
-  },
-  "_up": [
-    "aeaaaaaaaaaam7mxaaaamakwkuhqtgaaaabq",
-    "aeaaaaaaaaaam7mxaaaamakwkuhqt5iaaacq"
-  ],
-  "_nb": 1,
-  "_dom": 0,
-  "_nbc": 0
+    ],
+    "_up": [
+        "aeaqaaaaaahca4jbaagvsalafrqsh6yaaada"
+    ],
+    "_nbc": 0,
+    "_ops": [
+        "aedqaaaaacfu25keaahugalafrqscxiaaaaq"
+    ],
+    "_sp": "Vitam",
+    "_sps": [
+        "Vitam"
+    ],
+    "_storage": {
+        "_nbc": 1,
+        "offerIds": [
+            "localhost"
+        ],
+        "strategyId": "default"
+    },
+    "_v": 1
 }

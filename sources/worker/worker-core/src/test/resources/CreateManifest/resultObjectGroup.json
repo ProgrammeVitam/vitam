@@ -18,10 +18,10 @@
       "#qualifiers": [
         {
           "qualifier": "BinaryMaster",
-          "_nbc": 1,
+          "#nbc": 1,
           "versions": [
             {
-              "_id": "aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq",
+              "#id": "aeaaaaaaaabhu53raawyuak7tm2uapqaaaaq",
               "DataObjectGroupId": "aebaaaaaaabhu53raawyuak7tm2uaqaaaaaq",
               "DataObjectVersion": "BinaryMaster_1",
               "FormatIdentification": {
@@ -37,8 +37,8 @@
               "Uri": "Content/ID5.pdf",
               "MessageDigest": "283827d12876af7da450b13918bba23942f0d8f70f8b92ccff1e1cde1657a6cf86783539b2dac4d47b817fba6cc7a13ba511f1049e0c10ebf19f1e56f586444b",
               "Algorithm": "SHA-512",
-              "_storage": {
-                "_nbc": 1,
+              "#storage": {
+                "#nbc": 1,
                 "offerIds": [
                   "fakeOfferId"
                 ],
@@ -61,7 +61,7 @@
         "FRAN_NP_005568"
       ],
       "#storage": {
-        "_nbc": 1,
+        "#nbc": 1,
         "offerIds": [
           "fakeOfferId"
         ],
@@ -79,10 +79,10 @@
       "#qualifiers": [
         {
           "qualifier": "BinaryMaster",
-          "_nbc": 1,
+          "#nbc": 1,
           "versions": [
             {
-              "_id": "aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq",
+              "#id": "aeaaaaaaaabhu53raawyuak7tm2uaqiaaaaq",
               "DataObjectGroupId": "aebaaaaaaabhu53raawyuak7tm2uaqqaaaaq",
               "DataObjectVersion": "BinaryMaster_1",
               "FormatIdentification": {
@@ -98,8 +98,8 @@
               "Uri": "Content/ID9.pdf",
               "MessageDigest": "7f3ce13b418339cb20218473ddcbc6d308f094ff9e3dd86526e124b216c267a8f46ffa21cc5e4b646ffea725aa75b6dbd1d203331c47110a10ec293383736645",
               "Algorithm": "SHA-512",
-              "_storage": {
-                "_nbc": 1,
+              "#storage": {
+                "#nbc": 1,
                 "offerIds": [
                   "fakeOfferId"
                 ],
@@ -122,7 +122,7 @@
         "FRAN_NP_005568"
       ],
       "#storage": {
-        "_nbc":1,
+        "#nbc":1,
         "offerIds": [
           "fakeOfferId"
         ],
@@ -140,10 +140,10 @@
       "#qualifiers": [
         {
           "qualifier": "BinaryMaster",
-          "_nbc": 1,
+          "#nbc": 1,
           "versions": [
             {
-              "_id": "aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba",
+              "#id": "aeaaaaaaaabhu53raawyuak7tm2uaqqaaaba",
               "DataObjectGroupId": "aebaaaaaaabhu53raawyuak7tm2uaqyaaaaq",
               "DataObjectVersion": "BinaryMaster_1",
               "FormatIdentification": {
@@ -159,8 +159,8 @@
               "Uri": "Content/ID13.pdf",
               "MessageDigest": "3afe1b9682dda5c5034ed57bcb1ac42634d0e7ec45969f54484c2fa8ad80510fbb54398db0b22910246aa6ecc339c1f5ddb0c09dcd11d2c0cc28604a72005616",
               "Algorithm": "SHA-512",
-              "_storage": {
-                "_nbc": 1,
+              "#storage": {
+                "#nbc": 1,
                 "offerIds": [
                   "fakeOfferId"
                 ],
@@ -183,7 +183,7 @@
         "FRAN_NP_005568"
       ],
       "#storage": {
-        "_nbc":1,
+        "#nbc":1,
         "offerIds": [
           "fakeOfferId"
         ],
