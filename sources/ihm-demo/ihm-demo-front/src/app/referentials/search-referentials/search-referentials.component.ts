@@ -149,7 +149,6 @@ export class SearchReferentialsComponent extends PageComponent {
           this.searchForm = {
             "RuleValue": "",
             "RuleType": "All",
-            "orderby": {"field": "RuleValue", "sortType": "ASC"},
             "RULES": "all"
           };
           this.columns = [
