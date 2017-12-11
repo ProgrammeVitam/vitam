@@ -244,7 +244,11 @@ public class AccessStep {
             }
         }
 
-        return JsonHandler.unprettyPrint(lastJsonNode);
+        if (lastJsonNode != null) {
+            return JsonHandler.unprettyPrint(lastJsonNode);
+        } else {
+            return "{}";
+        }
     }
 
     private String transformToGuid(String raw) throws Throwable {

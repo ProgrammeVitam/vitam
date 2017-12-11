@@ -135,16 +135,16 @@ public class AccessInternalModuleImplTest {
             + "\"Rules\": [{"
             + "\"Rule\": \"STO-00001\","
             + "\"StartDate\": \"2000-01-01\","
-            + "\"FinalAction\": \"Copy\","
-            + "\"EndDate\": \"2001-01-01\"}]"
+            + "\"EndDate\": \"2001-01-01\"}],"
+            + "\"FinalAction\": \"Copy\""
             + "},"
             + "\"AppraisalRule\": {"
             + "\"Rules\": [{"
             + "\"Rule\": \"APP-00002\","
             + "\"StartDate\": \"2000-01-01\","
-            + "\"FinalAction\": \"Destroy\","
             + "\"EndDate\": \"2005-01-01\""
             + "}],"
+            + "\"FinalAction\": \"Destroy\","
             + "\"Inheritance\": {"
             + "\"PreventInheritance\":true"
             + "}},"
@@ -198,29 +198,33 @@ public class AccessInternalModuleImplTest {
         + "\"$action\":["
         + "{\"$set\":{\"Title\":\"Eglise de Pantin Modfii\u00E9\"}},"
         + "{\"$set\":{\"SubmissionAgency.Identifier\":\"ServiceversantID\"}},"
-        + "{\"$set\":{\"#management.StorageRule\":[{\"Rule\":\"STO-00001\",\"StartDate\":\"2000-01-01\",\"FinalAction\":\"RestrictAccess\"}]}},"
+        + "{\"$set\":{\"#management.StorageRule\":{Rules:[{\"Rule\":\"STO-00001\",\"StartDate\":\"2000-01-01\"}],\"FinalAction\":\"RestrictAccess\"}}},"
         + "{\"$unset\":[\"#management.DisseminationRule\"]},"
-        + "{\"$set\":{\"#management.ClassificationRule\":[{\"Rule\":\"CLASS-00002\",\"StartDate\":\"2017-07-01\"}]}}]}";
+        + "{\"$set\":{\"#management.ClassificationRule\":{Rules:[{\"Rule\":\"CLASS-00002\",\"StartDate\":\"2017-07-01\"}]}}}]}";
 
     private static final String QUERY_MULTIPLE_STRING = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
         + "\"$action\":["
-        + "{\"$set\":{\"#management.ClassificationRule\":["
+        + "{\"$set\":{\"#management.ClassificationRule\":{Rules:["
         +   "{\"Rule\":\"CLASS-00002\",\"StartDate\":\"2017-07-01\"},"
         +   "{\"Rule\":\"CLASS-00003\",\"StartDate\":\"2017-07-01\"}"
-        + "]}}]}";
+        + "]}}}]}";
+
+    private static final String QUERY_FINAL_ACTION = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
+            + "\"$action\":["
+            + "{\"$set\":{\"#management.StorageRule\":{Rules:[{\"Rule\":\"STO-00002\",\"StartDate\":\"2017-07-01\"}],\"FinalAction\":\"Copy\"}}}]}";
 
     private static final String QUERY_CREATE_STRING = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
             + "\"$action\":["
-            + "{\"$set\":{\"#management.ReuseRule\":["
+            + "{\"$set\":{\"#management.ReuseRule\":{Rules:["
             +   "{\"Rule\":\"REU-00001\",\"StartDate\":\"2017-07-01\"}"
-            + "]}}]}";
+            + "]}}}]}";
 
     private static final String QUERY_STRING_WITH_END = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
         + "\"$action\":["
-        + "{\"$set\":{\"#management.StorageRule\":[{\"Rule\":\"STO-00001\",\"StartDate\":\"2000-01-01\",\"FinalAction\":\"RestrictAccess\"}]}},"
+        + "{\"$set\":{\"#management.StorageRule\":{Rules:[{\"Rule\":\"STO-00001\",\"StartDate\":\"2000-01-01\"}],\"FinalAction\":\"RestrictAccess\"}}},"
         + "{\"$unset\":[\"#management.DisseminationRule\"]},"
-        + "{\"$set\":{\"#management.ClassificationRule\":["
-        + "{\"Rule\":\"CLASS-00002\",\"StartDate\":\"2017-07-01\",\"EndDate\":\"2017-08-02\"}]}}]}";
+        + "{\"$set\":{\"#management.ClassificationRule\":{Rules:["
+        + "{\"Rule\":\"CLASS-00002\",\"StartDate\":\"2017-07-01\",\"EndDate\":\"2017-08-02\"}]}}}]}";
 
     private static final String QUERY_STRING_WITH_PI_DELETED = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
         + "\"$action\":["
@@ -232,15 +236,15 @@ public class AccessInternalModuleImplTest {
 
     private static final String QUERY_STRING_WITH_WRONG_CATEGORY_FINAL_ACTION = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
             + "\"$action\":["
-            + "{\"$set\":{\"#management.ClassificationRule\":[{\"Rule\":\"CLASS-00002\",\"StartDate\":\"2017-07-01\",\"FinalAction\":\"Keep\"}]}}]}";
+            + "{\"$set\":{\"#management.ClassificationRule\":{Rules:[{\"Rule\":\"CLASS-00002\",\"StartDate\":\"2017-07-01\"}],\"FinalAction\":\"Keep\"}}}]}";
 
     private static final String QUERY_STRING_WITH_WRONG_FINAL_ACTION = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
             + "\"$action\":["
-            + "{\"$set\":{\"#management.StorageRule\":[{\"Rule\":\"STO-00002\",\"StartDate\":\"2017-07-01\",\"FinalAction\":\"Keep\"}]}}]}";
+            + "{\"$set\":{\"#management.StorageRule\":{Rules:[{\"Rule\":\"STO-00002\",\"StartDate\":\"2017-07-01\"}],\"FinalAction\":\"Keep\"}}}]}";
 
     private static final String QUERY_STRING_WITH_WRONG_CATEGORY = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{},"
             + "\"$action\":["
-            + "{\"$set\":{\"#management.ClassificationRule\":[{\"Rule\":\"STO-00002\",\"StartDate\":\"2017-07-01\"}]}}]}";
+            + "{\"$set\":{\"#management.ClassificationRule\":{Rules:[{\"Rule\":\"STO-00002\",\"StartDate\":\"2017-07-01\"}]}}}]}";
 
     private static final String REAL_DATA_RESULT_PATH = "sample_data_results.json";
     private static final String REAL_DATA_RESULT_MULTI_PATH = "sample_data_multi_results.json";
@@ -808,6 +812,11 @@ public class AccessInternalModuleImplTest {
         results = executeCheck(QUERY_CREATE_STRING);
         assertEquals(1, results.getRequest().getActions().size());
         assertEquals(1, results.getRequest().getActions().get(0).getCurrentObject().get("#management.ReuseRule.Rules").size());
+
+        results = executeCheck(QUERY_FINAL_ACTION);
+        assertEquals(1, results.getRequest().getActions().size());
+        assertEquals(1, results.getRequest().getActions().get(0).getCurrentObject().get("#management.StorageRule.Rules").size());
+        assertEquals("Copy", results.getRequest().getActions().get(0).getCurrentObject().get("#management.StorageRule.FinalAction").asText());
 
         try {
             executeCheck(QUERY_STRING_WITH_END);

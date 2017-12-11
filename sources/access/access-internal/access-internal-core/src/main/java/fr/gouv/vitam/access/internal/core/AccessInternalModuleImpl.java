@@ -201,9 +201,11 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private static final String ERROR_PREVENT_INHERITANCE = " contains an inheritance prevention";
     private static final String MANAGEMENT_KEY = "#management";
     private static final String RULES_KEY = "Rules";
+    private static final String FINAL_ACTION_KEY = "FinalAction";
     private static final String INHERITANCE_KEY = "Inheritance";
     private static final String MANAGEMENT_PREFIX = MANAGEMENT_KEY + '.';
     private static final String RULES_PREFIX = '.' + RULES_KEY;
+    private static final String FINAL_ACTION_PREFIX = '.' + FINAL_ACTION_KEY;
 
     /**
      * AccessModuleImpl constructor
@@ -1059,18 +1061,24 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
             if (rulesForCategory != null) {
                 if (updatedCategories.contains(category)) {
-                    ArrayNode rulesForUpdatedCategory = (ArrayNode) updatedCategoryRules.get(category);
+                    ArrayNode rulesForUpdatedCategory = (ArrayNode) updatedCategoryRules.get(category).get(RULES_KEY);
+                    JsonNode finalAction = updatedCategoryRules.get(category).get(FINAL_ACTION_KEY);
 
                     // Check for update (and delete) rules (rules at least present in DB)
-                    ArrayNode updatedRules = checkUpdatedRules(category, rulesForCategory, rulesForUpdatedCategory);
+                    ArrayNode updatedRules = checkUpdatedRules(category, rulesForCategory, rulesForUpdatedCategory, finalAction);
 
                     // Check for new rules (rules only present in request)
-                    ArrayNode createdRules = checkAddedRules(category, rulesForCategory, rulesForUpdatedCategory);
+                    ArrayNode createdRules = checkAddedRules(category, rulesForCategory, rulesForUpdatedCategory, finalAction);
 
                     // Put newRules in a new action
                     Map<String, JsonNode> action = new HashMap<>();
                     updatedRules.addAll(createdRules);
+
                     action.put(MANAGEMENT_PREFIX + category + RULES_PREFIX, updatedRules);
+                    if (finalAction != null) {
+                        action.put(MANAGEMENT_PREFIX + category + FINAL_ACTION_PREFIX, finalAction);
+                    }
+
                     try {
                         request.addActions(new SetAction(action));
                     } catch (InvalidCreateOperationException e) {
@@ -1079,11 +1087,17 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 }
             } else if (updatedCategories.contains(category)) {
                 // Check for new rules (rules only present in request)
+                ArrayNode rulesForUpdatedCategory = (ArrayNode) updatedCategoryRules.get(category).get(RULES_KEY);
+                JsonNode finalAction = updatedCategoryRules.get(category).get(FINAL_ACTION_KEY);
+            	
                 ArrayNode createdRules =
-                    checkAddedRules(category, null, (ArrayNode) updatedCategoryRules.get(category));
+                    checkAddedRules(category, null, rulesForUpdatedCategory, finalAction);
 
                 Map<String, JsonNode> action = new HashMap<>();
                 action.put(MANAGEMENT_PREFIX + category + RULES_PREFIX, createdRules);
+                if (finalAction != null) {
+                    action.put(MANAGEMENT_PREFIX + category + FINAL_ACTION_PREFIX, finalAction);
+                }
                 try {
                     request.addActions(new SetAction(action));
                 } catch (InvalidCreateOperationException e) {
@@ -1169,7 +1183,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         }
     }
 
-    private ArrayNode checkUpdatedRules(String category, ArrayNode rulesForCategory, ArrayNode rulesForUpdatedCategory)
+    private ArrayNode checkUpdatedRules(String category, ArrayNode rulesForCategory, ArrayNode rulesForUpdatedCategory,
+        JsonNode finalAction)
         throws AccessInternalRuleExecutionException, AccessInternalExecutionException {
         // Check for all rules in rulesForCategory and compare with rules in rulesForUpdatedCategory
         ArrayNode updatedRules = JsonHandler.createArrayNode();
@@ -1188,8 +1203,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                         throw new AccessInternalRuleExecutionException(
                             VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_END_DATE.name());
                     }
-                    if (!checkRuleFinalAction(updateRule, category)) {
-                        LOGGER.error(ERROR_UPDATE_RULE + updateRule + " contains wrong FinalAction");
+                    if (!checkRuleFinalAction(category, finalAction)) {
+                        LOGGER.error(ERROR_UPDATE_RULE + updateRule  + "(FinalAction: " + finalAction + ") contains wrong FinalAction");
                         throw new AccessInternalRuleExecutionException(
                             VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_FINAL_ACTION.name());
                     }
@@ -1215,10 +1230,12 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 }
             }
         }
+
         return updatedRules;
     }
 
-    private ArrayNode checkAddedRules(String category, ArrayNode rulesForCategory, ArrayNode rulesForUpdatedCategory)
+    private ArrayNode checkAddedRules(String category, ArrayNode rulesForCategory, ArrayNode rulesForUpdatedCategory,
+        JsonNode finalAction)
         throws AccessInternalRuleExecutionException, AccessInternalExecutionException {
         ArrayNode createdRules = JsonHandler.createArrayNode();
         for (JsonNode updateRule : rulesForUpdatedCategory) {
@@ -1243,8 +1260,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     throw new AccessInternalRuleExecutionException(
                         VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_END_DATE.name());
                 }
-                if (!checkRuleFinalAction(updateRule, category)) {
-                    LOGGER.error(ERROR_CREATE_RULE + updateRule + " contains wrong FinalAction");
+                if (!checkRuleFinalAction(category, finalAction)) {
+                    LOGGER.error(ERROR_CREATE_RULE + updateRule + "(FinalAction: " + finalAction + ") contains wrong FinalAction");
                     throw new AccessInternalRuleExecutionException(
                         VitamCode.ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_FINAL_ACTION.name());
                 }
@@ -1269,6 +1286,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 createdRules.add(updateRule);
             }
         }
+
         return createdRules;
     }
 
@@ -1282,8 +1300,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         return rule.get("EndDate") != null;
     }
 
-    private boolean checkRuleFinalAction(JsonNode rule, String category) {
-        JsonNode finalActionNode = rule.get("FinalAction");
+    private boolean checkRuleFinalAction(String category, JsonNode finalActionNode) {
 
         if (VitamConstants.TAG_RULE_APPRAISAL.equals(category)) {
             if (finalActionNode == null) {
