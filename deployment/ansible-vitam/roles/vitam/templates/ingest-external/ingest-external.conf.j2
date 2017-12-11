@@ -5,3 +5,7 @@ authentication: true
 tenantFilter : true
 antiVirusScriptName: scan-{{ vitam_struct.antivirus }}.sh
 timeoutScanDelay: 60000
+baseUploadPath: {{ vitam_struct.upload_dir }}
+successfulUploadDir: {{ vitam_struct.success_dir }}
+failedUploadDir: {{ vitam_struct.fail_dir }}
+fileActionAfterUpload: {{ vitam_struct.upload_final_action}}

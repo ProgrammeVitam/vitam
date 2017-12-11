@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.common.config;
 
+import fr.gouv.vitam.common.model.LocalFileAction;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
 /**
@@ -36,6 +37,10 @@ public class IngestExternalConfiguration extends DefaultVitamApplicationConfigur
     private String path;
     private String antiVirusScriptName;
     private long timeoutScanDelay;
+    private String baseUploadPath;
+    private LocalFileAction fileActionAfterUpload;
+    private String successfulUploadDir;
+    private String failedUploadDir;
 
     /**
      * IngestExternalConfiguration empty constructor for YAMLFactory
@@ -91,6 +96,50 @@ public class IngestExternalConfiguration extends DefaultVitamApplicationConfigur
      */
     public IngestExternalConfiguration setTimeoutScanDelay(long timeoutScanDelay) {
         this.timeoutScanDelay = timeoutScanDelay;
+        return this;
+    }
+
+    /**
+     * @return baseUploadPath
+     */
+    public String getBaseUploadPath() {
+        return baseUploadPath;
+    }
+
+    /**
+     *
+     * @param baseUploadPath set to configuration
+     * @return IngestExternalConfiguration
+     */
+    public IngestExternalConfiguration setBaseUploadPath(String baseUploadPath) {
+        this.baseUploadPath = baseUploadPath;
+        return this;
+    }
+
+    public LocalFileAction getFileActionAfterUpload() {
+        return fileActionAfterUpload;
+    }
+
+    public IngestExternalConfiguration setFileActionAfterUpload(String fileActionAfterUpload) {
+        this.fileActionAfterUpload = LocalFileAction.getLocalFileAction(fileActionAfterUpload);
+        return this;
+    }
+
+    public String getSuccessfulUploadDir() {
+        return successfulUploadDir;
+    }
+
+    public IngestExternalConfiguration setSuccessfulUploadDir(String successfulUploadDir) {
+        this.successfulUploadDir = successfulUploadDir;
+        return this;
+    }
+
+    public String getFailedUploadDir() {
+        return failedUploadDir;
+    }
+
+    public IngestExternalConfiguration setFailedUploadDir(String failedUploadDir) {
+        this.failedUploadDir = failedUploadDir;
         return this;
     }
 }

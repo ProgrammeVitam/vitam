@@ -39,6 +39,7 @@ import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.model.LocalFile;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.AfterClass;
@@ -184,6 +185,35 @@ public class IngestExternalResourceTest {
             .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
             .when().post(INGEST_URI)
             .then().statusCode(Status.ACCEPTED.getStatusCode());
+    }
+
+    @Test
+    public void givenALocalFilePathWhenUploadedThenReturnOK()
+            throws Exception {
+        String path = PropertiesUtils.getResourcePath("no-virus.txt").toString();
+        LocalFile localFile = new LocalFile(path);
+        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
+        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
+
+        given().contentType(ContentType.JSON).body(localFile)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
+                .when().post(INGEST_URI)
+                .then().statusCode(Status.ACCEPTED.getStatusCode());
+    }
+
+    @Test
+    public void givenANonExistingPathWhenUploadedThenReturnInternalServerError()
+            throws Exception {
+        LocalFile localFileWithNonExistingPath = new LocalFile("NonExistingPath");
+        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
+        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
+
+        given().contentType(ContentType.JSON).body(localFileWithNonExistingPath)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
+                .when().post(INGEST_URI)
+                .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     private FormatIdentifierSiegfried getMockedFormatIdentifierSiegfried()

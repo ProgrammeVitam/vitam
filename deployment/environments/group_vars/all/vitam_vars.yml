@@ -9,6 +9,7 @@ vitam_defaults:
         root_path: /vitam
         folder_permission: "0750"
         conf_permission: "0640"
+        folder_upload_permission: "0770"
     users:
         vitam: "vitam"
         vitamdb: "vitamdb"
@@ -75,6 +76,14 @@ vitam:
         https_enabled: true
         secret_platform: "false"
         antivirus: "clamav"
+        # Directory where files should be placed for local ingest
+        upload_dir: "/vitam/data/ingest-external/upload"
+        # Directory where successful ingested files will be moved to
+        success_dir: "/vitam/data/ingest-external/upload/success"
+        # Directory where failed ingested files will be moved to
+        fail_dir: "/vitam/data/ingest-external/upload/failure"
+        # Action done to file after local ingest (see below for further information)
+        upload_final_action: "MOVE"
     ingestinternal:
         vitam_component: ingest-internal
         host: "ingest-internal.service.{{consul_domain}}"
@@ -163,3 +172,9 @@ vitam:
         baseuri: "workspace"
         https_enabled: false
         secret_platform: "true"
+
+# ingestexternal: 
+# upload_final_action can be set to three different values (lower or upper case does not matter)
+#   MOVE : After upload, the local file will be moved to either success_dir or fail_dir depending on the status of the ingest towards ingest-internal
+#   DELETE : After upload, the local file will be deleted if the upload succeeded
+#   NONE : After upload, nothing will be done to the local file (default option set if the value entered for upload_final_action does not exist)

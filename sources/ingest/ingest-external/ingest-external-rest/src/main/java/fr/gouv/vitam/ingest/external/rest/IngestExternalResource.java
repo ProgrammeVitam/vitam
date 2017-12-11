@@ -27,9 +27,16 @@
 package fr.gouv.vitam.ingest.external.rest;
 
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Optional;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -57,6 +64,8 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.LocalFile;
+import fr.gouv.vitam.common.model.LocalFileAction;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -140,13 +149,70 @@ public class IngestExternalResource extends ApplicationStatusResource {
         Integer tenantId = ParameterHelper.getTenantParameter();
 
         VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> uploadAsync(uploadedInputStream, asyncResponse, tenantId, contextId, action, guid));
+            .execute(() -> uploadAsync(uploadedInputStream, asyncResponse, tenantId, contextId, action, guid, Optional.empty()));
+    }
+
+    /**
+     * upload a local file
+     *
+     * @param contextId     the context id of upload
+     * @param action        in workflow
+     * @param localFile     local file
+     * @param asyncResponse the asynchronized response
+     */
+
+    @Path("ingests")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Secured(permission = "ingests:local", description = "Envoyer un SIP en local à Vitam afin qu'il en réalise l'entrée")
+    public void uploadLocal(@HeaderParam(GlobalDataRest.X_CONTEXT_ID) String contextId,
+                            @HeaderParam(GlobalDataRest.X_ACTION) String action, LocalFile localFile,
+                            @Suspended final AsyncResponse asyncResponse) {
+        final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
+        Integer tenantId = ParameterHelper.getTenantParameter();
+
+        java.nio.file.Path path = Paths.get(ingestExternalConfiguration.getBaseUploadPath(), localFile.getPath());
+        boolean exists = Files.exists(path);
+
+        if(!exists) {
+            AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .header(GlobalDataRest.X_REQUEST_ID, guid.getId())
+                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
+                    .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.FATAL)
+                    .entity(getErrorStream(
+                        VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_LOCAL_UPLOAD_FILE_HANDLING_ERROR,
+                            "File path does not exist.")))
+                        .build());
+        }
+
+        VitamThreadPoolExecutor.getDefaultExecutor()
+            .execute(() -> {
+                try (InputStream inputStream = new BufferedInputStream(new FileInputStream(path.toString()))) {
+                    uploadAsync(inputStream, asyncResponse, tenantId, contextId, action, guid, Optional.of(localFile));
+
+                }  catch (IOException e) {
+                    LOGGER.error(e);
+                    AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                        Response.status(Status.INTERNAL_SERVER_ERROR)
+                            .header(GlobalDataRest.X_REQUEST_ID, guid.getId())
+                            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
+                            .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.FATAL)
+                            .entity(getErrorStream(
+                                VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_LOCAL_UPLOAD_FILE_HANDLING_ERROR,
+                                    e.getLocalizedMessage())))
+                            .build());
+                }
+            });
+
     }
 
     private void uploadAsync(InputStream uploadedInputStream, AsyncResponse asyncResponse,
-        Integer tenantId, String contextId, String action, GUID guid) {
+        Integer tenantId, String contextId, String action, GUID guid, Optional<LocalFile> localFile) {
 
         final IngestExternalImpl ingestExternal = new IngestExternalImpl(ingestExternalConfiguration);
+        final LocalFileAction afterUploadAction =
+                LocalFileAction.getLocalFileAction(ingestExternalConfiguration.getFileActionAfterUpload().name());
         try {
             ParametersChecker.checkParameter("HTTP Request must contains stream", uploadedInputStream);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
@@ -160,7 +226,44 @@ public class IngestExternalResource extends ApplicationStatusResource {
                 return;
             }
             ingestExternal.upload(preUploadResume, guid);
+
+            if (localFile.isPresent()) {
+                java.nio.file.Path path = Paths.get(ingestExternalConfiguration.getBaseUploadPath(), localFile.get().getPath());
+
+                switch (afterUploadAction) {
+                    case DELETE:
+                        Files.delete(path);
+                        break;
+                    case MOVE:
+                        if (ingestExternalConfiguration.getSuccessfulUploadDir() != null &&
+                                !ingestExternalConfiguration.getSuccessfulUploadDir().isEmpty()) {
+                            Files.move(path, Paths.get(ingestExternalConfiguration.getSuccessfulUploadDir(), localFile.get().getPath()), StandardCopyOption.REPLACE_EXISTING);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
         } catch (final Exception exc) {
+            try {
+                if (afterUploadAction.equals(LocalFileAction.MOVE)
+                        && ingestExternalConfiguration.getFailedUploadDir() != null
+                        && !ingestExternalConfiguration.getFailedUploadDir().isEmpty()) {
+                    java.nio.file.Path path = Paths.get(ingestExternalConfiguration.getBaseUploadPath(), localFile.get().getPath());
+                    Files.move(path, Paths.get(ingestExternalConfiguration.getFailedUploadDir(), localFile.get().getPath()), StandardCopyOption.REPLACE_EXISTING);
+                }
+            } catch (IOException e) {
+                LOGGER.error(e);
+                AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                    Response.status(Status.INTERNAL_SERVER_ERROR)
+                        .header(GlobalDataRest.X_REQUEST_ID, guid.getId())
+                        .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
+                        .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.FATAL)
+                        .entity(getErrorStream(
+                            VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_LOCAL_UPLOAD_FILE_HANDLING_ERROR,
+                                e.getLocalizedMessage())))
+                            .build());
+            }
             LOGGER.error(exc);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR)
