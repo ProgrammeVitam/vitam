@@ -94,8 +94,8 @@ public class MongoRule extends ExternalResource {
         return mongoClient.getDatabase(clusterName);
     }
 
-    public MongoCollection<Document> getMongoCollection(String certificateCollection) {
-        return mongoClient.getDatabase(clusterName).getCollection(certificateCollection);
+    public MongoCollection<Document> getMongoCollection(String collectionName) {
+        return mongoClient.getDatabase(clusterName).getCollection(collectionName);
     }
 
 }

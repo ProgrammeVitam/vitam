@@ -24,94 +24,59 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.metadata.core.database.collections;
+package fr.gouv.vitam.common.database.api;
 
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
+import java.util.List;
+import java.util.Optional;
 
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
+import fr.gouv.vitam.common.exception.DatabaseException;
+import org.bson.Document;
 
 /**
- * Metadata Collection
+ * This repository is a specification of vitam data management
  */
-public enum MetadataCollections {
+public interface VitamRepository {
     /**
-     * Unit Collection
-     */
-    C_UNIT(Unit.class),
-    /**
-     * ObjectGroup Collection
-     */
-    C_OBJECTGROUP(ObjectGroup.class);
-
-    private VitamCollection vitamCollection;
-
-    private MetadataCollections(final Class<?> clasz) {
-        vitamCollection = VitamCollectionHelper.getCollection(clasz, true, clasz.equals(Unit.class));
-    }
-
-    /**
-     * Initialize the collection
+     * Save vitam document
      *
-     * @param db database type
-     * @param recreate true is as recreate type
+     * @param document
+     * @throws DatabaseException
      */
-
-    protected void initialize(final MongoDatabase db, final boolean recreate) {
-        vitamCollection.initialize(db, recreate);
-    }
-
+    void save(Document document) throws DatabaseException;
 
     /**
-     * Initialize the collection
+     * Save a list of vitam documents
      *
-     * @param esClient ElasticsearchAccessMetadata
+     * @param documents
+     * @throws DatabaseException
      */
-
-    protected void initialize(final ElasticsearchAccessMetadata esClient) {
-        vitamCollection.initialize(esClient, true);
-    }
+    void save(List<Document> documents) throws DatabaseException;
 
     /**
+     * Remove document by id
      *
-     * @return the name of the collection
+     * @param id
+     * @param tenant
+     * @throws DatabaseException
      */
-    protected String getName() {
-        return vitamCollection.getName();
-    }
+    void remove(String id, Integer tenant) throws DatabaseException;
+
 
     /**
-     *
-     * @return the associated MongoCollection
+     * Remove by tenant
+     * @param tenant
+     * @return
+     * @throws DatabaseException
      */
-    @SuppressWarnings("rawtypes")
-    public MongoCollection getCollection() {
-        return vitamCollection.getCollection();
-    }
+    long purge(Integer tenant) throws DatabaseException;
+
 
     /**
-     *
-     * @return the associated class
+     * Get vitam document by id
+     * @param id
+     * @param tenant
+     * @return Optional
+     * @throws DatabaseException
      */
-    public Class<?> getClasz() {
-        return vitamCollection.getClasz();
-    }
-
-    /**
-     *
-     * @return the associated ES Client
-     */
-    public ElasticsearchAccessMetadata getEsClient() {
-        return (ElasticsearchAccessMetadata) vitamCollection.getEsClient();
-    }
-    
-    /**
-     * 
-     * @return True if score is to be used
-     */
-    public boolean useScore() {
-        return vitamCollection.isUseScore();
-    }
+    Optional<Document> getByID(String id, Integer tenant) throws DatabaseException;
 }
-

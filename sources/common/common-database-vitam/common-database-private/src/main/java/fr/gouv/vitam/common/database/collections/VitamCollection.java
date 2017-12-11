@@ -31,22 +31,19 @@ import static com.mongodb.client.model.Indexes.hashed;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bson.codecs.configuration.CodecRegistries;
-import org.bson.codecs.configuration.CodecRegistry;
-
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ReadConcern;
-import com.mongodb.ReadPreference;
 import com.mongodb.WriteConcern;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.translators.mongodb.VitamDocumentCodec;
+import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
 
 /**
  * Vitam Collection for mongodb
@@ -59,7 +56,7 @@ public class VitamCollection {
     private static final String TYPEUNIQUE = "typeunique";
     private final boolean isMultiTenant;
     private final boolean useScore;
-
+    private boolean createIndexByTenant = false;
     /**
      * Used by different parser places (isArray, score)
      */
@@ -70,8 +67,8 @@ public class VitamCollection {
             protected FILTERARGS initialValue() {
                 return FILTERARGS.OTHERS;
             }
-            
-    };
+
+        };
     /**
      * Used by different parser places (isArray, score)
      */
@@ -82,33 +79,31 @@ public class VitamCollection {
             protected Boolean initialValue() {
                 return false;
             }
-            
-    };
-    
+
+        };
+
     /**
-     * 
      * @return true if the real query contains match
      */
     public static Boolean containMatch() {
         return CONTAINS_FINALLY_MATCH.get();
     }
+
     /**
-     * 
      * @param match if the final query contains match
      */
     public static void setMatch(Boolean match) {
         CONTAINS_FINALLY_MATCH.set(match);
     }
-    
+
     /**
-     * 
      * @return the current collection name (UNIT or OBJECTGROUP)
      */
     public static FILTERARGS get() {
         return CURRENT_COLLECTION.get();
     }
+
     /**
-     * 
      * @param collection the collection to work on currently
      */
     public static void set(FILTERARGS collection) {
@@ -132,7 +127,7 @@ public class VitamCollection {
     /**
      * Initialize the collection
      *
-     * @param db mongodb database
+     * @param db       mongodb database
      * @param recreate boolean if recreate the database
      */
     public void initialize(final MongoDatabase db, final boolean recreate) {
@@ -148,11 +143,20 @@ public class VitamCollection {
      * @param esClient ElasticsearchAccess ES Client
      */
     public void initialize(final ElasticsearchAccess esClient) {
-        this.esClient = esClient;
+        this.initialize(esClient, false);
     }
 
     /**
+     * Initialize the ES Client
      *
+     * @param esClient ElasticsearchAccess ES Client
+     */
+    public void initialize(final ElasticsearchAccess esClient, boolean createIndexByTenant) {
+        this.esClient = esClient;
+        this.createIndexByTenant = createIndexByTenant;
+    }
+
+    /**
      * @return the name of the collection
      */
     public String getName() {
@@ -160,7 +164,6 @@ public class VitamCollection {
     }
 
     /**
-     *
      * @return the associated MongoCollection
      */
     public MongoCollection<?> getCollection() {
@@ -168,7 +171,6 @@ public class VitamCollection {
     }
 
     /**
-     *
      * @return the associated class
      */
     public Class<?> getClasz() {
@@ -232,6 +234,7 @@ public class VitamCollection {
     public boolean isMultiTenant() {
         return isMultiTenant;
     }
+
     /**
      * @return the useScore
      */
@@ -239,4 +242,11 @@ public class VitamCollection {
         return useScore;
     }
 
+    public boolean isCreateIndexByTenant() {
+        return createIndexByTenant;
+    }
+
+    public void setCreateIndexByTenant(boolean createIndexByTenant) {
+        this.createIndexByTenant = createIndexByTenant;
+    }
 }
