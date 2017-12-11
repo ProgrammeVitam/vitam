@@ -2055,7 +2055,7 @@ public class AdminManagementExternalResourceImpl {
     @GET
     @Path("/rulesreport/{opId}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "rulesreport:id:read ",
+    @Secured(permission = "rulesreport:id:read",
         description = "Récupérer le rapport pour une opération d'import de règles de gestion")
     public Response downloadRulesReportAsStream(@PathParam("opId") String opId) {
         return downloadObjectAsync(opId, IngestCollection.RULES);
