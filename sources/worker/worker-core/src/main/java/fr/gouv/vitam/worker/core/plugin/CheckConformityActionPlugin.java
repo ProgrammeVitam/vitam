@@ -153,17 +153,17 @@ public class CheckConformityActionPlugin extends ActionHandler {
             LOGGER.debug(
                 "DEBUG: \n\t" + binaryObject.getAlgo().getName() + " " + binaryObjectMessageDigest + "\n\t" +
                     manifestDigestString + "\n\t" + vitamDigestString);
-            if (binaryObjectMessageDigest.isEmpty() || binaryObjectMessageDigest.equals(null)) {
-                itemStatus.setGlobalOutcomeDetailSubcode(EMPTY);
-                itemStatus.increment(StatusCode.KO);
-                return;
-            }
-            
+
             // create ItemStatus for subtask
             ItemStatus subTaskItemStatus = new ItemStatus(CALC_CHECK);
 
             // check digest
-            if (manifestDigestString.equals(binaryObjectMessageDigest)) {
+            if (binaryObjectMessageDigest.isEmpty() || binaryObjectMessageDigest.equals(null)) {
+                subTaskItemStatus.increment(StatusCode.KO);
+                subTaskItemStatus.setGlobalOutcomeDetailSubcode(EMPTY);
+                itemStatus.increment(StatusCode.KO);
+            }
+            else if (manifestDigestString.equals(binaryObjectMessageDigest)) {
                 subTaskItemStatus.increment(StatusCode.OK);
                 itemStatus.increment(StatusCode.OK);
                 if (!isVitamDigest) {
@@ -180,10 +180,11 @@ public class CheckConformityActionPlugin extends ActionHandler {
                     "\", \"SystemAlgorithm\": \"" + (String) handlerIO.getInput(ALGO_RANK) + "\"} ";
                 subTaskItemStatus.setEvDetailData(eventDetailData);
 
-            } else {
+            } 
+            else {
                 subTaskItemStatus.increment(StatusCode.KO);
+                subTaskItemStatus.setGlobalOutcomeDetailSubcode(INVALID);
                 itemStatus.increment(StatusCode.KO);
-                itemStatus.setGlobalOutcomeDetailSubcode(INVALID);
                 // Set eventDetailData in KO case
                 eventDetailData = "{\"MessageDigest\":\"" + binaryObject.getMessageDigest() + "\",\"Algorithm\": \"" +
                     binaryObject.getAlgo() +

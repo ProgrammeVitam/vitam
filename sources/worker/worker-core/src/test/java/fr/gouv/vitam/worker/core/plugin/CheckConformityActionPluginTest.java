@@ -56,6 +56,7 @@ import java.io.InputStream;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -218,8 +219,12 @@ public class CheckConformityActionPluginTest {
         handlerIO.addInIOParameters(in);
         handlerIO.addOutIOParameters(out);
         final ItemStatus response = plugin.execute(params, handlerIO);
-        assertEquals("EMPTY", response.getGlobalOutcomeDetailSubcode());
         assertEquals(StatusCode.KO, response.getGlobalStatus());
+        LinkedHashMap<String, ItemStatus> subTasks = response.getItemsStatus().get(CALC_CHECK).getSubTaskStatus();
+        assertEquals(1, subTasks.size());
+        ItemStatus subtask = subTasks.entrySet().iterator().next().getValue();
+        assertEquals("EMPTY", subtask.getGlobalOutcomeDetailSubcode());
+        
         handlerIO.close();
     }
     
@@ -242,8 +247,12 @@ public class CheckConformityActionPluginTest {
         handlerIO.addInIOParameters(in);
         handlerIO.addOutIOParameters(out);
         final ItemStatus response = plugin.execute(params, handlerIO);
-        assertEquals("INVALID", response.getGlobalOutcomeDetailSubcode());
         assertEquals(StatusCode.KO, response.getGlobalStatus());
+        LinkedHashMap<String, ItemStatus> subTasks = response.getItemsStatus().get(CALC_CHECK).getSubTaskStatus();
+        assertEquals(1, subTasks.size());
+        ItemStatus subtask = subTasks.entrySet().iterator().next().getValue();
+        assertEquals("INVALID", subtask.getGlobalOutcomeDetailSubcode());
+        
         handlerIO.close();
     }
 

@@ -412,6 +412,15 @@ public class WorkerImpl implements Worker {
                     subLogbookLfcParam.putParameterValue(LogbookParameterName.eventDetailData,
                         subItemStatus.getEvDetailData());
                 }
+                // set detailed message
+                if (subItemStatus.getGlobalOutcomeDetailSubcode() != null) {
+                    subLogbookLfcParam.putParameterValue(LogbookParameterName.outcomeDetail,
+                        VitamLogbookMessages.getOutcomeDetailLfc(handlerName, entry.getKey(), 
+                            subItemStatus.getGlobalOutcomeDetailSubcode(), subItemStatus.getGlobalStatus()));
+                    subLogbookLfcParam.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                        VitamLogbookMessages.getCodeLfc(handlerName, entry.getKey(),
+                            subItemStatus.getGlobalOutcomeDetailSubcode(), subItemStatus.getGlobalStatus()));
+                }
                 // add to list
                 logbookParamList.add(subLogbookLfcParam);
             }
