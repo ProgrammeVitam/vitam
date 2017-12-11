@@ -129,6 +129,20 @@ export class LogbookOperationComponent extends PageComponent {
     return item.events[lastItem] ? item.events[lastItem].outcome.toUpperCase() : ''
   }
 
+  static getOperationStatus(item): string {
+    let eventsLength = item.events.length;
+
+    if (eventsLength > 0) {
+      if (item.evType == item.events[eventsLength - 1].evType) {
+        return item.events[eventsLength - 1].outcome;
+      } else {
+        return 'En cours';
+      }
+    } else {
+      return 'KO';
+    }
+  }
+
   public preSearchFunction(request): Preresult {
     let preResult = new Preresult();
     if (!request.evId) {

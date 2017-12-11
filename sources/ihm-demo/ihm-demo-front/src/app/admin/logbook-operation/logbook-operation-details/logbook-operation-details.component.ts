@@ -38,8 +38,8 @@ export class LogbookOperationDetailsComponent extends PageComponent {
     ColumnDefinition.makeSpecialValueColumn('Date de fin',
         (item) => item.events.length > 0 ? item.events[item.events.length - 1].evDateTime : item.evDateTime,
       DateService.handleDateWithTime, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
-    ColumnDefinition.makeSpecialValueColumn('Statut',
-      (item) => item.events.length > 0 ? item.events[item.events.length - 1].outcome : 'KO',
+      // check ev type item.evType == item.lastEvent.evType then return last event oucome
+    ColumnDefinition.makeSpecialValueColumn('Statut', LogbookOperationComponent.getOperationStatus,
       undefined, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('evDetData', 'Informations complémentaires sur l\'opération', undefined,
       () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false)

@@ -36,7 +36,7 @@ export class LogbookDetailsComponent extends PageComponent {
       DateService.handleDateWithTime, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeSpecialValueColumn('Date de fin', (item) => item.events[item.events.length - 1].evDateTime,
       DateService.handleDateWithTime, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
-    ColumnDefinition.makeSpecialValueColumn('Statut', (item) => item.events[item.events.length - 1].outcome,
+    ColumnDefinition.makeSpecialValueColumn('Statut', LogbookOperationComponent.getOperationStatus,
       undefined, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeSpecialValueColumn('Message', (item) => item.events[item.events.length - 1].outMessg,
       undefined, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
