@@ -7,11 +7,11 @@ public class ObjectGroupPerOriginatingAgency {
 
     private String originatingAgency;
 
-    private int numberOfObject;
+    private long numberOfObject;
 
-    private int numberOfGOT;
+    private long numberOfGOT;
 
-    private int size;
+    private long size;
 
     /**
      * Constructor
@@ -22,13 +22,13 @@ public class ObjectGroupPerOriginatingAgency {
 
     /**
      * Constructor
-     * 
+     *
      * @param originatingAgency the originating agency
      * @param numberOfObject the number of object
      * @param numberOfGOT the number of GoT
      * @param size the size
      */
-    public ObjectGroupPerOriginatingAgency(String originatingAgency, int numberOfObject, int numberOfGOT, int size) {
+    public ObjectGroupPerOriginatingAgency(String originatingAgency, long numberOfObject, long numberOfGOT, long size) {
         this.originatingAgency = originatingAgency;
         this.numberOfObject = numberOfObject;
         this.numberOfGOT = numberOfGOT;
@@ -37,7 +37,7 @@ public class ObjectGroupPerOriginatingAgency {
 
     /**
      * getOriginatingAgency
-     * 
+     *
      * @return originatingAgency
      */
     public String getOriginatingAgency() {
@@ -46,7 +46,7 @@ public class ObjectGroupPerOriginatingAgency {
 
     /**
      * setOriginatingAgency
-     * 
+     *
      * @param originatingAgency
      */
     public void setOriginatingAgency(String originatingAgency) {
@@ -55,55 +55,55 @@ public class ObjectGroupPerOriginatingAgency {
 
     /**
      * getNumberOfObject
-     * 
+     *
      * @return numberOfObject
      */
-    public int getNumberOfObject() {
+    public long getNumberOfObject() {
         return numberOfObject;
     }
 
     /**
      * setNumberOfObject
-     * 
+     *
      * @param numberOfObject
      */
-    public void setNumberOfObject(int numberOfObject) {
+    public void setNumberOfObject(long numberOfObject) {
         this.numberOfObject = numberOfObject;
     }
 
     /**
      * getNumberOfGOT
-     * 
+     *
      * @return numberOfGOT
      */
-    public int getNumberOfGOT() {
+    public long getNumberOfGOT() {
         return numberOfGOT;
     }
 
     /**
      * setNumberOfGOT
-     * 
+     *
      * @param numberOfGOT
      */
-    public void setNumberOfGOT(int numberOfGOT) {
+    public void setNumberOfGOT(long numberOfGOT) {
         this.numberOfGOT = numberOfGOT;
     }
 
     /**
      * getSize
-     * 
+     *
      * @return size
      */
-    public int getSize() {
+    public long getSize() {
         return size;
     }
 
     /**
      * setSize
-     * 
+     *
      * @param size
      */
-    public void setSize(int size) {
+    public void setSize(long size) {
         this.size = size;
     }
 
