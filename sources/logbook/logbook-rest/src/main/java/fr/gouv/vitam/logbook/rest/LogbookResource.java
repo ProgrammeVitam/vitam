@@ -95,6 +95,7 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.lifecycles.api.LogbookLifeCycles;
 import fr.gouv.vitam.logbook.lifecycles.core.LogbookLifeCyclesImpl;
 import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
+import fr.gouv.vitam.logbook.operations.core.AlertLogbookOperationsDecorator;
 import fr.gouv.vitam.logbook.operations.core.LogbookOperationsImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -108,6 +109,7 @@ public class LogbookResource extends ApplicationStatusResource {
     private static final String LOGBOOK = "logbook";
     private static final int MAX_NB_PART_ITERATOR = 100;
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResource.class);
+    
     /**
      * alias host
      */
@@ -140,9 +142,8 @@ public class LogbookResource extends ApplicationStatusResource {
         }
         logbookConfiguration.setTenants(configuration.getTenants());
         mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
-
-
-        logbookOperation = new LogbookOperationsImpl(mongoDbAccess);
+        
+        logbookOperation = new AlertLogbookOperationsDecorator(new LogbookOperationsImpl(mongoDbAccess),configuration.getAlertEvents());
 
         TimeStampSignature timeStampSignature;
         try {
