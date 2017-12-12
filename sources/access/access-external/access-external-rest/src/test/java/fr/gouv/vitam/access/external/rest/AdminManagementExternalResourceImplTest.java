@@ -908,7 +908,44 @@ public class AdminManagementExternalResourceImplTest {
             .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json");
 
     }
-
+    
+    @Test
+    public void testImportCSVDocumentWithHTMLContent() throws Exception {
+        stream = PropertiesUtils.getResourceAsStream("CSV_HTML.csv");
+        given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, "CSV_HTML.csv")
+            .when().post(AGENCIES_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+        
+        stream = PropertiesUtils.getResourceAsStream("CSV_HTML.csv");
+        given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, "CSV_HTML.csv")
+            .when().post(RULES_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+    }
+    
+    @Test
+    public void testImportJSONDocumentWithHTMLContent() throws Exception {
+        File file = PropertiesUtils.getResourceFile("JSON_HTML.json");
+        JsonNode json = JsonHandler.getFromFile(file);
+        
+        given().contentType(ContentType.JSON).body(json)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(AccessExtAPI.CONTEXTS_API)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+        
+        given().contentType(ContentType.JSON).body(json)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(AccessExtAPI.INGEST_CONTRACT_API)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+        
+        given().contentType(ContentType.JSON).body(json)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().post(AccessExtAPI.ACCESS_CONTRACT_API)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
 
     @Test
     public void testimportValidIngestContractsFileReturnCreated() throws Exception {

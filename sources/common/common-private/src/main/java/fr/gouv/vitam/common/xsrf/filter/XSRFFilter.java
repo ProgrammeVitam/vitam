@@ -36,7 +36,6 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response.Status;
@@ -52,7 +51,6 @@ import fr.gouv.vitam.common.stream.StreamUtils;
  */
 public class XSRFFilter implements Filter { 
     private static Map<String, String> tokenMap = new HashMap<String, String>();
-    private static final String JSESSIONID = "JSESSIONID";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(XSRFFilter.class);
 
@@ -67,6 +65,7 @@ public class XSRFFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         String requestURI = req.getRequestURI();
         if (requestURI.contains(VitamConfiguration.LOGIN_URL) ||
+            requestURI.contains(VitamConfiguration.LOGOUT_URL) ||
             requestURI.contains(VitamConfiguration.TENANTS_URL) ||
             requestURI.contains(VitamConfiguration.MESSAGES_LOGBOOK_URL) ||
             requestURI.contains(VitamConfiguration.OBJECT_DOWNLOAD_URL) ||
