@@ -76,7 +76,7 @@ public class RuleCategoryModel {
         }
         finalAction = ruleCategoryModel.getFinalAction();
     }
-    
+
     @JsonIgnore
     public boolean isPreventInheritance() {
         return inheritance != null && inheritance.isPreventInheritance() != null &&

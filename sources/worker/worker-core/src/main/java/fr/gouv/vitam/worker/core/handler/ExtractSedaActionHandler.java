@@ -33,6 +33,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -142,6 +143,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.DataObjectDetail;
 import fr.gouv.vitam.worker.common.utils.DataObjectInfo;
+import fr.gouv.vitam.worker.common.utils.RuleTypeName;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
 import fr.gouv.vitam.worker.core.extractseda.ArchiveUnitListener;
@@ -182,6 +184,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String TRANSFER_AGENCY = "TransferringAgency";
     private static final String ARCHIVAL_AGENCY = "ArchivalAgency";
     public static final int BATCH_SIZE = 50;
+    public static final String RULES = "Rules";
     private static String ORIGIN_ANGENCY_NAME = "originatingAgency";
     private static final String ORIGIN_ANGENCY_SUBMISSION = "submissionAgency";
     private static final String ARCHIVAl_AGREEMENT = "ArchivalAgreement";
@@ -262,7 +265,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     static {
         try {
-            jaxbContext = JAXBContext.newInstance("fr.gouv.culture.archivesdefrance.seda.v2:fr.gouv.vitam.common.model.unit");
+            jaxbContext =
+                JAXBContext.newInstance("fr.gouv.culture.archivesdefrance.seda.v2:fr.gouv.vitam.common.model.unit");
         } catch (JAXBException e) {
             LOGGER.error("unable to create jaxb context", e);
         }
@@ -1159,8 +1163,17 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 }
             }
         }
-
         ObjectNode archiveUnitMgtNode = (ObjectNode) JsonHandler.toJsonNode(archiveUnitManagementModel);
+        if (archiveUnitMgtNode != null) {
+            for (RuleTypeName ruleType : RuleTypeName.values()) {
+                String name = ruleType.getType();
+                if (archiveUnitMgtNode.get(name) != null && archiveUnitMgtNode.get(name).get(RULES) != null &&
+                    archiveUnitMgtNode.get(name).get(RULES).size() == 0) {
+                    ObjectNode ruleNode = (ObjectNode) archiveUnitMgtNode.get(name);
+                    ruleNode.remove(RULES);
+                }
+            }
+        }
         archiveUnitMgtNode.set(SedaConstants.TAG_ORIGINATINGAGENCY, new TextNode(originatingAgency));
         archiveUnitNode.set(SedaConstants.TAG_MANAGEMENT, archiveUnitMgtNode);
     }
