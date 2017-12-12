@@ -39,22 +39,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import java.io.InputStream;
-
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -232,8 +216,7 @@ public class AgenciesResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response checkAgenciesFile(InputStream agencyStream)
-        throws IOException, ReferentialException, InvalidParseOperationException, InvalidCreateOperationException {
+    public Response checkAgenciesFile(InputStream agencyStream) {
         ParametersChecker.checkParameter("agenciessStream is a mandatory parameter", agencyStream);
         return downloadErrorReport(agencyStream);
     }

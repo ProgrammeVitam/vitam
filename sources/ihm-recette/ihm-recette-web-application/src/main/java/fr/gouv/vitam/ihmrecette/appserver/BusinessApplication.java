@@ -32,27 +32,43 @@ import static java.lang.String.format;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 
-import org.apache.shiro.authz.annotation.RequiresPermissions;
-
 import com.google.common.base.Throwables;
-
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
+import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
-import fr.gouv.vitam.ihmdemo.common.utils.PermissionReader;
 import fr.gouv.vitam.ihmrecette.appserver.applicativetest.ApplicativeTestResource;
 import fr.gouv.vitam.ihmrecette.appserver.applicativetest.ApplicativeTestService;
 import fr.gouv.vitam.ihmrecette.appserver.performance.PerformanceResource;
 import fr.gouv.vitam.ihmrecette.appserver.performance.PerformanceService;
+import fr.gouv.vitam.ihmrecette.appserver.populate.MetadataRepository;
+import fr.gouv.vitam.ihmrecette.appserver.populate.PopulateResource;
+import fr.gouv.vitam.ihmrecette.appserver.populate.PopulateService;
+import fr.gouv.vitam.ihmrecette.appserver.populate.DescriptiveMetadataGenerator;
+import fr.gouv.vitam.ihmrecette.appserver.populate.UnitGraph;
+import org.bson.Document;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
 public class BusinessApplication extends Application {
 
@@ -61,8 +77,8 @@ public class BusinessApplication extends Application {
     private Set<Object> singletons;
 
     /**
-     * BusinessApplication Constructor 
-     * 
+     * BusinessApplication Constructor
+     *
      * @param servletConfig
      */
     public BusinessApplication(@Context ServletConfig servletConfig) {
@@ -71,16 +87,17 @@ public class BusinessApplication extends Application {
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
             final WebApplicationConfig configuration =
                 PropertiesUtils.readYaml(yamlIS, WebApplicationConfig.class);
-            
+
             commonBusinessApplication = new CommonBusinessApplication();
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
-            
+
             final WebApplicationResourceDelete deleteResource = new WebApplicationResourceDelete(configuration);
-            final WebApplicationResource resource = new WebApplicationResource(configuration.getTenants(), configuration.getSecureMode());
+            final WebApplicationResource resource =
+                new WebApplicationResource(configuration.getTenants(), configuration.getSecureMode());
             singletons.add(deleteResource);
             singletons.add(resource);
-            
+
             Path sipDirectory = Paths.get(configuration.getSipDirectory());
             Path reportDirectory = Paths.get(configuration.getPerformanceReportDirectory());
 
@@ -98,20 +115,53 @@ public class BusinessApplication extends Application {
 
             PerformanceService performanceService = new PerformanceService(sipDirectory, reportDirectory);
             singletons.add(new PerformanceResource(performanceService));
-            
+
             String testSystemSipDirectory = configuration.getTestSystemSipDirectory();
             String testSystemReportDirectory = configuration.getTestSystemReportDirectory();
             ApplicativeTestService applicativeTestService =
                 new ApplicativeTestService(Paths.get(testSystemReportDirectory));
 
-            singletons.add(new ApplicativeTestResource(applicativeTestService,
-                testSystemSipDirectory));
-            
-        } catch (IOException e) {
+            singletons.add(new ApplicativeTestResource(applicativeTestService, testSystemSipDirectory));
+            MongoClientOptions mongoClientOptions = VitamCollection.getMongoClientOptions();
+
+            MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration, mongoClientOptions);
+
+
+            DescriptiveMetadataGenerator descriptiveMetadataGenerator = new DescriptiveMetadataGenerator();
+
+            List<ElasticsearchNode> elasticsearchNodes = configuration.getElasticsearchNodes();
+            Settings settings = ElasticsearchAccess.getSettings(configuration.getClusterName());
+
+            TransportClient client = getClient(settings, elasticsearchNodes);
+
+            MongoCollection<Document> collection =
+                mongoClient.getDatabase(configuration.getMetadataDbName()).getCollection("Unit");
+
+            MetadataRepository metadataRepository = new MetadataRepository(collection, client);
+            UnitGraph unitGraph = new UnitGraph(metadataRepository);
+            PopulateService populateService = new PopulateService(metadataRepository, descriptiveMetadataGenerator, unitGraph);
+            PopulateResource populateResource = new PopulateResource(populateService);
+
+            singletons.add(populateResource);
+
+        } catch (IOException | VitamException e) {
             throw new RuntimeException(e);
         }
-
     }
+
+    private TransportClient getClient(Settings settings, List<ElasticsearchNode> nodes) throws VitamException {
+        try {
+            final TransportClient clientNew = new PreBuiltTransportClient(settings);
+            for (final ElasticsearchNode node : nodes) {
+                clientNew.addTransportAddress(
+                    new InetSocketTransportAddress(InetAddress.getByName(node.getHostName()), node.getTcpPort()));
+            }
+            return clientNew;
+        } catch (final UnknownHostException e) {
+            throw new VitamException(e);
+        }
+    }
+
 
     @Override
     public Set<Class<?>> getClasses() {
@@ -122,4 +172,5 @@ public class BusinessApplication extends Application {
     public Set<Object> getSingletons() {
         return singletons;
     }
+
 }

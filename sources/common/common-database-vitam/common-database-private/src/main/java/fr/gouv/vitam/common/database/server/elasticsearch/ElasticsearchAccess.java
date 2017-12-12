@@ -80,7 +80,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
         this.clusterName = clusterName;
         this.nodes = nodes;
 
-        final Settings settings = getSettings();
+        final Settings settings = getSettings(clusterName);
 
         client = getClient(settings);
         default_builder = settings();
@@ -96,7 +96,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
      *
      * @return Settings for Elasticsearch client
      */
-    private Settings getSettings() {        
+    public static Settings getSettings(String clusterName) {
         return Settings.builder().put("cluster.name", clusterName)                
                 .put("client.transport.sniff", true)
                 .put("client.transport.ping_timeout", "2s")
@@ -161,7 +161,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
     @Override
     public boolean checkConnection() {
-        try (TransportClient clientCheck = getClient(getSettings())) {
+        try (TransportClient clientCheck = getClient(getSettings(clusterName))) {
             return !clientCheck.connectedNodes().isEmpty();
         } catch (final VitamException e) {
             LOGGER.warn(e);

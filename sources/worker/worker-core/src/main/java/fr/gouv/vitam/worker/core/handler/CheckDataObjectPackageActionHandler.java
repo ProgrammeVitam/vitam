@@ -100,8 +100,7 @@ public class CheckDataObjectPackageActionHandler extends ActionHandler {
 
             } else {
                 try (CheckVersionActionHandler checkVersionActionHandler = new CheckVersionActionHandler();
-                    CheckObjectsNumberActionHandler checkObjectsNumberActionHandler =
-                        new CheckObjectsNumberActionHandler();
+                    CheckObjectsNumberActionHandler checkObjectsNumberActionHandler = new CheckObjectsNumberActionHandler();
                     ExtractSedaActionHandler extractSedaActionHandler = new ExtractSedaActionHandler();
                     CheckObjectUnitConsistencyActionHandler checkObjectUnitConsistencyActionHandler =
                         new CheckObjectUnitConsistencyActionHandler();) {
