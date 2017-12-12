@@ -57,7 +57,6 @@ public abstract class DefaultVitamApplicationConfiguration implements VitamAppli
         return tenants;
     }
 
-    @Override
     public VitamApplicationConfiguration setTenants(List<Integer> tenants) {
         ParametersChecker.checkParameter("Tenant id" + IS_A_MANDATORY_PARAMETER, tenants);
         this.tenants = tenants;

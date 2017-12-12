@@ -24,9 +24,42 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.functional.administration.common.api;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.client.VitamRequestIterator;
+import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+
+import javax.ws.rs.core.Response;
+import java.util.Optional;
 
 /**
- * Shiro x509 VitamAuthentication Modules
- *
+ * Service used to recover a Backup copy of the given Vitam collection.<br/>
  */
-package fr.gouv.vitam.common.auth.core.authc;
+public interface RestoreBackupService {
+
+    /**
+     * get the latest file name according to the name suffix.<br/>
+     *
+     * @param strategy
+     * @param collection
+     * @param type     the storage collection type.
+     * @return the last version.
+     */
+    public Optional<String> getLatestSavedFileName(final String strategy, final DataCategory type, final FunctionalAdminCollections collection);
+
+    /**
+     * Read the latest file using the name requested by getLatestSavedFileName.<br/>
+     *
+     * @param strategy
+     * @param collection
+     * @param tenant
+     * @return the backup copy.
+     */
+    public Optional<CollectionBackupModel> readLatestSavedFile(final String strategy, final FunctionalAdminCollections collection,
+                                                               final Integer tenant);
+
+}

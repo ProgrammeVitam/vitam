@@ -10,6 +10,11 @@ dbAuthentication: {{ mongodb.mongo_authentication }}
 dbUserName: {{mongoFunctionalAdminUser}}
 dbPassword: {{mongoFunctionalAdminPassword}}
 
+#Basic Authentication
+adminBasicAuth:
+  userName: {{vitam.functional_administration.basic_auth_user}}
+  password: {{vitam.functional_administration.basic_auth_password}}
+
 jettyConfig: jetty-config.xml
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
 workspaceUrl: {{vitam.workspace | client_url}}

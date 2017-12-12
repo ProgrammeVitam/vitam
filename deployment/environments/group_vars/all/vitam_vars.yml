@@ -66,6 +66,8 @@ vitam:
         https_enabled: false
         secret_platform: "true"
         cluster_name: "{{ elasticsearch.data.cluster_name }}"
+        basic_auth_user: adminUser
+        basic_auth_password: adminPassword
     ingestexternal:
         vitam_component: ingest-external
         host: "ingest-external.service.{{consul_domain}}"

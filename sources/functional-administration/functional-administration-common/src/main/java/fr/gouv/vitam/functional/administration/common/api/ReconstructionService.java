@@ -24,9 +24,30 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.functional.administration.common.api;
+
+import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 
 /**
- * Shiro x509 VitamAuthentication Modules
- *
+ * Reconstrution of Vitam Collections interface.<br>
  */
-package fr.gouv.vitam.common.auth.core.authc;
+public interface ReconstructionService {
+
+    /**
+     * Reconstrut Vitam collection by tenant.
+     *
+     * @param collection the collection to reconstruct.
+     * @param tenant the given tenant.
+     * @throws DatabaseException
+     */
+    public void reconstruct(FunctionalAdminCollections collection, Integer ... tenant) throws DatabaseException;
+
+    /**
+     * Reconstrut Vitam collection.
+     *
+     * @param collection the collection to reconstruct.
+     */
+    public void reconstruct(FunctionalAdminCollections collection) throws DatabaseException;
+
+}

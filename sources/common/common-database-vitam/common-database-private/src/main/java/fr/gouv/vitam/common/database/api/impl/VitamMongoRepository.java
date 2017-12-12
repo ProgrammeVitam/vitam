@@ -106,7 +106,7 @@ public class VitamMongoRepository implements VitamRepository {
             return response.getDeletedCount();
         } catch (Exception e) {
             LOGGER.error(String.format("Error while delete documents for tenant %s", tenant), e);
-            throw new DatabaseException(e);
+            throw new DatabaseException(String.format("Error while delete documents for tenant %s", tenant, e));
         }
 
     }
@@ -123,7 +123,7 @@ public class VitamMongoRepository implements VitamRepository {
             }
         } catch (Exception e) {
             LOGGER.error("Error while gessting document by id :", e);
-            throw new DatabaseException(e);
+            throw new DatabaseException(String.format("DatabaseException while calling fetch by id : %s",e));
         }
     }
 }

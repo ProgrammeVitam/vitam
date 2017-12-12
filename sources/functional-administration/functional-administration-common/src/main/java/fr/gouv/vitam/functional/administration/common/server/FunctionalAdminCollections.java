@@ -67,9 +67,6 @@ public enum FunctionalAdminCollections {
     /**
      * Accession Register detail Collection
      */
-    /**
-     *
-     */
     ACCESSION_REGISTER_DETAIL(AccessionRegisterDetail.class, true, false),
 
     /**
@@ -163,13 +160,13 @@ public enum FunctionalAdminCollections {
     }
 
     /**
-     * 
+     *
      * @return the type
      */
     public String getType() {
         return "typeunique";
     }
-    
+
     /**
      *
      * @return the associated MongoCollection
@@ -205,7 +202,7 @@ public enum FunctionalAdminCollections {
     }
 
     /**
-     * 
+     *
      * @return the associated VarNameAdapter
      */
     public VarNameAdapter getVarNameAdapater() {
@@ -214,15 +211,15 @@ public enum FunctionalAdminCollections {
 
     /**
      * get ElasticSearch Client
-     * 
+     *
      * @return client Es
      */
     public ElasticsearchAccessFunctionalAdmin getEsClient() {
         return (ElasticsearchAccessFunctionalAdmin) vitamCollection.getEsClient();
-    }
-    
+}
+
     /**
-     * 
+     *
      * @param collection
      * @return the corresponding FunctionalAdminCollections
      */

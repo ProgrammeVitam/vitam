@@ -24,9 +24,38 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.common.model;
+
+import com.google.common.annotations.VisibleForTesting;
 
 /**
- * Shiro x509 VitamAuthentication Modules
+ * Description of Vitam Basic authentication. <br/>
  *
  */
-package fr.gouv.vitam.common.auth.core.authc;
+public class BasicAuthModel {
+
+    private String userName = "";
+    private String password = "";
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    @VisibleForTesting
+    public BasicAuthModel(String userName, String password) {
+        this.userName = userName;
+        this.password = password;
+    }
+}

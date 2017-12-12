@@ -31,6 +31,7 @@ import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import java.util.List;
 import java.util.Optional;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.api.VitamRepository;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
@@ -69,6 +70,10 @@ public class VitamElasticsearchRepository implements VitamRepository {
     private String indexName;
     private boolean indexByTenant;
 
+
+    public VitamElasticsearchRepository() {
+    }
+
     /**
      * @param client
      * @param indexName
@@ -79,6 +84,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
         this.indexName = indexName;
         this.indexByTenant = indexByTenant;
     }
+
 
     @Override
     public void save(Document document) throws DatabaseException {
@@ -198,7 +204,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
 
         if (bulkResponse.hasFailures()) {
             LOGGER.error("Bulk Request failure with error: " + bulkResponse.buildFailureMessage());
-            throw new DatabaseException(bulkResponse.buildFailureMessage());
+            throw new DatabaseException(String.format("DatabaseException when calling purge by bulk Request %s", bulkResponse.buildFailureMessage()));
         }
 
         return bulkResponse.getItems().length;

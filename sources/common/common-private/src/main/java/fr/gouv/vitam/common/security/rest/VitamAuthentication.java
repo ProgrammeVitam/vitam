@@ -24,9 +24,28 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.common.security.rest;
+
+import fr.gouv.vitam.common.model.AuthenticationLevel;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Shiro x509 VitamAuthentication Modules
+ * Annotation for REST endpoints to be based on Basic authentication fitering. <br/>
  *
  */
-package fr.gouv.vitam.common.auth.core.authc;
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface VitamAuthentication {
+
+    /**
+     * description of the VitamAuthentication annotation, initialized by default to Basic authentication. <br/>
+     * @return the description
+     */
+    AuthenticationLevel authentLevel() default AuthenticationLevel.BASIC_AUTHENT;
+}

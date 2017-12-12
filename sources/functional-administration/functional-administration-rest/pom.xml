@@ -24,6 +24,11 @@
         </dependency>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
+            <artifactId>common-security</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
             <artifactId>functional-administration-format-core</artifactId>
             <version>${project.version}</version>
         </dependency>
