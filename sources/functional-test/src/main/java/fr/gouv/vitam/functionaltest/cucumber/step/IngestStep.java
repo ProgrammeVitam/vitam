@@ -36,7 +36,6 @@ import static org.assertj.core.api.Assertions.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -45,10 +44,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.core.Response;
-import javax.xml.stream.XMLStreamException;
-
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.assertj.core.api.Fail;
@@ -67,7 +62,6 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.external.client.IngestCollection;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ProcessAction;
@@ -76,7 +70,6 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
-import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.ingest.external.api.exception.IngestExternalException;
 import fr.gouv.vitam.tools.SipTool;
 
@@ -346,48 +339,10 @@ public class IngestStep {
         }
     }
 
-
     @When("je construit le sip de rattachement avec le template")
     public void build_the_attachenment() throws IOException {
         this.sip = SipTool.copyAndModifyManifestInZip(sip, SipTool.REPLACEMENT_STRING, world.getUnitId());
         attachMode = true;
-    }
-
-    /**
-     * check if the atr is available
-     *
-     * @throws VitamClientException
-     */
-    @Then("je peux télécharger son ATR")
-    public void download_atr()
-        throws VitamClientException {
-        Response response = world.getIngestClient()
-            .downloadObjectAsync(
-                new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                world.getOperationId(), IngestCollection.ARCHIVETRANSFERREPLY);
-        InputStream inputStream = response.readEntity(InputStream.class);
-        assertThat(inputStream).isNotNull();
-        StreamUtils.closeSilently(inputStream);
-        world.getIngestClient().consumeAnyEntityAndClose(response);
-    }
-
-    /**
-     * check if the atr contains the outcome detail
-     *
-     * @param message
-     * @throws VitamClientException
-     * @throws XMLStreamException
-     * @throws IOException
-     */
-    @Then("^fichier ATR contient (.*)$")
-    public void check_atr(String message) throws VitamClientException, XMLStreamException, IOException {
-        Response response = world.getIngestClient()
-            .downloadObjectAsync(
-                new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                world.getOperationId(), IngestCollection.ARCHIVETRANSFERREPLY);
-        InputStream inputStream = response.readEntity(InputStream.class);
-        String result = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-        assertThat(result).contains(message);
     }
 
     /**
