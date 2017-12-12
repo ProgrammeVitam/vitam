@@ -98,6 +98,29 @@
     },
     {
       "workerGroupId": "DefaultWorker",
+      "stepName": "STP_UNIT_CHECK_AND_PROCESS",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST",
+        "element": "Units"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "CHECK_UNIT_SCHEMA",
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "unit",
+                "uri": "MEMORY:unitId"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
       "stepName": "STP_UNIT_METADATA",
       "behavior": "BLOCKING",
       "distribution": {
