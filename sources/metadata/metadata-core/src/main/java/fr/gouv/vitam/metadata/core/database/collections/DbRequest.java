@@ -36,7 +36,7 @@ import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Updates.combine;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ID;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -97,6 +97,7 @@ import fr.gouv.vitam.common.database.translators.mongodb.QueryToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.RequestToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.SelectToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.UpdateToMongodb;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.json.SchemaValidationStatus;
@@ -154,11 +155,12 @@ public class DbRequest {
      * @throws InvalidParseOperationException when json data exception occurred
      * @throws MetaDataAlreadyExistException when insert metadata exception
      * @throws MetaDataNotFoundException when metadata not found exception
+     * @throws BadRequestException
      */
     public Result execRequest(final RequestParserMultiple requestParser,
         final Result<MetadataDocument<?>> defaultStartSet)
         throws InstantiationException, IllegalAccessException, MetaDataExecutionException,
-        InvalidParseOperationException, MetaDataAlreadyExistException, MetaDataNotFoundException {
+        InvalidParseOperationException, BadRequestException, MetaDataAlreadyExistException, MetaDataNotFoundException {
         final RequestMultiple request = requestParser.getRequest();
         final RequestToAbstract requestToMongodb = RequestToMongodb.getRequestToMongoDb(requestParser);
         final int maxQuery = request.getNbQueries();
@@ -188,7 +190,7 @@ public class DbRequest {
                 result = new ResultError(requestParser.model())
                     .addError(newResult != null ? newResult.getCurrentIds().toString() : NO_RESULT_TRUE)
                     .addError(NO_RESULT_AT_RANK2 + rank).addError(FROM2 + requestParser)
-                    .addError(WHERE_PREVIOUS_RESULT_WAS + result).setTotal(newResult!= null ? newResult.total : 0);
+                    .addError(WHERE_PREVIOUS_RESULT_WAS + result).setTotal(newResult != null ? newResult.total : 0);
                 return result;
             }
             LOGGER.debug("Query: {}\n\tResult: {}", requestParser, result);
@@ -379,11 +381,12 @@ public class DbRequest {
      * @return the new Result from this request
      * @throws MetaDataExecutionException
      * @throws InvalidParseOperationException
+     * @throws BadRequestException
      */
     protected Result<MetadataDocument<?>> executeQuery(final RequestParserMultiple requestParser,
         final RequestToAbstract requestToMongodb, final int rank,
         final Result<MetadataDocument<?>> previous)
-        throws MetaDataExecutionException, InvalidParseOperationException {
+        throws MetaDataExecutionException, InvalidParseOperationException, BadRequestException {
         final Query realQuery = requestToMongodb.getNthQuery(rank);
         final boolean isLastQuery = requestToMongodb.getNbQueries() == rank + 1;
         List<SortBuilder> sorts = null;
@@ -481,11 +484,12 @@ public class DbRequest {
      * @return the associated Result
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
+     * @throws BadRequestException
      */
     protected Result<MetadataDocument<?>> exactDepthUnitQuery(Query realQuery, Result<MetadataDocument<?>> previous,
         int exactDepth, Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
         final String scrollId, final Integer scrollTimeout)
-        throws InvalidParseOperationException, MetaDataExecutionException {
+        throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES only
         final BoolQueryBuilder roots =
             new BoolQueryBuilder().must(QueryBuilders.rangeQuery(Unit.MAXDEPTH).lte(exactDepth).gte(0))
@@ -532,11 +536,12 @@ public class DbRequest {
      * @return the associated Result
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
+     * @throws BadRequestException
      */
     protected Result<MetadataDocument<?>> relativeDepthUnitQuery(Query realQuery, Result<MetadataDocument<?>> previous,
         int relativeDepth, Integer tenantId, final List<SortBuilder> sorts, final int offset,
         final int limit, final String scrollId, final Integer scrollTimeout)
-        throws InvalidParseOperationException, MetaDataExecutionException {
+        throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES only
         QueryBuilder roots = null;
         boolean tocheck = false;
@@ -681,11 +686,12 @@ public class DbRequest {
      * @return the associated Result
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
+     * @throws BadRequestException
      */
     protected Result<MetadataDocument<?>> sameDepthUnitQuery(Query realQuery, Result<MetadataDocument<?>> previous,
         Integer tenantId, final List<SortBuilder> sorts,
         final int offset, final int limit, final String scrollId, final Integer scrollTimeout)
-        throws InvalidParseOperationException, MetaDataExecutionException {
+        throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES
         final QueryBuilder query = QueryToElasticsearch.getCommand(realQuery);
         QueryBuilder finalQuery;
@@ -719,11 +725,12 @@ public class DbRequest {
      * @return the associated Result
      * @throws InvalidParseOperationException
      * @throws MetaDataExecutionException
+     * @throws BadRequestException
      */
     protected Result<MetadataDocument<?>> objectGroupQuery(Query realQuery, Result<MetadataDocument<?>> previous,
         Integer tenantId, final List<SortBuilder> sorts, final int offset, final int limit,
         final String scrollId, final Integer scrollTimeout)
-        throws InvalidParseOperationException, MetaDataExecutionException {
+        throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException {
         // ES
         final QueryBuilder query = QueryToElasticsearch.getCommand(realQuery);
         QueryBuilder finalQuery;

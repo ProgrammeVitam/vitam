@@ -41,6 +41,15 @@ public class BadRequestException extends VitamException {
     }
 
     /**
+     * Constructor used to encapsulate a previously thrown exception. A generic message is used.
+     *
+     * @param cause the originating exception
+     */
+    public BadRequestException(Throwable cause) {
+        super(cause);
+    }
+
+    /**
      * @param message
      */
     public BadRequestException(String message) {

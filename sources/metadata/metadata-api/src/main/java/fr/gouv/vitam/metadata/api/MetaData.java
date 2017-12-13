@@ -26,8 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.api;
 
+import java.util.List;
+
+import org.bson.Document;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -35,10 +42,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-
-import org.bson.Document;
-
-import java.util.List;
 
 /**
  * MetaData interface for database operations
@@ -82,11 +85,12 @@ public interface MetaData {
      * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      * @throws MetaDataNotFoundException Throw if unit by id not found
+     * @throws BadRequestException if a bad request is being used
      *
      */
     public RequestResponse<JsonNode> selectUnitsByQuery(JsonNode selectQuery)
         throws InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException, MetaDataNotFoundException;
+        MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException;
 
     /**
      * Search ObjectGroups by Select {@link Select}Query
@@ -99,11 +103,12 @@ public interface MetaData {
      * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      * @throws MetaDataNotFoundException Throw if unit by id not found
+     * @throws BadRequestException if a bad request is being used
      *
      */
     RequestResponse<JsonNode> selectObjectGroupsByQuery(JsonNode selectQuery)
         throws MetaDataExecutionException, InvalidParseOperationException,
-        MetaDataDocumentSizeException, MetaDataNotFoundException;
+        MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException;
     /**
      * Search UNITs by Id {@link Select}Query <br>
      * for this method, the roots will be filled<br>
@@ -120,11 +125,12 @@ public interface MetaData {
      * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      * @throws MetaDataNotFoundException Throw if unit by id not found
+     * @throws BadRequestException if a bad request is being used
      *
      */
     public RequestResponse<JsonNode> selectUnitsById(JsonNode selectQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException, MetaDataNotFoundException;
+        MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException;
 
     /**
      * Search ObjectGroups by its Id and a Select Query <br>
@@ -142,12 +148,13 @@ public interface MetaData {
      * @throws MetaDataExecutionException Throw if error occurs when send Unit to database
      * @throws MetaDataDocumentSizeException Throw if Unit size is too big
      * @throws MetaDataNotFoundException Thrown if no objectGroup is found
+     * @throws BadRequestException if a bad request is being used
      * 
      * 
      */
     RequestResponse<JsonNode> selectObjectGroupById(JsonNode selectQuery, String objectGroupId)
         throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException,
-        MetaDataNotFoundException;
+        MetaDataNotFoundException, BadRequestException;
 
     /**
      * Update UNITs by Id {@link UpdateMultiQuery}Query <br>

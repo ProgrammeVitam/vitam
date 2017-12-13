@@ -313,6 +313,10 @@ public class VitamConfiguration {
     private static int asyncWorkspaceQueueSize = 10;
 
 
+    /*
+     * maxResultWindow
+     */
+    private static int maxResultWindow = 10000;
 
     static {
         getConfiguration().setDefault();
@@ -1394,6 +1398,7 @@ public class VitamConfiguration {
 
     /**
      * Getter for worker bulk size
+     * 
      * @return
      */
     public static int getWorkerBulkSize() {
@@ -1402,6 +1407,7 @@ public class VitamConfiguration {
 
     /**
      * Setter worker bulk size
+     * 
      * @param workerBulkSize
      */
     public static void setWorkerBulkSize(int workerBulkSize) {
@@ -1494,6 +1500,24 @@ public class VitamConfiguration {
     private static void setNumberEsQueue(int numberEsQueue) {
         VitamConfiguration.numberEsQueue = numberEsQueue;
     }
+
+    /**
+     * Get the maxResultWindow
+     * 
+     * @return maxResultWindow
+     */
+    public static int getMaxResultWindow() {
+        return maxResultWindow;
+    }
+
+    /**
+     * Set the maxResultWindow 
+     * @param maxResultWindow
+     */
+    public static void setMaxResultWindow(int maxResultWindow) {
+        VitamConfiguration.maxResultWindow = maxResultWindow;
+    }
+
 
 
 }

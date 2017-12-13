@@ -521,7 +521,7 @@ Les filtres permettent de spécifier des comportement additionnels à la recherc
   - L'ordre de déclaration des tris est respectés dans la réponse
 
 **Note :**
-Le nombre de résultats ne doit être être trop important (**$limit** + **$offset** > 10000+) au risque d'un comportement de recherche non déterminé.
+Le nombre de résultats ne doit être être trop important (**$limit** + **$offset** > 10000+) au risque d'un comportement de recherche non déterminé (la recherche ne pourra aboutir).
 
 ## Projections
 Par défaut, les requêtes de recherche DSL renvoient tous les champs des documents. Ce qui correspond à un `SELECT *` dans le language SQL.

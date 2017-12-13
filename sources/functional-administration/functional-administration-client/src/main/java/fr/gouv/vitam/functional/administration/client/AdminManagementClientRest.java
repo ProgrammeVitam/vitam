@@ -523,6 +523,12 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 case OK:
                     LOGGER.debug(Response.Status.OK.getReasonPhrase());
                     break;
+                case BAD_REQUEST:
+                    LOGGER.error(Response.Status.BAD_REQUEST.getReasonPhrase());
+                    String reason = (response.hasEntity()) ? response.readEntity(String.class)
+                        : Response.Status.BAD_REQUEST.getReasonPhrase();
+                    LOGGER.error(reason);
+                    throw new InvalidParseOperationException(reason);            
                 case NOT_FOUND:
                     LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
                     throw new ReferentialNotFoundException("AccessionRegister Not found ");

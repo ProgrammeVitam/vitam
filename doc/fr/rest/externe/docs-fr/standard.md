@@ -91,5 +91,6 @@ Néanmoins, il est possible de paginer les résultats en utilisant le DSL avec l
 - **$offset** : la position de démarrage dans la liste retournée (positionné à 0 par défaut)
 
 A noter qu'en raison du modèle State-less, les requêtes suivantes (en manipulant notamment $offset) seront à nouveau exécutées, conduisant à des performances réduites.
+Le nombre de résultats ne doit être être trop important (**$limit** + **$offset** > 10000+) au risque d'un comportement de recherche non déterminé (la recherche ne pourra aboutir).
 
 

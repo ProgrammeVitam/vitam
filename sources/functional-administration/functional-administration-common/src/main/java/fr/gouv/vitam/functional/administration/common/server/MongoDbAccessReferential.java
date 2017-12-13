@@ -26,16 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
@@ -62,9 +59,11 @@ public interface MongoDbAccessReferential {
      * @param collection collection of Mongo for insert
      * @throws ReferentialException when error occurs
      * @return DbRequestResult
-
+     * 
      */
-    DbRequestResult insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection, Integer version) throws ReferentialException;
+    DbRequestResult insertDocuments(ArrayNode arrayNode, FunctionalAdminCollections collection, Integer version)
+        throws ReferentialException;
+
     /**
      * insert documents
      *
@@ -121,6 +120,7 @@ public interface MongoDbAccessReferential {
      */
     DbRequestResult updateData(JsonNode update, FunctionalAdminCollections collection)
         throws ReferentialException;;
+
     /**
      * Update with queryDsl
      *
@@ -132,13 +132,15 @@ public interface MongoDbAccessReferential {
      */
     DbRequestResult updateData(JsonNode update, FunctionalAdminCollections collection, Integer version)
         throws ReferentialException;
+
     /**
      * @param select filter
      * @param collection collection of Mongo for find
      * @return DbRequestResult
      * @throws ReferentialException when error occurs
+     * @throws BadRequestException when query is incorrect
      */
     DbRequestResult findDocuments(JsonNode select, FunctionalAdminCollections collection)
-        throws ReferentialException;
+        throws ReferentialException, BadRequestException;
 
 }

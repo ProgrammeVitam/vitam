@@ -1,0 +1,35 @@
+{
+  "$roots": ["aeaqaaaaaadu6tbzablxaak75hfyaoiaaaba"],
+  "$query": [
+    {
+      "$and": [
+        {
+          "$in": {
+            "#operations": [
+              "aedqaaaaachtcmknab2okak74ntaehqaaaaq"
+            ]
+          }
+        },
+        {
+          "$eq": {
+            "Title": "Fake titre_A"
+          }
+        }
+      ],
+      "$depth": -1
+    }
+  ],
+   "$filter": {
+    "$orderby": {
+      "Title": 1
+    },
+    "$offset": 10000,
+    "$limit": 10000
+  },
+  "$projection": {
+    "$fields": {
+      "#id": 1,
+      "Title": 1
+    }
+  }
+}

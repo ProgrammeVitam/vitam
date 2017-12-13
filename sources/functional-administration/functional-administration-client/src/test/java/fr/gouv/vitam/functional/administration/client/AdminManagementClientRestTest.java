@@ -640,7 +640,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         client.getAccessionRegister(JsonHandler.getFromString(QUERY));
     }
 
-    @Test
+    @Test(expected = InvalidParseOperationException.class)
     public void getAccessionRegisterSummaryUnknownError()
         throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity("{}").build());

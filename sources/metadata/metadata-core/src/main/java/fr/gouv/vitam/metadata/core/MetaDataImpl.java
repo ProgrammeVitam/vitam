@@ -27,8 +27,8 @@
 package fr.gouv.vitam.metadata.core;
 
 
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ID;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPS;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCIES;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.QUALIFIERS;
@@ -42,9 +42,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import fr.gouv.vitam.common.model.DatabaseCursor;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -66,11 +63,15 @@ import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultip
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.DatabaseCursor;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.metadata.api.MetaData;
@@ -143,7 +144,7 @@ public class MetaDataImpl implements MetaData {
             final InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
             insertParser.parse(insertRequest);
             result = DbRequestFactoryImpl.getInstance().create().execRequest(insertParser, result);
-        } catch (InstantiationException | IllegalAccessException e) {
+        } catch (InstantiationException | IllegalAccessException | BadRequestException e) {
             throw new MetaDataExecutionException(e);
         } catch (final MongoWriteException e) {
             throw new MetaDataAlreadyExistException(e);
@@ -165,7 +166,7 @@ public class MetaDataImpl implements MetaData {
             insertParser.parse(objectGroupRequest);
             insertParser.getRequest().addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
             result = DbRequestFactoryImpl.getInstance().create().execRequest(insertParser, result);
-        } catch (InstantiationException | IllegalAccessException e) {
+        } catch (InstantiationException | IllegalAccessException | BadRequestException e) {
             throw new MetaDataExecutionException(e);
         } catch (final MongoWriteException e) {
             throw new MetaDataAlreadyExistException(e);
@@ -209,7 +210,7 @@ public class MetaDataImpl implements MetaData {
     @Override
     public RequestResponse<JsonNode> selectUnitsByQuery(JsonNode selectQuery)
         throws MetaDataExecutionException, InvalidParseOperationException,
-        MetaDataDocumentSizeException, MetaDataNotFoundException {
+        MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException {
         LOGGER.debug("SelectUnitsByQuery/ selectQuery: " + selectQuery);
         return selectMetadataObject(selectQuery, null, Collections.singletonList(BuilderToken.FILTERARGS.UNITS));
 
@@ -218,7 +219,7 @@ public class MetaDataImpl implements MetaData {
     @Override
     public RequestResponse<JsonNode> selectObjectGroupsByQuery(JsonNode selectQuery)
         throws MetaDataExecutionException, InvalidParseOperationException,
-        MetaDataDocumentSizeException, MetaDataNotFoundException {
+        MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException {
         LOGGER.debug("selectObjectGroupsByQuery/ selectQuery: " + selectQuery);
         return selectMetadataObject(selectQuery, null, Collections.singletonList(BuilderToken.FILTERARGS.OBJECTGROUPS));
 
@@ -227,7 +228,7 @@ public class MetaDataImpl implements MetaData {
     @Override
     public RequestResponse<JsonNode> selectUnitsById(JsonNode selectQuery, String unitId)
         throws InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException, MetaDataNotFoundException {
+        MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException {
         LOGGER.debug("SelectUnitsById/ selectQuery: " + selectQuery);
         return selectMetadataObject(selectQuery, unitId, Collections.singletonList(BuilderToken.FILTERARGS.UNITS));
     }
@@ -235,7 +236,7 @@ public class MetaDataImpl implements MetaData {
     @Override
     public RequestResponse<JsonNode> selectObjectGroupById(JsonNode selectQuery, String objectGroupId)
         throws InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException,
-        MetaDataNotFoundException {
+        MetaDataNotFoundException, BadRequestException {
         LOGGER.debug("SelectObjectGroupById - objectGroupId : " + objectGroupId);
         LOGGER.debug("SelectObjectGroupById - selectQuery : " + selectQuery);
         return selectMetadataObject(selectQuery, objectGroupId,
@@ -246,7 +247,7 @@ public class MetaDataImpl implements MetaData {
     private RequestResponseOK<JsonNode> selectMetadataObject(JsonNode selectQuery, String unitOrObjectGroupId,
         List<BuilderToken.FILTERARGS> filters)
         throws MetaDataExecutionException, InvalidParseOperationException,
-        MetaDataDocumentSizeException, MetaDataNotFoundException {
+        MetaDataDocumentSizeException, MetaDataNotFoundException, BadRequestException {
 
         Result result = null;
         ArrayNode arrayNodeResponse;
@@ -311,6 +312,9 @@ public class MetaDataImpl implements MetaData {
         } catch (final MetaDataNotFoundException e) {
             LOGGER.error(e);
             throw e;
+        } catch (final BadRequestException e) {
+            LOGGER.error(e);
+            throw e;
         }
         List res = toArrayList(arrayNodeResponse);
         Long total = (result != null) ? result.getTotal() : res.size();
@@ -350,7 +354,8 @@ public class MetaDataImpl implements MetaData {
         } catch (final MetaDataExecutionException | InvalidParseOperationException e) {
             LOGGER.error(e);
             throw e;
-        } catch (final InstantiationException | MetaDataAlreadyExistException | MetaDataNotFoundException |
+        } catch (final InstantiationException | BadRequestException | MetaDataAlreadyExistException |
+            MetaDataNotFoundException |
             IllegalAccessException e) {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
@@ -398,7 +403,8 @@ public class MetaDataImpl implements MetaData {
         } catch (final MetaDataExecutionException | InvalidParseOperationException | MetaDataNotFoundException e) {
             LOGGER.error(e);
             throw e;
-        } catch (final InstantiationException | MetaDataAlreadyExistException | IllegalAccessException e) {
+        } catch (final InstantiationException | BadRequestException | MetaDataAlreadyExistException |
+            IllegalAccessException e) {
             LOGGER.error(e);
             throw new MetaDataExecutionException(e);
         }
@@ -411,7 +417,7 @@ public class MetaDataImpl implements MetaData {
 
     private RequestResponse getUnitById(String id)
         throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
-        MetaDataNotFoundException {
+        MetaDataNotFoundException, BadRequestException {
         final SelectMultiQuery select = new SelectMultiQuery();
         return selectUnitsById(select.getFinalSelect(), id);
     }
@@ -432,7 +438,7 @@ public class MetaDataImpl implements MetaData {
 
     private void computeRuleForUnit(ArrayNode arrayNodeResponse)
         throws InvalidParseOperationException, MetaDataExecutionException, MetaDataDocumentSizeException,
-        MetaDataNotFoundException {
+        MetaDataNotFoundException, BadRequestException {
         Map<String, UnitNode> allUnitNode = new HashMap<>();
         Set<String> rootList = new HashSet<>();
         List<String> unitParentIdList = new ArrayList<>();
