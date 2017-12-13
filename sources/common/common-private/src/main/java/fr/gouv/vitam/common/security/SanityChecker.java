@@ -32,6 +32,7 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Iterator;
 import java.util.List;
@@ -206,15 +207,21 @@ public class SanityChecker {
     }
     
     /**
-     * checkInputStream : Check sanity of InputStream: no javascript/xml tag, neither html tag
+     * checkHTMLFile : Check if the file contains HTML content
      * 
-     * @param stream
+     * @param file
      * @throws InvalidParseOperationException
      * @throws IOException
      */
-    public static final void checkInputStream(InputStream stream) throws InvalidParseOperationException, IOException {
-        String text = IOUtils.toString(stream, CharsetUtils.UTF_8.toString());
-        SanityChecker.checkParameter(text);
+    public static final void checkHTMLFile(File file) throws InvalidParseOperationException, IOException { 
+        try (final Reader fileReader = new FileReader(file)) {
+            try (final BufferedReader bufReader = new BufferedReader(fileReader)) {
+                String line = null;
+                while ((line = bufReader.readLine()) != null) {
+                    checkParameter(line.split(","));
+                }
+            }
+        }
     }
 
     /**

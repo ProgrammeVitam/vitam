@@ -119,6 +119,7 @@ public class AdminManagementExternalResourceImplTest {
 
     private static final String GOOD_ID = "goodId";
     public static final String SECURITY_PROFILES_URI = "/securityprofiles";
+    private static final String RULE_FILE = "jeu_donnees_OK_regles_CSV_regles.csv";
 
 
     private InputStream stream;
@@ -177,7 +178,7 @@ public class AdminManagementExternalResourceImplTest {
             .when().post(FORMAT_CHECK_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
-        stream = PropertiesUtils.getResourceAsStream("vitam.conf");
+        stream = PropertiesUtils.getResourceAsStream(RULE_FILE);
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(RULES_CHECK_URI)
@@ -278,7 +279,7 @@ public class AdminManagementExternalResourceImplTest {
             .when().post(FORMAT_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
-        stream = PropertiesUtils.getResourceAsStream("vitam.conf");
+        stream = PropertiesUtils.getResourceAsStream(RULE_FILE);
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_FILENAME, "vitam.conf")
