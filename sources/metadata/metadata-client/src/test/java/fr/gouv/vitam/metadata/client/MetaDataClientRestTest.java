@@ -29,6 +29,7 @@ package fr.gouv.vitam.metadata.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
@@ -48,6 +49,10 @@ import javax.ws.rs.core.Response.Status;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
+import fr.gouv.vitam.common.database.parameter.IndexParameters;
+import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -56,6 +61,7 @@ import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
@@ -188,6 +194,22 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
         @GET
         public Response selectAccessionRegisterForObjectGroup(@PathParam("operationId") String operationId) {
             return expectedResponse.get();
+        }
+
+        @POST
+        @Path("/reindex")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response launchReindexation(JsonNode options) {
+            return expectedResponse.post();
+        }
+
+        @POST
+        @Path("/alias")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response switchIndexes(JsonNode options) {
+            return expectedResponse.post();
         }
     }
 
@@ -437,7 +459,7 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
         when(mock.put()).thenReturn(Response.status(Status.FOUND).entity("true").build());
         client.updateUnitbyId(JsonHandler.getFromString(VALID_QUERY), "id");
     }
-    
+
     @Test(expected = MetaDataNotFoundException.class)
     public void given_UnexistingUnit_When_UpdateByiD_ThenReturn_NotFound() throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.NOT_FOUND).build());
@@ -469,7 +491,8 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
     }
 
     @Test
-    public void should_validate_accession_register_client_for_object_group() throws InvalidParseOperationException,
+    public void should_validate_accession_register_client_for_object_group()
+        throws InvalidParseOperationException,
         MetaDataClientServerException {
 
         // Given
@@ -489,6 +512,26 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
         assertThat(unitPerOriginatingAgencies).hasSize(2)
             .extracting("originatingAgency", "numberOfObject", "numberOfGOT", "size")
             .contains(tuple("sp1", 3L, 2L, 2000L), tuple("sp2", 4L, 1L, 3400L));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void launchReindexationTest()
+        throws InvalidParseOperationException, MetaDataClientServerException, MetaDataNotFoundException {
+        when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(JsonHandler.createObjectNode())
+            .build());
+        JsonNode resp = client.reindex(new IndexParameters());
+        assertNotNull(resp);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void switchIndexesTest()
+        throws InvalidParseOperationException, MetaDataClientServerException, MetaDataNotFoundException {
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(JsonHandler.createObjectNode())
+            .build());
+        JsonNode resp = client.switchIndexes(new SwitchIndexParameters());
+        assertNotNull(resp);
     }
 
 }

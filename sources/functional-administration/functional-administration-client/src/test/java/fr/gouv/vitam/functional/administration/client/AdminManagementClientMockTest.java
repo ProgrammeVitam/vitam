@@ -52,6 +52,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -343,7 +344,7 @@ public class AdminManagementClientMockTest {
         RequestResponse resp = client.createProfiles(new ArrayList<>());
         assertEquals(resp.getHttpCode(), Status.CREATED.getStatusCode());
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void givenClientMockWhenUpdateProfile() throws Exception {
@@ -398,6 +399,18 @@ public class AdminManagementClientMockTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         Status resp = client.importContexts(new ArrayList<>());
         assertEquals(resp, Status.OK);
+    }
+
+    @Test
+    public void launchReindexationTest() throws Exception {
+        RequestResponse<IndexationResult> resp = client.launchReindexation(JsonHandler.createObjectNode());
+        assertTrue(resp.isOk());
+    }
+
+    @Test
+    public void switchIndexesTest() throws Exception {
+        RequestResponse<IndexationResult> resp = client.switchIndexes(JsonHandler.createObjectNode());
+        assertTrue(resp.isOk());
     }
 
 }

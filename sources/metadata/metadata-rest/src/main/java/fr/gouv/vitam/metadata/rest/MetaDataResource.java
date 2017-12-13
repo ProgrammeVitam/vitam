@@ -26,10 +26,33 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
+import java.util.List;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.bson.Document;
+import org.elasticsearch.ElasticsearchParseException;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.index.model.IndexationResult;
+import fr.gouv.vitam.common.database.parameter.IndexParameters;
+import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -46,22 +69,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
-import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
-import org.bson.Document;
-import org.elasticsearch.ElasticsearchParseException;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.util.List;
 
 /**
  * Units resource REST API
@@ -88,7 +96,7 @@ public class MetaDataResource extends ApplicationStatusResource {
      * @param configuration {@link MetaDataConfiguration}
      */
     public MetaDataResource(MetaDataConfiguration configuration) {
-        metaDataImpl = MetaDataImpl.newMetadata(configuration, new MongoDbAccessMetadataFactory());
+        metaDataImpl = MetaDataImpl.newMetadata(configuration);
         LOGGER.info("init MetaData Resource server");
     }
 
@@ -358,8 +366,6 @@ public class MetaDataResource extends ApplicationStatusResource {
      * @param selectRequest the select request in JsonNode format
      * @param unitId the unit id to get
      * @return {@link Response} will be contains an json filled by unit result
-     * @see entity(java.lang.Object, java.lang.annotation.Annotation[])
-     * @see #type(javax.ws.rs.core.MediaType)
      */
     @Path("units/{id_unit}")
     @GET
@@ -375,8 +381,6 @@ public class MetaDataResource extends ApplicationStatusResource {
      * @param updateRequest the update request
      * @param unitId the id of unit to be update
      * @return {@link Response} will be contains an json filled by unit result
-     * @see entity(java.lang.Object, java.lang.annotation.Annotation[])
-     * @see type(javax.ws.rs.core.MediaType)
      */
     @Path("units/{id_unit}")
     @PUT
@@ -745,6 +749,88 @@ public class MetaDataResource extends ApplicationStatusResource {
         }
 
         return responseOK.toResponse();
+    }
+
+    /**
+     * Reindex a collection
+     *
+     * @param indexParameters parameters specifying what to reindex
+     * @return Response response
+     */
+    @Path("/reindex")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response reindex(IndexParameters indexParameters) {
+        try {
+            ParametersChecker.checkParameter("Parameters are mandatory", indexParameters);
+        } catch (final IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            return Response.status(Status.PRECONDITION_FAILED).entity(
+                new VitamError(Status.PRECONDITION_FAILED.name()).setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                    .setContext(METADATA)
+                    .setState(CODE_VITAM)
+                    .setMessage(Status.PRECONDITION_FAILED.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        }
+        IndexationResult result = metaDataImpl.reindex(indexParameters);
+        Response response = null;
+        if (result.getIndexKO() == null || result.getIndexKO().size() == 0) {
+            // No KO -> 201
+            response = Response.status(Status.CREATED).entity(new RequestResponseOK()
+                .setHttpCode(Status.CREATED.getStatusCode())).entity(result).build();
+        } else {
+            // OK and at least one KO -> 202
+            if (result.getIndexOK() != null && result.getIndexOK().size() > 0) {
+                Response.status(Status.ACCEPTED).entity(new RequestResponseOK()
+                    .setHttpCode(Status.ACCEPTED.getStatusCode())).entity(result).build();
+            } else {
+                // All KO -> 500
+                    Status status = Status.INTERNAL_SERVER_ERROR;
+                VitamError error = VitamCodeHelper.toVitamError(VitamCode.METADATA_INDEXATION_ERROR,
+                    status.getReasonPhrase());
+                response = Response.status(status).entity(error).entity(result).build();
+            }
+        }
+        return response;
+    }
+
+    /**
+     * Switch indexes
+     *
+     * @param switchIndexParameters
+     * @return Response response
+     */
+    @Path("/alias")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response changeIndexes(SwitchIndexParameters switchIndexParameters) {
+        try {
+            ParametersChecker.checkParameter("parameter is mandatory", switchIndexParameters);
+            ParametersChecker.checkParameter("alias parameter is mandatory", switchIndexParameters.getAlias());
+            ParametersChecker.checkParameter("indexName parameter is mandatory", switchIndexParameters.getIndexName());
+        } catch (final IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            return Response.status(Status.PRECONDITION_FAILED).entity(
+                new VitamError(Status.PRECONDITION_FAILED.name()).setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                    .setContext(METADATA)
+                    .setState(CODE_VITAM)
+                    .setMessage(Status.PRECONDITION_FAILED.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        }
+        try {
+            metaDataImpl.switchIndex(switchIndexParameters.getAlias(), switchIndexParameters.getIndexName());
+            return Response.status(Status.OK).entity(new RequestResponseOK().setHttpCode(Status.OK.getStatusCode()))
+                .build();
+        } catch (DatabaseException exc) {
+            Status status = Status.INTERNAL_SERVER_ERROR;
+            VitamError error = VitamCodeHelper.toVitamError(VitamCode.METADATA_SWITCH_INDEX_ERROR,
+                exc.getMessage());
+            return Response.status(status).entity(error).build();
+        }
     }
 
 }

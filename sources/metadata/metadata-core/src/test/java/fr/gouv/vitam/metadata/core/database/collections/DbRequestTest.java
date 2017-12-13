@@ -381,7 +381,7 @@ public class DbRequestTest {
             fail(e1.getMessage());
         } finally {
             // clean
-            MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
+            MetadataCollections.UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
         }
     }
 
@@ -455,11 +455,11 @@ public class DbRequestTest {
             e.printStackTrace();
             fail(e.getMessage());
         } finally {
-            MetadataCollections.C_UNIT.getCollection()
+            MetadataCollections.UNIT.getCollection()
                 .deleteOne(new Document(MetadataDocument.ID, guidParent1.toString()));
-            MetadataCollections.C_UNIT.getCollection()
+            MetadataCollections.UNIT.getCollection()
                 .deleteOne(new Document(MetadataDocument.ID, guidParent2.toString()));
-            MetadataCollections.C_UNIT.getCollection()
+            MetadataCollections.UNIT.getCollection()
                 .deleteOne(new Document(MetadataDocument.ID, guidChild.toString()));
         }
     }
@@ -530,11 +530,11 @@ public class DbRequestTest {
             e.printStackTrace();
             fail(e.getMessage());
         } finally {
-            MetadataCollections.C_UNIT.getCollection()
+            MetadataCollections.UNIT.getCollection()
                 .deleteOne(new Document(MetadataDocument.ID, guidParent.toString()));
-            MetadataCollections.C_UNIT.getCollection()
+            MetadataCollections.UNIT.getCollection()
                 .deleteOne(new Document(MetadataDocument.ID, guidChild1.toString()));
-            MetadataCollections.C_UNIT.getCollection()
+            MetadataCollections.UNIT.getCollection()
                 .deleteOne(new Document(MetadataDocument.ID, guidChild2.toString()));
         }
     }
@@ -639,7 +639,7 @@ public class DbRequestTest {
             fail(e1.getMessage());
         } finally {
             // clean
-            MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
+            MetadataCollections.UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
         }
     }
 
@@ -750,7 +750,7 @@ public class DbRequestTest {
             executeRequest(dbRequest, requestParser);
         } finally {
             // clean
-            MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
+            MetadataCollections.UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
         }
     }
 
@@ -912,8 +912,8 @@ public class DbRequestTest {
             executeRequest(dbRequest, requestParser);
         } finally {
             // clean
-            MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
-            MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid2.toString()));
+            MetadataCollections.UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid.toString()));
+            MetadataCollections.UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid2.toString()));
         }
     }
 
@@ -1001,8 +1001,8 @@ public class DbRequestTest {
             fail(e1.getMessage());
         } finally {
             // clean
-            MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid1.toString()));
-            MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid2.toString()));
+            MetadataCollections.UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid1.toString()));
+            MetadataCollections.UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, uuid2.toString()));
         }
     }
 
@@ -1018,12 +1018,12 @@ public class DbRequestTest {
 
         requestParser = RequestParserHelper.getParser(createInsertRequestWithUUID(uuid), mongoDbVarNameAdapter);
         executeRequest(dbRequest, requestParser);
-        assertEquals(1, MetadataCollections.C_UNIT.getCollection().count());
+        assertEquals(1, MetadataCollections.UNIT.getCollection().count());
 
         requestParser =
             RequestParserHelper.getParser(createInsertChild2ParentRequest(uuid2, uuid), mongoDbVarNameAdapter);
         executeRequest(dbRequest, requestParser);
-        assertEquals(2, MetadataCollections.C_UNIT.getCollection().count());
+        assertEquals(2, MetadataCollections.UNIT.getCollection().count());
     }
 
     @Test
@@ -1046,7 +1046,7 @@ public class DbRequestTest {
 
         final SearchRequestBuilder request =
             esClientWithoutVitambBehavior.getClient()
-                .prepareSearch(getIndexName(MetadataCollections.C_UNIT, tenantId))
+                .prepareSearch(getIndexName(MetadataCollections.UNIT, tenantId))
                 .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setTypes(VitamCollection.getTypeunique())
                 .setExplain(false)
                 .setSize(GlobalDatas.LIMIT_LOAD);
@@ -1081,8 +1081,8 @@ public class DbRequestTest {
         LOGGER.warn("XXXXXXXX " + requestParser.getClass().getSimpleName() + " Result XXXXXXXX: " + result);
         assertEquals("Must have 1 result", result.getNbResult(), 1);
         assertEquals("Must have 1 result", result.getCurrentIds().size(), 1);
-        esClient.refreshIndex(MetadataCollections.C_UNIT, tenantId);
-        esClient.refreshIndex(MetadataCollections.C_OBJECTGROUP, tenantId);
+        esClient.refreshIndex(MetadataCollections.UNIT, tenantId);
+        esClient.refreshIndex(MetadataCollections.OBJECTGROUP, tenantId);
     }
 
     /**
@@ -1409,7 +1409,7 @@ public class DbRequestTest {
         // Use new esClient for have full elastic index and not just the id in the response.
         final SearchRequestBuilder request =
             esClientWithoutVitambBehavior.getClient()
-                .prepareSearch(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId))
+                .prepareSearch(getIndexName(MetadataCollections.OBJECTGROUP, tenantId))
                 .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setTypes(VitamCollection.getTypeunique())
                 .setExplain(false)
                 .setSize(GlobalDatas.LIMIT_LOAD);
@@ -1604,7 +1604,7 @@ public class DbRequestTest {
         insertParser.parse(insertRequest);
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execRequest(insertParser, null);
-        esClient.refreshIndex(MetadataCollections.C_UNIT, tenantId);
+        esClient.refreshIndex(MetadataCollections.UNIT, tenantId);
         final JsonNode selectRequest = JsonHandler.getFromString(REQUEST_SELECT_TEST);
         final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser.parse(selectRequest);
@@ -1653,7 +1653,7 @@ public class DbRequestTest {
         final SelectParserMultiple selectParser1 = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser1.parse(selectRequest1);
         LOGGER.debug("SelectParser: {}", selectRequest1);
-        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_2);
+        esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_2);
         final Result resultSelect1 = dbRequest.execRequest(selectParser1, null);
         assertEquals(1, resultSelect1.nbResult);
 
@@ -1683,7 +1683,7 @@ public class DbRequestTest {
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execRequest(insertParser, null);
-        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_2);
+        esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_2);
 
         SelectMultiQuery select = new SelectMultiQuery();
         select.addQueries(match("Description", "description OK").setDepthLimit(1))
@@ -1720,7 +1720,7 @@ public class DbRequestTest {
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execRequest(insertParser, null);
-        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_2);
+        esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_2);
 
         final Result<MetadataDocument<?>> resultSelectRel4 = dbRequest.execRequest(selectParser1, null);
         assertEquals(2, resultSelectRel4.nbResult);
@@ -1734,7 +1734,7 @@ public class DbRequestTest {
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execRequest(insertParser, null);
-        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_2);
+        esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_2);
 
         select = new SelectMultiQuery();
         select.addQueries(match("Title", "othervalue").setDepthLimit(1))
@@ -1793,7 +1793,7 @@ public class DbRequestTest {
         final SelectParserMultiple selectParser1 = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser1.parse(selectRequest1);
         LOGGER.debug("SelectParser: {}", selectRequest1);
-        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_1);
+        esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_1);
         final Result resultSelect1 = dbRequest.execRequest(selectParser1, null);
         assertEquals(1, resultSelect1.nbResult);
     }
@@ -1813,8 +1813,8 @@ public class DbRequestTest {
         final SelectParserMultiple selectParser1 = new SelectParserMultiple(mongoDbVarNameAdapter);
         selectParser1.parse(selectRequest1);
         LOGGER.debug("SelectParser: {}", selectRequest1);
-        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
-        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_1);
+        esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_0);
+        esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_1);
         final Result resultSelect1 = dbRequest.execRequest(selectParser1, null);
         assertEquals(1, resultSelect1.nbResult);
     }
@@ -1834,7 +1834,7 @@ public class DbRequestTest {
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execRequest(insertParser, null);
-        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
+        esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_0);
 
         // check value should exist in the collection
         SelectParserMultiple selectParser2 = new SelectParserMultiple(mongoDbVarNameAdapter);
@@ -1852,7 +1852,7 @@ public class DbRequestTest {
         final Result result2 = dbRequest.execRequest(updateParser, null);
         LOGGER.debug("result2", result2.getNbResult());
         assertEquals(1, result2.nbResult);
-        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
+        esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_0);
 
         // check old value should not exist in the collection
         selectParser2 = new SelectParserMultiple(mongoDbVarNameAdapter);
@@ -1888,7 +1888,7 @@ public class DbRequestTest {
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
         dbRequest.execRequest(insertParser, null);
-        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
+        esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_0);
 
         final JsonNode updateRequest = JsonHandler.getFromString(REQUEST_UPDATE_INDEX_TEST_KO);
         final UpdateParserMultiple updateParser = new UpdateParserMultiple();

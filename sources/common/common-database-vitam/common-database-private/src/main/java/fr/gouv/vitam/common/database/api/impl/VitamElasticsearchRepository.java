@@ -33,15 +33,6 @@ import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import java.util.List;
 import java.util.Optional;
 
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.api.VitamRepository;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.bson.Document;
 import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
@@ -61,6 +52,21 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.DBObject;
+import com.mongodb.client.FindIterable;
+
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.api.VitamRepository;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.HeaderIdHelper;
+
 /**
  * Implementation for Elasticsearch
  */
@@ -72,7 +78,6 @@ public class VitamElasticsearchRepository implements VitamRepository {
     private String indexName;
     private boolean indexByTenant;
 
-
     /**
      * @param client
      * @param indexName
@@ -83,7 +88,6 @@ public class VitamElasticsearchRepository implements VitamRepository {
         this.indexName = indexName;
         this.indexByTenant = indexByTenant;
     }
-
 
     @Override
     public void save(Document document) throws DatabaseException {
@@ -145,6 +149,157 @@ public class VitamElasticsearchRepository implements VitamRepository {
             LOGGER.error("Bulk Request failure with error: " + bulkResponse.buildFailureMessage());
             throw new DatabaseException(bulkResponse.buildFailureMessage());
         }
+
+    }
+
+    // TODO : This should be generic, but for now, we have a specific code to handle unit
+    /**
+     * Reindex Unit documents
+     *
+     * @param documents documents to be reindexed
+     * @throws DatabaseException if the ES insert was in error
+     */
+    public void saveUnit(List<Document> documents) throws DatabaseException {
+        BulkRequestBuilder bulkRequest = client.prepareBulk();
+        documents.forEach(vitamDocument -> {
+
+
+            Integer tenantId = HeaderIdHelper.getTenantId();
+            LOGGER.debug("insertToElasticsearch");
+            String id = vitamDocument.getString(VitamDocument.ID);
+            vitamDocument.remove(VitamDocument.ID);
+            vitamDocument.remove(VitamDocument.SCORE);
+            vitamDocument.remove("_unused");
+            String index = indexName;
+            if (indexByTenant) {
+                index = index + "_" + tenantId;
+            }
+            final String mongoJson = vitamDocument.toJson(new JsonWriterSettings(JsonMode.STRICT));
+            final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
+            vitamDocument.clear();
+            final String esJson = dbObject.toString();
+
+            bulkRequest.add(client.prepareIndex(index, VitamCollection.getTypeunique(), id)
+                .setSource(esJson, XContentType.JSON));
+        });
+
+        bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
+
+        BulkResponse bulkResponse = bulkRequest.get();
+
+        if (bulkResponse.hasFailures()) {
+            LOGGER.error("Bulk Request failure with error: " + bulkResponse.buildFailureMessage());
+            throw new DatabaseException("Index Elasticsearch has errors");
+        }
+    }
+
+    // TODO : This should be generic, but for now, we have a specific code to handle logbook
+    /**
+     * Reindex Logbook documents
+     *
+     * @param documents documents to be reindexed
+     * @throws DatabaseException if the ES insert was in error
+     */
+    public void saveLogbook(List<Document> documents) throws DatabaseException {
+
+        BulkRequestBuilder bulkRequest = client.prepareBulk();
+        documents.forEach(vitamDocument -> {
+            Integer tenantId = HeaderIdHelper.getTenantId();
+            LOGGER.debug("insertToElasticsearch");
+            String id = vitamDocument.getString(VitamDocument.ID);
+            vitamDocument.remove(VitamDocument.ID);
+            vitamDocument.remove(VitamDocument.SCORE);
+
+            String index = indexName;
+            if (indexByTenant) {
+                index = index + "_" + tenantId;
+            }
+
+            transformDataForElastic(vitamDocument);
+            final String mongoJson = vitamDocument.toJson(new JsonWriterSettings(JsonMode.STRICT));
+            vitamDocument.clear();
+            final String esJson = ((DBObject) com.mongodb.util.JSON.parse(mongoJson)).toString();
+
+            bulkRequest.add(client.prepareIndex(index, VitamCollection.getTypeunique(), id)
+                .setSource(esJson, XContentType.JSON));
+
+        });
+
+        bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
+
+        BulkResponse bulkResponse = bulkRequest.get();
+
+        if (bulkResponse.hasFailures()) {
+            LOGGER.error("Bulk Request failure with error: " + bulkResponse.buildFailureMessage());
+            throw new DatabaseException("Index Elasticsearch has errors");
+        }
+    }
+
+    // TODO : very ugly here, should be generic
+    private void transformDataForElastic(Document vitamDocument) {
+        if (vitamDocument.get("evDetData") != null) {
+            String evDetDataString = (String) vitamDocument.get("evDetData");
+            LOGGER.debug(evDetDataString);
+            try {
+                JsonNode evDetData = JsonHandler.getFromString(evDetDataString);
+                vitamDocument.remove("evDetData");
+                vitamDocument.put("evDetData", evDetData);
+            } catch (InvalidParseOperationException e) {
+                LOGGER.warn("EvDetData is not a json compatible field", e);
+            }
+        }
+        if (vitamDocument.get("agIdExt") != null) {
+            String agidExt = (String) vitamDocument.get("agIdExt");
+            LOGGER.debug(agidExt);
+            try {
+                JsonNode agidExtNode = JsonHandler.getFromString(agidExt);
+                vitamDocument.remove("agIdExt");
+                vitamDocument.put("agIdExt", agidExtNode);
+            } catch (InvalidParseOperationException e) {
+                LOGGER.warn("agidExtNode is not a json compatible field", e);
+            }
+        }
+        if (vitamDocument.get("rightsStatementIdentifier") != null) {
+            String rightsStatementIdentifier =
+                (String) vitamDocument.get("rightsStatementIdentifier");
+            LOGGER.debug(rightsStatementIdentifier);
+            try {
+                JsonNode rightsStatementIdentifierNode = JsonHandler.getFromString(rightsStatementIdentifier);
+                vitamDocument.remove("rightsStatementIdentifier");
+                vitamDocument.put("rightsStatementIdentifier",
+                    rightsStatementIdentifierNode);
+            } catch (InvalidParseOperationException e) {
+                LOGGER.warn("rightsStatementIdentifier is not a json compatible field", e);
+            }
+        }
+        List<Document> eventDocuments = (List<Document>) vitamDocument.get("events");
+        if (eventDocuments != null) {
+            for (Document eventDocument : eventDocuments) {
+                if (eventDocument.getString("evDetData") != null) {
+                    String eventEvDetDataString =
+                        eventDocument.getString("evDetData");
+                    Document eventEvDetDataDocument = Document.parse(eventEvDetDataString);
+                    eventDocument.remove("evDetData");
+                    eventDocument.put("evDetData", eventEvDetDataDocument);
+                }
+                if (eventDocument.getString("rightsStatementIdentifier") != null) {
+                    String eventrightsStatementIdentifier =
+                        eventDocument.getString("rightsStatementIdentifier");
+                    Document eventEvDetDataDocument = Document.parse(eventrightsStatementIdentifier);
+                    eventDocument.remove("rightsStatementIdentifier");
+                    eventDocument.put("rightsStatementIdentifier", eventEvDetDataDocument);
+                }
+                if (eventDocument.getString("agIdExt") != null) {
+                    String eventagIdExt =
+                        eventDocument.getString("agIdExt");
+                    Document eventEvDetDataDocument = Document.parse(eventagIdExt);
+                    eventDocument.remove("agIdExt");
+                    eventDocument.put("agIdExt", eventEvDetDataDocument);
+                }
+            }
+        }
+        vitamDocument.remove("events");
+        vitamDocument.put("events", eventDocuments);
 
     }
 
@@ -283,7 +438,6 @@ public class VitamElasticsearchRepository implements VitamRepository {
         }
     }
 
-
     @Override
     public Optional<Document> findByIdentifierAndTenant(String identifier, Integer tenant)
         throws DatabaseException {
@@ -329,6 +483,20 @@ public class VitamElasticsearchRepository implements VitamRepository {
         }
 
         return Optional.empty();
-
     }
+
+    @Override
+    public FindIterable<Document> findDocuments(int mongoBatchSize, Integer tenant) {
+        // Not implement yet
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    @Override
+    public FindIterable<Document> findDocuments(int mongoBatchSize) {
+        // Not implement yet
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+
+
 }

@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
@@ -63,6 +64,7 @@ import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
+import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.Context;
@@ -111,6 +113,9 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String UPDATE_CONTEXT_URI = "/context/";
     private static final String UPDATE_PROFIL_URI = "/profiles/";
     private static final String SECURITY_PROFILES_URI = "/securityprofiles";
+
+    private static final String REINDEX_URI = "/reindex";
+    private static final String ALIASES_URI = "/alias";
 
     AdminManagementClientRest(AdminManagementClientFactory factory) {
         super(factory);
@@ -1284,6 +1289,46 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 throw new ReferentialNotFoundException("Security Profile not found with id: " + identifier);
             }
             return RequestResponse.parseFromResponse(response, SecurityProfileModel.class);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<IndexationResult> launchReindexation(JsonNode options)
+        throws AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The options are mandatory", options);
+        Response response = null;
+        RequestResponse result = null;
+        try {
+            response = performRequest(HttpMethod.POST, REINDEX_URI, null, options,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            return RequestResponse.parseFromResponse(response, IndexationResult.class);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<IndexationResult> switchIndexes(JsonNode options)
+        throws AdminManagementClientServerException {
+        ParametersChecker.checkParameter("The options are mandatory", options);
+        Response response = null;
+        RequestResponse result = null;
+        try {
+            response = performRequest(HttpMethod.POST, ALIASES_URI, null, options,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            return RequestResponse.parseFromResponse(response, IndexationResult.class);
+
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);

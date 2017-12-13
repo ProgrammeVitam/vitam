@@ -42,6 +42,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -448,5 +449,15 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         ProfileModel model =
             JsonHandler.getFromString(ClientMockResultHelper.PROFILES, ProfileModel.class);
         return ClientMockResultHelper.createReponse(model).setHttpCode(200);
+    }
+
+    @Override
+    public RequestResponse<IndexationResult> launchReindexation(JsonNode options) throws AdminManagementClientServerException {
+        return new RequestResponseOK();
+    }
+
+    @Override
+    public RequestResponse<IndexationResult> switchIndexes(JsonNode options) throws AdminManagementClientServerException {
+        return new RequestResponseOK();
     }
 }

@@ -26,11 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.client;
 
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.client.BasicClient;
+import fr.gouv.vitam.common.database.parameter.IndexParameters;
+import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -194,5 +194,29 @@ public interface LogbookOperationsClient extends BasicClient {
      * @throws InvalidParseOperationException
      */
     RequestResponseOK traceabilityLFC() throws LogbookClientServerException, InvalidParseOperationException;
+    
+    /**
+     * 
+     * Reindex a collection with parameters
+     * 
+     * @param indexParam reindexation parameters
+     * @return JsonObject containing information about the newly created index
+     * @throws LogbookClientServerException
+     * @throws InvalidParseOperationException
+     */
+    JsonNode reindex(IndexParameters indexParam)
+        throws InvalidParseOperationException, LogbookClientServerException;
+
+    /**
+     * 
+     * Switch indexes
+     * 
+     * @param switchIndexParam switch index parameters
+     * @return JsonObject containing information about the newly created index
+     * @throws LogbookClientServerException
+     * @throws InvalidParseOperationException
+     */
+    JsonNode switchIndexes(SwitchIndexParameters switchIndexParam)
+        throws InvalidParseOperationException, LogbookClientServerException;
 
 }

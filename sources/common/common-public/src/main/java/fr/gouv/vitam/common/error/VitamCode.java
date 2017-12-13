@@ -336,7 +336,12 @@ public enum VitamCode {
         "Ingest external client error in getOperationProcessExecutionDetails method."),
     INGEST_EXTERNAL_LOCAL_UPLOAD_FILE_HANDLING_ERROR(ServiceName.EXTERNAL_INGEST, DomainName.IO, "10",
             Status.BAD_REQUEST,
-            "File error during local ingest attempt.");
+            "File error during local ingest attempt."),
+
+    METADATA_INDEXATION_ERROR(ServiceName.METADATA, DomainName.DATABASE, "00", Status.INTERNAL_SERVER_ERROR,
+        "Indexation error"),
+    METADATA_SWITCH_INDEX_ERROR(ServiceName.METADATA, DomainName.DATABASE, "01", Status.INTERNAL_SERVER_ERROR,
+        "Switch index error");
 
     private final ServiceName service;
     private final DomainName domain;

@@ -34,14 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import com.google.common.collect.Lists;
-import com.mongodb.client.MongoCollection;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.server.mongodb.CollectionSample;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.mongo.MongoRule;
 import org.apache.commons.lang3.RandomUtils;
 import org.bson.Document;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -51,11 +43,25 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.google.common.collect.Lists;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.mongodb.CollectionSample;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.mongo.MongoRule;
+
 /**
  */
 public class VitamMongoRepositoryTest {
-    public static final String TEST_COLLECTION = "TestCollection";
-    public static final String VITAM_TEST = "vitam-test";
+    private static final String TEST_COLLECTION = "TestCollection";
+    private static final String VITAM_TEST = "vitam-test";
+    private static final String TITLE = "Title";
+    private static final String TEST_SAVE = "Test save ";
     private static VitamMongoRepository repository;
 
     @ClassRule
@@ -81,7 +87,7 @@ public class VitamMongoRepositoryTest {
             .startObject()
             .field(VitamDocument.ID, id)
             .field(VitamDocument.TENANT_ID, tenant)
-            .field("Title", "Test save")
+            .field(TITLE, TEST_SAVE)
             .endObject();
 
         Document document = Document.parse(builder.string());
@@ -89,7 +95,7 @@ public class VitamMongoRepositoryTest {
 
         Optional<Document> response = repository.getByID(id, tenant);
         assertThat(response).isPresent();
-        assertThat(response.get()).extracting("Title").contains("Test save");
+        assertThat(response.get()).extracting(TITLE).contains(TEST_SAVE);
     }
 
     @Test
@@ -100,7 +106,7 @@ public class VitamMongoRepositoryTest {
                 .startObject()
                 .field(VitamDocument.ID, GUIDFactory.newGUID().toString())
                 .field(VitamDocument.TENANT_ID, 0)
-                .field("Title", "Test save " + RandomUtils.nextDouble())
+                .field(TITLE, TEST_SAVE + RandomUtils.nextDouble())
                 .endObject();
             documents.add(Document.parse(builder.string()));
         }
@@ -115,24 +121,12 @@ public class VitamMongoRepositoryTest {
     @Test
     public void testSaveMultipleDocumentsAndPurgeDocumentsOK() throws IOException, DatabaseException {
         List<Document> documents = new ArrayList<>();
-        // purge tenant 0
         for (int i = 0; i < 101; i++) {
             XContentBuilder builder = jsonBuilder()
                 .startObject()
                 .field(VitamDocument.ID, GUIDFactory.newGUID().toString())
                 .field(VitamDocument.TENANT_ID, 0)
-                .field("Title", "Test save " + RandomUtils.nextDouble())
-                .endObject();
-            documents.add(Document.parse(builder.string()));
-        }
-
-        // purge all
-        for (int i = 0; i < 101; i++) {
-            XContentBuilder builder = jsonBuilder()
-                .startObject()
-                .field(VitamDocument.ID, GUIDFactory.newGUID().toString())
-                .field(VitamDocument.TENANT_ID, 1)
-                .field("Title", "Test save " + RandomUtils.nextDouble())
+                .field(TITLE, TEST_SAVE + RandomUtils.nextDouble())
                 .endObject();
             documents.add(Document.parse(builder.string()));
         }
@@ -141,7 +135,7 @@ public class VitamMongoRepositoryTest {
         MongoCollection<Document> collection = mongoRule.getMongoCollection(TEST_COLLECTION);
 
         long count = collection.count();
-        assertThat(count).isEqualTo(202);
+        assertThat(count).isEqualTo(101);
 
         // purge tenant 0
         long deleted = repository.purge(0);
@@ -149,8 +143,7 @@ public class VitamMongoRepositoryTest {
 
         // purge all other tenants
         deleted = repository.purge();
-        assertThat(deleted).isEqualTo(101);
-
+        assertThat(deleted).isEqualTo(0);
     }
 
     @Test
@@ -161,7 +154,7 @@ public class VitamMongoRepositoryTest {
             .startObject()
             .field(VitamDocument.ID, id)
             .field(VitamDocument.TENANT_ID, tenant)
-            .field("Title", "Test save")
+            .field(TITLE, TEST_SAVE)
             .endObject();
 
         Document document = Document.parse(builder.string());
@@ -169,7 +162,7 @@ public class VitamMongoRepositoryTest {
 
         Optional<Document> response = repository.getByID(id, tenant);
         assertThat(response).isPresent();
-        assertThat(response.get()).extracting("Title").contains("Test save");
+        assertThat(response.get()).extracting(TITLE).contains(TEST_SAVE);
 
         repository.remove(id, tenant);
         response = repository.getByID(id, tenant);
@@ -199,7 +192,7 @@ public class VitamMongoRepositoryTest {
             .field(VitamDocument.ID, id)
             .field(VitamDocument.TENANT_ID, tenant)
             .field("Identifier", "FakeIdentifier")
-            .field("Title", "Test save")
+            .field(TITLE, "Test save")
             .endObject();
 
         Document document = Document.parse(builder.string());
@@ -207,7 +200,7 @@ public class VitamMongoRepositoryTest {
 
         Optional<Document> response = repository.findByIdentifierAndTenant("FakeIdentifier", tenant);
         assertThat(response).isPresent();
-        assertThat(response.get()).extracting("Title").contains("Test save");
+        assertThat(response.get()).extracting(TITLE).contains("Test save");
     }
 
     @Test
@@ -218,7 +211,7 @@ public class VitamMongoRepositoryTest {
             .startObject()
             .field(VitamDocument.ID, id)
             .field("Identifier", "FakeIdentifier")
-            .field("Title", "Test save")
+            .field(TITLE, TEST_SAVE)
             .endObject();
 
         Document document = Document.parse(builder.string());
@@ -226,7 +219,7 @@ public class VitamMongoRepositoryTest {
 
         Optional<Document> response = repository.findByIdentifier("FakeIdentifier");
         assertThat(response).isPresent();
-        assertThat(response.get()).extracting("Title").contains("Test save");
+        assertThat(response.get()).extracting(TITLE).contains(TEST_SAVE);
     }
 
     @Test
@@ -272,5 +265,42 @@ public class VitamMongoRepositoryTest {
     public void testRemoveByNameAndTenantNotExistingOK() throws DatabaseException {
         Integer tenant = 0;
         repository.removeByNameAndTenant("FakeName", tenant);
+    }
+
+    @Test
+    public void testFindDocuments() throws Exception {
+        // Given
+        List<Document> documents = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            XContentBuilder builder = jsonBuilder()
+                .startObject()
+                .field(VitamDocument.ID, GUIDFactory.newGUID().toString())
+                .field(VitamDocument.TENANT_ID, 0)
+                .field(TITLE, TEST_SAVE + i + " " + RandomUtils.nextDouble())
+                .endObject();
+            documents.add(Document.parse(builder.string()));
+        }
+        // When
+        repository.save(documents);
+        FindIterable<Document> iterable = repository.findDocuments(2, 0);
+        MongoCursor<Document> cursor;
+        cursor = iterable.iterator();
+        List<Document> docs = getDocuments(cursor, 2);
+        // Then
+        assertThat(docs.size()).isEqualTo(2);
+        while (!docs.isEmpty()) {
+            docs = getDocuments(cursor, 2);
+        }
+        assertThat(docs.size()).isEqualTo(0);
+    }
+
+    private List<Document> getDocuments(MongoCursor<Document> cursor, int batchSize) {
+        int cpt = 0;
+        List<Document> documents = new ArrayList<>();
+        while (cpt < batchSize && cursor.hasNext()) {
+            documents.add(cursor.next());
+            cpt++;
+        }
+        return documents;
     }
 }

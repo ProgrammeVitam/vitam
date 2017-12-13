@@ -194,7 +194,7 @@ public class UpdateUnitResourceTest {
 
     @After
     public void tearDown() {
-        MetadataCollections.C_UNIT.getCollection().drop();
+        MetadataCollections.UNIT.getCollection().drop();
     }
 
     private static final JsonNode buildDSLWithOptions(String query, String data) throws InvalidParseOperationException {
@@ -237,7 +237,7 @@ public class UpdateUnitResourceTest {
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
 
-        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
+        esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_0);
 
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -245,7 +245,7 @@ public class UpdateUnitResourceTest {
             .body(JsonHandler.getFromString(BODY_TEST)).when()
             .put("/units/" + ID_UNIT).then()
             .statusCode(Status.FOUND.getStatusCode());
-        esClient.refreshIndex(MetadataCollections.C_UNIT, TENANT_ID_0);
+        esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_0);
 
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)

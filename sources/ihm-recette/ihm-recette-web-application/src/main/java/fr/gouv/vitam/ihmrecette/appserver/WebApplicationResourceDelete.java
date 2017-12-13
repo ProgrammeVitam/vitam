@@ -31,17 +31,14 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
-import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -819,7 +816,7 @@ public class WebApplicationResourceDelete {
                 LOGGER.error(CANNOT_UPDATE_DELEGATE_LOGBOOK_OPERATION, exc);
             }
             LOGGER.error(e);
-            collectionKO.add(MetadataCollections.C_OBJECTGROUP.name());
+            collectionKO.add(MetadataCollections.OBJECTGROUP.name());
         }
     }
 
@@ -840,7 +837,7 @@ public class WebApplicationResourceDelete {
                 LOGGER.error("Cannot update delegate logbook operation", exc);
             }
             LOGGER.error(e);
-            collectionKO.add(MetadataCollections.C_UNIT.name());
+            collectionKO.add(MetadataCollections.UNIT.name());
         }
     }
 

@@ -34,7 +34,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.index.model.IndexationResult;
+import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -218,7 +221,7 @@ public interface MetaData {
      * @throws IllegalArgumentException  if tenant is wrong
      * @throws VitamThreadAccessException  if tenant is wrong
      */
-    public void flushUnit() throws IllegalArgumentException, VitamThreadAccessException;
+    void flushUnit() throws IllegalArgumentException, VitamThreadAccessException;
     
     /**
      * Flush ObjectGroup Index
@@ -226,6 +229,15 @@ public interface MetaData {
      * @throws IllegalArgumentException  if tenant is wrong
      * @throws VitamThreadAccessException  if tenant is wrong
      */
-    public void flushObjectGroup() throws IllegalArgumentException, VitamThreadAccessException;
+    void flushObjectGroup() throws IllegalArgumentException, VitamThreadAccessException;
+
+    /**
+     *
+     * @param indexParam
+     * @return
+     */
+    IndexationResult reindex(IndexParameters indexParam);
+
+    void switchIndex(String alias, String newIndexName) throws DatabaseException;
 
 }

@@ -35,11 +35,11 @@ enum VitamLinks {
     /**
      * Unit to Unit N-N link but asymmetric where only childs reference their fathers (so only "_up" link)
      */
-    UNIT_TO_UNIT(MetadataCollections.C_UNIT, LinkType.SYM_LINK_N_N, MetadataDocument.UNUSED, MetadataCollections.C_UNIT, MetadataDocument.UP),
+    UNIT_TO_UNIT(MetadataCollections.UNIT, LinkType.SYM_LINK_N_N, MetadataDocument.UNUSED, MetadataCollections.UNIT, MetadataDocument.UP),
     /**
      * Unit to ObjectGroup N-1 link. This link is symmetric.
      */
-    UNIT_TO_OBJECTGROUP(MetadataCollections.C_UNIT, LinkType.SYM_LINK_N1, MetadataDocument.OG, MetadataCollections.C_OBJECTGROUP, MetadataDocument.UP);
+    UNIT_TO_OBJECTGROUP(MetadataCollections.UNIT, LinkType.SYM_LINK_N1, MetadataDocument.OG, MetadataCollections.OBJECTGROUP, MetadataDocument.UP);
 
     protected MetadataCollections col1;
     protected LinkType type;

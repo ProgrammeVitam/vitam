@@ -357,11 +357,11 @@ public class WebApplicationResourceDeleteTest {
     @Test
     public void testDeleteMetadataOGOK() {
         try {
-            final GUID idOg = addData(MetadataCollections.C_OBJECTGROUP);
-            assertTrue(existsData(MetadataCollections.C_OBJECTGROUP, idOg.getId()));
+            final GUID idOg = addData(MetadataCollections.OBJECTGROUP);
+            assertTrue(existsData(MetadataCollections.OBJECTGROUP, idOg.getId()));
             given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/metadata/objectgroup");
-            assertFalse(existsData(MetadataCollections.C_OBJECTGROUP, idOg.getId()));
+            assertFalse(existsData(MetadataCollections.OBJECTGROUP, idOg.getId()));
         } catch (final Exception e) {
             LOGGER.error(e);
             fail("Exception using mongoDbAccess");
@@ -371,11 +371,11 @@ public class WebApplicationResourceDeleteTest {
     @Test
     public void testDeleteMetadataUnitOK() {
         try {
-            final GUID idUnit = addData(MetadataCollections.C_UNIT);
-            assertTrue(existsData(MetadataCollections.C_UNIT, idUnit.getId()));
+            final GUID idUnit = addData(MetadataCollections.UNIT);
+            assertTrue(existsData(MetadataCollections.UNIT, idUnit.getId()));
             given().header(GlobalDataRest.X_TENANT_ID, TENANT_ID).expect().statusCode(Status.OK.getStatusCode()).when()
                 .delete("delete/metadata/unit");
-            assertFalse(existsData(MetadataCollections.C_UNIT, idUnit.getId()));
+            assertFalse(existsData(MetadataCollections.UNIT, idUnit.getId()));
         } catch (final Exception e) {
             LOGGER.error(e);
             fail("Exception using mongoDbAccess");
@@ -596,7 +596,7 @@ public class WebApplicationResourceDeleteTest {
         final ObjectNode data1 = JsonHandler.createObjectNode().put("_id", guid.getId());
         data1.put(VitamDocument.TENANT_ID, TENANT_ID);
         MetadataDocument document;
-        if (collection.equals(MetadataCollections.C_OBJECTGROUP)) {
+        if (collection.equals(MetadataCollections.OBJECTGROUP)) {
             document = new ObjectGroup(data1);
         } else {
             document = new Unit(data1);

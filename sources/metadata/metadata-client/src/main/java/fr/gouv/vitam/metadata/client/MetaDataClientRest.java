@@ -41,6 +41,8 @@ import com.google.common.base.Strings;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.database.parameter.IndexParameters;
+import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
@@ -64,6 +66,9 @@ import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 public class MetaDataClientRest extends DefaultClient implements MetaDataClient {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetaDataClientRest.class);
+
+    private static final String REINDEX_URI = "/reindex";
+    private static final String ALIASES_URI = "/alias";
 
     /**
      * Constructor using given scheme (http)
@@ -173,7 +178,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public JsonNode selectUnitbyId(JsonNode selectQuery, String unitId) throws MetaDataExecutionException,
+    public JsonNode selectUnitbyId(JsonNode selectQuery, String unitId)
+        throws MetaDataExecutionException,
         MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException {
         try {
             ParametersChecker.checkParameter("One parameter is empty", selectQuery, unitId);
@@ -241,7 +247,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public JsonNode updateUnitbyId(JsonNode updateQuery, String unitId) throws MetaDataExecutionException,
+    public JsonNode updateUnitbyId(JsonNode updateQuery, String unitId)
+        throws MetaDataExecutionException,
         MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException,
         MetaDataNotFoundException {
         try {
@@ -446,6 +453,44 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         } catch (final VitamClientInternalException e) {
             LOGGER.error(INTERNAL_SERVER_ERROR, e);
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public JsonNode reindex(IndexParameters indexParam)
+        throws InvalidParseOperationException, MetaDataClientServerException, MetaDataNotFoundException {
+        ParametersChecker.checkParameter("The options are mandatory", indexParam);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, REINDEX_URI, null, indexParam,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            return response.readEntity(JsonNode.class);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new MetaDataClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public JsonNode switchIndexes(SwitchIndexParameters switchIndexParam)
+        throws InvalidParseOperationException, MetaDataClientServerException, MetaDataNotFoundException {
+        ParametersChecker.checkParameter("The options are mandatory", switchIndexParam);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, ALIASES_URI, null, switchIndexParam,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            return response.readEntity(JsonNode.class);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new MetaDataClientServerException("Internal Server Error", e);
         } finally {
             consumeAnyEntityAndClose(response);
         }

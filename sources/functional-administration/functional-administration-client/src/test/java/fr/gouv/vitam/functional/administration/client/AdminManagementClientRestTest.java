@@ -64,6 +64,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -399,6 +400,22 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response launchAudit(JsonNode options) {
+            return expectedResponse.post();
+        }
+
+        @POST
+        @Path("/reindex")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response launchReindexation(JsonNode options) {
+            return expectedResponse.post();
+        }
+
+        @POST
+        @Path("/alias")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response switchIndexes(JsonNode options) {
             return expectedResponse.post();
         }
 
@@ -994,4 +1011,30 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         File fileContexts = PropertiesUtils.getResourceFile("contexts_ok.json");
         return JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {});
     }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void launchReindexationTest()
+        throws ReferentialException, FileNotFoundException, InvalidParseOperationException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.post()).thenReturn(Response.status(Status.CREATED)
+            .build());
+        RequestResponse<IndexationResult> resp = client.launchReindexation(JsonHandler.createObjectNode());
+        assertEquals(resp.getStatus(), Status.CREATED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void switchIndexesTest()
+        throws ReferentialException, FileNotFoundException, InvalidParseOperationException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.post()).thenReturn(Response.status(Status.OK)
+            .build());
+        RequestResponse<IndexationResult> resp = client.switchIndexes(JsonHandler.createObjectNode());
+        assertEquals(resp.getStatus(), Status.OK.getStatusCode());
+    }
+
 }

@@ -30,6 +30,7 @@ import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
 import static java.util.Collections.singletonList;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assume.assumeTrue;
 
@@ -38,10 +39,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import javax.xml.bind.MarshalException;
 
-import fr.gouv.vitam.common.model.DatabaseCursor;
 import org.bson.Document;
 import org.jhades.JHades;
 import org.junit.After;
@@ -69,6 +70,8 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.parameter.IndexParameters;
+import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.error.VitamError;
@@ -77,7 +80,6 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
@@ -192,7 +194,7 @@ public class MetaDataResourceTest {
 
     @After
     public void tearDown() {
-        MetadataCollections.C_UNIT.getCollection().drop();
+        MetadataCollections.UNIT.getCollection().drop();
     }
 
     private static final JsonNode buildDSLWithOptions(String query, String data) throws Exception {
@@ -208,7 +210,8 @@ public class MetaDataResourceTest {
         return obj.toString();
     }
 
-    private static String generateResponseErrorFromStatus(Status status, String message) throws JsonProcessingException {
+    private static String generateResponseErrorFromStatus(Status status, String message)
+        throws JsonProcessingException {
         return new ObjectMapper().writeValueAsString(new VitamError(status.name()).setHttpCode(status.getStatusCode())
             .setContext("ingest").setState("code_vitam")
             .setMessage(status.getReasonPhrase()).setDescription(message));
@@ -251,7 +254,8 @@ public class MetaDataResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions("", DATA)).when()
             .post("/units").then()
-            .body(equalTo(generateResponseErrorFromStatus(Status.CONFLICT, "Unit already exists: aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq")))
+            .body(equalTo(generateResponseErrorFromStatus(Status.CONFLICT,
+                "Unit already exists: aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq")))
             .statusCode(Status.CONFLICT.getStatusCode());
     }
 
@@ -322,8 +326,9 @@ public class MetaDataResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions(QUERY_EXISTS, DATA)).when()
             .post("/units")
-        .then()
-            .body(equalTo(generateResponseErrorFromStatus(Status.NOT_FOUND, "Cannot find Parent: [aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab]")))
+            .then()
+            .body(equalTo(generateResponseErrorFromStatus(Status.NOT_FOUND,
+                "Cannot find Parent: [aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab]")))
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
@@ -386,7 +391,8 @@ public class MetaDataResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions(QUERY_PATH, DATA2)).when()
             .post("/objectgroups").then()
-            .body(equalTo(generateResponseErrorFromStatus(Status.CONFLICT, "ObjectGroup already exists: aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab")))
+            .body(equalTo(generateResponseErrorFromStatus(Status.CONFLICT,
+                "ObjectGroup already exists: aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab")))
             .statusCode(Status.CONFLICT.getStatusCode());
     }
 
@@ -420,7 +426,7 @@ public class MetaDataResourceTest {
     @Test
     public void should_find_accession_register_on_unit() throws Exception {
         String operationId = "1234";
-        MetadataCollections.C_UNIT.getCollection().insertOne(
+        MetadataCollections.UNIT.getCollection().insertOne(
             new Document("_id", "1").append("_ops", singletonList(operationId))
                 .append("_sps", Arrays.asList("sp1", "sp2")));
         given()
@@ -435,8 +441,9 @@ public class MetaDataResourceTest {
     @Test
     public void should_find_accession_register_on_object_group() throws Exception {
         String operationId = "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq";
-        MetadataCollections.C_OBJECTGROUP.getCollection().insertOne(new ObjectGroup(JsonHandler.getFromInputStream(getClass().getResourceAsStream(
-            "/object_sp1_1.json"))));
+        MetadataCollections.OBJECTGROUP.getCollection()
+            .insertOne(new ObjectGroup(JsonHandler.getFromInputStream(getClass().getResourceAsStream(
+                "/object_sp1_1.json"))));
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
@@ -445,5 +452,41 @@ public class MetaDataResourceTest {
             .statusCode(Status.OK.getStatusCode());
     }
 
+    @Test
+    public void indexCollectionNoBodyPreconditionFailed() {
+        given().contentType(MediaType.APPLICATION_JSON)
+            .when().post("/reindex").then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
 
+    @Test
+    public void indexCollectionUnknownInternalServerError() {
+        IndexParameters indexParameters = new IndexParameters();
+        List<Integer> tenants = new ArrayList<>();
+        tenants.add(0);
+        indexParameters.setTenants(tenants);
+        indexParameters.setCollectionName("fake");
+
+        given().contentType(MediaType.APPLICATION_JSON).body(indexParameters)
+            .when().post("/reindex").then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+            .body("collectionName", equalTo("fake"))
+            .body("KO.size()", equalTo(1))
+            .body("KO.get(0).indexName", equalTo("fake_0_*"))
+            .body("KO.get(0).message", containsString("'fake'"))
+            .body("KO.get(0).tenant", equalTo(0));
+    }
+
+    @Test
+    public void aliasCollectionNoBodyPreconditionFailed() {
+        given().contentType(MediaType.APPLICATION_JSON)
+            .when().post("/alias").then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void aliasUnkwownCollection() {
+        SwitchIndexParameters parameters = new SwitchIndexParameters();
+        parameters.setAlias("alias");
+        parameters.setIndexName("indexName");
+        given().contentType(MediaType.APPLICATION_JSON).body(parameters)
+            .when().post("/alias").then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
 }

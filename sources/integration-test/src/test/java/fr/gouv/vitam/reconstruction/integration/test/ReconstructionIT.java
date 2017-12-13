@@ -216,6 +216,7 @@ public class ReconstructionIT {
         final AdminManagementConfiguration realAdminConfig =
             PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
         realAdminConfig.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
+        realAdminConfig.setDbName(mongoRule.getMongoDatabase().getName());
         realAdminConfig.setElasticsearchNodes(nodesEs);
         realAdminConfig.setClusterName(elasticsearchRule.getClusterName());
         realAdminConfig.setWorkspaceUrl("http://localhost:" + PORT_SERVICE_WORKSPACE);

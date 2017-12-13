@@ -1,0 +1,11 @@
+{
+  "properties": {
+    "Name": {
+      "type": "text",
+      "fielddata": true
+    },
+    "_tenant": {
+      "type": "long"
+    }
+  }
+}

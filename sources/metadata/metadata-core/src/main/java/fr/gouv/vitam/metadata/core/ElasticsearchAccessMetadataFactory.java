@@ -47,7 +47,8 @@ public class ElasticsearchAccessMetadataFactory {
      * @return the ElasticsearchAccess
      * @throws MetaDataException if error of creating ElasticSearchAccessMetadata 
      */
-    public ElasticsearchAccessMetadata create(MetaDataConfiguration configuration) throws MetaDataException, IOException {
+    public static ElasticsearchAccessMetadata create(MetaDataConfiguration configuration) throws MetaDataException,
+        IOException {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
         try {
             return new ElasticsearchAccessMetadata(configuration.getClusterName(),

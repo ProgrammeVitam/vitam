@@ -36,7 +36,6 @@ import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
 import org.elasticsearch.action.DocWriteRequest.OpType;
 import org.elasticsearch.action.ListenableActionFuture;
-import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.flush.FlushRequest;
 import org.elasticsearch.action.admin.indices.flush.FlushResponse;
 import org.elasticsearch.action.bulk.BulkItemResponse;
@@ -112,8 +111,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      */
     public final boolean deleteIndex(final MetadataCollections collection, Integer tenantId) {
         try {
-            if (client.admin().indices().prepareExists(getIndexName(collection, tenantId)).get().isExists()) {
-                if (!client.admin().indices().prepareDelete(getIndexName(collection, tenantId)).get()
+            if (client.admin().indices().prepareExists(getAliasName(collection, tenantId)).get().isExists()) {
+                if (!client.admin().indices().prepareDelete(getAliasName(collection, tenantId)).get()
                     .isAcknowledged()) {
                     LOGGER.error("Error on index delete");
                 }
@@ -134,25 +133,12 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @return True if ok
      */
     public final boolean addIndex(final MetadataCollections collection, Integer tenantId) {
-        LOGGER.debug("addIndex: {}", getIndexName(collection, tenantId));
-        if (!client.admin().indices().prepareExists(getIndexName(collection, tenantId)).get().isExists()) {
-            try {
-                LOGGER.debug("createIndex");
-                final String mapping = getMapping(collection);
-                final String type = VitamCollection.getTypeunique();
-                LOGGER.debug("setMapping: " + getIndexName(collection, tenantId) + " type: " + type + "\n\t" + mapping);
-                final CreateIndexResponse response = client.admin().indices()
-                    .prepareCreate(getIndexName(collection, tenantId))
-                    .setSettings(default_builder)
-                    .addMapping(type, mapping, XContentType.JSON).get();
-                if (!response.isAcknowledged()) {
-                    LOGGER.error(type + ":" + response.isAcknowledged());
-                    return false;
-                }
-            } catch (final Exception e) {
-                LOGGER.error("Error while set Mapping", e);
-                return false;
-            }
+        try {
+            super.createIndexAndAliasIfAliasNotExists(collection.getName().toLowerCase(), getMapping(collection),
+                VitamCollection.getTypeunique(), tenantId);
+        } catch (final Exception e) {
+            LOGGER.error("Error while set Mapping", e);
+            return false;
         }
         return true;
     }
@@ -164,7 +150,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @param tenantId the tenant for operation
      */
     public final void refreshIndex(final MetadataCollections collection, Integer tenantId) {
-        String allIndexes = getIndexName(collection, tenantId);
+        String allIndexes = getAliasName(collection, tenantId);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("refreshIndex: " + allIndexes);
         }
@@ -185,7 +171,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     final boolean addEntryIndex(final MetadataCollections collection, final Integer tenantId, final String id,
         final String json) {
         final String type = VitamCollection.getTypeunique();
-        return client.prepareIndex(getIndexName(collection, tenantId), type, id).setSource(json)
+        return client.prepareIndex(getAliasName(collection, tenantId), type, id).setSource(json)
             .setOpType(OpType.INDEX)
             .get().getVersion() > 0;
     }
@@ -206,7 +192,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         // index/delete requests
         final String type = VitamCollection.getTypeunique();
         for (final Entry<String, String> val : mapIdJson.entrySet()) {
-            bulkRequest.add(client.prepareIndex(getIndexName(collection, tenantId), type, val.getKey())
+            bulkRequest.add(client.prepareIndex(getAliasName(collection, tenantId), type, val.getKey())
                 .setSource(val.getValue(), XContentType.JSON));
         }
         return bulkRequest.execute(); // new thread
@@ -252,9 +238,9 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      */
     public final boolean addEntryIndex(final MetadataDocument<?> document, Integer tenantId) {
         MetadataDocument<?> newdoc = document;
-        MetadataCollections collection = MetadataCollections.C_OBJECTGROUP;
+        MetadataCollections collection = MetadataCollections.OBJECTGROUP;
         if (newdoc instanceof Unit) {
-            collection = MetadataCollections.C_UNIT;
+            collection = MetadataCollections.UNIT;
             newdoc = getFiltered((Unit) newdoc);
         }
         final String id = newdoc.getId();
@@ -279,9 +265,9 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     public final int addBulkEntryIndex(final Map<String, String> indexes, final Integer tenantId,
         final MetadataDocument<?> document) {
         MetadataDocument<?> newdoc = document;
-        MetadataCollections collection = MetadataCollections.C_OBJECTGROUP;
+        MetadataCollections collection = MetadataCollections.OBJECTGROUP;
         if (newdoc instanceof Unit) {
-            collection = MetadataCollections.C_UNIT;
+            collection = MetadataCollections.UNIT;
             newdoc = getFiltered((Unit) newdoc);
         }
         final String id = newdoc.getId();
@@ -313,7 +299,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         final String json)
         throws Exception {
         final String type = VitamCollection.getTypeunique();
-        return client.prepareUpdate(getIndexName(collection, tenantId), type, id)
+        return client.prepareUpdate(getAliasName(collection, tenantId), type, id)
             .setDoc(json, XContentType.JSON)
             .setRefreshPolicy(RefreshPolicy.IMMEDIATE)
             .execute().actionGet().getVersion() > 1;
@@ -351,7 +337,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 throw new MetaDataExecutionException("Result to insert is empty");
             }
             bulkRequest.add(client
-                .prepareIndex(getIndexName(MetadataCollections.C_UNIT, tenantId), VitamCollection.getTypeunique(), id)
+                .prepareIndex(getAliasName(MetadataCollections.UNIT, tenantId), VitamCollection.getTypeunique(), id)
                 .setSource(toInsert, XContentType.JSON));
             if (max == 0) {
                 max = VitamConfiguration.getMaxElasticsearchBulk();
@@ -373,7 +359,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             }
         }
         if (bulkRequest.numberOfActions() > 0) {
-            final BulkResponse bulkResponse = bulkRequest.setRefreshPolicy(RefreshPolicy.NONE).execute().actionGet(); // new
+            final BulkResponse bulkResponse =
+                bulkRequest.setRefreshPolicy(RefreshPolicy.NONE).execute().actionGet(); // new
             if (bulkResponse.hasFailures()) {
                 int duplicates = 0;
                 for (final BulkItemResponse bulkItemResponse : bulkResponse) {
@@ -421,7 +408,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
 
             bulkRequest
                 .add(client
-                    .prepareUpdate(getIndexName(MetadataCollections.C_UNIT, tenantId), VitamCollection.getTypeunique(),
+                    .prepareUpdate(getAliasName(MetadataCollections.UNIT, tenantId), VitamCollection.getTypeunique(),
                         id)
                     .setDoc(toUpdate, XContentType.JSON));
             // .setDoc(toUpdate));
@@ -437,7 +424,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             }
         }
         if (bulkRequest.numberOfActions() > 0) {
-            final BulkResponse bulkResponse = bulkRequest.setRefreshPolicy(RefreshPolicy.NONE).execute().actionGet(); // new
+            final BulkResponse bulkResponse =
+                bulkRequest.setRefreshPolicy(RefreshPolicy.NONE).execute().actionGet(); // new
             if (bulkResponse.hasFailures()) {
                 LOGGER.error("ES update in error: " + bulkResponse.buildFailureMessage());
                 throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
@@ -464,7 +452,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
 
         final SearchResponse response;
         final SearchRequestBuilder request;
-        final boolean isUnit = collection == MetadataCollections.C_UNIT;
+        final boolean isUnit = collection == MetadataCollections.UNIT;
         final Result<?> resultRequest =
             isUnit ? MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS)
                 : MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
@@ -472,7 +460,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             int limitES = (limit != null && limit > 0) ? limit : GlobalDatasDb.DEFAULT_LIMIT_SCROLL;
             int scrollTimeoutES =
                 (scrollTimeout != null && scrollTimeout > 0) ? scrollTimeout : GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT;
-            request = client.prepareSearch(getIndexName(collection, tenantId))
+            request = client.prepareSearch(getAliasName(collection, tenantId))
                 .setScroll(new TimeValue(scrollTimeoutES))
                 .setQuery(query)
                 .setSize(limitES);
@@ -486,7 +474,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         } else {
             // Note: Could change the code to allow multiple indexes and multiple
             // types
-            request = client.prepareSearch(getIndexName(collection, tenantId))
+            request = client.prepareSearch(getAliasName(collection, tenantId))
                 .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setTypes(type).setExplain(false)
                 .setSize(GlobalDatas.LIMIT_LOAD).setFetchSource(MetadataDocument.ES_PROJECTION, null);
             if (offset != -1) {
@@ -578,7 +566,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     public final void deleteEntryIndex(final MetadataCollections collections, Integer tenantId, final String type,
         final String id)
         throws MetaDataExecutionException, MetaDataNotFoundException {
-        final DeleteRequestBuilder builder = client.prepareDelete(getIndexName(collections, tenantId), type, id);
+        final DeleteRequestBuilder builder = client.prepareDelete(getAliasName(collections, tenantId), type, id);
         final DeleteResponse response;
         try {
             response = builder.setRefreshPolicy(RefreshPolicy.IMMEDIATE).get();
@@ -622,7 +610,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 throw new MetaDataExecutionException("Result to insert is empty");
             }
             bulkRequest.add(client
-                .prepareIndex(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId),
+                .prepareIndex(getAliasName(MetadataCollections.OBJECTGROUP, tenantId),
                     VitamCollection.getTypeunique(), id)
                 .setSource(toInsert, XContentType.JSON));
             if (max == 0) {
@@ -644,7 +632,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             }
         }
         if (bulkRequest.numberOfActions() > 0) {
-            final BulkResponse bulkResponse = bulkRequest.setRefreshPolicy(RefreshPolicy.NONE).execute().actionGet(); // new
+            final BulkResponse bulkResponse =
+                bulkRequest.setRefreshPolicy(RefreshPolicy.NONE).execute().actionGet(); // new
             if (bulkResponse.hasFailures()) {
                 int duplicates = 0;
                 for (final BulkItemResponse bulkItemResponse : bulkResponse) {
@@ -690,7 +679,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                 throw new MetaDataExecutionException("Result to update is empty");
             }
 
-            bulkRequest.add(client.prepareUpdate(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId),
+            bulkRequest.add(client.prepareUpdate(getAliasName(MetadataCollections.OBJECTGROUP, tenantId),
                 VitamCollection.getTypeunique(), id).setDoc(toUpdate));
             if (max == 0) {
                 max = VitamConfiguration.getMaxElasticsearchBulk();
@@ -704,7 +693,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             }
         }
         if (bulkRequest.numberOfActions() > 0) {
-            final BulkResponse bulkResponse = bulkRequest.setRefreshPolicy(RefreshPolicy.NONE).execute().actionGet(); // new
+            final BulkResponse bulkResponse =
+                bulkRequest.setRefreshPolicy(RefreshPolicy.NONE).execute().actionGet(); // new
             if (bulkResponse.hasFailures()) {
                 LOGGER.error("ES update in error: " + bulkResponse.buildFailureMessage());
                 throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
@@ -729,7 +719,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         // TODO Empty variable (null) might be ignore here
         final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
         final String toUpdate = dbObject.toString().trim();
-        UpdateResponse response = client.prepareUpdate(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId),
+        UpdateResponse response = client.prepareUpdate(getAliasName(MetadataCollections.OBJECTGROUP, tenantId),
             VitamCollection.getTypeunique(), id)
             .setDoc(toUpdate, XContentType.JSON)
             .setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet();
@@ -757,7 +747,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         int max = VitamConfiguration.getMaxElasticsearchBulk();
         for (String id : ids) {
             max--;
-            bulkRequest.add(client.prepareDelete(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId),
+            bulkRequest.add(client.prepareDelete(getAliasName(MetadataCollections.OBJECTGROUP, tenantId),
                 VitamCollection.getTypeunique(), id));
             if (max == 0) {
                 max = VitamConfiguration.getMaxElasticsearchBulk();
@@ -801,7 +791,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         for (String id : ids) {
             max--;
             bulkRequest
-                .add(client.prepareDelete(getIndexName(MetadataCollections.C_UNIT, tenantId),
+                .add(client.prepareDelete(getAliasName(MetadataCollections.UNIT, tenantId),
                     VitamCollection.getTypeunique(), id));
             if (max == 0) {
                 max = VitamConfiguration.getMaxElasticsearchBulk();
@@ -824,14 +814,14 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         }
     }
 
-    private String getIndexName(final MetadataCollections collection, Integer tenantId) {
+    private String getAliasName(final MetadataCollections collection, Integer tenantId) {
         return collection.getName().toLowerCase() + "_" + tenantId.toString();
     }
 
     private String getMapping(MetadataCollections collection) throws IOException {
-        if (collection == MetadataCollections.C_UNIT) {
+        if (collection == MetadataCollections.UNIT) {
             return ElasticsearchUtil.transferJsonToMapping(Unit.class.getResourceAsStream(MAPPING_UNIT_FILE));
-        } else if (collection == MetadataCollections.C_OBJECTGROUP) {
+        } else if (collection == MetadataCollections.OBJECTGROUP) {
             return ElasticsearchUtil
                 .transferJsonToMapping(ObjectGroup.class.getResourceAsStream(MAPPING_OBJECT_GROUP_FILE));
         }

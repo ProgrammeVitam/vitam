@@ -68,6 +68,9 @@ public final class LocalDateUtil {
     private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZZ";
     private static final String SIMPLE_DATE_FORMAT = "yyyy-MM-dd";
 
+    private static final DateTimeFormatter INDEX_DATE_TIME_FORMAT =
+        DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
+
     private LocalDateUtil() {
         // empty
     }
@@ -77,6 +80,14 @@ public final class LocalDateUtil {
      * @return the ISO Date Time
      */
     public static final String getString(LocalDateTime localDateTime) {
+        return localDateTime.format(DateTimeFormatter.ISO_DATE_TIME);
+    }
+
+    /**
+     * @param localDateTime in format LocalDateTime to transform
+     * @return the ISO Date Time
+     */
+    public static final String getStringFormatted(LocalDateTime localDateTime) {
         return localDateTime.format(DateTimeFormatter.ISO_DATE_TIME);
     }
 
@@ -193,7 +204,7 @@ public final class LocalDateUtil {
      * @param date the date to format for database
      * @return the formatted date for database
      * @throws DateTimeParseException thrown when cannot parse String date (not ISO_LOCAL_DATE_TIME, not
-     *                                ZONED_DATE_TIME_FORMAT and not ISO_DATE date format)
+     *         ZONED_DATE_TIME_FORMAT and not ISO_DATE date format)
      */
     public static String getFormattedDateForMongo(String date) {
         LocalDateTime ldt;
@@ -247,4 +258,17 @@ public final class LocalDateUtil {
     public static String getFormattedDateForMongo(LocalDateTime date) {
         return date.format(ZONED_DATE_TIME_FORMAT);
     }
+
+    /**
+     * Use to have homogeneous String date format on ES indexes
+     *
+     * @param date the date to format for database
+     * @return the formatted date for database
+     */
+
+    public static String getFormattedDateForEsIndexes(LocalDateTime date) {
+        return date.format(INDEX_DATE_TIME_FORMAT);
+    }
+
+
 }

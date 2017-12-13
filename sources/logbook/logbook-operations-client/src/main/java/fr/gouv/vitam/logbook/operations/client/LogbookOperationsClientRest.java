@@ -38,7 +38,10 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.database.parameter.IndexParameters;
+import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -65,6 +68,9 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
     private static final String OPERATIONS_URL = "/operations";
     private static final String TRACEABILITY_URI = "/operations/traceability";
     private static final String TRACEABILITY_LFC_URI = "/lifecycles/traceability";
+
+    private static final String REINDEX_URI = "/reindex";
+    private static final String ALIASES_URI = "/alias";
 
     private final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
 
@@ -336,11 +342,49 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
                 default:
                     LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
                     throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
-            }            
+            }
             return RequestResponse.parseRequestResponseOk(response);
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public JsonNode reindex(IndexParameters indexParam)
+        throws InvalidParseOperationException, LogbookClientServerException {
+        ParametersChecker.checkParameter("The options are mandatory", indexParam);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, REINDEX_URI, null, indexParam,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            return response.readEntity(JsonNode.class);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new LogbookClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public JsonNode switchIndexes(SwitchIndexParameters switchIndexParam)
+        throws InvalidParseOperationException, LogbookClientServerException {
+        ParametersChecker.checkParameter("The options are mandatory", switchIndexParam);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, ALIASES_URI, null, switchIndexParam,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            return response.readEntity(JsonNode.class);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new LogbookClientServerException("Internal Server Error", e);
         } finally {
             consumeAnyEntityAndClose(response);
         }

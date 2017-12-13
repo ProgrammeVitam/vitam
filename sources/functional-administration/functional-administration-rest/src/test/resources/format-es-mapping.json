@@ -1,0 +1,46 @@
+{
+  "properties": {
+    "Name": {
+      "type": "text",
+      "fielddata": true
+    },
+    "PUID": {
+      "type": "keyword"
+    },
+    "MIMEType": {
+      "type": "text"
+    },
+    "Extension": {
+      "type": "keyword"
+    },
+    "VersionPronom": {
+      "type": "keyword"
+    },
+    "CreatedDate": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    },
+    "Version": {
+      "type": "keyword"
+    },
+    "Group": {
+      "type": "text"
+    },
+    "Alert": {
+      "type": "boolean"
+    },
+    "Comment": {
+      "type": "text"
+    },
+    "HasPriorityOverFileFormatID": {
+      "type": "keyword"
+    },
+    "_v": {
+      "type": "long"
+    },
+    "_score": {
+      "type": "object",
+      "enabled": false
+    }
+  }
+}

@@ -26,10 +26,23 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.collections;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Vitam Collection Helper
  */
 public class VitamCollectionHelper {
+    
+    /**
+     * Metadata collections
+     */
+    private static final Set<String> METADATA_COLLECTIONS = new HashSet<>(Arrays.asList("Unit", "ObjectGroup"));
+    /**
+     * Logbook collections
+     */
+    private static final Set<String> LOGBOOK_COLLECTIONS = new HashSet<>(Arrays.asList("Operation"));
     
     /**
      * getCollection with collection class
@@ -41,5 +54,24 @@ public class VitamCollectionHelper {
      */
     public static VitamCollection getCollection(final Class<?> clasz, boolean multitenant, boolean usingScore) {
         return new VitamCollection(clasz, multitenant, usingScore);
+    }
+    
+    /**
+     * check if the collection is a metadata one
+     * @param collectionName
+     * @return true if yes
+     */
+    public static boolean isMetadataCollection(String collectionName) {
+        return METADATA_COLLECTIONS.contains(collectionName);
+    }
+    
+    /**
+     * check if the collection is a logbook one
+     * 
+     * @param collectionName
+     * @return true if yes
+     */
+    public static boolean isLogbookCollection(String collectionName) {
+        return LOGBOOK_COLLECTIONS.contains(collectionName);
     }
 }

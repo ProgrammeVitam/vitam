@@ -39,11 +39,11 @@ public enum MetadataCollections {
     /**
      * Unit Collection
      */
-    C_UNIT(Unit.class),
+    UNIT(Unit.class),
     /**
      * ObjectGroup Collection
      */
-    C_OBJECTGROUP(ObjectGroup.class);
+    OBJECTGROUP(ObjectGroup.class);
 
     private VitamCollection vitamCollection;
 

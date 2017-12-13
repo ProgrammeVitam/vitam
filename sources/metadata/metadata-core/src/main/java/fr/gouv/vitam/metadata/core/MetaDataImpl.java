@@ -33,6 +33,8 @@ import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ORIGINATING_AGENCIES;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.QUALIFIERS;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,6 +43,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.bson.Document;
 
@@ -50,20 +53,25 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.MongoCollection;
 
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.index.model.IndexationResult;
+import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
+import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
+import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -102,9 +110,8 @@ public class MetaDataImpl implements MetaData {
      * MetaDataImpl constructor
      *
      * @param configuration of mongoDB access
-     * @param mongoDbAccessFactory
      */
-    private MetaDataImpl(MetaDataConfiguration configuration, MongoDbAccessMetadataFactory mongoDbAccessFactory) {
+    private MetaDataImpl(MetaDataConfiguration configuration) {
         mongoDbAccess = MongoDbAccessMetadataFactory.create(configuration);
     }
 
@@ -126,13 +133,10 @@ public class MetaDataImpl implements MetaData {
      * Get a new MetaDataImpl instance
      *
      * @param configuration of mongoDB access
-     * @param mongoDbAccessFactory factory creating MongoDbAccessMetadata
      * @return a new instance of MetaDataImpl
      */
-    public static MetaData newMetadata(MetaDataConfiguration configuration,
-        MongoDbAccessMetadataFactory mongoDbAccessFactory) {
-        ParametersChecker.checkParameter("MongoDbAccessFactory cannot be null", mongoDbAccessFactory);
-        return new MetaDataImpl(configuration, mongoDbAccessFactory);
+    public static MetaData newMetadata(MetaDataConfiguration configuration) {
+        return new MetaDataImpl(configuration);
     }
 
     @Override
@@ -179,7 +183,7 @@ public class MetaDataImpl implements MetaData {
 
     @Override
     public List<Document> selectAccessionRegisterOnUnitByOperationId(String operationId) {
-        AggregateIterable<Document> aggregate = MetadataCollections.C_UNIT.getCollection().aggregate(Arrays.asList(
+        AggregateIterable<Document> aggregate = MetadataCollections.UNIT.getCollection().aggregate(Arrays.asList(
             new Document("$match", new Document("$and", Arrays.asList(new Document(OPS, operationId),
                 new Document(Unit.UNIT_TYPE, new Document("$ne", UnitType.HOLDING_UNIT.name()))))),
             new Document("$unwind", "$" + ORIGINATING_AGENCIES),
@@ -192,7 +196,7 @@ public class MetaDataImpl implements MetaData {
     @Override
     public List<Document> selectAccessionRegisterOnObjectGroupByOperationId(String operationId) {
         AggregateIterable<Document> aggregate =
-            MetadataCollections.C_OBJECTGROUP.getCollection().aggregate(Arrays.asList(
+            MetadataCollections.OBJECTGROUP.getCollection().aggregate(Arrays.asList(
                 new Document("$match", new Document(OPS, operationId)),
                 new Document("$unwind", "$" + QUALIFIERS),
                 new Document("$unwind", "$" + QUALIFIERS + ".versions"),
@@ -469,12 +473,46 @@ public class MetaDataImpl implements MetaData {
     @Override
     public void flushUnit() throws IllegalArgumentException, VitamThreadAccessException {
         final Integer tenantId = ParameterHelper.getTenantParameter();
-        mongoDbAccess.getEsClient().refreshIndex(MetadataCollections.C_UNIT, tenantId);
+        mongoDbAccess.getEsClient().refreshIndex(MetadataCollections.UNIT, tenantId);
     }
 
     @Override
     public void flushObjectGroup() throws IllegalArgumentException, VitamThreadAccessException {
         final Integer tenantId = ParameterHelper.getTenantParameter();
-        mongoDbAccess.getEsClient().refreshIndex(MetadataCollections.C_OBJECTGROUP, tenantId);
+        mongoDbAccess.getEsClient().refreshIndex(MetadataCollections.OBJECTGROUP, tenantId);
+    }
+
+    @Override
+    public IndexationResult reindex(IndexParameters indexParam) {
+        MetadataCollections collection;
+        try {
+            collection = MetadataCollections.valueOf(indexParam.getCollectionName().toUpperCase());
+        } catch (IllegalArgumentException exc) {
+            String message = String.format("Try to reindex a non metadata collection '%s' with metadata module",
+                indexParam.getCollectionName());
+            LOGGER.error(message);
+            return IndexationHelper.getFullKOResult(indexParam, message);
+        }
+        // mongo collection
+        MongoCollection<Document> mongoCollection = collection.getCollection();
+        try (InputStream mappingStream = ElasticsearchCollections.valueOf(indexParam.getCollectionName().toUpperCase())
+            .getMappingAsInputStream()) {
+            return IndexationHelper.reindex(mongoCollection, mongoDbAccess.getEsClient(),
+                indexParam.getTenants(), mappingStream);
+        } catch (IOException exc) {
+            LOGGER.error("Cannot get '{}' elastic search mapping for tenants {}", collection.name(),
+                indexParam.getTenants().stream().map(Object::toString).collect(Collectors.joining(", ")));
+            return IndexationHelper.getFullKOResult(indexParam, exc.getMessage());
+        }
+    }
+
+    @Override
+    public void switchIndex(String alias, String newIndexName) throws DatabaseException {
+        try {
+            IndexationHelper.switchIndex(alias, newIndexName, mongoDbAccess.getEsClient());
+        } catch (DatabaseException exc) {
+            LOGGER.error("Cannot switch alias {} to index {}", alias, newIndexName);
+            throw exc;
+        }
     }
 }

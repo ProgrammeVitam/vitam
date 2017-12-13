@@ -34,10 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
-import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import org.apache.commons.lang3.RandomUtils;
 import org.bson.Document;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
@@ -50,6 +46,11 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 
 /**
  */
@@ -91,18 +92,15 @@ public class VitamElasticsearchRepositoryTest {
     @Rule
     public ElasticsearchRule elasticsearchRule = new ElasticsearchRule(tempFolder.newFolder(), TESTINDEX);
 
-    public VitamElasticsearchRepositoryTest() throws IOException {
-    }
-
+    public VitamElasticsearchRepositoryTest() throws IOException {}
 
 
     @Before
     public void setUpBeforeClass() throws Exception {
         repository = new VitamElasticsearchRepository(elasticsearchRule.getClient(), TESTINDEX, false);
-
         /*
-         *findByIdentifierAndTenant works only if identifier is term (not text)
-         * As es by default detect Identifier as text we shoud pre-create index with correct mapping
+         * findByIdentifierAndTenant works only if identifier is term (not text) As es by default detect Identifier as
+         * text we shoud pre-create index with correct mapping
          */
         createIndexWithMapping(elasticsearchRule.getClient());
     }
@@ -129,7 +127,6 @@ public class VitamElasticsearchRepositoryTest {
     @Test
     public void testSaveMultipleDocumentsAndPurgeDocumentsOK() throws IOException, DatabaseException {
         List<Document> documents = new ArrayList<>();
-        // purge tenant 0
         for (int i = 0; i < 101; i++) {
             XContentBuilder builder = jsonBuilder()
                 .startObject()
@@ -160,7 +157,6 @@ public class VitamElasticsearchRepositoryTest {
         // purge all other tenants
         deleted = repository.purge();
         assertThat(deleted).isEqualTo(101);
-
     }
 
 

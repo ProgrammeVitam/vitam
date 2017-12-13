@@ -29,6 +29,8 @@ package fr.gouv.vitam.logbook.rest;
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
@@ -38,6 +40,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
 import org.jhades.JHades;
@@ -62,6 +65,8 @@ import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.database.parameter.IndexParameters;
+import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -491,5 +496,41 @@ public class LogbookResourceTest {
             .statusCode(Status.OK.getStatusCode());
     }
 
+    @Test
+    public void indexCollectionNoBodyPreconditionFailed() {
+        given().contentType(MediaType.APPLICATION_JSON)
+            .when().post("/reindex").then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
 
+    @Test
+    public void indexCollectionUnknownInternalServerError() {
+        IndexParameters indexParameters = new IndexParameters();
+        List<Integer> tenants = new ArrayList<>();
+        tenants.add(0);
+        indexParameters.setTenants(tenants);
+        indexParameters.setCollectionName("fake");
+
+        given().contentType(MediaType.APPLICATION_JSON).body(indexParameters)
+            .when().post("/reindex").then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+            .body("collectionName", equalTo("fake"))
+            .body("KO.size()", equalTo(1))
+            .body("KO.get(0).indexName", equalTo("fake_0_*"))
+            .body("KO.get(0).message", containsString("'fake'"))
+            .body("KO.get(0).tenant", equalTo(0));
+    }
+
+    @Test
+    public void aliasCollectionNoBodyPreconditionFailed() {
+        given().contentType(MediaType.APPLICATION_JSON)
+            .when().post("/alias").then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void aliasUnkwownCollection() {
+        SwitchIndexParameters parameters = new SwitchIndexParameters();
+        parameters.setAlias("alias");
+        parameters.setIndexName("indexName");
+        given().contentType(MediaType.APPLICATION_JSON).body(parameters)
+            .when().post("/alias").then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
 }

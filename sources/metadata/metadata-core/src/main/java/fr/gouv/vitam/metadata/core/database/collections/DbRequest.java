@@ -321,7 +321,7 @@ public class DbRequest {
         }
         @SuppressWarnings("unchecked")
         final FindIterable<ObjectGroup> iterable =
-            (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(MetadataCollections.C_OBJECTGROUP,
+            (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(MetadataCollections.OBJECTGROUP,
                 MongoDbMetadataHelper.queryForAncestorsOrSame(roots, defaultStartSet.getCurrentIds()),
                 ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
         final Set<String> newRoots = new HashSet<>();
@@ -359,7 +359,7 @@ public class DbRequest {
         // TODO P1 add unit tests
         @SuppressWarnings("unchecked")
         final FindIterable<Unit> iterable =
-            (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT,
+            (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
                 MongoDbMetadataHelper.queryForAncestorsOrSame(current, defaultStartSet.getCurrentIds()),
                 MongoDbMetadataHelper.ID_PROJECTION);
         final Set<String> newRoots = new HashSet<>();
@@ -401,8 +401,8 @@ public class DbRequest {
             QueryBuilder query = QueryToElasticsearch.getCommand(realQuery);
             sorts =
                 QueryToElasticsearch.getSorts(requestParser, realQuery.isFullText() || VitamCollection.containMatch(),
-                    collectionType.equals(FILTERARGS.UNITS) ? MetadataCollections.C_UNIT.useScore()
-                        : MetadataCollections.C_OBJECTGROUP.useScore());
+                    collectionType.equals(FILTERARGS.UNITS) ? MetadataCollections.UNIT.useScore()
+                        : MetadataCollections.OBJECTGROUP.useScore());
             VitamCollection.setMatch(false);
             limit = ((SelectToMongodb) requestToMongodb).getFinalLimit();
             offset = ((SelectToMongodb) requestToMongodb).getFinalOffset();
@@ -514,7 +514,7 @@ public class DbRequest {
         }
 
         final Result<MetadataDocument<?>> result =
-            MetadataCollections.C_UNIT.getEsClient().search(MetadataCollections.C_UNIT, tenantId,
+            MetadataCollections.UNIT.getEsClient().search(MetadataCollections.UNIT, tenantId,
                 VitamCollection.getTypeunique(), query, null, sorts, offset, limit, scrollId, scrollTimeout);
 
         if (GlobalDatasDb.PRINT_REQUEST) {
@@ -583,7 +583,7 @@ public class DbRequest {
         }
 
         final Result<MetadataDocument<?>> resultPreviousFilter =
-            MetadataCollections.C_UNIT.getEsClient().search(MetadataCollections.C_UNIT, tenantId,
+            MetadataCollections.UNIT.getEsClient().search(MetadataCollections.UNIT, tenantId,
                 VitamCollection.getTypeunique(), query, null, sorts, offset, limit, scrollId, scrollTimeout);
 
         // Now filter to remove false positive for > 1
@@ -593,7 +593,7 @@ public class DbRequest {
             final Bson newRoots = QueryToMongodb.getRoots(MetadataDocument.ID, resultPreviousFilter.getCurrentIds());
             @SuppressWarnings("unchecked")
             final FindIterable<Unit> iterable =
-                (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT, newRoots,
+                (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT, newRoots,
                     Unit.UNIT_VITAM_PROJECTION);
             final List<String> finalList = new ArrayList<>();
             try (final MongoCursor<Unit> cursor = iterable.iterator()) {
@@ -654,7 +654,7 @@ public class DbRequest {
         final List<Bson> pipeline = Arrays.asList(match, group);
         @SuppressWarnings("unchecked")
         final AggregateIterable<Unit> aggregateIterable =
-            MetadataCollections.C_UNIT.getCollection().aggregate(pipeline);
+            MetadataCollections.UNIT.getCollection().aggregate(pipeline);
         final Unit aggregate = aggregateIterable.first();
         final Set<String> set = new HashSet<>();
         if (aggregate != null) {
@@ -709,7 +709,7 @@ public class DbRequest {
         }
 
         LOGGER.debug(QUERY2 + "{}", finalQuery);
-        return MetadataCollections.C_UNIT.getEsClient().search(MetadataCollections.C_UNIT, tenantId,
+        return MetadataCollections.UNIT.getEsClient().search(MetadataCollections.UNIT, tenantId,
             VitamCollection.getTypeunique(), finalQuery, null, sorts, offset, limit, scrollId, scrollTimeout);
     }
 
@@ -752,7 +752,7 @@ public class DbRequest {
         }
 
         LOGGER.debug(QUERY2 + "{}", finalQuery);
-        return MetadataCollections.C_OBJECTGROUP.getEsClient().search(MetadataCollections.C_OBJECTGROUP, tenantId,
+        return MetadataCollections.OBJECTGROUP.getEsClient().search(MetadataCollections.OBJECTGROUP, tenantId,
             VitamCollection.getTypeunique(), finalQuery, null, sorts, offset, limit, scrollId, scrollTimeout);
     }
 
@@ -761,7 +761,7 @@ public class DbRequest {
         final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, last.getCurrentIds());
         if (model == FILTERARGS.UNITS) {
             final FindIterable<Unit> iterable =
-                (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT,
+                (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
                     roots, null, null, -1, -1);
             Result<MetadataDocument<?>> units = MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
             try (final MongoCursor<Unit> cursor = iterable.iterator()) {
@@ -773,7 +773,7 @@ public class DbRequest {
             return units;
         }
         final FindIterable<ObjectGroup> iterable =
-            (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(MetadataCollections.C_OBJECTGROUP,
+            (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(MetadataCollections.OBJECTGROUP,
                 roots, null, null, -1, -1);
         Result<MetadataDocument<?>> objects = MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
         try (final MongoCursor<ObjectGroup> cursor = iterable.iterator()) {
@@ -809,7 +809,7 @@ public class DbRequest {
             final Map<String, Unit> units = new HashMap<>();
             @SuppressWarnings("unchecked")
             final FindIterable<Unit> iterable =
-                (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT,
+                (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
                     roots, projection, null, -1, -1);
             try (final MongoCursor<Unit> cursor = iterable.iterator()) {
                 while (cursor.hasNext()) {
@@ -822,7 +822,7 @@ public class DbRequest {
                 final String id = last.getCurrentIds().get(i);
                 Unit unit = units.get(id);
                 if (unit != null) {
-                    if (VitamConfiguration.isExportScore() && MetadataCollections.C_UNIT.useScore() &&
+                    if (VitamConfiguration.isExportScore() && MetadataCollections.UNIT.useScore() &&
                         requestToMongodb.isScoreIncluded()) {
                         Float score = Float.valueOf(1);
                         try {
@@ -851,7 +851,7 @@ public class DbRequest {
         @SuppressWarnings("unchecked")
         final FindIterable<ObjectGroup> iterable =
             (FindIterable<ObjectGroup>) MongoDbMetadataHelper.select(
-                MetadataCollections.C_OBJECTGROUP,
+                MetadataCollections.OBJECTGROUP,
                 roots, projection, null, -1, -1);
         try (final MongoCursor<ObjectGroup> cursor = iterable.iterator()) {
             while (cursor.hasNext()) {
@@ -864,7 +864,7 @@ public class DbRequest {
             final String id = last.getCurrentIds().get(i);
             ObjectGroup og = obMap.get(id);
             if (og != null) {
-                if (VitamConfiguration.isExportScore() && MetadataCollections.C_OBJECTGROUP.useScore() &&
+                if (VitamConfiguration.isExportScore() && MetadataCollections.OBJECTGROUP.useScore() &&
                     requestToMongodb.isScoreIncluded()) {
                     Float score = Float.valueOf(1);
                     try {
@@ -909,9 +909,9 @@ public class DbRequest {
 
         MongoCollection<MetadataDocument<?>> collection;
         if (model == FILTERARGS.UNITS) {
-            collection = MetadataCollections.C_UNIT.getCollection();
+            collection = MetadataCollections.UNIT.getCollection();
         } else {
-            collection = MetadataCollections.C_OBJECTGROUP.getCollection();
+            collection = MetadataCollections.OBJECTGROUP.getCollection();
         }
 
         if (!requestToMongodb.isMultiple() && last.getNbResult() > 1) {
@@ -1022,10 +1022,10 @@ public class DbRequest {
         }
         @SuppressWarnings("unchecked")
         final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
-            .select(MetadataCollections.C_UNIT, finalQuery, Unit.UNIT_ES_PROJECTION);
+            .select(MetadataCollections.UNIT, finalQuery, Unit.UNIT_ES_PROJECTION);
         // TODO maybe retry once if in error ?
         try (final MongoCursor<Unit> cursor = iterable.iterator()) {
-            MetadataCollections.C_UNIT.getEsClient().updateBulkUnitsEntriesIndexes(cursor, tenantId);;
+            MetadataCollections.UNIT.getEsClient().updateBulkUnitsEntriesIndexes(cursor, tenantId);;
         }
 
     }
@@ -1052,10 +1052,10 @@ public class DbRequest {
         }
         @SuppressWarnings("unchecked")
         final FindIterable<ObjectGroup> iterable = (FindIterable<ObjectGroup>) MongoDbMetadataHelper
-            .select(MetadataCollections.C_OBJECTGROUP, finalQuery, ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
+            .select(MetadataCollections.OBJECTGROUP, finalQuery, ObjectGroup.OBJECTGROUP_VITAM_PROJECTION);
         // TODO maybe retry once if in error ?
         try (final MongoCursor<ObjectGroup> cursor = iterable.iterator()) {
-            MetadataCollections.C_OBJECTGROUP.getEsClient().updateBulkOGEntriesIndexes(cursor, tenantId);
+            MetadataCollections.OBJECTGROUP.getEsClient().updateBulkOGEntriesIndexes(cursor, tenantId);
         }
 
     }
@@ -1077,7 +1077,7 @@ public class DbRequest {
             // no result to delete
             return;
         }
-        MetadataCollections.C_OBJECTGROUP.getEsClient().deleteBulkOGEntriesIndexes(last.getCurrentIds(), tenantId);
+        MetadataCollections.OBJECTGROUP.getEsClient().deleteBulkOGEntriesIndexes(last.getCurrentIds(), tenantId);
     }
 
     /**
@@ -1096,7 +1096,7 @@ public class DbRequest {
             // no result to delete
             return;
         }
-        MetadataCollections.C_UNIT.getEsClient().deleteBulkUnitsEntriesIndexes(last.getCurrentIds(), tenantId);
+        MetadataCollections.UNIT.getEsClient().deleteBulkUnitsEntriesIndexes(last.getCurrentIds(), tenantId);
     }
 
     /**
@@ -1120,7 +1120,7 @@ public class DbRequest {
         try {
             if (model == FILTERARGS.UNITS) {
                 final Unit unit = new Unit(data);
-                if (MongoDbMetadataHelper.exists(MetadataCollections.C_UNIT, unit.getId())) {
+                if (MongoDbMetadataHelper.exists(MetadataCollections.UNIT, unit.getId())) {
                     // Should not exist
                     throw new MetaDataAlreadyExistException("Unit already exists: " + unit.getId());
                 }
@@ -1128,7 +1128,7 @@ public class DbRequest {
                 unit.save();
                 @SuppressWarnings("unchecked")
                 final FindIterable<Unit> iterable =
-                    (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT,
+                    (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
                         in(MetadataDocument.ID, last.getCurrentIds()), Unit.UNIT_VITAM_PROJECTION);
                 final Set<String> notFound = new HashSet<>(last.getCurrentIds());
                 // TODO P2 optimize by trying to update only once the unit
@@ -1153,7 +1153,7 @@ public class DbRequest {
                     String ogId = unit.getString(MetadataDocument.OG);
                     String unitId = unit.getString(MetadataDocument.ID);
                     final MetadataDocument newUnit =
-                        MongoDbMetadataHelper.findOne(MetadataCollections.C_UNIT, unitId);
+                        MongoDbMetadataHelper.findOne(MetadataCollections.UNIT, unitId);
                     final List originatingAgencies = newUnit.get(MetadataDocument.ORIGINATING_AGENCIES, List.class);
 
                     final Bson updateSps =
@@ -1166,7 +1166,7 @@ public class DbRequest {
                     final Bson update = combine(updateSps, updateUp, updateOps);
                     ObjectGroup object = null;
                     try {
-                        object = (ObjectGroup) MetadataCollections.C_OBJECTGROUP.getCollection()
+                        object = (ObjectGroup) MetadataCollections.OBJECTGROUP.getCollection()
                             .findOneAndUpdate(eq(ID, ogId),
                                 update,
                                 new FindOneAndUpdateOptions().upsert(false).returnDocument(ReturnDocument.AFTER));
@@ -1184,8 +1184,8 @@ public class DbRequest {
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("DEBUG: OG {}", JsonHandler.toJsonNode(object));
                     }
-                    MetadataCollections.C_OBJECTGROUP.getEsClient()
-                        .updateFullOneOG(MetadataCollections.C_OBJECTGROUP, tenantId, id,
+                    MetadataCollections.OBJECTGROUP.getEsClient()
+                        .updateFullOneOG(MetadataCollections.OBJECTGROUP, tenantId, id,
                             object);
                 }
                 last.setTotal(last.getNbResult());
@@ -1197,7 +1197,7 @@ public class DbRequest {
             // TODO P1 add unit tests
             final ObjectGroup og = new ObjectGroup(data);
             og.remove(VitamDocument.SCORE);
-            if (MongoDbMetadataHelper.exists(MetadataCollections.C_OBJECTGROUP, og.getId())) {
+            if (MongoDbMetadataHelper.exists(MetadataCollections.OBJECTGROUP, og.getId())) {
                 // Should not exist
                 throw new MetaDataAlreadyExistException("ObjectGroup already exists: " + og.getId());
             }
@@ -1209,7 +1209,7 @@ public class DbRequest {
             og.save();
             @SuppressWarnings("unchecked")
             final FindIterable<Unit> iterable =
-                (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.C_UNIT,
+                (FindIterable<Unit>) MongoDbMetadataHelper.select(MetadataCollections.UNIT,
                     in(MetadataDocument.ID, last.getCurrentIds()), Unit.UNIT_OBJECTGROUP_PROJECTION);
             final Set<String> notFound = new HashSet<>(last.getCurrentIds());
             // TODO P2 optimize by trying to update only once the og
@@ -1254,20 +1254,20 @@ public class DbRequest {
             final Bson finalQuery = in(MetadataDocument.ID, ids);
             @SuppressWarnings("unchecked")
             final FindIterable<Unit> iterable = (FindIterable<Unit>) MongoDbMetadataHelper
-                .select(MetadataCollections.C_UNIT, finalQuery, Unit.UNIT_ES_PROJECTION);
+                .select(MetadataCollections.UNIT, finalQuery, Unit.UNIT_ES_PROJECTION);
             // TODO maybe retry once if in error ?
             try (final MongoCursor<Unit> cursor = iterable.iterator()) {
-                MetadataCollections.C_UNIT.getEsClient().insertBulkUnitsEntriesIndexes(cursor, tenantId);
+                MetadataCollections.UNIT.getEsClient().insertBulkUnitsEntriesIndexes(cursor, tenantId);
             }
         } else if (model == FILTERARGS.OBJECTGROUPS) {
             // index OG
             final Bson finalQuery = in(MetadataDocument.ID, ids);
             @SuppressWarnings("unchecked")
             final FindIterable<ObjectGroup> iterable = (FindIterable<ObjectGroup>) MongoDbMetadataHelper
-                .select(MetadataCollections.C_OBJECTGROUP, finalQuery, null);
+                .select(MetadataCollections.OBJECTGROUP, finalQuery, null);
             // TODO maybe retry once if in error ?
             try (final MongoCursor<ObjectGroup> cursor = iterable.iterator()) {
-                MetadataCollections.C_OBJECTGROUP.getEsClient().insertBulkOGEntriesIndexes(cursor, tenantId);
+                MetadataCollections.OBJECTGROUP.getEsClient().insertBulkOGEntriesIndexes(cursor, tenantId);
             }
         }
     }
@@ -1295,7 +1295,7 @@ public class DbRequest {
         final FILTERARGS model = requestToMongodb.model();
         try {
             if (model == FILTERARGS.UNITS) {
-                final DeleteResult result = MongoDbMetadataHelper.delete(MetadataCollections.C_UNIT,
+                final DeleteResult result = MongoDbMetadataHelper.delete(MetadataCollections.UNIT,
                     roots, last.getCurrentIds().size());
                 if (result.getDeletedCount() != last.getNbResult()) {
                     LOGGER.warn("Deleted items different than specified");
@@ -1306,7 +1306,7 @@ public class DbRequest {
             // TODO P1 add unit tests
             // OBJECTGROUPS:
             final DeleteResult result =
-                MongoDbMetadataHelper.delete(MetadataCollections.C_OBJECTGROUP,
+                MongoDbMetadataHelper.delete(MetadataCollections.OBJECTGROUP,
                     roots, last.getCurrentIds().size());
             if (result.getDeletedCount() != last.getNbResult()) {
                 LOGGER.warn("Deleted items different than specified");

@@ -36,6 +36,7 @@ import javax.ws.rs.core.Response.Status;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.client.MockOrRestClient;
+import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
@@ -541,4 +542,26 @@ public interface AdminManagementClient extends MockOrRestClient {
      */
     RequestResponse<SecurityProfileModel> findSecurityProfileByIdentifier(String identifier)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
+    
+    
+    /**
+     * launch a reindexation process with options
+     *
+     * @param options specifying what to reindex 
+     * @return the server response including information about the newsly created index
+     * @throws AdminManagementClientServerException
+     */
+    RequestResponse<IndexationResult> launchReindexation(JsonNode options)
+        throws AdminManagementClientServerException;
+    
+    /**
+     * launch an index switch. By specifying the name of the index and the collection, 
+     * the index will be mapped to the correct alias
+     *
+     * @param options
+     * @return the server response 
+     * @throws AdminManagementClientServerException
+     */
+    RequestResponse<IndexationResult> switchIndexes(JsonNode options)
+        throws AdminManagementClientServerException;
 }

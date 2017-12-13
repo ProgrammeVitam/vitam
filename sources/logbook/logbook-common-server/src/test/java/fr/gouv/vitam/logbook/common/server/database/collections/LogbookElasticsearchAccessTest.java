@@ -196,11 +196,8 @@ public class LogbookElasticsearchAccessTest {
         System.out.println(hit.getSourceAsString());
 
         // check search
-        // QueryBuilder searchQuery = QueryBuilders.matchQuery("events."+LogbookMongoDbName.outcome.getDbname(), "OK");
-        QueryBuilder filter = null;
-        filter = QueryBuilders.boolQuery().filter(QueryBuilders.termQuery("_index", "logbookoperation_0"));
         SearchResponse elasticSearchResponse3 =
-            esClient.search(LogbookCollections.OPERATION, tenantId, query, filter, null, 0, 01);
+            esClient.search(LogbookCollections.OPERATION, tenantId, query, null, null, 0, 01);
         assertEquals(1, elasticSearchResponse3.getHits().getTotalHits());
 
         // refresh index

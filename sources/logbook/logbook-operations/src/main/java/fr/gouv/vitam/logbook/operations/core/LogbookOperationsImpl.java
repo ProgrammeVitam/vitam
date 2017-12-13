@@ -28,24 +28,39 @@ package fr.gouv.vitam.logbook.operations.core;
 
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.outcomeDetail;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Iterators;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.index.model.IndexationResult;
+import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
+import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
+import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
@@ -57,6 +72,9 @@ import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
  * Logbook Operations implementation base class
  */
 public class LogbookOperationsImpl implements LogbookOperations {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationsImpl.class);
+
     private final LogbookDbAccess mongoDbAccess;
 
     /**
@@ -203,5 +221,48 @@ public class LogbookOperationsImpl implements LogbookOperations {
         select.addOrderByDescFilter("evDateTime");
 
         return Iterators.getOnlyElement(mongoDbAccess.getLogbookOperations(select.getFinalSelect(), false), null);
+    }
+
+    @Override
+    public IndexationResult reindex(IndexParameters indexParameters) {
+        LogbookCollections collection;
+        try {
+            collection = LogbookCollections.valueOf(indexParameters.getCollectionName().toUpperCase());
+        } catch (IllegalArgumentException exc) {
+            String message = String.format("Try to reindex a non operation logbook collection '%s' with operation " +
+                "logbook module", indexParameters
+                .getCollectionName());
+            LOGGER.error(message);
+            return IndexationHelper.getFullKOResult(indexParameters, message);
+        }
+        if (!LogbookCollections.OPERATION.equals(collection)) {
+            String message = String.format("Try to reindex a non operation logbook collection '%s' with operation " +
+                "logbook module", indexParameters
+                .getCollectionName());
+            LOGGER.error(message);
+            return IndexationHelper.getFullKOResult(indexParameters, message);
+        } else {
+            MongoCollection<Document> mongoCollection = collection.getCollection();
+            try (InputStream mappingStream = ElasticsearchCollections.valueOf(indexParameters.getCollectionName().toUpperCase())
+                .getMappingAsInputStream()) {
+                return IndexationHelper.reindex(mongoCollection, collection.getEsClient(),
+                    indexParameters.getTenants(), mappingStream);
+            } catch (IOException exc) {
+                LOGGER.error("Cannot get '{}' elastic search mapping for tenants {}", collection.name(),
+                    indexParameters.getTenants().stream().map(Object::toString).collect(Collectors.joining(", ")));
+                return IndexationHelper.getFullKOResult(indexParameters, exc.getMessage());
+            }
+        }
+
+    }
+
+    @Override
+    public void switchIndex(String alias, String newIndexName) throws DatabaseException {
+        try {
+            IndexationHelper.switchIndex(alias, newIndexName, LogbookCollections.OPERATION.getEsClient());
+        } catch (DatabaseException exc) {
+            LOGGER.error("Cannot switch alias {} to index {}", alias, newIndexName, exc);
+            throw exc;
+        }
     }
 }

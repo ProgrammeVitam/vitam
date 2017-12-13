@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.client;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -43,16 +44,15 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
+import fr.gouv.vitam.common.database.parameter.IndexParameters;
+import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -62,6 +62,10 @@ import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -84,7 +88,7 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
     @ClassRule
     public static RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    
+
     public LogbookOperationsClientRestTest() {
         super(LogbookOperationsClientFactory.getInstance());
     }
@@ -158,6 +162,7 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         public Response createLogbookOperation(LogbookOperationParameters parameters) {
             return expectedResponse.post();
         }
+
         @PUT
         @Path("/operations")
         @Consumes(MediaType.APPLICATION_JSON)
@@ -166,14 +171,14 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
             return expectedResponse.put();
         }
 
-        
+
         @POST
         @Path("/operations/traceability")
         @Produces(MediaType.APPLICATION_JSON)
         public Response traceability() {
             return expectedResponse.post();
         }
-        
+
         @POST
         @Path("/lifecycles/traceability")
         @Produces(MediaType.APPLICATION_JSON)
@@ -196,6 +201,7 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         public Response selectLogbookOperation(String parameters) {
             return expectedResponse.get();
         }
+
         @PUT
         @Path("/operations/{id_op}")
         @Consumes(MediaType.APPLICATION_JSON)
@@ -210,6 +216,22 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         @Override
         public Response status() {
             return expectedResponse.get();
+        }
+
+        @POST
+        @Path("/reindex")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response launchReindexation(JsonNode options) {
+            return expectedResponse.post();
+        }
+
+        @POST
+        @Path("/alias")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response switchIndexes(JsonNode options) {
+            return expectedResponse.post();
         }
 
     }
@@ -254,7 +276,7 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
         final LogbookOperationParameters log = getComplete();
         client.create(log);
     }
-    
+
     @Test
     public void traceability() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
@@ -276,7 +298,7 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
                     .build());
         client.traceability();
     }
-    
+
     @Test
     public void traceabilityLFC() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
@@ -440,6 +462,27 @@ public class LogbookOperationsClientRestTest extends VitamJerseyTest {
             fail("Should raized an exception");
         } catch (final LogbookClientBadRequestException e) {}
 
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void launchReindexationTest()
+        throws InvalidParseOperationException, LogbookClientServerException {
+        when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(JsonHandler.createObjectNode())
+            .build());
+        JsonNode resp = client.reindex(new IndexParameters());
+        assertNotNull(resp);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void switchIndexesTest()
+        throws InvalidParseOperationException, LogbookClientServerException {
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(JsonHandler.createObjectNode())
+            .build());
+        JsonNode resp = client.switchIndexes(new SwitchIndexParameters());
+        assertNotNull(resp);
     }
 
     @Test

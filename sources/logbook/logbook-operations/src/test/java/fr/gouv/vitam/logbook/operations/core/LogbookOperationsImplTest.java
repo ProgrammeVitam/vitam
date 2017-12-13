@@ -26,34 +26,54 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.core;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.ServerAddress;
 import com.mongodb.ServerCursor;
 import com.mongodb.client.MongoCursor;
 
+import fr.gouv.vitam.common.database.index.model.IndexationResult;
+import fr.gouv.vitam.common.database.parameter.IndexParameters;
+import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccessFactory;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({LogbookElasticsearchAccessFactory.class, IndexationHelper.class})
 public class LogbookOperationsImplTest {
 
     private LogbookOperationsImpl logbookOperationsImpl;
@@ -171,19 +191,98 @@ public class LogbookOperationsImplTest {
         assertNotNull(lo);
     }
 
+    @Test
+    public void reindexCollectionUnknownTest() {
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
+        IndexParameters parameters = new IndexParameters();
+        parameters.setCollectionName("fakeName");
+        List<Integer> tenants = new ArrayList<>();
+        tenants.add(0);
+        parameters.setTenants(tenants);
+        IndexationResult result = logbookOperationsImpl.reindex(parameters);
+        assertNull(result.getIndexOK());
+        assertNotNull(result.getIndexKO());
+        assertEquals(1, result.getIndexKO().size());
+        assertEquals("fakeName_0_*", result.getIndexKO().get(0).getIndexName());
+        assertEquals("Try to reindex a non operation logbook collection 'fakeName' with operation logbook module",
+            result
+                .getIndexKO().get(0).getMessage());
+        assertEquals((Integer) 0, result.getIndexKO().get(0).getTenant());
+    }
+
+    @Test
+    public void reindexCollectionUnauthorizedTest() {
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
+        IndexParameters parameters = new IndexParameters();
+        parameters.setCollectionName("lifecycle_unit");
+        List<Integer> tenants = new ArrayList<>();
+        tenants.add(0);
+        parameters.setTenants(tenants);
+        IndexationResult result = logbookOperationsImpl.reindex(parameters);
+        assertNull(result.getIndexOK());
+        assertNotNull(result.getIndexKO());
+        assertEquals(1, result.getIndexKO().size());
+        assertEquals("lifecycle_unit_0_*", result.getIndexKO().get(0).getIndexName());
+        assertEquals("Try to reindex a non operation logbook collection 'lifecycle_unit' with operation logbook module",
+            result
+                .getIndexKO().get(0).getMessage());
+        assertEquals((Integer) 0, result.getIndexKO().get(0).getTenant());
+    }
+
+    @Test
+    public void reindexIOExceptionTest() throws Exception {
+        PowerMockito.mockStatic(IndexationHelper.class);
+        when(IndexationHelper.reindex(anyObject(), anyObject(), anyObject(), anyObject()))
+            .thenThrow(new IOException());
+        when(IndexationHelper.getFullKOResult(anyObject(), anyString()))
+            .thenCallRealMethod();
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
+        IndexParameters parameters = new IndexParameters();
+        parameters.setCollectionName("operation");
+        List<Integer> tenants = new ArrayList<>();
+        tenants.add(0);
+        parameters.setTenants(tenants);
+        IndexationResult result = logbookOperationsImpl.reindex(parameters);
+        assertNull(result.getIndexOK());
+        assertNotNull(result.getIndexKO());
+        assertEquals(1, result.getIndexKO().size());
+        assertEquals("operation_0_*", result.getIndexKO().get(0).getIndexName());
+        assertEquals((Integer) 0, result.getIndexKO().get(0).getTenant());
+    }
+
+    @Test(expected = DatabaseException.class)
+    public void switchIndexKOTest() throws Exception {
+        PowerMockito.spy(IndexationHelper.class);
+        PowerMockito.doThrow(new DatabaseException("erreur")).when(IndexationHelper.class,
+            "switchIndex", anyString(), anyString(), anyObject());
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
+        logbookOperationsImpl.switchIndex("alias", "index_name");
+    }
+
+    @Test
+    public void switchIndexOKTest() throws Exception {
+        PowerMockito.spy(IndexationHelper.class);
+        PowerMockito.doNothing().when(IndexationHelper.class, "switchIndex", anyString(), anyString(), anyObject());
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
+        logbookOperationsImpl.switchIndex("alias", "index_name");
+    }
+
     private MongoCursor createFakeMongoCursor() {
         return new MongoCursor() {
             boolean f = true;
 
-            @Override public void close() {
+            @Override
+            public void close() {
 
             }
 
-            @Override public boolean hasNext() {
+            @Override
+            public boolean hasNext() {
                 return f;
             }
 
-            @Override public Object next() {
+            @Override
+            public Object next() {
                 if (f) {
                     GUID guid = GUIDFactory.newEventGUID(0);
                     ObjectNode data = JsonHandler.createObjectNode().put("_id", guid.getId());
@@ -193,15 +292,18 @@ public class LogbookOperationsImplTest {
                 return null;
             }
 
-            @Override public Object tryNext() {
+            @Override
+            public Object tryNext() {
                 return null;
             }
 
-            @Override public ServerCursor getServerCursor() {
+            @Override
+            public ServerCursor getServerCursor() {
                 return null;
             }
 
-            @Override public ServerAddress getServerAddress() {
+            @Override
+            public ServerAddress getServerAddress() {
                 return null;
             }
         };

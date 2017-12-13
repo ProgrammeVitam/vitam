@@ -31,36 +31,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
-import fr.gouv.vitam.functional.administration.common.Agencies;
-import fr.gouv.vitam.functional.administration.common.Context;
-import fr.gouv.vitam.functional.administration.common.Profile;
-import fr.gouv.vitam.functional.administration.common.AccessContract;
-import fr.gouv.vitam.functional.administration.common.IngestContract;
-import fr.gouv.vitam.functional.administration.common.SecurityProfile;
-import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.query.QueryBuilder;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUtil;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.functional.administration.common.AccessContract;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
+import fr.gouv.vitam.functional.administration.common.Agencies;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
-import fr.gouv.vitam.functional.administration.common.IngestContract;
-import fr.gouv.vitam.functional.administration.common.Profile;
+import fr.gouv.vitam.functional.administration.common.SecurityProfile;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 // FIXME refactor with metadata
@@ -95,6 +89,8 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
         super(clusterName, nodes);
     }
 
+
+
     /**
      * Delete one index
      *
@@ -116,55 +112,18 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
     }
 
     /**
-     * Delete one index
-     *
-     * @param collection
-     * @throws ReferentialException
-     */
-    public final void deleteIndices(final FunctionalAdminCollections collection, String id)
-        throws ReferentialException {
-        try {
-            if (client.admin().indices().prepareExists(collection.getName().toLowerCase()).get().isExists()) {
-                if (!client.admin().indices()
-                    .prepareDelete(collection.getName().toLowerCase(), getMapping(collection), id)
-                    .get().isAcknowledged()) {
-                    LOGGER.error("Error on index delete");
-                }
-            }
-        } catch (final Exception e) {
-            LOGGER.error("Error while deleting index", e);
-            throw new ReferentialException(e);
-        }
-    }
-
-    /**
      * Add a type to an index
      *
      * @param collection
      * @return True if ok
      */
-    // FIXME seperate the elasticsearch index by tenant
     public final boolean addIndex(final FunctionalAdminCollections collection) {
-        LOGGER.debug("addIndex: " + collection.getName().toLowerCase());
-        if (!client.admin().indices().prepareExists(collection.getName().toLowerCase()).get().isExists()) {
-            try {
-                LOGGER.debug("createIndex");
-                final String mapping = getMapping(collection);
-                final String type = collection.getType();
-                LOGGER.debug("setMapping: " + collection.getName().toLowerCase() + " type: " + type + "\n\t" + mapping);
-                final CreateIndexResponse response =
-                    client.admin().indices().prepareCreate(collection.getName().toLowerCase())
-                        .setSettings(default_builder)
-                        .addMapping(type, mapping,XContentType.JSON)
-                        .get();
-                if (!response.isAcknowledged()) {
-                    LOGGER.error(type + ":" + response.isAcknowledged());
-                    return false;
-                }
-            } catch (final Exception e) {
-                LOGGER.error("Error while set Mapping", e);
-                return false;
-            }
+        try {
+            super.createIndexAndAliasIfAliasNotExists(collection.getName().toLowerCase(), getMapping(collection),
+                VitamCollection.getTypeunique(), null);
+        } catch (final Exception e) {
+            LOGGER.error("Error while set Mapping", e);
+            return false;
         }
         return true;
     }
@@ -196,9 +155,10 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
         // either use client#prepare, or use Requests# to directly build index/delete requests
         final String type = collection.getType();
         for (final Entry<String, String> val : mapIdJson.entrySet()) {
-        	bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE).add(client.prepareIndex(collection.getName().toLowerCase(), type,
+            bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE)
+                .add(client.prepareIndex(collection.getName().toLowerCase(), type,
                     val.getKey()).setSource(val.getValue(), XContentType.JSON));
-                        
+
         }
         return bulkRequest.execute().actionGet();
     }
@@ -206,14 +166,15 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
 
     /**
      * @param collection
-     * @param query      as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
-     *                   values" : [list of id] } }"
+     * @param query as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
+     *        values" : [list of id] } }"
      * @param filter
      * @return a structure as ResultInterface
      * @throws ReferentialException
      */
     protected final SearchResponse search(final FunctionalAdminCollections collection, final QueryBuilder query,
-        final QueryBuilder filter) throws ReferentialException {
+        final QueryBuilder filter)
+        throws ReferentialException {
         final String type = collection.getType();
         final SearchRequestBuilder request =
             client.prepareSearch(collection.getName().toLowerCase()).setSearchType(SearchType.DEFAULT)
@@ -249,13 +210,14 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
         } else if (collection.equals(FunctionalAdminCollections.AGENCIES)) {
             return ElasticsearchUtil.transferJsonToMapping(Agencies.class.getResourceAsStream(MAPPING_AGENCIES_FILE));
         } else if (collection.equals(FunctionalAdminCollections.SECURITY_PROFILE)) {
-            return ElasticsearchUtil.transferJsonToMapping(SecurityProfile.class.getResourceAsStream(MAPPING_SECURITY_PROFILE_FILE));
+            return ElasticsearchUtil
+                .transferJsonToMapping(SecurityProfile.class.getResourceAsStream(MAPPING_SECURITY_PROFILE_FILE));
         } else if (FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.equals(collection)) {
-            return ElasticsearchUtil.transferJsonToMapping(AccessionRegisterSummary.class.getResourceAsStream
-                (MAPPING_ACCESSION_REGISTER_SUMMARY_FILE));
+            return ElasticsearchUtil.transferJsonToMapping(
+                AccessionRegisterSummary.class.getResourceAsStream(MAPPING_ACCESSION_REGISTER_SUMMARY_FILE));
         } else if (FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.equals(collection)) {
-            return ElasticsearchUtil.transferJsonToMapping(AccessionRegisterDetail.class.getResourceAsStream
-                (MAPPING_ACCESSION_REGISTER_DETAIL_FILE));
+            return ElasticsearchUtil.transferJsonToMapping(
+                AccessionRegisterDetail.class.getResourceAsStream(MAPPING_ACCESSION_REGISTER_DETAIL_FILE));
         }
         return "";
     }

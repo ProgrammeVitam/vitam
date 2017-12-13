@@ -205,13 +205,13 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
 
     @Override
     protected MetadataCollections getMetadataCollections() {
-        return MetadataCollections.C_OBJECTGROUP;
+        return MetadataCollections.OBJECTGROUP;
     }
 
     @SuppressWarnings("unchecked")
     @Override
     protected MongoCollection<ObjectGroup> getCollection() {
-        return MetadataCollections.C_OBJECTGROUP.getCollection();
+        return MetadataCollections.OBJECTGROUP.getCollection();
     }
 
     @Override
@@ -343,13 +343,13 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
     protected static void addIndexes() {
         // if not set, Unit and Tree are worst
         for (final BasicDBObject index : indexes) {
-            MetadataCollections.C_OBJECTGROUP.getCollection().createIndex(index);
+            MetadataCollections.OBJECTGROUP.getCollection().createIndex(index);
         }
     }
 
     protected static void dropIndexes() {
         for (final BasicDBObject index : indexes) {
-            MetadataCollections.C_OBJECTGROUP.getCollection().dropIndex(index);
+            MetadataCollections.OBJECTGROUP.getCollection().dropIndex(index);
         }
     }
 
