@@ -26,11 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import static fr.gouv.vitam.common.SedaConstants.DATE_TIME_FORMAT_PATERN;
-
 import java.io.File;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,6 +37,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -96,8 +93,6 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
     private MetaDataClientFactory metaDataClientFactory;
     private AdminManagementClientFactory adminManagementClientFactory;
 
-    private static DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_FORMAT_PATERN);
-
     /**
      * Empty Constructor AccessionRegisterActionHandler
      */
@@ -117,12 +112,12 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
     /**
      * @return HANDLER_ID
      */
-    public static final String getId() {
+    public static String getId() {
         return HANDLER_ID;
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
         checkMandatoryParameters(params);
         LOGGER.debug("TransferNotificationActionHandler running ...");
 
@@ -292,8 +287,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
 
     private AccessionRegisterDetailModel mapParamsToAccessionRegisterDetailModel(WorkerParameters params,
         String originalAgency, String submissionAgency, String archivalAgreement, UnitPerOriginatingAgency agency,
-        ObjectGroupPerOriginatingAgency objectGroupPerOriginatingAgency, int tenantId, boolean symbolic)
-        throws ProcessingException {
+        ObjectGroupPerOriginatingAgency objectGroupPerOriginatingAgency, int tenantId, boolean symbolic) {
 
         RegisterValueDetailModel totalObjectsGroups, totalUnits, totalObjects, objectSize;
 
@@ -322,7 +316,7 @@ public class AccessionRegisterActionHandler extends ActionHandler implements Vit
                 objectGroupPerOriginatingAgency.getSize(), 0, true);
         }
 
-        String updateDate = ZonedDateTime.now().format(DATE_TIME_FORMATTER);
+        String updateDate = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
 
         GUID guid = GUIDFactory.newAccessionRegisterDetailGUID(tenantId);
 
