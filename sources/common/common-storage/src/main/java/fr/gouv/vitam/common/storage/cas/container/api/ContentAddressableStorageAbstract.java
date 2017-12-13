@@ -45,6 +45,11 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContentAddressableStorageAbstract.class);
 
+    /**
+     * Max result for listing option TODO: have to be configurable ?
+     */
+    public static final int LISTING_MAX_RESULTS = 100;
+
     @Override
     public String computeObjectDigest(String containerName, String objectName, DigestType algo)
         throws ContentAddressableStorageException {

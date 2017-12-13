@@ -67,15 +67,11 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(ContentAddressableStorageJcloudsAbstract.class);
 
-    /**
-     * Max result for listing option TODO: have to be configurable ?
-     */
-    private static final int LISTING_MAX_RESULTS = 100;
-
     // FIXME P1: the BlobStoreContext should be build for each call, since it is
     // as a HttpClient. For now (Filesystem),
     // that's fine.
     protected final BlobStoreContext context;
+
     /**
      * maximum list size of the blob store. In S3, Azure, and Swift, this is
      * 1000, 5000, and 10000 respectively
@@ -83,7 +79,6 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
      * @see <a href="https://jclouds.apache.org/start/blobstore/">Large
      * lists</a>
      */
-
     private int maxResults = 51000;
 
     private StorageConfiguration configuration;

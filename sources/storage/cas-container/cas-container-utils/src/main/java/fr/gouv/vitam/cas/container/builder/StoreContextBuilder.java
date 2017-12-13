@@ -32,6 +32,8 @@ import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.constants.StorageProvider;
 import fr.gouv.vitam.common.storage.filesystem.FileSystem;
 import fr.gouv.vitam.common.storage.filesystem.v2.HashFileSystem;
+import fr.gouv.vitam.common.storage.swift.SwiftKeystoneV2;
+import fr.gouv.vitam.common.storage.swift.SwiftKeystoneV3;
 
 /**
  * Creates {@link ContentAddressableStorage} configured in a configuration file
@@ -40,7 +42,7 @@ import fr.gouv.vitam.common.storage.filesystem.v2.HashFileSystem;
  * context,
  * 
  * <pre>
- *    storeConfiguration = new StorageConfiguration().setProvider(StorageProvider.SWIFT.getValue())       
+ *    storeConfiguration = new StorageConfiguration().setProvider(StorageProvider.SWIFT_AUTH_V1.getValue())
  *      .setKeystoneEndPoint("http://10.10.10.10:5000/auth/v1.0)      
  *      .setTenantName(swift) 
  *      .setUserName(user)  
@@ -69,10 +71,16 @@ public class StoreContextBuilder {
      */
     public static ContentAddressableStorage newStoreContext(StorageConfiguration configuration) {
 
-        if (StorageProvider.SWIFT.getValue().equalsIgnoreCase(configuration.getProvider())) {
+        if (StorageProvider.SWIFT_AUTH_V1.getValue().equalsIgnoreCase(configuration.getProvider())) {
+            // TODO: keep keystone V1 authent ? No openstack4j keystone V1 authentication implementation, so we have
+            // to keep jcloud or anything else
             return new OpenstackSwift(configuration);
-        } else if (StorageProvider.HASHFILESYSTEM.getValue().equalsIgnoreCase(configuration.getProvider())){
+        } else if (StorageProvider.HASHFILESYSTEM.getValue().equalsIgnoreCase(configuration.getProvider())) {
             return new HashFileSystem(configuration);
+        } else if (StorageProvider.SWIFT_AUTH_V2.getValue().equalsIgnoreCase(configuration.getProvider())) {
+            return new SwiftKeystoneV2(configuration);
+        } else if (StorageProvider.SWIFT_AUTH_V3.getValue().equalsIgnoreCase(configuration.getProvider()))  {
+            return new SwiftKeystoneV3(configuration);
         }else{
             // by default file system
             return new FileSystem(configuration);

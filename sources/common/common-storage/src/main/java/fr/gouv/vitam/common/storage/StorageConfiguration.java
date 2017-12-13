@@ -42,6 +42,7 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     private Boolean cephMode;
     private String contextPath;
     private boolean authentication;
+    private String projectName;
 
     /**
      * @return the provider
@@ -200,6 +201,15 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
      */
     public StorageConfiguration setAuthentication(boolean authentication) {
         this.authentication = authentication;
+        return this;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public StorageConfiguration setProjectName(String projectName) {
+        this.projectName = projectName;
         return this;
     }
 
