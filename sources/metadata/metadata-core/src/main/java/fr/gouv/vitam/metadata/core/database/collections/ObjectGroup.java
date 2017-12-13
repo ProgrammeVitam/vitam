@@ -285,13 +285,14 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
 
     @Override
     public ObjectGroup getAfterLoad() {
+        // What is nbCopy ? What use for ? seem not usefull here instead of Unit, bad copy / paste ?)
         nbCopy = this.getInteger(NBCHILD, 0);
         return this;
     }
 
     @Override
     public ObjectGroup putBeforeSave() {
-        put(NBCHILD, nbCopy);
+        // Nothing here, what is nbCopy ??
         return this;
     }
 
