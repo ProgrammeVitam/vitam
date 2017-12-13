@@ -266,44 +266,55 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
 
     @Override
     public String computeObjectDigest(String containerName, String objectName, DigestType algo)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+        throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(), algo);
-        Path filePath = fsHelper.getPathObject(containerName, objectName);
+        
         if (!isExistingObject(containerName, objectName)) {
             throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND + objectName);
         }
-        String digestMetadata = null;
+        
+        // Calculate the digest via the common method
+        String digest = super.computeObjectDigest(containerName, objectName, algo);
+        
+        // Update digest in XATTR if needed
+        String digestFromMD = getObjectDigestFromMD(containerName, objectName, algo);
+        if (digest != digestFromMD) {
+            storeDigest(containerName, objectName, algo, digest);
+        }
+        
+        // return the calculated digest
+        return digest;
+    }
+    
+    @VisibleForTesting
+    public String getObjectDigestFromMD(String containerName, String objectName, DigestType algo) 
+        throws ContentAddressableStorageException {
+        Path filePath = fsHelper.getPathObject(containerName, objectName);
+        
         // Retrieve Digest XATTR attribute
+        String digestMetadata = null;
         try {
             digestMetadata = readExtendedMetadata(filePath, ExtendedAttributes.DIGEST.getKey());
         } catch (IOException e) {
             LOGGER.warn("Unable to retrieve DIGEST extended attribute for the object " + objectName +
-                " in the container " + containerName, e);
+                    " in the container " + containerName, e);
         }
 
-        // See if the retrieved XATTR attribute is correct. If so, return it.
+        // See if the retrieved XATTR attribute is correct. If so, get it.
+        String digestFromMD = null;
         if (digestMetadata != null) {
             String[] digestTokens = digestMetadata.split(":");
             try {
                 if ((digestTokens.length == 2) && DigestType.fromValue(digestTokens[0]) == algo) {
-                    return digestTokens[1];
+                    digestFromMD = digestTokens[1];
                 }
             } catch (IllegalArgumentException e) {
                 LOGGER.warn("DigestAlgorithm in the extended attribute of file " + containerName + "/" + objectName +
-                    " is unknown : " + digestTokens[0], e);
+                        " is unknown : " + digestTokens[0], e);
             }
-
         }
-
-        // Calculate the digest via the common method
-
-        // IF there was on XATTR attribute, write it.
-        String digest = super.computeObjectDigest(containerName, objectName, algo);
-        // TODO : Reflexion must be done on an existing Metadata attribute but with a different algorithm
-        if (digestMetadata == null) {
-            storeDigest(containerName, objectName, algo, digest);
-        }
-        return digest;
+        
+        return digestFromMD;
     }
 
     private void storeDigest(String containerName, String objectName, DigestType algo, String digest)
@@ -455,7 +466,6 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         BasicFileAttributeView basicView = Files.getFileAttributeView(path, BasicFileAttributeView.class);
         return basicView.readAttributes();
     }
-
 
     private void writeExtendedMetadata(Path p, String name, String value) throws IOException {
         writeExtendedMetadata(Files.getFileAttributeView(p, UserDefinedFileAttributeView.class), name, value);
