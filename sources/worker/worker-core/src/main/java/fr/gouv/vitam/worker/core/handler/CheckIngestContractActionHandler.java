@@ -27,13 +27,18 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -53,7 +58,6 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 
 /**
  * Handler class used to check the ingest contract of SIP. </br>
- *
  */
 public class CheckIngestContractActionHandler extends ActionHandler {
 
@@ -70,7 +74,8 @@ public class CheckIngestContractActionHandler extends ActionHandler {
     /**
      * Constructor with parameter SedaUtilsFactory
      */
-    public CheckIngestContractActionHandler() {}
+    public CheckIngestContractActionHandler() {
+    }
 
     /**
      * @return HANDLER_ID
@@ -85,12 +90,19 @@ public class CheckIngestContractActionHandler extends ActionHandler {
         handlerIO = ioParam;
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         CheckIngestContractStatus status;
-
         try {
+            ObjectNode infoNode = JsonHandler.createObjectNode();
             checkMandatoryIOParameter(ioParam);
-            final String contractIdentifier = (String) handlerIO.getInput(SEDA_PARAMETERS_RANK);
+            final Map<String, Object> mandatoryValueMap = (Map<String, Object>) handlerIO.getInput(SEDA_PARAMETERS_RANK);
+            String contractIdentifier = null;
+
+            if (null != mandatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT)) {
+                contractIdentifier = (String) mandatoryValueMap.get(SedaConstants.TAG_ARCHIVAL_AGREEMENT);
+                infoNode.put(SedaConstants.TAG_ARCHIVAL_AGREEMENT, contractIdentifier);
+            }
 
             status = checkIngestContract(contractIdentifier);
+
             switch (status) {
                 case INACTIVE:
                     itemStatus.setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.INACTIVE.toString());
@@ -100,6 +112,12 @@ public class CheckIngestContractActionHandler extends ActionHandler {
                     itemStatus.setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.UNKNOWN.toString());
                     itemStatus.increment(StatusCode.KO);
                     break;
+                case NOT_PRESENT_IN_MANIFEST:
+                    infoNode.put("MsgError", "Error Ingest constract not found in the Manifest");
+                    String evdev = JsonHandler.unprettyPrint(infoNode);
+                    itemStatus.setEvDetailData(evdev);
+                    itemStatus.increment(StatusCode.KO);
+                    break;
                 case KO:
                     itemStatus.increment(StatusCode.KO);
                     break;
@@ -107,6 +125,7 @@ public class CheckIngestContractActionHandler extends ActionHandler {
                     itemStatus.increment(StatusCode.OK);
                     break;
             }
+
         } catch (final ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.KO);
@@ -114,23 +133,26 @@ public class CheckIngestContractActionHandler extends ActionHandler {
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
-
-
     /**
      * @param contractIdentifier name contract
      * @return true if contract ok
      */
     private CheckIngestContractStatus checkIngestContract(String contractIdentifier) {
-        try (final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
 
+        // Case when no contract on the manifest
+        if (!ParametersChecker.isNotEmpty(contractIdentifier)) {
+            return CheckIngestContractStatus.NOT_PRESENT_IN_MANIFEST;
+        }
+
+        try (final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             RequestResponse<IngestContractModel> referenceContracts = client.findIngestContractsByID(contractIdentifier);
             if (referenceContracts.isOk()) {
                 List<IngestContractModel> results = ((RequestResponseOK) referenceContracts).getResults();
                 if (!results.isEmpty()) {
                     for (IngestContractModel result : results) {
                         String status = result.getStatus();
-                        if (status.equals(ContractStatus.ACTIVE.toString()) 
-                            && result.getIdentifier().equals(contractIdentifier)) {
+                        if (status.equals(ContractStatus.ACTIVE.toString())
+                                && result.getIdentifier().equals(contractIdentifier)) {
                             return CheckIngestContractStatus.OK;
                         } else {
                             return CheckIngestContractStatus.INACTIVE;
@@ -141,24 +163,30 @@ public class CheckIngestContractActionHandler extends ActionHandler {
         } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
             LOGGER.error(e);
         } catch (ReferentialNotFoundException e) {
+            // Case when the manifest's contract is not in the database of contracts
             LOGGER.error("Contract not found :", e);
             return CheckIngestContractStatus.UNKNOWN;
         }
+
         return CheckIngestContractStatus.KO;
     }
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // TODO Auto-generated method stub
-
     }
-    
+
     /**
      * Check ingest contract status values
      */
     public enum CheckIngestContractStatus {
+
         /**
-         * Missing contract
+         * Ingest constract not present in the Manifest.
+         */
+        NOT_PRESENT_IN_MANIFEST,
+        /**
+         * Missing contract: not exists in the database
          */
         UNKNOWN,
         /**
