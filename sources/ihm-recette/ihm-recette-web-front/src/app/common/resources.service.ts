@@ -1,63 +1,65 @@
 import { Injectable } from '@angular/core';
 import {CookieService} from "angular2-cookie/core";
-import {Headers, Http, RequestOptionsArgs, Response} from "@angular/http";
+import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Router} from '@angular/router';
+import {Observable} from "rxjs/Observable";
 
 const TENANT_COOKIE = 'tenant';
 const BASE_URL = '/ihm-recette/v1/api/';
 const TENANTS = 'tenants';
 
-export class RequestOptionsTenant implements RequestOptionsArgs {}
-
 @Injectable()
 export class ResourcesService {
 
-  constructor(private cookies: CookieService, private http: Http, private router: Router) { }
+  constructor(private cookies: CookieService, private http: HttpClient, private router: Router) { }
 
-  get(url, header?: Headers) {
-    const options: RequestOptionsArgs = new RequestOptionsTenant;
+  get(url, header?: HttpHeaders, responsetype?: any): Observable<any> {
+    const options: any = {};
+
     if (!header) {
-      header = new Headers();
+      header = new HttpHeaders();
     }
-
     if ( this.getTenant()) {
-      header.append('X-Tenant-Id', this.getTenant());
+      header = header.set('X-Tenant-Id', this.getTenant());
     }
 
     options.headers = header;
+
+    if (responsetype && responsetype != 'json') {
+      options.responseType = responsetype;
+      options.observe = 'response';
+    } else {
+      options.responseType = 'json';
+    }
+
     return this.http.get(`${BASE_URL}${url}`, options);
   }
 
-  post(url, header?: Headers, body?: any) {
-    const options: RequestOptionsArgs = new RequestOptionsTenant;
+  post(url, header?: HttpHeaders, body?: any, responsetype?: any): Observable<any> {
+    const options: any = {};
     if (!header) {
-      header = new Headers();
+      header = new HttpHeaders();
     }
     if (this.getTenant()) {
-      header.append('X-Tenant-Id', this.getTenant());
+      header = header.set('X-Tenant-Id', this.getTenant());
     }
     options.headers = header;
+    options.responseType = responsetype || 'json';
     return this.http.post(`${BASE_URL}${url}`, body, options);
   }
 
   delete(url) {
-    const options: RequestOptionsArgs = new RequestOptionsTenant;
-    const headers: Headers = new Headers();
+    const options: any = {};
+    let headers: HttpHeaders = new HttpHeaders();
     if ( this.getTenant()) {
-      headers.append('X-Tenant-Id', this.getTenant());
+      headers = headers.set('X-Tenant-Id', this.getTenant());
     }
     options.headers = headers;
     return this.http.delete(`${BASE_URL}${url}`, options);
   }
 
   getTenants() {
-    return this.get(TENANTS)
-      .map((res: Response) => {
-        console.log("status", res);
-        if (res.status == 302) {
-          return this.router.navigate(["authentication"]);
-        }
-        return res.json() });
+    return this.get(TENANTS);
   }
 
   setTenant(tenantId: string) {

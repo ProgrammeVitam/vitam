@@ -45,9 +45,7 @@ const contractsResponse = [
 const cookies = {};
 const ResourcesServiceStub = {
   post: (url, header?: Headers, body?: any) => {
-    return Observable.of({
-        json : () => ({'$results': contractsResponse})
-      })
+    return Observable.of({'$results': contractsResponse})
   },
   getTenant: () => cookies['tenant'],
 }

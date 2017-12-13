@@ -1,10 +1,9 @@
-import {Component, OnInit, Input} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {Message} from 'primeng/primeng';
 import {ResourcesService} from '../resources.service';
 import {AuthenticationService} from '../../authentication/authentication.service';
 import {Router} from '@angular/router';
 import {TenantService} from "../tenant.service";
-
 
 @Component({
   selector: 'vitam-menu',

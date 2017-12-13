@@ -1,7 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { HttpModule } from '@angular/http';
 import { FormsModule } from '@angular/forms';
 import { CookieService } from 'angular2-cookie/core';
 import {
@@ -9,7 +8,7 @@ import {
   DialogModule, MessagesModule, DataTableModule, SharedModule, BreadcrumbModule, DropdownModule,
   GrowlModule, PasswordModule } from 'primeng/primeng';
 import { RouterModule, Routes } from '@angular/router';
-import { VisModule, VisNetworkDirective } from 'ng2-vis';
+import { VisNetworkDirective } from 'ng2-vis';
 
 import { AppComponent } from './app.component';
 import { MenuComponent } from './common/menu/menu.component';
@@ -32,9 +31,10 @@ import { LogbookService } from './traceability/logbook/logbook.service';
 import { PerfService } from './tests/perf/perf.service';
 import { AuthenticationComponent } from './authentication/authentication.component';
 import { AuthenticationService } from './authentication/authentication.service';
-import {TenantService} from "./common/tenant.service";
+import { TenantService } from "./common/tenant.service";
 import { DagVisualizationComponent } from './tests/dag-visualization/dag-visualization.component';
 import { VisNetworkService } from 'ng2-vis';
+import { HttpClientModule } from "@angular/common/http";
 
 const appRoutes: Routes = [
   {
@@ -86,6 +86,7 @@ const appRoutes: Routes = [
   ],
   imports: [
     RouterModule.forRoot(appRoutes, {useHash: true}),
+    HttpClientModule,
     MenubarModule,
     ButtonModule,
     PanelModule,
@@ -93,7 +94,6 @@ const appRoutes: Routes = [
     FieldsetModule,
     BrowserModule,
     DialogModule,
-    HttpModule,
     FormsModule,
     MessagesModule,
     DataTableModule,

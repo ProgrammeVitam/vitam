@@ -44,14 +44,11 @@ export class AuthenticationComponent implements OnInit {
 
   logIn() {
     this.authenticationService.logIn(this.username, this.password).subscribe(response => {
-      if (response.status != 200) {
-        this.showLoginErrorMessage = true;
-      } else {
-        this.authenticationService.loggedIn();
-        this.router.navigate(["admin/collection"]);
-      }
+      this.authenticationService.loggedIn();
+      this.router.navigate(["admin/collection"]);
     }, () => {
       this.showLoginErrorMessage = true;
+
     });
   }
 

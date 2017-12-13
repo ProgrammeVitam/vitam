@@ -1,8 +1,5 @@
-import { fakeAsync, TestBed, tick } from '@angular/core/testing';
-import { MockBackend } from "@angular/http/testing";
-import { Injectable, ReflectiveInjector } from '@angular/core';
-import { RequestMethod, BaseRequestOptions, ResponseOptions,
-  ConnectionBackend, Http, Response, RequestOptions } from '@angular/http';
+import { TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule, HttpTestingController } from "@angular/common/http/testing";
 import { LogbookService } from './logbook.service';
 import { ResourcesService } from '../../common/resources.service';
 import { CookieService } from "angular2-cookie/core";
@@ -10,85 +7,51 @@ import { RouterTestingModule } from '@angular/router/testing';
 
 describe('LogbookService', () => {
   let service: LogbookService;
-  let backend: MockBackend;
+  let backend: HttpTestingController;
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [ RouterTestingModule ],
+      imports: [ RouterTestingModule, HttpClientTestingModule ],
       providers: [
         ResourcesService,
-        LogbookService, CookieService,
-        MockBackend,
-        BaseRequestOptions,
-        {
-          provide: Http,
-          useFactory: (backend, options) => new Http(backend, options),
-          deps: [MockBackend, BaseRequestOptions]
-        }
+        LogbookService,
+        CookieService
       ]
     });
 
-    backend = TestBed.get(MockBackend);
+    backend = TestBed.get(HttpTestingController);
     service = TestBed.get(LogbookService);
   });
 
-  it('launchTraceability should call correct api', (done) => {
-    let response = {
-      "result": 1
-    };
-
-    backend.connections.subscribe(connection => {
-      expect(connection.request.url).toEqual('/ihm-recette/v1/api/operations/traceability');
-      expect(connection.request.method).toEqual(RequestMethod.Post);
-      done();
-    });
-    service.launchTraceability();
-  });
-
-  it('launchTraceability should get response', (done) => {
-    let response = {
-      "result": 1
-    };
-
-    backend.connections.subscribe(connection => {
-      connection.mockRespond(new Response(<ResponseOptions>{
-        body: JSON.stringify(response)
-      }));
-    });
-
+  it('launchTraceability should call correct api + get response', () => {
     service.launchTraceability().subscribe(response => {
       expect(response).not.toBeNull();
-      done();
     });
+
+    let response = backend.expectOne({
+      url: '/ihm-recette/v1/api/operations/traceability',
+      method: 'POST'
+    });
+    response.flush({
+      "result": 1
+    });
+
+    backend.verify();
   });
   
-  it('launchTraceabilityLFC should call correct api', (done) => {
-    let response = {
-      "result": 1
-    };
-
-    backend.connections.subscribe(connection => {
-      expect(connection.request.url).toEqual('/ihm-recette/v1/api/lifecycles/traceability');
-      expect(connection.request.method).toEqual(RequestMethod.Post);
-      done();
-    });
-    service.launchTraceabilityLFC();
-  });
-
-  it('launchTraceabilityLFC should get response', (done) => {
-    let response = {
-      "result": 1
-    };
-
-    backend.connections.subscribe(connection => {
-      connection.mockRespond(new Response(<ResponseOptions>{
-        body: JSON.stringify(response)
-      }));
-    });
-
+  it('launchTraceabilityLFC should call correct api', () => {
     service.launchTraceabilityLFC().subscribe(response => {
       expect(response).not.toBeNull();
-      done();
     });
+
+    let response = backend.expectOne({
+      url: '/ihm-recette/v1/api/lifecycles/traceability',
+      method: 'POST'
+    });
+    response.flush({
+      "result": 1
+    });
+
+    backend.verify();
   });
 
 });

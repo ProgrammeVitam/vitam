@@ -72,14 +72,14 @@ export class DagVisualizationComponent extends PageComponent {
     this.queryDslService.executeRequest(jsonRequest, contractIdentifier,
       selectedCollection, selectedMethod, selectedAction, null).subscribe(
       (response) => {
-        this.requestResponse = JSON.stringify(response.json(), null, 2);
-        if (response.json().httpCode >= 400) {
+        this.requestResponse = JSON.stringify(response, null, 2);
+        if (response.httpCode >= 400) {
           this.showError = true;
           this.showGraph = false;
         } else {
           this.showError = false;
           this.showGraph = true;
-          this.displayDag(response.json().$results);
+          this.displayDag(response.$results);
         }
       },
       (error) => {
