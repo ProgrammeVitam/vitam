@@ -26,9 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map;
 
@@ -64,6 +69,7 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServer
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -358,14 +364,18 @@ public class AdminManagementExternalResourceImpl {
         Integer tenantId = ParameterHelper.getTenantParameter();
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        File file = PropertiesUtils.fileFromTmpFolder("tmpRuleFile");
         try {
             ParametersChecker.checkParameter("document is a mandatory parameter", document);
             
             // Check Html Pattern
-            SanityChecker.checkInputStream(document);
+            try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+                StreamUtils.copy(document, fileOutputStream);
+            }            
+            SanityChecker.checkHTMLFile(file);
             
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                Status status = client.importRulesFile(document, filename);
+                Status status = client.importRulesFile((InputStream) new FileInputStream(file), filename);
 
                 // Send the http response with no entity and the status got from internalService;
                 ResponseBuilder ResponseBuilder = Response.status(status);
@@ -393,6 +403,7 @@ public class AdminManagementExternalResourceImpl {
             final Status status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, HTML_CONTENT_MSG_ERROR, null)).build();
         } finally {
+            file.delete();
             StreamUtils.closeSilently(document);
         }
     }
@@ -955,15 +966,19 @@ public class AdminManagementExternalResourceImpl {
         Integer tenantId = ParameterHelper.getTenantParameter();
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
+        File file = PropertiesUtils.fileFromTmpFolder("tmpRuleFile");
         try {
             ParametersChecker.checkParameter("document is a mandatory parameter", document);
             
             // Check Html Pattern
-            SanityChecker.checkInputStream(document);
+            try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+                StreamUtils.copy(document, fileOutputStream);
+            }            
+            SanityChecker.checkHTMLFile(file);
             
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                Status status = client.importAgenciesFile(document, filename);
-
+                Status status = client.importAgenciesFile((InputStream) new FileInputStream(file), filename);
+                
                 // Send the http response with no entity and the status got from internalService;
                 ResponseBuilder ResponseBuilder = Response.status(status);
                 return ResponseBuilder.build();
@@ -982,6 +997,7 @@ public class AdminManagementExternalResourceImpl {
             final Status status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, HTML_CONTENT_MSG_ERROR, null)).build();
         } finally {
+            file.delete();
             StreamUtils.closeSilently(document);
         }
     }
