@@ -712,18 +712,19 @@ public class IngestInternalResource extends ApplicationStatusResource {
         MediaType mediaType;
         String archiveMimeType = null;
         boolean isCompletedProcess = false;
-
+        final String containerId = VitamThreadUtils.getVitamSession().getRequestId(); 
+            
         try (LogbookOperationsClient logbookOperationsClient =
             LogbookOperationsClientFactory.getInstance().getClient();
             WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
-
             try {
                 VitamThreadUtils.getVitamSession().checkValidRequestId();
                 ParametersChecker.checkParameter("HTTP Request must contains stream", uploadedInputStream);
                 ParametersChecker.checkParameter("actionId is a mandatory parameter", actionId);
                 ParametersChecker.checkParameter("contextId is a mandatory parameter", contextId);
 
-                final GUID containerGUID = GUIDReader.getGUID(VitamThreadUtils.getVitamSession().getRequestId());
+                GUID containerGUID = GUIDReader.getGUID(containerId);
+
                 ProcessContext process = createProcessContextObject(contextId);
                 if (process == null) {
                     throw new IngestInternalException("Processing Context not found");
@@ -736,7 +737,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     ProcessAction.INIT.equals(ProcessAction.valueOf(actionId));
                 boolean isStartMode =
                     ProcessAction.START.equals(ProcessAction.valueOf(actionId));
-                parameters = logbookInitialisation(containerGUID, containerGUID, logbookTypeProcess);
+                parameters = logbookInitialisation(GUIDFactory.newEventGUID(containerGUID), containerGUID, logbookTypeProcess);
 
                 if (isInitMode) {
                     workspaceClient.checkStatus();
@@ -766,7 +767,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
                         prepareToStartProcess(uploadedInputStream, parameters, archiveMimeType, logbookOperationsClient,
                             containerGUID);
-
                         parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
                         parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
                             "Try to call processing...");
@@ -775,7 +775,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     try {
                         if (containerGUID != null) {
                             ProcessState processState =
-                                startProcessing(parameters, logbookOperationsClient, containerGUID.getId(), actionId,
+                                startProcessing(parameters, logbookOperationsClient, containerGUID, actionId,
                                     process.getWorkFlowId(), logbookTypeProcess, contextId);
 
                             isCompletedProcess = isCompletedProcess(processState);
@@ -797,10 +797,11 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 if (parameters != null) {
                     try {
 
+                        parameters.putParameterValue(LogbookParameterName.eventIdentifier, GUIDFactory.newEventGUID(GUIDReader.getGUID(containerId)).getId());
                         parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT_UPLOAD);
                         callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO, INGEST_INT_UPLOAD,
                             VitamLogbookMessages.getCodeOp(INGEST_INT_UPLOAD, StatusCode.KO));
-                    } catch (final LogbookClientException e1) {
+                    } catch (final LogbookClientException | InvalidGuidOperationException e1) {
                         LOGGER.error(e1);
                     }
                 }
@@ -810,10 +811,11 @@ public class IngestInternalResource extends ApplicationStatusResource {
             } catch (final ContentAddressableStorageException | VitamApplicationServerException e) {
                 if (parameters != null) {
                     try {
+                        parameters.putParameterValue(LogbookParameterName.eventIdentifier, GUIDFactory.newEventGUID(GUIDReader.getGUID(containerId)).getId());
                         parameters.putParameterValue(LogbookParameterName.eventType, INGEST_INT_UPLOAD);
                         callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.FATAL, INGEST_INT_UPLOAD,
                             "error workspace");
-                    } catch (final LogbookClientException e1) {
+                    } catch (final LogbookClientException | InvalidGuidOperationException e1) {
                         LOGGER.error(e1);
                     }
                 }
@@ -823,15 +825,15 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 // Have to determine here if it is an internal error and FATAL result or processing error, so business
                 // error and KO result
             } catch (final ProcessingException |
-                LogbookClientException | StorageClientException |
-                InvalidGuidOperationException e) {
+                LogbookClientException | StorageClientException | InvalidGuidOperationException e) {
                 if (parameters != null) {
                     try {
+                        parameters.putParameterValue(LogbookParameterName.eventIdentifier, GUIDFactory.newEventGUID(GUIDReader.getGUID(containerId)).getId());
                         parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
                         callLogbookUpdate(logbookOperationsClient, parameters, StatusCode.KO,
                             INGEST_WORKFLOW, VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, StatusCode.KO));
 
-                    } catch (final LogbookClientException e1) {
+                    } catch (final LogbookClientException | InvalidGuidOperationException e1) {
                         LOGGER.error(e1);
                     }
                 }
@@ -850,19 +852,21 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 }
             }
         }
+
         // We should not get here
         return Response.status(Status.INTERNAL_SERVER_ERROR).build();
     }
 
     private ProcessState startProcessing(final LogbookOperationParameters parameters,
         final LogbookOperationsClient client,
-        final String containerName, final String actionId, final String workflowId,
+        final GUID containerGUID, final String actionId, final String workflowId,
         LogbookTypeProcess logbookTypeProcess, String contextId)
         throws IngestInternalException, ProcessingException, LogbookClientNotFoundException,
         LogbookClientBadRequestException, LogbookClientServerException, InternalServerException, VitamClientException {
 
         ProcessingManagementClient processingClient = processingManagementClientMock;
         MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
+        String containerName = containerGUID.getId();
         try {
             if (processingClient == null) {
                 processingClient = ProcessingManagementClientFactory.getInstance().getClient();
@@ -880,6 +884,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             }
 
             if (isCompletedProcess(ProcessState.valueOf(globalExecutionState))) {
+                parameters.putParameterValue(LogbookParameterName.eventIdentifier, GUIDFactory.newEventGUID(containerGUID).getId());
                 callLogbookUpdate(client, parameters, fromStatusToStatusCode(response.getStatus()),
                     INGEST_WORKFLOW,
                     messageLogbookEngineHelper.getLabelOp(logbookTypeProcess.name(), fromStatusToStatusCode(response
@@ -938,7 +943,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
         String eventTypeStarted = VitamLogbookMessages.getEventTypeStarted(INGEST_INT_UPLOAD);
         startedParameters.putParameterValue(LogbookParameterName.eventType, eventTypeStarted);
         callLogbookUpdate(logbookOperationsClient, startedParameters, StatusCode.OK,
-                eventTypeStarted, VitamLogbookMessages.getCodeOp(eventTypeStarted, StatusCode.OK));
+            eventTypeStarted, VitamLogbookMessages.getCodeOp(eventTypeStarted, StatusCode.OK));
 
         // set eventType and new eventId
         parameters
@@ -1059,8 +1064,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
         StatusCode statusCode)
         throws LogbookClientNotFoundException, LogbookClientServerException, LogbookClientAlreadyExistsException,
         LogbookClientBadRequestException {
-        LogbookOperationParameters parameters = logbookInitialisation(containerGUID, containerGUID,
-            logbookTypeProcess);
+        LogbookOperationParameters parameters = logbookInitialisation(GUIDFactory.newEventGUID(containerGUID), 
+            containerGUID, logbookTypeProcess);
         parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
         callLogbookUpdate(null, parameters, statusCode,
             INGEST_WORKFLOW, VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, statusCode));

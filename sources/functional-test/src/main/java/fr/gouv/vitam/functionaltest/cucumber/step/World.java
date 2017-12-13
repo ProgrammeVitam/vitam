@@ -49,6 +49,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.functionaltest.configuration.TnrClientConfiguration;
+import fr.gouv.vitam.functionaltest.cucumber.service.LogbookService;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -65,9 +66,7 @@ public class World {
     private static final String TNR_CONF = "tnr.conf";
     public static final String DEFAULT_ACCESS_CONTRACT_NAME = "ContratTNR";
 
-
     private int tenantId;
-
     private String contractId;
     private String unitId;
     private String applicationSessionId;
@@ -82,6 +81,11 @@ public class World {
      */
     private static Map<String, String> operationIdsByTestSet = new HashMap<>();
 
+    /**
+     * Logbook service 
+     */
+    private LogbookService logbookService;
+    
     /**
      * ingest external client
      */
@@ -109,12 +113,11 @@ public class World {
      * tnr configuration
      */
     private TnrClientConfiguration tnrClientConfiguration;
-
-
     /**
      *
      */
     WorkspaceClient workspaceClient;
+     
 
     /**
      * base path of all the feature
@@ -132,6 +135,7 @@ public class World {
         configureLogbookClient();
         logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient();
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        logbookService = new LogbookService();
     }
 
     /**
@@ -295,6 +299,10 @@ public class World {
     public String getApplicationSessionId() {
         return applicationSessionId;
     }
+    
+    public LogbookService getLogbookService() {
+        return logbookService;
+    }
 
     @After
     public void finish() {
@@ -336,7 +344,7 @@ public class World {
     }
 
     /**
-     * delete data before testion
+     * delete data before testing
      */
     private void purgeData() {
         try (IhmRecetteClient ihmRecetteClient = IhmRecetteClientFactory.getInstance().getClient()) {

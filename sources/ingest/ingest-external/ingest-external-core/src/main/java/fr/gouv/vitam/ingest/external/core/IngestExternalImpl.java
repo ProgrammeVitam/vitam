@@ -544,7 +544,7 @@ public class IngestExternalImpl implements IngestExternal {
         LogbookTypeProcess logbookTypeProcess = preUploadResume.getLogbookTypeProcess();
         //Finalisation STARTED event
         String eventType = VitamLogbookMessages.getEventTypeStarted(STP_INGEST_FINALISATION);
-        GUID eventId = GUIDReader.getGUID(operationId.getId());
+        GUID eventId = GUIDFactory.newEventGUID(operationId);
         StatusCode finalisationStatusCode = StatusCode.OK;
         //
         LogbookOperationParameters stpIngestFinalisationParameters =
@@ -745,7 +745,7 @@ public class IngestExternalImpl implements IngestExternal {
         }
         String atr = AtrKoBuilder.buildAtrKo(operationId.getId(), "ArchivalAgencyToBeDefined",
             "TransferringAgencyToBeDefined",
-            "STP_UPLOAD_SIP", null, StatusCode.FATAL);
+            INGEST_INT_UPLOAD, null, StatusCode.FATAL);
 
         AsyncInputStreamHelper responseHelper =
             new AsyncInputStreamHelper(asyncResponse, new ByteArrayInputStream(atr.getBytes(CharsetUtils.UTF8)));
