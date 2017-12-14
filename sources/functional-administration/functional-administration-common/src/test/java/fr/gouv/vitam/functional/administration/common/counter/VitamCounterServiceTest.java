@@ -70,7 +70,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
-public class CounterServiceTest {
+public class VitamCounterServiceTest {
 
 
     @Rule
@@ -156,7 +156,8 @@ public class CounterServiceTest {
         ac = vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.ACCESS_CONTRACT_SEQUENCE);
         ic = vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.INGEST_CONTRACT_SEQUENCE);
         pr = vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.PROFILE_SEQUENCE);
-
+        vitamCounterService.getNextBackUpSequence(1);
+        Integer backUpSequence = vitamCounterService.getNextBackUpSequence(1);
         assertThat(ic).isEqualTo("IC-000003");
         assertThat(ac).isEqualTo("AC-000002");
         assertThat(pr).isEqualTo("PR-000002");
@@ -174,6 +175,8 @@ public class CounterServiceTest {
             .isFalse();
         assertThat(vitamCounterService
             .isSlaveFunctionnalCollectionOnTenant(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, 0)).isFalse();
+
+        assertThat(backUpSequence).isEqualTo(2);
 
     }
 

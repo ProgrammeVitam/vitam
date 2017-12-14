@@ -40,7 +40,7 @@ public class AgenciesManagerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void shoul_test_logbookStarted() throws Exception {
+    public void should_logbookStarted() throws Exception {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
@@ -64,7 +64,7 @@ public class AgenciesManagerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void should_test_logFinish() throws Exception {
+    public void should_event_logbook_ok_when_call_log_finish() throws Exception {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
@@ -94,8 +94,6 @@ public class AgenciesManagerTest {
         assertThat(log.getParameterValue(eventType)).isEqualTo(AGENCIES_IMPORT_EVENT);
         assertThat(log.getParameterValue(eventTypeProcess)).isEqualTo("MASTERDATA");
         assertThat(log.getParameterValue(outcome)).isEqualTo("WARNING");
-
-
     }
 
 

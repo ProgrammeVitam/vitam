@@ -49,6 +49,7 @@ import java.util.regex.Pattern;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.functional.administration.common.BackupService;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import org.apache.commons.io.FileUtils;
 import org.jhades.JHades;
@@ -308,6 +309,30 @@ public class StorageTestMultiIT {
 
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void should_test_backUpService() throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
+        BackupService backupService = new BackupService();
+        final GUID eipMaster = GUIDFactory.newOperationLogbookGUID(0);
+
+        File file = PropertiesUtils.findFile("static-offer.json");
+
+        backupService.backup(new FileInputStream(file), StorageCollectionType.RULES, eipMaster.getId()
+        );
+        VitamRequestIterator<JsonNode> result = storageClient.listContainer("default", DataCategory.RULES);
+
+        TestCase.assertNotNull(result);
+
+        Assert.assertTrue(result.hasNext());
+        JsonNode node = result.next();
+        TestCase.assertNotNull(node);
+
+        assertTrue(node.get("objectId").asText().startsWith(eipMaster.getId()));
+
+    }
 
 
     @Test
