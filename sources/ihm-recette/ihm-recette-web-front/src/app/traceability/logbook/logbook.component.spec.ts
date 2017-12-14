@@ -14,11 +14,11 @@ const BreadcrumbServiceStub = {
   },
   getState: () => Observable.of(value)
 };
-let response = {status : 200};
+let response = Observable.of({status : 200});
 
 const LogbookServiceStub = {
-  launchTraceability: () => Observable.of(response),
-  launchTraceabilityLFC: () => Observable.of(response)
+  launchTraceability: () => response,
+  launchTraceabilityLFC: () => response
 };
 
 describe('LogbookComponent', () => {
@@ -43,14 +43,14 @@ describe('LogbookComponent', () => {
     fixture.detectChanges();
   });
 
-  it('launch traceability ok', () => {
+  it('should display success message', () => {
     expect(component).toBeTruthy();
     component.launchTraceability();
     expect(component.messages).toEqual([{severity: 'info', summary: 'Sécurisation', detail: 'Succès de l\'opération de sécurisation des journaux'}]);
   });
 
-  it('launch traceability ko', () => {
-    response = { status : 500 };
+  it('should display error message', () => {
+    response = Observable.throw({ status : 500 });
     component.launchTraceability();
     expect(component.messages).toEqual([{severity: 'error', summary: 'Sécurisation', detail: `Echec de l'opération de sécurisation des journaux`}]);
   });
