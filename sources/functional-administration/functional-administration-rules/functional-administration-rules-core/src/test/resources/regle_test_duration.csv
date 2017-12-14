@@ -1,0 +1,10 @@
+RuleId,RuleType,RuleValue,RuleDescription,RuleDuration,RuleMeasurement
+APP-00001,AppraisalRule,Dossier individuel d’agent civil,"Durée de conservation des dossiers individuels d’agents. 
+L’échéance est calculée à partir de la date de naissance de l’agent",80,Year
+APP-00002,AppraisalRule,Offres non retenues des marchés,"Durée de conservation des offres non retenues des marchés publics
+L’échéance est calculée à partir de la date de notification du marché au titulaire",5,day
+ACC-00001,AccessRule,Libre communicabilité,Délai de communicabilité applicable par défaut,1,Year
+ACC-00003,AccessRule,Communicabilité des informations portant atteinte à la conduite des relations extérieures (date du document),"Durée de communicabilité applicable aux informations portant atteinte à la conduite des relations extérieures
+L’échéance est calculée à partir de la date du document ou du document le plus récent inclus dans le dossier",25,Year
+ACC-00004,AccessRule,Communicabilité des informations portant atteinte à la monnaie et au crédit public (date du document),"Durée de communicabilité applicable aux informations portant atteinte à la monnaie et au crédit public
+L’échéance est calculée à partir de la date du document ou du document le plus récent inclus dans le dossier",25,Year

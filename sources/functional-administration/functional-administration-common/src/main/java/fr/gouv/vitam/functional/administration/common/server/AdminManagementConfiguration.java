@@ -48,7 +48,8 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
     AdminManagementConfiguration() {
         super();
     }
-    private  Map<Integer, List<String>> listEnableExternalIdentifiers;
+    private Map<Integer, List<String>> listEnableExternalIdentifiers;
+    private Map<Integer, Map<String, String>> listMinimumRuleDuration;
 
     /**
      * Constructor
@@ -120,23 +121,42 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
 
     /**
      * @param elasticsearchNodes the elasticsearchNodes to set
-     * @return MetaDataConfiguration
+     * @return AdminManagementConfiguration
      */
     public AdminManagementConfiguration setElasticsearchNodes(List<ElasticsearchNode> elasticsearchNodes) {
         this.elasticsearchNodes = elasticsearchNodes;
         return this;
     }
 
+    /**
+     * @return listEnableExternalIdentifiers
+     */
     public Map<Integer, List<String>> getListEnableExternalIdentifiers() {
         return listEnableExternalIdentifiers;
     }
 
     /**
-     * Setter for   listEnableExternalIdentifiers;
+     * Setter for listEnableExternalIdentifiers;
      */
     public void setListEnableExternalIdentifiers(
         Map<Integer, List<String>>  listEnableExternalIdentifiers) {
 
         this.listEnableExternalIdentifiers = listEnableExternalIdentifiers;
+    }
+    
+    /**
+     * @return listMinimumRuleDuration
+     */
+    public Map<Integer, Map<String, String>> getListMinimumRuleDuration() {
+        return listMinimumRuleDuration;
+    }
+
+    /**
+     * @param listMinimumRuleDuration
+     * @return AdminManagementConfiguration
+     */
+    public AdminManagementConfiguration setListMinimumRuleDuration(Map<Integer, Map<String, String>> listMinimumRuleDuration) {
+        this.listMinimumRuleDuration = listMinimumRuleDuration;
+        return this;
     }
 }

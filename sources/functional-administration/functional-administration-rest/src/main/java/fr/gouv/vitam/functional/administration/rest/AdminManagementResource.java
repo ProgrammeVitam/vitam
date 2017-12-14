@@ -121,6 +121,7 @@ import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
 import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
+import fr.gouv.vitam.functional.administration.rules.core.VitamRuleService;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -171,6 +172,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private final ElasticsearchAccessFunctionalAdmin elasticsearchAccess;
     private VitamCounterService vitamCounterService;
     private FilesSecurisator securisator = new FilesSecurisator();
+    private VitamRuleService vitamRuleService;
 
     /**
      * Constructor
@@ -194,6 +196,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration);
         WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
+        vitamRuleService = new VitamRuleService(configuration.getListMinimumRuleDuration());
         LOGGER.debug("init Admin Management Resource server");
     }
 
@@ -202,6 +205,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         FilesSecurisator securisator) {
         this(configuration);
         this.securisator = securisator;
+        vitamRuleService = new VitamRuleService(configuration.getListMinimumRuleDuration());
     }
 
     MongoDbAccessAdminImpl getLogbookDbAccess() {

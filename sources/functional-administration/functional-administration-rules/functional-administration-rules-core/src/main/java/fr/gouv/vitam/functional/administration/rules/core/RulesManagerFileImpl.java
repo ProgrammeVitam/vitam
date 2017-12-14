@@ -117,6 +117,7 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesExcepti
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesUpdateException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesDurationException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
@@ -172,6 +173,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     private static final String DELETE_RULES_LINKED_TO_UNIT =
         "Error During Delete RuleFiles because this rule is linked to unit.";
     private static final String INVALID_CSV_FILE = "Invalid CSV File";
+    private static final String RULE_DURATION_EXCEED = "Rule Duration Exceed";
     private static final String TXT = ".txt";
     private static final String CSV = "csv";
     private static final String JSON = "json";
@@ -192,6 +194,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     private static final String USED_DELETED_RULES = "usedDeletedRules";
     private static final String USED_UPDATED_RULES = "usedUpdatedRules";
     private static final String RESULTS = "$results";
+    private static final int MAX_DURATION = 2147483647;
     private final MongoDbAccessAdminImpl mongoAccess;
     private static final String RULE_ID = "RuleId";
     private final VitamCounterService vitamCounterService;
@@ -209,6 +212,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
     private static final String STP_IMPORT_RULES = "STP_IMPORT_RULES";
     private static final String CHECK_RULES = "CHECK_RULES";
     private static final String CHECK_RULES_INVALID_CSV = "INVALID_CSV";
+    private static final String MAX_DURATION_EXCEEDS = "MAX_DURATION_EXCEEDS";
     private static final String CHECK_RULES_IMPORT_IN_PROCESS = "IMPORT_IN_PROCESS";
     private static final String COMMIT_RULES = "COMMIT_RULES";
     private static final String USED_DELETED_RULE_IDS = "usedDeletedRuleIds";
@@ -311,7 +315,17 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                     generateReport(errors, eip, usedDeletedRulesForReport, usedUpdateRulesForReport, client);
                     updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.KO, filename, client);
                 } catch (StorageException | LogbookClientServerException | LogbookClientAlreadyExistsException |
-                    LogbookClientBadRequestException e1) {
+                        LogbookClientBadRequestException e1) {
+                    throw e1;
+                }
+                throw e;
+            } catch (FileRulesDurationException e) {
+                try {
+                    updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(MAX_DURATION_EXCEEDS, eip, client);
+                    generateReport(errors, eip, usedDeletedRulesForReport, usedUpdateRulesForReport, client);
+                    updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.KO, filename, client);
+                } catch (StorageException | LogbookClientServerException | LogbookClientAlreadyExistsException |
+                        LogbookClientBadRequestException e1) {
                     throw e1;
                 }
                 throw e;
@@ -951,6 +965,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                                 lineNumber, fileRulesModel));
                         }
                         checkAssociationRuleDurationRuleMeasurementLimit(record, errors, lineNumber, fileRulesModel);
+                        checkRuleDurationWithConfiguration(record, errors, lineNumber, fileRulesModel);
                         if (errors.size() > 0) {
                             errorsMap.put(lineNumber, errors);
                         }
@@ -987,6 +1002,13 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
             checkRulesLinkedToAu(readRulesAsJson, usedDeletedRules, usedUpdatedRules, notUsedDeletedRules,
                 notUsedUpdatedRules);
             if (errorsMap.size() > 0) {
+                for (List<ErrorReport> map : errorsMap.values()) {
+                    for (ErrorReport error : map) {
+                        if (error.getCode().equals(FileRulesErrorCode.STP_IMPORT_RULES_RULEDURATION_EXCEED)) {
+                            throw new FileRulesDurationException(RULE_DURATION_EXCEED);
+                        }
+                    }
+                }
                 throw new FileRulesCsvException(INVALID_CSV_FILE);
             }
             if (usedDeletedRules.size() > 0) {
@@ -1452,7 +1474,49 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
         }
 
     }
+    
+    /**
+     * Check if Rule duration is strictly longer than minimum duration of configuration
+     */
+    private void checkRuleDurationWithConfiguration(CSVRecord record, List<ErrorReport> errors, int line,
+        FileRulesModel fileRuleModel) {
+        String ruleType = record.get(RULE_TYPE);
+        
+        String[] min = VitamRuleService.getMinimumRuleDuration(getTenant(), ruleType).split(" ");
+        int durationConf = 0;
+        if (min.length == 2) {
+            durationConf = calculDuration(min[0], min[1]);
+        }
+        int durationRule = calculDuration(record.get(RULE_DURATION), record.get(RULE_MEASUREMENT));
+        
+        if (durationRule < durationConf) {
+            errors
+                .add(new ErrorReport(FileRulesErrorCode.STP_IMPORT_RULES_RULEDURATION_EXCEED, line, fileRuleModel));
+        }
+    }
+    
+    private int calculDuration(String ruleDuration, String ruleMeasurement) {
+        int duration = 0;
 
+        if (ruleDuration.compareToIgnoreCase("unlimited") == 0) {
+            return MAX_DURATION;
+        }
+
+        if (ruleDuration.matches("[0-9]+")) {
+            duration = Integer.parseInt(ruleDuration);
+        }
+
+        switch (ruleMeasurement.toLowerCase()) {
+            case "year":
+                return duration*365;
+            case "month":
+                return duration*30;
+            case "day":
+                return duration;
+            default:
+                return 0;
+        }
+    }
 
     /**
      * Check if RuleMeasurement is included in the Enumeration

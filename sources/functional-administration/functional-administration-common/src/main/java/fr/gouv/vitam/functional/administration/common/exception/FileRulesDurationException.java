@@ -24,17 +24,32 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.functional.administration.common;
+package fr.gouv.vitam.functional.administration.common.exception;
 
-public enum FileRulesErrorCode {
-    STP_IMPORT_RULES_RULEID_DUPLICATION,
-    STP_IMPORT_RULES_NOT_CSV_FORMAT,
-    STP_IMPORT_RULES_WRONG_RULETYPE_UNKNOW,
-    STP_IMPORT_RULES_WRONG_RULEMEASUREMENT,
-    STP_IMPORT_RULES_WRONG_RULEDURATION,
-    STP_IMPORT_RULES_WRONG_TOTALDURATION,
-    STP_IMPORT_RULES_DELETE_USED_RULES,
-    STP_IMPORT_RULES_UPDATED_RULES,
-    STP_IMPORT_RULES_MISSING_INFORMATION,
-    STP_IMPORT_RULES_RULEDURATION_EXCEED
+/**
+ * Exception throw when rule duration is inferior than duration in configuration
+ */
+public class FileRulesDurationException extends ReferentialException {
+    /**
+     * @param message message to associate with the exception
+     * @param cause   cause to associate with the exception
+     */
+    public FileRulesDurationException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    /**
+     * @param message message to associate with the exception
+     */
+    public FileRulesDurationException(String message) {
+        super(message);
+    }
+
+    /**
+     * @param cause cause to associate with the exception
+     */
+    public FileRulesDurationException(Throwable cause) {
+        super(cause);
+    }
+
 }

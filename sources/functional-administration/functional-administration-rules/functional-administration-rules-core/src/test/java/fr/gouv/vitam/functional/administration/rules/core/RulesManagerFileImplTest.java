@@ -92,12 +92,14 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.FilesSecurisator;
+import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesCsvException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesDeleteException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesUpdateException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesDurationException;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
@@ -145,6 +147,7 @@ public class RulesManagerFileImplTest {
     private static final String ACC_00003 = "ACC-00003";
     private static final String APPRAISAL_RULE = "AppraisalRule";
     private static final String FILE_TO_TEST_OK = "jeu_ok.csv";
+    private static final String FILE_DURATION_EXCEED = "regle_test_duration.csv";
     private static final String FILE_TO_TEST_KO = "jeu_donnees_KO_regles_CSV_DuplicatedReference.csv";
     private static final String FILE_TO_TEST_RULES_DURATION_KO = "jeu_donnees_KO_regles_CSV_test.csv";
     private static final String FILE_TO_COMPARE = "jeu_donnees_OK_regles_CSV.csv";
@@ -234,7 +237,7 @@ public class RulesManagerFileImplTest {
         List<Integer> tenants = new ArrayList<>();
         Integer tenantsList[] = {TENANT_ID, 1, 2, 3, 4, 5, 60, 70};
         tenants.addAll(Arrays.asList(tenantsList));
-
+        createRuleDurationConfigration(tenants);
         vitamCounterService = new VitamCounterService(dbImpl, tenants, null);
 
         ElasticsearchAccessAdminFactory.create(
@@ -329,6 +332,39 @@ public class RulesManagerFileImplTest {
 
         assertThat(file.getVersion()).isEqualTo(1);
         client.close();
+    }
+
+    @Test(expected = FileRulesDurationException.class)
+    @RunWithCustomExecutor
+    public void testImportRuleDurationExceed() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(70);
+        LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
+        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
+        when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
+                .thenReturn(getJsonResult(STP_IMPORT_RULES, TENANT_ID));
+
+        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+
+        StorageClient storageClient = mock(StorageClient.class);
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
+
+
+        Map<Integer, List<ErrorReport>> errors = new HashMap<>();
+        List<FileRulesModel> usedDeletedRules = new ArrayList<>();
+        List<FileRulesModel> usedUpdatedRules = new ArrayList<>();
+        Set<String> notUsedDeletedRules = new HashSet<>();
+        Set<String> notUsedUpdatedRules = new HashSet<>();
+        try {
+            rulesFileManager.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_DURATION_EXCEED)),
+                    errors, usedDeletedRules, usedUpdatedRules, notUsedDeletedRules, notUsedUpdatedRules);
+        } catch (final FileRulesException e) {
+            fail("Check file with FILE_TO_TEST_OK should not throw exception");
+        } catch (FileRulesDeleteException e) {
+            fail("Check file with FILE_TO_TEST_OK should not throw exception");
+        } catch (FileRulesUpdateException e) {
+            fail("Check file with FILE_TO_TEST_OK should not throw exception");
+        }
     }
 
     /**
@@ -665,6 +701,7 @@ public class RulesManagerFileImplTest {
     @RunWithCustomExecutor
     public void should_not_duplicate_error_on_each_line_in_report_when_error_append()
         throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final InputStream inputStream = getInputStreamAndInitialiseMockWhenCheckRulesFile(FILE_TO_TEST_RULES_DURATION_KO);
 
         // Then
@@ -921,7 +958,19 @@ public class RulesManagerFileImplTest {
             return null;
         }).when(workspaceClient).putObject(anyString(), anyString(), any(InputStream.class));
 
-
+    }
+    
+    private static void createRuleDurationConfigration(List<Integer> tenants) {
+        Map<Integer, Map<String, String>> durationList = new HashMap<>();
+        Map<String, String> duration = new HashMap<>();
+        duration.put("AppraisalRule", "6 day");
+        duration.put("AccessRule", "5");
+        for (Integer tenant : tenants) {
+            
+            durationList.put(tenant, duration);
+        }
+        
+        VitamRuleService vitamRuleService = new VitamRuleService(durationList);
     }
 
 }
