@@ -102,6 +102,10 @@ public class CheckSedaActionHandlerTest {
                         .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
+        // itemId is used as eventType so do not change it
+        assertEquals(response.getItemId(), HANDLER_ID);
+        // global outcome detail subcode is used to specify error type
+        assertEquals(response.getGlobalOutcomeDetailSubcode(), "NO_FILE");
     }
 
     @Test
@@ -128,6 +132,10 @@ public class CheckSedaActionHandlerTest {
                         .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
+        // itemId is used as eventType so do not change it
+        assertEquals(response.getItemId(), HANDLER_ID);
+        // global outcome detail subcode is used to specify error type
+        assertEquals(response.getGlobalOutcomeDetailSubcode(), "NOT_XSD_VALID");
     }
 
     @Test
@@ -141,6 +149,10 @@ public class CheckSedaActionHandlerTest {
                         .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
+        // itemId is used as eventType so do not change it
+        assertEquals(response.getItemId(), HANDLER_ID);
+        // global outcome detail subcode is used to specify error type
+        assertEquals(response.getGlobalOutcomeDetailSubcode(), "NOT_XML_FILE");
     }
 
     @Test
@@ -154,6 +166,10 @@ public class CheckSedaActionHandlerTest {
                         .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
+        // itemId is used as eventType so do not change it
+        assertEquals(response.getItemId(), HANDLER_ID); 
+        // global outcome detail subcode is used to specify error type
+        assertEquals(response.getGlobalOutcomeDetailSubcode(), "NO_FILE");
     }
 
     @Test
@@ -167,6 +183,10 @@ public class CheckSedaActionHandlerTest {
                         .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
+        // itemId is used as eventType so do not change it
+        assertEquals(response.getItemId(), HANDLER_ID);
+        // global outcome detail subcode is used to specify error type
+        assertEquals(response.getGlobalOutcomeDetailSubcode(), "CONTAINER_FORMAT.FILE");
     }
 
     @Test
@@ -180,6 +200,10 @@ public class CheckSedaActionHandlerTest {
                         .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
+        // itemId is used as eventType so do not change it
+        assertEquals(response.getItemId(), HANDLER_ID);
+        // global outcome detail subcode is used to specify error type
+        assertEquals(response.getGlobalOutcomeDetailSubcode(), "CONTAINER_FORMAT.DIRECTORY");
     }
 
 }

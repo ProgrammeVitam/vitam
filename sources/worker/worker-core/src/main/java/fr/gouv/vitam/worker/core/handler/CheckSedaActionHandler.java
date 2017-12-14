@@ -80,23 +80,23 @@ public class CheckSedaActionHandler extends ActionHandler {
                 itemStatus.increment(StatusCode.OK);
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             case NO_FILE:
-                itemStatus.setItemId(NO_FILE);
+                itemStatus.setGlobalOutcomeDetailSubcode(NO_FILE);
                 itemStatus.increment(StatusCode.KO);
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             case NOT_XML_FILE:
-                itemStatus.setItemId(NOT_XML_FILE);
+                itemStatus.setGlobalOutcomeDetailSubcode(NOT_XML_FILE);
                 itemStatus.increment(StatusCode.KO);
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             case NOT_XSD_VALID:
-                itemStatus.setItemId(NOT_XSD_VALID);
+                itemStatus.setGlobalOutcomeDetailSubcode(NOT_XSD_VALID);
                 itemStatus.increment(StatusCode.KO);
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             case MORE_THAN_ONE_MANIFEST:
-                itemStatus.setItemId(SUBTASK_CHECK_MULTI_MANIFEST);
+                itemStatus.setGlobalOutcomeDetailSubcode(SUBTASK_CHECK_MULTI_MANIFEST);
                 itemStatus.increment(StatusCode.KO);
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             case MORE_THAN_ONE_FOLDER_CONTENT:
-                itemStatus.setItemId(SUBTASK_CHECK_MULTI_FOLDER_CONTENT_ID);
+                itemStatus.setGlobalOutcomeDetailSubcode(SUBTASK_CHECK_MULTI_FOLDER_CONTENT_ID);
                 itemStatus.increment(StatusCode.KO);
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             default:
