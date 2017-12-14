@@ -16,11 +16,6 @@
         </dependency>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
-            <artifactId>functional-administration-counter</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>fr.gouv.vitam</groupId>
             <artifactId>functional-administration-contract</artifactId>
             <version>${project.version}</version>
         </dependency>

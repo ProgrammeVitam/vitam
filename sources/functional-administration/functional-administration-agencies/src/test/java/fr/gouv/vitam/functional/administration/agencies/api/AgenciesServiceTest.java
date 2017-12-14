@@ -32,6 +32,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import org.apache.commons.io.IOUtils;
 import org.bson.Document;
 import org.junit.After;
@@ -80,7 +82,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -194,7 +196,7 @@ public class AgenciesServiceTest {
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
         when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
             .thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
-        
+
         agencyService = new AgenciesService(dbImpl, vitamCounterService, securisator, logbookOperationsClientFactory,
             storageClientFactory, workspaceClientFactory);
 

@@ -24,18 +24,21 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.functional.administration.counter;
+package fr.gouv.vitam.functional.administration.common.counter;
 
 
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+
+import java.util.Arrays;
+import java.util.Optional;
 
 public enum SequenceType {
 
 
     /**
-     * Rules Collection
+     * Agencies Collection
      */
-    AGENCIES_SEQUENCE(FunctionalAdminCollections.RULES, "AG"),
+    AGENCIES_SEQUENCE(FunctionalAdminCollections.AGENCIES, "AG"),
     /**
      * Rules Collection
      */
@@ -88,5 +91,14 @@ public enum SequenceType {
      */
     public FunctionalAdminCollections getCollection() {
         return collection;
+    }
+
+    public static SequenceType fromFunctionalAdminCollections(
+        FunctionalAdminCollections functionalAdminCollection) {
+
+        return Arrays.stream(SequenceType.values())
+            .filter(i -> i.getCollection().equals(functionalAdminCollection))
+            .findFirst()
+            .orElseThrow(IllegalArgumentException::new);
     }
 }

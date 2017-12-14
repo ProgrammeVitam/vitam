@@ -10,6 +10,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.functional.administration.agencies.api.AgenciesService.AGENCIES_IMPORT_EVENT;
@@ -20,6 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class AgenciesManagerTest {
 
@@ -37,23 +40,21 @@ public class AgenciesManagerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void logStarted() throws Exception {
+    public void shoul_test_logbookStarted() throws Exception {
+        // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        final LogbookOperationParameters[] result = new LogbookOperationParameters[1];
-        doAnswer(invocationOnMock ->
-        {
-            LogbookOperationParameters parameters = invocationOnMock.getArgumentAt(0, LogbookOperationParameters.class);
-            result[0] = LogbookOperationsClientHelper.copy(parameters);
-            return null;
+        ArgumentCaptor<LogbookOperationParameters> captor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
 
-        }).when(
-            logbookOperationsClient).create(any()
-        );
         AgenciesManager manager =
             new AgenciesManager(logbookOperationsClient, newOperationLogbookGUID(TENANT_ID), false);
+
+        // When
         manager.logStarted(AGENCIES_IMPORT_EVENT);
-        LogbookOperationParameters log = result[0];
+
+        // Then
+        verify(logbookOperationsClient).create(captor.capture());
+        LogbookOperationParameters log = captor.getValue();
 
         assertThat(log.getParameterValue(eventType)).isEqualTo(AGENCIES_IMPORT_EVENT);
         assertThat(log.getParameterValue(eventTypeProcess)).isEqualTo("MASTERDATA");
@@ -63,33 +64,32 @@ public class AgenciesManagerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void logFinish() throws Exception {
+    public void should_test_logFinish() throws Exception {
+        // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        final LogbookOperationParameters[] result = new LogbookOperationParameters[1];
-        doAnswer(invocationOnMock ->
-        {
-            LogbookOperationParameters parameters = invocationOnMock.getArgumentAt(0, LogbookOperationParameters.class);
-            result[0] = LogbookOperationsClientHelper.copy(parameters);
-            return null;
+        ArgumentCaptor<LogbookOperationParameters> captor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
 
-        }).when(
-            logbookOperationsClient).update(any()
-        );
         AgenciesManager manager = new AgenciesManager(logbookOperationsClient, newOperationLogbookGUID(0), false);
 
+        // When
         manager.logFinish();
-        LogbookOperationParameters log = result[0];
+
+        //THEN
+        verify(logbookOperationsClient, times(1)).update(captor.capture());
+        LogbookOperationParameters log = captor.getValue();
 
         assertThat(log.getParameterValue(eventType)).isEqualTo(AGENCIES_IMPORT_EVENT);
         assertThat(log.getParameterValue(eventTypeProcess)).isEqualTo("MASTERDATA");
         assertThat(log.getParameterValue(outcome)).isEqualTo("OK");
 
-
         manager = new AgenciesManager(logbookOperationsClient, newOperationLogbookGUID(0), true);
-        manager.logFinish();
-        log = result[0];
 
+        manager.logFinish();
+
+        verify(logbookOperationsClient, times(2)).update(captor.capture());
+
+        log = captor.getValue();
 
         assertThat(log.getParameterValue(eventType)).isEqualTo(AGENCIES_IMPORT_EVENT);
         assertThat(log.getParameterValue(eventTypeProcess)).isEqualTo("MASTERDATA");
@@ -102,23 +102,18 @@ public class AgenciesManagerTest {
     @Test
     @RunWithCustomExecutor
     public void logError() throws Exception {
+
+        // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        final LogbookOperationParameters[] result = new LogbookOperationParameters[1];
-        doAnswer(invocationOnMock ->
-        {
-            LogbookOperationParameters parameters = invocationOnMock.getArgumentAt(0, LogbookOperationParameters.class);
-            result[0] = LogbookOperationsClientHelper.copy(parameters);
-            return null;
-
-        }).when(
-            logbookOperationsClient).update(any()
-        );
+        ArgumentCaptor<LogbookOperationParameters> captor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
         AgenciesManager manager = new AgenciesManager(logbookOperationsClient, newOperationLogbookGUID(0));
 
+        //When
         manager.logError("ErorMessage");
-        LogbookOperationParameters log = result[0];
-
+        verify(logbookOperationsClient).update(captor.capture());
+        LogbookOperationParameters log = captor.getValue();
+        //Then
         assertThat(log.getParameterValue(eventType)).isEqualTo(AGENCIES_IMPORT_EVENT);
         assertThat(log.getParameterValue(eventTypeProcess)).isEqualTo("MASTERDATA");
         assertThat(log.getParameterValue(outcome)).isEqualTo("KO");
