@@ -1,19 +1,12 @@
 Administration
 ##############
 
-Cette partie décrit les fonctionnalités d'administration proposées à l'utilisateur, elle est découpée en 3 sections, Référentiels, Imports et Opérations, qui permettent :
+Cette partie décrit les fonctionnalités d'administration proposées à l'utilisateur :
 
-- Import d'un arbre de positionnement
-- Import et consultation du référentiel des contrats d'entrée
-- Import et consultation du référentiel des contrats d'accès
-- Import et consultation du référentiel des contextes applicatifs
-- Import et consultation du référentiel des formats
-- Import et consultation du référentiel des profils d'archivage
-- Import et consultation du référentiel des règles de gestion
-- Import et consultation du référentiel des services agents
-- Consultation et recherche du journal des opérations
-- Recherche et gestion des opérations
-- Consultation et recherche des opérations de sécurisation
+- Consultation des référentiels (contextes applicatifs, contrats d'entrée. contrats d'accès, formats, profils d'archivage, règles de gestion et services agents)
+- Import des référentiels
+- Import d'un arbre de positionnement (arbre de positionnement, contextes applicatifs, contrats d'entrée. contrats d'accès, formats, profils d'archivage, règles de gestion et services agents)
+- Consultation et suivi des opérations et des opérations de sécurisation
 
 Journal des opérations
 ======================
@@ -21,7 +14,6 @@ Journal des opérations
 Pour consulter le journal des opérations, l'utilisateur survole le menu "Administration", puis le sous-menu "Opérations" et sélectionne "Journal des opérations".
 
 |
-
 .. image:: images/menu_jdo.png
 
 Il permet à l'utilisateur d'accéder à toutes les opérations effectuées dans la solution logicielle Vitam, par catégorie d'opération.
@@ -38,20 +30,20 @@ Ces catégories d'opération sont :
 - Sécurisation
 - Vérification (pas encore développé)
 
-Par défaut, l'ensemble des opérations s'affiche de la date d'opération la plus récente à la plus ancienne.
+Par défaut, l'ensemble des opérations s'affiche, de la date d'opération la plus récente à la plus ancienne.
 
 
 Recherche d'opérations
 -----------------------
 
-Par défaut, les opérarions sont affichées sous le formulaire de recherche et sont classés par ordre ante chronologique. Pour effectuer une recherche précise, on utilise les champs "Identifiant" ou "Catégorie d'opération" :
+Par défaut, les opérations sont affichées sous le formulaire de recherche et sont classées par ordre ante chronologique. Pour effectuer une recherche précise, on utilise les champs "Identifiant" ou "Catégorie d'opération" :
 
 - Identifiant : identifiant de l'opération donné par le système
-- Catégories d'opération : présentées sous forme de liste triée alphabétiquement, elles permettant à l'utilisateur de sélectionner une catégorie d'opération
+- Catégories d'opération : présentées sous forme de liste triée alphabétiquement, elles permettent à l'utilisateur de sélectionner une catégorie d'opération
 
 NB : Il est impossible d'effectuer une recherche croisée par identifiant et catégorie d'opération.
 
-Pour initier la recherche, l'utilisateur saisit son critère de recherche et clique sur le bouton "Rechercher". La liste des opérations est alors actualisée avec les résultats correspondants à la recherche.
+Pour initier la recherche, l'utilisateur saisit un critère de recherche et clique sur le bouton "Rechercher". La liste des opérations est alors actualisée avec les résultats correspondants à la recherche.
 
 |
 
@@ -73,7 +65,7 @@ Suite à la recherche, le résultat est affiché sous forme de tableau, comporta
 
 .. image:: images/res_jdo.png
 
-Le bouton "Informations supplémentaires" permet d'afficher les autres informations du journal des opérations. Il suffit de cocher dans la liste les informations voulues.
+Le bouton "Informations supplémentaires" permet d'afficher les autres informations du journal des opérations. Il suffit pour cela de cocher dans la liste les informations voulues.
 
 Liste des informations supplémentaires disponibles :
 
@@ -85,10 +77,10 @@ Liste des informations supplémentaires disponibles :
 - Règles utilisées
 - Identifiant de la requête
 - Identifiant des agents externes
-- Identifiant externe du lot d'objet
+- Identifiant externe du lot d'objets
 - Identifiant du tenant
-- Identifiant application
-- Identifiant transaction
+- Identifiant de l'application
+- Identifiant de la transaction
 - Rapport
 
 L'utilisateur a la possibilité d'afficher toutes les colonnes supplémentaires en cliquant sur la coche située tout en haut de la liste. Un clic sur le bouton "Informations supplémentaires" ferme la liste.
@@ -114,7 +106,7 @@ Puis, les détails de l'opération qui sont présentés sous forme de liste comp
 - le message expliquant le statut de cette étape
 - le statut présenté sous forme de pictogramme
 
-Un clic sur la flèche située à côté du message permet d'afficher plus de détail concernant cette étape. Un clic sur un signe "+" situé à côté d'un message affiche les détails des données de l'évènement.
+Un clic sur la flèche située à côté du message permet d'afficher davantage d'informations concernant cette étape. Un clic sur un signe "+" situé à côté d'un message affiche les détails des données de l'évènement.
 
 
 .. image:: images/detail_jdo.png
@@ -122,7 +114,7 @@ Un clic sur la flèche située à côté du message permet d'afficher plus de d�
 Référentiel des formats
 =======================
 
-Cette partie décrit les fonctionnalités d'import du référentiel des formats (basé sur une version récente du référentiel des formats PRONOM mis à disposition par les Archives nationales britanniques, pour ensuite le consulter et rechercher des formats spécifiques).
+Cette partie décrit les fonctionnalités d'import et de consultation du référentiel des formats (basé sur une version récente du référentiel des formats PRONOM mis à disposition par les Archives nationales britanniques).
 
 Import du référentiel des formats
 ---------------------------------
@@ -130,7 +122,6 @@ Import du référentiel des formats
 Pour y accéder à l'écran d'import du référentiel, l'utilisateur survole le menu "Administration", puis le sous-menu "Import des référentiels" et sélectionne "Import des formats".
 
 |
-
 .. image:: images/menu_imports.png
 
 L'import du référentiel ne peut être effectué sans le fichier PRONOM. Pour cela, l'utilisateur peut récupérer ce fichier dans sa version la plus récente sur le site des Archives nationales britanniques :
@@ -140,12 +131,11 @@ L'import du référentiel ne peut être effectué sans le fichier PRONOM. Pour c
 
 Le processus d'import du référentiel se décrit comme ceci :
 
-- Acceder à l'écran d'import du référentiel des formats et cliquer sur le bouton "sélectionner un fichier" ou faire glisser le fichier sur l'espace de téléchargement
+- Accéder à l'écran d'import du référentiel des formats et cliquer sur le bouton "sélectionner un fichier" ou faire glisser le fichier sur l'espace de téléchargement
 - Sélectionner le fichier .xml PRONOM récupéré précédemment
 - Cliquer sur le bouton "Importer"
 
 |
-
 .. image:: images/import_formats.png
    :scale: 50
    
@@ -155,6 +145,7 @@ A l'issue du contrôle de cohérence et d'intégrité du fichier, plusieurs cas 
 
 - En cas d'erreur pour cause de référentiel déjà existant détecté par la solution logicielle Vitam. Un message d'erreur s'affiche. L'import devient impossible.
 
+|
 .. image:: images/import_ko.png
    :scale: 50
 
@@ -167,7 +158,6 @@ Recherche d'un format
 La recherche d'un format dans le référentiel des formats s'effectue depuis l'écran "Formats". Pour y accéder, l'utilisateur survole le menu "Administration", puis le sous-menu "Référentiels" et sélectionne "Formats".
 
 |
-
 .. image:: images/menu_formats.png
 
 Par défaut, les formats sont affichés sous le formulaire de recherche et sont classés par ordre alphabétique de leur intitulé.
@@ -179,7 +169,7 @@ La page affiche un formulaire de recherche composé des champs suivants :
 
 NB : Il est impossible d'effectuer une recherche croisée par PUID et intitulé. La recherche par intitulé peut être approximative : chaîne de caractères avec ou sans accent, mots au singulier comme au pluriel, voire une légère tolérance de faute.
 
-
+|
 .. image:: images/rechch_formats.png
 
 Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher". La liste du référentiel est alors actualisée avec les résultats correspondants à la recherche souhaitée. Suite à la recherche, les résultats sont affichés dans un tableau comportant les informations suivantes :
@@ -191,7 +181,6 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
 - Extension(s)
 
 |
-
 .. image:: images/res_formats.png
 
 Détail d'un format
@@ -199,7 +188,7 @@ Détail d'un format
 
 Pour accéder au détail d'un format, l'utilisateur clique sur la ligne souhaitée.
 
-
+|
 .. image:: images/detail_format.png
 
 Le détail d'un format est composé des informations suivantes :
@@ -226,7 +215,6 @@ L'import des règles de gestion est une fonctionnalité réservée à un utilisa
 Pour y accéder, l'utilisateur survole le menu "Administration", puis le sous-menu "Import des référentiels" et sélectionne "Import des règles de gestion". 
 
 |
-
 .. image:: images/menu_imports.png
 
 L'utilisateur doit au préalable créer le référentiel des règles de gestion au format CSV afin de l'importer dans Vitam. Plusieurs critères doivent être respectés pour s'assurer de la bonne construction du référentiel des règles de gestion :
@@ -253,9 +241,18 @@ Le processus d'import du référentiel se décrit comme ceci :
 - Cliquer sur le bouton "Importer"
 
 |
-
 .. image:: images/import_rg.png
    :scale: 50
+   
+   
+Une fenêtre modale s'ouvre alors pour indiquer soit :
+
+- Que le référentiel a bien été importé
+- Un échec de l'import du fichier, pouvant être causé par :
+	- Le fait que les règles de gestion mentionnées existent déjà pour le tenant
+	- Le fait que le fichier est invalide (mauvais format)
+
+Cette opération est journalisée et disponible dans le Journal des opérations.
 
 
 Recherche d'une règle de gestion
@@ -264,7 +261,6 @@ Recherche d'une règle de gestion
 Pour consulter et rechercher les règles de gestion, l'utilisateur survole le menu "Administration", puis le sous-menu "Référentiels" et sélectionne "Règles de gestion".
 
 |
-
 .. image:: images/menu_rg.png
 
 Par défaut, les règles de gestion sont affichées sous le formulaire de recherche et sont classées par ordre alphabétique de leur intitulé.
@@ -274,7 +270,6 @@ Pour effectuer une recherche précise, on utilise le champ "Intitulé" et/ou le 
 NB : La recherche par intitulé peut être approximative : chaîne de caractères avec ou sans accent, mots au singulier comme au pluriel, voire une légère tolérance de faute.
 
 |
-  
 .. image:: images/rechch_rg.png
 
 Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher". La liste du référentiel est alors actualisée avec les résultats correspondants à la recherche souhaitée. Suite à la recherche, les résultats sont affichés dans un tableau comportant les informations suivantes :
@@ -286,7 +281,6 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
 - Identifiant
 
 |
-
 .. image:: images/res_rg.png
 
 Détail d'une règle de gestion
@@ -294,12 +288,12 @@ Détail d'une règle de gestion
 
 Pour accéder au détail de chaque règle de gestion, l'utilisateur clique sur la ligne souhaitée.
 
-
+|
 .. image:: images/detail_rg.png
 
 Le détail d'une règle de gestion est composé des informations suivantes :
 
-- #id (identifiant VITAM)
+- #id (identifiant donné à la règle de gestion par la solution logicielle Vitam)
 - Identifiant
 - Type
 - Intitulé
@@ -312,7 +306,7 @@ Le détail d'une règle de gestion est composé des informations suivantes :
 Contrats
 =========
 
-Les contrats permettent de gérer les droits donnés aux utilisateurs et applications. Deux types de contrats sont disponibles dans la solution logicielle Vitam :
+Les contrats permettent de gérer les droits donnés aux utilisateurs et applicatifs. Deux types de contrats sont disponibles dans la solution logicielle Vitam :
 
 - Contrats d'accès
 - Contrats d'entrée
@@ -338,7 +332,7 @@ Plusieurs critères doivent être respectés pour s'assurer de la bonne construc
 - Description (obligatoire)
 - Statut (facultatif) : si aucun statut n'est défini, le contrat sera inactif par défaut
 
-L'utilisateur sélectionne ensuite le fichier (.json) à importer en cliquant sur "sélectionner un fichier" ou en le faisant glisser sur l'espace de téléchargement, puis clique sur "Importer" pour lancer l'opération.
+L'utilisateur sélectionne le fichier (.json) à importer en cliquant sur "sélectionner un fichier" ou en le faisant glisser sur l'espace de téléchargement, puis clique sur "Importer" pour lancer l'opération.
 
 .. image:: images/import_ce.png
    :scale: 50
@@ -348,17 +342,16 @@ Une fenêtre modale s'ouvre alors pour indiquer soit :
 - Que les contrats ont bien été importés
 - Un échec de l'import du fichier, pouvant être causé par :
 	- Le fait que les contrats mentionnés existent déjà pour le tenant
-	- Le fait que le fichier est invalide (mauvais format)
+	- Le fait que le fichier est invalide (mauvais format ou champ obligatoire absent)
 
 Cette opération est journalisée et disponible dans le Journal des opérations.
 
 Recherche d'un contrat d'entrée
 --------------------------------
 
-Pour consulter et rechercher les contrats d'entrée, l'utilisateur survole sur le menu "Administration", puis le sous-menu "Référentiels" et sélectionne "Contrat d'entrée".
+Pour consulter et rechercher les contrats d'entrée, l'utilisateur survole sur le menu "Administration", puis le sous-menu "Référentiels" et sélectionne "Contrats d'entrée".
 
 |
-
 .. image:: images/menu_ce.png
 
 Par défaut, les contrats d'entrée sont affichés sous le formulaire de recherche et sont classés par ordre alphabétique de leur intitulé.
@@ -371,7 +364,6 @@ La page affiche un formulaire de recherche composé des champs suivants :
 NB : Il est impossible d'effectuer une recherche croisée entre identifiant et intitulé. La recherche par intitulé peut être approximative : chaîne de caractères avec ou sans accent, mots au singulier comme au pluriel, voire une légère tolérance de faute.
 
 |
-
 .. image:: images/rechch_ce.png
 
 Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher". La liste du référentiel est alors actualisée avec les résultats correspondants à la recherche souhaitée. Suite à la recherche, le résultat est affiché sous forme de tableau, comportant les informations suivantes :
@@ -397,11 +389,10 @@ Pour accéder au détail d'un contrat, l'utilisateur clique sur la ligne souhait
 - Description
 - Statut
 - Date de création
-- Date d'activation
 - Date de mise à jour
-- Date de désactivation
 - Profils d'archivage
 - Nœud de rattachement
+- Tenant
 
 |
 
@@ -409,10 +400,10 @@ Pour accéder au détail d'un contrat, l'utilisateur clique sur la ligne souhait
 
 **Modifier un contrat d'entrée**
 
-Il est possible de modifier un contrat d'entrée en cliquant sur le bouton "Modifier" sur l'écran de détail du contrat. L'interface permet la modification de plusieurs champs du contrat, ainsi que de changer son statut (actif/inactif). Il est également possible d'ajouter ou de supprimer des profils d'archivage (identifiant) au travers d'un système de tag.
+Il est possible de modifier un contrat d'entrée en cliquant sur le bouton "Modifier" sur l'écran de détail du contrat. L'interface permet la modification de plusieurs champs du contrat, l'ajout d'un noeud de rattachement, ainsi que de changer son statut (actif/inactif). Il est également possible d'ajouter ou de supprimer des profils d'archivage (identifiant) au travers d'un système de tag.
 
-
- .. image:: images/ca_update.png
+|
+ .. image:: images/ce_update.png
  
 Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet de les enregistrer. A l'inverse, le bouton "Annuler" permet de retourner à l'état initial de l'écran du détail du contrat.
 
@@ -460,16 +451,16 @@ Une fenêtre modale s'ouvre alors pour indiquer soit :
 - Que les contrats ont bien été importés
 - Un échec de l'import du fichier, pouvant être causé par :
 	- Le fait que les contrats mentionnés existent déjà pour le tenant
-	- Le fait que le fichier est invalide (mauvais format)
+	- Le fait que le fichier est invalide (mauvais format ou champ obligatoire absent)
 
 Cette opération est journalisée et disponible dans le Journal des opérations.
 
 Recherche d'un contrat d'accès
 ------------------------------
 
-Pour consulter et rechercher les contrats d'accès, l'utilisateur survole sur le menu "Administration", puis le sous-menu "Référentiels" et sélectionne "Contrat d'accès".
+Pour consulter et rechercher les contrats d'accès, l'utilisateur survole sur le menu "Administration", puis le sous-menu "Référentiels" et sélectionne "Contrats d'accès".
 
-
+|
 .. image:: images/menu_ca.png
 
 Par défaut, les contrats d'accès sont affichés sous le formulaire de recherche et sont classés par ordre alphabétique de leur intitulé.
@@ -482,7 +473,6 @@ La page affiche un formulaire de recherche composé des champs suivants :
 NB : Il est impossible d'effectuer une recherche croisée entre identifiant et intitulé. La recherche par intitulé peut être approximative : chaîne de caractères avec ou sans accent, mots au singulier comme au pluriel, voire une légère tolérance de faute.
 
 |
-
 .. image:: images/rechch_ca.png
 
 Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher". La liste du référentiel est alors actualisée avec les résultats correspondants à la recherche souhaitée. Suite à la recherche, le résultat est affiché sous forme de tableau, comportant les informations suivantes :
@@ -495,7 +485,6 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
 - Dernière modification
 
 |
-
 .. image:: images/res_ca.png
 
 Détail d'un contrat d'accès
@@ -507,11 +496,11 @@ Pour accéder au détail d'un contrat, l'utilisateur clique sur la ligne souhait
 - Intitulé
 - Description
 - Statut
-- Tous les services producteurs
+- Tous les services producteurs ou une liste blanche de services producteurs
 - Date de création
 - Date de dernière modification
 - Droit d'écriture
-- Tous les usages autorisés
+- Tous les usages autorisés ou une liste blanche d'usages
 - Nœuds de consultation
 
 |
@@ -520,12 +509,13 @@ Pour accéder au détail d'un contrat, l'utilisateur clique sur la ligne souhait
 
 **Modifier un contrat d'accès**
 
-Il est possible de modifier un contrat d'accès en cliquant sur le bouton "Modifier" sur l'écran de détail du contrat. L'interface permet la modification de plusieurs champs du contrat, ainsi que de changer son statut (actif/inactif). Il est également possible d'ajouter ou de supprimer des profils d'archivage (identifiant) et des noeuds de consultation (identifiant) au travers d'un système de tag.
+Il est possible de modifier un contrat d'accès en cliquant sur le bouton "Modifier" sur l'écran de détail du contrat. L'interface permet la modification de plusieurs champs du contrat, ainsi que de changer son statut (actif/inactif). Il est également possible d'ajouter ou de supprimer des services producteurs (identifiant) et des noeuds de consultation (identifiant) au travers d'un système de tag ainsi que des usages à sélectionner via une liste.
 
-
+|
  .. image:: images/ca_update.png
  
- Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet de les enregistrer. A l'inverse, le bouton "Annuler" permet de retourner à l'état initial de l'écran du détail du contrat.
+ 
+Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet de les enregistrer. A l'inverse, le bouton "Annuler" permet de retourner à l'état initial de l'écran du détail du contrat.
 
 *Activation / désactivation*
 
@@ -533,10 +523,10 @@ L'administrateur a la possibilité d'activer / désactiver un contrat. Un bouton
 
 *Restriction d'accès par service producteur*
 
-Un contrat peut interdire l'accès à tous ou certains services producteurs d'objets inclus dans une liste blanche. Deux options sont disponibles :
+Un contrat peut autoriser l'accès à tous ou certains services producteurs d'objets inclus dans une liste blanche. Deux options sont disponibles :
 
- - accès à tous les services producteurs en cliquant sur le bouton "Tous les services producteurs"
- - accès à une sélection de services producteurs en cliquant sur le bouton "Liste blanche uniquement"
+ - accès à tous les services producteurs en cliquant sur le bouton "Tous les services producteurs" afin de changer sa valeur à "oui"
+ - accès à une sélection de services producteurs en cliquant sur le bouton "Tous les services producteurs" afin de changer sa valeur à "non", puis en cochant dans la liste déroulante les valeurs souhaitées
 
 *Restriction d'accès par usage de l'objet*
 
@@ -561,12 +551,11 @@ L'import de contextes est une fonctionnalité réservée à un utilisateur ayant
 Pour importer un contexte, l'utilisateur survole le menu "Administration", puis le sous-menu "Import des référentiels" et sélectionne "Import des contextes applicatifs".
 
 |
-
 .. image:: images/menu_imports.png
 
 L'utilisateur sélectionne ensuite le fichier (.json) à importer en cliquant sur "sélectionner un fichier" ou en le faisant glisser sur l'espace de téléchargement, puis clique sur "Importer" pour lancer l'opération.
 
-
+|
 .. image:: images/import_contextes.png
    :scale: 50
    
@@ -575,10 +564,10 @@ Une fenêtre modale s'ouvre alors pour indiquer soit :
 - Que les contextes ont bien été importés
 - Un échec de l'import du fichier, pouvant être causé par :
 	- Le fait que le contexte existe déjà dans le système
-	- Le fait que le fichier est invalide (mauvais format)
+	- Le fait que le fichier est invalide (mauvais format ou champ obligatoire absent)
     - Le fait que le contexte déclare des contrats d'entrée ou des contrats d'accès qui n'existent pas dans les référentiels des contrats de leur tenant.
 
-Cette opération est journalisée et disponible dans le Journal des Opérations.
+Cette opération est journalisée et disponible dans le Journal des opérations.
 
 Rechercher un contexte applicatif
 -----------------------------------
@@ -586,7 +575,6 @@ Rechercher un contexte applicatif
 Pour consulter et rechercher les contextes applicatifs, l'utilisateur survole le menu "Administration", puis le sous-menu "Référentiels" et sélectionne "Contextes applicatifs".
 
 |
-
 .. image:: images/menu_contextes.png
 
 Par défaut, les contextes applicatifs sont affichés sous le formulaire de recherche et sont classés par ordre alphabétique de leur intitulé.
@@ -610,9 +598,11 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
 - Date de création
 - Dernière modification
 
+NB : une coche indique la présence d'au moins un contrat, une croix indique qu'aucun contrat n'est présent
+
 Le bouton "Informations supplémentaires" permet d'afficher les autres informations du journal des opérations. Il suffit de cocher dans la liste les informations voulues.
 
-Liste des informations supplémentaires disponibles :
+Les informations supplémentaires disponibles sont :
 
 - GUID
 
@@ -636,7 +626,7 @@ Pour accéder au détail d'un contexte applicatif, l'utilisateur clique sur la l
 
 Les tenants sont affichés par bloc. Chaque bloc contenant les informations suivantes :
 
-- L'intitulé du tenant
+- L'identifiant du tenant
 - La liste des contrats d'accès associés à ce tenant
 - La liste des contrats d'entrée associés à ce tenant
 
@@ -674,9 +664,9 @@ Profils d'archivage
 Importer un profil d'archivage
 ------------------------------
 
-L'import de profils d'archivages est une fonctionnalité réservée à un utilisateur ayant des droits d'administration. La structure et les valeurs des profils d'archivages sont décrites dans la documentation du modèle de données.
+L'import de notice détaillant les profils d'archivage est une fonctionnalité réservée à un utilisateur ayant des droits d'administration. La structure et les valeurs des notices descriptives de profils d'archivages sont décrites dans la documentation du modèle de données.
 
-Pour importer un profil d'archivage, l'utilisateur survole le menu "Administration", puis le sous-menu "Import de référentiels" et sélectionne "Import des profils d'archivage".
+Pour importer une notice descriptive de profil d'archivage, l'utilisateur survole le menu "Administration", puis le sous-menu "Import de référentiels" et sélectionne "Import des profils d'archivage".
 
 |
 
@@ -686,7 +676,7 @@ Plusieurs critères doivent être respectés pour s'assurer de la bonne construc
 
 - Nom : intitulé du profil d'archivage (obligatoire)
 - Description : description du profil d'archivage (obligatoire)
-- Format : format attendu pour le profil SEDA (XSD ou RNG)
+- Format : format attendu pour le profil SEDA (XSD ou RNG) (obligatoire)
 - Statut (facultatif) : si aucun statut n'est défini, le profil sera inactif par défaut
 
 L'utilisateur sélectionne ensuite le fichier (.json) à importer en cliquant sur "sélectionner un fichier" ou en le faisant glisser sur l'espace de téléchargement, puis clique sur "Importer" pour lancer l'opération.
@@ -700,7 +690,7 @@ Une fenêtre modale indique alors soit :
 - Les profils ont bien été importés
 - Échec de l’import du fichier, pouvant être causé par :
 	- le fait que le(s) profil(s) d'archivage mentionné(s) existe(nt) déjà pour le tenant
-	- le fait que le fichier est invalide (mauvais format)
+	- le fait que le fichier est invalide (mauvais format ou champ obligatoire absent)
 
 Cette opération est journalisée et disponible dans le Journal des opérations.
 
@@ -714,19 +704,19 @@ Pour consulter et rechercher les profils d'archivage, l'utilisateur survole le m
 
 .. image:: images/menu_profil.png
 
-Par défaut, les profils d'archivage sont affichés sous le formulaire de recherche et sont classés par ordre alphabétique de leur intitulé.
+Par défaut, les notices descriptives de profils d'archivage sont affichées sous le formulaire de recherche et sont classées par ordre alphabétique de leur intitulé.
 
 La page affiche un formulaire de recherche composé des champs suivants :
 
-- Intitulé : permet d’effectuer une recherche approchante sur les noms des profils d'archivage disponibles dans la solution logicielle Vitam.
-- Identifiant : permet d’effectuer une recherche exacte sur les identifiants des profils d'archivage.
+- Intitulé : permet d’effectuer une recherche approchante sur les noms des notices descriptives de profils d'archivage disponibles dans la solution logicielle Vitam.
+- Identifiant : permet d’effectuer une recherche exacte sur les identifiants des notices descriptives de profils d'archivage.
 
 NB : Il est impossible d'effectuer une recherche croisée entre identifiant et intitulé. La recherche par intitulé peut être approximative : chaîne de caractères avec ou sans accent, mots au singulier comme au pluriel, voire une légère tolérance de faute.
 
 |
 .. image:: images/rechch_profil.png
 
-Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher". La liste du référentiel est alors actualisée avec les résultats correspondants à la recherche souhaitée. Suite à la recherche, le résultat est affiché sous forme de tableau, comportant les informations suivantes :
+Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher". La liste du référentiel est alors actualisée avec les résultats correspondant à la recherche souhaitée. Suite à la recherche, le résultat est affiché sous forme de tableau, comportant les informations suivantes :
 
 - Intitulé
 - Identifiant
@@ -735,16 +725,15 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
 - Dernière modification
 - Profil
 
-Lorsqu'un profil SEDA de règle a été associé au profil, une flèche indiquant la possibilité de le télécharger apparaît. L'utilisateur peut lancer le téléchargement en cliquant dessus.
+Lorsqu'un profil SEDA de règle a été associé au profil, une flèche indiquant la possibilité de le télécharger apparaît dans la colonne "Profil". L'utilisateur peut lancer le téléchargement en cliquant dessus.
 
 |
-
 .. image:: images/res_profil.png
 
 Détail d'un profil d'archivage
 -------------------------------
 
-Pour accéder au détail d'un profil d'archivage, l'utilisateur clique sur la ligne souhaitée. La page "Détail d'un profil d'archivage" contient les informations suivantes :
+Pour accéder au détail d'un profil d'archivage, l'utilisateur clique sur la ligne souhaitée. La page "Détail du profil d'archivage" contient les informations suivantes :
 
 - Identifiant
 - Intitulé
@@ -757,18 +746,17 @@ Pour accéder au détail d'un profil d'archivage, l'utilisateur clique sur la li
 - Fichier
 
 |
-
 .. image:: images/detail_profil.png
 
 **Modifier un profil d'archivage**
 
-Il est possible de modifier un profil d'archivage en cliquant sur le bouton "Modifier" sur l'écran de détail du profil. L'interface permet la modification de plusieurs champs du profil.
+Il est possible de modifier un profil d'archivage en cliquant sur le bouton "Modifier" sur l'écran de détail du profil d'archivage. L'interface permet la modification de plusieurs champs du profil.
 
 Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" permet de les enregistrer. A l'inverse, le bouton "Annuler" permet de retourner à l'état initial de l'écran du détail du contrat.
 
-*Associer un fichier de règles à un profil d'archivage*
+*Associer un fichier XSD ou RNG à un profil d'archivage*
 
-Pour importer un profil SEDA de règles à associer à un profil d'archivage, l'utilisateur clique sur le bouton "Parcourir" à côté du champ "Fichier" puis clique sur "Importer". Le format du fichier doit correspondre au format attendu, indiqué dans le champ format.
+Pour importer un profil au format XSD ou RNG à associer à une notice descriptive de profil d'archivage, l'utilisateur clique sur le bouton "Parcourir" à côté du champ "Fichier" puis clique sur "Importer". Le format du fichier doit correspondre au format attendu, indiqué dans le champ format.
 
 A la fin de l'opération d'import, une fenêtre modale indique un des deux messages suivants :
 
@@ -777,7 +765,7 @@ A la fin de l'opération d'import, une fenêtre modale indique un des deux messa
 
 L'opération est journalisée et disponible depuis l'écran de consultation du journal des opérations.
 
-En cas de succès de l'import du profil SEDA de règle, la date de mise à jour du profil est ajustée en conséquence. Si l'utilisateur importe un profil SEDA alors qu'un autre profil SEDA a déjà été importé, alors le nouveau fichier remplace l'ancien.
+En cas de succès de l'import du profil XSD ou RNG, la date de mise à jour de la notice descriptive de profil est ajustée en conséquence. Si l'utilisateur importe un profil XSD ou RNG alors qu'un autre profil SEDA a déjà été importé, alors le nouveau fichier remplace l'ancien.
 
 Import d'un arbre de positionnement
 ===================================
@@ -785,7 +773,6 @@ Import d'un arbre de positionnement
 Pour importer un arbre de positionnement, l'utilisateur survole le menu "Administration", puis le sous-menu "Import de référentiels" et sélectionne "Arbre de positionnement".
 
 |
-
 .. image:: images/menu_imports.png
 
 L'utilisateur sélectionne ensuite le dossier à importer en cliquant sur "sélectionner un fichier" ou en le faisant glisser sur l'espace de téléchargement.
@@ -796,7 +783,7 @@ Plusieurs options sont présentes sur l'écran :
 	- le mode d'exécution "pas à pas" permettant de réaliser progressivement l'entrée en passant d'une étape à une autre. (NB : Les actions liées au processus d'entrée en mode "pas à pas" se retrouvent dans la partie Administration du manuel utilisateur).
 	- le mode d'exécution "en continu" permettant de lancer le processus d'entrée dans sa globalité en une seule fois. Dans la grande majorité des cas, ce mode d'exécution sera le choix adopté.
 
-- Destination : actuellement, seule l'option "production" est disponible pour verser directement le plan.
+- Destination : actuellement, seule l'option "production" est disponible pour verser directement l'arbre de positionnement.
 
 Le mode d'exécution et la destination sont obligatoires.
 
@@ -815,7 +802,6 @@ Une barre de progression affiche l’avancement du téléchargement de l'arbre d
 NB : Suite au téléchargement de l'arbre, un temps d'attente est nécessaire, correspondant au traitement de l'arbre par le système avant affichage du statut final. Dans ce cas, une roue de chargement est affichée au niveau du statut.
 
 |
-
 .. image:: images/import_arbre.png
 
 Les formats de SIP attendus sont : ZIP, TAR, TAR.GZ, TAR.BZ2, TAR.GZ2
@@ -837,15 +823,13 @@ Lors d'une entrée en succès dans la solution logicielle Vitam, l'ATR comprend 
 - ArchivalAgency : service d'archives
 - TransferringAgency : service de transfert d'archives
 
-Lors d'une entrée en avertissement, l'ATR contient les mêmes informations que l'ATR en succès et le ReplyCode est "WARNING".
-
 En cas de rejet de l'entrée, l'ATR contient les mêmes informations que l'ATR en succès ainsi que la liste des problèmes rencontrés :
 
 - Outcome : statut de l'étape ou de la tâche ayant rencontré au moins une erreur
 - OutcomeDetail : code interne à la solution logicielle Vitam correspondant à l'erreur rencontrée
 - OutcomeDetailMessage : message d'erreur
 
-La notification comprend ensuite la liste des erreurs rencontrées (échecs ou avertissement), au niveau des unités archivistiques sous la forme de blocs <event>.
+La notification comprend ensuite la liste des erreurs rencontrées (échec ou avertissement), au niveau des unités archivistiques sous la forme de blocs <event>.
 
 
 Gestion des opérations
@@ -859,7 +843,7 @@ Recherche d'une opération
 
 Pour consulter et rechercher une opération, l'utilisateur survole le menu "Administration", puis le sous-menu "Opérations" et sélectionne "Gestion des opérations".
 
-
+|
 .. image:: images/menu_gestion.png
 
 Par défaut, les opérations d’entrée sont classées par ordre ante chronologique selon leur date d'entrée et seules les opérations en cours de traitement sont affichées sur cet écran.
@@ -874,20 +858,19 @@ La page affiche un formulaire de recherche composé des champs suivants :
 - Dates de début : date de début de l'opération
 - Dates de fin : date de fin de l'opération
 
-NB : Il est impossible d'effectuer une recherche croisée par Identifiant et tout autre champ.
+NB : Il est impossible d'effectuer une recherche croisée par identifiant et tout autre champ.
 
 |
-
 .. image:: images/rechch_gestion.png
 
-Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher". La liste du référentiel est alors actualisée avec les résultats correspondants à la recherche souhaitée. Suite à la recherche, le résultat est affiché sous forme de tableau, comportant les informations suivantes :
+Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher". La liste des opérations est alors actualisée avec les résultats correspondants à la recherche souhaitée. Suite à la recherche, le résultat est affiché sous forme de tableau, comportant les informations suivantes :
 
-- Identifiant de l’opération : identifiant unique de l’opération
-- Catégorie de l’opération : indique le type d’opération :
-	- INGEST : indique une opération d’entrée normale
-	- INGEST_TEST : indique une opération d’entrée en test à blanc
+- Identifiant de la demande d'entrée : identifiant unique de l’opération
+- Catégorie de l’opération : indique le type d’opération
+	- Entrée : indique une opération d’entrée normale
+	- Entrée test : indique une opération d’entrée en test à blanc
 - Date de l’entrée : date à laquelle l’entrée a été soumise à la solution logicielle Vitam
-- Mode d’exécution : indique le mode d’exécution choisi. Celui-ci peut-être
+- Mode d’exécution : indique le mode d’exécution choisi, celui-ci peut être
 	- Continu
 	- Pas à pas
 - Etat : indique l'état actuel de l'opération
@@ -901,10 +884,9 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
     - Erreur
 - Précédente étape du workflow / étape en cours
 - Prochaine étape du workflow
-- Actions : Contient des boutons d’action permettant d’interagir avec l'entrée réalisée en mode d’exécution pas à pas.
+- Action : Contient des boutons d’action permettant d’interagir avec l'entrée réalisée en mode d’exécution pas à pas
 
 |
-
 .. image:: images/res_gestion.png
 
 Utilisation du mode pas à pas
@@ -939,7 +921,6 @@ Recherche de journaux sécurisés
 Pour accéder à la page de “Opérations de sécurisation”, l'utilisateur survole le menu "Administration", puis le sous-menu "Opérations" et sélectionne "Opérations de sécurisation".
 
 |
-
 .. image:: images/menu_secu.png
 
 Par défaut, les journaux sont affichés sous le formulaire de recherche et sont classés par ordre ante chronologique.
@@ -950,7 +931,6 @@ La page affiche un formulaire de recherche composé des champs suivants :
 - Type de journal sécurisé : liste déroulante permettant de sélectionner le type de journal sécurisé à afficher.
 
 |
-
 .. image:: images/rechch_secu.png
 
 Pour initier la recherche, l'utilisateur saisit ses critères de recherche et clique sur le bouton "Rechercher". La liste du référentiel est alors actualisée avec les résultats correspondants à la recherche souhaitée. Suite à la recherche, le résultat est affiché sous forme de tableau, comportant les informations suivantes :
@@ -961,7 +941,6 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
 - Télécharger : icône permettant de télécharger le journal sécurisé
 
 |
-
 .. image:: images/res_secu.png
 
 
@@ -970,12 +949,12 @@ Chaque ligne comporte un symbole de téléchargement. En cliquant sur ce symbole
 Détail d'un journal sécurisé
 ----------------------------
 
-Pour accéder au détail d'un journal sécurisé, l'utilisateur clique sur la ligne souhaitée. La page "Détail d'un journal sécurisé" est découpée en 3 parties et contient les informations suivantes :
+Pour accéder au détail d'un journal sécurisé, l'utilisateur clique sur la ligne souhaitée. La page "Détail de l'opération" est composée de 3 parties et contient les informations suivantes :
 
 - Opération
     - Date de début : date du premier journal pris en compte dans l'opération de sécurisation
     - Date de fin : date du dernier journal pris en compte dans l'opération de sécurisation
-    - Nombre d'opérations : il s'agit du nombre de journaux pris en compte dans l'opération de sécurisation
+    - Nombre d'opération : il s'agit du nombre de journaux pris en compte dans l'opération de sécurisation
 - Fichier
     - Nom du fichier : nom du journal sécurisé
     - Taille du fichier : taille du journal sécurisé
@@ -986,7 +965,6 @@ Pour accéder au détail d'un journal sécurisé, l'utilisateur clique sur la li
 - Hash de l'arbre de Merkle
 
 |
-
 .. image:: images/detail_secu.png
 
 Vérification d'un journal sécurisé
