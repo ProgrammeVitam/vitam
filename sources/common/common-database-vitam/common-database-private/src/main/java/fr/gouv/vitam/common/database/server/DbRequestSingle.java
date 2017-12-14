@@ -39,16 +39,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import org.bson.conversions.Bson;
 import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.search.SearchPhaseExecutionException;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -57,7 +58,6 @@ import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortBuilder;
-import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -95,11 +95,13 @@ import fr.gouv.vitam.common.database.translators.elasticsearch.QueryToElasticsea
 import fr.gouv.vitam.common.database.translators.elasticsearch.SelectToElasticsearch;
 import fr.gouv.vitam.common.database.translators.mongodb.QueryToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.SelectToMongodb;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
 
 /**
@@ -115,6 +117,9 @@ public class DbRequestSingle {
     private long total = 0;
     private long offset = 0;
     private long limit = 0;
+
+    private static final String OFFSET_LIMIT_INCORRECT =
+        "Offset and limit are incorrect, the request could not be executed";
 
     /**
      * Constructor with VitamCollection
@@ -133,6 +138,7 @@ public class DbRequestSingle {
      * @return DbRequestResult
      * @throws InvalidParseOperationException
      * @throws DatabaseException
+     * @throws BadRequestException
      * @throws InvalidCreateOperationException
      * @throws SecurityException
      * @throws NoSuchMethodException
@@ -142,7 +148,7 @@ public class DbRequestSingle {
      * @throws InstantiationException
      */
     public DbRequestResult execute(RequestSingle request)
-        throws InvalidParseOperationException, DatabaseException, InvalidCreateOperationException {
+        throws InvalidParseOperationException, BadRequestException, DatabaseException, InvalidCreateOperationException {
         return execute(request, 0);
     }
 
@@ -153,6 +159,7 @@ public class DbRequestSingle {
      * @param version
      * @throws InvalidParseOperationException
      * @throws DatabaseException
+     * @throws BadRequestException
      * @throws InvalidCreateOperationException
      * @throws SecurityException
      * @throws NoSuchMethodException
@@ -162,7 +169,7 @@ public class DbRequestSingle {
      * @throws InstantiationException
      */
     public DbRequestResult execute(RequestSingle request, Integer version)
-        throws InvalidParseOperationException, DatabaseException, InvalidCreateOperationException {
+        throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException {
         if (request instanceof Insert) {
             ArrayNode data = ((Insert) request).getDatas();
             return insertDocuments(data, version);
@@ -311,8 +318,8 @@ public class DbRequestSingle {
         // either use client#prepare, or use Requests# to directly build index/delete requests
         for (final Entry<String, String> val : mapIdJson.entrySet()) {
             bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE)
-            .add(client.prepareIndex(vitamCollection.getName().toLowerCase(), VitamCollection.getTypeunique(),
-                val.getKey()).setSource(val.getValue(), XContentType.JSON));              
+                .add(client.prepareIndex(vitamCollection.getName().toLowerCase(), VitamCollection.getTypeunique(),
+                    val.getKey()).setSource(val.getValue(), XContentType.JSON));
         }
         return bulkRequest.execute().actionGet();
     }
@@ -323,8 +330,9 @@ public class DbRequestSingle {
      * @param select
      * @return DbRequestResult
      * @throws DatabaseException
+     * @throws BadRequestException
      */
-    private DbRequestResult findDocuments(JsonNode select) throws DatabaseException {
+    private DbRequestResult findDocuments(JsonNode select) throws DatabaseException, BadRequestException {
         MongoCursor<VitamDocument<?>> cursor = search(select);
         return new DbRequestResult().setCursor(cursor).setTotal(total > 0 ? total : count).setCount(count)
             .setLimit(limit).setOffset(offset);
@@ -336,8 +344,9 @@ public class DbRequestSingle {
      * @param select
      * @return MongoCursor<VitamDocument<?>>
      * @throws DatabaseException
+     * @throws BadRequestException
      */
-    private MongoCursor<VitamDocument<?>> search(JsonNode select) throws DatabaseException {
+    private MongoCursor<VitamDocument<?>> search(JsonNode select) throws DatabaseException, BadRequestException {
         try {
             final SelectParserSingle parser = new SelectParserSingle(vaNameAdapter);
             parser.parse(select);
@@ -356,7 +365,7 @@ public class DbRequestSingle {
     }
 
     /**
-     * Private method for select using Elasticsearch
+     * Private method for select using ElasticsearchDbRequestSingle
      *
      * @param parser
      * @return MongoCursor<VitamDocument<?>>
@@ -364,9 +373,10 @@ public class DbRequestSingle {
      * @throws DatabaseException
      * @throws InvalidCreateOperationException
      * @throws DatabaseException
+     * @throws BadRequestException
      */
     private MongoCursor<VitamDocument<?>> selectElasticsearchExecute(SelectParserSingle parser)
-        throws InvalidParseOperationException, InvalidCreateOperationException, DatabaseException {
+        throws InvalidParseOperationException, InvalidCreateOperationException, DatabaseException, BadRequestException {
         SelectToElasticsearch requestToEs = new SelectToElasticsearch(parser);
         QueryBuilder query = QueryToElasticsearch.getCommand(requestToEs.getNthQuery(0));
         List<SortBuilder> sorts = requestToEs.getFinalOrderBy(vitamCollection.isUseScore());
@@ -434,7 +444,7 @@ public class DbRequestSingle {
         FindIterable<VitamDocument<?>> find =
             (FindIterable<VitamDocument<?>>) collection.find(condition).skip(offset2);
         total = collection.count(condition);
-        
+
         if (projection != null) {
             find = find.projection(projection);
         }
@@ -472,10 +482,11 @@ public class DbRequestSingle {
      * @param limit the limit
      * @return a structure as ResultInterface
      * @throws DatabaseException
+     * @throws BadRequestException
      */
     private final SearchResponse search(final QueryBuilder query,
         final QueryBuilder filter, List<SortBuilder> sorts, final int offset, final int limit)
-        throws DatabaseException {
+        throws DatabaseException, BadRequestException {
         final SearchRequestBuilder request =
             vitamCollection.getEsClient().getClient()
                 .prepareSearch(vitamCollection.getName().toLowerCase()).setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
@@ -491,9 +502,13 @@ public class DbRequestSingle {
             request.setQuery(query);
         }
         try {
+
             return request.get();
         } catch (final Exception e) {
-            LOGGER.debug(e.getMessage(), e);
+            if (e instanceof SearchPhaseExecutionException &&
+                (offset + limit > VitamConfiguration.getMaxResultWindow())) {
+                throw new BadRequestException(OFFSET_LIMIT_INCORRECT);
+            }
             throw new DatabaseException(e);
         }
     }
@@ -505,10 +520,11 @@ public class DbRequestSingle {
      * @return DbRequestResult
      * @throws InvalidParseOperationException
      * @throws DatabaseException
+     * @throws BadRequestException
      * @throws InvalidCreateOperationException
      */
     private DbRequestResult updateDocuments(JsonNode request)
-        throws InvalidParseOperationException, DatabaseException, InvalidCreateOperationException {
+        throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException {
         final UpdateParserSingle parser = new UpdateParserSingle(vaNameAdapter);
         parser.parse(request);
         if (vitamCollection.isMultiTenant()) {
@@ -592,11 +608,12 @@ public class DbRequestSingle {
      * @param request
      * @return DbRequestResult
      * @throws DatabaseException
+     * @throws BadRequestException
      * @throws InvalidCreateOperationException
      * @throws InvalidParseOperationException
      */
     private DbRequestResult deleteDocuments(JsonNode request)
-        throws DatabaseException, InvalidCreateOperationException, InvalidParseOperationException {
+        throws DatabaseException, BadRequestException, InvalidCreateOperationException, InvalidParseOperationException {
         final SelectParserSingle parser = new SelectParserSingle(vaNameAdapter);
         parser.parse(request);
         parser.addProjection(JsonHandler.createObjectNode(), JsonHandler.createObjectNode().put(VitamDocument.ID, 1));
@@ -648,7 +665,8 @@ public class DbRequestSingle {
                     client.prepareDelete(vitamCollection.getName().toLowerCase(), VitamCollection.getTypeunique(), id));
             if (max == 0) {
                 max = VitamConfiguration.getMaxElasticsearchBulk();
-                final BulkResponse bulkResponse = bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet(); // new
+                final BulkResponse bulkResponse =
+                    bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet(); // new
                 // thread
                 if (bulkResponse.hasFailures()) {
                     LOGGER.error("ES delete in error: " + bulkResponse.buildFailureMessage());
@@ -659,7 +677,8 @@ public class DbRequestSingle {
             }
         }
         if (bulkRequest.numberOfActions() > 0) {
-            final BulkResponse bulkResponse = bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet();
+            final BulkResponse bulkResponse =
+                bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet();
             // thread
             if (bulkResponse.hasFailures()) {
                 LOGGER.error("ES delete in error: " + bulkResponse.buildFailureMessage());

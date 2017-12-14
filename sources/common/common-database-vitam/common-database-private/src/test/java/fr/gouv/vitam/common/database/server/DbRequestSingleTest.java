@@ -3,6 +3,7 @@ package fr.gouv.vitam.common.database.server;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.CollectionSample;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -122,7 +124,7 @@ public class DbRequestSingleTest {
     @Test
     @RunWithCustomExecutor
     public void testVitamCollectionRequests()
-        throws InvalidParseOperationException, DatabaseException, InvalidCreateOperationException {
+        throws InvalidParseOperationException, BadRequestException, DatabaseException, InvalidCreateOperationException {
 
         final DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -148,6 +150,17 @@ public class DbRequestSingleTest {
         assertEquals(2, selectCursor.size());
         selectCursor.clear();
         selectResult.close();
+
+        // find all
+        Select select2 = new Select();
+        select2.setLimitFilter(11000, 11000);        
+        try {
+            final DbRequestResult selectResult2 = dbRequestSingle.execute(select2);
+            final List<VitamDocument> selectCursor2 = selectResult2.getDocuments(VitamDocument.class);
+            fail("Should throw an exception, since max_result_window is 10000");
+        } catch (BadRequestException e) {
+            // do nothing, that means es has thrown an error
+        }
 
         // find with sort in mongo
         final Select sortedSelect = new Select();

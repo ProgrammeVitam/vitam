@@ -197,7 +197,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         LOGGER.debug("init Admin Management Resource server");
     }
 
-    @VisibleForTesting AdminManagementResource(AdminManagementConfiguration configuration,
+    @VisibleForTesting
+    AdminManagementResource(AdminManagementConfiguration configuration,
         FilesSecurisator securisator) {
         this(configuration);
         this.securisator = securisator;
@@ -245,7 +246,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * import the file format
      *
-     * @param headers   http headers
+     * @param headers http headers
      * @param xmlPronom as InputStream
      * @return Response jersey response
      */
@@ -287,7 +288,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * @param request
      * @return Response jersey response
      * @throws InvalidParseOperationException when transform result to json exception occurred
-     * @throws IOException                    when error json occurs
+     * @throws IOException when error json occurs
      */
     @GET
     @Path("format/{id_format:.+}")
@@ -337,7 +338,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param select as String the query to get format
      * @return Response jersey Response
-     * @throws IOException                    when error json occurs
+     * @throws IOException when error json occurs
      * @throws InvalidParseOperationException when error json occurs
      */
     @Path("format/document")
@@ -372,10 +373,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param rulesStream as InputStream
      * @return Response response jersey
-     * @throws IOException                     convert inputstream rule to File exception occurred
+     * @throws IOException convert inputstream rule to File exception occurred
      * @throws InvalidCreateOperationException if exception occurred when create query
-     * @throws InvalidParseOperationException  if parsing json data exception occurred
-     * @throws ReferentialException            if exception occurred when create rule file manager
+     * @throws InvalidParseOperationException if parsing json data exception occurred
+     * @throws ReferentialException if exception occurred when create rule file manager
      */
     @Path("rules/check")
     @POST
@@ -453,12 +454,12 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * import the rules file
      *
-     * @param headers     http headers
+     * @param headers http headers
      * @param rulesStream as InputStream
      * @return Response jersey response
-     * @throws IOException                    when error json occurs
+     * @throws IOException when error json occurs
      * @throws InvalidParseOperationException when error json occurs
-     * @throws ReferentialException           when the mongo insert throw error
+     * @throws ReferentialException when the mongo insert throw error
      */
     @Path("rules/import")
     @POST
@@ -497,12 +498,12 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * findRuleByID : find the rules details based on a given Id
      *
-     * @param ruleId  path param as String
+     * @param ruleId path param as String
      * @param request the request
      * @return Response jersey response
-     * @throws InvalidParseOperationException  if exception occurred when transform json rule id
-     * @throws IOException                     when error json occurs
-     * @throws ReferentialException            when the mongo search throw error or search result is null
+     * @throws InvalidParseOperationException if exception occurred when transform json rule id
+     * @throws IOException when error json occurs
+     * @throws ReferentialException when the mongo search throw error or search result is null
      * @throws InvalidCreateOperationException if exception occurred when create query
      */
     @GET
@@ -555,7 +556,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param select as String
      * @return Response jersey Response
-     * @throws IOException                    when error json occurs
+     * @throws IOException when error json occurs
      * @throws InvalidParseOperationException when error json occurs
      */
     @Path("rules/document")
@@ -623,9 +624,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
      *
      * @param select as String the query to find accession register
      * @return Response jersey Response
-     * @throws IOException                    when error json occurs
+     * @throws IOException when error json occurs
      * @throws InvalidParseOperationException when error json occurs
-     * @throws ReferentialException           when the mongo search throw error or search result is null
+     * @throws ReferentialException when the mongo search throw error or search result is null
      */
     @Path("accession-register/document")
     @POST
@@ -637,13 +638,13 @@ public class AdminManagementResource extends ApplicationStatusResource {
         RequestResponseOK<AccessionRegisterSummary> fileFundRegisters;
         try {
             fileFundRegisters = findFundRegisters(select);
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e);
-            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (final ReferentialNotFoundException e) {
             LOGGER.error(e);
             final Status status = Status.NOT_FOUND;
             return Response.status(status).entity(status).build();
+        } catch (final InvalidParseOperationException | ReferentialException e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Access contract does not allow ", e);
             final Status status = Status.UNAUTHORIZED;
@@ -696,11 +697,11 @@ public class AdminManagementResource extends ApplicationStatusResource {
      * retrieve accession register detail based on a given dsl query
      *
      * @param documentId
-     * @param select     as String the query to find the accession register
+     * @param select as String the query to find the accession register
      * @return Response jersey Response
-     * @throws IOException                    when error json occurs
+     * @throws IOException when error json occurs
      * @throws InvalidParseOperationException when error json occurs
-     * @throws ReferentialException           when the mongo search throw error or search result is null
+     * @throws ReferentialException when the mongo search throw error or search result is null
      */
     @Path("accession-register/detail/{id}")
     @POST

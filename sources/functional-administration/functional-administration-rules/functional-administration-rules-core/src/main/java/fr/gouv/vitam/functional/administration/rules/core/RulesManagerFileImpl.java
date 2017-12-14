@@ -1261,7 +1261,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
             delete.setQuery(eq(RULE_ID, fileRulesModel.getRuleId()));
             result = dbrequest.execute(delete);
             result.close();
-        } catch (InvalidParseOperationException | InvalidCreateOperationException | DatabaseException e) {
+        } catch (InvalidParseOperationException | BadRequestException | InvalidCreateOperationException | DatabaseException e) {
             LOGGER.error(e);
         }
     }

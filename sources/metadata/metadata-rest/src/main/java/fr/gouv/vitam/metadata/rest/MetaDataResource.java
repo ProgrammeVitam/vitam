@@ -29,6 +29,7 @@ package fr.gouv.vitam.metadata.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -196,7 +197,7 @@ public class MetaDataResource extends ApplicationStatusResource {
             int st = result.isOk() ? Status.FOUND.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result.setHttpCode(st)).build();
 
-        } catch (final InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException | BadRequestException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
             return Response.status(status)
@@ -288,7 +289,7 @@ public class MetaDataResource extends ApplicationStatusResource {
             int st = result.isOk() ? Status.FOUND.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result.setHttpCode(st)).build();
 
-        } catch (final InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException | BadRequestException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
             return Response.status(status)
@@ -439,7 +440,7 @@ public class MetaDataResource extends ApplicationStatusResource {
             int st = result.isOk() ? Status.FOUND.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result.setHttpCode(st)).build();
 
-        } catch (final InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException | BadRequestException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
             return Response.status(status)
@@ -666,7 +667,7 @@ public class MetaDataResource extends ApplicationStatusResource {
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result.setHttpCode(Status.OK.getStatusCode())).build();
 
-        } catch (final InvalidParseOperationException e) {
+        } catch (final InvalidParseOperationException | BadRequestException e) {
             LOGGER.error(e);
             status = Status.BAD_REQUEST;
             return Response.status(status)

@@ -29,22 +29,13 @@ package fr.gouv.vitam.functional.administration.common.server;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
-import java.util.Map;
-import java.util.Map.Entry;
-
-import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import org.bson.Document;
-import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
-import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
-import com.mongodb.client.result.UpdateResult;
 
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.Insert;
@@ -54,13 +45,13 @@ import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 /**
@@ -97,7 +88,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
             final Insert insertquery = new Insert();
             insertquery.setData(arrayNode);
            return dbrequest.execute(insertquery, version);
-        } catch (InvalidParseOperationException | DatabaseException | InvalidCreateOperationException e) {
+        } catch (InvalidParseOperationException | BadRequestException | DatabaseException | InvalidCreateOperationException e) {
             LOGGER.error("Insert Documents Exception", e);
             throw new ReferentialException(e);
         }
@@ -126,7 +117,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
                     }
 
                     return result;
-                } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
+                } catch (InvalidParseOperationException | BadRequestException | InvalidCreateOperationException e) {
                     throw new DatabaseException("Delete document exception");
                 }
             }
@@ -161,7 +152,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
                             result.getCount(), count));
                 }
                 return result;
-            } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
+            } catch (InvalidParseOperationException | BadRequestException | InvalidCreateOperationException e) {
                 throw new DatabaseException("Delete document exception");
             }
         }
@@ -194,7 +185,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
             parser.parse(select);
             final DbRequestSingle dbrequest = new DbRequestSingle(collection.getVitamCollection());
             return dbrequest.execute(parser.getRequest());
-        } catch (final DatabaseException | InvalidParseOperationException | InvalidCreateOperationException e) {
+        } catch (final DatabaseException | BadRequestException | InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error("find Document Exception", e);
             throw new ReferentialException(e);
         }
@@ -212,7 +203,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
                 throw new ReferentialException("Document is not updated");
             }
             return result;
-        } catch (final DatabaseException | InvalidParseOperationException | InvalidCreateOperationException e) {
+        } catch (final DatabaseException | BadRequestException | InvalidParseOperationException | InvalidCreateOperationException e) {
             LOGGER.error("find Document Exception", e);
             throw new ReferentialException(e);
         }

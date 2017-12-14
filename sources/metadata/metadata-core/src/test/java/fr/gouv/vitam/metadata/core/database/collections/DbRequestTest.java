@@ -110,6 +110,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -172,6 +173,7 @@ public class DbRequestTest {
 
     private static final String AU_TREE_NEGATIVE_DEPTH_LEVEL_ONE = "au_tree_negative_depth_level_one.json";
     private static final String AU_TREE_NEGATIVE_DEPTH_LEVEL_TWO = "au_tree_negative_depth_level_two.json";
+    private static final String AU_INCORRECT_OFF_LIMIT = "au_incorrect_offset_limit.json";
 
     static final List tenantList = Lists.newArrayList(TENANT_ID_0, TENANT_ID_1, TENANT_ID_2, TENANT_ID_3);
 
@@ -288,7 +290,7 @@ public class DbRequestTest {
      */
     @Test(expected = MetaDataExecutionException.class)
     @RunWithCustomExecutor
-    public void testExecRequest() throws MetaDataExecutionException {
+    public void testExecRequest() throws MetaDataExecutionException, BadRequestException {
         // input data
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final GUID uuid = GUIDFactory.newUnitGUID(tenantId);
@@ -401,9 +403,12 @@ public class DbRequestTest {
             final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
 
             // prepare unit with one parent -> depth_negative_level = -1.
-            final ObjectNode insertReq1 = (ObjectNode) createInsertRequestTreeWithParents(guidParent1, "Fake titre_A", operation);
-            final ObjectNode insertReq2 = (ObjectNode) createInsertRequestTreeWithParents(guidParent2, "Fake titre_B", operation);
-            final ObjectNode insertReq3 = (ObjectNode) createInsertRequestTreeWithParents(guidChild, "Fake titre_C", operation);
+            final ObjectNode insertReq1 =
+                (ObjectNode) createInsertRequestTreeWithParents(guidParent1, "Fake titre_A", operation);
+            final ObjectNode insertReq2 =
+                (ObjectNode) createInsertRequestTreeWithParents(guidParent2, "Fake titre_B", operation);
+            final ObjectNode insertReq3 =
+                (ObjectNode) createInsertRequestTreeWithParents(guidChild, "Fake titre_C", operation);
             insertReq3.set(ROOTS, (ArrayNode) JsonHandler.toJsonNode(Arrays.asList(guidParent1, guidParent2)));
             ObjectNode uds = JsonHandler.createObjectNode().put(guidParent1, 1L).put(guidParent2, 1L);
             ((ObjectNode) insertReq3.get(DATA)).set(_UDS, uds);
@@ -422,7 +427,8 @@ public class DbRequestTest {
             executeRequest(dbRequest, insertParser);
 
             // prepare select dsl query -> Select parents ot the given root corresponding on the depth (depth < -1)
-            JsonNode selectQuery = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(AU_TREE_NEGATIVE_DEPTH_LEVEL_ONE));
+            JsonNode selectQuery =
+                JsonHandler.getFromFile(PropertiesUtils.getResourceFile(AU_TREE_NEGATIVE_DEPTH_LEVEL_ONE));
             selectParser.parse(selectQuery);
             LOGGER.debug("selectParser: {}", selectParser);
 
@@ -434,13 +440,27 @@ public class DbRequestTest {
             final List<MetadataDocument<?>> docs = result.getFinal();
             assertEquals("Fake titre_A", docs.get(0).getString(TITLE));
 
+            try {
+                JsonNode selectIncorrectQuery =
+                    JsonHandler.getFromFile(PropertiesUtils.getResourceFile(AU_INCORRECT_OFF_LIMIT));
+                selectParser.parse(selectIncorrectQuery);
+                LOGGER.debug("selectParser: {}", selectParser);
+                dbRequest.execRequest(selectParser, null);
+                fail("Should throw an exception as offset limit are incorrect");
+            } catch (BadRequestException e) {
+                // do nothing
+            }
+
         } catch (final Exception e) {
             e.printStackTrace();
             fail(e.getMessage());
         } finally {
-            MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, guidParent1.toString()));
-            MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, guidParent2.toString()));
-            MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, guidChild.toString()));
+            MetadataCollections.C_UNIT.getCollection()
+                .deleteOne(new Document(MetadataDocument.ID, guidParent1.toString()));
+            MetadataCollections.C_UNIT.getCollection()
+                .deleteOne(new Document(MetadataDocument.ID, guidParent2.toString()));
+            MetadataCollections.C_UNIT.getCollection()
+                .deleteOne(new Document(MetadataDocument.ID, guidChild.toString()));
         }
     }
 
@@ -462,14 +482,17 @@ public class DbRequestTest {
             final SelectParserMultiple selectParser = new SelectParserMultiple(mongoDbVarNameAdapter);
 
             // prepare unit with one parent ==> depth_negative_level = -2.
-            final ObjectNode insertReq1 = (ObjectNode) createInsertRequestTreeWithParents(guidParent, "Fake titre_A", operation);
+            final ObjectNode insertReq1 =
+                (ObjectNode) createInsertRequestTreeWithParents(guidParent, "Fake titre_A", operation);
 
-            final ObjectNode insertReq2 = (ObjectNode) createInsertRequestTreeWithParents(guidChild1, "Fake titre_B", operation);
+            final ObjectNode insertReq2 =
+                (ObjectNode) createInsertRequestTreeWithParents(guidChild1, "Fake titre_B", operation);
             insertReq2.set(ROOTS, (ArrayNode) JsonHandler.toJsonNode(Arrays.asList(guidParent)));
             ObjectNode uds = JsonHandler.createObjectNode().put(guidParent, 1);
             ((ObjectNode) insertReq2.get(DATA)).set(_UDS, uds);
 
-            final ObjectNode insertReq3 = (ObjectNode) createInsertRequestTreeWithParents(guidChild2, "Fake titre_C", operation);
+            final ObjectNode insertReq3 =
+                (ObjectNode) createInsertRequestTreeWithParents(guidChild2, "Fake titre_C", operation);
             insertReq3.set(ROOTS, (ArrayNode) JsonHandler.toJsonNode(Arrays.asList(guidParent, guidChild1)));
             ObjectNode uds1 = JsonHandler.createObjectNode().put(guidParent, 2).put(guidChild1, 1);
             ((ObjectNode) insertReq3.get(DATA)).set(_UDS, uds1);
@@ -488,7 +511,8 @@ public class DbRequestTest {
             executeRequest(dbRequest, insertParser);
 
             // prepare select dsl query -> Select parents ot the given root corresponding on the depth (depth < -2)
-            JsonNode selectQuery = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(AU_TREE_NEGATIVE_DEPTH_LEVEL_TWO));
+            JsonNode selectQuery =
+                JsonHandler.getFromFile(PropertiesUtils.getResourceFile(AU_TREE_NEGATIVE_DEPTH_LEVEL_TWO));
             selectParser.parse(selectQuery);
             LOGGER.debug("selectParser: {}", selectParser);
 
@@ -498,8 +522,7 @@ public class DbRequestTest {
             LOGGER.debug("result size: {}", result.getNbResult());
             assertEquals(2L, result.getNbResult());
             final List<MetadataDocument<?>> docs = result.getFinal();
-            LOGGER.debug("result1 title: {}", docs.get(0).get(TITLE));
-            ;
+            LOGGER.debug("result1 title: {}", docs.get(0).get(TITLE));;
             assertTrue(docs.get(0).getString(TITLE).contains("Fake"));
             LOGGER.debug("result2 title: {}", docs.get(1).get(TITLE));
 
@@ -507,9 +530,12 @@ public class DbRequestTest {
             e.printStackTrace();
             fail(e.getMessage());
         } finally {
-            MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, guidParent.toString()));
-            MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, guidChild1.toString()));
-            MetadataCollections.C_UNIT.getCollection().deleteOne(new Document(MetadataDocument.ID, guidChild2.toString()));
+            MetadataCollections.C_UNIT.getCollection()
+                .deleteOne(new Document(MetadataDocument.ID, guidParent.toString()));
+            MetadataCollections.C_UNIT.getCollection()
+                .deleteOne(new Document(MetadataDocument.ID, guidChild1.toString()));
+            MetadataCollections.C_UNIT.getCollection()
+                .deleteOne(new Document(MetadataDocument.ID, guidChild2.toString()));
         }
     }
 
@@ -520,7 +546,7 @@ public class DbRequestTest {
      */
     @Test(expected = MetaDataExecutionException.class)
     @RunWithCustomExecutor
-    public void testExecRequestThroughRequestParserHelper() throws MetaDataExecutionException {
+    public void testExecRequestThroughRequestParserHelper() throws MetaDataExecutionException, BadRequestException {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         // input data
         final GUID uuid = GUIDFactory.newUnitGUID(tenantId);
@@ -632,7 +658,7 @@ public class DbRequestTest {
     @RunWithCustomExecutor
     public void testExecRequestThroughAllCommands()
         throws MetaDataExecutionException, MetaDataAlreadyExistException, MetaDataNotFoundException,
-        InvalidParseOperationException, InstantiationException, IllegalAccessException {
+        InvalidParseOperationException, InstantiationException, IllegalAccessException, BadRequestException {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         // input data
         final GUID uuid = GUIDFactory.newUnitGUID(tenantId);
@@ -1021,7 +1047,8 @@ public class DbRequestTest {
         final SearchRequestBuilder request =
             esClientWithoutVitambBehavior.getClient()
                 .prepareSearch(getIndexName(MetadataCollections.C_UNIT, tenantId))
-                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setTypes(VitamCollection.getTypeunique()).setExplain(false)
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setTypes(VitamCollection.getTypeunique())
+                .setExplain(false)
                 .setSize(GlobalDatas.LIMIT_LOAD);
         SearchResponse response;
         request.setQuery(qb1);
@@ -1048,7 +1075,7 @@ public class DbRequestTest {
      */
     private void executeRequest(DbRequest dbRequest, RequestParserMultiple requestParser)
         throws MetaDataExecutionException, MetaDataAlreadyExistException, MetaDataNotFoundException,
-        InvalidParseOperationException, InstantiationException, IllegalAccessException {
+        InvalidParseOperationException, InstantiationException, IllegalAccessException, BadRequestException {
 
         final Result result = dbRequest.execRequest(requestParser, null);
         LOGGER.warn("XXXXXXXX " + requestParser.getClass().getSimpleName() + " Result XXXXXXXX: " + result);
@@ -1383,7 +1410,8 @@ public class DbRequestTest {
         final SearchRequestBuilder request =
             esClientWithoutVitambBehavior.getClient()
                 .prepareSearch(getIndexName(MetadataCollections.C_OBJECTGROUP, tenantId))
-                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setTypes(VitamCollection.getTypeunique()).setExplain(false)
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setTypes(VitamCollection.getTypeunique())
+                .setExplain(false)
                 .setSize(GlobalDatas.LIMIT_LOAD);
         request.setQuery(qb);
         final SearchResponse response = request.get();
@@ -1434,7 +1462,8 @@ public class DbRequestTest {
 
     private Result checkExistence(DbRequest dbRequest, GUID uuid, boolean isOG)
         throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataAlreadyExistException, MetaDataNotFoundException, InstantiationException, IllegalAccessException {
+        MetaDataAlreadyExistException, MetaDataNotFoundException, InstantiationException, IllegalAccessException,
+        BadRequestException {
         final SelectMultiQuery select = new SelectMultiQuery();
         select.addQueries(eq(VitamFieldsHelper.id(), uuid.getId()));
         if (isOG) {
@@ -1799,7 +1828,8 @@ public class DbRequestTest {
         final DbRequest dbRequest = new DbRequest();
         final InsertParserMultiple insertParser = new InsertParserMultiple(mongoDbVarNameAdapter);
         final InsertMultiQuery insert = new InsertMultiQuery();
-        String requestInsertTestEsUpdate = IOUtils.toString(PropertiesUtils.getResourceAsStream(REQUEST_INSERT_TEST_ES_UPDATE), "UTF-8");
+        String requestInsertTestEsUpdate =
+            IOUtils.toString(PropertiesUtils.getResourceAsStream(REQUEST_INSERT_TEST_ES_UPDATE), "UTF-8");
         insert.parseData(requestInsertTestEsUpdate);
         insertParser.parse(insert.getFinalInsert());
         LOGGER.debug("InsertParser: {}", insertParser);
@@ -1969,7 +1999,7 @@ public class DbRequestTest {
         ObjectNode insertNode = insert.getFinalInsert();
         requestParser = RequestParserHelper.getParser(insertNode, mongoDbVarNameAdapter);
         executeRequest(dbRequest, requestParser);
-        //Insert 2
+        // Insert 2
         final GUID uuid2 = GUIDFactory.newObjectGroupGUID(TENANT_ID_0);
         ObjectNode data2 = JsonHandler.createObjectNode().put(id(), uuid2.toString())
             .put(TITLE, "Rectorat 2").put(DESCRIPTION, "Ma description privé est bien détaillée")
@@ -1983,7 +2013,7 @@ public class DbRequestTest {
         insertNode = insert.getFinalInsert();
         requestParser = RequestParserHelper.getParser(insertNode, mongoDbVarNameAdapter);
         executeRequest(dbRequest, requestParser);
-        //Insert 3 false description
+        // Insert 3 false description
         final GUID uuid3 = GUIDFactory.newObjectGroupGUID(TENANT_ID_0);
         ObjectNode data3 = JsonHandler.createObjectNode().put(id(), uuid3.toString())
             .put(TITLE, "Rectorat 3").put(DESCRIPTION, "Ma description est bien détaillée")
@@ -1997,7 +2027,7 @@ public class DbRequestTest {
         insertNode = insert.getFinalInsert();
         requestParser = RequestParserHelper.getParser(insertNode, mongoDbVarNameAdapter);
         executeRequest(dbRequest, requestParser);
-        //Insert 4 false Title
+        // Insert 4 false Title
         final GUID uuid4 = GUIDFactory.newObjectGroupGUID(TENANT_ID_0);
         ObjectNode data4 = JsonHandler.createObjectNode().put(id(), uuid4.toString())
             .put(TITLE, "Title 4").put(DESCRIPTION, "Ma description public est bien détaillée")
@@ -2023,7 +2053,8 @@ public class DbRequestTest {
 
         // Clean
         final DeleteMultiQuery delete = new DeleteMultiQuery();
-        delete.addQueries(in(VitamFieldsHelper.id(), uuid.toString(), uuid2.toString(), uuid3.toString(), uuid4.toString()));
+        delete.addQueries(
+            in(VitamFieldsHelper.id(), uuid.toString(), uuid2.toString(), uuid3.toString(), uuid4.toString()));
         delete.setMult(true);
         final DeleteParserMultiple deleteParser = new DeleteParserMultiple(mongoDbVarNameAdapter);
         deleteParser.parse(delete.getFinalDelete());
@@ -2040,10 +2071,10 @@ public class DbRequestTest {
      */
     private JsonNode createInsertRequestTreeWithParents(final String guid, final String title, final String op) {
         final ObjectNode data = JsonHandler.createObjectNode()
-                .put(id(), guid)
-                .put(TITLE, title)
-                .put(tenant(), tenantId)
-                .put(DESCRIPTION, "Fake description");
+            .put(id(), guid)
+            .put(TITLE, title)
+            .put(tenant(), tenantId)
+            .put(DESCRIPTION, "Fake description");
         try {
             data.putArray(_OPS).addAll((ArrayNode) JsonHandler.toJsonNode(Arrays.asList(op)));
         } catch (final InvalidParseOperationException e) {
