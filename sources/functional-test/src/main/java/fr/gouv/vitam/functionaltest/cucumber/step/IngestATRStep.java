@@ -115,8 +115,8 @@ public class IngestATRStep {
     public void atr_contains_n_times_the_value(int count, String value) {
         int realCount = StringUtils.countMatches(atr, value);
         if (realCount != count) {
-            LOGGER.error(String.format("expected %d% times the value %s but was %d times", count, value, realCount));
-            fail(String.format("expected %d% times the value %s but was %d times", count, value, realCount));
+            LOGGER.error(String.format("expected %d times the value %s but was %d times", count, value, realCount));
+            fail(String.format("expected %d times the value %s but was %d times", count, value, realCount));
         }
     }
 
@@ -131,8 +131,8 @@ public class IngestATRStep {
         // count ending tag to ensure there is no attribute in the checked tag
         int realCount = StringUtils.countMatches(atr, "</" + tag + ">");
         if (realCount != count) {
-            LOGGER.error(String.format("expected %d% tags %s but was %d", count, tag, realCount));
-            fail(String.format("expected %d% tags %s but was %d", count, tag, realCount));
+            LOGGER.error(String.format("expected %d tags %s but was %d", count, tag, realCount));
+            fail(String.format("expected %d tags %s but was %d", count, tag, realCount));
 
         }
     }

@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -759,7 +760,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         try {
             final GUID operationGuid = GUIDReader.getGUID(operationId);
-            logbook(logbookClient, operationGuid, processWorkflow.getLogbookTypeProcess(), status, workParams
+            final GUID eventGuid = GUIDFactory.newEventGUID(operationGuid);
+            logbook(logbookClient, eventGuid, operationGuid, processWorkflow.getLogbookTypeProcess(), status, workParams
                 .getParameterValue(WorkerParameterName.context));
 
         } catch (Exception e) {
@@ -772,7 +774,8 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
             try {
                 final GUID operationGuid = GUIDReader.getGUID(operationId);
-                logbook(logbookClient, operationGuid, processWorkflow.getLogbookTypeProcess(), status, workParams
+                final GUID eventGuid = GUIDFactory.newEventGUID(operationGuid);
+                logbook(logbookClient, eventGuid, operationGuid, processWorkflow.getLogbookTypeProcess(), status, workParams
                     .getParameterValue(WorkerParameterName.context));
 
             } catch (Exception ex) {
@@ -813,12 +816,12 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         }
     }
 
-    private void logbook(LogbookOperationsClient client, GUID operationGuid, LogbookTypeProcess logbookTypeProcess,
+    private void logbook(LogbookOperationsClient client, GUID eventIdentifier, GUID operationGuid, LogbookTypeProcess logbookTypeProcess,
         StatusCode statusCode, String eventType) throws Exception {
         MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
         final LogbookOperationParameters parameters = LogbookParametersFactory
             .newLogbookOperationParameters(
-                operationGuid,
+                eventIdentifier,
                 eventType,
                 operationGuid,
                 logbookTypeProcess,

@@ -185,37 +185,6 @@ public class IngestStep {
     }
 
     /**
-     * check on logbook if the global status is OK (status of the last event)
-     *
-     * @param status
-     * @throws VitamClientException
-     * @throws InvalidParseOperationException
-     */
-    @Then("^le statut final du journal des opérations est (.*)$")
-    public void the_logbook_operation_has_a_status(String status)
-        throws VitamClientException, InvalidParseOperationException {
-        RequestResponse<LogbookOperation> requestResponse =
-            world.getAccessClient()
-                .selectOperationbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                    .setApplicationSessionId(world.getApplicationSessionId()),
-                    world.getOperationId(), new Select().getFinalSelectById());
-        if (requestResponse instanceof RequestResponseOK) {
-            RequestResponseOK<LogbookOperation> requestResponseOK =
-                (RequestResponseOK<LogbookOperation>) requestResponse;
-
-            LogbookOperation actual = requestResponseOK.getFirstResult();
-            LogbookEventOperation last = Iterables.getLast(actual.getEvents());
-            assertThat(last.getOutcome()).as("last event has status %s, but %s was expected. Event name is: %s",
-                last.getOutcome(), status, last.getEvType()).isEqualTo(status);
-        } else {
-            LOGGER.error(
-                String.format("logbook operation return a vitam error for operationId: %s", world.getOperationId()));
-
-            fail(String.format("logbook operation return a vitam error for operationId: %s", world.getOperationId()));
-        }
-    }
-
-    /**
      * check if the status is valid for a list of event type according to logbook operation
      *
      * @param eventNames list of event
@@ -356,7 +325,8 @@ public class IngestStep {
             try {
                 a_sip_named(fileName);
                 upload_this_sip();
-                the_logbook_operation_has_a_status("OK");
+                world.getLogbookService().checkFinalStatusLogbook(world.getAccessClient(), world.getTenantId(),
+                    world.getContractId(), world.getApplicationSessionId(), world.getOperationId(), "OK");
                 World.setOperationId(fileName, world.getOperationId());
             } catch (VitamException | IOException e) {
                 fail("Could not load test set : ingest failure.", e);

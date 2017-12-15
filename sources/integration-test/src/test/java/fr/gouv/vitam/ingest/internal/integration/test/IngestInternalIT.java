@@ -41,20 +41,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
-import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -72,6 +69,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.jayway.restassured.RestAssured;
+import com.mongodb.MongoClient;
+import com.mongodb.ServerAddress;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
@@ -149,6 +150,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
@@ -787,11 +789,12 @@ public class IngestInternalIT {
         assertThat(unit.get("#uds")).isNull();
         assertThat(unit.get(Unit.UNITDEPTHS)).isNull();
 
-        try(MongoClient mongoClient = new MongoClient(new ServerAddress("localhost", DATABASE_PORT))) {
+        try (MongoClient mongoClient = new MongoClient(new ServerAddress("localhost", DATABASE_PORT))) {
             MongoCollection<Document> collection =
                 mongoClient.getDatabase(MONGO_DB_NAME).getCollection(Unit.class.getSimpleName());
 
-            FindIterable<Document> documents = collection.find(com.mongodb.client.model.Filters.eq("_id", unit.get("#id").asText()));
+            FindIterable<Document> documents =
+                collection.find(com.mongodb.client.model.Filters.eq("_id", unit.get("#id").asText()));
             Document first = documents.iterator().next();
 
             final JsonNode uds = JsonHandler.getFromString(first.toJson()).get(Unit.UNITDEPTHS);
@@ -808,8 +811,9 @@ public class IngestInternalIT {
                 assertEquals(1, result.get("$results").size());
                 assertNotNull(result.get("$results").get(0).get("Title"));
                 assertNotNull(udsIds.get(result.get("$results").get(0).get("Title").asText()));
-                assertEquals(udsIds.get(result.get("$results").get(0).get("Title").asText()).intValue(), uds.get(fieldName)
-                    .asInt());
+                assertEquals(udsIds.get(result.get("$results").get(0).get("Title").asText()).intValue(),
+                    uds.get(fieldName)
+                        .asInt());
             }
         }
     }
@@ -913,12 +917,17 @@ public class IngestInternalIT {
                 accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
                     .toJsonNode();
 
-
+            Set<String> eventIds = new HashSet<>();
+            eventIds.add(logbookOperation.get("$results").get(0).get("evId").asText());
             logbookOperation.get("$results").get(0).get("events").forEach(event -> {
                 if (event.get("evType").asText().contains("STP_UPLOAD_SIP")) {
                     assertThat(event.get("outDetail").asText()).contains("STP_UPLOAD_SIP");
                 }
+                eventIds.add(event.get("evId").asText());
             });
+
+            // check evIds
+            assertThat(eventIds.size()).isEqualTo(logbookOperation.get("$results").get(0).get("events").size() + 1);
 
             QueryBuilder query = QueryBuilders.matchQuery("_id", operationGuid.getId());
             SearchResponse elasticSearchResponse =
