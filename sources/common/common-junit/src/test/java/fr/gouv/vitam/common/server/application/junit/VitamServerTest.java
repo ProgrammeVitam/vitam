@@ -126,32 +126,12 @@ public class VitamServerTest {
         }
 
         @Override
-        public String getStaticContent() {
-            return null;
-        }
-
-        @Override
-        public VitamApplicationConfigurationInterface setStaticContent(String staticContent) {
-            return this;
-        }
-
-        @Override
         public String getStaticContentV2() {
             return null;
         }
 
         @Override
         public VitamApplicationConfigurationInterface setStaticContentV2(String staticContentV2) {
-            return this;
-        }
-
-        @Override
-        public String getBaseUri() {
-            return null;
-        }
-
-        @Override
-        public VitamApplicationConfigurationInterface setBaseUri(String baseUri) {
             return this;
         }
 

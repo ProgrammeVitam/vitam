@@ -176,7 +176,6 @@ public class WebApplicationResourceTest {
             (WebApplicationConfig) new WebApplicationConfig().setPort(port)
                 .setServerHost(DEFAULT_HOST)
                 .setBaseUrl(DEFAULT_WEB_APP_CONTEXT)
-                .setStaticContent(DEFAULT_STATIC_CONTENT).setBaseUri(DEFAULT_WEB_APP_CONTEXT)
                 .setStaticContentV2(DEFAULT_STATIC_CONTENT_V2).setBaseUriV2(DEFAULT_WEB_APP_CONTEXT_V2)
                 .setJettyConfig(JETTY_CONFIG).setTenants(tenants);
         final File conf = PropertiesUtils.findFile(IHM_DEMO_CONF);

@@ -273,7 +273,6 @@
 - hosts: hosts-ihm-demo
   roles:
     - vitam
-    - ihm-demo-front
     - ihm-demo-front-v2
   vars:
     vitam_struct: "{{ vitam.ihm_demo }}"

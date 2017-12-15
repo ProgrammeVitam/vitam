@@ -36,9 +36,6 @@ import java.util.List;
 public abstract class DefaultVitamIHMApplicationConfiguration extends DefaultVitamApplicationConfiguration {
 
     private String baseUrl;
-    private String staticContent;
-    private String baseUri;
-
     private int port;
     private String serverHost;
 
@@ -84,28 +81,6 @@ public abstract class DefaultVitamIHMApplicationConfiguration extends DefaultVit
     @Override
     public VitamApplicationConfiguration setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
-        return this;
-    }
-
-    @Override
-    public String getStaticContent() {
-        return staticContent;
-    }
-
-    @Override
-    public VitamApplicationConfiguration setStaticContent(String staticContent) {
-        this.staticContent = staticContent;
-        return this;
-    }
-
-    @Override
-    public String getBaseUri() {
-        return baseUri;
-    }
-
-    @Override
-    public VitamApplicationConfiguration setBaseUri(String baseUri) {
-        this.baseUri = baseUri;
         return this;
     }
 
