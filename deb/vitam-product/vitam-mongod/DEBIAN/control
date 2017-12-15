@@ -1,5 +1,5 @@
 Package: vitam-mongod
-Version: 3.4.9
+Version: 3.4.10
 Section: database
 Priority: optional
 Architecture: amd64

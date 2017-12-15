@@ -19,8 +19,8 @@
 
 - name: download dashboards from interrnet
   get_url:
-    url: https://artifacts.elastic.co/downloads/beats/beats-dashboards/beats-dashboards-5.6.1.zip
-    dest: /tmp/beats-dashboards-5.6.1.zip
+    url: https://artifacts.elastic.co/downloads/beats/beats-dashboards/beats-dashboards-5.6.3.zip
+    dest: /tmp/beats-dashboards-5.6.3.zip
   environment:
     - http_proxy: "{{http_proxy_environnement}}"
     - https_proxy: "{{http_proxy_environnement}}"
@@ -28,7 +28,7 @@
     
 # OMA: needs more testing ; when recreating, ... Needs Internet access !!!
 - name: import metricbeat dashboard into kibana
-  shell: /usr/share/metricbeat/scripts/import_dashboards -file /tmp/beats-dashboards-5.6.1.zip -es http://{{ elasticsearch.log.host }}:{{ elasticsearch.log.port_http }}
+  shell: /usr/share/metricbeat/scripts/import_dashboards -file /tmp/beats-dashboards-5.6.3.zip -es http://{{ elasticsearch.log.host }}:{{ elasticsearch.log.port_http }}
   run_once: true
   when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
   delegate_to: "{{groups['hosts-kibana-log'][0]}}"
