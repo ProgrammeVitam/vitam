@@ -14,7 +14,7 @@ export class Context {
 }
 
 export class Permission {
-  _tenant : number;
+  '#tenant': number;
   AccessContracts: string[];
-  IngestContracts : string[];
+  IngestContracts: string[];
 }

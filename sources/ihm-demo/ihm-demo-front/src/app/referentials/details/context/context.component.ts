@@ -42,7 +42,7 @@ export class ContextComponent extends PageComponent {
 
   constructor(private activatedRoute: ActivatedRoute, private router: Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
-              private referentialsService: ReferentialsService, private dialogService: DialogService) {
+              public referentialsService: ReferentialsService, private dialogService: DialogService) {
     super('Détail du contexte applicatif ', [], titleService, breadcrumbService);
   }
 
@@ -75,7 +75,7 @@ export class ContextComponent extends PageComponent {
   }
 
   translate(field: string) {
-    if (field.indexOf('_tenant') >= 0) {
+    if (field.indexOf('#tenant') >= 0) {
       return 'Tenant';
     }
     if (field.indexOf('AccessContracts') >= 0) {
@@ -114,6 +114,11 @@ export class ContextComponent extends PageComponent {
   }
 
   saveUpdate() {
+
+    if (JSON.stringify(this.modifiedContext.Permissions) != JSON.stringify(this.context.Permissions)) {
+      this.updatedFields['Permissions'] = this.modifiedContext.Permissions;
+    }
+
     if (Object.keys(this.updatedFields).length == 0) {
       this.switchUpdateMode();
       this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée.', '');
@@ -123,9 +128,6 @@ export class ContextComponent extends PageComponent {
     this.saveRunning = true;
     this.updatedFields['LastUpdate'] = new Date();
 
-    if (JSON.stringify(this.modifiedContext.Permissions) != JSON.stringify(this.context.Permissions.toString)) {
-      this.updatedFields['Permissions'] = this.modifiedContext.Permissions;
-    }
     this.referentialsService.updateDocumentById('contexts', this.id, this.updatedFields)
       .subscribe((data) => {
         this.referentialsService.getContextById(this.id).subscribe((value) => {
@@ -153,7 +155,7 @@ export class ContextComponent extends PageComponent {
     }
     let modifiedContext = this.modifiedContext;
     this.modifiedContext.Permissions.forEach(function(value, index) {
-      if (tenantId == value._tenant) {
+      if (tenantId == value['#tenant']) {
         modifiedContext.Permissions.splice(index, 1);
       }
     });
@@ -167,7 +169,7 @@ export class ContextComponent extends PageComponent {
     }
     let newTenant = parseInt(this.selectedTenant);
     let newPermission = {
-      _tenant: newTenant,
+      '#tenant': newTenant,
       AccessContracts: [],
       IngestContracts: []
     };
