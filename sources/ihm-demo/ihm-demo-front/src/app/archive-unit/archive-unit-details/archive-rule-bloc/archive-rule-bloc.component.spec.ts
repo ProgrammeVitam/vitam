@@ -89,4 +89,104 @@ describe('ArchiveRuleBlocComponent', () => {
     expect(spy.calls.count()).toBe(1);
 
   });
+
+  it('should compute the good update body for rule create', () => {
+    component.updatedFields = {ReuseRule: {Rules:
+          [{StartDate: new Date(), Rule: 'REU-00001', newRule: true}]
+      }};
+
+    let result = component.getUpdatedRules();
+
+    expect(result.rules[0].ReuseRule.Rules.length).toBe(1);
+    expect(result.rules[0].ReuseRule.Rules[0].Rule).toBe('REU-00001');
+    expect(result.added).toBe(1);
+    expect(result.updated).toBe(0);
+    expect(result.deleted).toBe(0);
+  });
+
+  it('should send the good update body for rule update', () => {
+    component.management = {AccessRule: {Rules: [
+          {Rule: 'ACC-00001', StartDate: '2000-01-01', EndDate: '2025-01-01'}
+        ]}};
+    component.updatedFields = {AccessRule: {Rules:
+          [{StartDate: new Date(), oldId: 'ACC-00001', Rule: 'ACC-00002'}]
+      }};
+
+    let result = component.getUpdatedRules();
+
+    expect(result.rules[0].AccessRule.Rules.length).toBe(1);
+    expect(result.rules[0].AccessRule.Rules[0].Rule).toBe('ACC-00002');
+    expect(result.added).toBe(0);
+    expect(result.updated).toBe(1);
+    expect(result.deleted).toBe(0);
+  });
+
+  it('should keep old rule on update/create', () => {
+    component.management = {AccessRule: {Rules: [
+          {Rule: 'ACC-00001'},
+          {Rule: 'ACC-00002', StartDate: '2000-01-01', EndDate: '2025-01-01'}
+        ]}};
+    component.updatedFields = {AccessRule: {Rules: [
+          {Rule: 'ACC-00001'},
+          {StartDate: new Date(), oldId: 'ACC-00002', Rule: 'ACC-00003'}
+        ]}};
+
+    let result = component.getUpdatedRules();
+
+    expect(result.rules[0].AccessRule.Rules.length).toBe(2);
+    expect(result.rules[0].AccessRule.Rules[0].Rule).toBe('ACC-00001');
+    expect(result.rules[0].AccessRule.Rules[1].Rule).toBe('ACC-00003');
+    expect(result.added).toBe(0);
+    expect(result.updated).toBe(1);
+    expect(result.deleted).toBe(0);
+
+    component.updatedFields = {AccessRule: {Rules: [
+          {Rule: 'ACC-00001'},
+          {Rule: 'ACC-00002', StartDate: '2000-01-01', EndDate: '2025-01-01'},
+          {StartDate: new Date(), Rule: 'ACC-00003', newRule: true}
+        ]}};
+
+    result = component.getUpdatedRules();
+
+    expect(result.rules[0].AccessRule.Rules.length).toBe(3);
+    expect(result.rules[0].AccessRule.Rules[0].Rule).toBe('ACC-00001');
+    expect(result.rules[0].AccessRule.Rules[1].Rule).toBe('ACC-00002');
+    expect(result.rules[0].AccessRule.Rules[2].Rule).toBe('ACC-00003');
+    expect(result.added).toBe(1);
+    expect(result.updated).toBe(0);
+    expect(result.deleted).toBe(0);
+  });
+
+  it('should send the good update body with FinalAction', () => {
+    component.management = {StorageRule: {
+        Rules: [
+          {Rule: 'STO-00001', StartDate: '2000-01-01', EndDate: '2025-01-01'}
+        ], FinalAction: 'Copy'
+      }, AppraisalRule: {
+        Rules: [
+          {Rule: 'APP-00001', StartDate: '2000-01-01', EndDate: '2025-01-01'}
+        ], FinalAction: 'Keep'
+      }};
+    component.updatedFields = {
+      StorageRule: {
+        Rules: [
+          {Rule: 'STO-00001', StartDate: '2000-01-01', EndDate: '2025-01-01'}
+        ], FinalAction: 'Copy'
+      }, AppraisalRule: {
+        Rules: [
+          {Rule: 'APP-00001', StartDate: '2000-01-01', EndDate: '2025-01-01'}
+        ], FinalAction: 'Destroy'
+      }
+    };
+
+    let result = component.getUpdatedRules();
+
+    expect(result.rules[0].StorageRule).toBeUndefined();
+    expect(result.rules[0].AppraisalRule.Rules.length).toBe(1);
+    expect(result.rules[0].AppraisalRule.FinalAction).toBe('Destroy');
+    expect(result.added).toBe(0);
+    expect(result.updated).toBe(1);
+    expect(result.deleted).toBe(0);
+  });
+
 });

@@ -28,7 +28,6 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
   public displayKO = false;
   public messageToDisplay: string;
 
-
   frLocale = {
     dayNames: ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"],
     dayNamesShort: ["Dim.", "Lun.", "Mar.", "Mer.", "Jeu.", "Ven.", "Sam."],
@@ -90,7 +89,7 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
     return null;
   }
 
-  checkUpdate(category, rule) {
+  checkUpdate(category, rule): boolean {
     // FIXME Errors with StartDate ?
     let mgtRule = this.getMgtRule(category, rule.oldId);
     if (!this.management[category] || !mgtRule) {
@@ -101,11 +100,19 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
       rule.StartDate !== mgtRule.StartDate
   }
 
+  checkFinalActionUpdated(category): boolean {
+    if (!this.management || !this.management[category]) {
+      return !!this.updatedFields[category].FinalAction;
+    }
+
+    return this.updatedFields[category].FinalAction != this.management[category].FinalAction;
+  }
+
   getUpdatedRules() {
     // ruleCategory ~= this.updatedFields
     // updatedRules = the array that must be updated and pushed in request. updatedRules = [{'CategName': {'Rules': ..., 'Inheritance': ...}, {...}, ...];
 
-    var updateInfo = {
+    let updateInfo = {
       updated: 0,
       added: 0,
       deleted: 0,
@@ -115,9 +122,15 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
 
 
     for (let category in this.updatedFields) {
+      if(!this.updatedFields.hasOwnProperty(category)) {
+        continue;
+      }
       // categoryName = need looping over categories in this function and push in updatedRules[]
-      var isCategoryUpdated = false;
-      var newRules = [];
+      let isCategoryUpdated = false;
+      let newCategory: any = {
+        Rules: [],
+        /*FinalAction: '',
+        Inheritance: {}*/};
       for (let i = 0, len = this.updatedFields[category].Rules.length; i < len; i++) {
         let rule = this.updatedFields[category].Rules[i];
         rule.StartDate = new DatePipe('fr-FR').transform(rule.StartDate, 'yyyy-MM-dd');
@@ -128,7 +141,8 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
             isCategoryUpdated = true;
             let addedRule = JSON.parse(JSON.stringify(rule));
             delete addedRule.newRule;
-            newRules.push(addedRule);
+            newCategory.Rules.push(addedRule);
+
             updateInfo.added++;
           } else if (rule.oldRule) {
             // Deleted rule
@@ -140,20 +154,30 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
             let updatedRule = JSON.parse(JSON.stringify(rule));
             delete updatedRule.oldId;
             delete updatedRule.EndDate;
-            newRules.push(updatedRule);
+            newCategory.Rules.push(updatedRule);
             updateInfo.updated++;
           } else {
             // Non-Updated Old Rule
             let updatedRule = JSON.parse(JSON.stringify(rule));
             delete updatedRule.oldId;
             delete updatedRule.EndDate;
-            newRules.push(updatedRule);
+            newCategory.Rules.push(updatedRule);
           }
         }
       }
+
+      // Handle FinalAction
+      if (this.checkFinalActionUpdated(category)) {
+        newCategory.FinalAction = this.updatedFields[category].FinalAction;
+        isCategoryUpdated = true;
+        updateInfo.updated++;
+      } else if (category === 'StorageRule' || category === 'AppraisalRule') {
+        newCategory.FinalAction = this.updatedFields[category].FinalAction;
+      }
+
       if (isCategoryUpdated) {
-        var setAction = {};
-        setAction[category] = newRules;
+        const setAction = {};
+        setAction[category] = newCategory;
         updateInfo.rules.push(setAction);
         updateInfo.categories.push(category);
       }
@@ -163,7 +187,7 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
   }
 
   hasFinalActionEmptyRule(category) {
-    if (category === 'StorageRule' || category === 'AccessRule') {
+    if (category === 'StorageRule' || category === 'AppraisalRule') {
       if (this.management[category] && this.management[category].Rules) {
         for (let rule of this.management[category].Rules) {
           if (!rule.Rule && rule.FinalAction) {
@@ -175,16 +199,9 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
     return false;
   }
 
-  getFinalActionRules(category) {
-    let emptyRules = [];
-    if (this.management[category] && this.management[category].Rules) {
-      for (let rule of this.management[category].Rules) {
-        if (!rule.Rule && rule.FinalAction) {
-          emptyRules.push(rule);
-        }
-      }
-    }
-    return emptyRules;
+  haveFinalActionWithEmptyRules(category): boolean {
+    let mgtCategory = this.management[category];
+    return mgtCategory && (!mgtCategory.Rules || mgtCategory.Rules.length === 0) && !!mgtCategory.FinalAction;
   }
 
   saveUpdate() {
@@ -282,10 +299,7 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
             updatedRule.StartDate = '';
           }
           updatedRule.oldId = updatedRule.Rule;
-          let finalAction = this.management[category.rule].FinalAction;
-          if (finalAction) {
-            updatedRule.FinalAction = finalAction;
-          }
+
           rules.push(updatedRule);
           ruleIds.push(updatedRule.Rule);
         }
@@ -314,11 +328,22 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
         }
 
         let inheritance = this.management[category.rule].Inheritance;
+        let finalAction = this.management[category.rule].FinalAction;
 
         this.updatedFields[category.rule] = {
-          Rules: rules,
-          Inheritance: inheritance ? JSON.parse(JSON.stringify(inheritance)) : {PreventRulesId: []}
+          Rules: rules
         };
+
+        if (inheritance) {
+          this.updatedFields[category.rule].Inheritance = JSON.parse(JSON.stringify(inheritance))
+        } else {
+          this.updatedFields[category.rule].Inheritance = {PreventRulesId: []};
+        }
+
+        if (finalAction) {
+          this.updatedFields[category.rule].FinalAction = finalAction;
+        }
+
       } else {
 
         let rules = [];

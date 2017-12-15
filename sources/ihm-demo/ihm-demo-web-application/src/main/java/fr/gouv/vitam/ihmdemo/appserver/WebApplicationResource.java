@@ -771,7 +771,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                         ArrayNode rulesCategories = (ArrayNode) modifiedField.get(UPDATE_RULES_KEY);
                         for (JsonNode ruleCategory : rulesCategories) {
                             for (String categoryKey : VitamConstants.getSupportedRules()) {
-                                ArrayNode rules = (ArrayNode) ruleCategory.get(categoryKey);
+                                JsonNode rules = ruleCategory.get(categoryKey);
                                 if (rules != null) {
                                     updateRules.put(categoryKey, rules);
                                 }
