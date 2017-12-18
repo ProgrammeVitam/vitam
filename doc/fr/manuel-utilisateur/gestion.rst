@@ -11,6 +11,7 @@ Audit
 Pour lancer un audit, l'utilisateur survole le menu "Gestion des Archives", puis sélectionne "Audit".
 
 |
+
 .. image:: images/menu_audit.png
 
 Lancement d'un audit de l'existence des objets
@@ -27,6 +28,7 @@ Pour débuter l'audit, il suffit de sélectionner comme type "Tenant" ou "Servic
 Il faut ensuite cocher l'audit désiré, ici "Audit de l'existence des objets", et de cliquer sur le bouton "Lancer l'audit". Un message de confirmation apparaît pour notifier le lancement du processus.
 
 |
+
 .. image:: images/detail_audit.png
 
 Comme pour toutes les opérations, l'avancement de l'audit peut se suivre via journal des opérations.
@@ -41,6 +43,7 @@ Pour entrer dans le détail de cette vérification, l'audit vérifie que pour ch
 L'audit de l'existence des objets se lance depuis le menu "Gestion des archives", sur le même mode que l'audit de l'existence des objets, en cochant la case "Audit de l'intégrité des objets". Etant donné qu'il s'agit d'un contrôle additionnel, il est impossible dans l'IHM de lancer l'audit de l'intégrité des objets sans lancer l'audit de l'existence des objets : la case de ce dernier se cochant automatiquement si cela n'était pas déjà fait.
 
 |
+
 .. image:: images/detail_audit_int.png
 
 L'avancement de l'audit, comme pour toutes les opérations, peut se suivre dans l'écran du suivi des opérations.

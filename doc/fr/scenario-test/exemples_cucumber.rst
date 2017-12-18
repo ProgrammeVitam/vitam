@@ -99,6 +99,7 @@ Collection AccessAccessionRegister
 **Scénario** Upload d'un SIP et vérification du contenu dans le registre de fonds
 
 ::
+
   Etant donné les tests effectués sur le tenant 0
   Et un fichier SIP nommé data/SIP_OK/ZIP/OK_ARBO-COMPLEXE.zip
   Quand je télécharge le SIP

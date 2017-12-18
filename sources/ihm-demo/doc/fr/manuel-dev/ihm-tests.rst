@@ -29,14 +29,14 @@ Exemples de tests unitaires
 
 4 samples de tests ont étés implémentés pour montrer ce qu'il est globalement possible de faire:
 
-| Base      beforeEach (Charger un service) / Test de retour de valeur en fonction du paramètre
-|           Exemples: date-validator.service.js / response-validator.service.js
-| Espion    SpyOn permettant de vérifier qu'une fonction est bien appelée comme il faut
-|           Exemple: load-static-value.service.js (Test nombre appel) / response-validator.service.js (Bon paramètres)
-| HTTPMock  httpBackend permettant de mocker un appel rest / afterEach permettant de vérifier les appels traités
-|           Exemple: accession-register.service.js
-| CallMock  initialisation d'un controller / mock de l'appel des méthodes d'un service / cohérence des résultats
-|           accession-register-details.controller.js
+| **Base**      beforeEach (Charger un service) / Test de retour de valeur en fonction du paramètre
+|               Exemples: date-validator.service.js / response-validator.service.js
+| **Espion**    SpyOn permettant de vérifier qu'une fonction est bien appelée comme il faut
+|               Exemple: load-static-value.service.js (Test nombre appel) / response-validator.service.js (Bon paramètres)
+| **HTTPMock**  httpBackend permettant de mocker un appel rest / afterEach permettant de vérifier les appels traités
+|               Exemple: accession-register.service.js
+| **CallMock**  initialisation d'un controller / mock de l'appel des méthodes d'un service / cohérence des résultats
+|               accession-register-details.controller.js
 
 Tests end to end
 ****************
@@ -79,9 +79,10 @@ Il est également possible de le lancer via gulp via la commande:
 	gulp testProtractor
 
 Il est possible de surcharger divers arguments grâce aux arguments suivants (donnés à titre d'exemple:
-- --baseUrl='http://localhost:8082/ihm-demo/#!' (Permet de modifier l'URL de base utilisée. Peut par exemple servir a lancer les tests e2e sur le serveur de recette.
-- --params.<paramName>='<paramValue>' (Permet de modifier un paramètre de la configuration protractor (params)
-- --suite=<maSuite>  (Permet d'utiliser seulement une ou plusieurs suites de tests plutôt que de lancer toute la baterie.
+
+- --baseUrl='http://localhost:8082/ihm-demo/#!' Permet de modifier l'URL de base utilisée. Peut par exemple servir a lancer les tests e2e sur le serveur de recette.
+- --params.<paramName>='<paramValue>'           Permet de modifier un paramètre de la configuration protractor (params)
+- --suite='<maSuite>'                           Permet d'utiliser seulement une ou plusieurs suites de tests plutôt que de lancer toute la baterie.
 
 Ces paramètres sont aussi settables dans le json de configuration gulp de la tache testProtractor.
 
@@ -91,15 +92,16 @@ Informations sur la configuration des tests e2e
 La configuration définit des batteries de tests (suites). Lors de l'ajout d'un test e2e, il est nécessaire d'ajouter une entrée dans les suites en précisant les fichiers à éxécuter.
 
 La configuration permet aussi de:
+
 - Définir un login/password (Via la surcharge des params userName/password)
 - Utiliser ou non le mode mock http (Via la surcharge du param mock)
 
 Exemple d'utilisation des outils e2e
 ====================================
 
-Création de fonctions réutilisables dans chaque tests:
+Création de fonctions réutilisables dans chaque test :
 
-- Création d'un fichier utils/*.function.js
+- Création d'un fichier utils/\*.function.js
 - Création d'une fonction éxportée via module.exports
 - Import des fonctions dans le test via require('./path/to/file');
 
@@ -132,10 +134,10 @@ Sélection des éléments
 
 - Sélection d'une partie d'un ensemble d'éléments (<p>xxx</p> <p>yyy</p> <p>zzz</p>)
 
--- var ps = element.all(by.css('p'));
--- var firstP = ps.first(); // xxx
--- var pNumber1 = ps.get(1); // yyy
--- var lastP = ps.last(); // zzz
+	- var ps = element.all(by.css('p'));
+	- var firstP = ps.first(); // xxx
+	- var pNumber1 = ps.get(1); // yyy
+	- var lastP = ps.last(); // zzz
 
 Conclusion:
 

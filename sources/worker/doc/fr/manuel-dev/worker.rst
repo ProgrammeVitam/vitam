@@ -1,8 +1,8 @@
 Worker
 ######
 
-1. Présentation
-***************
+Présentation
+===============
 
 |  *Parent package:* **fr.gouv.vitam**
 |  *Package proposition:* **fr.gouv.vitam.worker**
@@ -13,10 +13,10 @@ Worker
 - worker-client : incluant le client permettant d'appeler le REST.
 - worker-server : incluant la partie REST.
 
-2. Worker-server
-****************
+Worker-server
+================
 
-2.1 Rest API
+Rest API
 ------------
 
 Pour l'instant les uri suivantes sont déclarées :
@@ -24,7 +24,7 @@ Pour l'instant les uri suivantes sont déclarées :
 | http://server/worker/v1
 | POST /tasks -> **POST Permet de lancer une étape à exécuter**
 
-2.2 Registration
+Registration
 ----------------
 
 Une partie registration permet de gérer la registration du Worker.
@@ -40,7 +40,8 @@ L'execution du *WorkerRegister* essaie d'enregistrer le *worker* suivant un retr
 
 Le lancement du serveur est indépendant de l'enregistrement du *worker* auprès du *processing* : le serveur *worker* ne s'arrêtera pas si l'enregistrement n'a pas réussi.
 
-2.3. Configuration de worker
+Configuration de worker
+--------------------------
 
 Cela présente la configuration pour un worker quand il est déployé. Deux paramètres importants quand le worker fonctionne en mode parallèle.   
 
@@ -54,7 +55,8 @@ Cela présente la configuration pour un worker quand il est déployé. Deux para
  Chaque worker est configuré pour traiter groupe de tâches corresponsant à ses fonctions et on cela permetre de définir les familles de worker. 
  Il est précisé par workerFamily dans le WorkerConfigration.  
 
-2.4. WorkerBean
+WorkerBean
+-------------
 
 présente l'information complète sur un worker pour la procédure d'enregistrement d'un worker. Il contient les information sur le nom, 
 la famille et la capacité ... d'un worker et présente en mode json. Voici un example :  
@@ -65,7 +67,7 @@ la famille et la capacité ... d'un worker et présente en mode json. Voici un e
    "status" : "Active", "configuration" : {"serverHost" : "localhost", "serverPort" : 12345 } }
  
  
-2.5. Persistence des workers
+Persistence des workers
 ----------------------------
  
  La lise de workers est persistée dans une base de données. Pour le moment, la base est un fichier de données qui contient une tableau de 
@@ -96,7 +98,7 @@ Chaque worker est identifié par workerId et l'information générale du champs 
 	marshallToDB()   // mise à jour la base de la liste des workers enregistrés
 	
 	
-2.6. Désenregistrement d'un worker
+Désenregistrement d'un worker
 ----------------------------------
 
 Lorsque le worker s'arrête ou se plante, ce worker doit être désenregistré. 
@@ -111,8 +113,8 @@ une demande de désenregistrement doit être appelé dans cette boucle.
 - si après l'étape 1 le statut de worker est toujours indisponible, le distributeur va appeler la procédure de désenregistrement de ce worker de la liste de worker enregistrés. 
 
 
-3. Worker-core
-**************
+Worker-core
+============
 
 Dans la partie Core, sont présents les différents Handlers nécessaires pour exécuter les différentes actions.
 
@@ -148,7 +150,7 @@ le Handler correspondant.
 
 La classe WorkerImpl permet de lancer ces différents handlers.
 
-3.1 Focus sur la gestion des entrées / sorties  des Handlers
+Focus sur la gestion des entrées / sorties  des Handlers
 ------------------------------------------------------------
 
 Chaque Handler a un constructeur sans argument et est lancé avec la commande :
@@ -251,7 +253,7 @@ Afin de vérifier la cohérence entre ce qu'attend le Handler et ce que contient
   ..
 
 
-3.2 Cas particulier des Tests unitaires
+Cas particulier des Tests unitaires
 ---------------------------------------
 
 Afin d'avoir un handlerIO correctement initialisé, il faut redéfinir le handlerIO manuellement comme l'attend le handler :
@@ -322,8 +324,9 @@ Si nécessaire et si compatible, il est possible de passer par un mode MEMORY po
   // Now handler will have access to in parameter as File as if they were coming from Workspace
 
 
-3.3 Création d'un nouveau handler
+Création d'un nouveau handler
 ---------------------------------
+
 La création d'un nouveaux handler doit être motivée par certaines conditions nécessaires :
 
 - lorsque qu'il n'y a pas de handler qui répond au besoin
@@ -340,22 +343,22 @@ Celui-ci sert de clé pour :
 cf. workflow
 
 
-4. Details des Handlers
-***********************
+Details des Handlers
+=======================
 
-4.1 Détail du handler : CheckConformityActionHandler
+Détail du handler : CheckConformityActionHandler
 ----------------------------------------------------
 
-4.1.1 description
-=================
+Description
+~~~~~~~~~~~~
 
 Ce handler permet de contrôle de l'empreinte. Il comprend désormais 2 tâches :
 
 -- Vérification de l'empreinte par rapport à l'empreinte indiquée dans le manifeste (en utilisant algorithme déclaré dans manifeste)
 -- Calcul d'une empreinte en SHA-512 si l'empreinte du manifeste est calculée avec un algorithme différent
 
-4.1.2 exécution
-===============
+Exécution
+~~~~~~~~~~
 
 CheckConformityActionHandler recupère l'algorithme de Vitam (SHA-512) par l'input dans workflow et le fichier en InputStream par le workspace.
 
@@ -391,8 +394,8 @@ Mais il y a encore deux cas à ce moment:
 CheckConformityActionHandler compte aussi le nombre de OK, KO et WARNING.
 Si nombre de KO est plus de 0, l'action est KO.
 
-4.1.3 journalisation :
-======================
+4.1.3 journalisation
+~~~~~~~~~~~~~~~~~~~~~~
 
 logbook lifecycle
 =================
@@ -429,7 +432,7 @@ CA 1.2 : Vérification de la conformité de l'empreinte. (empreinte en SHA-512 d
 
 Comportement du workflow décrit dans l'US #680
 
-****************************
+-----------------------------------
 
 CA 2 : Vérification de la conformité de l'empreinte. (empreinte différent de SHA-512 dans le manifeste)
 
@@ -446,13 +449,13 @@ CA 2.1 : Vérification de la conformité de l'empreinte. (empreinte différent d
 * eventDetailData FR : "Empreinte Manifeste : <MessageDigest>, algorithme : <MessageDigest attribut algorithm>" "Empreinte calculée (<algorithme utilisé "XXX">): <Empreinte calculée par Vitam>"
 * objectIdentifierIncome : MessageIdentifier du manifest
 
-4.1.5 modules utilisés
-======================
+modules utilisés
+------------------
 
 processing, worker, workspace et logbook
 
-4.1.4 cas d'erreur
-==================
+cas d'erreur
+~~~~~~~~~~~~~~
 
 XMLStreamException                          : problème de lecture SEDA
 InvalidParseOperationException              : problème de parsing du SEDA
@@ -465,15 +468,15 @@ ProcessingException                         : erreur générique du processing
 ContentAddressableStorageException          : erreur de stockage
 
 
-4.2 Détail du handler : CheckObjectsNumberActionHandler
+Détail du handler : CheckObjectsNumberActionHandler
 -------------------------------------------------------
 
-4.2.1 description
-=================
+description
+~~~~~~~~~~~~~~~~~
 
 Ce handler permet de comparer le nombre d'objet stocké sur le workspace et le nombre d'objets déclaré dans le manifest.
 
-4.3 Détail du handler : CheckObjectUnitConsistencyActionHandler
+Détail du handler : CheckObjectUnitConsistencyActionHandler
 ---------------------------------------------------------------
 
 Ce handler permet de contrôler la cohérence entre l'object/object group et l'ArchiveUnit.
@@ -521,7 +524,7 @@ L'exécution de l'algorithme est présenté dans le code suivant :*
   }
 
 
-4.4 Détail du handler : CheckSedaActionHandler
+Détail du handler : CheckSedaActionHandler
 ----------------------------------------------
 
 Ce handler permet de valider la validité du manifest par rapport à un schéma XSD. 
@@ -529,21 +532,21 @@ Il permet aussi de vérifier que les informations remplies dans ce manifest sont
 
 - Le schéma de validation du manifest : src/main/resources/seda-vitam-2.0-main.xsd.
 
-4.4 Détail du handler : CheckStorageAvailabilityActionHandler
+Détail du handler : CheckStorageAvailabilityActionHandler
 -------------------------------------------------------------
 
 TODO
 
-4.5 Détail du handler : CheckVersionActionHandler
+Détail du handler : CheckVersionActionHandler
 -------------------------------------------------
 
 TODO
 
-4.6 Détail du handler : ExtractSedaActionHandler
+Détail du handler : ExtractSedaActionHandler
 ------------------------------------------------
 
-4.6.1 description
-=================
+description
+~~~~~~~~~~~~~~~~~~
 
 Ce handler permet d'extraire le contenu du SEDA. Il y a :
 
@@ -556,8 +559,8 @@ Ce handler permet d'extraire le contenu du SEDA. Il y a :
 - sauvegarde de la map des objets groupes sur le workspace
 
 
-4.6.2 Détail des différentes maps utilisées :
-=============================================
+Détail des différentes maps utilisées
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Map<String, String> dataObjectIdToGuid
 
@@ -651,8 +654,8 @@ Map<String, String> objectGuidToUri
 
 sauvegarde des maps (dataObjectIdToObjectGroupId, objectGroupIdToGuid) dans le workspace
 
-4.6.3 Vérifier les ArchiveUnit du SIP
-=====================================
+Vérifier les ArchiveUnit du SIP
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Dans les cas où le SIP contient un objet numérique référencé par un groupe d'objet et qu'une unité archiviste
 référence cet objet directement (au lieu de déclarer le GOT), le résultat attendu est un statut KO au niveau de 
@@ -688,23 +691,23 @@ L'exécution de l'algorithme est présenté dans le preudo-code ci-dessous:
   Fin Si
 
 
-4.6.4 Détails du data dans l'itemStatus retourné
-================================================
+Détails du data dans l'itemStatus retourné
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Le itemStatus est mis à jour avec les objets du manifest.xml remontées pour mettre à jour evDetData.
 Il contient dans data le json de evDetData en tant que String.
 Entre autre, le evDetData contient la valeur evDetDataType à "MASTER" qui définit une action de copie de ce evDetData dans le evDetData master de l'operation.
 Les champs récupérés (s'ils existent dans le manifest) sont "evDetailReq", "evDateTimeReq", "ArchivalAgreement", "agIfTrans", "ServiceLevel".
 
-4.7 Détail du handler : IndexObjectGroupActionHandler
+Détail du handler : IndexObjectGroupActionHandler
 -----------------------------------------------------
 
 4.7.1 description
-=================
+~~~~~~~~~~~~~~~~~~~
 
 Indexation des objets groupes en récupérant les objets groupes du workspace. Il y a utilisation d'un client metadata.
 
-.. TODO::
+.. TODO
 
 4.8 Détail du handler : IndexUnitActionHandler
 ----------------------------------------------
@@ -714,7 +717,7 @@ Indexation des objets groupes en récupérant les objets groupes du workspace. I
 
 Indexation des units en récupérant les units du workspace. Il y a utilisation d'un client metadata.
 
-.. TODO::
+.. TODO
 
 4.9 Détail du handler : StoreObjectGroupActionHandler
 -----------------------------------------------------
@@ -723,7 +726,7 @@ Indexation des units en récupérant les units du workspace. Il y a utilisation 
 =================
 Persistence des objets dans l'offre de stockage depuis le workspace.
 
-.. TODO::
+.. TODO
 
 4.10 Détail du handler : FormatIdentificationActionHandler
 ----------------------------------------------------------
@@ -800,11 +803,11 @@ Les différentes exceptions pouvant être rencontrées :
 - ProcessingException : si un problème plus général est rencontré dans le Handler
 
 
-4.11 Détail du handler : TransferNotificationActionHandler
+Détail du handler : TransferNotificationActionHandler
 ----------------------------------------------------------
 
-4.11.1 Description
-==================
+Description
+~~~~~~~~~~~~
 
 Ce handler permet de finaliser le processus d'entrée d'un SIP. Cet Handler est un peu spécifique car il sera lancé même si une étape précédente tombe en erreur.
 
@@ -815,8 +818,8 @@ Il permet de générer un xml de notification qui sera :
 
 La première étape dans ce handler est de déterminer l'état du Workflow : OK ou KO.
 
-4.11.2 Détail des différentes maps utilisées :
-==============================================
+Détail des différentes maps utilisées
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Map<String, Object> archiveUnitSystemGuid
 
@@ -830,8 +833,8 @@ Map<String, Object> bdoObjectGroupSystemGuid
 
     contenu         : cette map contient la liste groupes d'objets avec leur GUID généré associé à l'identifiant déclaré dans le manifest.
 
-4.11.3 exécution
-================
+exécution
+~~~~~~~~~~~
 
 Ce Handler est exécuté en dernière position. Il sera exécuté quoi qu'il se passe avant.
 Même si le processus est KO avant, le Handler sera exécuté.
@@ -868,15 +871,15 @@ Voici sa structure générale :
 
 Le XML est alors enregistré sur le Workspace.
 
-4.11.4 journalisation : logbook operation? logbook life cycle?
-==============================================================
+journalisation : logbook operation? logbook life cycle?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Dans le traitement du Handler, le logbook est interrogé : opérations et cycles de vie.
 Cependant aucune mise à jour est effectuée lors de l'exécution de ce handler.
 
 
-4.11.5 modules utilisés
-=======================
+modules utilisés
+~~~~~~~~~~~~~~~~~
 
 Le Handler utilise les modules suivants :
 
@@ -884,8 +887,8 @@ Le Handler utilise les modules suivants :
 - Logbook (partie server) : pour le moment la partie server du logbook est utilisée pour récupérer les différents journaux (opérations et cycles de vie).
 - Storage : permettant de stocker l'ATR.
 
-4.11.6 cas d'erreur
-===================
+cas d'erreur
+~~~~~~~~~~~~~
 
 Les différentes exceptions pouvant être rencontrées :
 
@@ -895,18 +898,18 @@ Les différentes exceptions pouvant être rencontrées :
 - ProcessingException : si un problème plus général est rencontré dans le Handler
 
 
-4.12 Détail du handler : AccessionRegisterActionHandler
+Détail du handler : AccessionRegisterActionHandler
 -------------------------------------------------------
 
-4.12.1 Description
-==================
+Description
+~~~~~~~~~~~~~~~~~
 
 AccessionRegisterActionHandler permet de fournir une vue globale et dynamique des archives
 
 sous la responsabilité du service d'archives, pour chaque tenant.
 
-4.12.2 Détail des maps utilisées
-================================
+Détail des maps utilisées
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Map<String, String> objectGroupIdToGuid
 
@@ -921,8 +924,8 @@ Map<String, Object> dataObjectIdToDetailDataObject
 	contenu         : cette map contient l'id du data object relié à ses informations
 
 
-4.12.3 exécution
-================
+Exécution
+~~~~~~~~~~~
 
 L'alimentation du registre des fonds a lieu pendant la phase de finalisation de l'entrée,
 
@@ -946,24 +949,24 @@ Le Registre des Fonds est alimenté de la manière suivante:
 	-- id opération d’entrée associée [pour l'instant, ne comprend que l'evIdProc de l'opération d'entrée concerné]
 	-- status (ItemStatus)
 
-4.13 Détail du handler : CheckIngestContractActionHandler
+Détail du handler : CheckIngestContractActionHandler
 ---------------------------------------------------------
 
-4.13.1 Description
-==================
+Description
+~~~~~~~~~~~~~~~
 
 CheckIngestContractHandler permet de vérifier la présence et contrôler le contrat d'entrée  
 du SIP à télécharger. 
 
-4.13.2 Détail des données utilisées
-===================================
+Détail des données utilisées
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
  globalSEDAParameters.json
  Ce handler prend ce fichier comme le parametre d'entrée. Le fichier contient des données gobales sur l'ensemble des 
  parametrès du bordereau et il a été généré à l'étape de l'ExtractSedeActionHandler (CHECK_MANIFEST).    
 
-4.13.3 exécution
-================
+Exécution
+~~~~~~~~~~~~~
 
 Le handler cherche d'abord dans globalSEDAParameters.json le nom du contrat déclaré dans le SIP associé au balise <ArchivalAgreement>. 
 Si il n'y as pas de déclaration de contrat d'entrée, le handler retourne le status OK. Si il y a un déclaration de contrat, une liste 
@@ -992,30 +995,30 @@ L'exécution de l'algorithme est présenté dans le preudo-code ci-dessous:
 	Fin Si
 
 
-4.14 Détail du handler : CheckNoObjectsActionHandler
+Détail du handler : CheckNoObjectsActionHandler
 ----------------------------------------------------
 
-4.14.1 Description
-==================
+Description
+~~~~~~~~~~~~~~~
 
 CheckNoObjectsActionHandler permet de vérifier s'il y a des objects numériques dans le SIP à verser dans le système.  
 
-4.14.2 Détail des données utilisées
-===================================
+Détail des données utilisées
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Le handler prend ce fichier manifest extrait du WORKSPACE comme le parametre d'entrée. 
 
-4.14.3 exécution
-================
+exécution
+~~~~~~~~~~~~~~~~~
 
 Le fichier manifest sera lu pour vérifier s'il y a des TAG "BinaryDataObject" ou "PhysicalDataObject".
 S'il en y a, le handler retourne KO, sinon OK.
 
-4.15 Détail du plugin : CheckArchiveUnitSchema
+Détail du plugin : CheckArchiveUnitSchema
 ----------------------------------------------
 
-4.15.1 Description
-==================
+Description
+~~~~~~~~~~~~
 
 CheckArchiveUnitSchema permet d'exécuter un contrôle intelligent des archive unit en vérifiant la conformité du JSON généré dans le process pour chaque archive unit, par rapport à un schéma défini. 
 
@@ -1027,26 +1030,27 @@ CheckArchiveUnitSchema permet d'exécuter un contrôle intelligent des archive u
 
 
 .. only:: latex
+
   .. literalinclude:: includes/archive-unit-schema.json
      :language: json
      :dedent: 4
      :linenos:
 
-.. todo:: ne semble pas marcher.
+..  ne semble pas marcher.
 
-4.15.2 Détail des données utilisées
-===================================
+Détail des données utilisées
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Le plugin récupère l'id de l'Archive Unit à vérifier. 
 
-4.15.3 exécution
-================
+exécution
+~~~~~~~~~~~~~~~
 
 A partir de l'Id de l'id de l'Archive Unit à vérifier, le plugin va télécharger le fichier json associé dans le Workspace.
 Par la suite, il va vérifier la validation de ce Json par rapport au schéma json de Vitam.
 
-4.15.4 détail des vérifications
-===============================
+détail des vérifications
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Dans le schéma Json Vitam défini, voici les spécificités qui ont été ajoutées pour différents champs :
 
@@ -1054,16 +1058,16 @@ Dans le schéma Json Vitam défini, voici les spécificités qui ont été ajout
 - Content / Title : peut être de type String, Array ou number (on pourra avoir des titres traduits ainsi que des nombres si besoin) 
 
 
-4.16 Détail du handler : CheckArchiveProfileActionHandler
+Détail du handler : CheckArchiveProfileActionHandler
 ---------------------------------------------------------
 
-4.16.1 Description
-==================
+Description
+~~~~~~~~~~~~~
 
 Ce handler permet de vérifier le profil dans manifeste
 
-4.16.2 exécution
-================
+exécution
+~~~~~~~~~~~
 
 Le format du profil est XSD ou RNG.
 L'exécution de l'algorithme est présenté dans le preudo-code ci-dessous:
@@ -1078,16 +1082,16 @@ L'exécution de l'algorithme est présenté dans le preudo-code ci-dessous:
 	Fin Si
 
 
-4.17 Détail du handler : CheckArchiveProfileRelationActionHandler
+Détail du handler : CheckArchiveProfileRelationActionHandler
 -----------------------------------------------------------------
 
-4.16.1 Description
-==================
+Description
+~~~~~~~~~~~~~~~~~~~~
 
 Ce handler permet de vérifier la relation entre le contrat d'entrée et le profil dans manifeste
 
-4.16.2 exécution
-================
+exécution
+~~~~~~~~~~~
 
 Si le champ "ArchiveProfiles" dans le contrat d'entrée 
 contient l'identifiant du profil, retourne true
@@ -1104,16 +1108,16 @@ contient l'identifiant du profil, retourne true
     }
 
 
-4.18 Détail du handler : ListArchiveUnitsActionHandler
+Détail du handler : ListArchiveUnitsActionHandler
 ------------------------------------------------------
 
-4.18.1 Description
-==================
+Description
+~~~~~~~~~~~~~~
 
 Ce handler permet de lister les unités archivistiques qui devront être mises à jour.
 
-4.18.2 exécution
-================
+exécution
+~~~~~~~~~~
 
 Il prend en entrée un fichier json représentant la liste règles de gestion ayant été modifiés dans le référentiel.
 Pour chaque règle mise à jour, une requête vers la collection units est effectuée. 
@@ -1121,17 +1125,17 @@ Le but de cette recherche est de générer une liste d'units avec les règles de
 En sortie, pour chaque unité archivistique, on aura un fichier GUID_AU.json (dans un sous répertoire GUIDOpération/UnitsWithoutLevel/) contenant un tableau des règles de gestion modifiées.
 
 
-4.19 Détail du handler : ListRunningIngestsActionHandler
+Détail du handler : ListRunningIngestsActionHandler
 --------------------------------------------------------
 
-4.19.1 Description
-==================
+Description
+~~~~~~~~~~~~~~
 
 Ce handler permet de lister les ingests toujours en cours d'exécution (processState RUNNING ou PAUSE).
 
 
-4.19.2 exécution
-================
+exécution
+~~~~~~~~~~
 
 Une requête est effectuée sur ProcessManagement, pour récupérer la liste des ingests en cours.
 
@@ -1152,18 +1156,18 @@ Une requête est effectuée sur ProcessManagement, pour récupérer la liste des
 
 Suite à cette requête, la liste des opérations d'Ingest est enregistrée dans un fichier JSON : PROCESSING/runningIngests.json.
 
-4.20 Détail du plugin : ArchiveUnitRulesUpdateActionPlugin
+Détail du plugin : ArchiveUnitRulesUpdateActionPlugin
 ----------------------------------------------------------
 
-4.20.1 Description
-==================
+Description
+~~~~~~~~~~~~~
 
 Ce plugin permet de mettre à jour les règles de gestion d'une unité archivistique. Il s'agit ici de mettre à jour le champ endDate pour les règles de gestion impactées.
 On se trouve ici en mode distribué, cela veut donc dire que l'on traite les mises à jour, unité par unité.
 
 
-4.20.2 exécution
-================
+exécution
+~~~~~~~~~~~~
 
 Le fichier json pour l'unité archivistique, généré dans le Handler "ListArchiveUnitsActionHandler" est récupéré.
 A partir de ce dernier, on va faire une première requète pour récupérer l'unité archivistique telle qu'enregistrée en base.
@@ -1173,6 +1177,7 @@ Une requête finale sera aggrégée, comprenant les différentes catégories mis
 Enfin, l'update final de la base de données sera exécuté, tel que ci-dessous : 
 
 .. code-block:: java
+
    query.addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getProcessId()));
    JsonNode updateResultJson = metaDataClient.updateUnitbyId(query.getFinalUpdate(), archiveUnitId);
    String diffMessage = archiveUnitUpdateUtils.getDiffMessageFor(updateResultJson, archiveUnitId);
@@ -1180,30 +1185,34 @@ Enfin, l'update final de la base de données sera exécuté, tel que ci-dessous 
    
 Le différentiel (résumant les champs modifiés, principalement les endDate des règles de gestion) sera enregistré également dans les cycles de vie de l'unité archivistique.
 
-.. code-block:: java 
+.. code-block:: java
+
    //do some things
    archiveUnitUpdateUtils.logLifecycle(params, archiveUnitId, StatusCode.OK, diffMessage, logbookLifeCycleClient);  
 
-4.21 Détail du plugin : RunningIngestsUpdateActionPlugin
+Détail du plugin : RunningIngestsUpdateActionPlugin
 --------------------------------------------------------
 
-4.21.1 Description
-==================
+Description
+~~~~~~~~~~~~~
 
 Ce plugin permet de mettre à jour les règles de gestion des unités archivistiques des ingests en cours.
 
 
-4.21.2 exécution
-================
+exécution
+~~~~~~~~~~~~
 
 Le fichier json décrivant les ingests en cours, généré dans le Handler "ListRunningIngestsActionHandler" est récupéré.
 Il va permettre, de traiter au fur et à mesure les ingests n'ayant pas été encore impactés par la mise à jour du référentiel des règles de gestion.
 
-La manière de procéder est la suivante : 
+La manière de procéder est la suivante :
+
 - Une boucle while(true) va permettre de boucler continuellement sur une liste d'ingest.
 - Une boucle interne sur un iterator obtenu à partir de la liste des ingests va permettre de traiter les différents processus.
+
    - Si l'ingest est finalisé (entre le moment de l'exécution du Handler ListRunningIngestsActionHandler, et l'exécution du plugin) alors on va vérifier la liste des règles de gestion pour chaque unité archivistique, puis procéder à des mises à jour (code commun avec le plugin ArchiveUnitRulesUpdateActionPlugin). L'ingest est alors, au final, supprimé de l'iterator.
    - Si l'ingest est toujours en cours, alors on passe au suivant.
+
 - Tant que l'iterator contient des éléments, la boucle continue. (une pause de 10 secondes est prévue avant de reboucler sur l'iterator)
 - Enfin quand l'iterator est vide, le plugin, renverra un statut OK notifiant la gestion de tous les ingests.
 
@@ -1214,18 +1223,18 @@ Il est aussi prévu d'améliorer les performances de l'exécution de ce plugin.
 Il apparait pertinent de rendre parallélisable le traitement des ingests en cours.       
 
 
-4.22 Détail du handler : ListLifecycleTraceabilityActionHandler
+Détail du handler : ListLifecycleTraceabilityActionHandler
 ---------------------------------------------------------------
 
-4.22.1 Description
-==================
+Description
+~~~~~~~~~~~~~~~~~
 
 Ce handler permet de préparer les listes de cycles de vie des groupes d'objets, et des unités archivistiques.
 Il permet aussi la récupération des informations de la dernière opération de sécurisation des cycles de vie.
 
 
-4.22.2 exécution
-================
+exécution
+~~~~~~~~~~~~~
 
 Une première requête permet de récupérer la dernière opération de sécurisation des cycles de vie.
 S'il en existe une, on en tire les informations importantes (date d'exécution, etc.), l'opération sera exportée dans un fichier json. 
@@ -1235,6 +1244,7 @@ S'il n'en existe pas, une date minimale (LocalDateTime.MIN) sera utilisée pour 
 A partir de cette date obtenue, on va interroger Mongo et récupérer 2 listes de cycles de vie (groupes d'objets et units) qui n'ont pas encore été sécurisés.
 
 .. code-block:: java
+
    final Query parentQuery = QueryHelper.gte("evDateTime", startDate.toString());
    final Query sonQuery = QueryHelper.gte(LogbookDocument.EVENTS + ".evDateTime", startDate.toString());
    final Select select = new Select();
@@ -1244,7 +1254,8 @@ A partir de cette date obtenue, on va interroger Mongo et récupérer 2 listes d
 A partir de ces 2 listes, on va créer X (X étant le nombre de GoT ou d'units) fichiers dans les sous répertoires GUID/ObjectGroup et GUID/UnitsWithoutLevel.
 Ces fichiers json seront utilisés plus tard dans le workflow, dans le cadre de la distribution.
 
-En traitant les différents cycles de vie, on en conclut les informations suivantes : 
+En traitant les différents cycles de vie, on en conclut les informations suivantes :
+
 - date maximum d'un cycle de vie traité
 - nombre de cycles de vie liés aux groupes d'objets traités
 - nombre de cycles de vie liés aux units traités
@@ -1252,24 +1263,25 @@ En traitant les différents cycles de vie, on en conclut les informations suivan
 Ces informations, combinées à la startDate obtenue précédemment, sont enregistrées dans un fichier json Operations/traceabilityInformation.json.
 
 En résumé, voici les output de ce handler : 
+
 - GUID/Operations/lastOperation.json -> informations sur la dernière opération de sécurisation des cycles de vie
 - GUID/Operations/traceabilityInformation.json -> informations sur la sécurisation en cours
 - GUID/ObjectGroup/GUID_OG_n.json -> n fichiers json représentant n cycles de vie des groupes d'objets
 - GUID/UnitsWithoutLevel/GUID_AU_n.json -> n fichiers json représentant n cycles de vie des units. 
 
 
-4.23 Détail du plugin : CreateObjectSecureFileActionPlugin
+Détail du plugin : CreateObjectSecureFileActionPlugin
 ----------------------------------------------------------
 
-4.23.1 Description
-==================
+Description
+~~~~~~~~~~~~~
 
 Ce plugin permet de traiter, groupe d'objet par groupe d'objet, et de créer un fichier sécurisé. 
 Chaque fichier sécurisé créé, sera par la suite, dans l'étape de finalisation, traité et intégré dans un fichier global. 
 
 
-4.23.2 exécution
-================
+exécution
+~~~~~~~~~~~~~~~~~~
 
 La première étape de ce plugin, consiste à récupérer le fichier json GUID/ObjectGroup/GUID_OG_n.json.
 A partir de ce json, représentant le cycle de vie devant être traité, on va créer un fichier sécurisé.
@@ -1284,18 +1296,18 @@ Voici l'output de ce plugin :
 - GUID/LFCObjects/GUID_OG.json
 
 
-4.24 Détail du plugin : CreateUnitSecureFileActionPlugin
+Détail du plugin : CreateUnitSecureFileActionPlugin
 --------------------------------------------------------
 
-4.24.1 Description
-==================
+Description
+~~~~~~~~~~~~
 
 Ce plugin permet de traiter, cycle de vie unit par cycle de vie unit, et de créer un fichier sécurisé. 
 Chaque fichier sécurisé créé, sera par la suite, dans l'étape de finalisation, traité et intégré dans un fichier global. 
 
 
-4.24.2 exécution
-================
+exécution
+~~~~~~~~~~~~~~~~~~
 
 La première étape de ce plugin, consiste à récupérer le fichier json GUID/UnitsWithoutLevel/GUID_AU_n.json.
 A partir de ce json, représentant le cycle de vie devant être traité, on va créer un fichier sécurisé.
@@ -1307,25 +1319,28 @@ Ce fichier sécurisé contient une ligne unique, organisée de la façon suivant
 Ce fichier généré est ensuite sauvegardé sur le workspace dans : LFCObjects.
 
 Voici l'output de ce plugin :
+
 - GUID/LFCUnits/GUID_AU.json
 
 
-4.25 Détail du handler : FinalizeLifecycleTraceabilityActionHandler
+Détail du handler : FinalizeLifecycleTraceabilityActionHandler
 -------------------------------------------------------------------
 
-4.25.1 Description
-==================
+Description
+~~~~~~~~~~~~~~
 
 Ce handler permet de finaliser la sécurisation des cycles de vie, en générant un fichier zip, et en le sauvegardant sur les offres de stockage.
 
-4.25.2 exécution
-================
+exécution
+~~~~~~~~~~~~~
 
 Le Handler va tout d'abord récupérer les fichiers json qui ont été générés dans l'étape 1 : 
+
 - le fichier json de la dernière opération de sécurisation
 - le fichier json contenant les informations de la sécurisation en cours
 
 Ensuite, un objet TraceabilityFile va être généré. Cet objet représente un ZipArchiveOutputStream contenant 4 fichiers : 
+
 - global_lifecycles.txt : contenant l'aggrégation des informations des cycles de vie sécurisés.
 - additional_information.txt : contenant des informations génériques (nombre de cycles de vie traités, startDate + endDate)
 - computing_information.txt : contenant les informations de hachage (hash actuel, hash de la dernière opération de sécurisation, hash d'il y a un mois, et d'il y a un an)
@@ -1335,12 +1350,14 @@ Les informations nécessaires sont récupérées pour générer et remplir les 4
 
 **global_lifecycles.txt :**
 Ce fichier va être obtenu de la manière suivante : 
+
 - On récupère la liste des fichiers présents dans les 2 sous-répertoires (GUID/LFCUnits/ et GUID/LFCObjects/).
 - Pour chaque fichier récupéré, on récupère son contenu et on ajoute une ligne au fichier global_lifecycles.txt
 - Le premier élément traité sera utilisé pour en conclure un hash, qui sera identifié étant comme le hashRoot du fichier.
 
 **additional_information.txt :**
 Le fichier json Operations/traceabilityInformation.json va être utilisé pour construire le fichier de la manière suivante : 
+
 - numberOfElement : nombre de cycles de vie traités
 - startDate : startDate (soit égale à LocalDateTime.MIN, soit à la plus petite date des cycles de vie traités)
 - endDate : plus grande date des cycles de vie traités.
@@ -1363,6 +1380,7 @@ Les différents hash nécessaires sont :
 (hash1, hash2 et hash3 peuvent être null, si aucune opération n'a été effectué dans le passé)
 
 .. code-block:: java
+
    final String hash = joiner.join(rootHash, hash1, hash2, hash3);
    final DigestType digestType = VitamConfiguration.getDefaultTimestampDigestType();
    final Digest digest = new Digest(digestType);
@@ -1376,30 +1394,30 @@ Le fichier zip est finalement créé et sauvegardé sur le Workspace. Ensuite, i
 Bien évidemment l'opération est enregistré dans le logbook. Les informations de Traceability sont enregistrés dans le champ evDetData. 
 Elles seront utilisés par la suite, pour les sécurisations futures. 
 
-5. Worker-common
-****************
+Worker-common
+=================
 
 Le worker-common contient majoritairement des classes utilitaires.
 A terme, il faudra que SedaUtils notamment soit "retravaillé" pour que les différentes méthodes soit déplacées dans les bons Handlers.
 
-6. Worker-client
-****************
+Worker-client
+==============
 
 Le worker client contient le code permettant l'appel vers les API Rest offert par le worker.
 Pour le moment une seule méthode est offerte : submitStep. Pour plus de détail, voir la partie worker-client.
 
 
 
-4.26 Détail du handler : GenerateAuditReportActionHandler
+Détail du handler : GenerateAuditReportActionHandler
 -----------------------------------------------------------
 
-4.26.1 Description
-==================
+Description
+~~~~~~~~~~~~
 
 Ce handler permet de générer le rapport d'audit
 
-4.26.2 exécution
-================
+exécution
+~~~~~~~~~~~~~~~~
 
 La rapport commence par une partie généraliste contenant :
 * Le GUID de l'opération d'audit à l'origine de ce rapport
@@ -1428,32 +1446,32 @@ Deuxièmement, la rapport contient les cas OK, KO, Warning et Fatal de toutes le
         
 
 
-4.27 Détail du plugin : AuditCheckObjectPlugin
+Détail du plugin : AuditCheckObjectPlugin
 ------------------------------------------------
 
-4.27.1 Description
-==================
+Description
+~~~~~~~~~~~~
 
 Ce plugin permet de contrôler les objets dans le cadre d'un audit consultatif
 
-4.27.2 exécution
-================
+exécution
+~~~~~~~~~~~~~
 
 Selon le parametre auditActions, il va appeler le plugin,
 soit CheckExistenceObjectPlugin, soit CheckIntegrityObjectPlugin
 
 
 
-4.28 Détail du plugin : CheckExistenceObjectPlugin
+Détail du plugin : CheckExistenceObjectPlugin
 ----------------------------------------------------
 
-4.28.1 Description
-==================
+Description
+~~~~~~~~~~~~
 
 Ce plugin permet de contrôler l'existence d'un objet dans le cadre d'un audit
 
-4.28.2 exécution
-================
+exécution
+~~~~~~~~~~~~~~
 
 Le plugin va tester l'existence de la cohérence entre les offres de stockages déclarées dans un GOT 
 et les offres de stockages relatives à la stratégie de stockage connue du moteur de stockage
@@ -1476,16 +1494,16 @@ et les offres de stockages relatives à la stratégie de stockage connue du mote
 
 
 
-4.29 Détail du plugin : CheckIntegrityObjectPlugin
+Détail du plugin : CheckIntegrityObjectPlugin
 ---------------------------------------------------
 
-4.29.1 Description
-==================
+Description
+~~~~~~~~~~~~~~~~~~~
 
 Ce plugin permet de contrôler l'intégrité d'un objet archivé dans le cadre d'un audit
 
-4.29.2 exécution
-================
+exécution
+~~~~~~~~~~~~~~
 
 Dans le cadre de l'audit, on va vérifier une empreinte d'un objet est bien celle de l'objet audité, 
 en fonction de son offre de stockage.
@@ -1509,3 +1527,4 @@ en fonction de son offre de stockage.
         	checkDigest = false;
         }
 	}
+

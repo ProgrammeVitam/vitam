@@ -81,6 +81,7 @@ Exemple: le document profile contient bien un paramètre :
   ...
 
 - Créer dans le dossier resources les fichiers mapping au format json.
+
 profile-es-mapping.json, accesscontract-es-mapping.json, ....
 
 Exemple de fichier json de mapping elasticsearch:

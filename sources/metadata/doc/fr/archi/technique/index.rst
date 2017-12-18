@@ -5,6 +5,7 @@ Architecture technique
    :maxdepth: 2
 
    introduction.rst
+   metadata.rst
    metadata-api.rst
    metadata-builder.rst
    metadata-client.rst

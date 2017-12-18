@@ -215,6 +215,7 @@ Référentiels
 ^^^^^^^^^^^^
 Trois suppressions sont exécutables : formats, règles et registre des fonds.
 La suppression des différentes collection est visible ainsi dans le journal des opérations :
+
  - formats : MASTERDATA / STP_DELETE_FORMAT
  - règles : MASTERDATA / STP_DELETE_RULES
  - registres des fonds : MASTERDATA / STP_DELETE_ACCESSION_REGISTER_SUMMARY
@@ -224,6 +225,7 @@ Journaux
 ^^^^^^^^
 3 suppressions sont exécutables : journaux d'opérations, journaux des cycles de vie (unité archivistique), journaux des cycles de vie (groupe d'objets).
 La suppression des différentes collection est visible ainsi dans le journal des opérations :
+
  - opérations : MASTERDATA / STP_DELETE_LOGBOOK_OPERATION
  - journaux des cycles de vie (archive unit) : MASTERDATA / STP_DELETE_LOGBOOK_LIFECYCLE_UNIT
  - journaux des cycles de vie (groupe d'objets) : MASTERDATA / STP_DELETE_LOGBOOK_LIFECYCLE_OG
@@ -232,5 +234,6 @@ Objets
 ^^^^^^
 Deux suppressions sont exécutables : purge des unités archivistiques, purge des groupes d'objets;
 La suppression des différentes collection est visible ainsi dans le journal des opérations :
+
  - Unités archivistiques : MASTERDATA / STP_DELETE_METADATA_OG
  - Groupes d'objets : MASTERDATA / STP_DELETE_METADATA_UNIT

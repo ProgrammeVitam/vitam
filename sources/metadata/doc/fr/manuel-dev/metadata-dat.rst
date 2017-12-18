@@ -6,36 +6,44 @@ metadata qui identifié par la user story #70, qui contient :
 
 - modules & packages
 - classes métiers
+
 --------------------------
 
 
-1. Modules et packages
+Modules et packages
+====================
 
 metadata
 
-	|--- metadata-api     : définir des APIs de traitement des requêtes un utilisant  la base de données choisie
-	|--- metadata-core    : implémentation des APIs
-	|--- metadata-rest    : le serveur REST de métadata qui donnes des traitement sur les requêtes DSL
-	|--- metadata-client  : client métadata qui sera utilisé par les autres modules pour faire des requête DSL sur le métadata                     
+- metadata-api     : définir des APIs de traitement des requêtes un utilisant  la base de données choisie
+- metadata-core    : implémentation des APIs
+- metadata-rest    : le serveur REST de métadata qui donnes des traitement sur les requêtes DSL
+- metadata-client  : client métadata qui sera utilisé par les autres modules pour faire des requête DSL sur le métadata                     
 
-2. Classes métiers
+Classes métiers
+=====================
  
 Dans cette section, nous présentons quelques classes principales dans des modules/packages qu'on a abordé ci-dessus.
 
-metadata-api :
+metadata-api
+-------------
 
--MetaData.java : définir des interface métiers pour le métadata
+- ``MetaData.java`` : définir des interface métiers pour le métadata
 
-metadata-core : 
+metadata-core
+--------------
 
--MetaDataImpl.java : implémenter des fonctionnalités de traitement sur le métadata, pré-défini dans -MetaData.java
 
-metadata-rest 
+- ``MetaDataImpl.java`` : implémenter des fonctionnalités de traitement sur le métadata, pré-défini dans -MetaData.java
 
-- MetaDataRessource.java : définir des ressources différentes pour le serveur REST métadata
-- MetaDataApplication.java : créer & lancer le serveur d'application avec une configuration 
+metadata-rest
+----------------
 
-metadata-client 
+- ``MetaDataRessource.java`` : définir des ressources différentes pour le serveur REST métadata
+- ``MetaDataApplication.java`` : créer & lancer le serveur d'application avec une configuration 
 
-- MetaDataClient.java : créer le client et des fonctionnalités en se connectant au serveur REST
+metadata-client
+---------------
+
+- ``MetaDataClient.java`` : créer le client et des fonctionnalités en se connectant au serveur REST
 

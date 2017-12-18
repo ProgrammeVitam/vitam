@@ -137,28 +137,36 @@ Détail des champs
 
   * La date est au format ISO 8601
   * Champ peuplé par Vitam.
+
   ``"CreationDate": "2017-04-10T11:30:33.798"``
+
   * Cardinalité : 1-1
 
 **"LastUpdate":** date de dernière mise à jour du contrat dans la collection AccesContrat.
 
   * La date est au format ISO 8601
   * Champ peuplé par Vitam.
+
   ``"LastUpdate": "2017-04-10T11:30:33.798"``
+
   * Cardinalité : 1-1
 
 **"ActivationDate":** date d'activation du contrat.
 
   * La date est au format ISO 8601
   * Champ peuplé par Vitam.
+
   ``"ActivationDate": "2017-04-10T11:30:33.798"``
+
   * Cardinalité : 1-1
 
 **"DeactivationDate":** date de désactivation du contrat.
 
   * La date est au format ISO 8601
   * Champ peuplé par Vitam.
+
   ``"DeactivationDate": "2017-04-10T11:30:33.798"``
+
   * Cardinalité : 1-1
 
 **"OriginatingAgencies":** services producteurs dont le détenteur du contrat peut consulter les archives.
@@ -338,14 +346,18 @@ On récupère la valeur IC-000001.
 **"EndDate":** date de la dernière opération d'entrée pour l'enregistrement concerné. 
 
   * La date est au format ISO 8601
+
   ``"EndDate": "2017-04-10T11:30:33.798"``
+
   * Champ peuplé par Vitam.
   * Cardinalité : 1-1
 
 **"StartDate":** date de la première opération d'entrée pour l'enregistrement concerné. 
 
   * La date est au format ISO 8601
+
   ``"StartDate": "2017-04-10T11:30:33.798"``
+
   * Champ peuplé par Vitam.
   * Cardinalité : 1-1
  
@@ -363,8 +375,10 @@ On récupère la valeur IC-000001.
 **"LastUpdate":**. Date de la dernière mise à jour pour l'enregistrement concerné. 
 
   * La date est au format ISO 8601
-  * Champ peuplé par Vitam.
+  * Champ peuplé par Vitam
+
   ``"StartDate": "2017-04-10T11:30:33.798"``
+
   * Cardinalité : 1-1
  
 **"TotalObjectGroups":**. Il contient la répartition du nombre de groupes d'objets du fonds par état pour l'opération journalisée (ingested, deleted,remained, attached, detached et symbolicRemained) :
@@ -453,7 +467,7 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
 
 ::
 
-{
+  {
     "_id": "aefaaaaaaaed4nrpaas4uak7cxykxiaaaaaq",
     "_tenant": 0,
     "OriginatingAgency": "Vitam",
@@ -580,7 +594,9 @@ On récupère la valeur FRAN_NP_051314.
 **"creationDate":**  Date d'inscription du service producteur concerné dans le registre des fonds. 
 
   * La date est au format ISO 8601
+
   ``"CreationDate": "2017-04-10T11:30:33.798",``
+
   * Cardinalité : 1-1
     
 **"_v": Champ obligatoire peuplé par Vitam** version de l'enregistrement décrit
@@ -818,25 +834,33 @@ Détail des champs
 **"CreationDate":** "CreationDate": date de création du contexte. 
   
   * Il s'agit d'une date au format ISO 8601
+
   ``"CreationDate": "2017-04-10T11:30:33.798",``
+
   * Cardinalité : 1-1 
 
 **"LastUpdate":** date de dernière modification du contexte. 
   
   * Il s'agit d'une date au format ISO 8601
+
   ``"LastUpdate": "2017-04-10T11:30:33.798",``
+
   * Cardinalité : 1-1 
 
 **"ActivationDate":** date d'activation du contexte.
 
   * La date est au format ISO 8601
+
   ``Exemple : "ActivationDate": "2017-04-10T11:30:33.798"``
+
   * Cardinalité : 0-1
 
 **"DeactivationDate":** date de désactivation du contexte.
 
   * La date est au format ISO 8601
+
   ``Exemple : "DeactivationDate": "2017-04-10T11:30:33.798"``
+
   * Cardinalité : 0-1
 
 **"Identifier":** identifiant signifiant donné au contexte applicatif.
@@ -910,8 +934,10 @@ Détail des champs du JSON stocké en base
 
 **"CreatedDate":** date de création de la version du fichier de signatures PRONOM utilisé pour initialiser la collection.
 
-  * Il s'agit d'une date au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm. 
-  ``Exemple : "2016-08-19T16:36:07.942+02:00" ``
+  * Il s'agit d'une date au format ISO 8601 YYY-MM-DD + 'T' + hh:mm:ss.millisecondes "+" timezone hh:mm.
+
+  ``Exemple : "2016-08-19T16:36:07.942+02:00"``
+
   * Cardinalité : 1-1
 
 **"VersionPronom":** numéro de version du fichier de signatures PRONOM utilisé pour créer l'enregistrement.
@@ -1147,13 +1173,17 @@ Les préfixes indiquent le type de règle dont il s'agit. La liste des valeurs p
 **"CreationDate":** date de création de la règle dans la collection FileRule.
 
   * La date est au format ISO 8601
+
   ``Exemple : "2017-11-02T13:50:28.922"``
+
   * Cardinalité : 1-1
 
 **"UpdateDate":** Date de dernière mise à jour de la règle dans la collection FileRules.
 
   * La date est au format ISO 8601
+
   ``Exemple : "2017-11-02T13:50:28.922"``
+
   * Cardinalité : 1-1
 
 **"_v":** version de l'enregistrement décrit
@@ -1265,25 +1295,33 @@ Détail des champs de la collection IngestContract
 **"CreationDate":** date de création du contrat.
 
   * La date est au format ISO 8601
-  `Exemple : "CreationDate": "2017-04-10T11:30:33.798"``
+
+  ``Exemple : "CreationDate": "2017-04-10T11:30:33.798"``
+
   * Cardinalité : 1-1
 
 **"LastUpdate":** date de dernière mise à jour du contrat dans la collection IngestContract.
 
   * La date est au format ISO 8601
+
   ``Exemple : "LastUpdate": "2017-04-10T11:30:33.798"``
+
   * Cardinalité : 1-1
 
 **"ActivationDate":** date d'activation du contrat.
 
   * La date est au format ISO 8601
+
   ``Exemple : "ActivationDate": "2017-04-10T11:30:33.798"``
+
   * Cardinalité : 0-1
 
 **"DeactivationDate":** date de désactivation du contrat.
 
   * La date est au format ISO 8601
+
   ``Exemple : "DeactivationDate": "2017-04-10T11:30:33.798"``
+
   * Cardinalité : 0-1
 
 **"ArchiveProfiles":** liste des profils d'archivage pouvant être utilisés par le contrat d'entrée.
@@ -1414,28 +1452,36 @@ Détail des champs
 **"CreationDate":** date de création du contrat.
 
   * La date est au format ISO 8601
+
   ``"CreationDate": "2017-04-10T11:30:33.798",``
+
   * Champ peuplé par Vitam.
   * Cardinalité : 1-1
 
 **"LastUpdate":**  date de dernière mise à jour du contrat dans la collection AccesContrat.
 
   * La date est au format ISO 8601
+
   ``"LastUpdate": "2017-04-10T11:30:33.798"``
+
   * Champ peuplé par Vitam.
   * Cardinalité : 1-1
 
 **"ActivationDate":** date d'activation du contrat.
 
   * La date est au format ISO 8601
+
   ``"ActivationDate": "2017-04-10T11:30:33.798"``
+
   * Champ peuplé par Vitam.
   * Cardinalité : 1-1
 
 **"DeactivationDate":** date de désactivation du contrat.
 
   * La date est au format ISO 8601
+
   ``"DeactivationDate": "2017-04-10T11:30:33.798"``
+
   * Champ peuplé par Vitam.
   * Cardinalité : 1-1
 
@@ -1484,7 +1530,7 @@ Exemple de JSON stocké en base comprenant l'exhaustivité des champs
 Détail des champs
 -----------------
 
-**"_id":* identifiant unique du profil de sécurité.
+**"_id":** identifiant unique du profil de sécurité.
 
   * Il s'agit d'une chaîne de 36 caractères correspondant à un GUID.
   * Champ peuplé par Vitam.

@@ -20,40 +20,41 @@ La classe BusinessApplication possède les singletons qui contiennent les ressou
 * Définir les performances(PerformanceResource)
 
 .. code-block:: java
-	    commonBusinessApplication = new CommonBusinessApplication();
-            singletons = new HashSet<>();
-            singletons.addAll(commonBusinessApplication.getResources());
 
-            final WebApplicationResourceDelete deleteResource = new WebApplicationResourceDelete(configuration);
-            final WebApplicationResource resource = new WebApplicationResource(configuration.getTenants(), configuration.getSecureMode());
-            singletons.add(deleteResource);
-            singletons.add(resource);
+    commonBusinessApplication = new CommonBusinessApplication();
+        singletons = new HashSet<>();
+        singletons.addAll(commonBusinessApplication.getResources());
 
-            Path sipDirectory = Paths.get(configuration.getSipDirectory());
-            Path reportDirectory = Paths.get(configuration.getPerformanceReportDirectory());
+        final WebApplicationResourceDelete deleteResource = new WebApplicationResourceDelete(configuration);
+        final WebApplicationResource resource = new WebApplicationResource(configuration.getTenants(), configuration.getSecureMode());
+        singletons.add(deleteResource);
+        singletons.add(resource);
 
-            if (!Files.exists(sipDirectory)) {
-                Exception sipNotFound =
-                    new FileNotFoundException(String.format("directory %s does not exist", sipDirectory));
-                throw Throwables.propagate(sipNotFound);
-            }
+        Path sipDirectory = Paths.get(configuration.getSipDirectory());
+        Path reportDirectory = Paths.get(configuration.getPerformanceReportDirectory());
 
-            if (!Files.exists(reportDirectory)) {
-                Exception reportNotFound =
-                    new FileNotFoundException(format("directory %s does not exist", reportDirectory));
-                throw Throwables.propagate(reportNotFound);
-            }
+        if (!Files.exists(sipDirectory)) {
+            Exception sipNotFound =
+                new FileNotFoundException(String.format("directory %s does not exist", sipDirectory));
+            throw Throwables.propagate(sipNotFound);
+        }
 
-            PerformanceService performanceService = new PerformanceService(sipDirectory, reportDirectory);
-            singletons.add(new PerformanceResource(performanceService));
+        if (!Files.exists(reportDirectory)) {
+            Exception reportNotFound =
+                new FileNotFoundException(format("directory %s does not exist", reportDirectory));
+            throw Throwables.propagate(reportNotFound);
+        }
 
-            String testSystemSipDirectory = configuration.getTestSystemSipDirectory();
-            String testSystemReportDirectory = configuration.getTestSystemReportDirectory();
-            ApplicativeTestService applicativeTestService =
-                new ApplicativeTestService(Paths.get(testSystemReportDirectory));
+        PerformanceService performanceService = new PerformanceService(sipDirectory, reportDirectory);
+        singletons.add(new PerformanceResource(performanceService));
 
-            singletons.add(new ApplicativeTestResource(applicativeTestService,
-                testSystemSipDirectory));
+        String testSystemSipDirectory = configuration.getTestSystemSipDirectory();
+        String testSystemReportDirectory = configuration.getTestSystemReportDirectory();
+        ApplicativeTestService applicativeTestService =
+            new ApplicativeTestService(Paths.get(testSystemReportDirectory));
+
+        singletons.add(new ApplicativeTestResource(applicativeTestService,
+            testSystemSipDirectory));
 
 Configuration
 =============

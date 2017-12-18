@@ -5,3 +5,4 @@ Architecture Fonctionnelle
    :maxdepth: 2
 
    introduction.rst
+   basics.rst

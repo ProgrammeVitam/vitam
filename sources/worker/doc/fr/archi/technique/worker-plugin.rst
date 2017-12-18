@@ -2,11 +2,12 @@ Plugin Worker
 ##############
 
 But de cette documentation
-**************************
+===========================
 
 L'objectif de cette documentation est d'expliquer l'architecture technique des plugins de worker.
 
-1. Introduction
+Introduction
+=============
 
 Le plugin worker est une classe java qui réaslise des actions dans le workflow comme les Handler. 
 Dans le workflow, si l'action traite une action qui a besoin un enregistrement JCV, le plugin sera remplacé 
@@ -23,7 +24,8 @@ D'une façon synthétique, le plugin worker est décrit de cette façon :
   :height: 25 cm
 
 
-2. Appel du plugin :
+Appel du plugin
+==================
 
 Au démarrage du service, le serveur worker charger tous les  plugins et leurs fichier de properties. 
 Les référentiels de plugin sont déclaré dans un fichier de configuration : 
@@ -47,7 +49,8 @@ Si un des plugins ne se lance pas pour une raison quelconque (nom de classe inco
 
 Les plugins ne sont pas pour l'instant thread safe dans Vitam, ce qui signifie que un plugin est réinstancié pour chaque appel au serveur worker.
 
-3. Résultat du plugin
+Résultat du plugin
+====================
 
 Après ses traitements, Plugin doit retourner au Worker un ItemStatus. Quand le Worker reçoit le résultat : 
 
@@ -59,9 +62,12 @@ du plug-in puis envoit à Engine pour écrire dans les journaux des opération.
 - Construire et écrire LogbookLifeCycle.
 
 
-4. Implémentation 
+Implémentation 
+====================
 
-4.1. Worker 
+Worker
+-------
+
 - getActionHandler: pour chaque action, le worker vérifie si l’action est dans la liste des plugins, il va le charger, si non on utilise les handlers prédéfinis dans Vitam
 - writeLogbookLifeCycle : traduire le code d’action d’un ItemStatus du Plugin en LogbookLifeCycleParameters puis en fonction du type d’élément dans la distribution (Unit ou ObjectGroup), il écrit dans la base de données correspondante
 
@@ -95,10 +101,13 @@ Alors le Worker va écrire ces événements ci-dessous dans LFC :
 
 L’écriture des journaux des opérations garde son implémentation.
 
-4.2. PluginPropertiesLoader 
+PluginPropertiesLoader 
+-----------------------
+
 c'est un service pour charger les définitions du code dans le fichier de properties du plugin
 
-4.3 Intégration 
+Intégration
+-------------
 
 Cela définit comment Worker appelle les plugins.
 
@@ -106,5 +115,5 @@ Cela définit comment Worker appelle les plugins.
 au lieu de 
 ``java -jar "/vitam/lib/${unix.name}/${project.build.finalName}.jar"``
 
-Donc les JAR du plugin doit être placé dans /vitam/lib/worker/
+Donc les JAR du plugin doit être placé dans ``/vitam/lib/worker/``.
 

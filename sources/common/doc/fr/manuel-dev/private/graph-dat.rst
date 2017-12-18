@@ -4,17 +4,18 @@ DAT : module Graph
 Ce document présente l'ensemble de manuel développement concernant l'algorithme de graph qui représente le story #510, qui contient :
 
 modules & packages
---------------------------
+===================
 
 
-1. Modules et packages
+Modules et packages
+----------------------
 
 Au présent : nous proposons le schéma ci-dessous représentant le module principal
 et ses sous modules.
 
 graph
 
-    |---DirectedCycle : Directed cycle detection :  un graphe orienté donné a un cycle dirigé? Si oui, trouver un tel cycle. DirectedCycle.java résout ce problème en utilisant la recherche en profondeur d'abord.
+- DirectedCycle : Directed cycle detection :  un graphe orienté donné a un cycle dirigé? Si oui, trouver un tel cycle. DirectedCycle.java résout ce problème en utilisant la recherche en profondeur d'abord.
 
         Depth-first orders: fait de recherche en profondeur d'abord sur chaque sommet exactement une fois. Trois ordres de sommet sont d'un intérêt dans des 
         applications typiques:
@@ -29,11 +30,11 @@ graph
 Après la parse de Unit recursive et la creation d'arbre orienté.Le choix de la racine de départ de l'arbre orienté se fait en faisant le test récursive si l'élément ne possède pas  un up alors c'est un racine .
 
 
-    |---DirectedGraph  : Un graphe orienté (ou digraphe) est un ensemble de sommets et une collection de bords orientés qui relie chacun une paire ordonnée de sommets.
+- DirectedGraph  : Un graphe orienté (ou digraphe) est un ensemble de sommets et une collection de bords orientés qui relie chacun une paire ordonnée de sommets.
 
         Un bord dirigé pointe du premier sommet de la paire et les points au deuxième sommet de la paire. 
 
-    |---Graph Un graphe est composé d'un ensemble de sommets et un ensemble d'arêtes . Chaque arête représente une liaison entre deux sommets.
+- Graph Un graphe est composé d'un ensemble de sommets et un ensemble d'arêtes . Chaque arête représente une liaison entre deux sommets.
 
         Deux sommets sont voisins s'ils sont reliés par un bord , et le degré d'un sommet est le nombre de ses voisins.
         Graph data type. Graph-processing algorithms généralement d'abord construit une représentation interne d'un graphe en ajoutant des arêtes (edges), puis le traiter par itération sur les sommets et sur les sommets adjacents à un sommet donné.
@@ -44,6 +45,6 @@ Après la parse de Unit recursive et la creation d'arbre orienté.Le choix de la
         L'algorithme de chemin le plus long permet de définir dans notre cas le niveau d'indexation de chaque Unit .
 
 
-***L'algorithme de parcours en profondeur (ou DFS, pour Depth First Search) est un algorithme de parcours d'arbre, et plus généralement de parcours de graphe, qui se décrit naturellement de manière récursive. 
+L'algorithme de parcours en profondeur (ou DFS, pour Depth First Search) est un algorithme de parcours d'arbre, et plus généralement de parcours de graphe, qui se décrit naturellement de manière récursive. 
 Son application la plus simple consiste à déterminer s'il existe un chemin d'un sommet à un autre. 
 

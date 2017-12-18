@@ -69,15 +69,15 @@ Détail des champs du JSON stocké dans la collection
 
 
 Collection PersonalCertificate
-======================
+==============================
 
 Utilisation de la collection PersonalCertificate
-----------------------------------------
+-------------------------------------------------
 
 La collection Certificate permet de référencer et décrire unitairement les certificats pour l'authentification personae.
 
 Exemple de JSON stocké en base comprenant l'exhaustivité des champs
--------------------------------------------------------------------
+--------------------------------------------------------------------
 
 ::
 

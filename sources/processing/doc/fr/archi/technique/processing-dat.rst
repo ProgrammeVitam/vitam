@@ -7,24 +7,21 @@ metadata qui représente le story #70, qui contient :
 - modules & parkages
 - classes de métiers
 
-
-1. Module et packages
----------------------
+Module et packages
+==================
 
 Les principaux modules sont : 
 
-|--- processing-common: contient les méthodes commons: les modèles, les exceptions, SedaUtil, ...
-|--- processing-distributor: appelle un worker de processus et distribue le workflow. Offre la possibilité au worker de s'enregistrer, se désabonner.
-|--- processing-distributor-client: client de module processing-distributor
-|--- processing-engine: appelle un distributeur de processus
-|--- processing-engine-client: client de module processing-engine
-|
-|--- processing-management: gestion de workflow
-|
-|--- processing-management-client: client de module processing-management
+- processing-common: contient les méthodes commons: les modèles, les exceptions, SedaUtil, ...
+- processing-distributor: appelle un worker de processus et distribue le workflow. Offre la possibilité au worker de s'enregistrer, se désabonner.
+- processing-distributor-client: client de module processing-distributor
+- processing-engine: appelle un distributeur de processus
+- processing-engine-client: client de module processing-engine
+- processing-management: gestion de workflow
+- processing-management-client: client de module processing-management
 
-2. Modèle
----------
+Modèle
+=======
 
 Un modèle a été mis en place pour permettre la remontée et l'agrégation des status des différents item du worflow.
 
@@ -40,8 +37,8 @@ Un workflow est défini par un fichier json contenant les steps ainsi que toutes
 
 La combinaison d'un état du processus (PAUSE, RUNNING, COMPLETED) et de son statut qui peut être (OK, WARNING, KO, FATAL) nous donne un vue global sur le processus. Le processus peut être en état COMPLETED avec tous les statut possible. Il faut être en état RUNNING ou PAUSE avec le statut de l'exécution des dernières étapes.
 
-3. Process Distributor
-----------------------
+Process Distributor
+====================
 
 Le distributor, en plus de lancer les workflow, offre désormais la possibilité aux Workers de s'abonner, se désabonner.
 Lors d'un abonnement, le Worker est ajouté à une liste de workers (regroupés par famille de worker). Pour un désabonnement, il est supprimé.
@@ -68,8 +65,8 @@ Dans les itérations suivantes les autres méthodes suivantes seront implément�
 * statut d'un worker
 * mise à jour d'un worker
 
-4. Parallélisme dans le distributeur
-------------------------------------
+Parallélisme dans le distributeur
+=================================
 
 Les parallélismes suivants sont mis en oeuvre dans le distributeur
 

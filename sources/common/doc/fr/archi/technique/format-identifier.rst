@@ -8,9 +8,9 @@ Présentation
 Le fonctionnement de cette brique est la suivante.
 Un outil d'identification est installé sur un environnement à déterminer.
 Ce service offre une API Rest permettant d'obtenir :
- - un status  
- - l'analyse d'un format en fonction du Path vers le fichier à analyser.
 
+    - un status  
+    - l'analyse d'un format en fonction du Path vers le fichier à analyser.
 
 |  *Package parent :* **fr.gouv.vitam.common.format.identification**
 
@@ -33,12 +33,12 @@ Exceptions :
 Exceptions retournées par la vérification de formats.
 Sont au nombre de 5 :
 
- - FileFormatNotFoundException : exception levée en cas de non résolution d'un format de fichier.
- - FormatIdentifierBadRequestException : exception levée si la requete soumise à l'outil n'est pas correcte.
- - FormatIdentifierFactoryException : exception levée dans le cadre de la factory.
- - FormatIdentifierNotFoundException : exception levée si l'outil ne peut pas être interrogé.
- - FormatIdentifierTechnicalException : exception levée en cas d'erreur technique générique.
- 
+    - FileFormatNotFoundException : exception levée en cas de non résolution d'un format de fichier.
+    - FormatIdentifierBadRequestException : exception levée si la requete soumise à l'outil n'est pas correcte.
+    - FormatIdentifierFactoryException : exception levée dans le cadre de la factory.
+    - FormatIdentifierNotFoundException : exception levée si l'outil ne peut pas être interrogé.
+    - FormatIdentifierTechnicalException : exception levée en cas d'erreur technique générique.
+
 Model :
 =======
 
