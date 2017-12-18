@@ -40,7 +40,7 @@ Ainsi il est possible une fois une opération terminée de demander la liste des
 
 # ObjectLifeCycles
 
-**objectlifecycles** est le point d'entrée pour tous les journaux de cycle de vie des objets dans Vitam.
+**logbookobjectslifecycles** est le point d'entrée pour tous les journaux de cycle de vie des objets dans Vitam.
 Le rôle des journaux de cycles de vie des objets est de conserver l'ensemble des événements associés à un Objet.
 Les événements associés sont du type :
 - création
@@ -52,4 +52,4 @@ Les événements associés sont du type :
 - ...
 
 **Important** : l'identifiant d'un Object lifecycle est également l'identifiant de l'Objet correspondant dans le service Access.
-Ainsi il est possible une fois une opération terminée de demander la liste des Objects qui sont concernés par cette opération en demandant la liste des ObjectLifeCycles de cette opération. Les identifiants remontés sont alors les mêmes pour accéder au journal du cycle de vie d'un Object (*/objectlifecycles/id*) ou à sa description technique (*/objects/id*).   
+Ainsi il est possible une fois une opération terminée de demander la liste des Objects qui sont concernés par cette opération en demandant la liste des ObjectLifeCycles de cette opération. Les identifiants remontés sont alors les mêmes pour accéder au journal du cycle de vie d'un Object (*/logbookobjectslifecycles/id*) ou à sa description technique (*/objects/id*).   
