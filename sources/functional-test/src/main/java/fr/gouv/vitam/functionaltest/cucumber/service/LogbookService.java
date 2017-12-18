@@ -52,6 +52,25 @@ public class LogbookService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookService.class);
 
     /**
+     * Get a Logbook operation by its id
+     * 
+     * @param accessClient access client
+     * @param tenantId tenant id
+     * @param contractId access contract id
+     * @param applicationSessionId application session id
+     * @param operationId logbook operation id
+     * @return RequestResponse
+     * @throws VitamClientException exception
+     */
+    public RequestResponse<LogbookOperation> getLogbookOperation(AccessExternalClient accessClient, int tenantId,
+        String contractId, String applicationSessionId, String operationId)
+        throws VitamClientException {
+        return accessClient
+            .selectOperationbyId(new VitamContext(tenantId).setAccessContract(contractId)
+                .setApplicationSessionId(applicationSessionId), operationId, new Select().getFinalSelectById());
+    }
+
+    /**
      * check on logbook if the global status is OK (status of the last event, if last event is correct)
      * 
      * @param accessClient access client
@@ -63,13 +82,10 @@ public class LogbookService {
      * @throws VitamClientException exception
      */
     public void checkFinalStatusLogbook(AccessExternalClient accessClient, int tenantId, String contractId,
-        String applicationSessionId,
-        String operationId, String status)
+        String applicationSessionId, String operationId, String status)
         throws VitamClientException {
         RequestResponse<LogbookOperation> requestResponse =
-            accessClient
-                .selectOperationbyId(new VitamContext(tenantId).setAccessContract(contractId)
-                    .setApplicationSessionId(applicationSessionId), operationId, new Select().getFinalSelectById());
+            getLogbookOperation(accessClient, tenantId, contractId, applicationSessionId, operationId);
         if (requestResponse instanceof RequestResponseOK) {
             RequestResponseOK<LogbookOperation> requestResponseOK =
                 (RequestResponseOK<LogbookOperation>) requestResponse;

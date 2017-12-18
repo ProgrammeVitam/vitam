@@ -49,6 +49,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.functionaltest.configuration.TnrClientConfiguration;
+import fr.gouv.vitam.functionaltest.cucumber.service.AccessService;
 import fr.gouv.vitam.functionaltest.cucumber.service.LogbookService;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClient;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
@@ -82,10 +83,15 @@ public class World {
     private static Map<String, String> operationIdsByTestSet = new HashMap<>();
 
     /**
-     * Logbook service 
+     * Logbook service
      */
     private LogbookService logbookService;
-    
+
+    /**
+     * Access service
+     */
+    private AccessService accessService;
+
     /**
      * ingest external client
      */
@@ -117,7 +123,7 @@ public class World {
      *
      */
     WorkspaceClient workspaceClient;
-     
+
 
     /**
      * base path of all the feature
@@ -136,6 +142,7 @@ public class World {
         logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient();
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         logbookService = new LogbookService();
+        accessService = new AccessService();
     }
 
     /**
@@ -299,9 +306,13 @@ public class World {
     public String getApplicationSessionId() {
         return applicationSessionId;
     }
-    
+
     public LogbookService getLogbookService() {
         return logbookService;
+    }
+
+    public AccessService getAccessService() {
+        return accessService;
     }
 
     @After
