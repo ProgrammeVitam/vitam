@@ -46,10 +46,10 @@ Déplacement des objets binaires vers le workspace (PUT_BINARY_ON_WORKSPACE)
   - FATAL : une erreur technique est survenue lors du déplacement des objets binaires de stockage vers le workspace (PUT_BINARY_ON_WORKSPACE.FATAL=Erreur fatale lors du déplacement des objets binaires de l'offre de stockage vers le workspace)
 
 Stockage du bordereau compressé (STP_STORE_MANIFEST)
-===================================================
+=====================================================
 
 Stockage du bordereau compressé (STORE_MANIFEST)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 + **Règle** : Création et enregistrement du DIP sur les offres de stockage
 

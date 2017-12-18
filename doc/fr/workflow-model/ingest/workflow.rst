@@ -119,7 +119,7 @@ Vérification de l'en-tête du bordereau de transfert (CHECK_HEADER)
 
 
 La tâche check_header contient les traitements suivants
-******************************************
+*********************************************************
 
 * Vérification de la présence et contrôle des services agents (CHECK_AGENT)
 

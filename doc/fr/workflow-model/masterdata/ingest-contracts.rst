@@ -1,5 +1,5 @@
 Workflow d'administration et de mise à jour d'un référentiel des contrats d'entrée
-###########################################################################
+###################################################################################
 
 Introduction
 ============
@@ -41,6 +41,6 @@ Import d'un contrat d'entrée (STP_IMPORT_INGEST_CONTRACT)
     - FATAL : une erreur technique est survenue lors de la vérification de l'import du contrat (STP_IMPORT_INGEST_CONTRACT.FATAL=Erreur fatale du processus d'import du contrat d'entrée)
 
 Mise à jour d'un contrat d'entrée (STP_UPDATE_INGEST_CONTRACT)
-----------------------------------------------------------
+---------------------------------------------------------------
 
 La modification d'un contrat d'entrée doit suivre les mêmes règles que celles décrites pour la création.
