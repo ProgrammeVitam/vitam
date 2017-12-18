@@ -3,8 +3,6 @@ import {CookieService} from "angular2-cookie/core";
 import 'rxjs/add/operator/map';
 import {ResourcesService} from '../common/resources.service';
 import {BehaviorSubject} from "rxjs/BehaviorSubject"
-import {Observable} from "rxjs/Observable";
-import {Response} from "@angular/http";
 import {TenantService} from "../common/tenant.service";
 
 
@@ -17,7 +15,7 @@ export class AuthenticationService {
   }
 
   getSecureMode() {
-    return this.resourceService.get('securemode').map((res: Response) => res.text());
+    return this.resourceService.get('securemode', undefined, 'text');
   }
 
   verifyAuthentication() {

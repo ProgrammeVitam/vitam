@@ -3,9 +3,7 @@ import {NO_ERRORS_SCHEMA} from "@angular/core";
 
 import {EventDisplayComponent} from './event-display.component';
 import {Event} from '../event';
-import {TranslateLoader, TranslateModule} from "@ngx-translate/core";
-import {CustomLoader} from "../../translate/custom-loader";
-import {HttpClient} from "@angular/common/http";
+import {TranslateModule} from "@ngx-translate/core";
 import {RouterTestingModule} from "@angular/router/testing";
 
 describe('EventDisplayComponent', () => {

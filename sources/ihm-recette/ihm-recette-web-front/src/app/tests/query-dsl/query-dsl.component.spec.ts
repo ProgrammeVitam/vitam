@@ -9,13 +9,13 @@ import {ResourcesService} from '../../common/resources.service';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/observable/of';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {Response, ResponseOptions, Headers} from '@angular/http';
 import {TenantService} from "../../common/tenant.service";
+import {HttpHeaders} from "@angular/common/http";
 
 
 const cookies = {};
 const ResourcesServiceStub = {
-  post: (url, header?: Headers, body?: any) => Observable.of('OK'),
+  post: (url, header?: HttpHeaders, body?: any) => Observable.of('OK'),
   getTenant: () => cookies['tenant']
 };
 const QueryDslServiceStub = {
@@ -56,23 +56,17 @@ const QueryDslServiceStub = {
     }
   ]),
   checkJson: (jsonRequest: string) => {
-      return !!jsonRequest;
+    return !!jsonRequest;
   },
   executeRequest: (query, contractId: string, requestedCollection: string,
                    requestMethod: string, xAction: string, objectId: string) => {
     if (contractId) {
       return Observable.of(
-        new Response(
-          new ResponseOptions({body: JSON.stringify(
-            {_body: '{httpCode: 200, $result: {}, $context: {}}', status: 200, ok: true, statusText: 'OK'})})
-        )
+        {_body: '{httpCode: 200, $result: {}, $context: {}}', status: 200, ok: true, statusText: 'OK'}
       )
     } else {
       return Observable.of(
-        new Response(
-          new  ResponseOptions({body: JSON.stringify(
-            {_body: '<html></html>', status: 400, ok: false, statusText: 'Bad Request'})})
-        )
+        {_body: '<html></html>', status: 400, ok: false, statusText: 'Bad Request'}
       )
     }
   }
@@ -102,7 +96,7 @@ describe('QueryDSLComponent', () => {
         BrowserAnimationsModule
       ]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {

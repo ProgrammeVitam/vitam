@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { Response } from "@angular/http";
 import 'rxjs/add/operator/map';
 import {Observable} from "rxjs/Observable";
 import {plainToClass} from 'class-transformer';
@@ -14,13 +13,11 @@ export class FunctionalTestsService {
   constructor(private client: ResourcesService) { }
 
   getResults() {
-    return this.client.get(this.TNR_API)
-      .map((res: Response) => res.json());
+    return this.client.get(this.TNR_API);
   }
 
   getResultDetail(fileName: string): Observable<Report> {
     return this.client.get(this.TNR_API + '/' + fileName)
-      .map((res: Response) => res.json())
       .map((json) => plainToClass<Report, Object>(Report, json));
   }
 

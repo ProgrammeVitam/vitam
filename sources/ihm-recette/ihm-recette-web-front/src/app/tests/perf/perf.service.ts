@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { Headers, Response } from "@angular/http";
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/toPromise';
 import { saveAs } from 'file-saver/FileSaver';
@@ -17,19 +16,17 @@ export class PerfService {
 
   //Get Available SIP on server for upload
   getAvailableSipForUpload() {
-    return this.client.get(this.SIP_TO_UPLOAD_URL)
-      .map((res: Response) => res.json());
+    return this.client.get(this.SIP_TO_UPLOAD_URL);
   }
 
   // upload selected
   uploadSelected(data) {
-    return this.client.post(this.SIP_TO_UPLOAD, new Headers(), data);
+    return this.client.post(this.SIP_TO_UPLOAD, undefined, data);
   }
 
   // Generate INGEST statistics report
   generateIngestStatReport() {
-    return this.client.get(this.GENERATE_STAT_URL)
-      .map((res: Response) => res.json());
+    return this.client.get(this.GENERATE_STAT_URL);
   }
 
   downloadURL(fileName) {

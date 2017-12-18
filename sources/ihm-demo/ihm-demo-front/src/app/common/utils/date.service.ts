@@ -15,6 +15,13 @@ export class DateService {
     return new DatePipe('en-US').transform(date, 'dd/MM/yyyy');
   }
 
+  static handleDateForRules(date: string): string {
+    if (date === undefined) {
+      return '';
+    }
+    return new DatePipe('en-US').transform(date, 'yyyy-MM-dd');
+  }
+
   static handleDateWithTime(date: string): string {
     if (date === undefined) {
       return '';

@@ -1,6 +1,5 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { NO_ERRORS_SCHEMA } from "@angular/core";
-import { Response, ResponseOptions, Headers } from '@angular/http';
 import { FormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { DropdownModule, InputTextModule, SelectItem } from 'primeng/primeng';
@@ -13,9 +12,10 @@ import { QueryDslService } from '../query-dsl/query-dsl.service';
 
 import { DagVisualizationComponent } from './dag-visualization.component';
 import { VisModule, VisNetworkService } from 'ng2-vis';
+import {HttpHeaders} from "@angular/common/http";
 
 const ResourcesServiceStub = {
-  post: (url, header?: Headers, body?: any) => Observable.of('OK'),
+  post: (url, header?: HttpHeaders, body?: any) => Observable.of('OK'),
   getTenant: () => 0
 };
 
@@ -62,34 +62,23 @@ const QueryDslServiceStub = {
     return !!jsonRequest;
   },
   executeRequest: (query, contractId: string, requestedCollection: string,
-    requestMethod: string, xAction: string, objectId: string) => {
+                   requestMethod: string, xAction: string, objectId: string) => {
     if (contractId) {
-      return Observable.of(
-        new Response(
-          new ResponseOptions({
-            body: {
-              httpCode: 200,
-              $result: {},
-              $context: {}
-            }
-          })
-        )
+      return Observable.of({
+          httpCode: 200,
+          $result: {},
+          $context: {}
+        }
       )
     } else {
-      return Observable.of(
-        new Response(
-          new ResponseOptions({
-            body: {
-              httpCode: 401,
-              code: "020100",
-              context: "External Access",
-              state: "Input / Output",
-              message: "Access external client error in selectUnits method.",
-              description: "Access by Contract Exception"
-            }
-          })
-        )
-      )
+      return Observable.of({
+        httpCode: 401,
+        code: "020100",
+        context: "External Access",
+        state: "Input / Output",
+        message: "Access external client error in selectUnits method.",
+        description: "Access by Contract Exception"
+      })
     }
   }
 };
@@ -146,14 +135,14 @@ describe('DagVisualizationComponent', () => {
     let spyQueryDslExecRequest: any = spyOn(component.queryDslService, 'executeRequest').and.callThrough();
     let spyDisplayDag: any = spyOn(component, 'displayDag').and.callThrough();
     component.sendRequest();
-    var emptyJsonRequest = {
+    let emptyJsonRequest = {
       $roots: [],
       $query: [{ $eq: {} }],
       $projection: {}
     };
     expect(spyQueryDslExecRequest).toHaveBeenCalledWith(emptyJsonRequest, null, 'UNIT', 'GET', 'GET', null);
     expect(spyDisplayDag).toHaveBeenCalledTimes(0);
-  })
+  });
 
   it('should be used jsonRequest with operationId and called display dag when contract selected', () => {
     let spyQueryDslExecRequest: any = spyOn(component.queryDslService, 'executeRequest').and.callThrough();
@@ -161,7 +150,7 @@ describe('DagVisualizationComponent', () => {
     component.selectedContract = contract1;
     component.operationId = 'opId';
     component.sendRequest();
-    var correctJsonRequest = {
+    let correctJsonRequest = {
       $roots: [],
       $query: [{ $eq: {} }],
       $projection: {}
@@ -169,5 +158,5 @@ describe('DagVisualizationComponent', () => {
     correctJsonRequest.$query[0].$eq["#operations"] = 'opId';
     expect(spyQueryDslExecRequest).toHaveBeenCalledWith(correctJsonRequest, contract1.Identifier, 'UNIT', 'GET', 'GET', null);
     expect(spyDisplayDag).toHaveBeenCalledTimes(1);
-  })
+  });
 });

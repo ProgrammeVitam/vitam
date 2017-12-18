@@ -3,7 +3,6 @@ import {HttpEvent, HttpInterceptor, HttpHandler, HttpRequest} from '@angular/com
 import {Observable} from "rxjs/Observable";
 import { Router } from '@angular/router';
 import {CookieService} from "angular2-cookie/core";
-import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 const USER = 'user';
 const LOGGED_IN = 'loggedIn';

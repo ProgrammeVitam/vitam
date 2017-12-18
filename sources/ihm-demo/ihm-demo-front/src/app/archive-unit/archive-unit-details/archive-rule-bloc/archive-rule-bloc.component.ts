@@ -3,6 +3,7 @@ import {DatePipe} from "@angular/common";
 import {ArchiveUnitHelper} from "../../archive-unit.helper";
 import {ArchiveUnitService} from "../../archive-unit.service";
 import {ConfirmationService} from "primeng/primeng";
+import {DateService} from "../../../common/utils/date.service";
 
 @Component({
   selector: 'vitam-archive-rule-bloc',
@@ -133,7 +134,7 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
         Inheritance: {}*/};
       for (let i = 0, len = this.updatedFields[category].Rules.length; i < len; i++) {
         let rule = this.updatedFields[category].Rules[i];
-        rule.StartDate = new DatePipe('fr-FR').transform(rule.StartDate, 'yyyy-MM-dd');
+        rule.StartDate = DateService.handleDateForRules(rule.StartDate);
         if (!rule.inherited) {
           if (!rule.StartDate) delete rule.StartDate;
           if (rule.newRule) {

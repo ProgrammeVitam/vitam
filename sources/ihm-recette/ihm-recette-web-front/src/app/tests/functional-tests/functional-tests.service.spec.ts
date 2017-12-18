@@ -1,115 +1,73 @@
 import { TestBed } from '@angular/core/testing';
-import {MockBackend} from "@angular/http/testing";
-import { RequestMethod, BaseRequestOptions, ResponseOptions, Response, Http} from '@angular/http';
+import { HttpClientTestingModule, HttpTestingController } from "@angular/common/http/testing";
 import { FunctionalTestsService } from './functional-tests.service';
 import { ResourcesService } from '../../common/resources.service';
-import {CookieService} from "angular2-cookie/core";
+import { CookieService } from "angular2-cookie/core";
 import { RouterTestingModule } from '@angular/router/testing';
 
 describe('FunctionalTestsService', () => {
   let service: FunctionalTestsService;
-  let backend: MockBackend;
+  let backend: HttpTestingController;
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [ RouterTestingModule ],
+      imports: [ RouterTestingModule, HttpClientTestingModule ],
       providers: [
         ResourcesService,
-        FunctionalTestsService, CookieService,
-        MockBackend,
-        BaseRequestOptions,
-        {
-          provide: Http,
-          useFactory: (backend, options) => new Http(backend, options),
-          deps: [MockBackend, BaseRequestOptions]
-        }
+        FunctionalTestsService,
+        CookieService
       ]
     });
 
-    backend = TestBed.get(MockBackend);
+    backend = TestBed.get(HttpTestingController);
     service = TestBed.get(FunctionalTestsService);
   });
 
-  it('getResult should call correct api', (done) => {
-    backend.connections.subscribe(connection => {
-      expect(connection.request.url).toEqual('/ihm-recette/v1/api/applicative-test');
-      expect(connection.request.method).toEqual(RequestMethod.Get);
-      done();
-    });
-    service.getResults();
-  });
-
-  it('getResult should get response', (done) => {
-    let response = {
-      "result": 1
-    };
-
-    backend.connections.subscribe(connection => {
-      connection.mockRespond(new Response(<ResponseOptions>{
-        body: JSON.stringify(response)
-      }));
-    });
-
+  it('getResult should call correct api + get response', () => {
     service.getResults().subscribe(response => {
       expect(response).not.toBeNull();
-      done();
     });
-  });
 
-
-  it('getResultDetail should call correct api', (done) => {
-    const fileName = 'fileName';
-
-    backend.connections.subscribe(connection => {
-      expect(connection.request.url).toEqual('/ihm-recette/v1/api/applicative-test/fileName');
-      expect(connection.request.method).toEqual(RequestMethod.Get);
-      done();
+    let response = backend.expectOne({
+      url: '/ihm-recette/v1/api/applicative-test',
+      method: 'GET'
     });
-    service.getResultDetail(fileName);
-  });
-
-  it('getResultDetail should get response', (done) => {
-    let response = {
+    response.flush({
       "result": 1
-    };
-    const fileName = 'fileName';
-
-    backend.connections.subscribe(connection => {
-      connection.mockRespond(new Response(<ResponseOptions>{
-        body: JSON.stringify(response)
-      }));
     });
 
+    backend.verify();
+  });
+
+  it('getResultDetail should call correct api + get response', () => {
     service.getResultDetail('fileName').subscribe(response => {
       expect(response).not.toBeNull();
-      done();
     });
-  });
 
-
-  it('launchTests should call correct api', (done) => {
-    backend.connections.subscribe(connection => {
-      expect(connection.request.url).toEqual('/ihm-recette/v1/api/applicative-test');
-      expect(connection.request.method).toEqual(RequestMethod.Post);
-      done();
+    let response = backend.expectOne({
+      url: '/ihm-recette/v1/api/applicative-test/fileName',
+      method: 'GET'
     });
-    service.launchTests();
-  });
-
-  it('launchTests should get response', (done) => {
-    let response = {
+    response.flush({
       "result": 1
-    };
-
-    backend.connections.subscribe(connection => {
-      connection.mockRespond(new Response(<ResponseOptions>{
-        body: JSON.stringify(response)
-      }));
     });
 
+    backend.verify();
+  });
+
+  it('launchTests should call correct api + get response', () => {
     service.launchTests().subscribe(response => {
       expect(response).not.toBeNull();
-      done();
     });
+
+    let response = backend.expectOne({
+      url: '/ihm-recette/v1/api/applicative-test',
+      method: 'POST'
+    });
+    response.flush({
+      "result": 1
+    });
+
+    backend.verify();
   });
 
 });
