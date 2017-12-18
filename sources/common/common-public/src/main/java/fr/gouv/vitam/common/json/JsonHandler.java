@@ -178,6 +178,17 @@ public final class JsonHandler {
         }
         return true;
     }
+
+    /**
+     * Creates a JSON generator for low-level json stream creation
+     *
+     * @param os the output stream
+     * @return
+     * @throws IOException
+     */
+    public static final JsonGenerator createJsonGenerator(OutputStream os) throws IOException {
+        return JSONFACTORY.createGenerator(os);
+    }
     /**
      *
      * @param file to transform

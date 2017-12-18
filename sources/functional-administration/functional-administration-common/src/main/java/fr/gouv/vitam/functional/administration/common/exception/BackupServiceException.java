@@ -1,68 +1,58 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- * <p>
+ *
  * contact.vitam@culture.gouv.fr
- * <p>
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- * <p>
+ *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- * <p>
+ *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- * <p>
+ *
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- * <p>
+ *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.functional.administration;
+ *******************************************************************************/
+package fr.gouv.vitam.functional.administration.common.exception;
 
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 
 /**
- * Just a class for
- * <p>
- * Class for finding Contracts to prevent cyclic dependency between agencies and contracts module
+ * Define a BackupServiceException Exception to be thrown when something is not found
  */
-public class ContractsFinder {
-    AccessContractImpl accessContract;
+public class BackupServiceException extends VitamException {
+
 
     /**
-     * @param mongoAccess
-     * @param counter
+     * @param message associated message
      */
-    public ContractsFinder(MongoDbAccessAdminImpl mongoAccess, VitamCounterService counter) {
-        accessContract = new AccessContractImpl(mongoAccess, counter);
+    public BackupServiceException(String message) {
+        super(message);
     }
 
     /**
-     * @param queryDsl
-     * @return response as a RequestResponseOK<AccessContractModel> object
-     * @throws InvalidCreateOperationException
-     * @throws VitamException
+     * @param cause associated cause
      */
-    public RequestResponseOK<AccessContractModel> findAccessContrats(final JsonNode queryDsl)
-        throws InvalidCreateOperationException, VitamException {
+    public BackupServiceException(Throwable cause) {
+        super(cause);
+    }
 
-        return accessContract.findContracts(queryDsl);
-
+    /**
+     * @param messsage associated message
+     * @param cause    associated cause
+     */
+    public BackupServiceException(String messsage, Throwable cause) {
+        super(messsage, cause);
     }
 }

@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.functional.administration.counter;
+package fr.gouv.vitam.functional.administration.common.counter;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
@@ -34,8 +34,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -74,8 +76,9 @@ public class VitamCounterService {
     private static final String ARGUMENT_MUST_NOT_BE_NULL = "Argument must not be null";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamCounterService.class);
+    public static final String BACK_UP_SEQUENCE = "BackUp";
     private final MongoDbAccessAdminImpl mongoAccess;
-    private final Map<Integer, Integer> tenants;
+    private final Set<Integer> tenants;
     private final Map<SequenceType, FunctionalAdminCollections> collections = new HashMap<>();
     private final Map<Integer, List<FunctionalAdminCollections>> externalIdentifiers;
 
@@ -92,16 +95,14 @@ public class VitamCounterService {
         throws VitamException {
         ParametersChecker.checkParameter(ARGUMENT_MUST_NOT_BE_NULL, tenants);
         ArrayList<SequenceType> sequences = new ArrayList<>();
-        this.tenants = new HashMap<>();
         this.externalIdentifiers = new HashMap<>();
         mongoAccess = dbConfiguration;
 
         Collections.addAll(sequences, SequenceType.values());
         sequences.forEach(i -> collections.put(i, i.getCollection()));
+        this.tenants = new HashSet<>(tenants);
 
-        tenants.forEach((i) -> {
-            this.tenants.put(i, i);
-        });
+
         initSequences();
         initExternalIds(externalIdentifiers);
     }
@@ -122,7 +123,7 @@ public class VitamCounterService {
      */
     private void initSequences() throws VitamException {
         try {
-            for (Integer tenantId : this.tenants.values()) {
+            for (Integer tenantId : this.tenants) {
                 runInVitamThread(() -> {
                     VitamThreadUtils.getVitamSession().setTenantId(tenantId);
                     try {
@@ -131,15 +132,17 @@ public class VitamCounterService {
                             try (DbRequestResult result =
                                 mongoAccess.findDocuments(query, FunctionalAdminCollections.VITAM_SEQUENCE)) {
                                 if (!result.hasResult()) {
-                                    createSequence(tenantId, entry.getKey());
+                                    createSequence(tenantId, entry.getKey().getName());
                                 }
                             }
+                            createSequence(tenantId, BACK_UP_SEQUENCE);
                         }
                     } catch (VitamException | InvalidCreateOperationException e) {
                         throw new RuntimeException(e);
                     }
                 });
             }
+
         } catch (Exception e) {
             throw new VitamException(e);
         }
@@ -158,19 +161,20 @@ public class VitamCounterService {
 
     /**
      * @param tenant
-     * @param sequenceType
+     * @param sequenceNAme
      * @throws VitamException
      */
-    private void createSequence(Integer tenant, SequenceType sequenceType)
+    private void createSequence(Integer tenant, String sequenceNAme)
         throws VitamException {
         ObjectNode node = JsonHandler.createObjectNode();
-        node.put(VitamSequence.NAME, sequenceType.getName());
+        node.put(VitamSequence.NAME, sequenceNAme);
         node.put(VitamSequence.COUNTER, 0);
         node.put(VitamSequence.TENANT_ID, tenant);
         JsonNode firstSequence = JsonHandler.getFromString(node.toString());
         //  sequenceCollection.
         mongoAccess.insertDocument(firstSequence, FunctionalAdminCollections.VITAM_SEQUENCE).close();
     }
+
 
     /**
      * Atomically find a sequence  and update it.
@@ -224,6 +228,33 @@ public class VitamCounterService {
         }
     }
 
+    /**
+     * @param tenant
+     * @return
+     * @throws ReferentialException
+     */
+    public Integer getNextBackUpSequence(Integer tenant) throws ReferentialException {
+
+        final BasicDBObject incQuery = new BasicDBObject();
+        incQuery.append("$inc", new BasicDBObject(VitamSequence.COUNTER, 1));
+        Bson query;
+
+        query = and(
+            eq(VitamSequence.NAME, BACK_UP_SEQUENCE),
+            eq(VitamDocument.TENANT_ID, tenant));
+
+        FindOneAndUpdateOptions findOneAndUpdateOptions = new FindOneAndUpdateOptions();
+
+        findOneAndUpdateOptions.returnDocument(ReturnDocument.AFTER);
+        try {
+            final Object result = FunctionalAdminCollections.VITAM_SEQUENCE.getCollection()
+                .findOneAndUpdate(query, incQuery, findOneAndUpdateOptions);
+            return ((VitamSequence) result).getCounter();
+        } catch (final Exception e) {
+            LOGGER.error("find Document Exception", e);
+            throw new ReferentialException(e);
+        }
+    }
     /**
      * @param r runnable
      */
