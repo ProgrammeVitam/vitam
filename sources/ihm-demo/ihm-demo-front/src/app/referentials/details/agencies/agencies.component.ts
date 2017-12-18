@@ -1,14 +1,13 @@
-import { Component, OnInit, Input } from '@angular/core';
+import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { plainToClass } from 'class-transformer';
 import { Title } from '@angular/platform-browser';
 
 import { BreadcrumbService, BreadcrumbElement } from "../../../common/breadcrumb.service";
 import { ReferentialsService } from "../../referentials.service";
-import { DateService } from '../../../common/utils/date.service';
-import { ArchiveUnitService } from '../../../archive-unit/archive-unit.service';
 import { PageComponent } from "../../../common/page/page-component";
 import { Agency } from './agency';
+import { ErrorService } from "../../../common/error.service";
 
 @Component({
   selector: 'vitam-agencies',
@@ -25,7 +24,7 @@ export class AgenciesComponent extends PageComponent {
 
   constructor(private activatedRoute: ActivatedRoute, public router : Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
-              private searchReferentialsService : ReferentialsService) {
+              private searchReferentialsService : ReferentialsService, private errorService: ErrorService) {
     super('Détail du service agent', [], titleService, breadcrumbService);
 
   }
@@ -34,7 +33,7 @@ export class AgenciesComponent extends PageComponent {
     this.activatedRoute.params.subscribe( params => {
       this.id = params['id'];
       this.getDetail();
-      this.updateBreadcrumb(params['type']); 
+      this.updateBreadcrumb(params['type']);
     });
   }
 
@@ -58,14 +57,20 @@ export class AgenciesComponent extends PageComponent {
   }
 
   getDetail() {
-    this.searchReferentialsService.getAgenciesById(this.id).subscribe((value) => {
-      this.agency = plainToClass(Agency, value.$results)[0];
-      this.searchReferentialsService.getFundRegisterById(this.agency.Identifier).subscribe((value) => {
-        if (value.$hits.total == 1) {
-          this.hasUnit = true;
-        }
-      }, error => this.hasUnit = false)
-    });
+    this.searchReferentialsService.getAgenciesById(this.id).subscribe(
+      (value) => {
+        this.agency = plainToClass(Agency, value.$results)[0];
+        this.searchReferentialsService.getFundRegisterById(this.agency.Identifier).subscribe((value) => {
+            if (value.$hits.total == 1) {
+              this.hasUnit = true;
+            }
+          }, () => {
+            this.hasUnit = false;
+          }
+        )
+      }, (error) => {
+        this.errorService.handle404Error(error);
+      });
   }
 
   goToSummaryRegisterPage() {

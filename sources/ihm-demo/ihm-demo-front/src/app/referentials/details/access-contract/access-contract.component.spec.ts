@@ -9,6 +9,7 @@ import { ReferentialsService } from "../../referentials.service";
 import { DialogService } from "../../../common/dialog/dialog.service";
 import {AccessContract} from "./access-contract";
 import {ReferentialHelper} from "../../referential.helper";
+import {ErrorService} from "../../../common/error.service";
 
 const ReferentialsServiceStub = {
   getAccessContractById: (id) => Observable.of({'$results': [{}]})
@@ -23,6 +24,7 @@ describe('AccessContractComponent', () => {
       imports: [RouterTestingModule],
       providers: [
         BreadcrumbService,
+        ErrorService,
         {provide: ReferentialsService, useValue: ReferentialsServiceStub},
         {provide: DialogService, useValue: {}}
       ],

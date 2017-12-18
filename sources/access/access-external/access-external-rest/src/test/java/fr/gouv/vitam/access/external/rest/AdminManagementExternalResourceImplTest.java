@@ -14,6 +14,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -61,11 +62,13 @@ import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
@@ -909,7 +912,7 @@ public class AdminManagementExternalResourceImplTest {
             .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json");
 
     }
-    
+
     @Test
     public void testImportCSVDocumentWithHTMLContent() throws Exception {
         stream = PropertiesUtils.getResourceAsStream("CSV_HTML.csv");
@@ -918,7 +921,7 @@ public class AdminManagementExternalResourceImplTest {
             .header(GlobalDataRest.X_FILENAME, "CSV_HTML.csv")
             .when().post(AGENCIES_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
-        
+
         stream = PropertiesUtils.getResourceAsStream("CSV_HTML.csv");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -926,22 +929,22 @@ public class AdminManagementExternalResourceImplTest {
             .when().post(RULES_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
     }
-    
+
     @Test
     public void testImportJSONDocumentWithHTMLContent() throws Exception {
         File file = PropertiesUtils.getResourceFile("JSON_HTML.json");
         JsonNode json = JsonHandler.getFromFile(file);
-        
+
         given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(AccessExtAPI.CONTEXTS_API)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        
+
         given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(AccessExtAPI.INGEST_CONTRACT_API)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-        
+
         given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(AccessExtAPI.ACCESS_CONTRACT_API)
@@ -1212,8 +1215,8 @@ public class AdminManagementExternalResourceImplTest {
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
-        doReturn(new RequestResponseOK<>().addAllResults(getAgencies())).when(adminCLient)
-            .findProfiles(anyObject());
+        doReturn(new RequestResponseOK<AgenciesModel>().addAllResults(getAgencies()).toJsonNode()).when(adminCLient)
+            .getAgencies(anyObject());
 
         final Select select = new Select();
         select.setQuery(eq("Status", "ACTIVE"));
@@ -1264,7 +1267,57 @@ public class AdminManagementExternalResourceImplTest {
             .body(select.getFinalSelect())
             .when().get(AGENCY_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
 
+
+    @Test
+    public void testFindAgenciesById() throws Exception {
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminCLient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminCLient);
+        doReturn(new RequestResponseOK<AgenciesModel>().addResult(getAgencies().get(0))).when(adminCLient)
+            .getAgencyById(anyObject());
+
+        given()
+            .contentType(ContentType.JSON)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(AGENCY_URI + "/id")
+            .then().statusCode(Status.OK.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .when().get(AGENCY_URI + "/id")
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .when().get(AGENCY_URI + "/id")
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        doThrow(new ReferentialNotFoundException("Agency not found")).when(adminCLient).getAgencyById(anyObject());
+        given()
+            .contentType(ContentType.JSON)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(AGENCY_URI + "/id")
+            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+
+        doThrow(new AdminManagementClientServerException("Exception")).when(adminCLient).getAgencyById(anyObject());
+        given()
+            .contentType(ContentType.JSON)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(AGENCY_URI + "/id")
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+
+        doThrow(new InvalidParseOperationException("Exception")).when(adminCLient).getAgencyById(anyObject());
+        given()
+            .contentType(ContentType.JSON)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when().get(AGENCY_URI + "/id")
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+        
     }
 
     @Test
@@ -1367,11 +1420,18 @@ public class AdminManagementExternalResourceImplTest {
         return res;
     }
 
-    private List<Object> getAgencies() throws FileNotFoundException, InvalidParseOperationException {
-        List<Object> res = new ArrayList<>();
+    private List<AgenciesModel> getAgencies() throws FileNotFoundException, InvalidParseOperationException {
+        List<AgenciesModel> res = new ArrayList<>();
+        IntStream.range(1, 5).forEach(i -> {
+            AgenciesModel agenciesModel = new AgenciesModel();
+            agenciesModel.setIdentifier("AG-00000" + i);
+            agenciesModel.setName("aName" + i);
+            agenciesModel.setDescription("aDescription" + i);
+            res.add(agenciesModel);
+        });
+
         return res;
     }
-
 
     @Test
     public void listResourceEndpoints()

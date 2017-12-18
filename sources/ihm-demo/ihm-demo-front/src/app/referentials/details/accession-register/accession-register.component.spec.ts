@@ -8,6 +8,8 @@ import { ReferentialsService } from "../../referentials.service";
 import { LogbookService } from "../../../ingest/logbook.service";
 import { AccessionRegisterComponent } from './accession-register.component';
 import { ActivatedRoute } from "@angular/router";
+import {ErrorService} from "../../../common/error.service";
+import {DialogService} from "../../../common/dialog/dialog.service";
 
 const ReferentialsServiceStub = {
   getFundRegisterDetailById: (id) => Observable.of({'$results': [{}]}),
@@ -27,9 +29,11 @@ describe('AccessionRegisterComponent', () => {
       imports: [ RouterTestingModule ],
       providers: [
         BreadcrumbService,
+        ErrorService,
         { provide: ReferentialsService, useValue: ReferentialsServiceStub },
         { provide: LogbookService, useValue: LogbookServiceStub },
-        { provide: ActivatedRoute, useValue: {params: Observable.of({id: 'Mock_Service'})} }
+        { provide: ActivatedRoute, useValue: {params: Observable.of({id: 'Mock_Service'})} },
+        { provide: DialogService, useValue: {} }
       ],
       declarations: [ AccessionRegisterComponent ],
       schemas: [NO_ERRORS_SCHEMA]

@@ -384,11 +384,12 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public JsonNode getAgencyById(String id)
+    public RequestResponse<AgenciesModel> getAgencyById(String id)
         throws InvalidParseOperationException, ReferentialNotFoundException, AdminManagementClientServerException {
-        ParametersChecker.checkParameter("id is a mandatory parameter", id);
-        Response response = null;
 
+
+        ParametersChecker.checkParameter("The input documentId json is mandatory", id);
+        Response response = null;
         try {
 
             final SelectParserSingle parser = new SelectParserSingle();
@@ -400,27 +401,30 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
 
             final Status status = Status.fromStatusCode(response.getStatus());
-            switch (status) {
-                case OK:
-                    LOGGER.debug(Response.Status.OK.getReasonPhrase());
-                    break;
-                case NOT_FOUND:
-                    LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
-                    throw new ReferentialNotFoundException("File Agency not found");
-                default:
-                    break;
+            if (status == Status.OK) {
+                LOGGER.debug(Response.Status.OK.getReasonPhrase());
+                RequestResponseOK<AgenciesModel> resp =
+                    JsonHandler.getFromString(response.readEntity(String.class), RequestResponseOK.class,
+                        AgenciesModel.class);
+
+
+                if (resp.getResults() == null || resp.getResults().size() == 0)
+                    throw new ReferentialNotFoundException("Agency not found with id: " + id);
+
+                return resp;
             }
-            return JsonHandler.getFromString(response.readEntity(String.class));
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error("Internal Server Error", e);
-            throw new AdminManagementClientServerException("Internal Server Error", e);
+
+            return RequestResponse.parseFromResponse(response, AgenciesModel.class);
+
         } catch (InvalidCreateOperationException e) {
             LOGGER.error("unable to create query", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
-
     }
 
     @Override
@@ -528,7 +532,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                     String reason = (response.hasEntity()) ? response.readEntity(String.class)
                         : Response.Status.BAD_REQUEST.getReasonPhrase();
                     LOGGER.error(reason);
-                    throw new InvalidParseOperationException(reason);            
+                    throw new InvalidParseOperationException(reason);
                 case NOT_FOUND:
                     LOGGER.error(Response.Status.NOT_FOUND.getReasonPhrase());
                     throw new ReferentialNotFoundException("AccessionRegister Not found ");
@@ -592,7 +596,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             .setSubmissionAgency(model.getSubmissionAgency())
             .setArchivalAgreement(model.getArchivalAgreement()).setEndDate(model.getEndDate())
             .setStartDate(model.getStartDate());
-        if(model.isSymbolic() != null)
+        if (model.isSymbolic() != null)
             accessionRegisterDetail.setSymbolic(model.isSymbolic());
         if (model.getStatus() != null) {
             accessionRegisterDetail.setStatus(model.getStatus());

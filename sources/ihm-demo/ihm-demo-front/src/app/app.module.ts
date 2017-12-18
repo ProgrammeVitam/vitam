@@ -85,6 +85,7 @@ import { TraceabilityOperationDetailsComponent } from './admin/traceability/trac
 import { TraceabilityOperationService } from './admin/traceability/traceability-operation.service';
 import { WorkflowComponent } from './admin/workflow/workflow.component';
 import {WorkflowService} from "./admin/workflow.service";
+import {ErrorService} from "./common/error.service";
 
 
 const appRoutes: Routes = [
@@ -303,7 +304,8 @@ const appRoutes: Routes = [
     AuditService,
     DialogService,
     TraceabilityOperationService,
-    WorkflowService
+    WorkflowService,
+    ErrorService
   ],
   bootstrap: [AppComponent]
 })

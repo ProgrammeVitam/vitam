@@ -6,6 +6,7 @@ import { BreadcrumbService } from '../../common/breadcrumb.service';
 import 'rxjs/add/operator/switchMap';
 import { ArchiveUnitService } from "../archive-unit.service";
 import { DialogService } from "../../common/dialog/dialog.service";
+import {ErrorService} from "../../common/error.service";
 
 @Component({
   selector: 'vitam-archive-unit-details',
@@ -21,7 +22,8 @@ export class ArchiveUnitDetailsComponent extends PageComponent implements OnDest
   routerObserver: any;
 
   constructor(private route: ActivatedRoute, public titleService: Title, public breadcrumbService: BreadcrumbService,
-              private archiveUnitService: ArchiveUnitService, public router: Router, private dialogService: DialogService) {
+              private archiveUnitService: ArchiveUnitService, public router: Router, private dialogService: DialogService,
+              private errorService: ErrorService) {
     super('Détails de l\'unité archivistique', [], titleService, breadcrumbService);
     this.routerObserver = router.events.subscribe((val) => {
       if (val instanceof NavigationEnd) {
@@ -80,6 +82,8 @@ export class ArchiveUnitDetailsComponent extends PageComponent implements OnDest
             this.objectDisplayable = false;
           }
         }
+      }, (error) => {
+        this.errorService.handle404Error(error);
       }
     );
   }

@@ -8,6 +8,7 @@ import { BreadcrumbService } from "../../../common/breadcrumb.service";
 import { ReferentialsService } from "../../referentials.service";
 import { DialogService } from "../../../common/dialog/dialog.service";
 import {IngestContract} from "./ingest-contract";
+import {ErrorService} from "../../../common/error.service";
 
 const ReferentialsServiceStub = {
   getIngestContractById: (id) => Observable.of({'$results': [{}]})
@@ -22,6 +23,7 @@ describe('IngestContractComponent', () => {
       imports: [ RouterTestingModule ],
       providers: [
         BreadcrumbService,
+        ErrorService,
         { provide: ReferentialsService, useValue: ReferentialsServiceStub },
         { provide: DialogService, useValue: {} }
       ],

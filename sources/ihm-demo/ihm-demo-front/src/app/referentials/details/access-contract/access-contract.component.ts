@@ -10,6 +10,7 @@ import { PageComponent } from "../../../common/page/page-component";
 import { AccessContract } from "./access-contract";
 import {ReferentialHelper} from "../../referential.helper";
 import {DialogService} from "../../../common/dialog/dialog.service";
+import {ErrorService} from "../../../common/error.service";
 
 @Component({
   selector: 'vitam-access-contract',
@@ -28,7 +29,8 @@ export class AccessContractComponent  extends PageComponent {
 
   constructor(private activatedRoute: ActivatedRoute, private router : Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
-              private searchReferentialsService : ReferentialsService, private dialogService : DialogService) {
+              private searchReferentialsService : ReferentialsService, private dialogService : DialogService,
+              private errorService: ErrorService) {
     super('Détail du contrat d\'accès', [], titleService, breadcrumbService);
 
   }
@@ -100,7 +102,7 @@ export class AccessContractComponent  extends PageComponent {
         }, (error) => {
           this.saveRunning = false;
           this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée.', '');
-        });        
+        });
       }, (error) => {
         this.saveRunning = false;
         this.dialogService.displayMessage('Erreur de modification. Aucune modification effectuée.', '');
@@ -108,9 +110,13 @@ export class AccessContractComponent  extends PageComponent {
   }
 
   getDetail() {
-    this.searchReferentialsService.getAccessContractById(this.id).subscribe((value) => {
-      this.initData(value);
-    });
+    this.searchReferentialsService.getAccessContractById(this.id).subscribe(
+      (value) => {
+        this.initData(value);
+      }, (error) => {
+        this.errorService.handle404Error(error);
+      }
+    );
   }
 
   initData(value) {
