@@ -562,7 +562,7 @@ public class LogbookMongoDbAccessFactoryTest {
         parametersWrong.setTypeProcess(LogbookTypeProcess.INGEST);
 
         assertThatThrownBy(() -> mongoDbAccess.updateLogbookLifeCycleUnit(
-            parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess), parameters))
+            parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess), oi, parameters))
             .isInstanceOf(LogbookNotFoundException.class);
 
         commitUnit(oi, true, parameters);
@@ -588,7 +588,7 @@ public class LogbookMongoDbAccessFactoryTest {
         parametersWrong.setTypeProcess(LogbookTypeProcess.UPDATE);
 
         mongoDbAccess.updateLogbookLifeCycleUnit(
-            parameters2.getParameterValue(LogbookParameterName.eventIdentifierProcess), parameters2);
+            parameters2.getParameterValue(LogbookParameterName.eventIdentifierProcess), oi2, parameters2);
 
         // check current lfc version
         assertThat(mongoDbAccess.getLogbookLifeCycleUnit(oi2).get(LogbookDocument.VERSION)).isEqualTo(0);
@@ -600,7 +600,8 @@ public class LogbookMongoDbAccessFactoryTest {
 
         try {
             mongoDbAccess.updateLogbookLifeCycleUnit(
-                parametersWrong.getParameterValue(LogbookParameterName.eventIdentifierProcess), parametersWrong);
+                parametersWrong.getParameterValue(LogbookParameterName.eventIdentifierProcess), 
+                    parametersWrong.getParameterValue(LogbookParameterName.objectIdentifier), parametersWrong);
             fail("Should throw an exception");
         } catch (final VitamException e) {}
 
@@ -838,7 +839,7 @@ public class LogbookMongoDbAccessFactoryTest {
 
         try {
             mongoDbAccess.updateLogbookLifeCycleObjectGroup(
-                parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess), parameters);
+                parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess), oi, parameters);
             fail("Should throw an exception");
         } catch (final VitamException e) {}
 
@@ -862,7 +863,7 @@ public class LogbookMongoDbAccessFactoryTest {
         parametersWrong.setTypeProcess(LogbookTypeProcess.UPDATE);
 
         mongoDbAccess.updateLogbookLifeCycleObjectGroup(
-            parameters2.getParameterValue(LogbookParameterName.eventIdentifierProcess), parameters2);
+            parameters2.getParameterValue(LogbookParameterName.eventIdentifierProcess), oi, parameters2);
 
         // Commit the last update
         commitObjectGroup(oi, false, parameters2);
@@ -870,7 +871,8 @@ public class LogbookMongoDbAccessFactoryTest {
         assertEquals(nbl + 1, mongoDbAccess.getLogbookLifeCyleObjectGroupSize());
         try {
             mongoDbAccess.updateLogbookLifeCycleObjectGroup(
-                parametersWrong.getParameterValue(LogbookParameterName.eventIdentifierProcess), parametersWrong);
+                parametersWrong.getParameterValue(LogbookParameterName.eventIdentifierProcess),
+                    parametersWrong.getParameterValue(LogbookParameterName.objectIdentifier), parametersWrong);
             fail("Should throw an exception");
         } catch (final VitamException e) {}
 

@@ -157,6 +157,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
                 .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         final String eip = parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
         final String oid = parameters.getParameterValue(LogbookParameterName.objectIdentifier);
+        final String lid = parameters.getParameterValue(LogbookParameterName.lifeCycleIdentifier);
 
         // Add X-EVENT-STATUS header
         MultivaluedHashMap<String, Object> headers = null;
@@ -167,7 +168,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         
         Response response = null;
         try {
-            response = performRequest(HttpMethod.PUT, getServiceUrl(parameters, eip, oid), headers,
+            response = performRequest(HttpMethod.PUT, getServiceUrl(parameters, eip, (lid != null) ? lid : oid), headers,
                     parameters, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
