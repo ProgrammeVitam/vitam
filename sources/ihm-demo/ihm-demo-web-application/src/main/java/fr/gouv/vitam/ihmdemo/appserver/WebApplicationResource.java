@@ -947,7 +947,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (final AccessExternalClientException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
-            return Response.status(Status.FORBIDDEN).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (final Exception e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } finally {
@@ -1341,8 +1341,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
             }
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        } catch (final AccessExternalClientException e) {
-            return Response.status(Status.FORBIDDEN).entity(e.getMessage()).build();
         } catch (final Exception e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -2676,7 +2674,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (final AccessExternalClientException e) {
             LOGGER.error("AdminManagementClient NOT FOUND Exception ", e);
-            return Response.status(Status.FORBIDDEN).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } catch (final Exception e) {
             LOGGER.error(INTERNAL_SERVER_ERROR_MSG, e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();

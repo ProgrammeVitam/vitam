@@ -731,7 +731,7 @@ public class WebApplicationResourceTest {
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
             .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .content(stream).cookie(COOKIE).expect()
-            .statusCode(Status.FORBIDDEN.getStatusCode()).when()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .post("/format/upload");
     }
 
@@ -1124,7 +1124,7 @@ public class WebApplicationResourceTest {
             .config(RestAssured.config().encoderConfig(
                 EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
             .content(stream).cookie(COOKIE).expect()
-            .statusCode(Status.FORBIDDEN.getStatusCode()).when()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .post("/rules/upload");
     }
 
@@ -1654,7 +1654,7 @@ public class WebApplicationResourceTest {
             .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .content(stream2)
             .cookie(COOKIE).expect()
-            .statusCode(Status.FORBIDDEN.getStatusCode())
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .when()
             .post("/agencies").getBody();
 

@@ -3,6 +3,7 @@ import {HttpEvent, HttpInterceptor, HttpHandler, HttpRequest} from '@angular/com
 import {Observable} from "rxjs/Observable";
 import { Router } from '@angular/router';
 import {CookieService} from "angular2-cookie/core";
+import {DialogService} from "./dialog/dialog.service";
 
 const USER = 'user';
 const LOGGED_IN = 'loggedIn';
@@ -13,7 +14,8 @@ export class VitamInterceptor implements HttpInterceptor {
 
   sessionTimeout : any;
 
-  constructor(private cookies: CookieService, private router: Router) {
+  constructor(private cookies: CookieService, private router: Router,
+              private dialogService: DialogService) {
     window.addEventListener('storage', (event) => {
       if (event.key === 'reset-timeout') {
         this.restartLoginTimeOut();
@@ -25,12 +27,24 @@ export class VitamInterceptor implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     localStorage.setItem('reset-timeout', Math.random().toString());
     this.restartLoginTimeOut();
-    return next.handle(req);
+
+    return next.handle(req).catch(
+      (error) => {
+        // Handle 403 errors
+        if (error.status === 403) {
+          this.logoutUser();
+          this.dialogService.displayMessage(
+            'Vous avez été déconnecté. Merci de vous authentifier',
+            'Accès interdit'
+          );
+        }
+
+        return Observable.throw(error);
+      });
   }
 
   restartLoginTimeOut() {
     if (localStorage.getItem(USER)) {
-      let userInfo = localStorage.getItem(USER);
       let userInformation = JSON.parse(localStorage.getItem(USER));
       if (this.sessionTimeout) {
         clearTimeout(this.sessionTimeout);
