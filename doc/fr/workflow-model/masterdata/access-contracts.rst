@@ -48,6 +48,6 @@ Import d'un contrat d'accès (STP_IMPORT_ACCESS_CONTRACT)
     - FATAL : une erreur technique est survenue lors de la vérification de l'import du contrat (STP_IMPORT_ACCESS_CONTRACT.FATAL=Erreur fatale lors du processus d'import du contrat d'accès)
 
 Mise à jour d'un contrat d'accès (STP_UPDATE_ACCESS_CONTRACT)
-----------------------------------------------------------
+---------------------------------------------------------------
 
 La modification d'un contrat d'entrée doit suivre les mêmes règles que celles décrites pour la création.
