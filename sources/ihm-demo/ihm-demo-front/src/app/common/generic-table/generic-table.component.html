@@ -1,4 +1,5 @@
-<p-dataTable [(value)]="items" (onRowClick)="navigateTo($event)" [sortField]="filter"
+<p-dataTable [(value)]="items" (onRowClick)="navigateTo($event)"
+             sortOrder="1" [sortField]="selectedCols.length > 0 ? selectedCols[0].field : filter"
              [selectionMode]="selectionMode" scrollable="true" scrollWidth="100%"
              scrollHeight="400px" [emptyMessage]="'Aucun résultat'" [rowStyleClass]="specificRowCss">
   <p-column *ngFor="let col of selectedCols" [field]="col.field" [header]="col.label" [style]="col.computeCss()"
