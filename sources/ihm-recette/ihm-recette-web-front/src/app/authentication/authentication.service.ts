@@ -34,7 +34,7 @@ export class AuthenticationService {
     this.tenantService.changeState(this.resourcesService.getTenant());
     return this.resourceService.post('login', null, {
       "token": {"principal": id, "credentials": password}
-    });
+    }, 'text');
   }
 
   loggedOut() {
