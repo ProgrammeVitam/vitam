@@ -1,8 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {AuthenticationService} from './authentication.service';
 import {Router} from '@angular/router';
-import {ResourcesService} from "../common/resources.service";
-import {TenantService} from "../common/tenant.service";
 
 @Component({
   selector: 'vitam-authentication',

@@ -5,6 +5,7 @@ import { SelectItem } from 'primeng/primeng';
 import { BreadcrumbElement, BreadcrumbService } from '../../common/breadcrumb.service';
 import { PageComponent } from '../../common/page/page-component';
 import { PerfService } from './perf.service';
+import {Subscription} from "rxjs/Subscription";
 
 const breadcrumb: BreadcrumbElement[] = [
   {label: 'Tests', routerLink: ''},
@@ -36,7 +37,7 @@ export class PerfComponent extends PageComponent {
     super('Tests de performance', breadcrumb, titleService, breadcrumbService);
   }
 
-  pageOnInit() {
+  pageOnInit(): Subscription {
     this.service.generateIngestStatReport().subscribe(data => {
       let tmpResults = [];
       data.forEach(function(value) {
@@ -54,6 +55,7 @@ export class PerfComponent extends PageComponent {
     });
     this.parallelIngest = 1;
     this.numberOfIngest = 1;
+    return null;
   }
 
   uploadSelectedSip() {

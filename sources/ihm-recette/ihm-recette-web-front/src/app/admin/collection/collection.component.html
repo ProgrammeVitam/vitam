@@ -1,34 +1,48 @@
 <div>
   <div class="pad-b-20px">
-      <vitam-remove-items api="" label="Purge de toutes les collections VITAM (Hors référentiels formats)" name="collections"></vitam-remove-items>
+      <vitam-remove-items api="" label="Purge de toutes les collections VITAM (Hors référentiels formats)"
+                          name="collections" [tenant]="tenant"></vitam-remove-items>
   </div>
   <div class="pad-b-20px">
     <p-fieldset legend="Référentiels" [toggleable]="true">
-      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" api="formats" name="formats" label="Purge du Référentiel des formats (impacte tous les tenants)"></vitam-remove-items>
-      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" api="masterdata/context" name="contextes" label="Purge des contextes (impacte tous les tenants)"></vitam-remove-items>
-      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" api="rules" name="règles de gestion" label="Purge du Référentiel des règles de gestion"></vitam-remove-items>
-      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" api="accessionregisters" name="registres des fonds" label="Purge du registre des fonds"></vitam-remove-items>
-      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" api="masterdata/profile" name="profils" label="Purge du Référentiel des profils d'archivage"></vitam-remove-items>
-      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" api="masterdata/agencies" name="services agents" label="Purge du Référentiel des services agents"></vitam-remove-items>
+      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" [tenant]="tenant" api="formats"
+                          name="formats" label="Purge du Référentiel des formats (impacte tous les tenants)"></vitam-remove-items>
+      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" [tenant]="tenant" api="masterdata/context"
+                          name="contextes" label="Purge des contextes (impacte tous les tenants)"></vitam-remove-items>
+      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" [tenant]="tenant" api="rules"
+                          name="règles de gestion" label="Purge du Référentiel des règles de gestion"></vitam-remove-items>
+      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" [tenant]="tenant" api="accessionregisters"
+                          name="registres des fonds" label="Purge du registre des fonds"></vitam-remove-items>
+      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" [tenant]="tenant" api="masterdata/profile"
+                          name="profils" label="Purge du Référentiel des profils d'archivage"></vitam-remove-items>
+      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" [tenant]="tenant" api="masterdata/agencies"
+                          name="services agents" label="Purge du Référentiel des services agents"></vitam-remove-items>
     </p-fieldset>
   </div>
   <div class="pad-b-20px">
     <p-fieldset legend="Journaux" [toggleable]="true">
-      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" api="logbook/operation" name="journaux d'opération" label="Purge des journaux d'opération"></vitam-remove-items>
-      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" api="logbook/lifecycle/unit" name="cycles de vie (unité archivistique)" label="Purge des journaux du cycle de vie (unité archivistique)"></vitam-remove-items>
-      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" api="logbook/lifecycle/objectgroup" name="cycles de vie (groupe d'objet)" label="Purge des journaux du cycle de vie (groupe d'objet)"></vitam-remove-items>
+      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" [tenant]="tenant" api="logbook/operation"
+                          name="journaux d'opération" label="Purge des journaux d'opération"></vitam-remove-items>
+      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" [tenant]="tenant" api="logbook/lifecycle/unit"
+                          name="cycles de vie (unité archivistique)" label="Purge des journaux du cycle de vie (unité archivistique)"></vitam-remove-items>
+      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-4" [tenant]="tenant" api="logbook/lifecycle/objectgroup"
+                          name="cycles de vie (groupe d'objet)" label="Purge des journaux du cycle de vie (groupe d'objet)"></vitam-remove-items>
     </p-fieldset>
   </div>
   <div class="pad-b-20px">
     <p-fieldset legend="Objets" [toggleable]="true">
-      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-6" api="metadata/unit" name="unités archivistiques" label="Purge des unités archivistiques"></vitam-remove-items>
-      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-6" api="metadata/objectgroup" name="groupes d'objets" label="Purge des groupes d'objets"></vitam-remove-items>
+      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-6" [tenant]="tenant" api="metadata/unit"
+                          name="unités archivistiques" label="Purge des unités archivistiques"></vitam-remove-items>
+      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-6" [tenant]="tenant" api="metadata/objectgroup"
+                          name="groupes d'objets" label="Purge des groupes d'objets"></vitam-remove-items>
     </p-fieldset>
   </div>
   <div class="pad-b-20px">
     <p-fieldset legend="Contrats" [toggleable]="true">
-      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-6" api="masterdata/accessContract" name="contrats d'accès" label="Purge des contrats d'accès"></vitam-remove-items>
-      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-6" api="masterdata/ingestContract" name="contrats d'entrée" label="Purge des contrats d'entrée"></vitam-remove-items>
+      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-6" [tenant]="tenant" api="masterdata/accessContract"
+                          name="contrats d'accès" label="Purge des contrats d'accès"></vitam-remove-items>
+      <vitam-remove-items class="ui-g-12 ui-md-6 ui-lg-6" [tenant]="tenant" api="masterdata/ingestContract"
+                          name="contrats d'entrée" label="Purge des contrats d'entrée"></vitam-remove-items>
     </p-fieldset>
   </div>
 </div>

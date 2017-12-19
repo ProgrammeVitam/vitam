@@ -2,7 +2,6 @@ import {Component} from '@angular/core';
 import {Title} from '@angular/platform-browser';
 import {BreadcrumbElement, BreadcrumbService} from '../../common/breadcrumb.service';
 import {PageComponent} from '../../common/page/page-component';
-import {ResourcesService} from "../../common/resources.service";
 import {TenantService} from "../../common/tenant.service";
 
 const breadcrumb: BreadcrumbElement[] = [
@@ -16,12 +15,16 @@ const breadcrumb: BreadcrumbElement[] = [
   styleUrls: ['./collection.component.css']
 })
 export class CollectionComponent extends PageComponent {
+  public tenant: string;
 
-  constructor(public titleService: Title, public breadcrumbService: BreadcrumbService, resourcesService: ResourcesService, tenantService: TenantService) {
+  constructor(public titleService: Title, public breadcrumbService: BreadcrumbService, public tenantService: TenantService) {
     super('Administration des collections', breadcrumb, titleService, breadcrumbService);
   }
 
   pageOnInit() {
+    return this.tenantService.getState().subscribe((value) => {
+      this.tenant = value;
+    });
   }
 
 }

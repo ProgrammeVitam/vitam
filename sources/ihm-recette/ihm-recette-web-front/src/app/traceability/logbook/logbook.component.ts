@@ -5,6 +5,7 @@ import { BreadcrumbElement, BreadcrumbService } from '../../common/breadcrumb.se
 import { PageComponent } from '../../common/page/page-component';
 import { LogbookService } from './logbook.service';
 import {Message} from 'primeng/primeng';
+import {Subscription} from "rxjs/Subscription";
 
 const breadcrumb: BreadcrumbElement[] = [
   {label: 'Sécurisation', routerLink: ''},
@@ -25,8 +26,8 @@ export class LogbookComponent extends PageComponent {
     super('Sécurisation des opérations', breadcrumb, titleService, breadcrumbService);
   }
 
-  pageOnInit() {
-
+  pageOnInit(): Subscription {
+    return null;
   }
 
   launchTraceability() {

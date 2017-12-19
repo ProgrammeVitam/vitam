@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component, OnDestroy} from '@angular/core';
 import { Title} from '@angular/platform-browser';
 import { SelectItem } from 'primeng/primeng';
 import { QueryDslService } from './query-dsl.service';
@@ -7,6 +7,8 @@ import { BreadcrumbElement, BreadcrumbService } from '../../common/breadcrumb.se
 import { ResourcesService } from '../../common/resources.service';
 import { PageComponent } from '../../common/page/page-component';
 import {TenantService} from "../../common/tenant.service";
+import {Observable} from "rxjs/Observable";
+import {Subscription} from "rxjs/Subscription";
 
 const defaultMethod = [
   {label: 'Rechercher', value: 'GET'},
@@ -64,22 +66,22 @@ export class QueryDSLComponent extends PageComponent {
   requestResponse: {};
   validRequest: any;
   contractsList: Array<SelectItem>;
+  tenant: string;
 
   constructor(public breadcrumbService: BreadcrumbService, private queryDslService: QueryDslService,
-              public titleService: Title, private resourcesService: ResourcesService,
-              public tenantService: TenantService) {
+              public titleService: Title, public tenantService: TenantService) {
     super('Tests des requêtes DSL', breadcrumb, titleService, breadcrumbService)
   }
 
-  pageOnInit() {
-    this.getContracts();
-    this.tenantService.getState().subscribe(
-      () => this.getContracts()
+  pageOnInit(): Subscription {
+    return this.tenantService.getState().subscribe(
+      (tenant) => {
+        this.tenant = tenant;
+        if (this.tenant) {
+          this.getContracts();
+        }
+      }
     );
-  }
-
-  getTenant() {
-    return this.resourcesService.getTenant();
   }
 
   getContracts() {

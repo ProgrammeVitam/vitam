@@ -1,16 +1,17 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {Message} from 'primeng/primeng';
 import {ResourcesService} from '../resources.service';
 import {AuthenticationService} from '../../authentication/authentication.service';
 import {Router} from '@angular/router';
 import {TenantService} from "../tenant.service";
+import {Subscription} from "rxjs/Subscription";
 
 @Component({
   selector: 'vitam-menu',
   templateUrl: './menu.component.html',
   styleUrls: ['./menu.component.css']
 })
-export class MenuComponent implements OnInit {
+export class MenuComponent implements OnInit, OnDestroy {
 
   isAuthenticated: boolean;
   msgs: Message[] = [];
@@ -18,10 +19,15 @@ export class MenuComponent implements OnInit {
   tenants: Array<string>;
   tenantId = '';
   items = [];
+  tenantSubscription: Subscription;
 
   constructor(private resourcesService: ResourcesService, private authenticationService: AuthenticationService,
               private tenantService: TenantService, private router: Router) {
 
+  }
+
+  ngOnDestroy() {
+    this.tenantSubscription.unsubscribe();
   }
 
   ngOnInit() {
@@ -31,10 +37,10 @@ export class MenuComponent implements OnInit {
       this.tenantChosen = tenant;
     }
 
-    this.tenantService.getState().subscribe((value) => {
+    this.tenantSubscription = this.tenantService.getState().subscribe((value) => {
       this.tenantId = value;
       this.tenantChosen = value;
-    })
+    });
 
 
     this.authenticationService.getState().subscribe((value) => {

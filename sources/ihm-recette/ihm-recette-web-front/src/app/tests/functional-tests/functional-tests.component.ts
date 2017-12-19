@@ -4,6 +4,7 @@ import { BreadcrumbElement, BreadcrumbService } from '../../common/breadcrumb.se
 import { PageComponent } from '../../common/page/page-component';
 import { FunctionalTestsService } from './functional-tests.service';
 import {Router} from '@angular/router';
+import {Subscription} from "rxjs/Subscription";
 
 const breadcrumb: BreadcrumbElement[] = [
   {label: 'Tests', routerLink: ''},
@@ -29,8 +30,9 @@ export class FunctionalTestsComponent extends PageComponent {
     super('Tests fonctionnels', breadcrumb, titleService, breadcrumbService);
   }
 
-  pageOnInit() {
+  pageOnInit(): Subscription {
     this.getResults();
+    return null;
   }
 
   public getResults() {

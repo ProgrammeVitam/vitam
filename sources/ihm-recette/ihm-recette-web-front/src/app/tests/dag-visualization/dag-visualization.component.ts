@@ -1,10 +1,8 @@
 import { Component } from '@angular/core';
-import { Injectable } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { SelectItem } from 'primeng/primeng';
 import { Subscription } from 'rxjs/Subscription';
 import { BreadcrumbElement, BreadcrumbService } from '../../common/breadcrumb.service';
-import { ResourcesService } from '../../common/resources.service';
 import { PageComponent } from '../../common/page/page-component';
 import { Contract } from '../../common/contract';
 import { TenantService } from '../../common/tenant.service';
@@ -45,11 +43,11 @@ export class DagVisualizationComponent extends PageComponent {
   visNetworkData: VitamNetworkData;
   visNetworkOptions: VisNetworkOptions;
   visNetwork: string = 'networkId1';
+  tenant: string;
 
   constructor(public breadcrumbService: BreadcrumbService, public queryDslService: QueryDslService,
     private visNetworkService: VisNetworkService,
-    public titleService: Title, private resourcesService: ResourcesService,
-    public tenantService: TenantService) {
+    public titleService: Title, public tenantService: TenantService) {
     super('Visualisation du Graphe', breadcrumb, titleService, breadcrumbService)
   }
 
@@ -94,10 +92,6 @@ export class DagVisualizationComponent extends PageComponent {
       );
   }
 
-  private getTenant(): string {
-    return this.resourcesService.getTenant();
-  }
-
   public getContracts(): Subscription {
     return this.queryDslService.getContracts().subscribe(
       (response) => {
@@ -110,10 +104,14 @@ export class DagVisualizationComponent extends PageComponent {
     )
   }
 
-  public pageOnInit(): void {
-    this.getContracts();
-    this.tenantService.getState().subscribe(
-      () => this.getContracts()
+  public pageOnInit(): Subscription {
+    return this.tenantService.getState().subscribe(
+      (tenant) => {
+        this.tenant = tenant;
+        if (this.tenant) {
+          this.getContracts();
+        }
+      }
     );
   }
 
