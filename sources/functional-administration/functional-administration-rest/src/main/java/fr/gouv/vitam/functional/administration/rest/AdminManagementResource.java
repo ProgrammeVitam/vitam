@@ -55,6 +55,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.functional.administration.common.FilesSecurisator;
 import org.apache.commons.lang3.StringUtils;
 
@@ -775,29 +776,49 @@ public class AdminManagementResource extends ApplicationStatusResource {
     public Response launchAudit(JsonNode options) {
         ParametersChecker.checkParameter(OPTIONS_IS_MANDATORY_PATAMETER, options);
         try (ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance()
-            .getClient()) {
+                .getClient()) {
             final int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
             final ProcessingEntry entry = new ProcessingEntry(VitamThreadUtils.getVitamSession().getRequestId(),
-                Contexts.AUDIT_WORKFLOW.getEventType());
+                    Contexts.AUDIT_WORKFLOW.getEventType());
             if (options.get(AUDIT_TYPE) == null || options.get(OBJECT_ID) == null) {
-                return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
+                final Status status = Status.PRECONDITION_FAILED;
+                return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                        .setContext(ServiceName.EXTERNAL_ACCESS.getName())
+                        .setState("code_vitam")
+                        .setMessage(status.getReasonPhrase())
+                        .setDescription("Missing mandatory parameter.")).build();
             }
             final String auditType = options.get(AUDIT_TYPE).textValue();
             if (auditType.toLowerCase().equals("tenant")) {
                 if (!options.get(OBJECT_ID).textValue().equals(String.valueOf(tenantId))) {
-                    return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
+                    final Status status = Status.PRECONDITION_FAILED;
+                    return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                            .setContext(ServiceName.EXTERNAL_ACCESS.getName())
+                            .setState("code_vitam")
+                            .setMessage(status.getReasonPhrase())
+                            .setDescription("Invalid tenant parameter.")).build();
                 }
             } else if (auditType.toLowerCase().equals(ORIGINATING_AGENCY.toLowerCase())) {
                 RequestResponseOK<AccessionRegisterSummary> fileFundRegisters;
                 Select selectRequest = new Select();
                 selectRequest.setQuery(QueryHelper.eq(ORIGINATING_AGENCY,
-                    options.get(OBJECT_ID).textValue()));
+                        options.get(OBJECT_ID).textValue()));
                 fileFundRegisters = findFundRegisters(selectRequest.getFinalSelect());
                 if (fileFundRegisters.getResults().size() == 0) {
-                    return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
+                    final Status status = Status.PRECONDITION_FAILED;
+                    return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                            .setContext(ServiceName.EXTERNAL_ACCESS.getName())
+                            .setState("code_vitam")
+                            .setMessage(status.getReasonPhrase())
+                            .setDescription("Invalid originating agency parameter.")).build();
                 }
             } else {
-                return Response.status(Status.BAD_REQUEST).entity(getErrorEntity(Status.BAD_REQUEST)).build();
+                final Status status = Status.PRECONDITION_FAILED;
+                return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                        .setContext(ServiceName.EXTERNAL_ACCESS.getName())
+                        .setState("code_vitam")
+                        .setMessage(status.getReasonPhrase())
+                        .setDescription("Invalid audit type parameter.")).build();
             }
             createAuditLogbookOperation();
             entry.getExtraParams().put(OBJECT_ID, options.get(OBJECT_ID).textValue());
@@ -805,10 +826,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
             entry.getExtraParams().put(ACTION_LIST, options.get(ACTION_LIST).textValue());
             processingClient.initVitamProcess(Contexts.AUDIT_WORKFLOW.name(), entry);
             processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(),
-                VitamThreadUtils.getVitamSession().getRequestId());
+                    VitamThreadUtils.getVitamSession().getRequestId());
 
             return Response.status(Status.ACCEPTED).entity(new RequestResponseOK()
-                .setHttpCode(Status.ACCEPTED.getStatusCode())).build();
+                    .setHttpCode(Status.ACCEPTED.getStatusCode())).build();
         } catch (Exception exp) {
             LOGGER.error(exp);
             final Status status = Status.INTERNAL_SERVER_ERROR;
