@@ -519,7 +519,7 @@ public class AgenciesService implements VitamAutoCloseable {
      * @throws InvalidCreateOperationException thrown if the error report could not be stored
      */
     public RequestResponse<AgenciesModel> importAgencies(InputStream stream)
-        throws VitamException, IOException, InvalidCreateOperationException {
+        throws VitamException, IOException {
 
         eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         manager = new AgenciesManager(logBookclient, eip);
@@ -556,7 +556,7 @@ public class AgenciesService implements VitamAutoCloseable {
             backupService.saveFile(new FileInputStream(file), eip, AGENCIES_REPORT_EVENT, StorageCollectionType.REPORTS,
                 ParameterHelper.getTenantParameter(), eip + ".csv");
             //store collection
-            backupService.saveCollectionAndSequence(eip, AGENCIES_IMPORT_EVENT, StorageCollectionType.AGENCIES,
+            backupService.saveCollectionAndSequence(eip, AGENCIES_IMPORT_EVENT,
                 FunctionalAdminCollections.AGENCIES, ParameterHelper.getTenantParameter());
 
 

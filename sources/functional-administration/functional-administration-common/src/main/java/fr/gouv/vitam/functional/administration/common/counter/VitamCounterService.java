@@ -26,19 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.common.counter;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Sorts.descending;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObject;
@@ -67,10 +54,23 @@ import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminColl
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import org.bson.conversions.Bson;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Sorts.descending;
+import static com.mongodb.client.model.Updates.inc;
 
 
 /**
- * Vitam functionnal counter service
+ * Vitam functional counter service
  */
 public class VitamCounterService {
     private static final String ARGUMENT_MUST_NOT_BE_NULL = "Argument must not be null";
@@ -181,14 +181,11 @@ public class VitamCounterService {
      *
      * @param tenant
      * @param sequenceType
-     * @return the sequence concatened with it name the name
-     * @throws InvalidCreateOperationException
-     * @throws InvalidParseOperationException
+     * @return the sequence concatenated with it name the name
      * @throws ReferentialException
      */
     public String getNextSequenceAsString(Integer tenant, SequenceType sequenceType)
-        throws InvalidCreateOperationException,
-        InvalidParseOperationException, ReferentialException {
+        throws ReferentialException {
         Integer sequence = getNextSequence(tenant, sequenceType);
         return sequenceType.getName() + "-" + String.format("%06d", sequence);
     }
@@ -235,11 +232,8 @@ public class VitamCounterService {
      */
     public Integer getNextBackUpSequence(Integer tenant) throws ReferentialException {
 
-        final BasicDBObject incQuery = new BasicDBObject();
-        incQuery.append("$inc", new BasicDBObject(VitamSequence.COUNTER, 1));
-        Bson query;
-
-        query = and(
+        final Bson incQuery = inc(VitamSequence.COUNTER, 1);
+        Bson query = and(
             eq(VitamSequence.NAME, BACK_UP_SEQUENCE),
             eq(VitamDocument.TENANT_ID, tenant));
 
@@ -251,10 +245,10 @@ public class VitamCounterService {
                 .findOneAndUpdate(query, incQuery, findOneAndUpdateOptions);
             return ((VitamSequence) result).getCounter();
         } catch (final Exception e) {
-            LOGGER.error("find Document Exception", e);
-            throw new ReferentialException(e);
+            throw new ReferentialException("Could not get next backup sequence", e);
         }
     }
+
     /**
      * @param r runnable
      */
@@ -275,10 +269,8 @@ public class VitamCounterService {
      * @param sequenceType
      * @return
      * @throws ReferentialException
-     * @throws InvalidParseOperationException
      */
-    public Integer getSequence(Integer tenant, SequenceType sequenceType) throws ReferentialException,
-        InvalidParseOperationException {
+    public Integer getSequence(Integer tenant, SequenceType sequenceType) throws ReferentialException {
         return getSequenceDocument(tenant, sequenceType).getCounter();
     }
 
@@ -306,9 +298,8 @@ public class VitamCounterService {
             throw new ReferentialException(e);
         }
     }
+
     public boolean isSlaveFunctionnalCollectionOnTenant(FunctionalAdminCollections collection, Integer tenant) {
         return externalIdentifiers.containsKey(tenant) && externalIdentifiers.get(tenant).contains(collection);
     }
-
-
 }
