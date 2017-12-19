@@ -19,6 +19,7 @@ L'utilisateur doit également choisir le tenant sur lequel il souhaite se connec
 Cliquer sur le bouton "Connexion" permet de lancer l'authentification.
 
 |
+
 .. image:: images/form_login.png
 
 Lorsque le couple Identifiant/Mot de passe n'est pas cohérent, c'est-à-dire :
@@ -29,6 +30,7 @@ Lorsque le couple Identifiant/Mot de passe n'est pas cohérent, c'est-à-dire :
 Alors, un message d'erreur s'affiche à l'écran, demandant à l'utilisateur de vérifier son identifiant et son mot de passe. Aucune autre information n'est donnée par mesure de sécurité.
 
 |
+
 .. image:: images/form_login_ko.png
 
 Par défaut, après connexion, la page "Transfert de SIP et plan de classement" est affichée.
@@ -52,6 +54,7 @@ Deux niveaux de permissions sont gérés au travers des rôles suivants :
 **Admin** : rôle accordant des droits étendus. Permet d'accéder à l'ensemble des fonctionnalités, aux fonctionnalités d'administration fonctionnelle et à l'IHM de recette.
 
 |
+
 .. image:: images/menu_admin.png
 
 **User** : permet d'accéder aux fonctionnalités suivantes :
@@ -68,6 +71,7 @@ Deux niveaux de permissions sont gérés au travers des rôles suivants :
 Mais n'a pas la possibilité de transférer un SIP en mode "Pas à pas".
 	  
 |
+
 .. image:: images/menu_user.png
 
 
@@ -81,6 +85,7 @@ Depuis n'importe quelle page de la solution logicielle Vitam, l'utilisateur a la
 Pour cela, il clique sur le bouton "Déconnexion en haut à droite de la page en cours. Le système clos la session de l'utilisateur, et la page d'authentification s'affiche de nouveau.
 
 |
+
 .. image:: images/tenant.png
    :scale: 50
 

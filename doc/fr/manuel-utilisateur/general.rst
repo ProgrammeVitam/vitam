@@ -12,6 +12,7 @@ Le menu est situé en haut des pages. Il est présent sur toutes les pages et es
 - Gestion des archives
 
 |
+
 .. image:: images/menu_general.png
 
 Chaque section comprend plusieurs sous-menus permettant de naviguer sur les différentes pages.
@@ -25,6 +26,7 @@ La racine est toujours inactive (sans lien), elle correspond au nom du menu où 
 
 Suite à la racine, les pages parentes sont listées et sont séparées par un chevron et, contrairement à la racine, elles sont toutes cliquables.
 Un clic sur un lien redirige sur la page idoine.
+
 |
 
 .. image:: images/ariane.png
@@ -40,6 +42,7 @@ Le titre de la page est visible sur les onglets des navigateurs Internet. Il cor
 - Journal des opérations
 
 |
+
 .. image:: images/titre_IHM_demo.png
 
 
@@ -59,6 +62,7 @@ Formulaire de recherche globale
 Les formulaires de recherche globale sont composés d'un seul champ de recherche.
 
 |
+
 .. image:: images/au_rechchs.png
 
 Formulaire de recherche avancée
@@ -67,6 +71,7 @@ Formulaire de recherche avancée
 Les formulaires de recherche avancée sont composés d'au moins deux champs de recherche .
 
 |
+
 .. image:: images/au_rechcha.png
 
 Affichage des résultats
@@ -75,6 +80,7 @@ Affichage des résultats
 Le nombre de résultats correspondant au résultat d'une recherche est indiqué sous la forme "Résultats (X)".
 
 |
+
 .. image:: images/gen_nombre_resultats.png
 
 Si aucun résultat n'est trouvé par la solution logicielle Vitam, alors un message indique à l'utilisateur qu'aucun résultat n'est disponible pour sa recherche.
@@ -87,6 +93,7 @@ Par défaut, les 25 premiers résultats sont affichés. Une pagination permet de
 Il est également possible d'afficher 5 ou 125 résultats par page en utilisant le sélecteur situé à côté de la pagination. 
 
 |
+
 .. image:: images/pagination.png
 
 
@@ -99,6 +106,7 @@ Il est possible d'afficher des colonnes supplémentaires dans certains tableaux.
 .. image:: images/general_info_bt.png
 
 |
+
 .. image:: images/general_info_options.png
    :scale: 50
    
@@ -125,6 +133,7 @@ Les couleurs de fonds et des polices ont été adaptées en fonction des statuts
 Pour les cas KO ou FATAL, les lignes s'affichent en rouge et le texte est affiché en noir et un pictogramme en forme croix est présent.
 
 |
+
 .. image:: images/entree_ko.png
 
 Pour les cas WARNING, la ligne ne change pas de couleur mais le texte est affiché en orange et un pictogramme de point d'exclamation est présent.
@@ -139,6 +148,7 @@ Modification
 Il est possible de modifier certaines données dans les pages de détail. Un clic sur le bouton "Modifier" permet alors d'éditer les champs dont les valeurs peuvent être changées.
 
 |
+
 .. image:: images/au_modif.png
 
 **Etiquettes (tags)**
@@ -180,12 +190,14 @@ Il existe deux façons d'importer un fichier ou dossier :
 - De façon plus intuitive en faisant glisser le fichier ou dossier de votre ordinateur à la page d'import. Pour cela le fichier ou dossier doit être déplacé dans la zone grisée de téléchargement.
 
 |
+
 .. image:: images/zone_dl.png
    :scale: 50
    
 Dans les deux cas, le nom du fichier ou dossier s'inscrit en bas de la zone de téléchargement.
 
 |
+
 .. image:: images/zone_dl_file.png
    :scale: 50
    
@@ -213,6 +225,7 @@ A l'issue de ce contrôle, deux cas sont possibles :
 - En cas de succès : La solution logicielle Vitam crée le référentiel à partir des informations contenues dans le fichier soumis et affiche un message de succès.
 
 |
+
 .. image:: images/profils_import_ok.png
    :scale: 50
 
@@ -222,4 +235,5 @@ Gestion des erreurs techniques
 En cas d'erreur technique non gérée par le système, une fenêtre pop-up avertit l'utilisateur qu'un problème a eu lieu au travers d'un message généraliste, et lui indique des informations à transmettre à son administrateur technique.
 
 |
+
 .. image:: images/error_popup.png

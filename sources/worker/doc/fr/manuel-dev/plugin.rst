@@ -51,7 +51,7 @@ La méthode doit retourner un objet de type ItemStatus, qui sera détaillé plus
 
 De manière synthétique, voici le fonctionnement du plugin VITAM.
 
-.. figure:: /images/plugin.png
+.. figure:: images/plugin.png
    :align: center  
 
 2. Gestion des entrants du plugin

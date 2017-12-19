@@ -50,7 +50,7 @@ Les champs présentés dans l'exemple ci-après ne fait pas état de l'exhaustiv
 
 .. code-block:: json
 
-  {
+    {
       "_id": "aeaqaaaaaahccnklabtgyak7pkvypgyaaacq",
       "_mgt": {
           "DisseminationRule": {
@@ -114,7 +114,7 @@ Les champs présentés dans l'exemple ci-après ne fait pas état de l'exhaustiv
               "vitam-iaas-app-03.int"
           ]
       }
-  }
+    }
 
 Détail du JSON
 --------------
@@ -473,8 +473,10 @@ Détail des champs du JSON
 **"_profil":** catégorie de l'objet.
       
   * Repris du nom de la balise présente dans la partie <Metadata> du <DataObjectPackage> du bordereau au niveau du le BinaryMaster.
+
   Attention, il s'agit d'une reprise de la balise et non pas des valeurs à l'intérieur.
   Les valeurs possibles pour ce champ sont : Audio, Document, Text, Image et Video. Des extensions seront possibles (Database, Plan3D, ...).
+
   * Cardinalité : 1-1
 
 **"FileInfo":** : informations sur le fichier constituant l'objet-données numérique de référence.
@@ -486,6 +488,7 @@ Détail des champs du JSON
 **"_qualifiers":** tableau de structures décrivant les objets inclus dans ce groupe d'objets. Il est composé comme suit :
 
   - "qualifier": usage de l'objet.
+
     Ceci correspond à la valeur contenue dans le champ <DataObjectVersion> du bordereau. Par exemple pour <DataObjectVersion>BinaryMaster_1</DataObjectVersion>, c'est la valeur "BinaryMaster" qui est reportée.
 
     - "_nbc": nombre d'objets correspondant à cet usage.
@@ -515,11 +518,17 @@ Détail des champs du JSON
       
       - "OtherMetadata": Ce champ est renseigné avec les valeurs contenues entre les balises <OtherMetadata>, de l'une extension du schéma SEDA du message  ArchiveTransfer.
       - "Uri": localisation du fichier correspondant à l'objet dans le SIP.
+
         Chaîne de caractères
+
       - "MessageDigest": empreinte du fichier correspondant à l'objet. La valeur est calculée par la solution logicielle Vitam.
+
         Chaîne de caractères
+
       - "Algorithm": algorithme utilisé pour réaliser l'empreinte du fichier correspondant à l'objet.
+
         Chaîne de caractères
+
       - "_storage": contient trois champs qui permettent d'identifier les offres  de stockage.
           
           - "strategyId": identifiant de la stratégie de stockage.

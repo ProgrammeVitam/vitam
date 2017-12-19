@@ -13,6 +13,7 @@ Transfert d'un SIP
 Le transfert d'un SIP dans la solution logicielle Vitam s'effectue depuis l'écran "Transfert SIP et plan de classement". Par défaut, lors de sa connexion, l'utilisateur est dirigé vers cette page. Il peut également y accéder en survolant le menu "Entrée" puis sélectionne sous-menu "Transfert de SIP et plan de classement".
 
 |
+
 .. image:: images/menu_transfert.png
 
 Pour débuter une entrée, l’utilisateur doit sélectionner le lot d’archives (SIP) à transférer dans la solution logicielle Vitam. Pour cela, il est possible de faire glisser le SIP sur l'espace de téléchargement ou de cliquer sur le lien « sélectionner un fichier ».
@@ -34,6 +35,7 @@ Le mode d'exécution et la destination sont obligatoires. Par défaut le mode d'
 Pour lancer le transfert du SIP, l’utilisateur clique sur le bouton « Importer ».
 
 |
+
 .. image:: images/entree_sip.png
 
 Les informations visibles à l'écran sont :
@@ -99,6 +101,7 @@ Une fois celui-ci sélectionné, il apparaît sur l'écran "Téléchargement du 
 Plusieurs options sont présentes sur l'écran :
 
 - Mode d'exécution :
+
 	- le mode d'exécution "pas à pas" permettant de réaliser progressivement l'entrée en passant d'une étape à une autre. (NB : Les actions liées au processus d'entrée en mode "pas à pas" se retrouvent dans la partie Administration du manuel utilisateur).
 	- le mode d'exécution "en continu" permettant de lancer le processus d'entrée dans sa globalité en une seule fois. Dans la grande majorité des cas, ce mode d'exécution sera le choix adopté.
 
@@ -164,6 +167,7 @@ Il permet ainsi à l'utilisateur de savoir si son entrée est valide, c'est-à-d
 Pour consulter le journal des opérations d'entrée, l'utilisateur survole le menu "Entrée" puis sélectionne le sous-menu "Suivi des opérations d'entrée".
 
 |
+
 .. image:: images/menu_jdoe.png
 
 Formulaire de recherche d'une entrée
@@ -198,6 +202,7 @@ Le résultat de la recherche est affiché sous forme de tableau. Par défaut, le
 - AR : permet le téléchargement de l'accusé de réception (ATR)
 
 |
+
 .. image:: images/res_jdoe.png
 
 
@@ -235,4 +240,6 @@ Le détail de l'opération présenté sous forme de liste comportant, pour chaqu
 Un clic sur la flèche située à côté du message permet d'afficher plus de détail concernant cette étape. Un clic sur un signe "+" situé à côté d'un message affiche le détail des données de l'évènement.
 
 |
+
 .. image:: images/detail_jdoe.png
+

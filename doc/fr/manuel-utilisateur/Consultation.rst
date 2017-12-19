@@ -9,6 +9,7 @@ Recherche d'une unité archivistique
 Pour consulter la recherche d'une unité archivistique, l'utilisateur survole le menu "Recherche", puis sélectionne "Recherche d'archives".
 
 |
+
 .. image:: images/menu_au.png
 
 L'accès à deux modes de recherche est proposé sur la page "Recherche d'archives" :
@@ -35,6 +36,7 @@ Les caractéristiques du mode de recherche sont les suivantes :
 - Les résultats ignorent les caractères spéciaux
 
 |
+
 .. image:: images/au_rechchs.png
 
 Recherche avancée
@@ -53,6 +55,7 @@ Le ou les mots saisis vont être recherchés dans les métadonnées suivantes :
 Pour initier la recherche avancée, l'utilisateur saisit ses éléments dans les champs disponibles, puis clique sur le bouton "Rechercher".
 
 |
+
 .. image:: images/au_rechcha.png
 
 *Recherche par dates extrêmes*
@@ -65,6 +68,7 @@ Lorsqu'un utilisateur souhaite faire une recherche par dates extrêmes, un contr
 Dans le cas contraire, un message d'erreur est affiché.
 
 |
+
 .. image:: images/au_date_ko.png
 
 *Recherche par identifiant* 
@@ -87,6 +91,7 @@ Suite à la recherche, les résultats sont affichés sous forme de tableau, comp
 - Cycle de vie
 
 | 
+
 .. image:: images/res_au.png
 
 En cas de recherche infructueuse, le message "Aucun résultat" s'affiche sous le formulaire.
@@ -125,6 +130,7 @@ Un  clic sur ce lien ouvre une fenêtre modale composée d'un formulaire de rech
 Le formulaire permet d'effectuer une recherche par titre ou description et dates extrêmes sur les niveaux enfants de l'unité archivistique.
 
 |
+
 .. image:: images/au_arbre_rechch.png
 
 Les résultats sont affichés avec les informations suivantes :
@@ -138,6 +144,7 @@ Les résultats sont affichés avec les informations suivantes :
 - Date de fin
 
 |
+
 .. image:: images/au_arbre_res.png
 
 La colonne "Sélectionné" permet de visualiser les unités archivistiques visibles dans l'arborescence, les 5 unités archivistiques affichées par défaut, sont déjà sélectionnées. Un clic sur une ligne permet de sélectionner ou désélectionner l'unité archivistique correspondante.
@@ -210,11 +217,13 @@ Chaque règle possède un détail qu'il est possible de consulter en cliquant su
 La ligne "hérité de" indique quelle unité archivistique est à l'origine de l'application de la règle sur l'unité consultée. Cette unité archivistique d'origine est cliquable et mène sur le détail de l'unité mentionnée.
 
 |
+
 .. image:: images/au_rg.png
 
 Les règles de gestion non héritées peuvent être modifiées ou supprimées en cliquant sur le bouton "Modifier".
 
 |
+
 .. image:: images/au_rg_modif.png
 
 Il est possible d'ajouter une ou plusieurs règles de gestion à toutes les catégories disponibles.
@@ -240,6 +249,7 @@ La suppression d'une règle s'effectue en cliquant sur la corbeille. Il est poss
 Une fois les modifications saisies, un clic sur le bouton "Sauvegarder" ouvre une fenêtre modale afin de vérifier vos modifications. Un clic sur le bouton "Modifier" met à jour et sauvegarde les règles de gestion.
 
 |
+
 .. image:: images/au_rg_pop.png
 
 .. image:: images/au_rg_ok.png
@@ -258,6 +268,7 @@ Chaque objet est listé dans une ligne du tableau, Les colonnes affichent les in
 - Téléchargement, un clic sur icône de téléchargement permet de consulter l'objet.
 
 |
+
 .. image:: images/au_got.png
 
 Un clic sur le pictogramme situé à droite de l'objet permet de consulter l'ensemble ses métadonnées.
@@ -281,6 +292,7 @@ Il est possible d'exporter l'unité archivistique sous forme de DIP. Trois choix
 - Ensemble de l'entrée
 
 |
+
 .. image:: images/au_dip.png
 
 Suite au clic sur le bouton "Exporter" une fenêtre modale s'ouvre et indique que le DIP est en cours de création et qu'il sera téléchargeable dans le journal des opérations. Un bouton "OK" ferme la fenêtre.
@@ -297,6 +309,7 @@ Journal du cycle de vie d'une unité archivistique
 Le journal du cycle de vie de l'unité archivistique est disponible depuis son détail en cliquant sur l'icône "Journal du cycle de vie" ou depuis la liste du résultat de la recherche d'archives.
 
 |
+
 .. image:: images/au_bt_lfca.png
 
 Un clic sur ce bouton affiche le détail du journal du cycle de vie.
@@ -309,6 +322,7 @@ Par défaut, l'écran du journal du cycle de vie de l'unité archivistique affic
 - Message de l'événement
 
 |
+
 .. image:: images/lfc_au.png
 
 S'il le souhaite, l'utilisateur peut sélectionner des informations disponibles du journal du cycle de vie de l'unité archivistique en cliquant sur le bouton "Informations supplémentaires" et en choisissant les options souhaitées dans la liste déroulante.
@@ -331,6 +345,7 @@ Journal du cycle de vie du groupe d'objet
 Le journal du cycle de vie du groupe d'objets est disponible depuis le détail de l'unité archivistique, dans la partie groupe d'objets.
 
 |
+
 .. image:: images/au_bt_lfcg.png
 
 Un clic sur ce bouton affiche le journal du cycle de vie du groupe d'objets.
@@ -343,6 +358,7 @@ Par défaut, l'écran du journal du cycle de vie du groupe d'objets affiche les 
 - Message de l'événement
 
 |
+
 .. image:: images/lfc_got.png
 
 S'il le souhaite, l'utilisateur peut sélectionner des informations disponibles du journal du cycle de vie du groupe d'objet en cliquant sur le bouton "Informations supplémentaires" et en choisissant les options souhaitées dans la liste déroulante.
@@ -372,6 +388,7 @@ Recherche
 Pour y accéder, l'utilisateur survole le menu "Recherche", puis sélectionne "Recherche par service producteur".
 
 |
+
 .. image:: images/menu_sp.png
 
 Par défaut, les services producteurs sont affichés sous le formulaire de recherche et sont classées par ordre alphabétique de leur intitulé.
@@ -384,6 +401,7 @@ Pour initier la recherche, l'utilisateur saisit ses critères de recherche et cl
 La liste du référentiel est alors actualisée avec les résultats correspondants à la recherche souhaitée.
 
 |
+
 .. image:: images/rechch_agents.png
 
 Affichage de la liste des résultats
@@ -396,6 +414,7 @@ Suite à une recherche, les résultats se présentent sous forme de tableau affi
 - Description
 
 |
+
 .. image:: images/res_agents.png
 
 Consultation du détail
@@ -404,6 +423,7 @@ Consultation du détail
 Depuis la liste des résultats, l'utilisateur peut consulter le détail d'un fonds pour un service producteur en cliquant sur la ligne voulue. Puis il clique sur le bouton "Registre des fonds" afin d'afficher le détail complet du fonds. Il accède alors à la matrice descriptive du service agent.
 
 |
+
 .. image:: images/detail_sp.png
 
 Consultation du registre des fonds
@@ -419,6 +439,7 @@ Deux blocs d'informations sont disponibles depuis le détail du registre des fon
 Le premier bloc distingue fonds propres, c'est-à-dire les archives provenant directement du service producteur et fonds symboliques c'est-à-dire les archives déclarées par ce service producteur par voie de rattachement.
 
 |
+
 .. image:: images/fonds_detail.png
 
 Cette vue affiche, sous forme de tableau, les informations consolidées suivantes pour ce service producteur et par type de fonds:

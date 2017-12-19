@@ -11,6 +11,7 @@ Voici l'architecture des dossiers et fichiers composant l'application front IHM-
 
 - **e2e**           Pour le moment inutilisé, pourra être utilisé pour les tests d'intégration end 2 end
 - **src**           Dossier contenant les sources du projet
+
     - **app**           Dossier contenant les sources typescript des composants du projet
     - **assets**        Dossier contenant des fichiers statiques utilisés dans l'IHM recette (images, polices, ...)
     - **deb**           Dossier contenant des fichiers spécifiques utiles à la génération des packages debian
@@ -34,13 +35,17 @@ Voici l'architecture des dossiers et fichiers composant l'application front IHM-
 Voici l'architecture *théorique* des composants de l'application (à partir de ihm-recette/ihm-recette-web-front/src/app)
 
 - **common** Dossier contenant les composants globaux réutilisables pour l'ensemble des pages.
+
   Cela peut par exemple être le bandeau du menu ou un service de gestion des requêtes HTTP.
+
     - **componant-name**        Dossier contenant un composant global tel que le menu, le fil d'ariane ou encore un composant d'affichage des données.
     - *service-name.service.ts* Fichier contenant un service utilitaire
     - *class-name.ts*           Fichier contenant une classe utilisée dans plusieurs composants
 - **theme1** Dossier contenant des composant sur un même theme (Pour l'ihm recette, nous aurons le theme d'administration, de sécurisation et de tests).
     - **page1**             Dossier contenant le composant d'une des pages de l'application.
+
       Ce composant à des particularités spécifiques (Voir "Composant de Page")
+
         - **component1**            Dossier contenant un des sous-composant utilisé dans la page1.
           Ce composant à des particularités spécifiques (Voir "Sous Composant")
         - *page1.component.css*     Fichier contenant le style spécifique au composant page1. Le style définit ici n'est ni utilisable par les autres pages, ni par les sous-composants de la page1.
@@ -50,7 +55,9 @@ Voici l'architecture *théorique* des composants de l'application (à partir de 
         - *page1.service.ts*        Fichier contenant un service d'appels HTTP et/ou d'utilitaire pour le composant page1.
           Ce service à des particularités spécifiques (Voir "Service Composant")
         - *class-name.ts*           Fichier contenant une classe utilisée seulement dans la page1.
+
           Il peut s'agir d'une classe définissant les propriétés de la structure utilisée pour les appels HTTP du service.
+
     - *theme1.service.ts*   Fichier contenant un service utilitaire global aux pages de ce thème.
     - *class-name.ts*       Fichier contenant une classe utilisée dans plusieurs composants du thème.
 
@@ -58,19 +65,25 @@ Builds et lancement des tests
 =============================
 
 NPM: npm est utilisé pour gérer les dépendances de l'application. Le fichier *package.json* définit deux types de dépendances:
+
 - devDependencies: Dépendances utilisées pour les tests unitaire, le build ou la vérification du code. Ces dépendances ne sont pas utilisés par l'application finale en prod.
 - dependencies: Dépendances utilisées par l'application finale en prod. Ils peuvent être des composants, des classes ou des utilitaires de l'application.
+
 *Important*: Lors de la récupération de la branche, il est important de télécharger une première fois toutes les dépendances grâce à la commande *npm install*
 
 Des scripts ont étés définis dans le fichier *package.json*. Ces scripts sont utilisables via la commande *npm run <scriptName>*.
 
 Scripts pour le developpement (A executer, sans erreurs avant toute demande de MR):
+
 - *start*: Lance la commande *ng serve --proxy-config proxy.conf.json* qui permet de déployer l'application à chaud en utilisant un proxy pour les appels vers le backoffice.
+
   Un watch est fait sur les fichiers sous le dossier src. Tout fichiers modifiers sous src mettra à jour, à chaud, l'application front.
+
 - *test*: Lance la commande *ng test* qui lance les tests unitaire aussi bien sur Chrome que sur PhantomJS. Un watch est également activé pour relancer les tests su un fichier est modifié.
 - *lint*: Lance la commande *ng lint* qui permet de vérifier les fichiers
 
 Les scripts suivantes sont utilisés par le build maven:
+
 - *prod*: Lance la commande *ng build --env=prod* qui permet de builder l'application pour une cible de production (Actuelement similaire au script *build* qui lance *ng build --env=dev*
 - *inttest*: Lance la commande *ng test --single-run=true --browsers PhantomJS --watch=false* qui permet de lancer les tests unitaire une seule fois sur PhantomJS.
 
@@ -79,19 +92,22 @@ Pour le moment, aucun fichier de surcharge sur poste de dev n'est prévue pour a
 
 Build du css:
 Pour mettre à jour le CSS (styles.css) il faut:
+
 - Update theme in *themes/vitam-red/theme.scss* or template in *themes/_theme.scss*
 - Generate css with the command line *sass themes/vitam-red/theme.scss:src/styles.css*
 - Remove src/styles.css.map before commit
 
 Le build maven lance le script inttest dans la phase test (-DskipTests permet donc d'ignorer les TU front)
 Les commandes suivantes peuvent être lancés pour faire des packages rpm/debian:
-- mvn clean install rpm:rpm
-- mvn clean install jdeb:jdeb
+
+- ``mvn clean install rpm:rpm``
+- ``mvn clean install jdeb:jdeb``
 
 Composant de Page
 =================
 
 Les composant de page ont pour but de:
+
 - Initialiser les composant communs (fil d'ariane, titre, ...) à toute les pages (Héritage de PageComponent)
 - Récupérer les données utiles en faisant appel au service (HTTP GET)
 - Traiter les données si besoin (Utiliser des services utilitaires pour les gros traitement des données)
@@ -116,11 +132,13 @@ Sous Composant
 ==============
 
 Les sous-composant ont pour but de:
+
 - Être initialisés grâce à des objets injectés par le composant parent,
 - Faire le rendement graphique d'une partie de la page (partie potentiellement répétée plusieurs fois sur la page),
 - Utiliser des services d'affichage des données ou des composants graphiques,
 - Faire des actions (potentielle utilisation du service du composant pour les appels PUT/POST/DELETE).
 
 Le sous-composant ne devrait pas:
+
 - Avoir de logique ni de traitement (Il doit se contenter d'afficher ce que le composant de page et ses services ont calculés pour lui),
 - Utiliser le service pour des appels HTTP GET (C'est le rôle du composant de page).

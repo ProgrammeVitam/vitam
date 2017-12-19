@@ -10,37 +10,42 @@ functional-administration qui identifie par la user story #71, qui contient :
 --------------------------
 
 
-1. Modules et packages
+Modules et packages
+====================
 
 functional-administration
 
-	|--- functional-administration-common : contenant des classes pour des traitements communs concernant le format référentiels, l'opération auprès de la base de données
-	|--- functional-administration-format : fournir des traitements de base pour les formats référentiels de VITAM
+- functional-administration-common : contenant des classes pour des traitements communs concernant le format référentiels, l'opération auprès de la base de données
 
-				  |--- functional-administration-format-api  : définitions des APIs
-				  |--- functional-administration-format-core : implémentations des APIs
-				  |--- functional-administration-format-import
+- functional-administration-format : fournir des traitements de base pour les formats référentiels de VITAM
 
-	|--- functional-administration-rule : fournir des traitements de base pour la gestion de règles administratives
+	- functional-administration-format-api  : définitions des APIs
+	- functional-administration-format-core : implémentations des APIs
+	- functional-administration-format-import
 
-	              |--- functional-administration-rule-api  : Définition des APIs
-	              |--- functional-administration-rule-core : Impélmentation des APIs
+- functional-administration-rule : fournir des traitements de base pour la gestion de règles administratives
 
-	|--- functional-administration-accession-register : fournir des traitements de base pour la gestion des registres de fonds
-	              |--- functional-administration-accession-register-core : Impélmentation des traitements des registres de fonds
-	|
-	|--- functional-administration-rest   : le serveur REST de functional-administration qui donnes des traitement sur les traitements de format référentiel et gestion de règles administratives.
-	|--- functional-administration-client  : client functional-administration qui sera utilisé par les autres modules pour les appels de traitement sur le format référentiel & gestion de règles.
-	|--- functional-administration-contract	: fournis les traitements de base pour les contrat d'accès et les contrat d'entrées
-	|--- functional-administration-profile	: fournis les traitements de base pour les profile.
-    |--- functional-administration-context  : fournis les traitements de base pour les contextes
+	- functional-administration-rule-api  : Définition des APIs
+	- functional-administration-rule-core : Impélmentation des APIs
 
-2. Classes métiers
+- functional-administration-accession-register : fournir des traitements de base pour la gestion des registres de fonds
+
+	- functional-administration-accession-register-core : Impélmentation des traitements des registres de fonds
+
+- functional-administration-rest   : le serveur REST de functional-administration qui donnes des traitement sur les traitements de format référentiel et gestion de règles administratives.
+- functional-administration-client  : client functional-administration qui sera utilisé par les autres modules pour les appels de traitement sur le format référentiel & gestion de règles.
+- functional-administration-contract	: fournis les traitements de base pour les contrat d'accès et les contrat d'entrées
+- functional-administration-profile	: fournis les traitements de base pour les profile.
+- functional-administration-context  : fournis les traitements de base pour les contextes
+
+Classes métiers
+================
 
 Dans cette section, nous présentons quelques classes principales dans des modules/packages
 abordés ci-dessus.
 
-2.1. functional-administration-common :
+functional-administration-common
+---------------------------------
 
 fr.gouv.vitam.functional.administration.common
 
@@ -92,7 +97,8 @@ interface définissant des opérations sur le format de fichier auprès de la ba
 
 une implémentation de l'interface MongoDbAccessReferential en extension le traitementMongoDbAccess commun pour mongodb
 
-2.2. functional-administration-format
+functional-administration-format
+---------------------------------
 
 	+ functional-administration-format-api
 	+ functional-administration-format-core
@@ -102,7 +108,8 @@ une implémentation de l'interface MongoDbAccessReferential en extension le trai
 
 	+ functional-administration-format-import
 
-2.3. functional-administration-rest
+functional-administration-rest
+-------------------------------
 
 - AdminManagementResource.java : définir des ressources différentes pour le serveur REST functional-administration
 - AdminManagementApplication.java : créer & lancer le serveur d'application avec une configuration
@@ -110,12 +117,14 @@ une implémentation de l'interface MongoDbAccessReferential en extension le trai
 - ProfileResource.java : Définir l'endpoint de l'api rest du profile
 - ContextResource.java : Définir l'endpoint de l'api rest du contexte
 
-2.4. functional-administration-client
+functional-administration-client
+---------------------------------
 
 - AdminManagementClientRest.java : créer le client de et des fonctionnalités en se connectant au serveur REST
 - AdminManagementClientMock.java : créer le client et des fonctionnalités en se connectant au mock de serveur
 
-2.5. functional-administration-rules
+functional-administration-rules
+--------------------------------
 
 	+ functional-administration-rules-api
 	+ functional-administration-rules-core
@@ -151,7 +160,8 @@ une implémentation de l'interface MongoDbAccessReferential en extension le trai
              * "Illimitée (date de début inconnue)" : dans le cas où la date de fin n'est pas connue car la startDate n'est pas connue
              * "Illimitée (règle à durée illimitée)" : dans le cas où la date de fin ne peut pas être calculée car la durée de la règle est 'unlimited'
 
-2.6. functional-administration-accession-register
+functional-administration-accession-register
+---------------------------------------------
 
 	+ functional-administration-accession-register-api
 	+ functional-administration-accession-register-core
@@ -160,7 +170,8 @@ une implémentation de l'interface MongoDbAccessReferential en extension le trai
 	
 	permet de créer une collection registre de fond et de faire la recherche par Service Producteur et l'affichage de détaile.
 
-2.7. functional-administration-contract
+functional-administration-contract
+------------------------------------
 
 fr.gouv.vitam.functional.administration.contract.api
 
@@ -175,7 +186,8 @@ fr.gouv.vitam.functional.administration.contract.core
 - IngestContractImpl.java : Classe d'implémentation pour la gestion des contrats d'entrées
 
 
-2.8. functional-administration-profile
+functional-administration-profile
+----------------------------------
 
 fr.gouv.vitam.functional.administration.profile.api
 
@@ -190,7 +202,8 @@ fr.gouv.vitam.functional.administration.profile.core
 - ProfileManager.java : Gère toutes les opérations du logbook et toutes les opérations de validation concernant les profiles. Lors de la validation, il vérifie (si déjà existence dans la base de données, champs obligatoires, fichiers au format xsd ou rng valides, ..).
 - ProfileValidator.java : Interface fonctionnelle de validations des contrats
 
-2.9. functional-administration-context
+functional-administration-context
+----------------------------------
 
 fr.gouv.vitam.functional.administration.context.api
 
@@ -201,7 +214,8 @@ fr.gouv.vitam.functional.administration.context.core
 -ContextServiceImpl.java : Implémentation du Service ContextService
 -ContextValidator.java : Interface fonctionnelle de validations des contextes
 
-2.10. functional-administration-security-profile
+functional-administration-security-profile
+-------------------------------------------
 
 fr.gouv.vitam.functional.administration.profile.api.impl
 

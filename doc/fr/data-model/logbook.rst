@@ -258,9 +258,12 @@ Pour certains champs, on indiquera s’il s'agit de la structure incluante ou d'
     * Il s'agit pour un ingest d'un json comprennant les champs suivants :
 
 	   * ArchivalAgreement: identifiant du contrat d'entrée utilisé pour réaliser l'ingest.
+
 	    Il s'agit d'une chaîne de caractères.
-	    Reprend le contenu du champ ArchivalAgreement du message ArchiveTransfer.	    
+	    Reprend le contenu du champ ArchivalAgreement du message ArchiveTransfer.
+
 	   * Profil: identifiant du profil utilisé pour réaliser l'ingest.
+
 	    Il s'agit d'une chaîne de caractères.
 	    Reprend le contenu du champ ArchiveProfile du message ArchiveTransfer.	 
 
@@ -358,13 +361,16 @@ Dans le cas de l'événement final d'une opération de sécurisation du LogbookO
 **"LogType":** type de logbook sécurisé.
 
       * Collection faisant l'objet de l'opération de sécurisation
+
       ``Exemple : "operation"``
+
       * La valeur de ce champ est soit OPERATION soit LIFECYCLE.
       * Cardinalité : 1-1
 
 **"StartDate":** date de début de la période de couverture de l'opération de sécurisation.
 
       * Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] (correspond à la date de la première sécurisation)
+
       ``Exemple : "2016-08-17T08:26:04.227"``
 
       * Cardinalité : 1-1
@@ -372,12 +378,15 @@ Dans le cas de l'événement final d'une opération de sécurisation du LogbookO
 **"EndDate":** date de fin de la période de couverture de l'opération de sécurisation.
 
       * Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] (correspond à la date de la dernière opération sécurisée par la précédente sécurisation)
+
       ``Exemple : "2016-08-17T08:26:04.227"``
+
       * Cardinalité : 1-1
 
 **"PreviousLogbookTraceabilityDate":** date de la précédente opération de sécurisation de ce type de journal.
 
       * Il s'agit  de la date de début de la précédente opération de sécurisation du même type au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] (correspond à la date de début de la sécurisation précédente)
+
       ``Exemple : "2016-08-17T08:26:04.227"``
 
       * Cardinalité : 1-1
@@ -385,6 +394,7 @@ Dans le cas de l'événement final d'une opération de sécurisation du LogbookO
 **"MinusOneMonthLogbookTraceabilityDate":** date de l'opération de sécurisation passée d'un mois.
 
       * Il s'agit  de la date de début de la précédente opération de sécurisation du même type réalisée un mois avant au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] 
+
       ``Exemple : "2016-08-17T08:26:04.227"``
 
       * Cardinalité : 1-1
@@ -392,6 +402,7 @@ Dans le cas de l'événement final d'une opération de sécurisation du LogbookO
 **"MinusOneYeaLogbookTraceabilityDate":** date de l'opération de sécurisation passée d'un an.
 
       * Il s'agit de la date de début de la précédente opération de sécurisation du même type réalisée un an avant au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes] 
+
      ``Exemple : "2016-08-17T08:26:04.227"``
 
       * Cardinalité : 1-1
@@ -424,6 +435,7 @@ Dans le cas de l'événement final d'une opération de sécurisation du LogbookO
 
       * Il s'agit d'une chaîne de caractères.
       * Nom du fichier sécurisé sur les offres de stockage au format {tenant}_LogbookOperation_{AAAAMMJJ_HHMMSS}.zip.
+
       ``Exemple : "0_LogbookOperation_20170127_141136.zip"``
 
       * Cardinalité : 1-1
@@ -541,9 +553,12 @@ Détail des champs du JSON stocké en base
 **"evDateTime" (event DateTime):** date de l'événement.
 
     * Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
+
     ``Exemple : "2016-08-17T08:26:04.227"``
+
     * Ce champ est positionné par le client LogBook.
-    * Cardinalité : 1-1 
+    * Cardinalité : 1-1
+
     *Ce champ existe pour les structures incluantes et incluses*
 
 **"evIdProc" (event Identifier Process):** identifiant du processus. 
@@ -551,6 +566,7 @@ Détail des champs du JSON stocké en base
     * Il s'agit d'une chaîne de 36 caractères.
     * Toutes les mêmes entrées du journal du cycle de vie partagent la même valeur, qui est celle du champ "_id" de la collection LogbookOperation
     * Cardinalité : 1-1 
+
     *Ce champ existe pour les structures incluantes et incluses*
 
 **"evTypeProc" (event Type Process):** type de processus.
@@ -558,6 +574,7 @@ Détail des champs du JSON stocké en base
     * Il s'agit d'une chaîne de caractères.
     * Nom du processus qui effectue l'action, parmi une liste de processus possibles fixée. Cette liste est disponible en annexe.
     * Cardinalité : 1-1 
+
     *Ce champ existe pour les structures incluantes et incluses*
 
 **"outcome":** statut de l'événement.
@@ -570,7 +587,8 @@ Détail des champs du JSON stocké en base
         - WARNING (Succès de l'événement comportant des alertes)
         - FATAL (Erreur technique)
 
-    * Cardinalité : 1-1 
+    * Cardinalité : 1-1
+
     *Ce champ existe pour les structures incluantes et incluses*
 
 **"outDetail" (outcome Detail):** code correspondant à l'erreur.
@@ -591,8 +609,11 @@ Détail des champs du JSON stocké en base
 **"agId" (agent Identifier):** identifiant de l'agent réalisant l'évènement.
 
     * Il s'agit de plusieurs chaînes de caractères indiquant le nom, le rôle et le PID de l'agent. Ce champ est calculé par le journal à partir de ServerIdentifier.
+
     ``Exemple : {\"name\":\"ingest-internal_1\",\"role\":\"ingest-internal\",\"pid\":425367}``
+
     * Cardinalité : 1-1 
+
     *Ce champ existe pour les structures incluantes et incluses*
 
 **"obId" (object Identifier):** identifiant de la solution logicielle Vitam correspondant au GUID de l'unité archivistique sur laquelle s'applique l'opération.
@@ -748,6 +769,7 @@ Détail des champs du JSON stocké en base
     * Il identifie l'événement de manière unique dans la base.
     * Cardinalité : 1-1 
     * Ce champ existe pour les structures incluantes et incluses*
+
     *Ce champ existe pour les structures incluantes et incluses*
 
 **"evParentId" (event Parent Identifier):** identifiant de l'événement parent.
@@ -767,6 +789,7 @@ Détail des champs du JSON stocké en base
 **"evDateTime" (event DateTime):** date de l'événement.
 
     * Il s'agit d'une date au format ISO8601 AAAA-MM-JJ+"T"+hh:mm:ss:[3digits de millisecondes]
+
     ``Exemple : "2016-08-17T08:26:04.227"``.
 
     * Ce champ est positionné par le client LogBook.
@@ -818,6 +841,7 @@ Détail des champs du JSON stocké en base
 **"agId" (agent Identifier):** identifiant de l'agent réalisant l'évènement.
 
     * Il s'agit de plusieurs chaînes de caractères indiquant le nom, le rôle et le PID de l'agent. Ce champ est calculé par le journal à partir de ServerIdentifier.
+
     ``Exemple : {\"Name\":\"vitam-iaas-app-01\",\"Role\":\"ingest-external\",\"ServerId\":1514166061,\"SiteId\":1,\"GlobalPlatformId\":171988781}``
 
     * Cardinalité : 1-1 
@@ -825,9 +849,9 @@ Détail des champs du JSON stocké en base
 
 **"obId" (object Identifier):** identifiant de la solution logicielle Vitam du lot d’objets auquel s’applique l’opération (lot correspondant à une liste).
 
-	* Si l'évènement touche tout le GOT, alors le champs contiendra l'ID du GOT. S'il touche qu'un seul objet du GOT, alors contiendra que celui de l'objet en question
-    * Cardinalité : 1-1 
-    * Ce champ existe pour les structures incluantes et incluses*
+    * Si l'évènement touche tout le GOT, alors le champs contiendra l'ID du GOT. S'il touche qu'un seul objet du GOT, alors contiendra que celui de l'objet en question
+    * Cardinalité : 1-1
+    * Ce champ existe pour les structures incluantes et incluses
 
 **"evDetData" (event Detail Data):** détails des données de l'événement.
 
@@ -874,3 +898,4 @@ Pour l'événement LFC.OG_METADATA_STORAGE, on utilise ce champ pour tracer les 
     * Il s'agit d'un entier.
     * Cardinalité : 1-1 
     * Ce champ existe uniquement pour la structure incluante.
+

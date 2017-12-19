@@ -34,12 +34,12 @@ Dans le cas echéant la method return une immuatable empty list.
 
 	- uncompressObject : cette méthode capable d'extracter des fichiers compressés toute en indiquant le type de l'archive, pour cette version (v0.9.0) supporte 3 types : zip, tar, tar.gz. Elle sauvgarde directement les fichiers extractés dans le workspace, notamment dans le container précisé lors de l'appel (containerName).
 
-		-Paramètres :
+		- Paramètres :
 
-			- containerName::String : c'est le nom de container dans lequel on stocke les objets
-			- folderName::String : c'est le repertoire centrale (pour cette methode, cest le sip).
-            - archiveType:: String : c'est le nom ou le type de l'archive (exemple: application/zip , application/x-tar)
-			- compressedInputStream::InputStream : c'est le stream des objets compressés
+            - containerName::String : c'est le nom de container dans lequel on stocke les objets
+            - folderName::String : c'est le répertoire central (pour cette methode, c'est le sip)
+            - archiveType::String : c'est le nom ou le type de l'archive (exemple: application/zip , application/x-tar)
+            - compressedInputStream::InputStream : c'est le stream des objets compressés
 
     - retourner :    
 

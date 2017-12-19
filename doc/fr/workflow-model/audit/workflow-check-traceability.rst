@@ -49,15 +49,19 @@ CHECK_MERKLE_TREE (VerifyMerkleTreeActionHandler.java)
 	* **Règle** : vérification que l'arbre de Merkle calculé à partir des journaux contenus dans le journal sécurisé est identique à celui stocké dans les métadonnées du journal sécurisé
 	* **Type** : bloquant
 	* **Statuts** :
+
 		* OK : l'arbre de Merkle des journaux contenus dans le journal sécurisé correspond à celui stocké dans les métadonnées du journal sécurisé (CHECK_MERKLE_TREE.COMPARE_MERKLE_HASH_WITH_SAVED_HASH.OK=Succès de la comparaison de l'arbre de MERKLE avec le Hash enregistré)
 		* KO : l'arbre de Merkle des journaux contenus dans le journal sécurisé ne correspond pas à celui stocké dans les métadonnées du journal sécurisé (CHECK_MERKLE_TREE.COMPARE_MERKLE_HASH_WITH_SAVED_HASH.KO=Échec de la comparaison de l'arbre de MERKLE avec le Hash enregistré)
 
 * Comparaison de l'arbre de MERKLE avec le Hash indexé
+
 	* **Règle** : vérification que l'arbre de Merkle calculé à partir des journaux indexés est identique à celui stocké dans les métadonnées du journal sécurisé
 	* **Type** : bloquant
 	* **Statuts** :
-    * OK : l'arbre de Merkle des journaux indexés correspond à celui stocké dans les métadonnées du journal sécurisé (CHECK_MERKLE_TREE.COMPARE_MERKLE_HASH_WITH_INDEXED_HASH.OK=Succès de la comparaison de l'arbre de MERKLE avec le Hash indexé)
+
+		* OK : l'arbre de Merkle des journaux indexés correspond à celui stocké dans les métadonnées du journal sécurisé (CHECK_MERKLE_TREE.COMPARE_MERKLE_HASH_WITH_INDEXED_HASH.OK=Succès de la comparaison de l'arbre de MERKLE avec le Hash indexé)
 		* KO : l'arbre de Merkle des journaux indexés ne correspond pas à celui stocké dans les métadonnées du journal sécurisé (CHECK_MERKLE_TREE.COMPARE_MERKLE_HASH_WITH_INDEXED_HASH.KO=Échec de la comparaison de l'arbre de MERKLE avec le Hash indexé)
+
 
 
 Vérification de l'horodatage (STP_VERIFY_STAMP)
@@ -69,6 +73,7 @@ VERIFY_TIMESTAMP (VerifyTimeStampActionHandler.java)
 * **Règle** : vérification et validation du tampon d'horodatage.
 * **Type** : bloquant
 * **Statuts** :
+
     * OK : le tampon d'horadatage est correct (VERIFY_TIMESTAMP.OK=Succès de la vérification de l'horodatage)
     * KO : le tampon d'horadatage est incorrect (VERIFY_TIMESTAMP.KO=Échec de la vérification de l'horodatage)
     * FATAL : erreur technique lors de la vérification du tampon d'horodatage (VERIFY_TIMESTAMP.FATAL=Erreur fatale lors de la vérification de l'horodatage)
@@ -76,9 +81,11 @@ VERIFY_TIMESTAMP (VerifyTimeStampActionHandler.java)
 **La tâche contient les traitements suivants**
 
 * Comparaison du tampon du fichier (token.tsp) par rapport au tampon enregistré dans le logbook (COMPARE_TOKEN_TIMESTAMP)
+
 	* **Règle** : vérification que le tampon enregistré dans la collection logbookOperation est le même que celui présent dans le fichier zip généré
 	* **Type** : bloquant
 	* **Status** :
+
 		* OK : les tampons sont identiques (VERIFY_TIMESTAMP.COMPARE_TOKEN_TIMESTAMP.OK=Succès de la comparaison des tampons d'horodatage)
 		* KO : les tampons sont différents (VERIFY_TIMESTAMP.COMPARE_TOKEN_TIMESTAMP.KO=Échec de la comparaison des tampons d'horodatage)
 * Validation du tampon d'horodatage (VALIDATE_TOKEN_TIMESTAMP)

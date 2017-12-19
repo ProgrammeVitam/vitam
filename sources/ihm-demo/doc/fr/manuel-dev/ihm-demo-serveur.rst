@@ -3,6 +3,7 @@ IHM Demo serveur
 
 IhmMain
 =======
+
 L'application web IHM Demo est utilisée pour lancer le serveur
 
 .. code-block:: java
@@ -11,7 +12,8 @@ L'application web IHM Demo est utilisée pour lancer le serveur
             BusinessApplication.class, AdminApplication.class, Lists.newArrayList());
 
 Classe BusinessApplication
-====================
+===========================
+
 La classe BusinessApplication possède les singletons qui contiennent les ressources de l'application web IHM Demo.
 
 .. code-block:: java

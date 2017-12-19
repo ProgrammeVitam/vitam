@@ -44,8 +44,7 @@ Forme d'un identifiant Vitam
   * Le temps UTC exprimé en millisecondes entre 0 et 2^48-1 (8 925 années après 1970) (**48 bits**)
   * Un compteur discriminant de milliseconde entre 0 et 2^24-1 (**24 bits**)
 
-    * risque de collisions autour de 2^17 ~ 100K GUID générés par millisecondes, donc avec la progression des puissances de calculs sur 20 ans (Loi de Moore approchée : *2 tous les 3 ans) = 2^7+17 = 2^24
 
+.. warning:: Risque de collisions autour de 2^17 ~ 100K GUID générés par millisecondes, donc avec la progression des puissances de calculs sur 20 ans (Loi de Moore approchée : \*2 tous les 3 ans) = 2^7+17 = 2^24
 
-Certains bits ne sont pas utiliser (5) pour de futures usages.
-
+.. note:: Certains bits ne sont pas utilisés (5) pour de futurs usages.

@@ -41,27 +41,27 @@ Pour instancier son client en mode Production :
 
 .. code-block:: java
 
-      // Ajouter un fichier functional-administration-client.conf dans /vitam/conf
-	  // Récupération explicite du client
-      IngestInternalClient client = IngestInternalClientFactory.getInstance().getIngestInternalClient();
+    // Ajouter un fichier functional-administration-client.conf dans /vitam/conf
+    // Récupération explicite du client
+    IngestInternalClient client = IngestInternalClientFactory.getInstance().getIngestInternalClient();
      
 
 Le client propose trois méthodes : 
 
 .. code-block:: java
 
-	  Status status();
-	  UploadResponseDTO upload(String archiveMimeType,List<LogbookParameters> logbookParametersList, InputStream inputStream);
-	  // Télécharger un object du serveur sauvegardé de l'operation upload ci-dessus avec son ID et type 
-	  Response downloadObjectAsync(String objectId, IngestCollection type)
+    Status status();
+    UploadResponseDTO upload(String archiveMimeType,List<LogbookParameters> logbookParametersList, InputStream inputStream);
+    // Télécharger un object du serveur sauvegardé de l'operation upload ci-dessus avec son ID et type 
+    Response downloadObjectAsync(String objectId, IngestCollection type)
 
-
-
- Cette méthde ( à la version 0.9.0) capable de télécharger un sip compressé en 3 formats (zip, tar, tar.gz)
+Cette méthde ( à la version 0.9.0) capable de télécharger un sip compressé en 3 formats (zip, tar, tar.gz)
 
 - Paramètres :
+
     - archiveMimeType :: String (mimetype de l'archive ;par exemple application/x-tar)
     - logbookParametersList :: List<LogbookParameters>
     - inputStream : InputStream (stream de sip compressé dont le format doit être zip, tar ou tar.gz)
+
 - Retourne : ATR en format xml
 - Exceptions : 

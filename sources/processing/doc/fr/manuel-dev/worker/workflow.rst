@@ -2,7 +2,7 @@ Workflow
 ########
 
 DefaultIngestWorkflow
-*********************
+=====================
 
 
 Un Workflow est défini en JSON avec la structure suivante :
@@ -62,22 +62,11 @@ Un Workflow est défini en JSON avec la structure suivante :
           - MEMORY : implicitement un objet mémoire
 
 
-Exemple:
+.. literalinclude:: includes/json
+   :language: json
+   :linenos:
 
-.. only:: html
 
-        .. literalinclude:: includes/json
-           :language: json
-           :linenos:
-
-.. only:: latex
-
-        .. literalinclude:: includes/json
-           :language: json
-           :linenos:
-           :dedent: 4
-
-.. dedent ne semble pas marcher.
 
 Etapes
 ------
@@ -162,4 +151,4 @@ Un step est une étape de workflow. Il regroupe un ensemble d'actions (handler).
 
 
 DefaultRulesUpdateWorkflow
-**************************
+===========================
