@@ -29,12 +29,18 @@ package fr.gouv.vitam.functionaltest.cucumber.service;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.List;
+import java.util.Set;
 
 import org.assertj.core.api.Fail;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Iterables;
 
+import cucumber.api.DataTable;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -42,6 +48,9 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 
@@ -49,6 +58,8 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
  * Access service containing common code for access
  */
 public class AccessService {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessService.class);
 
     private static final String TITLE = "Title";
 
@@ -91,5 +102,102 @@ public class AccessService {
             Fail.fail("request selectUnit return an error: " + vitamError.getCode());
         }
         return auId;
+    }
+
+    /**
+     * Check in the given result the expected datas
+     * 
+     * @param results all results
+     * @param resultNumber index of result
+     * @param dataTable expected datas
+     * @throws Throwable
+     */
+    public void checkResultsForParticularData(List<JsonNode> results, int resultNumber, DataTable dataTable)
+        throws Throwable {
+        JsonNode jsonNode = Iterables.get(results, resultNumber);
+
+        List<List<String>> raws = dataTable.raw();
+
+        for (List<String> raw : raws) {
+            String key = raw.get(0);
+            boolean isArray = false;
+            boolean isOfArray = false;
+
+
+            if (null != key && key.endsWith(".array[][]")) {
+                key = key.replace(".array[][]", "");
+                isOfArray = true;
+            }
+
+            if (null != key && key.endsWith(".array[]")) {
+                key = key.replace(".array[]", "");
+                isArray = true;
+            }
+
+            String resultValue = getResultValue(jsonNode, key);
+            if (null != resultValue) {
+                resultValue = resultValue.replace("\n", "").replace("\\n", "");
+            }
+            // String resultExpected = transformToGuid(raw.get(1));
+            String resultExpected = new String(raw.get(1));
+            if (null != resultExpected) {
+                resultExpected = resultExpected.replace("\n", "").replace("\\n", "");
+            }
+
+            if (!isArray && !isOfArray) {
+                assertThat(resultValue).contains(resultExpected);
+            } else {
+                if (isArray) {
+                    Set<String> resultArray =
+                        JsonHandler.getFromStringAsTypeRefence(resultValue, new TypeReference<Set<String>>() {});
+
+                    Set<String> expectedrray =
+                        JsonHandler.getFromStringAsTypeRefence(resultExpected, new TypeReference<Set<String>>() {});
+                    assertThat(resultArray).isEqualTo(expectedrray);
+                } else {
+                    Set<Set<String>> resultArray =
+                        JsonHandler.getFromStringAsTypeRefence(resultValue, new TypeReference<Set<Set<String>>>() {});
+
+                    Set<Set<String>> expectedrray =
+                        JsonHandler
+                            .getFromStringAsTypeRefence(resultExpected, new TypeReference<Set<Set<String>>>() {});
+
+                    assertThat(expectedrray).isEqualTo(resultArray);
+                }
+            }
+        }
+    }
+
+
+    /**
+     * Retrieve result value
+     * 
+     * @param lastJsonNode result
+     * @param key key of search value
+     * @return json if found
+     * @throws Throwable
+     */
+    private String getResultValue(JsonNode lastJsonNode, String key) throws Throwable {
+        // String rawCopy = transformToGuid(raw);
+        String rawCopy = new String(key);
+        String[] paths = rawCopy.split("\\.");
+        for (String path : paths) {
+            if (lastJsonNode.isArray()) {
+                try {
+                    int value = Integer.valueOf(path);
+                    lastJsonNode = lastJsonNode.get(value);
+                } catch (NumberFormatException e) {
+                    LOGGER.warn(e);
+                }
+            } else {
+                lastJsonNode = lastJsonNode.get(path);
+            }
+        }
+
+        if (lastJsonNode != null) {
+            return JsonHandler.unprettyPrint(lastJsonNode);
+        } else {
+            return "{}";
+        }
     }
 }
