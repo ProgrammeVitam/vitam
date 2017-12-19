@@ -88,4 +88,8 @@ export class ArchiveUnitDetailsComponent extends PageComponent implements OnDest
     );
   }
 
+  updateTitle(newTitle) {
+    this.data.Title = newTitle;
+  }
+
 }

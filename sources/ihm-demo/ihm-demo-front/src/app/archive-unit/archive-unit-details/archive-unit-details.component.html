@@ -1,6 +1,6 @@
 <vitam-archive-tree-view *ngIf="data" [unitId]="data['#id']" [title]="data.Title"
                          [unitUps]="data['#unitups']"></vitam-archive-tree-view>
-<vitam-archive-main-description [archiveUnit]="data"></vitam-archive-main-description>
+<vitam-archive-main-description [archiveUnit]="data" (titleUpdate)="updateTitle($event)"></vitam-archive-main-description>
 <vitam-archive-extra-description [archiveUnit]="data"></vitam-archive-extra-description>
 <vitam-archive-rule-bloc *ngIf="data" [inheritedRules]="data.inheritedRule" [management]="data['#management']"
                          [id]="data['#id']"></vitam-archive-rule-bloc>

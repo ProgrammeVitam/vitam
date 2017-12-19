@@ -32,7 +32,7 @@ describe('ArchiveMainDescriptionComponent', () => {
       declarations: [ ArchiveMainDescriptionComponent ],
       schemas: [ NO_ERRORS_SCHEMA ]
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {
@@ -69,5 +69,46 @@ describe('ArchiveMainDescriptionComponent', () => {
     component.updatedFields = {test: 'newValue'};
     component.saveUpdate();
     expect(component.dataToDisplay.test).toBe('newValue');
+  });
+
+  it('should emit the title if it was successfully updated', (done) => {
+    component.titleUpdate.subscribe(
+      (newTitle) => {
+        expect(newTitle).toBe('NewTitle');
+        done();
+      }
+    );
+
+    component.updatedFields = {Title: 'NewTitle'};
+    component.saveUpdate();
+  });
+
+  it('should not emit the title if it was failure on Title update', () => {
+    let fail = this.fail;
+    component.titleUpdate.subscribe(
+      () => {
+        fail('titleUpdate should not emit message');
+      }
+    );
+
+    spyOn(component.archiveUnitService, 'updateMetadata').and.callFake(
+      () => {
+        return Observable.throw('Error while update');
+      });
+
+    component.updatedFields = {Title: 'NewTitle'};
+    component.saveUpdate();
+  });
+
+  it('shouln\'t emit message if update do not concern title', () => {
+    let fail = this.fail;
+    component.titleUpdate.subscribe(
+      () => {
+        fail('titleUpdate should not emit message');
+      }
+    );
+
+    component.updatedFields = {Description: 'NewDesc'};
+    component.saveUpdate();
   });
 });
