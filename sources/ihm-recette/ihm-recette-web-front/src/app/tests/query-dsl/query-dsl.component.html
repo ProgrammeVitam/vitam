@@ -2,7 +2,7 @@
   <div class="ui-g-1"></div>
   <div class="ui-g-1">
     <label class="" for="tenant">Tenant</label>
-    <div id="tenant" class="fs-1-1em">{{getTenant() ? getTenant() : "-"}}</div>
+    <div id="tenant" class="fs-1-1em">{{tenant ? tenant : "-"}}</div>
   </div>
   <div class="ui-g-4">
     <label for="identifier">Identifiant</label>
@@ -51,7 +51,7 @@
     <div class="ui-g-1"></div>
     <div class="ui-g-7">
       <button pButton type="button" label="Valider JSON" (click)="checkJson()"></button>
-      <button pButton type="button" label="Envoyer la requête" (click)="sendRequest()"></button>
+      <button pButton type="button" label="Envoyer la requête" (click)="sendRequest()" [disabled]="!tenant"></button>
     </div>
     <div class="ui-g-3 margin-top-5" [ngClass]="validRequest ? validRequest.css : ''">
       {{validRequest ? "JSON " + validRequest.valid : ""}}

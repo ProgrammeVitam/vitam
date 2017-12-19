@@ -6,6 +6,7 @@ import 'rxjs/add/operator/switchMap';
 import { BreadcrumbElement, BreadcrumbService } from '../../../common/breadcrumb.service';
 import { FunctionalTestsService } from '../functional-tests.service';
 import { PageComponent } from '../../../common/page/page-component';
+import {Subscription} from "rxjs/Subscription";
 
 
 const DefaultBreadcrumb: BreadcrumbElement[] = [];
@@ -33,7 +34,7 @@ export class FunctionalTestsDetailComponent extends PageComponent {
     super('Détail des tests fonctionels', DefaultBreadcrumb, titleService, breadcrumbService);
   }
 
-  pageOnInit() {
+  pageOnInit(): Subscription {
     this.route.paramMap
       .switchMap((params: ParamMap) => {
         this.fileName =  params.get('fileName');
@@ -48,6 +49,7 @@ export class FunctionalTestsDetailComponent extends PageComponent {
       .subscribe(data => {
         this.resultDetail = data;
       });
+    return null;
   }
 
   public getClass(data : any) : string {

@@ -15,7 +15,7 @@
     />
   </div>
   <div class="ui-g-3">
-    <button pButton type="button" label="Envoyer la requête" (click)="sendRequest()"></button>
+    <button pButton type="button" label="Envoyer la requête" (click)="sendRequest()" [disabled]="!tenant"></button>
   </div>
 </div>
 
