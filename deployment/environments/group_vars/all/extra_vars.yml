@@ -3,7 +3,7 @@
 vitam:
     ihm_recette:
         vitam_component: ihm-recette
-        host: "{{groups['hosts-ihm-recette'][0]}}"
+        host: "ihm-recette.service.{{consul_domain}}"
         port_http: 8204
         port_https: 8445
         port_admin: 28204

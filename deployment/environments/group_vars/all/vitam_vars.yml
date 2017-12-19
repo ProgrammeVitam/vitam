@@ -85,7 +85,7 @@ vitam:
         secret_platform: "true"
     ihm_demo:
         vitam_component: "ihm-demo"
-        host: "{{groups['hosts-ihm-demo'][0]}}"
+        host: "ihm-demo.service.{{consul_domain}}"
         port_http: 8002
         port_admin: 28002
         baseurl: "/ihm-demo"
