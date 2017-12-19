@@ -137,11 +137,8 @@ public class WebApplicationResourceTest {
     private static final String UPDATE = "{title: \"myarchive\"}";
     private static final String DEFAULT_HOST = "localhost";
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
-    private static final String TREE_QUERY = "{\"$query\": [{"
-        + "\"$and\": [{"
-        + "\"$in\": {\"#id\": [\"P1\",\"P2\",\"P3\"]}},{"
-        + "\"$eq\": {\"#max\": 1}"
-        + "}]}], \"$projection\": {}}";
+    private static final String TREE_QUERY = "{\"$query\": [{" + "\"$and\": [{" +
+        "\"$in\": {\"#id\": [\"P1\",\"P2\",\"P3\"]}},{" + "\"$eq\": {\"#max\": 1}" + "}]}], \"$projection\": {}}";
     private static final String FAKE_STRING_RETURN = "{Fake: \"String\"}";
     private static final JsonNode FAKE_JSONNODE_RETURN = JsonHandler.createObjectNode();
     private static final String FAKE_UNIT_LF_ID = "1";
@@ -188,7 +185,7 @@ public class WebApplicationResourceTest {
         application.start();
         RestAssured.port = port;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
-        
+
         XSRFFilter.addToken("testId", tokenCSRF);
     }
 
@@ -427,7 +424,7 @@ public class WebApplicationResourceTest {
             .thenThrow(AccessExternalClientNotFoundException.class);
 
         given().contentType(ContentType.JSON).body(OPTIONS).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)    
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
             .statusCode(Status.NOT_FOUND.getStatusCode())
             .when()
@@ -1062,7 +1059,7 @@ public class WebApplicationResourceTest {
     }
 
     @SuppressWarnings("unchecked")
-	@Test
+    @Test
     public void testUnitTreeOk() throws InvalidCreateOperationException, VitamException {
         PowerMockito.when(
             UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject(), anyObject(), anyString()))
@@ -1614,6 +1611,30 @@ public class WebApplicationResourceTest {
             .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .cookie(COOKIE).expect()
             .statusCode(Status.OK.getStatusCode())
+            .when()
+            .get("/agencies/id");
+
+        PowerMockito
+            .when(adminExternalClient.findAgencyByID(anyObject(), anyObject()))
+            .thenReturn(VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, "NOT FOUND"));
+
+        // find agencies by Id
+        given().contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .cookie(COOKIE).expect()
+            .statusCode(Status.NOT_FOUND.getStatusCode())
+            .when()
+            .get("/agencies/id");
+
+        PowerMockito
+            .when(adminExternalClient.findAgencyByID(anyObject(), anyObject()))
+            .thenReturn(VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, "BAD REQUEST"));
+
+        // find agencies by Id
+        given().contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
+            .cookie(COOKIE).expect()
+            .statusCode(Status.BAD_REQUEST.getStatusCode())
             .when()
             .get("/agencies/id");
 

@@ -8,6 +8,7 @@ import { BreadcrumbService } from "../../../common/breadcrumb.service";
 import { ReferentialsService } from "../../referentials.service";
 import { DialogService } from "../../../common/dialog/dialog.service";
 import {VitamResponse} from "../../../common/utils/response";
+import {ErrorService} from "../../../common/error.service";
 
 const context1 = {
   "#id":"aegqaaaaaahuuzbeabzqqak7aco5r5aaaaaq",
@@ -59,6 +60,7 @@ describe('ContextComponent', () => {
       imports: [ RouterTestingModule ],
       providers: [
         BreadcrumbService,
+        ErrorService,
         { provide: ReferentialsService, useValue: ReferentialsServiceStub },
         { provide: DialogService, useValue: DialogServiceStub }
       ],

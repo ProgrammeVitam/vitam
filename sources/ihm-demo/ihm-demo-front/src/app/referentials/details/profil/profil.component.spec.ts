@@ -8,6 +8,7 @@ import { BreadcrumbService } from "../../../common/breadcrumb.service";
 import { ReferentialsService } from "../../referentials.service";
 import { VitamResponse } from "../../../common/utils/response";
 import { DialogService } from "../../../common/dialog/dialog.service";
+import {ErrorService} from "../../../common/error.service";
 
 const ReferentialsServiceStub = {
   getProfileById: (id) => Observable.of({'$results': [{}]})
@@ -22,6 +23,7 @@ describe('ProfilComponent', () => {
       imports: [ RouterTestingModule ],
       providers: [
         BreadcrumbService,
+        ErrorService,
         { provide: ReferentialsService, useValue: ReferentialsServiceStub },
         { provide: DialogService, useValue: {} }
       ],

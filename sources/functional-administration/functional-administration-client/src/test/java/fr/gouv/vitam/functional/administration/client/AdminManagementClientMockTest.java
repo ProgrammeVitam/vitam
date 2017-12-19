@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -153,9 +154,10 @@ public class AdminManagementClientMockTest {
         AdminManagementClientFactory.changeMode(null);
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final ObjectNode objectNode = (ObjectNode) client.getAgencyById("AG-000001");
-        assertEquals(1, ((ArrayNode) objectNode.get("$results")).size());
-
+        RequestResponse<AgenciesModel> resp = client.getAgencyById("AG-000001");
+        assertThat(RequestResponseOK.class).isAssignableFrom(resp.getClass());
+        assertThat(resp.isOk());
+        assertThat(((RequestResponseOK) resp).getResults()).hasSize(1);
     }
 
     @Test

@@ -7,6 +7,8 @@ import { AgenciesComponent } from './agencies.component';
 import { BreadcrumbService } from "../../../common/breadcrumb.service";
 import { ReferentialsService } from "../../referentials.service";
 import { ActivatedRoute } from "@angular/router";
+import {ErrorService} from "../../../common/error.service";
+import {DialogService} from "../../../common/dialog/dialog.service";
 
 const ReferentialsServiceStub = {
   getAgenciesById: (id) => Observable.of({'$results': [{}]}),
@@ -22,8 +24,10 @@ describe('AgenciesComponent', () => {
       imports: [ RouterTestingModule ],
       providers: [
         BreadcrumbService,
+        ErrorService,
         { provide: ReferentialsService, useValue: ReferentialsServiceStub },
-        { provide: ActivatedRoute, useValue: {params: Observable.of({id: 'Mock_Service'})} }
+        { provide: ActivatedRoute, useValue: {params: Observable.of({id: 'Mock_Service'})} },
+        { provide: DialogService, useValue: {} }
       ],
       declarations: [ AgenciesComponent ],
       schemas: [NO_ERRORS_SCHEMA]

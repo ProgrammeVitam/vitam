@@ -11,6 +11,7 @@ import { ArchiveUnitService } from '../../../archive-unit/archive-unit.service';
 import { LogbookService } from "../../../ingest/logbook.service";
 import { PageComponent } from "../../../common/page/page-component";
 import { AccessionRegister, AccessionRegisterDetail, RegisterData } from "./accession-register";
+import {ErrorService} from "../../../common/error.service";
 
 
 const PROCESS_TRADUCTION = {
@@ -42,7 +43,7 @@ export class AccessionRegisterComponent  extends PageComponent {
   constructor(private activatedRoute: ActivatedRoute, private router : Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
               private searchReferentialsService : ReferentialsService,
-              public logbookService: LogbookService) {
+              public logbookService: LogbookService, private errorService: ErrorService) {
     super('Détail du fond', [], titleService, breadcrumbService);
 
   }
@@ -124,12 +125,13 @@ export class AccessionRegisterComponent  extends PageComponent {
       this.logbookService.getResults({
         'events.agIdExt.originatingAgency' : this.id
       }, 0).subscribe(
-          data => {
+        data => {
           for (let logbook of data.$results) {
             this.registerDetailType[logbook.evIdProc] = logbook.evType;
           }
-        },
-          error => console.log('Error - ', error));
+        }, (error) => {
+          this.errorService.handle404Error(error);
+        })
     });
   }
 

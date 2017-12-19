@@ -270,7 +270,7 @@ public enum VitamCode {
 
     ACCESS_EXTERNAL_SECURITY_PROFILE_NOT_FOUND(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "32",
         Status.NOT_FOUND, "Access external client error, security profile not found"),
-
+    
     ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "01",
         Status.BAD_REQUEST,
         "Access internal error while check update on rules"),

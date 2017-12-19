@@ -9,6 +9,7 @@ import {LogbookService} from "../../logbook.service";
 import {ArchiveUnitHelper} from "../../../archive-unit/archive-unit.helper";
 import {VitamResponse} from "../../../common/utils/response";
 import {DateService} from "../../../common/utils/date.service";
+import {ErrorService} from "../../../common/error.service";
 
 const breadcrumb: BreadcrumbElement[] = [
   {label: 'Entrée', routerLink: ''},
@@ -66,7 +67,7 @@ export class LogbookDetailsComponent extends PageComponent {
 
   constructor(private route: ActivatedRoute, public logbookService: LogbookService,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
-              public archiveUnitHelper: ArchiveUnitHelper) {
+              public archiveUnitHelper: ArchiveUnitHelper, private errorService: ErrorService) {
     super('Détail d\'une opération d\'entrée', breadcrumb, titleService, breadcrumbService);
   }
 
@@ -81,6 +82,8 @@ export class LogbookDetailsComponent extends PageComponent {
       this.logbookService.getDetails(this.id).subscribe(
         (data) => {
           this.response = data;
+        }, (error) => {
+          this.errorService.handle404Error(error);
         }
       )
     });

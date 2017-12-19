@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterStatus;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
@@ -126,6 +127,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         return new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream("Vitam Test"),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
     }
+
     @Override
     public Status importRulesFile(InputStream stream, String filename)
         throws ReferentialException, DatabaseConflictException {
@@ -151,6 +153,7 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
         LOGGER.debug("get document rules request:");
         return ClientMockResultHelper.getAgency().toJsonNode();
     }
+
     @Override
     public JsonNode getRuleByID(String id) throws FileRulesException, InvalidParseOperationException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, id);
@@ -159,11 +162,13 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public JsonNode getAgencyById(String id) throws ReferentialException, InvalidParseOperationException {
+    public RequestResponse<AgenciesModel> getAgencyById(String id)
+        throws InvalidParseOperationException, ReferentialNotFoundException, AdminManagementClientServerException {
         ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, id);
         LOGGER.debug("get agency by id request:");
-        return ClientMockResultHelper.getAgenciesList().toJsonNode();
+        return ClientMockResultHelper.getAgenciesList();
     }
+
     @Override
     public JsonNode getRules(JsonNode query)
         throws FileRulesException, InvalidParseOperationException,
@@ -438,9 +443,9 @@ class AdminManagementClientMock extends AbstractMockClient implements AdminManag
     }
 
     @Override
-    public RequestResponse<ProfileModel> updateProfile(String id, JsonNode queryDsl) 
-        throws InvalidParseOperationException, AdminManagementClientServerException  {
-        ProfileModel model = 
+    public RequestResponse<ProfileModel> updateProfile(String id, JsonNode queryDsl)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
+        ProfileModel model =
             JsonHandler.getFromString(ClientMockResultHelper.PROFILES, ProfileModel.class);
         return ClientMockResultHelper.createReponse(model).setHttpCode(200);
     }

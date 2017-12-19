@@ -26,14 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map;
 
@@ -56,8 +54,6 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.commons.io.IOUtils;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -66,7 +62,6 @@ import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
-import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -98,6 +93,7 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
@@ -138,6 +134,8 @@ public class AdminManagementExternalResourceImpl {
     private static final String ATTACHEMENT_FILENAME = "attachment; filename=rapport.json";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementExternalResourceImpl.class);
     private static final String ACCESS_EXTERNAL_MODULE = "ADMIN_EXTERNAL";
+    // Should be replaced in code by a real code from VitamCode
+    @Deprecated
     private static final String CODE_VITAM = "code_vitam";
     private static final String HTML_CONTENT_MSG_ERROR = "document has toxic HTML content";
 
@@ -367,13 +365,13 @@ public class AdminManagementExternalResourceImpl {
         File file = PropertiesUtils.fileFromTmpFolder("tmpRuleFile");
         try {
             ParametersChecker.checkParameter("document is a mandatory parameter", document);
-            
+
             // Check Html Pattern
             try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
                 StreamUtils.copy(document, fileOutputStream);
-            }            
+            }
             SanityChecker.checkHTMLFile(file);
-            
+
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 Status status = client.importRulesFile((InputStream) new FileInputStream(file), filename);
 
@@ -954,7 +952,7 @@ public class AdminManagementExternalResourceImpl {
      * @param headers http headers
      * @param document inputStream representing the data to import
      * @return The jaxRs Response
-     * @throws InvalidParseOperationException 
+     * @throws InvalidParseOperationException
      */
     @Path("/agencies")
     @POST
@@ -969,16 +967,16 @@ public class AdminManagementExternalResourceImpl {
         File file = PropertiesUtils.fileFromTmpFolder("tmpRuleFile");
         try {
             ParametersChecker.checkParameter("document is a mandatory parameter", document);
-            
+
             // Check Html Pattern
             try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
                 StreamUtils.copy(document, fileOutputStream);
-            }            
+            }
             SanityChecker.checkHTMLFile(file);
-            
+
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 Status status = client.importAgenciesFile((InputStream) new FileInputStream(file), filename);
-                
+
                 // Send the http response with no entity and the status got from internalService;
                 ResponseBuilder ResponseBuilder = Response.status(status);
                 return ResponseBuilder.build();
@@ -1015,32 +1013,28 @@ public class AdminManagementExternalResourceImpl {
     public Response findAgencyByID(@PathParam("id_document") String documentId) {
         addRequestId();
 
-        try {
-
-            ParametersChecker.checkParameter("formatId is a mandatory parameter", documentId);
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            ParametersChecker.checkParameter("documentId is a mandatory parameter", documentId);
             SanityChecker.checkParameter(documentId);
-
-            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                final JsonNode result = client.getAgencyById(documentId);
-                return Response.status(Status.OK).entity(result).build();
-            } catch (final ReferentialException e) {
-
-                LOGGER.error(e);
-                final Status status = Status.INTERNAL_SERVER_ERROR;
-                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
-
-            } catch (final InvalidParseOperationException e) {
-
-                LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
-                return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
-
-            }
-        } catch (final IllegalArgumentException | InvalidParseOperationException e) {
-
+            final RequestResponse<AgenciesModel> requestResponse = client.getAgencyById(documentId);
+            int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
+            return Response.status(st).entity(requestResponse).build();
+        } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
-            return Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getMessage(), null)).build();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage())
+                .toResponse();
+        } catch (final ReferentialException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
+                .toResponse();
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
+                .toResponse();
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error(e);
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
+                .toResponse();
         }
 
     }
@@ -1809,6 +1803,7 @@ public class AdminManagementExternalResourceImpl {
      * @param code The functional error code, if absent the http code will be used instead
      * @return
      */
+    @Deprecated
     private VitamError getErrorEntity(Status status, String message, String code) {
         String aMessage =
             (message != null && !message.trim().isEmpty()) ? message
@@ -1818,6 +1813,7 @@ public class AdminManagementExternalResourceImpl {
             .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 
+    @Deprecated
     private InputStream getErrorStream(Status status, String message, String code) {
         String aMessage =
             (message != null && !message.trim().isEmpty()) ? message
@@ -1832,6 +1828,7 @@ public class AdminManagementExternalResourceImpl {
         }
     }
 
+    @Deprecated
     private VitamError getErrorEntity(Status status, String message) {
         String aMessage =
             (message != null && !message.trim().isEmpty()) ? message

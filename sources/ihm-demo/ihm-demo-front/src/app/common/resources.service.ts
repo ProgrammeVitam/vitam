@@ -4,6 +4,8 @@ import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Observable} from "rxjs/Observable";
 
 import {VitamResponse} from "./utils/response";
+import {DialogService} from "./dialog/dialog.service";
+import {Router} from "@angular/router";
 
 const TENANT_COOKIE = 'tenant';
 const CONTRACT_COOKIE = 'accessContract';

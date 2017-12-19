@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
@@ -147,18 +148,18 @@ public interface AdminManagementClient extends MockOrRestClient {
     /**
      * @param id The agency identifier
      * @return agency in JsonNode agency
-     * @throws ReferentialException when file referential exception occurs
+     * @throws ReferentialNotFoundException when file referential exception occurs
      * @throws InvalidParseOperationException when a parse problem occurs
      * @throws AdminManagementClientServerException
      */
-    JsonNode getAgencyById(String id)
-        throws ReferentialException, InvalidParseOperationException, AdminManagementClientServerException;
+    RequestResponse<AgenciesModel> getAgencyById(String id)
+        throws InvalidParseOperationException, ReferentialNotFoundException, AdminManagementClientServerException;
 
     /**
      * List the agencies that match the query
      *
      * @param query to get agencies
-     * @return Agencies in JsonNode
+     * @return The server response as vitam RequestResponse
      * @throws ReferentialException when file referential exception occurs
      * @throws InvalidParseOperationException when a parse problem occurs
      * @throws IOException when IO Exception occurs

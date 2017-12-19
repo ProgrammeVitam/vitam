@@ -9,6 +9,7 @@ import {ObjectsService} from '../../../common/utils/objects.service';
 import {PageComponent} from "../../../common/page/page-component";
 import {DialogService} from "../../../common/dialog/dialog.service";
 import {Context} from "./context";
+import {ErrorService} from "../../../common/error.service";
 
 const CONTEXT_KEY_TRANSLATION = {
   Identifier: 'Identifiant',
@@ -42,7 +43,8 @@ export class ContextComponent extends PageComponent {
 
   constructor(private activatedRoute: ActivatedRoute, private router: Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
-              public referentialsService: ReferentialsService, private dialogService: DialogService) {
+              public referentialsService: ReferentialsService, private dialogService: DialogService,
+              private errorService: ErrorService) {
     super('Détail du contexte applicatif ', [], titleService, breadcrumbService);
   }
 
@@ -108,9 +110,12 @@ export class ContextComponent extends PageComponent {
   }
 
   getDetail() {
-    this.referentialsService.getContextById(this.id).subscribe((value) => {
-      this.initData(value);
-    });
+    this.referentialsService.getContextById(this.id).subscribe(
+      (value) => {
+        this.initData(value);
+      }, (error) => {
+        this.errorService.handle404Error(error);
+      });
   }
 
   saveUpdate() {

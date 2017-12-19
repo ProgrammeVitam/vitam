@@ -28,6 +28,7 @@ package fr.gouv.vitam.functional.administration.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
@@ -52,7 +53,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
-import fr.gouv.vitam.functional.administration.common.Agencies;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Rule;
 import org.junit.Test;
@@ -72,6 +72,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
@@ -82,6 +83,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.Agencies;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -358,7 +360,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
             InputStream profileFile) {
             return expectedResponse.put();
         }
-        
+
         @PUT
         @Path("/profiles/{id}")
         @Consumes(MediaType.APPLICATION_JSON)
@@ -503,6 +505,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         client.importAgenciesFile(stream, "vitam.conf");
     }
+
     @Test(expected = FileRulesException.class)
     @RunWithCustomExecutor
     public void givenAnInvalidFileThenKO() throws Exception {
@@ -845,11 +848,12 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         assertThat(resp).isInstanceOf(RequestResponseOK.class);
         assertThat(((RequestResponseOK) resp).getResults()).hasSize(0);
     }
-    
+
     @Test
     @RunWithCustomExecutor
-    public void updateProfile() 
-        throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
+    public void updateProfile()
+        throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException,
+        ReferentialNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         when(mock.put()).thenReturn(Response.status(Status.OK)
@@ -919,11 +923,9 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     /**
      * Test that agency by id is reachable
      *
-     * @throws FileNotFoundException
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
      */
-    @Test(expected = ReferentialNotFoundException.class)
     @RunWithCustomExecutor
     public void findAgencyByIdThenReturnEmpty()
         throws FileNotFoundException, InvalidParseOperationException, AdminManagementClientServerException,
@@ -932,7 +934,9 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
 
         when(mock.get())
             .thenReturn(Response.status(Status.NOT_FOUND).entity(new RequestResponseOK<Agencies>()).build());
-        JsonNode resp = client.getAgencyById("fakeId");
+        RequestResponse<AgenciesModel> response = client.getAgencyById("fakeId");
+        assertFalse(response.isOk());
+        assertEquals(response.getStatus(), Status.NOT_FOUND.getStatusCode());
     }
 
 

@@ -7,6 +7,7 @@ import {BreadcrumbService} from "../../../common/breadcrumb.service";
 import {ReferentialsService} from "../../referentials.service";
 import {Format} from "./format";
 import {PageComponent} from "../../../common/page/page-component";
+import {ErrorService} from "../../../common/error.service";
 
 const FORMAT_KEY_TRANSLATION = {
   Name: 'Intitulé',
@@ -30,7 +31,7 @@ export class FormatComponent extends PageComponent {
   arrayOfKeys: string[];
 
   constructor(private activatedRoute: ActivatedRoute, public titleService: Title,
-              public breadcrumbService: BreadcrumbService,
+              public breadcrumbService: BreadcrumbService,private errorService: ErrorService,
               private searchReferentialsService: ReferentialsService) {
     super('Détail du format ', [], titleService, breadcrumbService);
   }
@@ -38,15 +39,18 @@ export class FormatComponent extends PageComponent {
   pageOnInit() {
     this.activatedRoute.params.subscribe(params => {
       this.id = params['id'];
-      this.searchReferentialsService.getFormatById(this.id).subscribe((value) => {
-        this.format = plainToClass(Format, value.$results)[0];
-        let keys = Object.keys(this.format);
-        let format = this.format;
-        this.pronomLink = 'http://www.nationalarchives.gov.uk/PRONOM/' + this.format.PUID;
-        this.arrayOfKeys = keys.filter(function (key) {
-          return key != '_id' && !!format[key] && format[key].length > 0;
+      this.searchReferentialsService.getFormatById(this.id).subscribe(
+        (value) => {
+          this.format = plainToClass(Format, value.$results)[0];
+          let keys = Object.keys(this.format);
+          let format = this.format;
+          this.pronomLink = 'http://www.nationalarchives.gov.uk/PRONOM/' + this.format.PUID;
+          this.arrayOfKeys = keys.filter(function (key) {
+            return key != '_id' && !!format[key] && format[key].length > 0;
+          });
+        }, (error) => {
+          this.errorService.handle404Error(error);
         });
-      });
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
         {label: 'Formats', routerLink: 'admin/search/format'},

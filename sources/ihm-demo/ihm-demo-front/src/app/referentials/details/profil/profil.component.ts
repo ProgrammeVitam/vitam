@@ -9,6 +9,7 @@ import { ObjectsService } from '../../../common/utils/objects.service';
 import { PageComponent } from "../../../common/page/page-component";
 import { DialogService } from "../../../common/dialog/dialog.service";
 import { Profil } from "./profil";
+import {ErrorService} from "../../../common/error.service";
 
 const PROFIL_KEY_TRANSLATION = {
   Identifier: 'Identifiant',
@@ -39,7 +40,7 @@ export class ProfilComponent extends PageComponent {
   updatedFields: any = {};
   saveRunning = false;
 
-  constructor(private activatedRoute: ActivatedRoute, private router : Router,
+  constructor(private activatedRoute: ActivatedRoute, private router : Router, private errorService: ErrorService,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
               private searchReferentialsService : ReferentialsService, private dialogService : DialogService) {
     super('Détail du profil d\'archivage ', [], titleService, breadcrumbService);
@@ -136,9 +137,13 @@ export class ProfilComponent extends PageComponent {
   }
 
   getDetail() {
-    this.searchReferentialsService.getProfileById(this.id).subscribe((value) => {
-      this.initData(value);
-    });
+    this.searchReferentialsService.getProfileById(this.id).subscribe(
+      (value) => {
+        this.initData(value);
+      }, (error) => {
+        this.errorService.handle404Error(error);
+      }
+    );
   }
 
   changeStatus() {

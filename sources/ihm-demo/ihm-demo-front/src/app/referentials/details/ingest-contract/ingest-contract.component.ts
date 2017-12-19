@@ -9,6 +9,7 @@ import { ObjectsService } from '../../../common/utils/objects.service';
 import { PageComponent } from "../../../common/page/page-component";
 import { DialogService } from "../../../common/dialog/dialog.service";
 import { IngestContract } from './ingest-contract';
+import {ErrorService} from "../../../common/error.service";
 
 @Component({
   selector: 'vitam-ingest-contract',
@@ -25,8 +26,8 @@ export class IngestContractComponent extends PageComponent {
   update : boolean;
   updatedFields: any = {};
   saveRunning = false;
-  
-  constructor(private activatedRoute: ActivatedRoute, private router : Router,
+
+  constructor(private activatedRoute: ActivatedRoute, private router : Router, private errorService: ErrorService,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
               private searchReferentialsService : ReferentialsService, private dialogService : DialogService) {
     super('Détail du contrat d\'entrée ', [], titleService, breadcrumbService);
@@ -99,9 +100,13 @@ export class IngestContractComponent extends PageComponent {
   }
 
   getDetail() {
-    this.searchReferentialsService.getIngestContractById(this.id).subscribe((value) => {
-      this.initData(value);
-    });
+    this.searchReferentialsService.getIngestContractById(this.id).subscribe(
+      (value) => {
+        this.initData(value);
+      }, (error) => {
+        this.errorService.handle404Error(error);
+      }
+    );
   }
 
   initData(value) {

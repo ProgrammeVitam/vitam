@@ -9,6 +9,7 @@ import { VitamResponse } from "../../common/utils/response";
 import { ArchiveUnitService } from "../archive-unit.service";
 import { DialogService } from "../../common/dialog/dialog.service";
 import { NavigationEnd } from "@angular/router";
+import {ErrorService} from "../../common/error.service";
 
 let DefaultResponse = {
   $context: {},
@@ -44,6 +45,7 @@ describe('ArchiveUnitDetailsComponent', () => {
       providers: [
         BreadcrumbService,
         DialogService,
+        ErrorService,
         { provide: ArchiveUnitService, useValue: ArchiveUnitServiceStub }
       ],
       schemas: [NO_ERRORS_SCHEMA]
