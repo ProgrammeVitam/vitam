@@ -20,7 +20,7 @@
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- * 
+ *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.VitamSequence;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
@@ -177,6 +178,9 @@ public class VitamCounterServiceTest {
             .isSlaveFunctionnalCollectionOnTenant(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, 0)).isFalse();
 
         assertThat(backUpSequence).isEqualTo(2);
+
+        VitamSequence test =
+            vitamCounterService.getSequenceDocument(TENANT_ID, SequenceType.PROFILE_SEQUENCE);
 
     }
 

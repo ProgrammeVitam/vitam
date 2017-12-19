@@ -18,38 +18,48 @@
 package fr.gouv.vitam.functional.administration.agencies.api;
 
 import static fr.gouv.vitam.common.PropertiesUtils.getResourceFile;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromFile;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assume.assumeTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.endsWith;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import fr.gouv.vitam.common.exception.VitamException;
+
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.functional.administration.common.Agencies;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
-import org.apache.commons.io.IOUtils;
+import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Matchers;
+import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
@@ -76,29 +86,26 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.Agencies;
-import fr.gouv.vitam.functional.administration.common.FilesSecurisator;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 
 public class AgenciesServiceTest {
 
+    public static final String STP_AGENCIES_REPORT = "STP_AGENCIES_REPORT";
     private static VitamCounterService vitamCounterService;
+
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
         VitamThreadPoolExecutor.getDefaultExecutor());
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
@@ -117,28 +124,31 @@ public class AgenciesServiceTest {
     private final static String HOST_NAME = "127.0.0.1";
     private final static String CLUSTER_NAME = "vitam-cluster";
 
+    @Mock
+    private FunctionalBackupService functionalBackupService;
 
-    static AgenciesService agencyService;
-    private static FilesSecurisator securisator;
+    @Mock
+    private LogbookOperationsClientFactory logbookOperationsClientFactory;
 
-    private static LogbookOperationsClientFactory logbookOperationsClientFactory;
-
-    private static WorkspaceClientFactory workspaceClientFactory;
-    private static StorageClientFactory storageClientFactory;
+    private AgenciesService agencyService;
 
     static int mongoPort;
+    static private Path tmp;
 
     @RunWithCustomExecutor
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         junitHelper = JunitHelper.getInstance();
+
         mongoPort = junitHelper.findAvailablePort();
+
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .withLaunchArgument("--enableMajorityReadConcern")
             .version(Version.Main.PRODUCTION)
             .net(new Net(mongoPort, Network.localhostIsIPv6()))
             .build());
+
         mongod = mongodExecutable.start();
         client = new MongoClient(new ServerAddress(DATABASE_HOST, mongoPort));
 
@@ -151,21 +161,18 @@ public class AgenciesServiceTest {
         } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
-        securisator = mock(FilesSecurisator.class);
+
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode(HOST_NAME, esConfig.getTcpPort()));
         final List<Integer> tenants = new ArrayList<>();
-        tenants.add(new Integer(TENANT_ID));
+        tenants.add(TENANT_ID);
         vitamCounterService = new VitamCounterService(dbImpl, tenants, new HashMap<>());
+    }
 
-        LogbookOperationsClientFactory.changeMode(null);
-        FilesSecurisator securisator = mock(FilesSecurisator.class);
-        logbookOperationsClientFactory = mock(LogbookOperationsClientFactory.class);
-        storageClientFactory = mock(StorageClientFactory.class);
-        workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        securisator = mock(FilesSecurisator.class);
-        agencyService = new AgenciesService(dbImpl, vitamCounterService, securisator, logbookOperationsClientFactory,
-            storageClientFactory, workspaceClientFactory);
+    @Before
+    public void setUp() throws Exception {
+        agencyService =
+            new AgenciesService(dbImpl, vitamCounterService, functionalBackupService, logbookOperationsClientFactory);
 
     }
 
@@ -175,7 +182,6 @@ public class AgenciesServiceTest {
         mongodExecutable.stop();
         junitHelper.releasePort(mongoPort);
         client.close();
-        agencyService.close();
     }
 
     @After
@@ -187,6 +193,7 @@ public class AgenciesServiceTest {
     @Test
     @RunWithCustomExecutor
     public void givenAgencyImportTest() throws Exception {
+        // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         JsonNode contractToPersist = JsonHandler.getFromString(contract);
 
@@ -194,63 +201,75 @@ public class AgenciesServiceTest {
 
         LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
-        when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
+        when(logbookOperationsclient.selectOperation(anyObject()))
             .thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
 
-        agencyService = new AgenciesService(dbImpl, vitamCounterService, securisator, logbookOperationsClientFactory,
-            storageClientFactory, workspaceClientFactory);
+        agencyService =
+            new AgenciesService(dbImpl, vitamCounterService, functionalBackupService, logbookOperationsClientFactory);
 
         // import initial
-        Mockito.reset(securisator);
-        saveReportWhenSecure("report_agencies.json");
+
+        Path reportPath = Paths.get(tempFolder.newFolder().getAbsolutePath(), "report_agencies.json");
+        doAnswer(invocation -> {
+            InputStream argumentAt = invocation.getArgumentAt(0, InputStream.class);
+            Files.copy(argumentAt, reportPath);
+            return null;
+        }).when(functionalBackupService).saveFile(any(InputStream.class), any(GUID.class), eq(STP_AGENCIES_REPORT),
+            eq(StorageCollectionType.REPORTS), eq(TENANT_ID), endsWith(".json")
+        );
+
         File fileAgencies1 = getResourceFile("agencies.csv");
 
+        // When
         RequestResponse<AgenciesModel> response = agencyService.importAgencies(new FileInputStream(fileAgencies1));
+
+        // Then
         assertThat(response.isOk()).isTrue();
-        JsonNode report1 = getReportJsonAdnCleanFile("report_agencies.json");
-        assertThat(report1.get("JDO")).isNotNull();
+        JsonNode report = getFromFile(reportPath.toFile());
+        assertThat(report.get("JDO")).isNotNull();
+        reportPath.toFile().delete();
 
         // import 2
-        Mockito.reset(securisator);
-        saveReportWhenSecure("report_agencies2.json");
         File fileAgencies2 = getResourceFile("agencies2.csv");
 
+
+
         response = agencyService.importAgencies(new FileInputStream(fileAgencies2));
+        report = getFromFile(reportPath.toFile());
+        assertThat(report.get("JDO")).isNotNull();
         assertThat(response.isOk()).isTrue();
-        JsonNode report2 = getReportJsonAdnCleanFile("report_agencies2.json");
-        assertThat(report2.get("JDO")).isNotNull();
+        reportPath.toFile().delete();
+
 
         // import 3 error invalid
-        Mockito.reset(securisator);
-        saveReportWhenSecure("report_agencies3.json");
-        agencyService = new AgenciesService(dbImpl, vitamCounterService, securisator, logbookOperationsClientFactory,
-            storageClientFactory, workspaceClientFactory);
+        agencyService =
+            new AgenciesService(dbImpl, vitamCounterService, functionalBackupService, logbookOperationsClientFactory);
         File fileAgencies3 = getResourceFile("agencies3.csv");
-
+        //
         response = agencyService.importAgencies(new FileInputStream(fileAgencies3));
-        assertThat(response.isOk()).isFalse();
-        JsonNode report3 = getReportJsonAdnCleanFile("report_agencies3.json");
-        assertThat(report3.get("JDO")).isNotNull();
-        assertThat(((ArrayNode) report3.get("error").get("line 4")).get(0).get("Code").textValue())
-            .isEqualTo("STP_IMPORT_AGENCIES_MISSING_INFORMATIONS.KO");
-        assertThat(((ArrayNode) report3.get("error").get("line 4")).get(0).get("Information additionnelle").textValue())
-            .isEqualTo("Name");
+        report = getFromFile(reportPath.toFile());
 
+        assertThat(response.isOk()).isFalse();
+        assertThat(report.get("JDO")).isNotNull();
+        String error =
+            "{\"line 4\":\"[{\\\"Code\\\":\\\"STP_IMPORT_AGENCIES_MISSING_INFORMATIONS.KO\\\",\\\"Message\\\":\\\"Au moins une valeur obligatoire est manquante. Valeurs obligatoires : Identifier, Name, Description\\\",\\\"Information additionnelle\\\":\\\"Name\\\"}]\"}";
+        assertThat(report.get("error").toString()).isEqualTo(error);
+        reportPath.toFile().delete();
+
+        //
         // import 4 error delete
-        Mockito.reset(securisator);
-        saveReportWhenSecure("report_agencies4.json");
-        agencyService = new AgenciesService(dbImpl, vitamCounterService, securisator, logbookOperationsClientFactory,
-            storageClientFactory, workspaceClientFactory);
+        agencyService =
+            new AgenciesService(dbImpl, vitamCounterService, functionalBackupService, logbookOperationsClientFactory);
         Agencies doc = (Agencies) agencyService.findDocumentById("AG-000001");
         assertThat(doc.getName()).isEqualTo("agency222");
-        
+
         File fileAgencies4 = getResourceFile("agencies_delete.csv");
         response = agencyService.importAgencies(new FileInputStream(fileAgencies4));
         assertThat(response.isOk()).isFalse();
-        JsonNode report4 = getReportJsonAdnCleanFile("report_agencies4.json");
-        assertThat(report4.get("JDO")).isNotNull();
-        assertThat(((ArrayNode) report4.get("UsedAgencies to Delete")).get(0).textValue())
-        .startsWith("AG-00000");
+        report = getFromFile(reportPath.toFile());
+        assertThat(report.get("JDO")).isNotNull();
+        assertThat((report.get("UsedAgencies to Delete")).get(0).textValue())
+            .startsWith("AG-00000");
 
     }
 
@@ -260,14 +279,14 @@ public class AgenciesServiceTest {
     @RunWithCustomExecutor
     public void givenFileTestChekFile() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        Mockito.reset(securisator);
+        Mockito.reset(functionalBackupService);
         LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
-        when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
+        when(logbookOperationsclient.selectOperation(anyObject()))
             .thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
 
-        agencyService = new AgenciesService(dbImpl, vitamCounterService, securisator, logbookOperationsClientFactory,
-            storageClientFactory, workspaceClientFactory);
+        agencyService =
+            new AgenciesService(dbImpl, vitamCounterService, functionalBackupService, logbookOperationsClientFactory);
         File file = getResourceFile("agencies_delete.csv");
         agencyService.checkFile(new FileInputStream(file));
     }
@@ -335,37 +354,11 @@ public class AgenciesServiceTest {
             "}", outcome, tenantId));
     }
 
-    private void saveReportWhenSecure(String filename)
-        throws StorageException, LogbookClientServerException, LogbookClientBadRequestException,
-        LogbookClientAlreadyExistsException {
-        Mockito.doAnswer(new Answer<Void>() {
-            public Void answer(InvocationOnMock invocation) {
-                Object[] args = invocation.getArguments();
-                try {
-                    File file = tempFolder.newFile(filename);
-                    FileOutputStream output = new FileOutputStream(file);
-                    IOUtils.copy((InputStream) args[0], output);
-                    IOUtils.closeQuietly(output);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                return null;
-            }
-        }).when(securisator).secureFiles(
-            Matchers.anyObject(),
-            Matchers.anyObject(),
-            Matchers.anyObject(),
-            Matchers.anyObject(),
-            Matchers.anyObject(),
-            Matchers.anyObject(),
-            Matchers.anyObject());
-    }
 
-    private JsonNode getReportJsonAdnCleanFile(String filename) throws InvalidParseOperationException {
-        File[] reports = tempFolder.getRoot().listFiles((dir, name) -> {
-            return filename.equals(name);
-        });
-        JsonNode reportNode = JsonHandler.getFromFile(reports[0]);
+
+    private JsonNode getReportJsonAdnCleanFile() throws InvalidParseOperationException {
+        File[] reports = tempFolder.getRoot().listFiles((dir, name) -> "report_agencies.json".equals(name));
+        JsonNode reportNode = getFromFile(reports[0]);
         for(File report : reports) {
             report.delete();
         }

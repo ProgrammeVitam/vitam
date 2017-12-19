@@ -279,7 +279,10 @@ public class VitamCounterService {
      */
     public Integer getSequence(Integer tenant, SequenceType sequenceType) throws ReferentialException,
         InvalidParseOperationException {
-        Integer sequence;
+        return getSequenceDocument(tenant, sequenceType).getCounter();
+    }
+
+    public VitamSequence getSequenceDocument(Integer tenant, SequenceType sequenceType) throws ReferentialException {
         Bson query;
         if (sequenceType.getCollection().isMultitenant()) {
             query = and(
@@ -297,14 +300,12 @@ public class VitamCounterService {
             if (result.isEmpty()) {
                 throw new ReferentialException("Document not found");
             }
-            sequence = ((VitamSequence) ((Object) result.iterator().next())).getCounter();
+            return (VitamSequence) ((Object) result.iterator().next());
         } catch (final Exception e) {
             LOGGER.error("find Document Exception", e);
             throw new ReferentialException(e);
         }
-        return sequence;
     }
-
     public boolean isSlaveFunctionnalCollectionOnTenant(FunctionalAdminCollections collection, Integer tenant) {
         return externalIdentifiers.containsKey(tenant) && externalIdentifiers.get(tenant).contains(collection);
     }

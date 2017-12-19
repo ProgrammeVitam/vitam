@@ -45,9 +45,13 @@ import org.mockito.junit.MockitoRule;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
-import static fr.gouv.vitam.common.guid.GUIDFactory.*;
+
+import static fr.gouv.vitam.common.guid.GUIDFactory.newEventGUID;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newGUID;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Matchers.any;
+
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -91,6 +95,10 @@ public class FunctionalBackupServiceTest {
         functionalCollection
             .insertOne(new Document().append("_tenant", 1).append("Name", "B").append("Identifier", "ID-s08")
                 .append("_id", newGUID().getId()));
+        VitamSequence vitamSequence = new VitamSequence();
+        vitamSequence.append("Counter", "0").append("_id", "iidd").append("Name", "A").append("_tenant", "0");
+        given(vitamCounterService.getSequenceDocument(any(), any()))
+            .willReturn(vitamSequence);
 
     }
 
@@ -106,7 +114,8 @@ public class FunctionalBackupServiceTest {
         functionalBackupService.saveCollectionAndSequence(guid, "STP_TEST",
             StorageCollectionType.AGENCIES, agencies, 0);
         //Then
-        verify(backupLogbookManager, times(2)).logEventSuccess(eq(guid), eq("STP_TEST"), any(), eq("0_agencies_0.csv"));
+        verify(backupLogbookManager, times(2))
+            .logEventSuccess(eq(guid), eq("STP_TEST"), any(), eq("0_agencies_0.json"));
     }
 
     @Test
