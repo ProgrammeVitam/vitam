@@ -68,7 +68,6 @@ public interface ProfileValidator {
             "One or many profiles in the imported list have the same name : %s";
         public static String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating profile (%s)";
         public static String ERR_DUPLICATE_PROFILE = "The profile %s already exists in database";
-        public static String ERR_INVALID_FIELD = "The field %s has an invalid format";
         public static String ERR_MANDATORY_FIELD = "The field %s is mandatory";
 
         private String reason;
@@ -85,17 +84,6 @@ public interface ProfileValidator {
          */
         public static RejectionCause rejectIdNotAllowedInCreate(String profileIdentifier) {
             return new RejectionCause(String.format(ERR_ID_NOT_ALLOWED_IN_CREATE, profileIdentifier));
-        }
-
-        /**
-         * Reject if multiple profile have the same name in the same request before persist into database. The profile
-         * identifier must be unique
-         *
-         * @param profileIdentifier
-         * @return RejectionCause
-         */
-        public static RejectionCause rejectDuplicatedEntry(String profileIdentifier) {
-            return new RejectionCause(String.format(ERR_DUPLICATE_PROFILE_ENTRY, profileIdentifier));
         }
 
         /**

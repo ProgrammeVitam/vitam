@@ -594,4 +594,19 @@ public class ProfileServiceImplTest {
 
         assertThat(response.isOk()).isTrue();
     }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_create_profile_with_same_name() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok_same_name.json");
+        final List<ProfileModel> profileModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileMetadataProfile, new TypeReference<List<ProfileModel>>() {
+            });
+        // When
+        RequestResponse response = profileService.createProfiles(profileModelList);
+        // Then
+        assertThat(response.isOk()).isTrue();
+    }
 }

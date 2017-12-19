@@ -284,7 +284,7 @@ public class ProfileResourceTest {
         given().contentType(ContentType.JSON).body(json)
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(ProfileResource.PROFILE_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .then().statusCode(Status.CREATED.getStatusCode());
     }
 
 
