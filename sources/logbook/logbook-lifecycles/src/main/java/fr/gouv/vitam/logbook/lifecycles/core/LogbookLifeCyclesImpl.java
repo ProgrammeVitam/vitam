@@ -106,7 +106,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         throws LogbookDatabaseException, IllegalArgumentException, LogbookNotFoundException,
         LogbookAlreadyExistsException {
         checkLifeCyclesUnitArgument(idOperation, idLc, parameters);
-        mongoDbAccess.updateLogbookLifeCycleUnit(idOperation, parameters);
+        mongoDbAccess.updateLogbookLifeCycleUnit(idOperation, idLc, parameters);
     }
 
 
@@ -115,7 +115,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         throws LogbookNotFoundException, LogbookDatabaseException, IllegalArgumentException,
         LogbookAlreadyExistsException {
         checkLifeCyclesObjectGroupArgument(idOperation, idLc, parameters);
-        mongoDbAccess.updateLogbookLifeCycleObjectGroup(idOperation, parameters);
+        mongoDbAccess.updateLogbookLifeCycleObjectGroup(idOperation, idLc, parameters);
     }
 
     @Override
@@ -123,7 +123,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
             throws LogbookNotFoundException, LogbookDatabaseException, IllegalArgumentException,
             LogbookAlreadyExistsException {
         checkLifeCyclesObjectGroupArgument(idOperation, idLc, parameters);
-        mongoDbAccess.updateLogbookLifeCycleObjectGroup(idOperation, parameters, commit);
+        mongoDbAccess.updateLogbookLifeCycleObjectGroup(idOperation, idLc, parameters, commit);
     }
 
     @Override
@@ -346,7 +346,8 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
             throw new IllegalArgumentException("incoherence entry for idOperation");
         }
 
-        if (!parameters.getParameterValue(LogbookParameterName.objectIdentifier).equals(idLcObjectGroup)) {
+        if (!(idLcObjectGroup.equals(parameters.getParameterValue(LogbookParameterName.objectIdentifier)) ||
+                idLcObjectGroup.equals(parameters.getParameterValue(LogbookParameterName.lifeCycleIdentifier)))) {
             LOGGER.error("incoherence entry for idLifeCyclesObjectGroup");
             throw new IllegalArgumentException("incoherence entry for idLifeCyclesObjectGroup");
         }

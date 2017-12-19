@@ -265,6 +265,7 @@ public interface LogbookDbAccess {
      * It adds this new entry within the very same Logbook LifeCycle entry in "events" array.
      *
      * @param idOperation
+     * @param idLfc
      * @param lifecycleItem
      *
      * @throws LogbookDatabaseException
@@ -272,7 +273,7 @@ public interface LogbookDbAccess {
      * @throws LogbookAlreadyExistsException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
      */
-    void updateLogbookLifeCycleUnit(final String idOperation, LogbookLifeCycleUnitParameters lifecycleItem)
+    void updateLogbookLifeCycleUnit(final String idOperation, final String idLfc, LogbookLifeCycleUnitParameters lifecycleItem)
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
 
 
@@ -282,6 +283,7 @@ public interface LogbookDbAccess {
      * It adds this new entry within the very same Logbook LifeCycle entry in "events" array.
      *
      * @param idOperation
+     * @param idLfc
      * @param lifecycleItem
      *
      * @throws LogbookDatabaseException
@@ -289,7 +291,7 @@ public interface LogbookDbAccess {
      * @throws LogbookAlreadyExistsException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
      */
-    void updateLogbookLifeCycleObjectGroup(final String idOperation,
+    void updateLogbookLifeCycleObjectGroup(final String idOperation, final String idLfc,
         LogbookLifeCycleObjectGroupParameters lifecycleItem)
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
 
@@ -300,6 +302,7 @@ public interface LogbookDbAccess {
      * 
      *
      * @param idOperation
+     * @param idLfc
      * @param lifecycleItem
      * @param commit if true update is done on committed collection otherwise on inProcess one
      * @throws LogbookDatabaseException
@@ -307,7 +310,7 @@ public interface LogbookDbAccess {
      * @throws LogbookAlreadyExistsException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
      */
-    void updateLogbookLifeCycleObjectGroup(final String idOperation,
+    void updateLogbookLifeCycleObjectGroup(final String idOperation, final String idLfc,
                                            LogbookLifeCycleObjectGroupParameters lifecycleItem,
                                            boolean commit)
             throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;

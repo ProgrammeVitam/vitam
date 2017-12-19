@@ -113,11 +113,25 @@ public enum LogbookParameterName {
      * <br>
      * For instance: SIP GUID, but never ArchiveUnit GUID for an Operation<br>
      * For instance: ArchiveUnit GUID for a LifeCycle<br>
+     * For instance: GOT GUID for a LifeCycle<br>
+     * For instance: BDO GUID for a LifeCycle event of a distributed task<br>
      * <br>
-     * Primary key for LifeCycle <br>
+     * Object Identifier <br>
      * One of objectIdentifierRequest and objectIdentifier can be null but not both
      */
     objectIdentifier,
+
+    /**
+     * Lifecycle Identifier of the "process". <br>
+     * <br>
+     * For instance: ArchiveUnit GUID for a LifeCycle.<br>
+     * For instance: GOT GUID for a LifeCycle.<br>
+     * <br>
+     * Primary key for LifeCycle <br>
+     * If null objectIdentifier is used to determine the LifeCycle to update.
+     */
+    lifeCycleIdentifier,
+    
     /**
      * Object Identifier of the "process" using a request <br>
      * <br>

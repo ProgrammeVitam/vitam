@@ -811,7 +811,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
 
     @SuppressWarnings({"rawtypes"})
-    private void updateLogbookLifeCycle(LogbookCollections inProcessCollection, LogbookParameters... parameters)
+    private void updateLogbookLifeCycle(LogbookCollections inProcessCollection, String idLfc, LogbookParameters... parameters)
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException {
         ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, inProcessCollection);
         if (parameters == null || parameters.length == 0) {
@@ -819,15 +819,15 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         }
 
         LogbookTypeProcess processMode = parameters[0].getTypeProcess();
-        String objectId = parameters[0].getParameterValue(LogbookParameterName.objectIdentifier);
+        String documentId = (idLfc != null) ? idLfc : parameters[0].getParameterValue(LogbookParameterName.objectIdentifier);
         LogbookCollections prodCollection = fromInProcessToProdCollection(inProcessCollection);
 
         // 1- Check if it exists in Production Collection before proceeding to update
         LogbookLifeCycle lifeCycleInProd = null;
 
         try {
-            if (prodCollection != null && objectId != null) {
-                lifeCycleInProd = (LogbookLifeCycle) getLogbook(prodCollection, objectId);
+            if (prodCollection != null && documentId != null) {
+                lifeCycleInProd = (LogbookLifeCycle) getLogbook(prodCollection, documentId);
             }
         } catch (LogbookNotFoundException e) {
             if (LogbookTypeProcess.UPDATE.equals(processMode)) {
@@ -840,7 +840,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             // Check if there are other operations in process for the given item
             LogbookLifeCycle lifeCycleInProcess = null;
             try {
-                lifeCycleInProcess = (LogbookLifeCycle) getLogbook(inProcessCollection, objectId);
+                lifeCycleInProcess = (LogbookLifeCycle) getLogbook(inProcessCollection, documentId);
             } catch (LogbookNotFoundException e) {
                 LOGGER.info(INIT_UPDATE_LIFECYCLE, e);
             }
@@ -855,7 +855,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         }
 
         // Update the temporary lifeCycle
-        updateBulkLogbook(inProcessCollection, parameters);
+        updateBulkLogbook(inProcessCollection, documentId, parameters);
     }
 
 
@@ -867,24 +867,24 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
 
     @Override
-    public void updateLogbookLifeCycleUnit(String idOperation, LogbookLifeCycleUnitParameters lifecycleItem)
+    public void updateLogbookLifeCycleUnit(String idOperation, String idLfc, LogbookLifeCycleUnitParameters lifecycleItem)
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException {
         if (!lifecycleItem.getParameterValue(LogbookParameterName.eventIdentifierProcess).equals(idOperation)) {
             throw new IllegalArgumentException("Wrong IdOperation set to update the LifeCycle");
         }
 
-        updateLogbookLifeCycle(LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS, lifecycleItem);
+        updateLogbookLifeCycle(LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS, idLfc, lifecycleItem);
     }
 
     @Override
-    public void updateLogbookLifeCycleObjectGroup(String idOperation,
+    public void updateLogbookLifeCycleObjectGroup(String idOperation, String idLfc,
         LogbookLifeCycleObjectGroupParameters lifecycleItem)
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException {
-        updateLogbookLifeCycleObjectGroup(idOperation, lifecycleItem, false);
+        updateLogbookLifeCycleObjectGroup(idOperation, idLfc, lifecycleItem, false);
     }
 
     @Override
-    public void updateLogbookLifeCycleObjectGroup(String idOperation,
+    public void updateLogbookLifeCycleObjectGroup(String idOperation, String idLfc,
                                                   LogbookLifeCycleObjectGroupParameters lifecycleItem,
                                                   boolean commit)
             throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException {
@@ -893,10 +893,10 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         }
 
         if(commit) {
-            updateLogbookLifeCycle(LogbookCollections.LIFECYCLE_OBJECTGROUP, lifecycleItem);
+            updateLogbookLifeCycle(LogbookCollections.LIFECYCLE_OBJECTGROUP, idLfc, lifecycleItem);
         } 
         else {
-            updateLogbookLifeCycle(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS, lifecycleItem);
+            updateLogbookLifeCycle(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS, idLfc, lifecycleItem);
         }
     }
 
@@ -991,7 +991,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
 
     @SuppressWarnings("rawtypes")
-    final void updateBulkLogbook(final LogbookCollections collection, final LogbookParameters... items)
+    final void updateBulkLogbook(final LogbookCollections collection, final String documentId, final LogbookParameters... items)
         throws LogbookDatabaseException, LogbookNotFoundException {
         if (items == null || items.length == 0) {
             throw new IllegalArgumentException(AT_LEAST_ONE_ITEM_IS_NEEDED);
@@ -999,7 +999,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         final List<VitamDocument> events = new ArrayList<>(items.length);
         // Get the first event to preserve the _id field value
         final VitamDocument firstEvent = getDocumentForUpdate(items[0]);
-        final String mainLogbookDocumentId = firstEvent.getId();
+        final String mainLogbookDocumentId = documentId != null ? documentId : firstEvent.getId();
 
         removeDuplicatedInformation(firstEvent);
         events.add(firstEvent);
@@ -1045,19 +1045,19 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     @Override
     public final void updateBulkLogbookOperation(final LogbookOperationParameters... operationItems)
         throws LogbookDatabaseException, LogbookNotFoundException {
-        updateBulkLogbook(LogbookCollections.OPERATION, operationItems);
+        updateBulkLogbook(LogbookCollections.OPERATION, null, operationItems);
     }
 
     @Override
     public void updateBulkLogbookLifeCycleUnit(LogbookLifeCycleUnitParameters... lifecycleItems)
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException {
-        updateLogbookLifeCycle(LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS, lifecycleItems);
+        updateLogbookLifeCycle(LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS, null, lifecycleItems);
     }
 
     @Override
     public void updateBulkLogbookLifeCycleObjectGroup(LogbookLifeCycleObjectGroupParameters... lifecycleItems)
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException {
-        updateLogbookLifeCycle(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS, lifecycleItems);
+        updateLogbookLifeCycle(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS, null, lifecycleItems);
     }
 
     // Not check, test feature !

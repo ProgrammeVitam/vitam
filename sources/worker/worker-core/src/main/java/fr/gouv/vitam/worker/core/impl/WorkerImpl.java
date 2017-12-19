@@ -403,6 +403,11 @@ public class WorkerImpl implements Worker {
                 // set parent eventId
                 subLogbookLfcParam.putParameterValue(LogbookParameterName.parentEventIdentifier,
                     logbookParam.getParameterValue(LogbookParameterName.eventIdentifier));
+                // set obId and gotId (used to determine the LFC to update)
+                subLogbookLfcParam.putParameterValue(LogbookParameterName.lifeCycleIdentifier, 
+                        subLogbookLfcParam.getParameterValue(LogbookParameterName.objectIdentifier));
+                subLogbookLfcParam.putParameterValue(LogbookParameterName.objectIdentifier, subTaskEntry.getKey());
+
                 // set status
                 ItemStatus subItemStatus = subTaskEntry.getValue();
                 subLogbookLfcParam.setFinalStatus(handlerName,
