@@ -49,10 +49,12 @@ public class SingleVarNameAdapter extends VarNameAdapter {
     }
 
     /**
-     * @see ParserTokens.PROJECTIONARGS
-     * @param name
+     * Return the given MongoDb Variable name
+     *
+     * @param name field name to handle
      * @return the new name or null if the same
-     * @throws InvalidParseOperationException
+     * @throws InvalidParseOperationException exception
+     * @see ParserTokens.PROJECTIONARGS
      */
     @Override
     public String getVariableName(String name) throws InvalidParseOperationException {

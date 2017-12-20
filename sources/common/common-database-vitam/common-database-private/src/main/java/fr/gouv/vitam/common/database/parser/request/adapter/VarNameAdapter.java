@@ -38,7 +38,7 @@ import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
- * Model for VarNameAdapter Internal
+ * Model for VarNameAdapter (Unit/ObjectGroup) internal usage.
  */
 public class VarNameAdapter {
 
@@ -57,6 +57,8 @@ public class VarNameAdapter {
     }
 
     /**
+     * Return null
+     *
      * @param name String
      * @return null
      * @throws InvalidParseOperationException invalid parse operation exception
