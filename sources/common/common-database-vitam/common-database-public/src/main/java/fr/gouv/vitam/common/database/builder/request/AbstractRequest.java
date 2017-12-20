@@ -282,7 +282,7 @@ public abstract class AbstractRequest {
      * @param limit ignored if 0
      * @return this Query
      */
-    protected final AbstractRequest selectSetScrollFilter(final String scrollId, final long scrollTimeout, final long limit) {
+    protected final AbstractRequest selectSetScrollFilter(final String scrollId, final int scrollTimeout, final int limit) {
         if (filter == null) {
             filter = JsonHandler.createObjectNode();
         }
@@ -325,16 +325,16 @@ public abstract class AbstractRequest {
      */
     protected final AbstractRequest selectSetLimitFilter(final JsonNode filterContent) {
         long offset = 0;
-        long limit = GlobalDatas.LIMIT_LOAD;
+        int limit = GlobalDatas.LIMIT_LOAD;
         String scrollId = null;
-        long timeout = 0;
+        int timeout = 0;
         if (filterContent.has(SELECTFILTER.LIMIT.exactToken())) {
             /*
              * $limit : n $maxScan: <number> / cursor.limit(n) "filter" : { "limit" : {"value" : n} } ou "from" : start,
              * "size" : n
              */
             limit = filterContent.get(SELECTFILTER.LIMIT.exactToken())
-                .asLong(GlobalDatas.LIMIT_LOAD);
+                .asInt(GlobalDatas.LIMIT_LOAD);
         }
         if (filterContent.has(SELECTFILTER.OFFSET.exactToken())) {
             /*
@@ -351,7 +351,7 @@ public abstract class AbstractRequest {
             /*
              * $offset : start cursor.skip(start) "from" : start, "size" : n
              */
-                timeout = filterContent.get(SELECTFILTER.SCROLL_TIMEOUT.exactToken()).asLong(0);
+                timeout = filterContent.get(SELECTFILTER.SCROLL_TIMEOUT.exactToken()).asInt(0);
             }
             selectSetScrollFilter(scrollId, timeout, limit);
         }

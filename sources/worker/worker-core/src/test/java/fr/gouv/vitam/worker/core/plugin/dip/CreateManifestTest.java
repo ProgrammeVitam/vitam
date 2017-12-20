@@ -43,8 +43,6 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.mapping.dip.ArchiveUnitMapper;
-import fr.gouv.vitam.common.mapping.dip.ObjectGroupMapper;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
@@ -84,9 +82,7 @@ public class CreateManifestTest {
 
     @Before
     public void setUp() throws Exception {
-        ArchiveUnitMapper archiveUnitMapper = new ArchiveUnitMapper();
-        ObjectGroupMapper objectGroupMapper = new ObjectGroupMapper();
-        createManifest = new CreateManifest(archiveUnitMapper, objectGroupMapper, metaDataClientFactory);
+        createManifest = new CreateManifest(metaDataClientFactory);
     }
 
     @Test
@@ -99,21 +95,25 @@ public class CreateManifestTest {
         JsonNode queryUnit =
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/query.json"));
 
+        JsonNode queryUnitWithTree =
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryWithTreeProjection.json"));
+
         JsonNode queryObjectGroup =
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/queryObjectGroup.json"));
 
-        given(handlerIO.getJsonFromWorkspace("query.json"))
-            .willReturn(queryUnit);
+        given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(queryUnit);
 
-        given(metaDataClient.selectUnits(queryUnit)).willReturn(
+        given(metaDataClient.selectUnits(queryUnit.deepCopy())).willReturn(
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadata.json")));
+
+        given(metaDataClient.selectUnits(queryUnitWithTree)).willReturn(
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultMetadataTree.json")));
 
         given(metaDataClient.selectObjectGroups(queryObjectGroup)).willReturn(
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/CreateManifest/resultObjectGroup.json")));
 
         File manifestFile = tempFolder.newFile();
-        given(handlerIO.getOutput(MANIFEST_XML_RANK))
-            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath()));
+        given(handlerIO.getOutput(MANIFEST_XML_RANK)).willReturn(new ProcessingUri(UriPrefix.WORKSPACE, manifestFile.getPath()));
         given(handlerIO.getNewLocalFile(manifestFile.getPath())).willReturn(manifestFile);
 
         File guidToPathFile = tempFolder.newFile();
