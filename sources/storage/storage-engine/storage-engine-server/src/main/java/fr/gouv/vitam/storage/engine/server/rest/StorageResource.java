@@ -301,7 +301,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * @param type       the object type to list
      * @return a response with listing elements
      */
-    @Path("/{type:UNIT|OBJECT|OBJECTGROUP|LOGBOOK|REPORT|MANIFEST|PROFILE|STORAGELOG|RULES|DIP|AGENCIES}")
+    @Path("/{type:UNIT|OBJECT|OBJECTGROUP|LOGBOOK|REPORT|MANIFEST|PROFILE|STORAGELOG|RULES|DIP|AGENCIES|BACKUP}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -365,9 +365,8 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Get an object data
      *
-     * @param headers       http header
-     * @param objectId      the id of the object
-     * @param asyncResponse async response
+     * @param headers  http header
+     * @param objectId the id of the object
      * @return the stream
      * @throws IOException throws an IO Exception
      */
@@ -385,6 +384,39 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         try {
             return new VitamAsyncInputStreamResponse(
                 getByCategory(objectId, DataCategory.OBJECT, strategyId, vitamCode),
+                Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        } catch (final StorageNotFoundException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_NOT_FOUND;
+        } catch (final StorageException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
+        }
+        return buildErrorResponse(vitamCode);
+    }
+
+    /**
+     * Get colection data.
+     *
+     * @param headers
+     * @param backupfile
+     * @return
+     * @throws IOException
+     */
+    @Path("/backup/{backupfile}")
+    @GET
+    @Produces({MediaType.APPLICATION_OCTET_STREAM})
+    public Response getBackupFile(@Context HttpHeaders headers, @PathParam("backupfile") String backupfile)
+        throws IOException {
+        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        if (vitamCode != null) {
+            return buildErrorResponse(vitamCode);
+        }
+        String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+
+        try {
+            return new VitamAsyncInputStreamResponse(
+                getByCategory(backupfile, DataCategory.BACKUP, strategyId, vitamCode),
                 Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final StorageNotFoundException exc) {
             LOGGER.error(exc);
@@ -964,7 +996,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     }
 
     private Response badRequestResponse(String message) {
-        return Response.status(Response.Status.BAD_REQUEST).entity("{\"error\":\"" + message + "\"}").build();
+        return Response.status(Status.BAD_REQUEST).entity("{\"error\":\"" + message + "\"}").build();
     }
 
     /**
@@ -1136,7 +1168,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     public Response secureStorageLogbook(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
         if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Status.BAD_REQUEST).build();
         }
         try {
             Integer tenantId = Integer.parseInt(xTenantId);
@@ -1189,24 +1221,24 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      *
      * @param httpServletRequest      http servlet request to get requester
      * @param headers                 http header
-     * @param ruleFile                the id of the object
+     * @param backupfile              the id of the object
      * @param createObjectDescription the object description
      * @return Response
      */
     // header (X-Requester)
-    @Path("/rules/{rulefile}")
+    @Path("/backup/{backupfile}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createRuleFile(@Context HttpServletRequest httpServletRequest,
+    public Response createBackupFile(@Context HttpServletRequest httpServletRequest,
         @Context HttpHeaders headers,
-        @PathParam("rulefile") String ruleFile, ObjectDescription createObjectDescription) {
+        @PathParam("backupfile") String backupfile, ObjectDescription createObjectDescription) {
         // If the POST is a creation request
         if (createObjectDescription != null) {
-            return createObjectByType(headers, ruleFile, createObjectDescription, DataCategory.RULES,
+            return createObjectByType(headers, backupfile, createObjectDescription, DataCategory.BACKUP,
                 httpServletRequest.getRemoteAddr());
         } else {
-            return getObjectInformationWithPost(headers, ruleFile);
+            return getObjectInformationWithPost(headers, backupfile);
         }
     }
 

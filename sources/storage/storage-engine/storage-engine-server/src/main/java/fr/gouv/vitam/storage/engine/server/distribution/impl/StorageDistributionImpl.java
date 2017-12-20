@@ -503,6 +503,9 @@ public class StorageDistributionImpl implements StorageDistribution {
             case AGENCIES:
                 description.append("Agencies ");
                 break;
+            case BACKUP:
+                description.append("Backup ");
+                break;
             default:
                 throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
         }
