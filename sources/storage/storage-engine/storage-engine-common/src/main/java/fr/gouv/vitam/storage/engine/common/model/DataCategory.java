@@ -77,7 +77,12 @@ public enum DataCategory {
     /**
      * Rules files
      */
-    AGENCIES("agencies", false, false);
+    AGENCIES("agencies", false, false),
+
+    /**
+     * backup files
+     */
+    BACKUP("backup", false, false);
 
     /**
      * Folder
@@ -99,7 +104,7 @@ public enum DataCategory {
      *
      * @param folder folder
      */
-    private DataCategory(String folder, boolean udpatable, boolean deletable) {
+    DataCategory(String folder, boolean udpatable, boolean deletable) {
         this.folder = folder;
         this.updatable = udpatable;
         this.deletable = deletable;

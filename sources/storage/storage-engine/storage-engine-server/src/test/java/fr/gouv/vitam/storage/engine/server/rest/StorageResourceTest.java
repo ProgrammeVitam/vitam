@@ -37,12 +37,10 @@ import java.util.Set;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.serverv2.application.ApplicationParameter;
@@ -68,7 +66,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
-import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
@@ -111,17 +108,18 @@ public class StorageResourceTest {
     private static final String MANIFESTS_URI = "/manifests";
     private static final String STORAGELOG = "/storagelog";
     private static final String STORAGERULE = "/rules";
-
     private static final String STORAGELOG_ID_URI = "/{storagelogname}";
     private static final String STORAGERULE_ID_URI = "/{rulefile}";
-
     private static final String MANIFEST_ID_URI = "/{id_manifest}";
+    private static final String STORAGE_BACKUP = "/backup";
+    private static final String STORAGE_BACKUP_ID_URI = "/{backupfile}";
 
     private static final String ID_O1 = "idO1";
 
     private static JunitHelper junitHelper;
 
     private static final String STRATEGY_ID = "strategyId";
+
     private static final Integer TENANT_ID = 0;
     private static final Integer TENANT_ID_E = 1;
     private static final Integer TENANT_ID_A_E = 2;
@@ -218,7 +216,7 @@ public class StorageResourceTest {
             .body("").when().get(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         given().contentType(ContentType.JSON)
-            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), 
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
                 TENANT_ID, VitamHttpHeader.OFFERS_IDS.getName(), "offerId")
             .body("").when().get(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.OK.getStatusCode());
@@ -234,7 +232,8 @@ public class StorageResourceTest {
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID,
-                VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.GET, VitamHttpHeader.OFFERS_IDS.getName(), "offerId")
+                VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.GET, VitamHttpHeader.OFFERS_IDS.getName(),
+                "offerId")
             .when().post(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.OK.getStatusCode());
         given().contentType(ContentType.JSON)
@@ -269,7 +268,8 @@ public class StorageResourceTest {
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
                 TENANT_ID_E)
-            .when().head(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .when().head(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
                 TENANT_ID_E, VitamHttpHeader.OFFERS_IDS.getName(), "offerId")
@@ -444,6 +444,55 @@ public class StorageResourceTest {
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
             .when().post(STORAGERULE + STORAGERULE_ID_URI, ID_O1).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public final void testBackupStorage() {
+
+        final ObjectDescription createObjectDescription = new ObjectDescription();
+        createObjectDescription.setWorkspaceObjectURI("bb");
+        createObjectDescription.setWorkspaceContainerGUID("bb");
+
+        given().contentType(ContentType.JSON)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .body(createObjectDescription).when().post(STORAGE_BACKUP + STORAGE_BACKUP_ID_URI, ID_O1).then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        given().contentType(ContentType.JSON)
+            .body(createObjectDescription).when()
+            .post(STORAGE_BACKUP + STORAGE_BACKUP_ID_URI, ID_O1).then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given().contentType(ContentType.JSON)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
+                TENANT_ID_Ardyexist)
+            .body(createObjectDescription).when().post(STORAGE_BACKUP + STORAGE_BACKUP_ID_URI, ID_O1).then()
+            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+
+        given().contentType(ContentType.JSON)
+            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .when().post(STORAGE_BACKUP + STORAGE_BACKUP_ID_URI, ID_O1).then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void getBackupOk() throws Exception {
+        given().accept(MediaType.APPLICATION_OCTET_STREAM)
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID, VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
+            .when().get(STORAGE_BACKUP + STORAGE_BACKUP_ID_URI, "id0").then().statusCode(Status.OK.getStatusCode());
+        given().accept(MediaType.APPLICATION_OCTET_STREAM).when().get(STORAGE_BACKUP + STORAGE_BACKUP_ID_URI, "id0").then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+        given().accept(MediaType.APPLICATION_OCTET_STREAM)
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_E, VitamHttpHeader.STRATEGY_ID.getName(),
+                STRATEGY_ID)
+            .when().get(STORAGE_BACKUP + STORAGE_BACKUP_ID_URI, "id0").then().statusCode(Status.NOT_FOUND.getStatusCode());
+
+        given().accept(MediaType.APPLICATION_OCTET_STREAM)
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_A_E, VitamHttpHeader.STRATEGY_ID.getName(),
+                STRATEGY_ID)
+            .when().get(STORAGE_BACKUP + STORAGE_BACKUP_ID_URI, "id0").then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test
@@ -949,7 +998,8 @@ public class StorageResourceTest {
         public BusinessApplicationInner(@Context ServletConfig servletConfig) {
             classes = new HashSet<>();
             classes.add(HeaderIdContainerFilter.class);
-            this.configurationFile = servletConfig.getInitParameter(ApplicationParameter.CONFIGURATION_FILE_APPLICATION);
+            this.configurationFile =
+                servletConfig.getInitParameter(ApplicationParameter.CONFIGURATION_FILE_APPLICATION);
         }
 
 
@@ -971,6 +1021,7 @@ public class StorageResourceTest {
             return singletons;
         }
     }
+
 
     public static class StorageDistributionInnerClass implements StorageDistribution {
 
