@@ -41,7 +41,6 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -56,10 +55,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.format.DateTimeFormatter;
 
 import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.json.JsonHandler.createJsonGenerator;
+import static fr.gouv.vitam.functional.administration.common.counter.SequenceType.fromFunctionalAdminCollections;
 
 
 /**
@@ -70,7 +71,7 @@ public class FunctionalBackupService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FunctionalBackupService.class);
     public static final String FIELD_COLLECTION = "collection";
     public static final String FIELD_SEQUENCE = "sequence";
-    public static final String DEFAULT_EXTENSION = "csv";
+    public static final String DEFAULT_EXTENSION = "json";
     private final BackupService backupService;
     private final VitamCounterService vitamCounterService;
     private final BackupLogbookManager backupLogbookManager;
@@ -142,6 +143,48 @@ public class FunctionalBackupService {
         }
     }
 
+    /**
+     * save  file and log in logbook
+     *
+     * @param inputStream
+     * @param eipMaster
+     * @param eventCode
+     * @param storageCollectionType
+     * @param tenant
+     * @param fileName
+     * @throws VitamException
+     */
+    public void saveFile(InputStream inputStream, GUID eipMaster, String eventCode,
+        StorageCollectionType storageCollectionType, int tenant, String fileName)
+        throws VitamException {
+        final DigestType digestType = VitamConfiguration.getDefaultDigestType();
+        final Digest digest = new Digest(digestType);
+        digest.getDigestInputStream(inputStream);
+
+        String uri = getName(storageCollectionType, tenant, fileName);
+        // Save data to storage
+
+        try {
+            backupService.backup(inputStream, storageCollectionType, uri);
+
+            backupLogbookManager.logEventSuccess(eipMaster, eventCode, digest, fileName);
+        } catch (BackupServiceException e) {
+            LOGGER.error(e);
+            backupLogbookManager.logError(eipMaster, eventCode, e.getMessage());
+        }
+    }
+
+    /**
+     * @param storageCollectionType
+     * @param tenant
+     * @param fileName
+     * @return
+     */
+    public String getName(StorageCollectionType storageCollectionType, int tenant, String fileName) {
+        return String.format("%d_%s_%s", tenant, storageCollectionType.getCollectionName(), fileName);
+    }
+
+
     private File saveFunctionalCollectionToTempFile(final FunctionalAdminCollections collectionToSave, final int tenant)
         throws ReferentialException, InvalidParseOperationException, IOException {
 
@@ -170,10 +213,10 @@ public class FunctionalBackupService {
             jsonGenerator.writeEndArray();
 
             jsonGenerator.writeFieldName(FIELD_SEQUENCE);
-            Integer sequence =
-                vitamCounterService.getSequence(tenant, SequenceType.fromFunctionalAdminCollections(collectionToSave));
+            VitamSequence sequence = vitamCounterService
+                .getSequenceDocument(tenant, fromFunctionalAdminCollections(collectionToSave));
 
-            jsonGenerator.writeNumber(sequence);
+            jsonGenerator.writeRawValue(sequence.toJson());
             jsonGenerator.writeEndObject();
             jsonGenerator.flush();
         } finally {

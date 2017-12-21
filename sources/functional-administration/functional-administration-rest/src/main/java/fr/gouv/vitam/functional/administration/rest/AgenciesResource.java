@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
@@ -51,16 +52,16 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
-
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.functional.administration.common.Agencies;
 import fr.gouv.vitam.functional.administration.common.ErrorReportAgencies;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.agencies.api.AgenciesService;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
-import fr.gouv.vitam.functional.administration.common.FilesSecurisator;
+
 
 
 /**
@@ -83,10 +84,8 @@ public class AgenciesResource {
         "The json input of agency is mandatory";
 
     private final MongoDbAccessAdminImpl mongoAccess;
+    private final FunctionalBackupService functionalBackupService;
     private VitamCounterService vitamCounterService;
-
-    private FilesSecurisator securisator = new FilesSecurisator();
-
     /**
      * @param mongoAccess
      * @param vitamCounterService
@@ -95,6 +94,21 @@ public class AgenciesResource {
         VitamCounterService vitamCounterService) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
+        this.functionalBackupService = new FunctionalBackupService(vitamCounterService);
+        LOGGER.debug("init Admin Management Resource server");
+    }
+
+    /**
+     * @param mongoAccess
+     * @param vitamCounterService
+     */
+    @VisibleForTesting
+    public AgenciesResource(MongoDbAccessAdminImpl mongoAccess,
+        VitamCounterService vitamCounterService,
+        FunctionalBackupService functionalBackupService) {
+        this.mongoAccess = mongoAccess;
+        this.vitamCounterService = vitamCounterService;
+        this.functionalBackupService = functionalBackupService;
         LOGGER.debug("init Admin Management Resource server");
     }
 
@@ -105,7 +119,8 @@ public class AgenciesResource {
     public Response importAgencies(InputStream inputStream, @Context UriInfo uri) {
         ParametersChecker.checkParameter(AGENCIES_FILES_IS_MANDATORY_PATAMETER, inputStream);
 
-        try (AgenciesService agencies = new AgenciesService(mongoAccess, vitamCounterService, securisator)) {
+        try (AgenciesService agencies = new AgenciesService(mongoAccess, vitamCounterService,
+            functionalBackupService)) {
 
             RequestResponse requestResponse = agencies.importAgencies(inputStream);
 
@@ -156,7 +171,8 @@ public class AgenciesResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findAgencies(JsonNode queryDsl) {
 
-        try (AgenciesService agencyService = new AgenciesService(mongoAccess, vitamCounterService, securisator)) {
+        try (AgenciesService agencyService = new AgenciesService(mongoAccess, vitamCounterService,
+            functionalBackupService)) {
             SanityChecker.checkJsonAll(queryDsl);
             try (DbRequestResult result = agencyService.findAgencies(queryDsl)) {
                 RequestResponseOK<AgenciesModel> response =
@@ -185,7 +201,8 @@ public class AgenciesResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getAgencies(JsonNode queryDsl) {
-        try (AgenciesService agencyService = new AgenciesService(mongoAccess, vitamCounterService, securisator)) {
+        try (AgenciesService agencyService = new AgenciesService(mongoAccess, vitamCounterService,
+            functionalBackupService)) {
             SanityChecker.checkJsonAll(queryDsl);
 
             final DbRequestResult agenciesModelList = agencyService.findAgencies(queryDsl);
@@ -228,7 +245,8 @@ public class AgenciesResource {
      */
     private Response downloadErrorReport(InputStream document) {
         Map<Integer, List<ErrorReportAgencies>> errors = new HashMap<>();
-        try (AgenciesService agenciesService = new AgenciesService(mongoAccess, vitamCounterService, securisator)) {
+        try (AgenciesService agenciesService = new AgenciesService(mongoAccess, vitamCounterService,
+            functionalBackupService)) {
             agenciesService.checkFile(document);
             InputStream errorReportInputStream =
                 agenciesService.generateErrorReport();
@@ -251,7 +269,8 @@ public class AgenciesResource {
     private Response handleGenerateReport(
         Map<Integer, List<ErrorReportAgencies>> errors) {
         InputStream errorReportInputStream = null;
-        try (AgenciesService agenciesService = new AgenciesService(mongoAccess, vitamCounterService, securisator)) {
+        try (AgenciesService agenciesService = new AgenciesService(mongoAccess, vitamCounterService,
+            functionalBackupService)) {
             errorReportInputStream =
                 agenciesService.generateErrorReport();
             Map<String, String> headers = new HashMap<>();
