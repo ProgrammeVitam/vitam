@@ -586,7 +586,7 @@ Une fenêtre modale s'ouvre alors pour indiquer soit :
 - Que les contextes ont bien été importés
 - Un échec de l'import du fichier, pouvant être causé par :
 
-	- Le fait que le contexte existe déjà dans le système
+    - Le fait que le contexte existe déjà dans le système
     - Le fait que le fichier est invalide (mauvais format ou champ obligatoire absent)
     - Le fait que le contexte déclare des contrats d'entrée ou des contrats d'accès qui n'existent pas dans les référentiels des contrats de leur tenant.
 
