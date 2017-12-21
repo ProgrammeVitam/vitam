@@ -72,11 +72,16 @@ public class World {
     private String unitId;
     private String applicationSessionId;
 
-
     /**
      * id of the operation
      */
     private String operationId;
+    /**
+     * DSL query
+     */
+    private String query;
+
+
     /**
      * Map of operations ids by testSet
      */
@@ -246,6 +251,22 @@ public class World {
      */
     public void setOperationId(String operationId) {
         this.operationId = operationId;
+    }
+
+    /**
+     * 
+     * @return the dsl query
+     */
+    public String getQuery() {
+        return query;
+    }
+
+    /**
+     * 
+     * @param query the query
+     */
+    public void setQuery(String query) {
+        this.query = query;
     }
 
     /**

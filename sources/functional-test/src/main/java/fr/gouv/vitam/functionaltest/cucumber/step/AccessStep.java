@@ -1,5 +1,5 @@
 /**
- * objectRequestResponseOK * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
+ * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  * <p>
  * contact.vitam@culture.gouv.fr
  * <p>
@@ -38,10 +38,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -50,7 +50,6 @@ import javax.ws.rs.core.Response.Status;
 
 import org.assertj.core.api.Fail;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterables;
@@ -100,13 +99,9 @@ public class AccessStep {
 
     private static final String REGEX = "(\\{\\{(.*?)\\}\\})";
 
-    private static final String TITLE = "Title";
-
     private List<JsonNode> results;
 
     private World world;
-
-    private String query;
 
     private Status auditStatus;
     private static String savedUnit;
@@ -136,57 +131,27 @@ public class AccessStep {
      */
     @Then("^les metadonnées pour le résultat (\\d+)$")
     public void metadata_are_for_particular_result(int resultNumber, DataTable dataTable) throws Throwable {
-        JsonNode jsonNode = Iterables.get(results, resultNumber);
-
-        List<List<String>> raws = dataTable.raw();
-
-        for (List<String> raw : raws) {
-            String key = raw.get(0);
-            boolean isArray = false;
-            boolean isOfArray = false;
-
-
-            if (null != key && key.endsWith(".array[][]")) {
-                key = key.replace(".array[][]", "");
-                isOfArray = true;
-            }
-
-            if (null != key && key.endsWith(".array[]")) {
-                key = key.replace(".array[]", "");
-                isArray = true;
-            }
-
-            String resultValue = getResultValue(jsonNode, key);
-            if (null != resultValue) {
-                resultValue = resultValue.replace("\n", "").replace("\\n", "");
-            }
-            String resultExpected = transformToGuid(raw.get(1));
-            if (null != resultExpected) {
-                resultExpected = resultExpected.replace("\n", "").replace("\\n", "");
-            }
-
-            if (!isArray && !isOfArray) {
-                assertThat(resultValue).contains(resultExpected);
-            } else {
-                if (isArray) {
-                    Set<String> resultArray =
-                        JsonHandler.getFromStringAsTypeRefence(resultValue, new TypeReference<Set<String>>() {});
-
-                    Set<String> expectedrray =
-                        JsonHandler.getFromStringAsTypeRefence(resultExpected, new TypeReference<Set<String>>() {});
-                    assertThat(resultArray).isEqualTo(expectedrray);
-                } else {
-                    Set<Set<String>> resultArray =
-                        JsonHandler.getFromStringAsTypeRefence(resultValue, new TypeReference<Set<Set<String>>>() {});
-
-                    Set<Set<String>> expectedrray =
-                        JsonHandler
-                            .getFromStringAsTypeRefence(resultExpected, new TypeReference<Set<Set<String>>>() {});
-
-                    assertThat(expectedrray).isEqualTo(resultArray);
-                }
-            }
+        // Transform results 
+        List<JsonNode> transformedResults = new ArrayList<>();
+        for(JsonNode result : results) {
+            String resultAsString = JsonHandler.unprettyPrint(result);
+            String resultAsStringTransformed = transformUnitTitleToGuid(resultAsString);
+            transformedResults.add(JsonHandler.getFromString(resultAsStringTransformed));
         }
+        // Transform validation data
+        List<List<String>> modifiedRaws = new ArrayList<>();
+        List<List<String>> raws = dataTable.raw();
+        for (List<String> raw : raws) {
+            List<String> modifiedSubRaws = new ArrayList<>();
+            for(String subRaw : raw) {
+                modifiedSubRaws.add(transformUnitTitleToGuid(subRaw));  
+            }
+            modifiedRaws.add(modifiedSubRaws);
+        }
+        List<String> topCells = modifiedRaws.isEmpty() ? Collections.<String>emptyList() : modifiedRaws.get(0);
+        DataTable transformedDataTable = dataTable.toTable(modifiedRaws, topCells.toArray(new String[topCells.size()]));
+        
+        world.getAccessService().checkResultsForParticularData(transformedResults, resultNumber, transformedDataTable);
     }
 
     /**
@@ -212,40 +177,12 @@ public class AccessStep {
         }
     }
 
-    /**
-     * @param lastJsonNode
-     * @param raw
-     * @return
-     * @throws Throwable
-     */
-    private String getResultValue(JsonNode lastJsonNode, String raw) throws Throwable {
-        String rawCopy = transformToGuid(raw);
-        String[] paths = rawCopy.split("\\.");
-        for (String path : paths) {
-            if (lastJsonNode.isArray()) {
-                try {
-                    int value = Integer.valueOf(path);
-                    lastJsonNode = lastJsonNode.get(value);
-                } catch (NumberFormatException e) {
-                    LOGGER.warn(e);
-                }
-            } else {
-                lastJsonNode = lastJsonNode.get(path);
-            }
-        }
 
-        if (lastJsonNode != null) {
-            return JsonHandler.unprettyPrint(lastJsonNode);
-        } else {
-            return "{}";
-        }
-    }
-
-    private String transformToGuid(String raw) throws Throwable {
+    private String transformUnitTitleToGuid(String result) throws Throwable {
 
         Matcher matcher = Pattern.compile(REGEX)
-            .matcher(raw);
-        String rawCopy = new String(raw);
+            .matcher(result);
+        String resultCopy = new String(result);
         Map<String, String> unitToGuid = new HashMap<>();
         while (matcher.find()) {
             String unit = matcher.group(1);
@@ -259,12 +196,10 @@ public class AccessStep {
                     unitTitle);
                 unitToGuid.put(unitTitle, unitGuid);
             }
-            rawCopy = rawCopy.replace(unit, unitGuid);
+            resultCopy = resultCopy.replace(unit, unitGuid);
         }
-        return rawCopy;
+        return resultCopy;
     }
-
-
 
     /**
      * Get a specific field value from a result identified by its index
@@ -302,7 +237,7 @@ public class AccessStep {
      */
     @Then("^le statut de select résultat est (.*)$")
     public void the_status_of_the_select_result(String status) throws Throwable {
-        JsonNode queryJSON = JsonHandler.getFromString(query);
+        JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
 
         requestResponse = world.getAccessClient().selectUnits(
             new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
@@ -334,7 +269,7 @@ public class AccessStep {
      */
     @Then("^le statut de update résultat est (.*)$")
     public void the_status_of_the_update_result(String status) throws Throwable {
-        JsonNode queryJSON = JsonHandler.getFromString(query);
+        JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
         String s = null;
         // get id of last result
         String unitId = getValueFromResult("#id", 0);
@@ -356,10 +291,11 @@ public class AccessStep {
     @When("^j'utilise le fichier de requête suivant (.*)$")
     public void i_use_the_following_file_query(String queryFilename) throws Throwable {
         Path queryFile = Paths.get(world.getBaseDirectory(), queryFilename);
-        this.query = FileUtil.readFile(queryFile.toFile());
+        String query = FileUtil.readFile(queryFile.toFile());
         if (world.getOperationId() != null) {
-            this.query = this.query.replace(OPERATION_ID, world.getOperationId());
+            query = query.replace(OPERATION_ID, world.getOperationId());
         }
+        world.setQuery(query);
     }
 
     /**
@@ -371,7 +307,8 @@ public class AccessStep {
      */
     @When("^j'utilise dans la requête le paramètre (.*) avec la valeur (.*)$")
     public void i_use_the_following_parameter_query_with_values(String parameter, String value) throws Throwable {
-        this.query = this.query.replace(parameter, value);
+        String query = world.getQuery().replace(parameter, value);
+        world.setQuery(query);
     }
 
     /**
@@ -384,7 +321,8 @@ public class AccessStep {
     public void i_use_the_following_unit_guid_for_title(String title) throws Throwable {
         String unitGuid = world.getAccessService().findUnitGUIDByTitleAndOperationId(world.getAccessClient(),
             world.getTenantId(), world.getContractId(), world.getApplicationSessionId(), world.getOperationId(), title);
-        this.query = this.query.replace("{{guid}}", unitGuid);
+        String query = world.getQuery().replace("{{guid}}", unitGuid);
+        world.setQuery(query);
     }
 
     /**
@@ -395,10 +333,11 @@ public class AccessStep {
      */
     @When("^j'utilise la requête suivante$")
     public void i_use_the_following_query(String query) throws Throwable {
-        this.query = query;
+        String queryTmp = query;
         if (world.getOperationId() != null) {
-            this.query = this.query.replace(OPERATION_ID, world.getOperationId());
+            queryTmp = queryTmp.replace(OPERATION_ID, world.getOperationId());
         }
+        world.setQuery(queryTmp);
     }
 
     /**
@@ -409,9 +348,9 @@ public class AccessStep {
      */
     @When("^j'utilise la requête suivante avec l'identifient sauvégardé$")
     public void i_use_the_following_query_with_saved(String query) throws Throwable {
-        this.query = query;
+        String queryTmp = query;
         if (world.getOperationId() != null) {
-            this.query = this.query.replace(OPERATION_ID, world.getOperationId());
+            queryTmp = queryTmp.replace(OPERATION_ID, world.getOperationId());
         }
     }
 
@@ -422,7 +361,7 @@ public class AccessStep {
      */
     @When("^je recherche les unités archivistiques$")
     public void search_archive_unit() throws Throwable {
-        JsonNode queryJSON = JsonHandler.getFromString(query);
+        JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
         RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(
             new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
                 .setApplicationSessionId(world.getApplicationSessionId()),
@@ -440,9 +379,10 @@ public class AccessStep {
     public void search_archive_unit(String originatingSystemId) throws Throwable {
 
 
-        this.query = this.query.replace("Originating_System_Id", originatingSystemId);
-
-        JsonNode queryJSON = JsonHandler.getFromString(query);
+        String queryTmp = world.getQuery().replace("Originating_System_Id", originatingSystemId);
+        world.setQuery(queryTmp);
+        
+        JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
 
         RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(
             new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
@@ -466,7 +406,7 @@ public class AccessStep {
      */
     @When("^je recherche une unité archivistique et je recupère son id$")
     public void search_one_archive_unit() throws Throwable {
-        JsonNode queryJSON = JsonHandler.getFromString(query);
+        JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
         RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(
             new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
                 .setApplicationSessionId(world.getApplicationSessionId()),
@@ -487,7 +427,7 @@ public class AccessStep {
      */
     @When("^je modifie les unités archivistiques$")
     public void update_archive_unit() throws Throwable {
-        JsonNode queryJSON = JsonHandler.getFromString(query);
+        JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
         // get id of last result
         String unitId = getValueFromResult("#id", 0);
         savedUnit = unitId;
@@ -530,7 +470,7 @@ public class AccessStep {
      */
     @When("^je recherche les groupes d'objets des unités archivistiques$")
     public void search_archive_unit_object_group() throws Throwable {
-        ObjectNode queryJSON = (ObjectNode) JsonHandler.getFromString(query);
+        ObjectNode queryJSON = (ObjectNode) JsonHandler.getFromString(world.getQuery());
         // update projection to unsure object id is in projection
         if (queryJSON.get("$projection") == null) {
             queryJSON.set("$projection", JsonHandler.createObjectNode());
@@ -607,7 +547,7 @@ public class AccessStep {
      */
     @When("^je recherche les journaux d'opération$")
     public void search_logbook_operation() throws Throwable {
-        JsonNode queryJSON = JsonHandler.getFromString(query);
+        JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
         RequestResponse<LogbookOperation> requestResponse =
             world.getAccessClient().selectOperations(
                 new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
@@ -617,29 +557,6 @@ public class AccessStep {
             RequestResponseOK<LogbookOperation> requestResponseOK =
                 (RequestResponseOK<LogbookOperation>) requestResponse;
             results = requestResponseOK.getResultsAsJsonNodes();
-        } else {
-            VitamError vitamError = (VitamError) requestResponse;
-            Fail.fail("request selectOperation return an error: " + vitamError.getCode());
-        }
-    }
-
-    /**
-     * search an accession register detail according to the originating agency and the query define before
-     *
-     * @param originatingAgency originating agency
-     * @throws Throwable
-     */
-    @When("^je recherche les détails des registres de fond pour le service producteur (.*)$")
-    public void search_accession_regiter_detail(String originatingAgency) throws Throwable {
-        JsonNode queryJSON = JsonHandler.getFromString(query);
-        RequestResponse<JsonNode> requestResponse =
-            world.getAdminClient().getAccessionRegisterDetail(
-                new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                    .setApplicationSessionId(world.getApplicationSessionId()),
-                originatingAgency, queryJSON);
-        if (requestResponse.isOk()) {
-            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
-            results = requestResponseOK.getResults();
         } else {
             VitamError vitamError = (VitamError) requestResponse;
             Fail.fail("request selectOperation return an error: " + vitamError.getCode());
@@ -717,7 +634,7 @@ public class AccessStep {
      */
     @When("^je recherche les données dans le référentiel (.*)$")
     public void search_in_admin_collection(String collection) throws Throwable {
-        JsonNode queryJSON = JsonHandler.getFromString(query);
+        JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
         AdminCollections adminCollection = AdminCollections.valueOf(collection);
         RequestResponse requestResponse = null;
         switch (adminCollection) {
@@ -757,12 +674,6 @@ public class AccessStep {
                         .setApplicationSessionId(world.getApplicationSessionId()),
                     queryJSON);
                 break;
-            case ACCESSION_REGISTERS:
-                requestResponse = world.getAdminClient().findAccessionRegister(
-                    new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                        .setApplicationSessionId(world.getApplicationSessionId()),
-                    queryJSON);
-                break;
             default:
                 break;
         }
@@ -781,12 +692,13 @@ public class AccessStep {
     @When("^je modifie le contrat d'accès (.*) avec le fichier de requête suivant (.*)$")
     public void je_modifie_le_contrat_d_accès(String name, String queryFilename) throws Throwable {
         Path queryFile = Paths.get(world.getBaseDirectory(), queryFilename);
-        this.query = FileUtil.readFile(queryFile.toFile());
+        String query = FileUtil.readFile(queryFile.toFile());
         if (world.getOperationId() != null) {
-            this.query = this.query.replace(OPERATION_ID, world.getOperationId());
+            query = query.replace(OPERATION_ID, world.getOperationId());
         }
+        world.setQuery(query);
 
-        JsonNode queryDsl = JsonHandler.getFromString(query);
+        JsonNode queryDsl = JsonHandler.getFromString(world.getQuery());
         world.getAdminClient().updateAccessContract(
             new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
             get_contract_id_by_name(name), queryDsl);
