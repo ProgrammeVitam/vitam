@@ -182,6 +182,14 @@
     vitam_struct: "{{ vitam.logbook }}"
     vitam_timestamp_usage: secure-logbook
 
+
+- hosts: hosts-workspace
+  roles:
+    - vitam
+  vars:
+    vitam_struct: "{{ vitam.workspace }}"
+
+
 - hosts: hosts-functional-administration
   roles:
     - vitam
@@ -195,14 +203,6 @@
     - init_contexts_and_security_profiles
   vars:
     vitam_struct: "{{ vitam.security_internal }}"
-
-
-
-- hosts: hosts-workspace
-  roles:
-    - vitam
-  vars:
-    vitam_struct: "{{ vitam.workspace }}"
 
 
 

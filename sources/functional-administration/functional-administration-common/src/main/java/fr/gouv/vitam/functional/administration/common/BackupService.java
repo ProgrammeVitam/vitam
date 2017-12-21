@@ -94,14 +94,14 @@ public class BackupService {
         } catch (ContentAddressableStorageServerException
             | ContentAddressableStorageAlreadyExistException e) {
             //workspace Error
-            throw new BackupServiceException("Unable to store file in workSpace");
+            throw new BackupServiceException("Unable to store file in workSpace", e);
 
         } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
             //Offer storage Error
-            throw new BackupServiceException("Unable to store file from workSpace");
+            throw new BackupServiceException("Unable to store file from workSpace", e);
         } catch (ContentAddressableStorageNotFoundException e) {
             // clean container Error
-            throw new BackupServiceException("Unable to delete file");
+            throw new BackupServiceException("Unable to delete file", e);
         } finally {
             StreamUtils.closeSilently(stream);
         }
