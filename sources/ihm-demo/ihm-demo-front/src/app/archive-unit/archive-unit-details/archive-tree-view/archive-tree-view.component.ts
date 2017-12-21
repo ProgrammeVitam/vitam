@@ -21,6 +21,8 @@ export class ArchiveTreeViewComponent implements OnInit, OnChanges {
   ngOnChanges(change) {
     if(change.unitId) {
       this.initRoot();
+    } else if (change.title) {
+      this.root.label = change.title.currentValue;
     }
   }
 

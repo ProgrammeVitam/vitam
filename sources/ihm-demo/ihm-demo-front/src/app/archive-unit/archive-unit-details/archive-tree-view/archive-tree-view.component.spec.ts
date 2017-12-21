@@ -195,4 +195,39 @@ describe('ArchiveTreeViewComponent', () => {
     expect(spyOnGetResulsts.calls.count()).toEqual(1);
     expect(node.data.haveMoreParents).toBeFalsy();
   });
+
+  it('should update title when title change', () => {
+    component.title = 'Test Title';
+    component.unitId = 'id';
+    component.type = 'type';
+    component.unitUps = [];
+    component.initRoot();
+
+    component.title = 'New Title';
+    component.ngOnChanges({
+      'title': {
+        currentValue: 'New Title'
+      }
+    });
+
+    expect(component.root.label).toBe('New Title');
+  });
+
+  it('should reinit component when id change', () => {
+    component.title = 'Test Title';
+    component.unitId = 'id';
+    component.type = 'type';
+    component.unitUps = [];
+    component.initRoot();
+    expect(component.root.id).toBe('id');
+
+    component.unitId = 'NewID';
+    component.ngOnChanges({
+      'unitId': {
+        currentValue: 'NewID'
+      }
+    });
+
+    expect(component.root.id).toBe('NewID');
+  });
 });

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnChanges, Input } from '@angular/core';
+import {Component, OnInit, OnChanges, Input, Output, EventEmitter} from '@angular/core';
 import { ArchiveUnitService } from "../../archive-unit.service";
 import { ArchiveUnitHelper } from "../../archive-unit.helper";
 import { Router, ActivatedRoute } from "@angular/router";
@@ -10,6 +10,7 @@ import { Router, ActivatedRoute } from "@angular/router";
 })
 export class ArchiveMainDescriptionComponent implements OnInit, OnChanges {
   @Input() archiveUnit;
+  @Output() titleUpdate = new EventEmitter<string>();
   dataToDisplay: any;
   keyToLabel = (x) => x;
   update = false;
@@ -51,8 +52,12 @@ export class ArchiveMainDescriptionComponent implements OnInit, OnChanges {
 
   saveUpdate() {
     this.saveRunning = true;
+    let newTitle;
     let updateStructure = [];
     for(let fieldName in this.updatedFields) {
+      if (fieldName === 'Title') {
+        newTitle = this.updatedFields[fieldName];
+      }
       updateStructure.push({fieldId: fieldName, newFieldValue: this.updatedFields[fieldName]});
     }
     this.archiveUnitService.updateMetadata(this.archiveUnit['#id'], updateStructure)
@@ -64,6 +69,9 @@ export class ArchiveMainDescriptionComponent implements OnInit, OnChanges {
             this.update = false;
             this.saveRunning = false;
             this.displayOK = true;
+            if (newTitle) {
+              this.titleUpdate.emit(newTitle)
+            }
           }, (error) => {
             this.saveRunning = false;
           });
