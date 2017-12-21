@@ -10,6 +10,7 @@ import {FieldDefinition} from '../../common/search/field-definition';
 import {DateService} from '../../common/utils/date.service';
 import {ColumnDefinition} from '../../common/generic-table/column-definition';
 import {ReferentialsService} from "./../referentials.service";
+import {ArchiveUnitHelper} from "../../archive-unit/archive-unit.helper";
 
 @Component({
   selector: 'vitam-search-referentials',
@@ -34,7 +35,7 @@ export class SearchReferentialsComponent extends PageComponent {
 
   constructor(private activatedRoute: ActivatedRoute, private router: Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
-              private searchReferentialsService: ReferentialsService) {
+              private searchReferentialsService: ReferentialsService, private archiveUnitHelper: ArchiveUnitHelper) {
     super('Recherche du référentiel', [], titleService, breadcrumbService);
 
     this.activatedRoute.params.subscribe(params => {
@@ -154,7 +155,7 @@ export class SearchReferentialsComponent extends PageComponent {
           this.columns = [
             ColumnDefinition.makeStaticColumn('RuleValue', 'Intitulé', undefined,
               () => ({'width': '325px'})),
-            ColumnDefinition.makeStaticColumn('RuleType', 'Type', undefined,
+            ColumnDefinition.makeStaticColumn('RuleType', 'Type', SearchReferentialsComponent.ruleToLabel(archiveUnitHelper.rulesCategories),
               () => ({'width': '125px'})),
             ColumnDefinition.makeSpecialValueColumn('Durée', SearchReferentialsComponent.appendUnitToRuleDuration,
               undefined, () => ({'width': '125px'}), 'custom', this.sortableDuration, 'dureeField'),
@@ -348,6 +349,18 @@ export class SearchReferentialsComponent extends PageComponent {
       },
       (error) => responseEvent.emit({response: null, form: form})
     );
+  }
+
+  static ruleToLabel(rulesCategories) {
+    return function (item) {
+      let rules = rulesCategories
+        .filter(x => x.rule === item)
+        .map(x => x.label);
+      if (rules.length === 1) {
+        return rules[0];
+      }
+      return '';
+    };
   }
 
   static handleStatus(status): string {
