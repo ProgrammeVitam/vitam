@@ -1,6 +1,5 @@
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -28,7 +27,6 @@ public class UnitGraph {
             });
     }
 
-    // work only with one parent
     public UnitModel createGraph(DescriptiveMetadataModel descriptiveMetadataModel, String rootId, int tenantId,
         String originatingAgency) {
 
@@ -56,15 +54,11 @@ public class UnitGraph {
         unitModel.getUs().add(rootId);
 
         // calcul de l'uds
-        unitModel.getUds().putAll(rootUnit.getUds());
-        // create a copy of a map
-        Map<String, Integer> uds = unitModel.getUds();
-        for (String s : uds.keySet()) {
-            uds.replace(s, uds.get(s) + 1);
+        for (String s : rootUnit.getUds().keySet()) {
+            unitModel.getUds().merge(s, rootUnit.getUds().get(s) + 1, Math::min);
         }
 
-        uds.put(rootId, 1);
-
+        unitModel.getUds().put(rootId, 1);
         return unitModel;
     }
 

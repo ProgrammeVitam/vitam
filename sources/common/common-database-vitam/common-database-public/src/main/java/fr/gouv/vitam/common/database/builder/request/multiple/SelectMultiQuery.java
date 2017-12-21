@@ -333,7 +333,7 @@ public class SelectMultiQuery extends RequestMultiple {
      * @param limit ignored if 0
      * @return this Query
      */
-    public final SelectMultiQuery setScrollFilter(final String scrollId, final long scrollTimeout, final long limit) {
+    public final SelectMultiQuery setScrollFilter(final String scrollId, final int scrollTimeout, final int limit) {
         selectSetScrollFilter(scrollId, scrollTimeout, limit);
         return this;
     }

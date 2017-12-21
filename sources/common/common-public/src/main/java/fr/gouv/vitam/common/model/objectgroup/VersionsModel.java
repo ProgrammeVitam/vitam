@@ -42,7 +42,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class VersionsModel {
 
-    @JsonProperty("_rank")
+    @JsonProperty("#rank")
     private int rank;
 
     @JsonProperty("#id")
@@ -75,7 +75,7 @@ public class VersionsModel {
     @JsonProperty("Algorithm")
     private String algorithm;
 
-    @JsonProperty("_storage")
+    @JsonProperty("#storage")
     private StorageJson storage;
 
     @JsonProperty("PhysicalDimensions")

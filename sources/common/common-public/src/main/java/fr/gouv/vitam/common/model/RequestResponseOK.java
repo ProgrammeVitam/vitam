@@ -267,8 +267,17 @@ public final class RequestResponseOK<T> extends RequestResponse<T> {
      * @return the corresponding VitamError
      * @throws InvalidParseOperationException if parse json object exception occurred
      */
-    public static RequestResponseOK getFromJsonNode(JsonNode node) throws InvalidParseOperationException {
+    public static RequestResponseOK<JsonNode> getFromJsonNode(JsonNode node) throws InvalidParseOperationException {
         return JsonHandler.getFromString(node.toString(), RequestResponseOK.class, JsonNode.class);
+    }
+
+    /**
+     * @param node to transform
+     * @return the corresponding VitamError
+     * @throws InvalidParseOperationException if parse json object exception occurred
+     */
+    public static <T> RequestResponseOK<T> getFromJsonNode(JsonNode node, Class<T> clazz) throws InvalidParseOperationException {
+        return JsonHandler.getFromString(node.toString(), RequestResponseOK.class, clazz);
     }
 
     /**

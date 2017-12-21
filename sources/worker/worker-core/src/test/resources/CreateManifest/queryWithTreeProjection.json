@@ -10,8 +10,15 @@
   ],
   "$filter": {
     "$scrollId": "START",
-    "$scrollTimeout": 60000,
-    "$limit": 10000
+    "$limit": 10000,
+    "$scrollTimeout": 60000
   },
-  "$projection": {}
+  "$projection": {
+    "$fields": {
+      "#unitups": 1,
+      "#id": 1,
+      "#originating_agency": 1,
+      "#object": 1
+    }
+  }
 }

@@ -27,6 +27,7 @@
 package fr.gouv.vitam.processing.integration.test;
 
 import static com.jayway.restassured.RestAssured.get;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.EVENT_DETAILS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -1201,7 +1202,7 @@ public class ProcessingIT {
             MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
             SelectMultiQuery query = new SelectMultiQuery();
             query.addQueries(QueryHelper.eq("Title", "AU4").setRelativeDepthLimit(5));
-            query.addProjection(JsonHandler.createObjectNode().set(PROJECTION.FIELDS.exactToken(),
+            query.addProjection(JsonHandler.createObjectNode().set(FIELDS.exactToken(),
                 JsonHandler.createObjectNode()
                     .put(GLOBAL.RULES.exactToken(), 1).put("Title", 1)
                     .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
@@ -1263,7 +1264,7 @@ public class ProcessingIT {
             MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
             SelectMultiQuery query = new SelectMultiQuery();
             query.addQueries(QueryHelper.eq("Title", "AU4").setRelativeDepthLimit(5));
-            query.addProjection(JsonHandler.createObjectNode().set(PROJECTION.FIELDS.exactToken(),
+            query.addProjection(JsonHandler.createObjectNode().set(FIELDS.exactToken(),
                 JsonHandler.createObjectNode()
                     .put(GLOBAL.RULES.exactToken(), 1).put("Title", 1)
                     .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
@@ -1856,6 +1857,10 @@ public class ProcessingIT {
         assertEquals(Response.Status.ACCEPTED.getStatusCode(), jsonNodeRequestResponse.getStatus());
 
         wait(containerName);
+        ProcessWorkflow processWorkflow =
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
     }
 
 

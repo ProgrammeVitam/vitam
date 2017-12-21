@@ -1,0 +1,53 @@
+{
+  "httpCode": 302,
+  "$hits": {
+    "total": 4,
+    "offset": 0,
+    "limit": 0,
+    "size": 4,
+    "scrollId": null
+  },
+  "$results": [
+    {
+      "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdnaaaaba",
+      "#object": "aebaaaaaaadf6mc4aathcak7tmtgc7qaaaaq",
+      "#unitups": [
+        "aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca"
+      ],
+      "#allunitups": [
+        "aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca"
+      ],
+      "#originating_agency": "FRAN_NP_005568"
+    },
+    {
+      "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdmyaaaba",
+      "#object": "aebaaaaaaadf6mc4aathcak7tmtgc6yaaaaq",
+      "#unitups": [
+        "aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca"
+      ],
+      "#originating_agency": "FRAN_NP_005568"
+    },
+    {
+      "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca",
+      "#unitups": [],
+      "#originating_agency": "FRAN_NP_005568"
+    },
+    {
+      "#id": "aeaqaaaaaadf6mc4aathcak7tmtgdniaaaba",
+      "#object": "aebaaaaaaadf6mc4aathcak7tmtgc7yaaaaq",
+      "#unitups": [
+        "aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca"
+      ],
+      "#originating_agency": "FRAN_NP_005568"
+    }
+  ],
+  "$context": {
+    "$query": {
+      "$eq": {
+        "#operations": "aedaaaaaacdf6mc4aathcak7tmtfxiiaaaba"
+      }
+    },
+    "$filter": {},
+    "$projection": {}
+  }
+}
