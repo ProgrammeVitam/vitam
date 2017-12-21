@@ -44,4 +44,32 @@ describe('WorkflowComponent', () => {
   it('should be created', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should search for initial states if given', () => {
+    component.searchForm = {
+      "states": ["PAUSE", "RUNNING"]
+    };
+
+    let spy = spyOn(component.workflowService, 'getOperations').and.callFake(
+      () => Observable.of('Data')
+    );
+
+    component.refreshButton();
+
+    expect(spy.calls.count()).toBe(1);
+    expect(spy.calls.argsFor(0)[0].states.length).toBe(2);
+  });
+
+  it('should not restore the initial states when not given', () => {
+    component.searchForm = {};
+
+    let spy = spyOn(component.workflowService, 'getOperations').and.callFake(
+      () => Observable.of('Data')
+    );
+
+    component.refreshButton();
+
+    expect(spy.calls.count()).toBe(1);
+    expect(spy.calls.argsFor(0)[0].states).toBeUndefined();
+  });
 });
