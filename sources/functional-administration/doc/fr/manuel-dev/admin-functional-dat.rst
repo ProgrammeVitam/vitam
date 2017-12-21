@@ -160,6 +160,10 @@ functional-administration-rules
              * "Illimitée (date de début inconnue)" : dans le cas où la date de fin n'est pas connue car la startDate n'est pas connue
              * "Illimitée (règle à durée illimitée)" : dans le cas où la date de fin ne peut pas être calculée car la durée de la règle est 'unlimited'
 
+           *  Les durées des règles du fichier en cours d'import doivent être strictement supérieures ou égales aux durées minimales
+              demandées dans la configuration du tenant, pour cette catégorie de règle sur ce tenant
+              (la durée de la règle est la valeur de la durée RuleDuration + l'unité de mesure RuleMeasurement.)
+
 functional-administration-accession-register
 ---------------------------------------------
 
