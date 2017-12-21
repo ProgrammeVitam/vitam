@@ -71,6 +71,7 @@ public class FunctionalBackupService {
     public static final String FIELD_COLLECTION = "collection";
     public static final String FIELD_SEQUENCE = "sequence";
     public static final String DEFAULT_EXTENSION = "json";
+    private static final int DEFAULT_ADMIN_TENANT = 1;
     private final BackupService backupService;
     private final VitamCounterService vitamCounterService;
     private final BackupLogbookManager backupLogbookManager;
@@ -91,23 +92,25 @@ public class FunctionalBackupService {
     }
 
     /**
-     * @param eipMaster  logbookMaster
-     * @param eventCode  logbook evType
-     * @param collection collection
-     * @param tenant     tenant
+     * @param eipMaster     logbookMaster
+     * @param eventCode     logbook evType
+     * @param collection    collection
+     * @param sessionTenant tenant
      * @throws VitamException vitamException
      */
     public void saveCollectionAndSequence(GUID eipMaster, String eventCode,
-        FunctionalAdminCollections collection, int tenant)
+        FunctionalAdminCollections collection, int sessionTenant)
         throws VitamException {
 
         File file = null;
 
         try {
 
-            String fileName = buildBackupFilenameSequence(collection, tenant);
+            int storageTenant = getStorageTenant(collection, sessionTenant);
 
-            file = saveFunctionalCollectionToTempFile(collection, tenant);
+            String fileName = buildBackupFilenameSequence(collection, storageTenant);
+
+            file = saveFunctionalCollectionToTempFile(collection, storageTenant);
 
             String digestStr = storeBackupFileInStorage(fileName, file);
 
@@ -124,6 +127,19 @@ public class FunctionalBackupService {
                 }
             }
         }
+    }
+
+    /**
+     * Forces "1" for cross-tenant collections.
+     * @param collection
+     * @param sessionTenant
+     * @return
+     */
+    private int getStorageTenant(FunctionalAdminCollections collection, int sessionTenant) {
+        if(collection.isMultitenant())
+            return sessionTenant;
+        else
+            return DEFAULT_ADMIN_TENANT;
     }
 
     private String buildBackupFilenameSequence(FunctionalAdminCollections functionalAdminCollections, int tenant)
