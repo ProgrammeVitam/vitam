@@ -20,6 +20,7 @@ export class ArchiveUnitDetailsComponent extends PageComponent implements OnDest
   objectDisplayable: boolean;
   timeout;
   routerObserver: any;
+  loading: boolean;
 
   constructor(private route: ActivatedRoute, public titleService: Title, public breadcrumbService: BreadcrumbService,
               private archiveUnitService: ArchiveUnitService, public router: Router, private dialogService: DialogService,
@@ -44,6 +45,7 @@ export class ArchiveUnitDetailsComponent extends PageComponent implements OnDest
   }
 
   initDetails() {
+    this.loading = true;
     this.route.paramMap
       .switchMap((params: ParamMap) => {
         this.id = params.get('id');
@@ -58,12 +60,12 @@ export class ArchiveUnitDetailsComponent extends PageComponent implements OnDest
         this.setBreadcrumb(newBreadcrumb);
         return [];
       })
-      .subscribe(() => {/* Need a Subscribe to trigger switchMap */
-      });
+      .subscribe(() => {/* Need a Subscribe to trigger switchMap */});
     this.archiveUnitService.getDetails(this.id).subscribe(
       (data) => {
         if (data) {
           this.objectDisplayable = true;
+          this.loading = false;
           this.data = data.$results[0];
           if (this.data['#object']) {
             this.archiveUnitService.getObjects(this.id).subscribe(
@@ -84,6 +86,7 @@ export class ArchiveUnitDetailsComponent extends PageComponent implements OnDest
         }
       }, (error) => {
         this.errorService.handle404Error(error);
+        this.loading = false;
       }
     );
   }

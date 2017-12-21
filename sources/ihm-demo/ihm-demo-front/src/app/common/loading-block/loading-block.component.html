@@ -1,0 +1,19 @@
+<div *ngIf="displayContent" >
+  <ng-content></ng-content>
+</div>
+
+<div *ngIf="panelMode && displayLoading">
+  <p-panel [toggleable]="toggleable" [collapsed]="collapsed">
+    <p-header>
+      <div class="ui-g-5"></div>
+      <span class="ui-g-2" style="padding: 0">{{blockTitle}}</span>
+    </p-header>
+    <div>
+      <p>{{ loadingMessage }}</p>
+    </div>
+  </p-panel>
+</div>
+
+<div *ngIf="!panelMode && displayLoading">
+  <p>{{ loadingMessage }}</p>
+</div>
