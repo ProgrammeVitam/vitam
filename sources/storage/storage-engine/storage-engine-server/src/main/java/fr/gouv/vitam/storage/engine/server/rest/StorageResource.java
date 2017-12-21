@@ -1247,6 +1247,32 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      *
      * @param httpServletRequest      http servlet request to get requester
      * @param headers                 http header
+     * @param ruleFile                the id of the object
+     * @param createObjectDescription the object description
+     * @return Response
+     */
+    // header (X-Requester)
+    @Path("/rules/{rulefile}")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response createRuleFile(@Context HttpServletRequest httpServletRequest,
+        @Context HttpHeaders headers,
+        @PathParam("rulefile") String ruleFile, ObjectDescription createObjectDescription) {
+        // If the POST is a creation request
+        if (createObjectDescription != null) {
+            return createObjectByType(headers, ruleFile, createObjectDescription, DataCategory.RULES,
+                httpServletRequest.getRemoteAddr());
+        } else {
+            return getObjectInformationWithPost(headers, ruleFile);
+        }
+    }
+
+    /**
+     * Post a new object
+     *
+     * @param httpServletRequest      http servlet request to get requester
+     * @param headers                 http header
      * @param agencyfile              the id of the object
      * @param createObjectDescription the object description
      * @return Response
