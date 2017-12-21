@@ -41,6 +41,7 @@ import java.util.Set;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
@@ -68,13 +69,14 @@ public class BusinessApplication extends Application {
             final VitamCounterService vitamCounterService =
                 new VitamCounterService(mongoDbAccess, configuration.getTenants(), externalIdentifiers);
             resource.setVitamCounterService(vitamCounterService);
+            FunctionalBackupService functionalBackupService = new FunctionalBackupService(vitamCounterService);
 
             final ProfileResource profileResource =
                 new ProfileResource(configuration, mongoDbAccess, vitamCounterService);
             singletons.add(resource);
             singletons.add(new ContractResource(mongoDbAccess, vitamCounterService));
-            singletons.add(new ContextResource(mongoDbAccess, vitamCounterService));
-            singletons.add(new SecurityProfileResource(mongoDbAccess, vitamCounterService));
+            singletons.add(new ContextResource(mongoDbAccess, vitamCounterService, functionalBackupService));
+            singletons.add(new SecurityProfileResource(mongoDbAccess, vitamCounterService, functionalBackupService));
             singletons.add(new AgenciesResource(mongoDbAccess, vitamCounterService));
 
 
