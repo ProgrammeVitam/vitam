@@ -290,19 +290,45 @@ public class ContextServiceImpl implements ContextService {
             return error;
         }
 
+        String diff = null;
         try {
-            mongoAccess.updateData(queryDsl, FunctionalAdminCollections.CONTEXT).close();
+            DbRequestResult result = mongoAccess.updateData(queryDsl, FunctionalAdminCollections.CONTEXT);
+            
+            List<String> updates = null;
+            // if at least one change was applied
+            if(result.getCount() > 0) {
+                // get first list of changes as we updated only one context
+                updates = result.getDiffs().values().stream().findFirst().get();
+            }
+
+            // close result
+            result.close();
+            
+            // create diff for evDetData
+            if(updates != null && updates.size() > 0){
+                // concat changes
+                String modifs = updates.stream ().map (i -> i.toString ()).collect (Collectors.joining ("\n"));
+                
+                // create diff as json string
+                final ObjectNode diffObject = JsonHandler.createObjectNode();
+                diffObject.put("diff", modifs);
+                diff = SanityChecker.sanitizeJson(diffObject);
+            }
+        
         } catch (final ReferentialException e) {
             final String err = "Update context error > " + e.getMessage();
             error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
-                .setDescription(err)
-                .setHttpCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
-            manager.logFatalError(err);
+                    .setDescription(err)
+                    .setHttpCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            
+            // logbook error event 
             manager.logFatalError(err);
             return error;
         }
 
-        manager.logUpdateSuccess(contextModel.getId(), queryDsl.toString(), JsonHandler.unprettyPrint(contextModel));
+        // logbook success event
+        manager.logUpdateSuccess(contextModel.getId(), diff);
+
         return new RequestResponseOK<>();
     }
 
@@ -403,13 +429,7 @@ public class ContextServiceImpl implements ContextService {
          *
          * @throws VitamException
          */
-        private void logUpdateSuccess(String id, String query, String oldValue) throws VitamException {
-            final ObjectNode evDetData = JsonHandler.createObjectNode();
-            final ObjectNode msg = JsonHandler.createObjectNode();
-            msg.put("oldValue", oldValue);
-            msg.put("request", query);
-            evDetData.set("Context", msg);
-            final String wellFormedJson = SanityChecker.sanitizeJson(evDetData);
+        private void logUpdateSuccess(String id, String evDetData) throws VitamException {
             final LogbookOperationParameters logbookParameters =
                 LogbookParametersFactory
                     .newLogbookOperationParameters(
@@ -425,7 +445,7 @@ public class ContextServiceImpl implements ContextService {
                 logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, id);
             }
             logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
-                wellFormedJson);
+                    evDetData);
             logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTEXTS_UPDATE_EVENT +
                 "." + StatusCode.OK);
             helper.updateDelegate(logbookParameters);
