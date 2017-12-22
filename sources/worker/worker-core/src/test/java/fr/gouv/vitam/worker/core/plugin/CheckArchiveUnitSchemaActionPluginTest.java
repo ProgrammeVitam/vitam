@@ -222,8 +222,8 @@ public class CheckArchiveUnitSchemaActionPluginTest {
                 .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalid).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertTrue(response.getItemsStatus().containsKey(CHECK_UNIT_SCHEMA_TASK_ID + "." + "EMPTY_REQUIRED_FIELD"));
-        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA.EMPTY_REQUIRED_FIELD").getItemId(), "CHECK_UNIT_SCHEMA.EMPTY_REQUIRED_FIELD");
+        assertTrue(response.getGlobalOutcomeDetailSubcode().equals(
+            CheckArchiveUnitSchemaActionPlugin.CheckUnitSchemaStatus.EMPTY_REQUIRED_FIELD.name()));
     }
 
     @Test
@@ -244,8 +244,8 @@ public class CheckArchiveUnitSchemaActionPluginTest {
                 .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidXml).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertTrue(response.getItemsStatus().containsKey(CHECK_UNIT_SCHEMA_TASK_ID + "." + "INVALID_UNIT"));
-        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA.INVALID_UNIT").getItemId(), "CHECK_UNIT_SCHEMA.INVALID_UNIT");
+        assertTrue(response.getGlobalOutcomeDetailSubcode().equals(
+            CheckArchiveUnitSchemaActionPlugin.CheckUnitSchemaStatus.INVALID_UNIT.name()));
     }
 
 
@@ -257,8 +257,8 @@ public class CheckArchiveUnitSchemaActionPluginTest {
                 .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidDate).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertTrue(response.getItemsStatus().containsKey(CHECK_UNIT_SCHEMA_TASK_ID + "." + "RULE_DATE_FORMAT"));
-        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA.RULE_DATE_FORMAT").getItemId(), "CHECK_UNIT_SCHEMA.RULE_DATE_FORMAT");
+        assertTrue(response.getGlobalOutcomeDetailSubcode().equals(
+            CheckArchiveUnitSchemaActionPlugin.CheckUnitSchemaStatus.RULE_DATE_FORMAT.name()));
     }
 
 
@@ -269,8 +269,8 @@ public class CheckArchiveUnitSchemaActionPluginTest {
                 .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidContent).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertTrue(response.getItemsStatus().containsKey(CHECK_UNIT_SCHEMA_TASK_ID + "." + "EMPTY_REQUIRED_FIELD"));
-        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA.EMPTY_REQUIRED_FIELD").getItemId(), "CHECK_UNIT_SCHEMA.EMPTY_REQUIRED_FIELD");
+        assertTrue(response.getGlobalOutcomeDetailSubcode().equals(
+            CheckArchiveUnitSchemaActionPlugin.CheckUnitSchemaStatus.EMPTY_REQUIRED_FIELD.name()));
     }
 
     @Test
@@ -280,8 +280,8 @@ public class CheckArchiveUnitSchemaActionPluginTest {
                 .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidDescLevel).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertTrue(response.getItemsStatus().containsKey(CHECK_UNIT_SCHEMA_TASK_ID + "." + "INVALID_UNIT"));
-        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA.INVALID_UNIT").getItemId(), "CHECK_UNIT_SCHEMA.INVALID_UNIT");
+        assertTrue(response.getGlobalOutcomeDetailSubcode().equals(
+            CheckArchiveUnitSchemaActionPlugin.CheckUnitSchemaStatus.INVALID_UNIT.name()));
     }
 
     @Test
@@ -291,8 +291,8 @@ public class CheckArchiveUnitSchemaActionPluginTest {
             .thenReturn(Response.status(Status.OK).entity(archiveUnitStartDateAfterEndDate).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertTrue(response.getItemsStatus().containsKey(CHECK_UNIT_SCHEMA_TASK_ID + "." + "INVALID_UNIT"));
-        assertEquals(response.getItemsStatus().get("CHECK_UNIT_SCHEMA.INVALID_UNIT").getItemId(), "CHECK_UNIT_SCHEMA.INVALID_UNIT");
+        assertTrue(response.getGlobalOutcomeDetailSubcode().equals(
+            CheckArchiveUnitSchemaActionPlugin.CheckUnitSchemaStatus.INVALID_UNIT.name()));
     }
 
 }

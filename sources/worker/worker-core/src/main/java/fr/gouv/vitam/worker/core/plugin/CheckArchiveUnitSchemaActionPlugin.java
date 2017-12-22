@@ -95,13 +95,13 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
                     return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(CHECK_UNIT_SCHEMA_TASK_ID,
                         itemStatus);
                 case NOT_AU_JSON_VALID:
-                    itemStatus.setItemId(CHECK_UNIT_SCHEMA_TASK_ID + "." + CheckUnitSchemaStatus.INVALID_UNIT.toString());
+                    itemStatus.setGlobalOutcomeDetailSubcode(CheckUnitSchemaStatus.INVALID_UNIT.name());
                     itemStatus.increment(StatusCode.KO);
                     itemStatus.setEvDetailData(schemaValidationStatus.getValidationMessage());
                     return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(),
                         itemStatus);
                 case NOT_JSON_FILE:
-                    itemStatus.setItemId(CHECK_UNIT_SCHEMA_TASK_ID + "." + CheckUnitSchemaStatus.INVALID_UNIT.toString());
+                    itemStatus.setGlobalOutcomeDetailSubcode( CheckUnitSchemaStatus.INVALID_UNIT.name());
                     itemStatus.increment(StatusCode.KO);
                     final ObjectNode object = JsonHandler.createObjectNode();
                     object.put( CHECK_UNIT_SCHEMA_TASK_ID, schemaValidationStatus.getValidationMessage() );
@@ -109,13 +109,13 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
                     return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(),
                         itemStatus);
                 case EMPTY_REQUIRED_FIELD:
-                    itemStatus.setItemId(CHECK_UNIT_SCHEMA_TASK_ID + "." + CheckUnitSchemaStatus.EMPTY_REQUIRED_FIELD.toString());
+                    itemStatus.setGlobalOutcomeDetailSubcode(CheckUnitSchemaStatus.EMPTY_REQUIRED_FIELD.name());
                     itemStatus.increment(StatusCode.KO);
                     itemStatus.setEvDetailData(schemaValidationStatus.getValidationMessage());
                     return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(),
                         itemStatus);
                 case RULE_DATE_FORMAT:
-                    itemStatus.setItemId(CHECK_UNIT_SCHEMA_TASK_ID + "." + CheckUnitSchemaStatus.RULE_DATE_FORMAT.toString());
+                    itemStatus.setGlobalOutcomeDetailSubcode(CheckUnitSchemaStatus.RULE_DATE_FORMAT.name());
                     itemStatus.increment(StatusCode.KO);
                     itemStatus.setEvDetailData(schemaValidationStatus.getValidationMessage());
                     return new ItemStatus(itemStatus.getItemId()).setItemsStatus(itemStatus.getItemId(),
