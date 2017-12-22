@@ -6,6 +6,7 @@ import { Observable } from "rxjs/Rx";
 import { SearchReferentialsComponent } from './search-referentials.component';
 import { BreadcrumbService } from "../../common/breadcrumb.service";
 import { ReferentialsService } from "../referentials.service";
+import {ArchiveUnitHelper} from "../../archive-unit/archive-unit.helper";
 
 const ReferentialsServiceStub = {
   getResults: (id) => Observable.of({'$results': [{}]})
@@ -23,6 +24,7 @@ describe('SearchReferentialsComponent', () => {
       ],
       providers: [
         BreadcrumbService,
+        ArchiveUnitHelper,
         { provide: ReferentialsService, useValue: ReferentialsServiceStub }
       ],
       declarations: [ SearchReferentialsComponent ],

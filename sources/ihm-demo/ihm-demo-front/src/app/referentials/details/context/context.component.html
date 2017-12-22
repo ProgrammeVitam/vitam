@@ -1,6 +1,22 @@
 <p-panel [header]="'Détail du contexte'">
   <div class="ui-g" *ngIf="!saveRunning">
-    <div class="ui-g-8"></div>
+    <div class="ui-g-8">
+
+      <div class="ui-g-4 ui-g-offset-4" *ngIf="update">
+        <div class="ui-g-nopad ui-g-2 ui-g-offset-2">
+          <label class="label fieldLabel">Tenant</label>
+        </div>
+        <div class="ui-g-nopad ui-g-2">
+          <select [(ngModel)]="selectedTenant">
+            <option *ngFor='let tenant of tenants' value="{{tenant}}">{{tenant}}</option>
+          </select>
+        </div>
+        <div class="ui-g-nopad ui-g-4">
+          <button pButton class="ui-button" (click)="addTenant()" label="Ajouter" iconPos="left"></button>
+        </div>
+      </div>
+    </div>
+
     <div class="ui-g-2" *ngIf="!update"></div>
     <div class="ui-g-2" *ngIf="!update">
       <button pButton class="ui-button" (click)="switchUpdateMode()" label="Modifier"
@@ -20,31 +36,17 @@
         <vitam-metadata-field [title]="'Identifiant'" [originalTitle]="'Identifier'" [value]="modifiedContext.Identifier" [labelSize]="4"
                               class="ui-g-4" [updateMode]="false" [(updatedFields)]="updatedFields"></vitam-metadata-field>
 
-        <div class="ui-g-4 ui-g-offset-4"  *ngIf="update">
-          <div class="ui-g-nopad ui-g-2 ui-g-offset-4">
-            <label class="label fieldLabel">Tenant</label>
-          </div>
-          <div class="ui-g-nopad ui-g-2">
-            <select [(ngModel)]="selectedTenant">
-              <option *ngFor='let tenant of tenants' value="{{tenant}}">{{tenant}}</option>
-            </select>
-          </div>
-          <div class="ui-g-nopad ui-g-4">
-            <button pButton class="ui-button" (click)="addTenant()" label="Ajouter" iconPos="left"></button>
-          </div>
-        </div>
-      </div>
-      <div class="ui-g-12">
-        <vitam-metadata-field [title]="'Intitulé'" [originalTitle]="'Name'"  [value]="modifiedContext.Name" [labelSize]="4"
-                              class="ui-g-4 " [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
-
         <vitam-metadata-field [title]="'Date de création'"  [originalTitle]="'CreationDate'" [value]="modifiedContext.CreationDate" [labelSize]="4"
                               class="ui-g-4" [updateMode]="false" [(updatedFields)]="updatedFields"></vitam-metadata-field>
 
         <vitam-metadata-field [title]="'Dernière modification'"  [originalTitle]="'LastUpdate'" [value]="modifiedContext.LastUpdate" [labelSize]="5"
                               class="ui-g-4 " [updateMode]="false" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+
       </div>
       <div class="ui-g-12">
+        <vitam-metadata-field [title]="'Intitulé'" [originalTitle]="'Name'"  [value]="modifiedContext.Name" [labelSize]="4"
+                              class="ui-g-4 " [updateMode]="update" [(updatedFields)]="updatedFields"></vitam-metadata-field>
+
         <div class="ui-g-4">
           <div class="ui-g-nopad ui-g-4">
             <label class="label fieldLabel">Statut</label>
@@ -56,6 +58,9 @@
             <p-toggleButton onLabel="Actif" offLabel="Inactif" [(ngModel)]="modifiedContext.Status" (onChange)="valueChange('Status')"></p-toggleButton>
           </div>
         </div>
+
+      </div>
+      <div class="ui-g-12">
         <vitam-metadata-field [title]="'Profil de sécurité'"  [originalTitle]="'SecurityProfile'" [value]="modifiedContext.SecurityProfile" [labelSize]="4"
                               class="ui-g-4" [updateMode]="false" [(updatedFields)]="updatedFields"></vitam-metadata-field>
         <div class="ui-g-4">
