@@ -86,6 +86,7 @@ import { TraceabilityOperationService } from './admin/traceability/traceability-
 import { WorkflowComponent } from './admin/workflow/workflow.component';
 import {WorkflowService} from "./admin/workflow.service";
 import {ErrorService} from "./common/error.service";
+import { LoadingBlockComponent } from './common/loading-block/loading-block.component';
 
 
 const appRoutes: Routes = [
@@ -234,7 +235,8 @@ const appRoutes: Routes = [
     DialogComponent,
     LifecycleComponent,
     TraceabilityOperationDetailsComponent,
-    WorkflowComponent
+    WorkflowComponent,
+    LoadingBlockComponent
 
   ],
   imports: [
