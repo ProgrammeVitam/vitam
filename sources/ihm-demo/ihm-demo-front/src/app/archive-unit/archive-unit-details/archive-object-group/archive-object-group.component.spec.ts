@@ -27,6 +27,18 @@ let ResourcesServiceStub = {
   getAccessContract: () => "ContractName"
 };
 
+const binaryMaster = {
+  DataObjectVersion:"BinaryMaster_0",
+  metadatas: {}
+}
+
+const physicalMaster = {
+  DataObjectVersion:"PhysicalMaster_0",
+  metadatas: {
+    PhysicalId:'10'
+  }
+}
+
 describe('ArchiveObjectGroupComponent', () => {
   let component: ArchiveObjectGroupComponent;
   let fixture: ComponentFixture<ArchiveObjectGroupComponent>;
@@ -61,11 +73,21 @@ describe('ArchiveObjectGroupComponent', () => {
       'EveryDataObjectVersion': false,
       'DataObjectVersion': [
         "PhysicalMaster",
-        "Dissemination"
+        "BinaryMaster"
       ]
     };
-    expect(component.isDownloadable('PhysicalMaster_0')).toBeTruthy();
+    expect(component.isDownloadable(binaryMaster)).toBeTruthy();
+  });
 
+  it('should not have access to object download for physical object', () => {
+    component.userContract = {
+      'EveryDataObjectVersion': false,
+      'DataObjectVersion': [
+        "PhysicalMaster",
+        "BinaryMaster"
+      ]
+    };
+    expect(component.isDownloadable(physicalMaster)).toBeFalsy();
   });
 
   it('should not have access to object if version don\'t match', () => {
@@ -76,20 +98,21 @@ describe('ArchiveObjectGroupComponent', () => {
         "Dissemination"
       ]
     };
-    expect(component.isDownloadable('BinaryMaster_0')).toBeFalsy();
+    expect(component.isDownloadable(binaryMaster)).toBeFalsy();
   });
 
   it('should have access to object if everyVersion accepted', () => {
     component.userContract = {
       'EveryDataObjectVersion': true
     };
-    expect(component.isDownloadable('BinaryMaster_0')).toBeTruthy();
+    expect(component.isDownloadable(binaryMaster)).toBeTruthy();
   });
 
   it ('should not throw error if versions empty', () => {
     component.userContract = {
       'EveryDataObjectVersion': false
     };
-    expect(component.isDownloadable('BinaryMaster_0')).toBeFalsy();
+    expect(component.isDownloadable(binaryMaster)).toBeFalsy();
   });
+
 });
