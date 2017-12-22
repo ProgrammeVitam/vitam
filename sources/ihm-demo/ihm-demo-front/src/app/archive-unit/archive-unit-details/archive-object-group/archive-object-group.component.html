@@ -9,14 +9,14 @@
     </div>
   </p-header>
   <ng-template ngFor let-object [ngForOf]="objects.versions">
-    <div class="ui-g" [ngClass]="isDownloadable(object.DataObjectVersion) ? 'downloadableOg' : 'noDownload'">
+    <div class="ui-g" [ngClass]="isDownloadable(object) ? 'downloadableOg' : 'noDownload'">
       <span class="ui-g-2">{{object.DataObjectVersion}}</span>
       <span class="ui-g-1">{{object.Size | bytes}}</span>
       <span class="ui-g-5">{{object.FormatLitteral}}</span>
       <span class="ui-g-2">{{object.LastModified | date:'dd/MM/yyyy'}}</span>
       <div class="ui-g-1">
         <i class="fa fa-download clickableDiv" (click)="downloadObject(object.DataObjectVersion, object.FileName)"
-           *ngIf="isDownloadable(object.DataObjectVersion)"></i>
+           *ngIf="isDownloadable(object)"></i>
       </div>
       <div class="ui-g-1">
         <i class="fa fa-toggle-down clickableDiv" (click)="toogleDetails(object['#id'])"

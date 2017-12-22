@@ -20,8 +20,8 @@ export class ArchiveObjectGroupComponent implements OnInit {
   userContract;
 
   constructor(private archiveUnitHelper: ArchiveUnitHelper, private referentialsService: ReferentialsService,
-              private resourceService: ResourcesService, private archiveUnitService: ArchiveUnitService,
-              private router : Router) {
+    private resourceService: ResourcesService, private archiveUnitService: ArchiveUnitService,
+    private router: Router) {
     this.translations = this.archiveUnitHelper.getObjectGroupTranslations();
     this.keyToLabel = (field: string) => {
       const value = this.translations[field];
@@ -41,16 +41,16 @@ export class ArchiveObjectGroupComponent implements OnInit {
 
     this.referentialsService.getAccessContract(criteria).subscribe(
       (response) => {
-      if (response.httpCode == 200 && response.$results && response.$results.length > 0) {
-        response.$results.forEach((contract) => {
-          if (contract.Identifier == contractIdentifier) {
-            this.userContract = contract;
-          }
-        });
-      }
-    }, function (error) {
-      console.log('Error while get tenant. Set default list : ', error);
-    });
+        if (response.httpCode == 200 && response.$results && response.$results.length > 0) {
+          response.$results.forEach((contract) => {
+            if (contract.Identifier == contractIdentifier) {
+              this.userContract = contract;
+            }
+          });
+        }
+      }, function (error) {
+        console.log('Error while get tenant. Set default list : ', error);
+      });
   }
 
   ngOnInit() {
@@ -68,8 +68,12 @@ export class ArchiveObjectGroupComponent implements OnInit {
     window.open(this.archiveUnitService.getObjectURL(this.unitId, options), '_blank');
   }
 
-  isDownloadable(version) {
-    return this.userContract.EveryDataObjectVersion || (this.userContract.DataObjectVersion && this.userContract.DataObjectVersion.indexOf(version.split('_')[0]) !== -1);
+  isDownloadable(object) {
+    let version = object.DataObjectVersion;
+    let isPhysical = !!object.metadatas && !!object.metadatas.PhysicalId;
+    let haveContractAccess: boolean = this.userContract.EveryDataObjectVersion 
+      || (this.userContract.DataObjectVersion && this.userContract.DataObjectVersion.indexOf(version.split('_')[0]) !== -1);
+    return haveContractAccess && !isPhysical;
   }
 
   goToUnitLifecycles() {
