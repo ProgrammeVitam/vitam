@@ -271,16 +271,11 @@ public class ProcessingIT {
     private static String SIP_FILE_TAR_OK_NAME = "integration-processing/SIP.tar";
     private static String SIP_INHERITED_RULE_CA1_OK = "integration-processing/1069_CA1.zip";
     private static String SIP_INHERITED_RULE_CA4_OK = "integration-processing/1069_CA4.zip";
-    private static String SIP_ARBO_COMPLEXE_FILE_OK = "integration-processing/OK-registre-fonds.zip";
     private static String SIP_FUND_REGISTER_OK = "integration-processing/OK-registre-fonds.zip";
     private static String SIP_WITHOUT_MANIFEST = "integration-processing/SIP_no_manifest.zip";
     private static String SIP_NO_FORMAT = "integration-processing/SIP_NO_FORMAT.zip";
-    private static String SIP_DOUBLE_BM = "integration-processing/SIP_DoubleBM.zip";
     private static String SIP_NO_FORMAT_NO_TAG = "integration-processing/SIP_NO_FORMAT_TAG.zip";
     private static String SIP_NB_OBJ_INCORRECT_IN_MANIFEST = "integration-processing/SIP_Conformity_KO.zip";
-    private static String SIP_ORPHELINS = "integration-processing/SIP-orphelins.zip";
-    private static String SIP_CYCLE = "integration-processing/SIP-cycle.zip";
-    private static String SIP_OBJECT_SANS_GOT = "integration-processing/SIP-objetssansGOT.zip";
     private static String SIP_BUG_2721 = "integration-processing/bug2721_2racines_meme_rattachement.zip";
     private static String SIP_WITHOUT_OBJ = "integration-processing/OK_SIP_sans_objet.zip";
     private static String SIP_WITHOUT_FUND_REGISTER = "integration-processing/KO_registre_des_fonds.zip";
@@ -292,11 +287,8 @@ public class ProcessingIT {
 
     private static String SIP_FILE_KO_AU_REF_BDO = "integration-processing/SIP_KO_ArchiveUnit_ref_BDO.zip";
     private static String SIP_BUG_2182 = "integration-processing/SIP_bug_2182.zip";
-    private static String SIP_ARBRE = "integration-processing/test_arbre.zip";
-    private static String SIP_PLAN = "integration-processing/test_plan.zip";
     private static String SIP_FILE_1791_CA1 = "integration-processing/SIP_FILE_1791_CA1.zip";
     private static String SIP_FILE_1791_CA2 = "integration-processing/SIP_FILE_1791_CA2.zip";
-    private static String OK_SIP_2_GO = "integration-processing/OK_SIP_2_GO.zip";
 
     private static String OK_SIP_SIGNATURE = "integration-processing/Signature_OK.zip";
 
@@ -927,96 +919,6 @@ public class ProcessingIT {
 
     @RunWithCustomExecutor
     @Test
-    public void testWorkflowIngestTree() throws Exception {
-        try {
-            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            tryImportFile();
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-            final String containerName = objectGuid.getId();
-            createLogbookOperation(operationGuid, objectGuid);
-
-            // workspace client dezip SIP in workspace
-            RestAssured.port = PORT_SERVICE_WORKSPACE;
-            RestAssured.basePath = WORKSPACE_PATH;
-            final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_ARBRE);
-            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-            workspaceClient.createContainer(containerName);
-            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
-            // call processing
-            RestAssured.port = PORT_SERVICE_PROCESSING;
-            RestAssured.basePath = PROCESSING_PATH;
-
-            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(Contexts.HOLDING_SCHEME.name(), containerName, INGEST_TREE_WORFKLOW);
-            RequestResponse<ItemStatus> ret =
-                processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
-            assertNotNull(ret);
-
-            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
-
-            wait(containerName);
-            ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
-            assertNotNull(processWorkflow);
-            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(StatusCode.OK, processWorkflow.getStatus());
-        } catch (final Exception e) {
-            e.printStackTrace();
-            fail("should not raized an exception");
-        }
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void testWorkflowIngestPlan() throws Exception {
-        try {
-            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            tryImportFile();
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-            final String containerName = objectGuid.getId();
-            createLogbookOperation(operationGuid, objectGuid);
-
-            // workspace client dezip SIP in workspace
-            RestAssured.port = PORT_SERVICE_WORKSPACE;
-            RestAssured.basePath = WORKSPACE_PATH;
-            final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_PLAN);
-            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-            workspaceClient.createContainer(containerName);
-            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
-            // call processing
-            RestAssured.port = PORT_SERVICE_PROCESSING;
-            RestAssured.basePath = PROCESSING_PATH;
-
-            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, INGEST_PLAN_WORFKLOW);
-            RequestResponse<ItemStatus> ret =
-                processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
-            assertNotNull(ret);
-
-            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
-
-            wait(containerName);
-            ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
-            assertNotNull(processWorkflow);
-            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(StatusCode.OK, processWorkflow.getStatus());
-        } catch (final Exception e) {
-            e.printStackTrace();
-            fail("should not raized an exception");
-        }
-    }
-
-    @RunWithCustomExecutor
-    @Test
     public void testWorkflowWithSIPContainsSystemId() throws Exception {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
@@ -1107,53 +1009,6 @@ public class ProcessingIT {
         }
     }
 
-    @RunWithCustomExecutor
-    @Test
-    public void testWorkflow_with_complexe_unit_seda() throws Exception {
-        try {
-            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            tryImportFile();
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-            final String containerName = objectGuid.getId();
-            createLogbookOperation(operationGuid, objectGuid);
-
-            // workspace client dezip SIP in workspace
-            RestAssured.port = PORT_SERVICE_WORKSPACE;
-            RestAssured.basePath = WORKSPACE_PATH;
-
-            final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_ARBO_COMPLEXE_FILE_OK);
-            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-            workspaceClient.createContainer(containerName);
-            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
-
-            // call processing
-            RestAssured.port = PORT_SERVICE_PROCESSING;
-            RestAssured.basePath = PROCESSING_PATH;
-
-            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
-
-            final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                    Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
-
-            assertNotNull(ret);
-            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
-
-            wait(containerName);
-            ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
-            assertNotNull(processWorkflow);
-            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
-        } catch (final Exception e) {
-            e.printStackTrace();
-            fail("should not raized an exception");
-        }
-    }
 
     @RunWithCustomExecutor
     @Test
@@ -1412,45 +1267,6 @@ public class ProcessingIT {
 
     @RunWithCustomExecutor
     @Test
-    public void testWorkflowSipDoubleVersionBM() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
-
-        // workspace client dezip SIP in workspace
-        RestAssured.port = PORT_SERVICE_WORKSPACE;
-        RestAssured.basePath = WORKSPACE_PATH;
-
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_DOUBLE_BM);
-        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-        workspaceClient.createContainer(containerName);
-        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
-        // call processing
-        RestAssured.port = PORT_SERVICE_PROCESSING;
-        RestAssured.basePath = PROCESSING_PATH;
-        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
-        final RequestResponse<JsonNode> ret =
-            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
-        assertNotNull(ret);
-        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
-
-        wait(containerName);
-        ProcessWorkflow processWorkflow =
-            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.KO, processWorkflow.getStatus());
-    }
-
-    @RunWithCustomExecutor
-    @Test
     public void testWorkflowSipNoFormatNoTag() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
@@ -1532,136 +1348,6 @@ public class ProcessingIT {
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void testWorkflowWithOrphelins() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
-
-        // workspace client dezip SIP in workspace
-        RestAssured.port = PORT_SERVICE_WORKSPACE;
-        RestAssured.basePath = WORKSPACE_PATH;
-
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_ORPHELINS);
-        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-        workspaceClient.createContainer(containerName);
-        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
-
-        // call processing
-        RestAssured.port = PORT_SERVICE_PROCESSING;
-        RestAssured.basePath = PROCESSING_PATH;
-        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
-
-        final RequestResponse<JsonNode> ret =
-            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
-        assertNotNull(ret);
-        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
-
-        wait(containerName);
-        ProcessWorkflow processWorkflow =
-            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.KO, processWorkflow.getStatus());
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void testWorkflowWithCycle() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        tryImportFile();
-        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-        final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-        final String containerName = objectGuid.getId();
-        createLogbookOperation(operationGuid, objectGuid);
-
-        // workspace client dezip SIP in workspace
-        RestAssured.port = PORT_SERVICE_WORKSPACE;
-        RestAssured.basePath = WORKSPACE_PATH;
-
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_CYCLE);
-        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-        workspaceClient.createContainer(containerName);
-        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
-
-        // call processing
-        RestAssured.port = PORT_SERVICE_PROCESSING;
-        RestAssured.basePath = PROCESSING_PATH;
-        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
-
-        final RequestResponse<JsonNode> ret =
-            processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
-        assertNotNull(ret);
-        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
-
-        wait(containerName);
-        ProcessWorkflow processWorkflow =
-            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
-        assertNotNull(processWorkflow);
-        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.KO, processWorkflow.getStatus());
-    }
-
-
-    @RunWithCustomExecutor
-    @Test
-    public void testWorkflowWithoutObjectGroups() throws Exception {
-        try {
-            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            tryImportFile();
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-            final String containerName = objectGuid.getId();
-            createLogbookOperation(operationGuid, objectGuid);
-
-            // workspace client dezip SIP in workspace
-            RestAssured.port = PORT_SERVICE_WORKSPACE;
-            RestAssured.basePath = WORKSPACE_PATH;
-
-            final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_OBJECT_SANS_GOT);
-            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-            workspaceClient.createContainer(containerName);
-            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
-
-            // call processing
-            RestAssured.port = PORT_SERVICE_PROCESSING;
-            RestAssured.basePath = PROCESSING_PATH;
-
-            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
-
-            final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                    Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
-            assertNotNull(ret);
-            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
-
-            wait(containerName);
-            ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
-            assertNotNull(processWorkflow);
-            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
-        } catch (final Exception e) {
-            e.printStackTrace();
-            fail("should not raized an exception");
-        }
     }
 
     @RunWithCustomExecutor
@@ -2843,55 +2529,6 @@ public class ProcessingIT {
             assertNotNull(processWorkflow);
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
             assertEquals(StatusCode.OK, processWorkflow.getStatus());
-        } catch (final Exception e) {
-            e.printStackTrace();
-            fail("should not raized an exception");
-        }
-    }
-
-
-    @RunWithCustomExecutor
-    @Test
-    public void testWorkflowOkSIP2GO() throws Exception {
-        try {
-            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            tryImportFile();
-            final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-            VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-            final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
-            final String containerName = objectGuid.getId();
-            createLogbookOperation(operationGuid, objectGuid);
-
-            // workspace client dezip SIP in workspace
-            RestAssured.port = PORT_SERVICE_WORKSPACE;
-            RestAssured.basePath = WORKSPACE_PATH;
-
-            final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(OK_SIP_2_GO);
-            workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-            workspaceClient.createContainer(containerName);
-            workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
-
-            // call processing
-            RestAssured.port = PORT_SERVICE_PROCESSING;
-            RestAssured.basePath = PROCESSING_PATH;
-
-            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(Contexts.DEFAULT_WORKFLOW.name(), containerName, WORFKLOW_NAME);
-
-            final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, WORFKLOW_NAME,
-                    Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
-
-            assertNotNull(ret);
-            assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
-
-            wait(containerName);
-            ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
-            assertNotNull(processWorkflow);
-            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
         } catch (final Exception e) {
             e.printStackTrace();
             fail("should not raized an exception");
