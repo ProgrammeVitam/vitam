@@ -1,6 +1,5 @@
-import {Component, EventEmitter, OnDestroy, OnInit} from '@angular/core';
+import {Component, EventEmitter, OnDestroy} from '@angular/core';
 import {ColumnDefinition} from "../../common/generic-table/column-definition";
-import {ResourcesService} from "../../common/resources.service";
 import {WorkflowService} from "../workflow.service";
 import {VitamResponse} from "../../common/utils/response";
 import {PageComponent} from "../../common/page/page-component";
@@ -27,7 +26,7 @@ export class WorkflowComponent extends PageComponent implements OnDestroy {
 
 
   public response: VitamResponse;
-  public searchForm = {"states": ["PAUSE", "RUNNING"]};
+  public searchForm: any = {"states": ["PAUSE", "RUNNING"]};
   public service;
   public optionsCategories: SelectItem[];
   public optionsStatuses: SelectItem[] = [{
@@ -181,8 +180,7 @@ export class WorkflowComponent extends PageComponent implements OnDestroy {
   }
 
   public refreshButton() {
-    this.searchForm = this.preSearchFunction({}).request;
-    this.workflowService.getOperations(this.searchForm).subscribe(
+    this.workflowService.getOperations(this.preSearchFunction(this.searchForm).request).subscribe(
       (data) => {
         this.response = data;
       }, (error) => console.error('Error: ', error)
@@ -244,7 +242,7 @@ export class WorkflowComponent extends PageComponent implements OnDestroy {
         delete request.states;
       }
     } else {
-      request.states = ["PAUSE", "RUNNING"];
+      delete request.states;
     }
 
     // Handle statuses
