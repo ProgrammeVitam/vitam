@@ -56,6 +56,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
@@ -363,7 +364,8 @@ public class AgenciesService implements VitamAutoCloseable {
      */
     private File convertInputStreamToFile(InputStream agenciesStream, String extension) throws IOException {
         try {
-            final File csvFile = File.createTempFile(TMP, extension, new File(VitamConfiguration.getVitamTmpFolder()));
+            String uniqueFileId = GUIDFactory.newGUID().getId();
+            File csvFile = PropertiesUtils.fileFromTmpFolder(uniqueFileId + "." + extension);
             Files.copy(agenciesStream, csvFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             return csvFile;
         } finally {
@@ -429,15 +431,17 @@ public class AgenciesService implements VitamAutoCloseable {
             } catch (Exception e) {
                 throw new ReferentialException(e);
             }
+
+            agenciesToImport = AgenciesParser.readFromCsv(new FileInputStream(csvFileReader));
+
+            if (errorsMap.size() > 0) {
+                throw new ReferentialException(INVALID_CSV_FILE);
+            }
+        } finally {
             if (csvFileReader != null) {
-
-                agenciesToImport = AgenciesParser.readFromCsv(new FileInputStream(csvFileReader));
-
-                if (errorsMap.size() > 0) {
-                    throw new ReferentialException(INVALID_CSV_FILE);
+                if (!csvFileReader.delete()) {
+                    LOGGER.warn("Failed to delete file");
                 }
-
-                csvFileReader.delete();
             }
         }
     }
@@ -527,9 +531,10 @@ public class AgenciesService implements VitamAutoCloseable {
 
         manager.logStarted(AGENCIES_IMPORT_EVENT);
         InputStream reportStream;
+        File file = null;
         try {
 
-            File file = convertInputStreamToFile(stream, CSV);
+            file = convertInputStreamToFile(stream, CSV);
 
             try (FileInputStream inputStream = new FileInputStream(file)) {
                 checkFile(inputStream);
@@ -586,7 +591,11 @@ public class AgenciesService implements VitamAutoCloseable {
             errorStream.close();
             return generateVitamError(MESSAGE_ERROR + e.getMessage());
         } finally {
-            // StreamUtils.closeSilently(stream);
+            if (file != null) {
+                if (!file.delete()) {
+                    LOGGER.warn("Failed to delete file");
+                }
+            }
         }
 
         return new RequestResponseOK<AgenciesModel>().setHttpCode(Response.Status.CREATED.getStatusCode());
