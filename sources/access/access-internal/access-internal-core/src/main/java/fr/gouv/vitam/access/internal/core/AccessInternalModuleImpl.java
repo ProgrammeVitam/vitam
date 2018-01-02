@@ -816,31 +816,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         boolean stepCheckRules, boolean stepLFCCommit, String evDetData)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
 
-        // Global step
+        // Global step id
         GUID parentEventGuid = GUIDFactory.newEventGUID(updateOpGuidStart);
-        LogbookOperationParameters logbookOpStpParamEnd;
-        if (!globalStep) {
-            // GLOBAL KO
-            logbookOpStpParamEnd =
-                getLogbookOperationUpdateUnitParameters(parentEventGuid, updateOpGuidStart,
-                    StatusCode.KO, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.KO), idRequest,
-                    STP_UPDATE_UNIT, false);
-
-            logbookOpStpParamEnd.putParameterValue(LogbookParameterName.outcomeDetail, STP_UPDATE_UNIT + "." +
-                StatusCode.KO);
-        } else {
-            // GLOBAL OK
-            logbookOpStpParamEnd =
-                getLogbookOperationUpdateUnitParameters(parentEventGuid, updateOpGuidStart,
-                    StatusCode.OK, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.OK), idRequest,
-                    STP_UPDATE_UNIT, false);
-            logbookOpStpParamEnd.putParameterValue(LogbookParameterName.outcomeDetail, STP_UPDATE_UNIT + "." +
-                StatusCode.OK);
-        }
-        logbookOpStpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
-        logbookOperationClient.update(logbookOpStpParamEnd);
-
-
+        
+        // Tasks' events
         LogbookOperationParameters logbookOpParamEnd;
         if (!stepCheckRules) {
             // STEP UNIT_CHECK_RULES KO
@@ -935,6 +914,29 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 }
             }
         }
+        
+        // Global step event
+        LogbookOperationParameters logbookOpStpParamEnd;
+        if (!globalStep) {
+            // GLOBAL KO
+            logbookOpStpParamEnd =
+                    getLogbookOperationUpdateUnitParameters(parentEventGuid, updateOpGuidStart,
+                            StatusCode.KO, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.KO), idRequest,
+                            STP_UPDATE_UNIT, false);
+
+            logbookOpStpParamEnd.putParameterValue(LogbookParameterName.outcomeDetail, STP_UPDATE_UNIT + "." +
+                    StatusCode.KO);
+        } else {
+            // GLOBAL OK
+            logbookOpStpParamEnd =
+                    getLogbookOperationUpdateUnitParameters(parentEventGuid, updateOpGuidStart,
+                            StatusCode.OK, VitamLogbookMessages.getCodeOp(STP_UPDATE_UNIT, StatusCode.OK), idRequest,
+                            STP_UPDATE_UNIT, false);
+            logbookOpStpParamEnd.putParameterValue(LogbookParameterName.outcomeDetail, STP_UPDATE_UNIT + "." +
+                    StatusCode.OK);
+        }
+        logbookOpStpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
+        logbookOperationClient.update(logbookOpStpParamEnd);
     }
 
     private void rollBackLogbook(LogbookOperationsClient logbookOperationClient,
