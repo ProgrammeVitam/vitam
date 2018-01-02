@@ -77,5 +77,10 @@
 	"STORE_MANIFEST": {
 		"className": "fr.gouv.vitam.worker.core.plugin.dip.StoreDIP",
 		"propertiesFile": "create_unit_secure_file_plugin.properties"
+	},
+	"CHECK_CLASSIFICATION_LEVEL": {
+		"className": "fr.gouv.vitam.worker.core.plugin.CheckClassificationLevelActionPlugin",
+		"propertiesFile": "check_classification_level_plugin.properties"
 	}
+
 }

@@ -38,6 +38,10 @@
 		"className": "fr.gouv.vitam.worker.core.plugin.CheckArchiveUnitSchemaActionPlugin",
 		"propertiesFile": "check_archive_unit_schema_plugin.properties"
 	},
+	"CHECK_CLASSIFICATION_LEVEL": {
+		"className": "fr.gouv.vitam.worker.core.plugin.CheckClassificationLevelActionPlugin",
+		"propertiesFile": "check_classification_level_plugin.properties"
+	},
 	"UPDATE_UNIT_RULES": {
 		"className": "fr.gouv.vitam.worker.core.plugin.ArchiveUnitRulesUpdateActionPlugin",
 		"propertiesFile": "archive_units_rules_update_plugin.properties"
