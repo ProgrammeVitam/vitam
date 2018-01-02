@@ -82,6 +82,7 @@ public class PronomParser {
     private static final String ATTR_CREATEDDATE = "DateCreated";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PronomParser.class);
+    public static final String MIME_TYPE = "MIMEType";
 
     private PronomParser() {
         // Empty
@@ -142,7 +143,11 @@ public class PronomParser {
                             final Map<String, Object> attributesMap = new HashMap<>();
                             while (attributes.hasNext()) {
                                 final Attribute attribute = attributes.next();
-                                attributesMap.put(attribute.getName().toString(), attribute.getValue());
+                                String value = attribute.getValue();
+                                if (MIME_TYPE.equals(attribute.getName().getLocalPart()) && value.contains(",")) {
+                                    value = value.replace(",", ";");
+                                }
+                                attributesMap.put(attribute.getName().toString(), value);
                             }
                             idToPUID.put(attributesMap.get(ATTR_ID).toString(),
                                 attributesMap.get(ATTR_PUID).toString());
