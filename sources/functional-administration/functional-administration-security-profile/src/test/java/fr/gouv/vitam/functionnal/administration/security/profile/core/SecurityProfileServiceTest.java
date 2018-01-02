@@ -194,7 +194,7 @@ public class SecurityProfileServiceTest {
         assertThat(responseCast.getResults().get(1).getIdentifier()).contains("SEC_PROFILE-000");
 
         verify(functionalBackupService).saveCollectionAndSequence(any(), eq(SECURITY_PROFILE_BACKUP_EVENT), eq(
-            FunctionalAdminCollections.SECURITY_PROFILE), eq(TENANT_ID));
+            FunctionalAdminCollections.SECURITY_PROFILE));
     }
 
     @Test

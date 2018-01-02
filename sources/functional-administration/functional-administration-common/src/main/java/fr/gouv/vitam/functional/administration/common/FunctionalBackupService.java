@@ -40,6 +40,8 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
 import fr.gouv.vitam.functional.administration.common.exception.FunctionalBackupServiceException;
@@ -92,27 +94,47 @@ public class FunctionalBackupService {
     }
 
     /**
-     * @param eipMaster     logbookMaster
-     * @param eventCode     logbook evType
-     * @param collection    collection
-     * @param sessionTenant tenant
+     * @param eipMaster  logbookMaster
+     * @param eventCode  logbook evType
+     * @param collection collection
      * @throws VitamException vitamException
      */
     public void saveCollectionAndSequence(GUID eipMaster, String eventCode,
-        FunctionalAdminCollections collection, int sessionTenant)
+        FunctionalAdminCollections collection)
         throws VitamException {
-
-        File file = null;
 
         try {
 
-            int storageTenant = getStorageTenant(collection, sessionTenant);
+            // FIXME : Cross-tenant collections should only be updated using admin tenant (1).
+            // There would be no need for hacking tenant here
+
+            int initialTenant = ParameterHelper.getTenantParameter();
+            int storageTenant = getStorageTenant(collection, initialTenant);
 
             String fileName = buildBackupFilenameSequence(collection, storageTenant);
 
-            file = saveFunctionalCollectionToTempFile(collection, storageTenant);
+            String digestStr;
+            File file = null;
+            try {
 
-            String digestStr = storeBackupFileInStorage(fileName, file);
+                // Force storage tenant to 1 for cross-tenant collections (impersonate admin tenant)
+                VitamThreadUtils.getVitamSession().setTenantId(storageTenant);
+
+                file = saveFunctionalCollectionToTempFile(collection, storageTenant);
+
+                digestStr = storeBackupFileInStorage(fileName, file);
+
+            } finally {
+
+                // Restore initial tenant before logbook update (success or ko)
+                VitamThreadUtils.getVitamSession().setTenantId(initialTenant);
+
+                if (file != null) {
+                    if (!file.delete()) {
+                        LOGGER.warn("Could not delete temp file {0}", file.getAbsolutePath());
+                    }
+                }
+            }
 
             backupLogbookManager.logEventSuccess(eipMaster, eventCode, digestStr, fileName);
 
@@ -120,23 +142,19 @@ public class FunctionalBackupService {
             LOGGER.error(e);
             backupLogbookManager.logError(eipMaster, eventCode, e.getMessage());
             throw new FunctionalBackupServiceException(e);
-        } finally {
-            if (file != null) {
-                if (!file.delete()) {
-                    LOGGER.warn("Could not delete temp file {0}", file.getAbsolutePath());
-                }
-            }
         }
+
     }
 
     /**
      * Forces "1" for cross-tenant collections.
+     *
      * @param collection
      * @param sessionTenant
      * @return
      */
     private int getStorageTenant(FunctionalAdminCollections collection, int sessionTenant) {
-        if(collection.isMultitenant())
+        if (collection.isMultitenant())
             return sessionTenant;
         else
             return DEFAULT_ADMIN_TENANT;

@@ -31,6 +31,10 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
 import fr.gouv.vitam.functional.administration.common.exception.FunctionalBackupServiceException;
@@ -39,6 +43,7 @@ import org.apache.commons.io.IOUtils;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -66,7 +71,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
 
-
+@RunWithCustomExecutor
 public class FunctionalBackupServiceTest {
 
     private final static String CLUSTER_NAME = "vitam-cluster";
@@ -94,6 +99,10 @@ public class FunctionalBackupServiceTest {
 
     @Mock
     private BackupLogbookManager backupLogbookManager;
+
+    @ClassRule
+    public static RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @InjectMocks
     private FunctionalBackupService functionalBackupService;
@@ -129,10 +138,12 @@ public class FunctionalBackupServiceTest {
             .add(IOUtils.toString(((InputStream) invocation.getArguments()[0]), StandardCharsets.UTF_8)))
             .when(backupService).backup(any(), any(), anyString());
 
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
         // When
         GUID guid = newEventGUID(0);
         functionalBackupService.saveCollectionAndSequence(guid, "STP_TEST",
-            agencies, 0);
+            agencies);
         //Then
 
         ArgumentCaptor<String> hashArgCaptor = ArgumentCaptor.forClass(String.class);
@@ -154,9 +165,11 @@ public class FunctionalBackupServiceTest {
         GUID guid = newEventGUID(0);
         willThrow(new BackupServiceException("Error Message")).given(backupService).backup(any(), any(), any());
 
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
         // When / then
         assertThatThrownBy(() -> functionalBackupService
-            .saveCollectionAndSequence(guid, "STP_TEST", agencies, 0))
+            .saveCollectionAndSequence(guid, "STP_TEST", agencies))
             .isInstanceOf(FunctionalBackupServiceException.class)
             .withFailMessage("Error Message");
         verify(backupLogbookManager).logError(guid, "STP_TEST", "Error Message");

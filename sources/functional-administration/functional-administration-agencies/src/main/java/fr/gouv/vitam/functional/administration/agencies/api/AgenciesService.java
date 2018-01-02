@@ -562,8 +562,7 @@ public class AgenciesService implements VitamAutoCloseable {
                 ParameterHelper.getTenantParameter(), eip + ".csv");
             //store collection
             backupService.saveCollectionAndSequence(eip, AGENCIES_IMPORT_EVENT,
-                FunctionalAdminCollections.AGENCIES, ParameterHelper.getTenantParameter());
-
+                FunctionalAdminCollections.AGENCIES);
 
             manager.logFinish();
         } catch (final AgencyImportDeletionException e) {
