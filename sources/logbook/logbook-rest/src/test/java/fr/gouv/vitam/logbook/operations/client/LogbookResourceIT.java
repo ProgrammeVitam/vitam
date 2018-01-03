@@ -68,6 +68,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -105,6 +106,9 @@ public class LogbookResourceIT {
     private static final String LOGBOOK_CONF = "logbook-test.conf";
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
     private static final String DATABASE_HOST = "localhost";
+    private static final String ALERT_EVENT_TYPE = "STP_IMPORT_ACCESS_CONTRACT";
+    private static final String ALERT_EVENT_OUTCOME = "OK";
+    
     private static MongodExecutable mongodExecutable;
     private static MongodProcess mongod;
     // ES
@@ -123,6 +127,7 @@ public class LogbookResourceIT {
     private static final int NB_TEST = 100;
     private static final Integer tenantId = 0;
     private static final List<Integer> tenantList = newArrayList(tenantId);
+    
 
     private static LogbookOperationParameters logbookParametersStart;
     private static LogbookOperationParameters logbookParametersAppend;
@@ -174,7 +179,12 @@ public class LogbookResourceIT {
             logbookConf.setClusterName(ES_CLUSTER_NAME);
             logbookConf.setElasticsearchNodes(esNodes);
             logbookConf.setTenants(tenantList);
-
+            final List<LogbookEvent> alertEvents = new ArrayList<>();
+            LogbookEvent alertEvent=new LogbookEvent();
+            alertEvent.setEvType(ALERT_EVENT_TYPE);
+            alertEvent.setOutcome(ALERT_EVENT_OUTCOME);
+            alertEvents.add(alertEvent);
+            logbookConf.setAlertEvents(alertEvents);
             File file = temporaryFolder.newFile();
             String configurationFile = file.getAbsolutePath();
             PropertiesUtils.writeYaml(file, logbookConf);

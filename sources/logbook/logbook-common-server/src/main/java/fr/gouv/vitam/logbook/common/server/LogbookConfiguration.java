@@ -31,6 +31,7 @@ import java.util.List;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 
@@ -50,7 +51,10 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
 
     private String clusterName;
 
-    private List<ElasticsearchNode> elasticsearchNodes;
+    private List<ElasticsearchNode> elasticsearchNodes;    
+    
+    private List<LogbookEvent> alertEvents;    
+    
 
     /**
      * LogbookConfiguration constructor
@@ -184,4 +188,24 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
         this.elasticsearchNodes = elasticsearchNodes;
         return this;
     }
+
+    
+    /**
+     * @return the alertEvents
+     */
+    public List<LogbookEvent> getAlertEvents() {
+        return alertEvents;
+    }
+
+    
+    /**
+     * @param alertEvents to set
+     */
+    public void setAlertEvents(List<LogbookEvent> alertEvents) {
+        this.alertEvents = alertEvents;
+    }
+    
+    
+    
+    
 }

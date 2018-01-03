@@ -23,3 +23,12 @@ elasticsearchNodes:
 - hostName: {{hostvars[server]['ip_service']}}
   tcpPort: {{ elasticsearch.data.port_tcp }}
 {% endfor %}
+
+# Configuration des alertes de securite
+alertEvents:
+- evType: 'CHECK_HEADER.CHECK_CONTRACT_INGEST'
+  outcome: 'KO'
+- evType: 'CHECK_RULES.MAX_DURATION_EXCEEDS'
+  outcome: 'KO'
+- evType: 'CHECK_RULES'
+  outcome: 'KO'
