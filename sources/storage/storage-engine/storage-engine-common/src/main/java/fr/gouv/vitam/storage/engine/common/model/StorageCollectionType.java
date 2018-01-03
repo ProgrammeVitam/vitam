@@ -64,8 +64,6 @@ public enum StorageCollectionType {
      */
     AGENCIES("agencies"),
 
-
-
     /**
      * ObjectGroups collection
      */
@@ -81,7 +79,12 @@ public enum StorageCollectionType {
     /**
      * Dip collection
      */
-    DIP("dip");
+    DIP("dip"),
+
+    /**
+     * backup files
+     */
+    BACKUP("backup");
 
     /**
      * Name
