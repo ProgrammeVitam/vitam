@@ -231,7 +231,7 @@ Cette transposition se fait comme suit :
 
 **"_nbc" :** nombre d'enfants immédiats de l'unité archivistique.
       
-  * Il s'agit d'une chaîne de 36 caractères.
+  * Il s'agit d'un entier.
   * Champ peuplé par Vitam.
   * Cardinalité : 1-1
 
