@@ -1,3 +1,5 @@
+package fr.gouv.vitam.functional.administration.common;
+
 /*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
@@ -33,7 +35,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.BackupLogbookManager;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -41,6 +42,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventDetailData;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventType;
@@ -83,11 +85,11 @@ public class BackupLogbookManagerTest {
         digest.update("toto".getBytes());
         ObjectNode evdetData = JsonHandler.createObjectNode();
         evdetData.put(BackupLogbookManager.FILE_NAME, "toto.json");
-        evdetData.put(BackupLogbookManager.DIGEST, digest.toString());
+        evdetData.put(BackupLogbookManager.DIGEST, digest.digestHex());
         evdetData.put(BackupLogbookManager.DIGESTTYPE, VitamConfiguration.getDefaultDigestType().getName());
 
         // When
-        manager.logEventSuccess(newOperationLogbookGUID(0), "STP_TEST", digest, "toto.json");
+        manager.logEventSuccess(newOperationLogbookGUID(0), "STP_TEST", digest.digestHex(), "toto.json");
 
         // Then
         verify(logbookOperationsClient).update(captor.capture());

@@ -211,7 +211,7 @@ public class ContractResourceTest {
                 response = agenciesService.importAgencies(new FileInputStream(fileAgencies));
 
                 assertThat(response.isOk()).isTrue();
-            } catch (VitamException | InvalidCreateOperationException | IOException e) {
+            } catch (VitamException | IOException e) {
                 throw new RuntimeException(e);
             }
         });

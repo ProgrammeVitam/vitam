@@ -26,15 +26,6 @@
  */
 package fr.gouv.vitam.functionnal.administration.security.profile.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoClient;
@@ -67,17 +58,35 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.security.profile.core.SecurityProfileService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static fr.gouv.vitam.functional.administration.security.profile.core.SecurityProfileService.SECURITY_PROFILE_BACKUP_EVENT;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 
 public class SecurityProfileServiceTest {
@@ -93,17 +102,18 @@ public class SecurityProfileServiceTest {
     private static final Integer EXTERNAL_TENANT = 2;
     private static MongoDbAccessAdminImpl dbImpl;
 
-    static JunitHelper junitHelper;
-    static final String COLLECTION_NAME = "SecurityProfile";
-    static final String DATABASE_HOST = "localhost";
-    static final String DATABASE_NAME = "vitam-test";
-    static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
-    static MongoClient client;
-    static VitamCounterService vitamCounterService;
-    static Map<Integer, List<String>> externalIdentifiers;
+    private static JunitHelper junitHelper;
+    private static final String COLLECTION_NAME = "SecurityProfile";
+    private static final String DATABASE_HOST = "localhost";
+    private static final String DATABASE_NAME = "vitam-test";
+    private static MongodExecutable mongodExecutable;
+    private static MongodProcess mongod;
+    private static MongoClient client;
 
-    static SecurityProfileService securityProfileService;
+    private VitamCounterService vitamCounterService;
+    private FunctionalBackupService functionalBackupService;
+    private SecurityProfileService securityProfileService;
+
     static int mongoPort;
 
 
@@ -124,6 +134,14 @@ public class SecurityProfileServiceTest {
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoPort));
 
         dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
+    }
+
+    @Before
+    public void setup() throws Exception {
+
+        final List<MongoDbNode> nodes = new ArrayList<>();
+        nodes.add(new MongoDbNode(DATABASE_HOST, mongoPort));
+
         final List tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
         tenants.add(new Integer(EXTERNAL_TENANT));
@@ -134,25 +152,27 @@ public class SecurityProfileServiceTest {
         vitamCounterService = new VitamCounterService(dbImpl, tenants, listEnableExternalIdentifiers);
         LogbookOperationsClientFactory.changeMode(null);
 
+        functionalBackupService = mock(FunctionalBackupService.class);
+
         securityProfileService =
             new SecurityProfileService(
                 MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
-                vitamCounterService);
+                vitamCounterService, functionalBackupService);
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(mongoPort);
         client.close();
-        securityProfileService.close();
     }
 
     @After
     public void afterTest() {
         MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         collection.deleteMany(new Document());
+        securityProfileService.close();
     }
 
     @Test
@@ -172,6 +192,9 @@ public class SecurityProfileServiceTest {
         assertThat(responseCast.getResults().get(0).getIdentifier()).contains("SEC_PROFILE-000");
         assertThat(responseCast.getResults().get(0).getPermissions().size()).isEqualTo(3);
         assertThat(responseCast.getResults().get(1).getIdentifier()).contains("SEC_PROFILE-000");
+
+        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(SECURITY_PROFILE_BACKUP_EVENT), eq(
+            FunctionalAdminCollections.SECURITY_PROFILE));
     }
 
     @Test
@@ -185,13 +208,16 @@ public class SecurityProfileServiceTest {
         final RequestResponse response = securityProfileService.createSecurityProfiles(securityProfileModelList);
 
         assertThat(response.isOk()).isFalse();
+
+        verifyNoMoreInteractions(functionalBackupService);
     }
 
     @Test
     @RunWithCustomExecutor
-    public void givenSecurityProfilesTestNotUniqueNames() throws Exception {
+    public void givenSecurityProfilesTestDuplicateNamesAccepted() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final File securityProfileFiles = PropertiesUtils.getResourceFile("security_profile_ko_duplicate_names.json");
+        final File securityProfileFiles = PropertiesUtils.getResourceFile(
+            "security_profile_ok_duplicate_names_accepted.json");
         final List<SecurityProfileModel> securityProfileModelList =
             JsonHandler.getFromFileAsTypeRefence(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {
             });

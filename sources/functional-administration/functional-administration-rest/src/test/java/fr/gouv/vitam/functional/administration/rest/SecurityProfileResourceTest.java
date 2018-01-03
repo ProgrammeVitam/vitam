@@ -1,5 +1,7 @@
 package fr.gouv.vitam.functional.administration.rest;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.jayway.restassured.RestAssured.given;
 import static org.junit.Assume.assumeTrue;
 
@@ -9,6 +11,8 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -54,7 +58,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 
 public class SecurityProfileResourceTest {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ContextResourceTest.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SecurityProfileResourceTest.class);
     private static final String ADMIN_MANAGEMENT_CONF = "functional-administration-test.conf";
 
     private static final String RESOURCE_URI = "/adminmanagement/v1";
@@ -67,11 +71,16 @@ public class SecurityProfileResourceTest {
     static String DATABASE_NAME = "vitam-test";
     private static String DATABASE_HOST = "localhost";
 
-    private static JunitHelper junitHelper;
+    private static JunitHelper junitHelper = JunitHelper.getInstance();
     private static int serverPort;
     private static int databasePort;
     private static File adminConfigFile;
     private static AdminManagementMain application;
+
+    private static int workspacePort = junitHelper.findAvailablePort();
+
+    @ClassRule
+    public static WireMockClassRule workspaceWireMock = new WireMockClassRule(workspacePort);
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -89,8 +98,10 @@ public class SecurityProfileResourceTest {
     public static void setUpBeforeClass() throws Exception {
         new JHades().overlappingJarsReport();
 
-        junitHelper = JunitHelper.getInstance();
         databasePort = junitHelper.findAvailablePort();
+
+        File tmpFolder = tempFolder.newFolder();
+        System.setProperty("vitam.tmp.folder", tmpFolder.getAbsolutePath());
 
         // ES
         try {
@@ -111,6 +122,7 @@ public class SecurityProfileResourceTest {
         realAdminConfig.getMongoDbNodes().get(0).setDbPort(databasePort);
         realAdminConfig.setElasticsearchNodes(nodesEs);
         realAdminConfig.setClusterName(CLUSTER_NAME);
+        realAdminConfig.setWorkspaceUrl("http://localhost:" + workspacePort);
         adminConfigFile = File.createTempFile("test", ADMIN_MANAGEMENT_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 
@@ -140,6 +152,14 @@ public class SecurityProfileResourceTest {
             throw new IllegalStateException(
                 "Cannot start the AdminManagement Application Server", e);
         }
+
+        // Mock workspace API
+        workspaceWireMock.stubFor(WireMock.post(urlMatching("/workspace/v1/containers/(.*)"))
+            .willReturn(
+                aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+        workspaceWireMock.stubFor(WireMock.delete(urlMatching("/workspace/v1/containers/(.*)"))
+            .willReturn(
+                aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
     }
 
     @AfterClass

@@ -123,9 +123,11 @@ public class AgenciesResourceTest {
     public static void setUpBeforeClass() throws Exception {
         new JHades().overlappingJarsReport();
 
+        File tmpFolder = tempFolder.newFolder();
+        System.setProperty("vitam.tmp.folder", tmpFolder.getAbsolutePath());
+
         junitHelper = JunitHelper.getInstance();
         databasePort = junitHelper.findAvailablePort();
-
         databasePort = 41909;
 
         // ES

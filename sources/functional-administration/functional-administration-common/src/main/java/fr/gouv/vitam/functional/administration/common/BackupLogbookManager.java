@@ -31,12 +31,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -78,7 +76,7 @@ public class BackupLogbookManager {
      * @param eventType the event type to be logged
      * @throws VitamException thrown if the logbook could not be updated
      */
-    public void logEventSuccess(GUID logbookOperationMasterId, String eventType, Digest digest, String fileName)
+    public void logEventSuccess(GUID logbookOperationMasterId, String eventType, String digestStr, String fileName)
         throws VitamException {
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
 
@@ -89,7 +87,7 @@ public class BackupLogbookManager {
 
         ObjectNode evDetData = JsonHandler.createObjectNode();
         evDetData.put(FILE_NAME, fileName);
-        evDetData.put(DIGEST, digest.toString());
+        evDetData.put(DIGEST, digestStr);
         evDetData.put(DIGESTTYPE, VitamConfiguration.getDefaultDigestType().getName());
 
         logbookParameters.putParameterValue(
@@ -98,7 +96,7 @@ public class BackupLogbookManager {
         LogbookOperationsClient logbookClient = logbookClientFactory.getClient();
         logbookClient.update(logbookParameters);
     }
-  
+
     /**
      * log error (system or technical error)
      * @param logbookOperationMasterId

@@ -55,6 +55,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
@@ -80,14 +81,18 @@ public class ContextResource {
 
     private final MongoDbAccessAdminImpl mongoAccess;
     private final VitamCounterService vitamCounterService;
+    private final FunctionalBackupService functionalBackupService;
 
     /**
      *
      * @param mongoAccess
+     * @param functionalBackupService
      */
-    public ContextResource(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService) {
+    public ContextResource(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService,
+        FunctionalBackupService functionalBackupService) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
+        this.functionalBackupService = functionalBackupService;
         LOGGER.debug("init Admin Management Resource server");
     }
 
@@ -98,7 +103,8 @@ public class ContextResource {
     public Response importContexts(List<ContextModel> ContextModelList, @Context UriInfo uri) {
         ParametersChecker.checkParameter(CONTEXTS_JSON_IS_MANDATORY_PATAMETER, ContextModelList);
 
-        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess, vitamCounterService);
+        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess, vitamCounterService,
+            functionalBackupService);
              ContextService contextService = new ContextServiceImpl(mongoAccess, vitamCounterService, securityProfileService)) {
             RequestResponse requestResponse = contextService.createContexts(ContextModelList);
 
@@ -151,7 +157,8 @@ public class ContextResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response findContexts(JsonNode queryDsl) {
 
-        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess, vitamCounterService);
+        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess, vitamCounterService,
+            functionalBackupService);
              ContextService contextService = new ContextServiceImpl(mongoAccess, vitamCounterService, securityProfileService)) {
             SanityChecker.checkJsonAll(queryDsl); 
             try (DbRequestResult result = contextService.findContexts(queryDsl)) {
@@ -183,7 +190,8 @@ public class ContextResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateContexts(@PathParam("id") String contextId, JsonNode queryDsl) {
 
-        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess, vitamCounterService);
+        try (SecurityProfileService securityProfileService = new SecurityProfileService(mongoAccess, vitamCounterService,
+            functionalBackupService);
              ContextService contextService = new ContextServiceImpl(mongoAccess, vitamCounterService, securityProfileService)) {
             RequestResponse requestResponse = contextService.updateContext(contextId, queryDsl);
             if (!requestResponse.isOk()) {

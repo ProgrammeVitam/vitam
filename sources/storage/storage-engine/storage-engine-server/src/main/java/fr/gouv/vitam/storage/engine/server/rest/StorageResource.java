@@ -996,7 +996,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     }
 
     private Response badRequestResponse(String message) {
-        return Response.status(Response.Status.BAD_REQUEST).entity("{\"error\":\"" + message + "\"}").build();
+        return Response.status(Status.BAD_REQUEST).entity("{\"error\":\"" + message + "\"}").build();
     }
 
     /**
@@ -1168,7 +1168,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     public Response secureStorageLogbook(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
         if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Status.BAD_REQUEST).build();
         }
         try {
             Integer tenantId = Integer.parseInt(xTenantId);
