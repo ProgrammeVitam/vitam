@@ -37,6 +37,8 @@ public class PopulateModel {
     private String sp;
 
     private int tenant;
+    
+    private boolean withGots;
 
     public int getNumberOfUnit() {
         return numberOfUnit;
@@ -76,5 +78,13 @@ public class PopulateModel {
 
     public void setTenant(int tenant) {
         this.tenant = tenant;
+    }
+
+    public boolean isWithGots() {
+        return withGots;
+    }
+
+    public void setWithGots(boolean withGots) {
+        this.withGots = withGots;
     }
 }

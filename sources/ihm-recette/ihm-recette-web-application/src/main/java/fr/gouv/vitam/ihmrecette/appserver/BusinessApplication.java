@@ -26,28 +26,10 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver;
 
-import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
-import static java.lang.String.format;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
-
 import com.google.common.base.Throwables;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
-import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
@@ -59,16 +41,33 @@ import fr.gouv.vitam.ihmrecette.appserver.applicativetest.ApplicativeTestResourc
 import fr.gouv.vitam.ihmrecette.appserver.applicativetest.ApplicativeTestService;
 import fr.gouv.vitam.ihmrecette.appserver.performance.PerformanceResource;
 import fr.gouv.vitam.ihmrecette.appserver.performance.PerformanceService;
+import fr.gouv.vitam.ihmrecette.appserver.populate.DescriptiveMetadataGenerator;
 import fr.gouv.vitam.ihmrecette.appserver.populate.MetadataRepository;
 import fr.gouv.vitam.ihmrecette.appserver.populate.PopulateResource;
 import fr.gouv.vitam.ihmrecette.appserver.populate.PopulateService;
-import fr.gouv.vitam.ihmrecette.appserver.populate.DescriptiveMetadataGenerator;
 import fr.gouv.vitam.ihmrecette.appserver.populate.UnitGraph;
-import org.bson.Document;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
+
+import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
+import static java.lang.String.format;
 
 public class BusinessApplication extends Application {
 
@@ -122,22 +121,18 @@ public class BusinessApplication extends Application {
                 new ApplicativeTestService(Paths.get(testSystemReportDirectory));
 
             singletons.add(new ApplicativeTestResource(applicativeTestService, testSystemSipDirectory));
-            MongoClientOptions mongoClientOptions = VitamCollection.getMongoClientOptions();
-
-            MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration, mongoClientOptions);
-
-
+            
             DescriptiveMetadataGenerator descriptiveMetadataGenerator = new DescriptiveMetadataGenerator();
 
+            MongoClientOptions mongoClientOptions = VitamCollection.getMongoClientOptions();
+            MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration, mongoClientOptions);
+            MongoDatabase metadataDb = mongoClient.getDatabase(configuration.getMetadataDbName());
+            
             List<ElasticsearchNode> elasticsearchNodes = configuration.getElasticsearchNodes();
             Settings settings = ElasticsearchAccess.getSettings(configuration.getClusterName());
+            TransportClient esClient = getClient(settings, elasticsearchNodes);
 
-            TransportClient client = getClient(settings, elasticsearchNodes);
-
-            MongoCollection<Document> collection =
-                mongoClient.getDatabase(configuration.getMetadataDbName()).getCollection("Unit");
-
-            MetadataRepository metadataRepository = new MetadataRepository(collection, client);
+            MetadataRepository metadataRepository = new MetadataRepository(metadataDb, esClient);
             UnitGraph unitGraph = new UnitGraph(metadataRepository);
             PopulateService populateService = new PopulateService(metadataRepository, descriptiveMetadataGenerator, unitGraph);
             PopulateResource populateResource = new PopulateResource(populateService);

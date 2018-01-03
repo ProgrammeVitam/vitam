@@ -1,13 +1,9 @@
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.net.InetAddress;
-
 import com.google.common.collect.Lists;
+import com.mongodb.Block;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.mongo.MongoRule;
@@ -21,13 +17,20 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.net.InetAddress;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class PopulateServiceTest {
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Rule
-    public MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions(), "metadata", "unit");
+    public MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions(), "metadata",
+            Arrays.stream(MetadataType.values()).map(MetadataType::getCollectionName).toArray(String[]::new));
 
     private PopulateService populateService;
     private MetadataRepository metadataRepository;
@@ -44,7 +47,7 @@ public class PopulateServiceTest {
         client = new PreBuiltTransportClient(settings);
         client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), tcpPort));
 
-        this.metadataRepository = new MetadataRepository(mongoRule.getMongoCollection("unit"), client);
+        this.metadataRepository = new MetadataRepository(mongoRule.getMongoDatabase(), client);
         UnitGraph unitGraph = new UnitGraph(metadataRepository);
         populateService = new PopulateService(metadataRepository, new DescriptiveMetadataGenerator(), unitGraph);
     }
@@ -58,6 +61,7 @@ public class PopulateServiceTest {
         populateModel.setRootId("1234");
         populateModel.setSp("vitam");
         populateModel.setTenant(0);
+        populateModel.setWithGots(true);
 
         UnitModel unitModel = new UnitModel();
 
@@ -67,7 +71,7 @@ public class PopulateServiceTest {
         unitModel.setDescriptiveMetadataModel(content);
         unitModel.setId("1234");
 
-        metadataRepository.store(0, Lists.newArrayList(Document.parse(JsonHandler.writeAsString(unitModel))));
+        metadataRepository.store(0, Lists.newArrayList(new UnitGotModel(unitModel)));
 
         // When
         populateService.populateVitam(populateModel);
@@ -78,7 +82,28 @@ public class PopulateServiceTest {
             Thread.sleep(100L);
             i+=1;
         }
-        assertThat(mongoRule.getMongoCollection("unit").count()).isEqualTo(11);
+
+        int[] idx = { 0 };
+        assertThat(mongoRule.getMongoCollection(MetadataType.UNIT.getCollectionName()).count()).isEqualTo(11);
+        mongoRule.getMongoCollection(MetadataType.UNIT.getCollectionName()).find().skip(1).
+            forEach((Block<? super Document>) document -> {
+                assertThat(document.getString("Title").equals("Title: " + (idx[0]++)));
+                assertThat(!document.getString("_up").equals("1234"));
+                assertThat(document.get("_us", List.class).size() == 1);
+                assertThat(document.get("_sps", List.class).size() == 1);
+                assertThat(document.get("_uds", Document.class).getInteger("1234").equals(1));
+        });
+
+        int[] jdx = { 0 };
+        assertThat(mongoRule.getMongoCollection(MetadataType.GOT.getCollectionName()).count()).isEqualTo(10);
+        mongoRule.getMongoCollection(MetadataType.GOT.getCollectionName()).find().
+            forEach((Block<? super Document>) document -> {
+                assertThat(document.get("FileInfo", Document.class).
+                        getString("Filename").equals("Filename: " + (jdx[0]++)));
+                assertThat(document.get("_sps", List.class).size() == 1);
+                assertThat(!document.getString("_up").isEmpty());
+        });
+        
     }
 
 }

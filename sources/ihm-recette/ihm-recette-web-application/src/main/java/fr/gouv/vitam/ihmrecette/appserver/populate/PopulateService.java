@@ -26,14 +26,12 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
-import org.bson.Document;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PopulateService {
 
@@ -43,17 +41,19 @@ public class PopulateService {
 
     private final MetadataRepository metadataRepository;
 
-    private DescriptiveMetadataGenerator descriptiveMetadataGenerator;
-
     private UnitGraph unitGraph;
 
     public PopulateService(MetadataRepository metadataRepository, DescriptiveMetadataGenerator descriptiveMetadataGenerator,
         UnitGraph unitGraph) {
         this.metadataRepository = metadataRepository;
-        this.descriptiveMetadataGenerator = descriptiveMetadataGenerator;
         this.unitGraph = unitGraph;
     }
 
+    /**
+     * Populate vitam with data using populateMode
+     * 
+     * @param populateModel config to use
+     */
     public void populateVitam(PopulateModel populateModel) {
 
         if (populateInProgress.get()) {
@@ -64,20 +64,21 @@ public class PopulateService {
 
         Observable.range(0, populateModel.getNumberOfUnit())
             .observeOn(Schedulers.computation())
-            .map(i -> descriptiveMetadataGenerator.generate(i))
-            .map(content -> unitGraph
-                .createGraph(content, populateModel.getRootId(), populateModel.getTenant(), populateModel.getSp()))
-            .map(unit -> {
-                String sourceWithoutId = JsonHandler.writeAsString(unit);
-                return Document.parse(sourceWithoutId);
-            })
+            .map(i -> unitGraph
+                .createGraph(i, populateModel.getRootId(), populateModel.getTenant(), populateModel.getSp(), 
+                        populateModel.isWithGots()))
             .buffer(populateModel.getBulkSize())
-            .subscribe(units -> metadataRepository.store(populateModel.getTenant(), units), t -> {
+            .subscribe(unitGotList -> metadataRepository.store(populateModel.getTenant(), unitGotList), t -> {
                 LOGGER.error(t);
                 populateInProgress.set(false);
             }, () -> populateInProgress.set(false));
     }
 
+    /**
+     * Check if a populating task is in progress
+     * 
+     * @return true if there is a populating task in progress
+     */
     public boolean inProgress() {
         return populateInProgress.get();
     }

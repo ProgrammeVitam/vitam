@@ -26,40 +26,33 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
-import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
-import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
-import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
-import fr.gouv.vitam.common.model.unit.TextByLang;
-
-import static com.google.common.collect.Lists.newArrayList;
-
-public class DescriptiveMetadataGenerator {
-
-    public static DescriptiveMetadataModel generateDescriptiveMetadataModel(Integer index) {
-        DescriptiveMetadataModel content = new DescriptiveMetadataModel();
-        content.setDescriptionLevel(LevelType.ITEM);
-
-        String title = "Title: " + index;
-        content.setTitle(title);
-
-        TextType textType = new TextType();
-        textType.setLang("fr");
-        textType.setValue(title);
-
-        content.setTitles(new TextByLang(newArrayList(textType)));
-
-        content.setDescription("un exemple de description" + index);
-        return content;
-    }
+public class UnitGotModel {
     
-    public static FileInfoModel generateFileInfoModel(Integer index){
-        FileInfoModel fileInfoModel = new FileInfoModel();
-        
-        String fileName = "Filename: " + index;
-        fileInfoModel.setFilename(fileName);
-        
-        return fileInfoModel;
+    private UnitModel unit;
+    private ObjectGroupModel got;
+
+    public UnitGotModel(UnitModel unit) {
+        this.unit = unit;
     }
 
+    public UnitGotModel(UnitModel unit, ObjectGroupModel got) {
+        this.unit = unit;
+        this.got = got;
+    }
+
+    public UnitModel getUnit() {
+        return unit;
+    }
+
+    public void setUnit(UnitModel unit) {
+        this.unit = unit;
+    }
+
+    public ObjectGroupModel getGot() {
+        return got;
+    }
+
+    public void setGot(ObjectGroupModel got) {
+        this.got = got;
+    }
 }
