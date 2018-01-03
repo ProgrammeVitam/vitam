@@ -26,6 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.api.impl;
 
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -43,12 +46,14 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 /**
  * Implementation for MongoDB
  */
 public class VitamMongoRepository implements VitamRepository {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamMongoRepository.class);
+    public static final String NAME = "Name";
 
     private MongoCollection<Document> collection;
 
@@ -98,6 +103,21 @@ public class VitamMongoRepository implements VitamRepository {
     }
 
     @Override
+    public void removeByNameAndTenant(String name, Integer tenant) throws DatabaseException {
+
+        ParametersChecker.checkParameter("All params are required", name, tenant);
+        Bson query = and(eq(VitamDocument.TENANT_ID, tenant), eq(NAME, name));
+        DeleteResult delete = collection.deleteOne(query);
+        long count = delete.getDeletedCount();
+        if (count == 0) {
+            LOGGER.error(String.format("Documents with name %s and tenant %s are not deleted", name, tenant));
+            throw new DatabaseException(
+                String.format("Documents with name %s and tenant %s are not deleted", name, tenant));
+        }
+
+    }
+
+    @Override
     public long purge(Integer tenant) throws DatabaseException {
         ParametersChecker.checkParameter("All params are required", tenant);
 
@@ -123,7 +143,7 @@ public class VitamMongoRepository implements VitamRepository {
             }
         } catch (Exception e) {
             LOGGER.error("Error while gessting document by id :", e);
-            throw new DatabaseException(String.format("DatabaseException while calling fetch by id : %s",e));
+            throw new DatabaseException(String.format("DatabaseException while calling fetch by id : %s", e));
         }
     }
 }

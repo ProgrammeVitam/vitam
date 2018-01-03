@@ -31,7 +31,6 @@ import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 import java.util.List;
 import java.util.Optional;
 
-import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.api.VitamRepository;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
@@ -171,6 +170,11 @@ public class VitamElasticsearchRepository implements VitamRepository {
     }
 
     @Override
+    public void removeByNameAndTenant(String name, Integer tenant) throws DatabaseException {
+        throw new DatabaseException("removeByNameAndTenant not implemented for Elasticsearch repository");
+    }
+
+    @Override
     public long purge(Integer tenant) throws DatabaseException {
         ParametersChecker.checkParameter("All params are required", tenant);
 
@@ -232,6 +236,5 @@ public class VitamElasticsearchRepository implements VitamRepository {
             return Optional.empty();
         }
     }
-
 
 }

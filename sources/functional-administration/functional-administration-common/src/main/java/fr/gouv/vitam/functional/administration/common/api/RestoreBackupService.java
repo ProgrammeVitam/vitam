@@ -26,15 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.api;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.client.VitamRequestIterator;
+import java.util.Optional;
+
 import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
-
-import javax.ws.rs.core.Response;
-import java.util.Optional;
 
 /**
  * Service used to recover a Backup copy of the given Vitam collection.<br/>
@@ -49,17 +45,15 @@ public interface RestoreBackupService {
      * @param type     the storage collection type.
      * @return the last version.
      */
-    public Optional<String> getLatestSavedFileName(final String strategy, final DataCategory type, final FunctionalAdminCollections collection);
+    Optional<String> getLatestSavedFileName(final String strategy, final DataCategory type, final FunctionalAdminCollections collection);
 
     /**
      * Read the latest file using the name requested by getLatestSavedFileName.<br/>
-     *
+     * Be careful, this method use tenant that is requested from the VitamSession
      * @param strategy
      * @param collection
-     * @param tenant
      * @return the backup copy.
      */
-    public Optional<CollectionBackupModel> readLatestSavedFile(final String strategy, final FunctionalAdminCollections collection,
-                                                               final Integer tenant);
+    Optional<CollectionBackupModel> readLatestSavedFile(final String strategy, final FunctionalAdminCollections collection);
 
 }

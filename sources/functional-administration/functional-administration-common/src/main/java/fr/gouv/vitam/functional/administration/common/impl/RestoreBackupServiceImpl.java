@@ -26,6 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.impl;
 
+import java.io.InputStream;
+import java.util.Comparator;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -33,7 +43,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
 import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
@@ -43,15 +52,6 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
-
-import javax.ws.rs.core.Response;
-import java.io.InputStream;
-import java.util.Comparator;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 /**
  * Service used to recover a Backup copy of the given Vitam collection.<br/>
@@ -100,10 +100,9 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
     }
 
     @Override
-    public Optional<CollectionBackupModel> readLatestSavedFile(String strategy, FunctionalAdminCollections collection, Integer tenant) {
+    public Optional<CollectionBackupModel> readLatestSavedFile(String strategy, FunctionalAdminCollections collection) {
 
         // get the last version of the json backup files.
-        VitamThreadUtils.getVitamSession().setTenantId(tenant);
         Optional<String> lastBackupVersion = getLatestSavedFileName(strategy, DataCategory.BACKUP, collection);
 
         if (lastBackupVersion.isPresent()) {

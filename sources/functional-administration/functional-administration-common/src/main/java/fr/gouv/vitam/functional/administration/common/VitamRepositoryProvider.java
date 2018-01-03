@@ -24,7 +24,7 @@ import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminColl
 /**
  * Description of reconstruction service factory.
  */
-public interface ReconstructionFactory {
+public interface VitamRepositoryProvider {
 
     VitamMongoRepository getVitamMongoRepository(FunctionalAdminCollections collection);
 

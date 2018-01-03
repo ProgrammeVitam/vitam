@@ -30,7 +30,7 @@ import org.bson.Document;
 /**
  * Reconstruction instance for instanciating mongoDB and elasticsearch repository.
  */
-public class VitamRepositoryFactory implements ReconstructionFactory {
+public class VitamRepositoryFactory implements VitamRepositoryProvider {
 
     private static VitamRepositoryFactory instance;
 
@@ -50,6 +50,7 @@ public class VitamRepositoryFactory implements ReconstructionFactory {
         VitamCollection accessionRegisterDetail =
             FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getVitamCollection();
         VitamCollection context = FunctionalAdminCollections.CONTEXT.getVitamCollection();
+        VitamCollection sequence = FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection();
 
         mongoRepository.put(FunctionalAdminCollections.FORMATS,
             new VitamMongoRepository((MongoCollection<Document>) formats.getCollection()));
@@ -71,6 +72,10 @@ public class VitamRepositoryFactory implements ReconstructionFactory {
             new VitamMongoRepository((MongoCollection<Document>) accessionRegisterDetail.getCollection()));
         mongoRepository.put(FunctionalAdminCollections.CONTEXT,
             new VitamMongoRepository((MongoCollection<Document>) context.getCollection()));
+
+        mongoRepository.put(FunctionalAdminCollections.VITAM_SEQUENCE,
+            new VitamMongoRepository((MongoCollection<Document>) sequence.getCollection()));
+
 
         esRepository.put(FunctionalAdminCollections.RULES,
             new VitamElasticsearchRepository(rules.getEsClient().getClient(), rules.getName(),

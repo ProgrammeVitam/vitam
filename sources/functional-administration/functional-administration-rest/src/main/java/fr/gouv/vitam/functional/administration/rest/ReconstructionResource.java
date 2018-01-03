@@ -26,19 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
-import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.AuthenticationLevel;
-import fr.gouv.vitam.common.security.rest.VitamAuthentication;
-import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
-import fr.gouv.vitam.functional.administration.common.ReconstructionItem;
-import fr.gouv.vitam.functional.administration.common.ReconstructionFactory;
-import fr.gouv.vitam.functional.administration.common.api.ReconstructionService;
-import fr.gouv.vitam.functional.administration.common.impl.ReconstructionServiceImpl;
-import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import java.util.List;
 
 import javax.validation.Valid;
 import javax.ws.rs.ApplicationPath;
@@ -50,7 +38,20 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.List;
+
+import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AuthenticationLevel;
+import fr.gouv.vitam.common.security.rest.VitamAuthentication;
+import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
+import fr.gouv.vitam.functional.administration.common.VitamRepositoryProvider;
+import fr.gouv.vitam.functional.administration.common.ReconstructionItem;
+import fr.gouv.vitam.functional.administration.common.api.ReconstructionService;
+import fr.gouv.vitam.functional.administration.common.impl.ReconstructionServiceImpl;
+import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 
 /**
  * reconstruction Service.
@@ -87,12 +88,11 @@ public class ReconstructionResource {
     /**
      * Reconstruction factory.
      */
-    private ReconstructionFactory reconstructionFactory;
+    private VitamRepositoryProvider vitamRepositoryProvider;
 
     public ReconstructionResource(AdminManagementConfiguration adminManagementConfig,
-        ReconstructionFactory reconstructionFactory) {
-        this.configuration = adminManagementConfig;
-        this.reconstructionService = new ReconstructionServiceImpl(adminManagementConfig, reconstructionFactory);
+        VitamRepositoryProvider vitamRepositoryProvider) {
+        this(adminManagementConfig,new ReconstructionServiceImpl(adminManagementConfig, vitamRepositoryProvider));
     }
 
     @VisibleForTesting

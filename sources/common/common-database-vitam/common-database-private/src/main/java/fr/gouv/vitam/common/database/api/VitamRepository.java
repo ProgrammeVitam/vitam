@@ -63,6 +63,14 @@ public interface VitamRepository {
 
 
     /**
+     * Remove collection by name and tenant
+     * @param name
+     * @param tenant
+     * @throws DatabaseException
+     */
+    void removeByNameAndTenant(String name, Integer tenant) throws DatabaseException;
+
+    /**
      * Remove by tenant
      * @param tenant
      * @return

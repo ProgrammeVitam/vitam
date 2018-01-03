@@ -39,8 +39,10 @@ import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
-import fr.gouv.vitam.functional.administration.common.ReconstructionFactory;
+import fr.gouv.vitam.functional.administration.common.VitamRepositoryProvider;
+import fr.gouv.vitam.functional.administration.common.VitamSequence;
 import fr.gouv.vitam.functional.administration.common.api.ReconstructionService;
 import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
@@ -57,31 +59,29 @@ public class ReconstructionServiceImpl implements ReconstructionService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReconstructionServiceImpl.class);
 
     private static final String STRATEGY_ID = "default";
+    public static final int ADMIN_TENANT = 1;
 
     private AdminManagementConfiguration adminManagementConfig;
 
-    private VitamMongoRepository mongoRepository;
-    private VitamElasticsearchRepository elasticsearchRepository;
     private RestoreBackupService recoverBuckupService;
 
-    private ReconstructionFactory repositoryFactory;
+    private VitamRepositoryProvider vitamRepositoryProvider;
 
-    public ReconstructionServiceImpl(AdminManagementConfiguration adminManagementConfig, ReconstructionFactory repositoryFactory) {
-        this.adminManagementConfig = adminManagementConfig;
-        this.repositoryFactory = repositoryFactory;
+    public ReconstructionServiceImpl(AdminManagementConfiguration adminManagementConfig,
+        VitamRepositoryProvider vitamRepositoryProvider) {
+        this(adminManagementConfig, vitamRepositoryProvider, new RestoreBackupServiceImpl());
     }
 
     @VisibleForTesting
-    public ReconstructionServiceImpl(AdminManagementConfiguration adminManagementConfig, VitamMongoRepository mongoRepository, VitamElasticsearchRepository elasticsearchRepository,
-        RestoreBackupService recoverBuckupService, ReconstructionFactory reconstructionFactory) {
-        this(adminManagementConfig, reconstructionFactory);
-        this.mongoRepository = mongoRepository;
-        this.elasticsearchRepository = elasticsearchRepository;
+    public ReconstructionServiceImpl(AdminManagementConfiguration adminManagementConfig,
+        VitamRepositoryProvider vitamRepositoryProvider, RestoreBackupService recoverBuckupService) {
+        this.adminManagementConfig = adminManagementConfig;
+        this.vitamRepositoryProvider = vitamRepositoryProvider;
         this.recoverBuckupService = recoverBuckupService;
     }
 
     @PostConstruct
-    public void init(){
+    public void init() {
         if (recoverBuckupService == null) {
             recoverBuckupService = new RestoreBackupServiceImpl();
         }
@@ -101,36 +101,64 @@ public class ReconstructionServiceImpl implements ReconstructionService {
             .format("Start reconstruction of the %s collection on the Vitam tenant %s.", collection.getType(),
                 tenants));
 
-        mongoRepository = repositoryFactory.getVitamMongoRepository(collection);
-        elasticsearchRepository = repositoryFactory.getVitamESRepository(collection);
+        Integer originalTenant = VitamThreadUtils.getVitamSession().getTenantId();
 
-        // purge collection content
-        for (Integer tenant : tenants) {
-            mongoRepository.purge(tenant);
-            elasticsearchRepository.purge(tenant);
+        final VitamMongoRepository mongoRepository = vitamRepositoryProvider.getVitamMongoRepository(collection);
+        final VitamElasticsearchRepository elasticsearchRepository =
+            vitamRepositoryProvider.getVitamESRepository(collection);
 
-            // get the last version of the backup copies.
-            Optional<CollectionBackupModel> collectionBackup =
-                recoverBuckupService.readLatestSavedFile(STRATEGY_ID, collection, tenant);
+        final VitamMongoRepository sequenceRepository =
+            vitamRepositoryProvider.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE);
 
-            // reconstruct Vitam collection from the backup copy.
-            if (collectionBackup.isPresent()) {
-                LOGGER.debug(String.format("Last backup copy version : %s", collectionBackup));
-
-                // saving the backup collection on mongoDB and elasticSearch.
-                mongoRepository.save(collectionBackup.get().getCollections());
-                elasticsearchRepository.save(collectionBackup.get().getCollections());
-
-                // saving the backup sequence on mongoDB and elasticSearch.
-                mongoRepository.save(collectionBackup.get().getSequence());
-                elasticsearchRepository.save(collectionBackup.get().getSequence());
-
-                // log the recontruction of Vitam collection.
-                LOGGER.debug(String
-                    .format("[Reconstruction]: the collection {%s} has been reconstructed on the tenants {%s} at %s",
-                        collectionBackup, tenants, LocalDateUtil.now()));
-            }
+        switch (collection) {
+            case CONTEXT:
+            case FORMATS:
+            case SECURITY_PROFILE:
+            case VITAM_SEQUENCE:
+                // TODO: 1/3/18 admin tenant must be request from configuration
+                tenants = new Integer[]{ADMIN_TENANT};
+                break;
         }
+        try {
+            // purge collection content
+            for (Integer tenant : tenants) {
+                // This is a hak, we must set manually the tenant is the VitamSession (used and transmitted in the headers)
+                VitamThreadUtils.getVitamSession().setTenantId(tenant);
+
+                mongoRepository.purge(tenant);
+                elasticsearchRepository.purge(tenant);
+
+                // get the last version of the backup copies.
+                Optional<CollectionBackupModel> collectionBackup =
+                    recoverBuckupService.readLatestSavedFile(STRATEGY_ID, collection);
+
+                // reconstruct Vitam collection from the backup copy.
+                if (collectionBackup.isPresent()) {
+                    LOGGER.debug(String.format("Last backup copy version : %s", collectionBackup));
+
+                    // saving the backup sequence in mongoDB
+                    VitamSequence sequenceCollection =
+                        collectionBackup.get().getSequence();
+
+                    sequenceRepository
+                        .removeByNameAndTenant(sequenceCollection.getName(), sequenceCollection.getTenantId());
+                    sequenceRepository.save(sequenceCollection);
+
+                    // saving the backup collection in mongoDB and elasticSearch.
+                    mongoRepository.save(collectionBackup.get().getCollections());
+                    elasticsearchRepository.save(collectionBackup.get().getCollections());
+
+                    // log the recontruction of Vitam collection.
+                    LOGGER.debug(String
+                        .format(
+                            "[Reconstruction]: the collection {%s} has been reconstructed on the tenants {%s} at %s",
+                            collectionBackup, tenants, LocalDateUtil.now()));
+                }
+            }
+        } finally {
+            VitamThreadUtils.getVitamSession().setTenantId(originalTenant);
+        }
+
     }
 
     @Override
@@ -138,7 +166,8 @@ public class ReconstructionServiceImpl implements ReconstructionService {
 
         ParametersChecker.checkParameter("The collection parameter is required.", collection);
         LOGGER.debug(String
-            .format("Start reconstruction of the %s collection on all of the Vitam tenants.", collection.getType()));
+            .format("Start reconstruction of the %s collection on all of the Vitam tenants.",
+                collection.getType()));
 
         // get the list of vitam tenants from the configuration.
         List<Integer> tenants = adminManagementConfig.getTenants();
@@ -150,5 +179,4 @@ public class ReconstructionServiceImpl implements ReconstructionService {
             reconstruct(collection, tenants.stream().toArray(Integer[]::new));
         }
     }
-
 }

@@ -43,7 +43,7 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.VitamRepositoryFactory;
-import fr.gouv.vitam.functional.administration.common.ReconstructionFactory;
+import fr.gouv.vitam.functional.administration.common.VitamRepositoryProvider;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
@@ -68,8 +68,8 @@ public class AdminFunctionalApplication extends Application {
 
             final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
 
-            final ReconstructionFactory reconstructionFactory = VitamRepositoryFactory.getInstance();
-            singletons.add(new ReconstructionResource(configuration, reconstructionFactory));
+            final VitamRepositoryProvider vitamRepositoryProvider = VitamRepositoryFactory.getInstance();
+            singletons.add(new ReconstructionResource(configuration, vitamRepositoryProvider));
 
             Map<Integer, List<String>> externalIdentifiers = configuration.getListEnableExternalIdentifiers();
             final VitamCounterService vitamCounterService =

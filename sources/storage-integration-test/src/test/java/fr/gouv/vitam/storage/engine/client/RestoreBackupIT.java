@@ -29,19 +29,15 @@ package fr.gouv.vitam.storage.engine.client;
 import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
 import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
-import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
-import fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import org.apache.commons.io.FileUtils;
-import org.jhades.JHades;
-import org.junit.*;
-import org.junit.rules.TemporaryFolder;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
@@ -52,6 +48,10 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
+import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
+import fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
@@ -61,16 +61,26 @@ import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import org.apache.commons.io.FileUtils;
+import org.jhades.JHades;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 /**
  * Integration tests for the reconstruction services. <br/>
  */
-public class RestoreBackupITest {
+public class RestoreBackupIT {
 
     /**
      * Vitam logger.
      */
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RestoreBackupITest.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RestoreBackupIT.class);
 
     private static DefaultOfferMain defaultOfferApplication;
     private static final String DEFAULT_OFFER_CONF = "storage-test/storage-default-offer-ssl.conf";
@@ -225,9 +235,10 @@ public class RestoreBackupITest {
     @RunWithCustomExecutor
     public void testRecoverBackupCopy_WithoutResult() throws Exception {
 
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         // get the backup copy file.
         Optional<CollectionBackupModel> collectionBackup = recoverBuckupService
-            .readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES, TENANT_ID);
+            .readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES);
 
         LOGGER.debug("No backup copy found.");
         Assert.assertEquals(Optional.empty(), collectionBackup);
@@ -236,13 +247,13 @@ public class RestoreBackupITest {
     @Test
     @RunWithCustomExecutor
     public void testRecoverBackupCopy() throws Exception {
-
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         // create and save some backup files for reconstruction.
         prepareBackupStorage();
 
         // get the backup copy file.
         Optional<CollectionBackupModel> collectionBackup = recoverBuckupService
-            .readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES, TENANT_ID);
+            .readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES);
 
         Assert.assertTrue(collectionBackup.isPresent());
         Assert.assertEquals(52, collectionBackup.get().getCollections().size());
