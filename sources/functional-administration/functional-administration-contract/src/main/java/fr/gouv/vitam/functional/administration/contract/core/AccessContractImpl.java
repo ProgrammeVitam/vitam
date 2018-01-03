@@ -83,6 +83,7 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.Agencies;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
@@ -91,7 +92,6 @@ import fr.gouv.vitam.functional.administration.contract.core.GenericContractVali
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -122,14 +122,16 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     private static final String UPDATE_ACCESS_CONTRACT_MANDATORY_PATAMETER = "access contracts is mandatory";
     private static final String CONTRACTS_IMPORT_EVENT = "STP_IMPORT_ACCESS_CONTRACT";
     private static final String CONTRACT_UPDATE_EVENT = "STP_UPDATE_ACCESS_CONTRACT";
+    public static final String CONTRACT_BACKUP_EVENT = "STP_BACKUP_ACCESS_CONTRACT";
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessContractImpl.class);
     private static final String _TENANT = "_tenant";
     private static final String _ID = "_id";
     private final MongoDbAccessAdminImpl mongoAccess;
-    private final LogbookOperationsClient logBookclient;
+    private final LogbookOperationsClient logbookClient;
     private final VitamCounterService vitamCounterService;
-    private MetaDataClient metaDataClient;
-    private final AccessContractManager manager;
+    private final MetaDataClient metaDataClient;
+    private final FunctionalBackupService functionalBackupService;
 
     /**
      * Constructor
@@ -138,7 +140,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
      * @param vitamCounterService
      */
     public AccessContractImpl(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService) {
-        this(mongoAccess, vitamCounterService, MetaDataClientFactory.getInstance().getClient());
+        this(mongoAccess, vitamCounterService, MetaDataClientFactory.getInstance().getClient(),
+            new FunctionalBackupService(vitamCounterService));
     }
 
     /**
@@ -147,16 +150,18 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
      * @param mongoAccess
      * @param vitamCounterService
      * @param metaDataClient
+     * @param functionalBackupService
      */
     @VisibleForTesting
     public AccessContractImpl(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService,
-        MetaDataClient metaDataClient) {
+        MetaDataClient metaDataClient,
+        FunctionalBackupService functionalBackupService) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         this.metaDataClient = metaDataClient;
+        this.functionalBackupService = functionalBackupService;
 
-        logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
-        manager = new AccessContractManager(logBookclient, metaDataClient);
+        logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
     }
 
     @Override
@@ -170,6 +175,10 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         boolean slaveMode = vitamCounterService
             .isSlaveFunctionnalCollectionOnTenant(SequenceType.ACCESS_CONTRACT_SEQUENCE.getCollection(),
                 ParameterHelper.getTenantParameter());
+
+        GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+
+        AccessContractManager manager = new AccessContractManager(logbookClient, metaDataClient, eip);
 
         manager.logStarted();
 
@@ -243,6 +252,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             // TODO: 3/28/17 create insertDocuments method that accepts VitamDocument instead of ArrayNode, so we can
             // use AccessContract at this point
             mongoAccess.insertDocuments(contractsToPersist, FunctionalAdminCollections.ACCESS_CONTRACT).close();
+
         } catch (final Exception exp) {
             final String err =
                 new StringBuilder("Import access contracts error > ").append(exp.getMessage()).toString();
@@ -250,6 +260,12 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             return error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem()).setDescription(err).setHttpCode(
                 Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         }
+
+        functionalBackupService.saveCollectionAndSequence(
+            eip,
+            CONTRACT_BACKUP_EVENT,
+            FunctionalAdminCollections.ACCESS_CONTRACT
+        );
 
         manager.logSuccess();
 
@@ -259,7 +275,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     }
 
     private void setIdentifier(boolean slaveMode, AccessContractModel acm)
-        throws InvalidCreateOperationException, InvalidParseOperationException, ReferentialException {
+        throws ReferentialException {
         if (!slaveMode) {
             final String code =
                 vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(),
@@ -311,13 +327,13 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
         private List<AccessContractValidator> validators;
 
-        final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
-        private GUID eip = null;
+        private final GUID eip;
 
-        private final LogbookOperationsClient logBookclient;
+        private final LogbookOperationsClient logbookClient;
 
-        public AccessContractManager(LogbookOperationsClient logBookclient, MetaDataClient metaDataClient) {
-            this.logBookclient = logBookclient;
+        public AccessContractManager(LogbookOperationsClient logbookClient, MetaDataClient metaDataClient,
+            GUID eip) {
+            this.logbookClient = logbookClient;
             //Init validator
             validators = Arrays.asList(
                 createMandatoryParamsValidator(),
@@ -325,6 +341,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 checkExistenceOriginatingAgenciesValidator(),
                 createCheckDuplicateInDatabaseValidator(),
                 validateExistsArchiveUnits(metaDataClient));
+            this.eip = eip;
         }
 
         private boolean validateContract(AccessContractModel contract, String jsonFormat,
@@ -357,9 +374,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     StatusCode.KO,
                     VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.KO), eip);
             logbookMessageError(errorsDetails, logbookParameters);
-            helper.updateDelegate(logbookParameters);
-            logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
-
+            logbookClient.update(logbookParameters);
         }
 
         /**
@@ -374,9 +389,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     StatusCode.KO,
                     VitamLogbookMessages.getCodeOp(CONTRACT_UPDATE_EVENT, StatusCode.KO), eip);
             logbookMessageError(errorsDetails, logbookParameters);
-            helper.updateDelegate(logbookParameters);
-            logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
-
+            logbookClient.update(logbookParameters);
         }
 
         /**
@@ -394,8 +407,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTRACTS_IMPORT_EVENT + "." +
                 StatusCode.FATAL);
             logbookMessageError(errorsDetails, logbookParameters);
-            helper.updateDelegate(logbookParameters);
-            logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
+            logbookClient.update(logbookParameters);
         }
 
         private void logbookMessageError(String errorsDetails, LogbookOperationParameters logbookParameters) {
@@ -418,15 +430,13 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
          * @throws VitamException
          */
         private void logStarted() throws VitamException {
-            eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eip, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.STARTED,
                     VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.STARTED), eip);
             logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTRACTS_IMPORT_EVENT + "." +
                 StatusCode.STARTED);
-            helper.createDelegate(logbookParameters);
-
+            logbookClient.create(logbookParameters);
         }
 
         /**
@@ -435,7 +445,6 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
          * @throws VitamException
          */
         private void logUpdateStarted(String id) throws VitamException {
-            eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eip, CONTRACT_UPDATE_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.STARTED,
@@ -445,8 +454,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             if (null != id && !id.isEmpty()) {
                 logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, id);
             }
-            helper.createDelegate(logbookParameters);
-
+            logbookClient.create(logbookParameters);
         }
 
         private void logUpdateSuccess(String id, List<String> listDiffs) throws VitamException {
@@ -478,8 +486,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 wellFormedJson);
             logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTRACT_UPDATE_EVENT +
                 "." + StatusCode.OK);
-            helper.updateDelegate(logbookParameters);
-            logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
+            logbookClient.update(logbookParameters);
         }
 
 
@@ -495,8 +502,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.OK), eip);
             logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTRACTS_IMPORT_EVENT + "." +
                 StatusCode.OK);
-            helper.updateDelegate(logbookParameters);
-            logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
+            logbookClient.update(logbookParameters);
         }
 
         /**
@@ -725,7 +731,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
     @Override
     public void close() {
-        logBookclient.close();
+        logbookClient.close();
     }
 
 
@@ -744,6 +750,11 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             return error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
                 ACCESS_CONTRACT_NOT_FIND + identifier));
         }
+
+        GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+
+        AccessContractManager manager = new AccessContractManager(logbookClient, metaDataClient, eip);
+
         manager.logUpdateStarted(accContractModel.getId());
         if (queryDsl == null || !queryDsl.isObject()) {
             return error;
@@ -758,7 +769,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 while (it.hasNext()) {
                     final String field = it.next();
                     final JsonNode value = fieldName.findValue(field);
-                    validateUpdateAction(accContractModel.getName(), error, field, value);
+                    validateUpdateAction(manager, accContractModel.getName(), error, field, value);
                 }
             }
         }
@@ -782,12 +793,20 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
             return error;
         }
+
+        functionalBackupService.saveCollectionAndSequence(
+            eip,
+            CONTRACT_BACKUP_EVENT,
+            FunctionalAdminCollections.ACCESS_CONTRACT
+        );
+
         manager.logUpdateSuccess(accContractModel.getId(), updateDiffs.get(accContractModel.getId()));
         return new RequestResponseOK<>();
     }
 
-    private void validateUpdateAction(String contractName, final VitamError error, final String field,
-        final JsonNode value) {
+    private void validateUpdateAction(AccessContractManager manager, String contractName, final VitamError error,
+        final String field, final JsonNode value) {
+
         if (AccessContract.STATUS.equals(field)) {
             if (!(ContractStatus.ACTIVE.name().equals(value.asText()) || ContractStatus.INACTIVE
                 .name().equals(value.asText()))) {

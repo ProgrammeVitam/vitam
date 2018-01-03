@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
@@ -43,6 +45,8 @@ import java.util.List;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.path.json.JsonPath;
@@ -125,12 +129,17 @@ public class ContractResourceTest {
     private static String DATABASE_HOST = "localhost";
 
     private InputStream stream;
-    private static JunitHelper junitHelper;
+    private static JunitHelper junitHelper = JunitHelper.getInstance();
     private static int serverPort;
     private static int databasePort;
     private static File adminConfigFile;
     private static AdminManagementMain application;
     static AgenciesService agenciesService;
+
+    private static int workspacePort = junitHelper.findAvailablePort();
+
+    @ClassRule
+    public static WireMockClassRule workspaceWireMock = new WireMockClassRule(workspacePort);
 
 
     @Rule
@@ -149,8 +158,18 @@ public class ContractResourceTest {
     public static void setUpBeforeClass() throws Exception {
         new JHades().overlappingJarsReport();
 
-        junitHelper = JunitHelper.getInstance();
+        File tmpFolder = tempFolder.newFolder();
+        System.setProperty("vitam.tmp.folder", tmpFolder.getAbsolutePath());
+
         databasePort = junitHelper.findAvailablePort();
+
+        // Mock workspace API
+        workspaceWireMock.stubFor(WireMock.post(urlMatching("/workspace/v1/containers/(.*)"))
+            .willReturn(
+                aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+        workspaceWireMock.stubFor(WireMock.delete(urlMatching("/workspace/v1/containers/(.*)"))
+            .willReturn(
+                aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
 
         // ES
         try {
@@ -171,6 +190,7 @@ public class ContractResourceTest {
         realAdminConfig.getMongoDbNodes().get(0).setDbPort(databasePort);
         realAdminConfig.setElasticsearchNodes(nodesEs);
         realAdminConfig.setClusterName(CLUSTER_NAME);
+        realAdminConfig.setWorkspaceUrl("http://localhost:" + workspacePort);
         adminConfigFile = File.createTempFile("test", ADMIN_MANAGEMENT_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 
@@ -370,10 +390,10 @@ public class ContractResourceTest {
         given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
             .when().put(ContractResource.UPDATE_ACCESS_CONTRACT_URI + "/" + ids.get(0)).then()
             .statusCode(Status.OK.getStatusCode());
-        
+
         given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
-        .when().put(ContractResource.UPDATE_ACCESS_CONTRACT_URI + "/wrongId").then()
-        .statusCode(Status.NOT_FOUND.getStatusCode());
+            .when().put(ContractResource.UPDATE_ACCESS_CONTRACT_URI + "/wrongId").then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
     private List<String> selectContractByName(String name, String resource) throws Exception {
@@ -427,11 +447,11 @@ public class ContractResourceTest {
         given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
             .when().put(ContractResource.UPDATE_INGEST_CONTRACTS_URI + "/" + ids.get(0)).then()
             .statusCode(Status.OK.getStatusCode());
-        
+
         given().contentType(ContentType.JSON).body(queryDslForUpdate).header(GlobalDataRest.X_TENANT_ID, 0)
-        .when().put(ContractResource.UPDATE_INGEST_CONTRACTS_URI + "/wrongId").then()
-        .statusCode(Status.NOT_FOUND.getStatusCode());
-        
+            .when().put(ContractResource.UPDATE_INGEST_CONTRACTS_URI + "/wrongId").then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
+
     }
 
 
