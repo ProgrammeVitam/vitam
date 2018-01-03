@@ -1,8 +1,8 @@
-import {ChangeDetectorRef, Component, Input, OnInit, SimpleChanges} from '@angular/core';
-import {ColumnDefinition} from '../generic-table/column-definition';
-import {SelectItem} from 'primeng/primeng';
-import {Hits, VitamResponse} from "../utils/response";
-import {Observable} from "rxjs/Observable";
+import { ChangeDetectorRef, Component, Input, OnInit, SimpleChanges, HostListener, ElementRef } from '@angular/core';
+import { ColumnDefinition } from '../generic-table/column-definition';
+import { SelectItem } from 'primeng/primeng';
+import { Hits, VitamResponse } from "../utils/response";
+import { Observable } from "rxjs/Observable";
 
 @Component({
   selector: 'vitam-results',
@@ -19,7 +19,7 @@ export class ResultsComponent implements OnInit {
   @Input() getClass: () => string;
   @Input() service: any;
   @Input() searchForm: any;
-  @Input() specificRowCss: (item, index) => string; 
+  @Input() specificRowCss: (item, index) => string;
 
   errorOnResults = false;
 
@@ -36,7 +36,7 @@ export class ResultsComponent implements OnInit {
   firstPage = 0;
   lastPage = 0;
 
-  constructor(private changeDetectorRef: ChangeDetectorRef) {
+  constructor(private changeDetectorRef: ChangeDetectorRef, private elemRef: ElementRef) {
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -61,7 +61,7 @@ export class ResultsComponent implements OnInit {
       if (this.extraCols.length == 0) {
         this.displayOptions = false;
       }
-      this.extraColsSelection = this.extraCols.map((x) => ({label: x.label, value: x}));
+      this.extraColsSelection = this.extraCols.map((x) => ({ label: x.label, value: x }));
       if (!!this.data) {
         this.items = this.data.$results;
         this.hits = this.data.$hits;
@@ -78,7 +78,7 @@ export class ResultsComponent implements OnInit {
 
   ngOnInit() {
     this.selectedCols = this.cols;
-    this.extraColsSelection = this.extraCols.map((x) => ({label: x.label, value: x}));
+    this.extraColsSelection = this.extraCols.map((x) => ({ label: x.label, value: x }));
     if (!!this.data) {
       this.items = this.data.$results;
       this.hits = this.data.$hits;
@@ -89,6 +89,11 @@ export class ResultsComponent implements OnInit {
     } else {
       this.errorOnResults = true;
     }
+  }
+
+  @HostListener('document:click', ['$event', '$event.target'])
+  clickOutside($event, targetElement) {
+    this.displayOptions = this.elemRef.nativeElement.contains(targetElement) ? true : false;
   }
 
   onRowSelect() {
@@ -102,13 +107,13 @@ export class ResultsComponent implements OnInit {
 
     // TODO If unloadedPage reached (See how to trigg) => Call search with offset.
     if (event.page >= this.lastPage || event.page <= this.firstPage) {
-      var searchScope = {response: null};
+      var searchScope = { response: null };
       this.firstPage = page;
       this.searchFunction(this.service, this.firstItem, event.rows, searchScope).subscribe(
         (response) => {
           this.items = Array.from('x'.repeat(event.page * event.rows)).concat(response.$results);
           this.lastPage = event.page + this.hits.limit / event.rows;
-          this.displayedItems = this.items.slice(event.first, event.first +  event.rows);
+          this.displayedItems = this.items.slice(event.first, event.first + event.rows);
         },
         (error) => console.log('Error: ', error.body));
     } else {
