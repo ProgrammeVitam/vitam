@@ -1320,6 +1320,20 @@ Voici l'output de ce plugin :
 
 - GUID/LFCUnits/GUID_AU.json
 
+Détail du plugin : CheckClassificationLevelActionPlugin
+--------------------------------------------------------
+
+Description
+~~~~~~~~~~~~
+
+Ce plugin permet de vérifier que le niveau de classification déclaré par les ArchiveUnit du manifeste est conforme à ceux attendus dans la configuration de la plate-forme
+
+exécution
+~~~~~~~~~~~~~~~~~~
+
+A partir de l'Id de l'id de l'Archive Unit à vérifier, le plugin va télécharger le fichier json associé dans le Workspace.
+Par la suite, il va vérifier le champ ClassificationLevel par rapport au celui dans ClassificationLevelService
+
 
 Détail du handler : FinalizeLifecycleTraceabilityActionHandler
 -------------------------------------------------------------------
