@@ -8,8 +8,8 @@ vitam_offers:
   offer_swift_1:
     provider: openstack-swift
     # keystone URL
-    keystone_auth_url: http://hostname-rados-gw:port/auth/1.0 
+    keystone_auth_url: http://hostname-rados-gw:port/auth/1.0
     #
     swift_uid: tenant$user
     #
-    swift_subuser: subuser 
+    swift_subuser: subuser
