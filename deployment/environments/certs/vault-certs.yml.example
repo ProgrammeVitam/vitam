@@ -31,3 +31,5 @@ client_client_external_ihm_demo_key: changeme
 client_client_external_ihm_recette_key: changeme
 client_client_external_reverse_key: changeme
 client_client_storage_storage_key: changeme
+client_client_external_gatling_key: changeme
+server_ihm_demo_key: changeme

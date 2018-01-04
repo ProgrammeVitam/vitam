@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.ihmdemo.appserver;
 
+import java.util.List;
+
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamIHMApplicationConfiguration;
 
 /**
@@ -35,6 +37,7 @@ public class WebApplicationConfig extends DefaultVitamIHMApplicationConfiguratio
 
     private String staticContentV2;
     private String baseUriV2;
+    private List<String> secureMode;
 
     @Override
     public String getStaticContentV2() {
@@ -55,6 +58,15 @@ public class WebApplicationConfig extends DefaultVitamIHMApplicationConfiguratio
     @Override
     public WebApplicationConfig setBaseUriV2(String baseUriV2) {
         this.baseUriV2 = baseUriV2;
+        return this;
+    }
+
+    public List<String> getSecureMode() {
+        return secureMode;
+    }
+
+    public WebApplicationConfig setSecureMode(List<String> secureMode) {
+        this.secureMode = secureMode;
         return this;
     }
 }

@@ -26,8 +26,10 @@
  */
 package fr.gouv.vitam.ihmdemo.common.pagination;
 
+import java.util.Collections;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.HttpHeaders;
 
 import fr.gouv.vitam.common.ParametersChecker;
@@ -63,11 +65,11 @@ public class OffsetBasedPagination {
     }
 
     /**
-     * @param headers
+     * @param request
      * @throws VitamException
      */
-    public OffsetBasedPagination(HttpHeaders headers) throws VitamException {
-        parseHttpHeaders(headers);
+    public OffsetBasedPagination(HttpServletRequest request) throws VitamException {
+        parseHttpHeaders(request);
     }
 
     /**
@@ -147,12 +149,12 @@ public class OffsetBasedPagination {
     /**
      * parse From Headers
      *
-     * @param headers
+     * @param request
      * @throws VitamException
      */
-    private OffsetBasedPagination parseHttpHeaders(final HttpHeaders headers) throws VitamException {
-        ParametersChecker.checkParameter(PARAMETERS, headers);
-        final List<String> offsetValues = headers.getRequestHeader(IhmWebAppHeader.OFFSET.getName());
+    private OffsetBasedPagination parseHttpHeaders(final HttpServletRequest request) throws VitamException {
+        ParametersChecker.checkParameter(PARAMETERS, request);
+        final List<String> offsetValues = Collections.list(request.getHeaders(IhmWebAppHeader.OFFSET.getName()));
         if (offsetValues != null) {
             if (offsetValues.size() == 1) {
                 try {
@@ -169,7 +171,7 @@ public class OffsetBasedPagination {
                 }
             }
         }
-        final List<String> limitValues = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.LIMIT.getName());
+        final List<String> limitValues = Collections.list(request.getHeaders(IhmWebAppHeader.LIMIT.getName()));
         if (limitValues != null) {
             if (limitValues.size() == 1) {
                 try {

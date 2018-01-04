@@ -28,8 +28,11 @@ package fr.gouv.vitam.common.auth.core.realm;
 
 import java.security.cert.X509Certificate;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+
+import javax.security.auth.x500.X500Principal;
 
 import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationInfo;
 import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
@@ -38,15 +41,16 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authz.AuthorizationInfo;
+import org.apache.shiro.authz.Permission;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.subject.PrincipalCollection;
 
 /**
- * X509 Keystore File Realm
+ * X509 Keystore File Realm with Role/Permissions
  */
-public class X509KeystoreFileRealm extends AbstractX509Realm {
+public class X509KeystoreFileWithRoleRealm extends AbstractX509Realm {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(X509KeystoreFileRealm.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(X509KeystoreFileWithRoleRealm.class);
 
     private static final String REALM_NAME = "X509KeystoreFile";
     private final Set<X509Certificate> grantedIssuers = new HashSet<>();
@@ -56,13 +60,23 @@ public class X509KeystoreFileRealm extends AbstractX509Realm {
     /**
      * empty constructor
      */
-    public X509KeystoreFileRealm() {
+    public X509KeystoreFileWithRoleRealm() {
         // empty
         this.roleDefs = RealmUtils.getRoleDefs();
     }
 
-    @Override protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
-        return new SimpleAuthorizationInfo();
+    @Override
+    protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
+        String username = (String) getAvailablePrincipal(principals);
+        Set<String> roleNames = new LinkedHashSet<>();
+        if (this.certificateDnRoleMapping != null && this.certificateDnRoleMapping.get(username) != null) {
+            roleNames.add(this.certificateDnRoleMapping.get(username));
+        }
+        SimpleAuthorizationInfo authInfo = new SimpleAuthorizationInfo(roleNames);
+        Set<Permission> permissionsSet = RealmUtils.getPermissionsSet(this.roleDefs, roleNames);
+        authInfo.setObjectPermissions(permissionsSet);
+
+        return authInfo;
     }
 
     @Override
@@ -80,7 +94,6 @@ public class X509KeystoreFileRealm extends AbstractX509Realm {
         return doGetX509AuthenticationInfo((X509AuthenticationToken) token);
     }
 
-    // TODO P1 éviter de relire les 2 fichiers granted et trusted à chaque tentative d'authentification
     @Override
     protected X509AuthenticationInfo doGetX509AuthenticationInfo(X509AuthenticationToken x509AuthenticationToken) {
         X509AuthenticationInfo x509AuthenticationInfo = RealmUtils.getX509AuthenticationInfo(

@@ -24,7 +24,16 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.security.rest;
+package fr.gouv.vitam.common.auth.core.realm;
+
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+import javax.naming.NamingEnumeration;
+import javax.naming.NamingException;
+import javax.naming.directory.SearchControls;
+import javax.naming.directory.SearchResult;
+import javax.naming.ldap.LdapContext;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -35,27 +44,10 @@ import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.Permission;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
-import org.apache.shiro.authz.permission.WildcardPermissionResolver;
 import org.apache.shiro.realm.ldap.AbstractLdapRealm;
 import org.apache.shiro.realm.ldap.LdapContextFactory;
 import org.apache.shiro.realm.ldap.LdapUtils;
 import org.apache.shiro.subject.PrincipalCollection;
-
-import javax.naming.NamingEnumeration;
-import javax.naming.NamingException;
-import javax.naming.directory.Attribute;
-import javax.naming.directory.Attributes;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
-import javax.naming.ldap.LdapContext;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Realm query Ldap to get users role
@@ -63,13 +55,16 @@ import java.util.Set;
 public class LdapRealm  extends AbstractLdapRealm {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LdapRealm.class);
-    private static final String NAMES_DELIMETER = ",";
 
     private String userDnTemplate;
     private String groupRequestFilter;
-    private Map<String, String> rolePermissionsMap;
     private Map<String, String> groupRolesMap;
+    private Map<String, String> roleDefs;
 
+    public LdapRealm() {
+        super();
+        this.roleDefs = RealmUtils.getRoleDefs();
+    }
 
     /**
      * set the group request filter, defined in shiro.ini
@@ -89,14 +84,6 @@ public class LdapRealm  extends AbstractLdapRealm {
         this.groupRolesMap = groupRolesMap;
     }
 
-    /**
-     * set the map of role to permission, defined in shiro.ini
-     *
-     * @param rolePermissionsMap
-     */
-    public void setRolePermissionsMap(Map<String, String> rolePermissionsMap) {
-        this.rolePermissionsMap = rolePermissionsMap;
-    }
 
     /**
      * set Template to convert username to dn, defined in shiro.ini
@@ -169,22 +156,13 @@ public class LdapRealm  extends AbstractLdapRealm {
         }
 
         SimpleAuthorizationInfo authInfo = new SimpleAuthorizationInfo(roleNames);
-        WildcardPermissionResolver wpResolver = new WildcardPermissionResolver();
-        Set<Permission> permissionsSet = new HashSet<>();
-        for (String role : roleNames) {
-            for (String permission : this.rolePermissionsMap.get(role).split(NAMES_DELIMETER)) {
-                permissionsSet.add(wpResolver.resolvePermission(permission));
-            }
-        }
-
+        Set<Permission> permissionsSet = RealmUtils.getPermissionsSet(this.roleDefs, roleNames);
         authInfo.setObjectPermissions(permissionsSet);
+
         return authInfo;
     }
 
     private String getRoleNamesForGroups(String groupName) {
-        if (groupRolesMap != null) {
-            return groupRolesMap.get(groupName);
-        }
-        return "";
+        return groupRolesMap.get(groupName);
     }
 }

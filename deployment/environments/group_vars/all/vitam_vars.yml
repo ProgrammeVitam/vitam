@@ -86,7 +86,8 @@ vitam:
     ihm_demo:
         vitam_component: "ihm-demo"
         host: "ihm-demo.service.{{consul_domain}}"
-        port_http: 8002
+        port_http: 7002
+        port_https: 8002
         port_admin: 28002
         baseurl: "/ihm-demo"
         static_content: "{{ vitam_defaults.folder.root_path }}/app/ihm-demo/v1"
@@ -95,7 +96,20 @@ vitam:
         baseuri_v2: "ihm-demo-v2"
         https_enabled: false
         secret_platform: "false"
-        authentication_mode: "ini"
+        # Specify here the realms you want to use for authentication in ihm-demo
+        # You can set multiple realms, one per line
+        # With multiple realms, the user will be able to choose between the allowed realms
+        # Example: authentication_realms:
+        #               - x509Realm
+        #               - ldapRealm
+        # Authorized values:
+        # x509Realm: certificate
+        # iniRealm: ini file
+        # ldapRealm: ldap
+        authentication_realms:
+            # - x509Realm
+            - iniRealm
+            # - ldapRealm
     logbook:
         vitam_component: logbook
         host: "logbook.service.{{consul_domain}}"

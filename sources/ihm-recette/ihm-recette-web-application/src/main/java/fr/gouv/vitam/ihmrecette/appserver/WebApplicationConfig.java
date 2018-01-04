@@ -28,6 +28,7 @@
 package fr.gouv.vitam.ihmrecette.appserver;
 
 import java.util.List;
+import java.util.Set;
 
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
@@ -44,7 +45,7 @@ public class WebApplicationConfig extends MetaDataConfiguration {
     private String baseUri;
     private String staticContent;
     private boolean secure;
-    private String secureMode;
+    private List<String> secureMode;
     private String sipDirectory;
     private String performanceReportDirectory;
     private String masterdataDbName;
@@ -262,14 +263,14 @@ public class WebApplicationConfig extends MetaDataConfiguration {
      * get secure mode
      * @return secure mode
      */
-    public String getSecureMode() {
+    public List<String> getSecureMode() {
         return secureMode;
     }
 
     /**
      * @param secureMode
      */
-    public void setSecureMode(String secureMode) {
+    public void setSecureMode(List<String> secureMode) {
         this.secureMode = secureMode;
     }
 

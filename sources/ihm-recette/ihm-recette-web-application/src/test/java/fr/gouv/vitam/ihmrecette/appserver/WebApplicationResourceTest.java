@@ -28,6 +28,7 @@ package fr.gouv.vitam.ihmrecette.appserver;
 
 
 import static com.jayway.restassured.RestAssured.given;
+import fr.gouv.vitam.common.client.VitamContext;
 import static fr.gouv.vitam.ihmrecette.appserver.WebApplicationResource.DEFAULT_CONTRACT_NAME;
 import static org.hamcrest.Matchers.equalTo;
 
@@ -125,9 +126,11 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testGetLogbookStatisticsWithSuccess() throws Exception {
+
+        VitamContext context = new VitamContext(TENANT_ID);
+        context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
         PowerMockito.when(
-            UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID, DEFAULT_CONTRACT_NAME,
-                getAppSessionId()))
+            UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, context))
             .thenReturn(RequestResponseOK.getFromJsonNode(sampleLogbookOperation, LogbookOperation.class));
         given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.OK.getStatusCode()).when()
             .get("/stat/" + FAKE_OPERATION_ID);
@@ -137,9 +140,10 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetLogbookStatisticsWithNotFoundWhenLogbookClientException()
         throws Exception {
+        VitamContext context = new VitamContext(TENANT_ID);
+        context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
         PowerMockito.when(
-            UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID, DEFAULT_CONTRACT_NAME,
-                getAppSessionId()))
+            UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, context))
             .thenThrow(LogbookClientException.class);
         given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get("/stat/" + FAKE_OPERATION_ID);
@@ -149,9 +153,10 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetLogbookStatisticsWithInternalServerErrorWhenInvalidParseOperationException()
         throws Exception {
+        VitamContext context = new VitamContext(TENANT_ID);
+        context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
         PowerMockito.when(
-            UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, TENANT_ID, DEFAULT_CONTRACT_NAME,
-                getAppSessionId()))
+            UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, context))
             .thenThrow(InvalidParseOperationException.class);
         given().param("id_op", FAKE_OPERATION_ID).expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .when()
@@ -165,7 +170,7 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testSecureMode() {
-        given().expect().statusCode(Status.OK.getStatusCode()).when().get("/securemode").then().body(equalTo("x509"));
+        given().expect().statusCode(Status.OK.getStatusCode()).when().get("/securemode").then().body(equalTo("[\"x509\"]"));
     }
 
     @Test

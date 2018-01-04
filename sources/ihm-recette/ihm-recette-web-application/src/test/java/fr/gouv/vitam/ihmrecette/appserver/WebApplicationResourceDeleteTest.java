@@ -172,6 +172,7 @@ public class WebApplicationResourceDeleteTest {
         realAdminConfig.setAuthentication(false);
         realAdminConfig.setClusterName(CLUSTER_NAME);
         realAdminConfig.setTenants(tenantList);
+
         realAdminConfig.getElasticsearchNodes().get(0).setTcpPort(config.getTcpPort());
         adminConfigFile = File.createTempFile("test", IHM_RECETTE_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);

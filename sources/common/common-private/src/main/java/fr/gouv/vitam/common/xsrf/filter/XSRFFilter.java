@@ -49,7 +49,9 @@ import fr.gouv.vitam.common.stream.StreamUtils;
 /**
  * XSRF Filter
  */
-public class XSRFFilter implements Filter { 
+public class XSRFFilter implements Filter {
+    public static final String CSRF_STATE_TOKEN_DOES_NOT_MATCH_ONE_PROVIDED =
+        "CSRF state token does not match one provided";
     private static Map<String, String> tokenMap = new HashMap<String, String>();
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(XSRFFilter.class);
@@ -64,19 +66,12 @@ public class XSRFFilter implements Filter {
         throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
         String requestURI = req.getRequestURI();
-        if (requestURI.contains(VitamConfiguration.LOGIN_URL) ||
-            requestURI.contains(VitamConfiguration.LOGOUT_URL) ||
-            requestURI.contains(VitamConfiguration.TENANTS_URL) ||
-            requestURI.contains(VitamConfiguration.MESSAGES_LOGBOOK_URL) ||
-            requestURI.contains(VitamConfiguration.OBJECT_DOWNLOAD_URL) ||
-            requestURI.contains(VitamConfiguration.DIP_EXPORT_URL)) {
+        if (isUriNotProtected(requestURI)) {
             chain.doFilter(request, response);
             return;
         }
-        
         String xhrToken = req.getHeader(GlobalDataRest.X_CSRF_TOKEN);
         String sessionId = req.getRequestedSessionId();
-        
         String token = tokenMap.get(sessionId);
 
         if (sessionId != null && token != null && token.equals(xhrToken)) {
@@ -84,9 +79,10 @@ public class XSRFFilter implements Filter {
             chain.doFilter(request, response);
         } else {
             deleteTokenWhenLogout(req, sessionId);
-            LOGGER.error("CSRF state token does not match one provided");
+            LOGGER.error(CSRF_STATE_TOKEN_DOES_NOT_MATCH_ONE_PROVIDED);
             final HttpServletResponse newResponse = (HttpServletResponse) response;
-            newResponse.setStatus(Status.FORBIDDEN.getStatusCode());
+            newResponse.sendError(Status.FORBIDDEN.getStatusCode(),
+                CSRF_STATE_TOKEN_DOES_NOT_MATCH_ONE_PROVIDED);
             StreamUtils.closeSilently(request.getInputStream());
         }
     }
@@ -95,14 +91,25 @@ public class XSRFFilter implements Filter {
     public void destroy() {
         // Empty
     }
-    
+
     public static void addToken(String sessionId, String token) {
         tokenMap.put(sessionId, token);
     }
-    
+
     private void deleteTokenWhenLogout(HttpServletRequest req, String sessionId) {
         if (req.getRequestURI().contains(VitamConfiguration.LOGOUT_URL)) {
             tokenMap.remove(sessionId);
         }
+    }
+
+    private boolean isUriNotProtected(String requestURI) {
+        return requestURI.contains(VitamConfiguration.LOGIN_URL) ||
+            requestURI.contains(VitamConfiguration.LOGOUT_URL) ||
+            requestURI.contains(VitamConfiguration.TENANTS_URL) ||
+            requestURI.contains(VitamConfiguration.MESSAGES_LOGBOOK_URL) ||
+            requestURI.contains(VitamConfiguration.OBJECT_DOWNLOAD_URL) ||
+            requestURI.contains(VitamConfiguration.DIP_EXPORT_URL) ||
+            requestURI.contains(VitamConfiguration.SECURE_MODE_URL) ||
+            requestURI.contains(VitamConfiguration.PERMISSIONS_URL);
     }
 }

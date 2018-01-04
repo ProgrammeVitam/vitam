@@ -29,6 +29,7 @@ package fr.gouv.vitam.ihmdemo.core;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
@@ -52,7 +53,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
@@ -60,7 +60,6 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.BadRequestException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -114,6 +113,7 @@ public class UserInterfaceTransactionManagerTest {
 
     private static AccessExternalClientFactory accessClientFactory;
     private static AccessExternalClient accessClient;
+    private VitamContext context = getVitamContext();
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -143,7 +143,7 @@ public class UserInterfaceTransactionManagerTest {
         when(accessClient.selectUnits(anyObject(), anyObject())).thenReturn(searchResult);
         // Test method
         final RequestResponseOK result = (RequestResponseOK) UserInterfaceTransactionManager
-            .searchUnits(JsonHandler.getFromString(SEARCH_UNIT_DSL_QUERY), TENANT_ID, CONTRACT_NAME, APP_SESSION_ID);
+            .searchUnits(JsonHandler.getFromString(SEARCH_UNIT_DSL_QUERY), context);
         assertTrue(result.getHits().getTotal() == 1);
     }
 
@@ -152,14 +152,13 @@ public class UserInterfaceTransactionManagerTest {
     public void testSuccessGetArchiveUnitDetails()
         throws Exception {
         when(accessClient.selectUnitbyId(
-            eq(new VitamContext(TENANT_ID).setAccessContract(CONTRACT_NAME).setApplicationSessionId(APP_SESSION_ID)),
+            any(),
             eq(JsonHandler.getFromString(SELECT_ID_DSL_QUERY)), eq(ID_UNIT)))
                 .thenReturn(unitDetails);
         // Test method
         final RequestResponseOK<JsonNode> archiveDetails =
             (RequestResponseOK) UserInterfaceTransactionManager
-                .getArchiveUnitDetails(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT, TENANT_ID,
-                    CONTRACT_NAME, APP_SESSION_ID);
+                .getArchiveUnitDetails(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT, context);
         assertTrue(archiveDetails.getResults().get(0).get("Title").textValue().equals("Archive 1"));
     }
 
@@ -174,7 +173,7 @@ public class UserInterfaceTransactionManagerTest {
 
         // Test method
         final RequestResponseOK results = (RequestResponseOK) UserInterfaceTransactionManager
-            .selectUnitLifeCycleById("1", TENANT_ID, CONTRACT_NAME, APP_SESSION_ID);
+            .selectUnitLifeCycleById("1", context);
 
         ArgumentCaptor<JsonNode> selectArgument = ArgumentCaptor.forClass(JsonNode.class);
         verify(accessClient).selectUnitLifeCycleById(anyObject(), anyObject(), selectArgument.capture());
@@ -190,7 +189,7 @@ public class UserInterfaceTransactionManagerTest {
 
         // Test method
         final RequestResponseOK results = (RequestResponseOK) UserInterfaceTransactionManager
-            .selectObjectGroupLifeCycleById("1", TENANT_ID, CONTRACT_NAME, APP_SESSION_ID);
+            .selectObjectGroupLifeCycleById("1", context);
 
         ArgumentCaptor<JsonNode> selectArgument = ArgumentCaptor.forClass(JsonNode.class);
         verify(accessClient).selectObjectGroupLifeCycleById(anyObject(), anyObject(), selectArgument.capture());
@@ -206,7 +205,7 @@ public class UserInterfaceTransactionManagerTest {
         when(accessClient.updateUnitbyId(anyObject(), anyObject(), anyObject())).thenReturn(updateResult);
         // Test method
         final RequestResponseOK results = (RequestResponseOK) UserInterfaceTransactionManager.updateUnits(JsonHandler
-            .getFromString(UPDATE_UNIT_DSL_QUERY), "1", TENANT_ID, CONTRACT_NAME, APP_SESSION_ID);
+            .getFromString(UPDATE_UNIT_DSL_QUERY), "1", context);
         assertTrue(results.getHits().getTotal() == 1);
     }
 
@@ -220,14 +219,13 @@ public class UserInterfaceTransactionManagerTest {
                     SEARCH_UNIT_DSL_QUERY + "}",
                 RequestResponseOK.class, JsonNode.class);
         when(accessClient.selectObjectMetadatasByUnitId(
-            eq(new VitamContext(TENANT_ID).setAccessContract(CONTRACT_NAME).setApplicationSessionId(APP_SESSION_ID)),
+            any(),
             eq(JsonHandler.getFromString(OBJECT_GROUP_QUERY)), eq(ID_OBJECT_GROUP)))
                 .thenReturn(result);
         // Test method
         final RequestResponseOK<JsonNode> objectGroup =
             (RequestResponseOK) UserInterfaceTransactionManager
-                .selectObjectbyId(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, TENANT_ID,
-                    CONTRACT_NAME, APP_SESSION_ID);
+                .selectObjectbyId(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, context);
         assertTrue(
             objectGroup.getResults().get(0).get("#id").textValue().equals("1"));
     }
@@ -237,13 +235,12 @@ public class UserInterfaceTransactionManagerTest {
     public void testSuccessGetObjectAsInputStream()
         throws Exception {
         when(accessClient.getObjectStreamByUnitId(
-            eq(new VitamContext(TENANT_ID).setAccessContract(CONTRACT_NAME).setApplicationSessionId(APP_SESSION_ID)),
+            any(),
             eq(ID_OBJECT_GROUP), eq("usage"), eq(1)))
                 .thenReturn(new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream("Vitam Test"),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         assertTrue(UserInterfaceTransactionManager.getObjectAsInputStream(asynResponse,
-            ID_OBJECT_GROUP, "usage", 1, "vitam_test", TENANT_ID,
-            CONTRACT_NAME, APP_SESSION_ID));
+            ID_OBJECT_GROUP, "usage", 1, "vitam_test", context));
     }
 
     @Test
@@ -266,5 +263,9 @@ public class UserInterfaceTransactionManagerTest {
             // do nothing
         }
 
+    }
+
+    private VitamContext getVitamContext() {
+        return new VitamContext(TENANT_ID).setAccessContract(CONTRACT_NAME).setApplicationSessionId(APP_SESSION_ID);
     }
 }

@@ -102,7 +102,7 @@
     #groupe: data
     elasticsearch_host: "{{ elasticsearch.data.host }}"
     elasticsearch_port: "{{ elasticsearch.data.port_http }}"
-    #kibana_port: "{{ kibana.kibana_data.port }}"    
+    #kibana_port: "{{ kibana.kibana_data.port }}"
 
 ### MONGO DB INSTALLATION ###
 
@@ -250,7 +250,7 @@
     - vitam
   vars:
     vitam_struct: "{{ vitam.ingestinternal }}"
-    
+
 
 
 - hosts: hosts-ingest-external
@@ -277,3 +277,7 @@
   vars:
     vitam_struct: "{{ vitam.ihm_demo }}"
     vitam_certificate_client_type: "external"
+    password_keystore: "{{keystores.server.ihm_demo}}"
+    password_manager_keystore: "{{keystores.server.ihm_demo}}"
+    password_truststore: "{{truststores.client_external}}"
+    password_grantedstore: "{{grantedstores.client_external}}"

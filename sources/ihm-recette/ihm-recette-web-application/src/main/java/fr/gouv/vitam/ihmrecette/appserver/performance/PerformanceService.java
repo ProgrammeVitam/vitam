@@ -201,9 +201,10 @@ public class PerformanceService {
     private void generateReport(ReportGenerator reportGenerator, String operationId, int tenantId) {
         try {
             LOGGER.debug("generate report");
+            VitamContext context = new VitamContext(tenantId);
+            context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
             final RequestResponse<LogbookOperation> requestResponse =
-                UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId, DEFAULT_CONTRACT_NAME,
-                    getAppSessionId());
+                UserInterfaceTransactionManager.selectOperationbyId(operationId, context);
 
             if (requestResponse.isOk()) {
                 RequestResponseOK<LogbookOperation> requestResponseOK =

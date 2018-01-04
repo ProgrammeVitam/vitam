@@ -14,16 +14,15 @@ export class AuthenticationComponent implements OnInit {
 
   errorMessage = '';
   tenantId: string;
-  username: string;
-  password: string;
   tenants = [];
+  isTLSEnabled = false;
   loginForm: FormGroup;
   constructor(private authenticationService: AuthenticationService, private router: Router, private translateService:TranslateService) {
     this.loginForm = new FormGroup( {
       username : new FormControl('', Validators.required),
-      password : new FormControl('', Validators.required),
-      tenant : new FormControl('', Validators.required)
+      password : new FormControl('', Validators.required)
     });
+
   }
 
   ngOnInit() {
@@ -35,22 +34,33 @@ export class AuthenticationComponent implements OnInit {
     this.authenticationService.getTenants()
       .subscribe((tenants: Array<string>) => {
         this.tenants = tenants;
-        this.loginForm.patchValue({
-          tenant :tenants[0]
-        });
+        this.tenantId = tenants[0] + '';
       });
+
+    this.authenticationService.getAuthenticationMode().subscribe(
+      (authenticationModes : string[]) => {
+        for (let authenticationMode of authenticationModes) {
+          if (authenticationMode.indexOf('x509') > -1) {
+            this.isTLSEnabled = true;
+            return;
+          }
+        }
+      },
+      (error) => {
+        console.log(error);
+      }
+    );
   }
 
   login() {
     this.errorMessage = '';
-    if (this.loginForm.valid) {
+    if (this.loginForm.valid && this.tenantId) {
       let username = this.loginForm.controls.username.value;
       let password = this.loginForm.controls.password.value;
-      let tenant = this.loginForm.controls.tenant.value;
       this.authenticationService.logIn(username, password).subscribe(
         (user : UserInformation) => {
           this.router.navigate(["ingest/sip"]);
-          this.authenticationService.loggedIn(user, tenant);
+          this.authenticationService.loggedIn(user, this.tenantId);
           this.translateService.reloadLang(this.translateService.getDefaultLang());
         },
         (error) => {
@@ -71,9 +81,29 @@ export class AuthenticationComponent implements OnInit {
         this.errorMessage = 'Veuillez entrer votre mot de passe';
         return;
       }
-      if (!this.loginForm.controls.tenant.valid) {
+      if (!this.tenantId) {
         this.errorMessage = 'Veuillez choisir un tenant';
       }
+    }
+
+  }
+
+  loginWithCertificat() {
+    this.errorMessage = '';
+    if (!this.tenantId) {
+      this.errorMessage = 'Veuillez choisir un tenant';
+    } else {
+      this.authenticationService.logInWithCertificat().subscribe(
+        (user : UserInformation) => {
+          this.router.navigate(["ingest/sip"]);
+          this.authenticationService.loggedIn(user, this.tenantId);
+          this.translateService.reloadLang(this.translateService.getDefaultLang());
+        },
+        (error) => {
+          this.errorMessage = "Votre certificat n'est pas connu";
+          this.authenticationService.loggedOut();
+        }
+      );
     }
 
   }

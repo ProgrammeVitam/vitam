@@ -82,6 +82,14 @@ public class VitamConfiguration {
      */
     public static final String DIP_EXPORT_URL = "/archiveunit/dipexport";
     /**
+     * path for securemode
+     */
+    public static final String SECURE_MODE_URL = "/securemode";
+    /**
+     * path for permissions
+     */
+    public static final String PERMISSIONS_URL = "permissions";
+    /**
      * Property Vitam Config Folder
      */
     protected static final String VITAM_CONFIG_PROPERTY = "vitam.config.folder";
