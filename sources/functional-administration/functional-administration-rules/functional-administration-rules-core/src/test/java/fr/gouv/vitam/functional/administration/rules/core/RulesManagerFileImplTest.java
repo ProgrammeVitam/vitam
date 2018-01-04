@@ -356,8 +356,7 @@ public class RulesManagerFileImplTest {
         Set<String> notUsedDeletedRules = new HashSet<>();
         Set<String> notUsedUpdatedRules = new HashSet<>();
         try {
-            rulesFileManager.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_DURATION_EXCEED)),
-                    errors, usedDeletedRules, usedUpdatedRules, notUsedDeletedRules, notUsedUpdatedRules);
+            rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_DURATION_EXCEED)), FILE_DURATION_EXCEED);
         } catch (final FileRulesException e) {
             fail("Check file with FILE_TO_TEST_OK should not throw exception");
         } catch (FileRulesDeleteException e) {

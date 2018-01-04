@@ -964,8 +964,9 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                             errors.add(new ErrorReport(FileRulesErrorCode.STP_IMPORT_RULES_WRONG_RULETYPE_UNKNOW,
                                 lineNumber, fileRulesModel));
                         }
-                        checkAssociationRuleDurationRuleMeasurementLimit(record, errors, lineNumber, fileRulesModel);
-                        checkRuleDurationWithConfiguration(record, errors, lineNumber, fileRulesModel);
+                        if (checkAssociationRuleDurationRuleMeasurementLimit(record, errors, lineNumber, fileRulesModel)) {
+                            checkRuleDurationWithConfiguration(record, errors, lineNumber, fileRulesModel);
+                        }
                         if (errors.size() > 0) {
                             errorsMap.put(lineNumber, errors);
                         }
@@ -1454,8 +1455,9 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
      * @param line the current line
      * @param fileRuleModel the current object that contains all the record to check
      * @throws FileRulesException
+     * @return true if rule's duration is inferior to 999 years false if it's not
      */
-    private void checkAssociationRuleDurationRuleMeasurementLimit(CSVRecord record, List<ErrorReport> errors, int line,
+    private boolean checkAssociationRuleDurationRuleMeasurementLimit(CSVRecord record, List<ErrorReport> errors, int line,
         FileRulesModel fileRuleModel)
         throws FileRulesException {
         try {
@@ -1468,11 +1470,13 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                         Integer.parseInt(record.get(RULE_DURATION)) > DAY_LIMIT)) {
                 errors
                     .add(new ErrorReport(FileRulesErrorCode.STP_IMPORT_RULES_WRONG_TOTALDURATION, line, fileRuleModel));
+                return false;
             }
         } catch (NumberFormatException e) {
             errors.add(new ErrorReport(FileRulesErrorCode.STP_IMPORT_RULES_WRONG_TOTALDURATION, line, fileRuleModel));
+            return false;
         }
-
+        return true;
     }
     
     /**
@@ -1723,6 +1727,12 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules>, VitamAu
                             error.getFileRulesModel().getRuleDuration() + " " +
                                 error.getFileRulesModel().getRuleMeasurement());
                         break;
+                    case STP_IMPORT_RULES_RULEDURATION_EXCEED:
+                        ObjectNode info = JsonHandler.createObjectNode();
+                        info.put("RuleType", error.getFileRulesModel().getRuleType());
+                        info.put("RuleDurationMin", VitamRuleService.getMinimumRuleDuration(getTenant(),
+                                error.getFileRulesModel().getRuleType()));
+                        errorNode.set(ReportConstants.ADDITIONAL_INFORMATION, info);
                     case STP_IMPORT_RULES_NOT_CSV_FORMAT:
                     case STP_IMPORT_RULES_DELETE_USED_RULES:
                     case STP_IMPORT_RULES_UPDATED_RULES:
