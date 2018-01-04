@@ -29,6 +29,8 @@ package fr.gouv.vitam.worker.server.rest;
 
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
+import java.util.List;
+
 /**
  * Worker configuration class mapping
  */
@@ -43,6 +45,8 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
     private int registerRetry = 5;
     private int capacity = 1;
     private String workerFamily = "DefaultWorker";
+
+    private ClassificationLevel classificationLevel;
 
     /**
      * WorkerConfiguration empty constructor for YAMLFactory
@@ -129,6 +133,7 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
     public WorkerConfiguration setRegisterServerHost(String registerServerHost) {
         this.registerServerHost = registerServerHost;
         return this;
+
     }
 
     /**
@@ -231,4 +236,21 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
         this.workerFamily = workerFamily;
         return this;
     }
+
+    /**
+     * @return classificationLevel
+     */
+    public ClassificationLevel getClassificationLevel() {
+        return classificationLevel;
+    }
+
+    /**
+     * @param classificationLevel
+     * @return this
+     */
+    public WorkerConfiguration setClassificationLevel(ClassificationLevel classificationLevel) {
+        this.classificationLevel = classificationLevel;
+        return this;
+    }
+
 }
