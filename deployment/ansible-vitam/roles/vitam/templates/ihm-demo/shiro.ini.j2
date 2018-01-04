@@ -22,45 +22,65 @@ securityManager.sessionManager = $sessionManager
 # Notice how we didn't define the class for the FormAuthenticationFilter ('authc') - it is instantiated and available already:
 authc.loginUrl = /#!/login
 
-{% if vitam.ihm_demo.authentication_mode == 'ini' %}
 
 # credentialsMatcher
 sha256Matcher = org.apache.shiro.authc.credential.Sha256CredentialsMatcher
+
+{% if "iniRealm" in vitam_struct.authentication_realms %}
 iniRealm.credentialsMatcher = $sha256Matcher
+{% endif %}
+
+{% if "ldapRealm" in vitam_struct.authentication_realms %}
+contextFactory = org.apache.shiro.realm.ldap.JndiLdapContextFactory
+contextFactory.url = ldap://{{ ldap_authentification.ldap_server }}:{{ ldap_authentification.ldap_port }}
+contextFactory.systemUsername = {{ ldap_authentification.ldap_login }}
+contextFactory.systemPassword = {{ ldap_authentification.ldap_pwd }}
+
+ldapRealm = fr.gouv.vitam.common.auth.core.realm.LdapRealm
+ldapRealm.ldapContextFactory = $contextFactory
+ldapRealm.searchBase = "{{ ldap_authentification.ldap_base }}"
+ldapRealm.groupRequestFilter = {{ ldap_authentification.ldap_group_request }}
+ldapRealm.userDnTemplate = {{ ldap_authentification.ldap_userDn_Template }}
+ldapRealm.groupRolesMap = "{{ ldap_authentification.ldap_admin_groups }}":"admin", "{{ ldap_authentification.ldap_user_groups }}":"user", "{{ ldap_authentification.ldap_guest_groups }}":"guest"
+{% endif %}
+
+x509 = fr.gouv.vitam.common.auth.web.filter.X509AuthenticationFilter
+
+x509.useHeader = False
+
+x509credentialsMatcher = fr.gouv.vitam.common.auth.core.authc.X509CredentialsSha256Matcher
+
+{% if "x509Realm" in vitam_struct.authentication_realms %}
+x509Realm = fr.gouv.vitam.common.auth.core.realm.X509KeystoreFileWithRoleRealm
+x509Realm.grantedKeyStoreName = {{vitam_folder_conf}}/grantedstore_ihm-demo.jks
+x509Realm.grantedKeyStorePassphrase = {{password_grantedstore}}
+x509Realm.trustedKeyStoreName = {{vitam_folder_conf}}/truststore_ihm-demo.jks
+x509Realm.trustedKeyStorePassphrase = {{password_truststore}}
+x509Realm.credentialsMatcher = $x509credentialsMatcher
+x509Realm.certificateDnRoleMapping = "CN=userAdmin,O=Vitam,L=Paris":"admin", "CN=userUser,O=Vitam,L=Paris":"user"
+{% endif %}
+
+securityManager.realms = {% for realm in vitam_struct.authentication_realms %}{% if not loop.first %},{% endif %}${{ realm }}{% endfor %}
+
+{% if "iniRealm" in vitam_struct.authentication_realms %}
 
 [users]
 # The 'users' section is for simple deployments
-# when you only need a small number of statically-defined
-# set of User accounts.
-#username = password
-
+# # when you only need a small number of statically-defined
+# # set of User accounts.
+# #username = password
 {% for item in vitam_users %}
-{{item.login}}={{item.password|hash('sha256')}}, {{item.role}}
+ {{item.login}}={{item.password|hash('sha256')}}, {{item.role}}
 {% endfor %}
+
+{% endif %}
+
 
 [roles]
 admin = *
 user = messages:*, archivesearch:*, logbook:*, ingest:*, archiveupdate:*, archiveunit:*, ingests:read, admin:formats:read, admin:rules:read, admin:accession-register:read, logbookunitlifecycles:*, logbookobjectslifecycles:*, clear:delete, check:read, traceability:content:read, accesscontracts:read, profiles:read, contracts:read, contexts:read
 guest = archivesearch:*, archiveunit:*, units:*, unit:*, admin:accession-register:read, accesscontracts:read
 
-{% else %}
-
-contextFactory = org.apache.shiro.realm.ldap.JndiLdapContextFactory
-contextFactory.url = ldap://{{ ldap_authentification.ldap_server }}:{{ ldap_authentification.ldap_port }}
-contextFactory.systemUsername = {{ ldap_authentification.ldap_login }}
-contextFactory.systemPassword = {{ ldap_authentification.ldap_pwd }}
-
-realm = fr.gouv.vitam.common.security.rest.LdapRealm
-realm.ldapContextFactory = $contextFactory
-realm.searchBase = "{{ ldap_authentification.ldap_base }}"
-realm.groupRequestFilter = {{ ldap_authentification.ldap_group_request }}
-realm.userDnTemplate = {{ ldap_authentification.ldap_userDn_Template }}
-realm.groupRolesMap = "{{ ldap_authentification.ldap_admin_groups }}":"admin", "{{ ldap_authentification.ldap_user_groups }}":"user", "{{ ldap_authentification.ldap_guest_groups }}":"guest"
-
-realm.rolePermissionsMap = "admin":"*","user":"messages:*, archivesearch:*, logbook:*, ingest:*, archiveupdate:*, archiveunit:*, ingests:read, admin:formats:read, admin:rules:read, admin:accession-register:read, logbookunitlifecycles:*, logbookobjectslifecycles:*","guest":"archivesearch:*, archiveUnit:*, units:*, unit:*"
-
-securityManager.realms = $realm
-{% endif %}
 
 [urls]
 # make sure the end-user is authenticated.  If not, redirect to the 'authc.loginUrl' above,
@@ -70,4 +90,7 @@ securityManager.realms = $realm
 /v1/api/logout = logout
 /v1/api/messages/logbook = anon
 /v1/api/tenants = anon
-/** = authc
+/v1/api/securemode = anon
+/v1/api/permissions = x509
+/v1/api/** = authc, x509
+/#/** = authc

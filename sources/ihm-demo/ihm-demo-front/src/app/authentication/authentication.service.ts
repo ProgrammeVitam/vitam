@@ -92,4 +92,19 @@ export class AuthenticationService {
       return false;
     }
   }
+
+  logInWithCertificat() {
+    this.resourceService.removeSessionInfo();
+    return this.resourceService.get('permissions');
+  }
+
+  getAuthenticationMode() {
+    return this.resourceService.get('securemode');
+  }
+
+  loggedInWithCertificat(tenantId : string) {
+    this.cookies.put(LOGGED_IN, 'true');
+    this.loginState.next(true);
+    this.setTenant(tenantId);
+  }
 }

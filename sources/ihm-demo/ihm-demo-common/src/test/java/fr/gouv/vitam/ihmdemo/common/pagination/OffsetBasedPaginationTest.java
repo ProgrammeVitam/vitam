@@ -1,26 +1,25 @@
 package fr.gouv.vitam.ihmdemo.common.pagination;
 
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.Vector;
+import javax.servlet.http.HttpServletRequest;
+
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.ihmdemo.common.api.IhmWebAppHeader;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-
-import java.util.Collections;
-
-import javax.ws.rs.core.HttpHeaders;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.ihmdemo.common.api.IhmWebAppHeader;
-
 public class OffsetBasedPaginationTest {
 
-    private static HttpHeaders httpHeadersMock;
+    private static HttpServletRequest httpHeadersMock;
 
     @Before
     public void init() {
-        httpHeadersMock = Mockito.mock(HttpHeaders.class);
+        httpHeadersMock = Mockito.mock(HttpServletRequest.class);
     }
 
     @Test
@@ -39,10 +38,10 @@ public class OffsetBasedPaginationTest {
         assertEquals(101, paginationOffsetLimit.getLimit());
         assertEquals(1000, paginationOffsetLimit.getTotal());
 
-        Mockito.when(httpHeadersMock.getRequestHeader(IhmWebAppHeader.OFFSET.getName())).thenReturn(
-            Collections.singletonList("1"));
-        Mockito.when(httpHeadersMock.getRequestHeader(IhmWebAppHeader.LIMIT.getName())).thenReturn(
-            Collections.singletonList("2"));
+        Mockito.when(httpHeadersMock.getHeaders(IhmWebAppHeader.OFFSET.getName())).thenReturn(
+            new Vector(Collections.singletonList("1")).elements());
+        Mockito.when(httpHeadersMock.getHeaders(IhmWebAppHeader.LIMIT.getName())).thenReturn(
+            new Vector(Collections.singletonList("2")).elements());
 
         try {
             final OffsetBasedPagination paginationHeaders = new OffsetBasedPagination(httpHeadersMock);
@@ -54,16 +53,16 @@ public class OffsetBasedPaginationTest {
         }
 
 
-        Mockito.when(httpHeadersMock.getRequestHeader(IhmWebAppHeader.OFFSET.getName())).thenReturn(
-            Collections.singletonList("1A"));
+        Mockito.when(httpHeadersMock.getHeaders(IhmWebAppHeader.OFFSET.getName())).thenReturn(
+            new Vector(Collections.singletonList("1A")).elements());
 
         try {
             new OffsetBasedPagination(httpHeadersMock);
             fail();
         } catch (final VitamException e) {}
 
-        Mockito.when(httpHeadersMock.getRequestHeader(IhmWebAppHeader.OFFSET.getName())).thenReturn(
-            Collections.singletonList("-1"));
+        Mockito.when(httpHeadersMock.getHeaders(IhmWebAppHeader.OFFSET.getName())).thenReturn(
+            new Vector(Collections.singletonList("-1")).elements());
 
         try {
             new OffsetBasedPagination(httpHeadersMock);
@@ -71,18 +70,18 @@ public class OffsetBasedPaginationTest {
         } catch (final VitamException e) {}
 
 
-        Mockito.when(httpHeadersMock.getRequestHeader(IhmWebAppHeader.OFFSET.getName())).thenReturn(
-            Collections.singletonList("1"));
-        Mockito.when(httpHeadersMock.getRequestHeader(IhmWebAppHeader.LIMIT.getName())).thenReturn(
-            Collections.singletonList("2A"));
+        Mockito.when(httpHeadersMock.getHeaders(IhmWebAppHeader.OFFSET.getName())).thenReturn(
+            new Vector(Collections.singletonList("1")).elements());
+        Mockito.when(httpHeadersMock.getHeaders(IhmWebAppHeader.LIMIT.getName())).thenReturn(
+            new Vector(Collections.singletonList("2A")).elements());
 
         try {
             new OffsetBasedPagination(httpHeadersMock);
             fail();
         } catch (final VitamException e) {}
 
-        Mockito.when(httpHeadersMock.getRequestHeader(IhmWebAppHeader.LIMIT.getName())).thenReturn(
-            Collections.singletonList("0"));
+        Mockito.when(httpHeadersMock.getHeaders(IhmWebAppHeader.LIMIT.getName())).thenReturn(
+            new Vector(Collections.singletonList("0")).elements());
 
         try {
             new OffsetBasedPagination(httpHeadersMock);

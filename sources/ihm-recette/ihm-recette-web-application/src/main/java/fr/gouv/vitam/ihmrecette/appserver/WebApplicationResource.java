@@ -26,40 +26,9 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver;
 
-import java.io.ByteArrayOutputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.shiro.authc.UsernamePasswordToken;
-import org.apache.shiro.subject.Subject;
-import org.apache.shiro.util.ThreadContext;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
-
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
@@ -111,6 +80,36 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayOutputStream;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE;
 
@@ -156,16 +155,16 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String HTTP_DELETE = "DELETE";
 
     private ExecutorService threadPoolExecutor = Executors.newCachedThreadPool();
-    private String secureMode;
+    private List<String> secureMode;
 
     /**
      * Constructor
      *
-     * @param tenants list of working tenant
+     * @param webApplicationConfigonfig configuration
      */
-    public WebApplicationResource(List<Integer> tenants, String secureMode) {
-        super(new BasicVitamStatusServiceImpl(), tenants);
-        this.secureMode = secureMode;
+    public WebApplicationResource(WebApplicationConfig webApplicationConfigonfig) {
+        super(new BasicVitamStatusServiceImpl(), webApplicationConfigonfig.getTenants());
+        this.secureMode = webApplicationConfigonfig.getSecureMode();
         LOGGER.debug("init Admin Management Resource server");
     }
 
@@ -227,8 +226,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response getLogbookStatistics(@PathParam("id_op") String operationId) {
         LOGGER.debug("/stat/id_op / id: " + operationId);
         try {
+            VitamContext context = new VitamContext(TENANT_ID);
+            context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
+
             final RequestResponse logbookOperationResult = UserInterfaceTransactionManager
-                .selectOperationbyId(operationId, TENANT_ID, DEFAULT_CONTRACT_NAME, getAppSessionId());
+                .selectOperationbyId(operationId, context);
             if (logbookOperationResult != null && logbookOperationResult.toJsonNode().has(RESULTS_FIELD)) {
                 final JsonNode logbookOperation = logbookOperationResult.toJsonNode().get(RESULTS_FIELD).get(0);
                 // Create csv file
@@ -254,11 +256,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Return authentication mode
      *
-     * @return the statistics file (csv format)
+     * @return liste of authentication mode
      */
     @GET
     @Path("/securemode")
-    @Produces(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response getSecureMode() {
         return Response.status(Status.OK).entity(this.secureMode).build();
     }
@@ -332,7 +334,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @POST
     @Path("/logbooks")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getLogbookResultByBrowser(@Context HttpHeaders headers,
+    public Response getLogbookResultByBrowser(@Context HttpServletRequest request,
         @HeaderParam(GlobalDataRest.X_HTTP_METHOD_OVERRIDE) String xhttpOverride,
         @CookieParam("JSESSIONID") String sessionId,
         String options) {
@@ -343,13 +345,13 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(status).entity(vitamError).build();
         }
 
-        return findLogbookBy(headers, sessionId, options);
+        return findLogbookBy(request, sessionId, options);
     }
 
     /**
      * this method is used to request logbook with the Vitam DSL
      *
-     * @param headers   header containing the pagination for logbook
+     * @param request   request http
      * @param sessionId using for pagination
      * @param options   JSON object representing the Vitam DSL query
      * @return Response
@@ -357,15 +359,15 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @GET
     @Path("/logbooks")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getLogbookResult(@Context HttpHeaders headers, @CookieParam("JSESSIONID") String sessionId,
+    public Response getLogbookResult(@Context HttpServletRequest request, @CookieParam("JSESSIONID") String sessionId,
         String options) {
-        return findLogbookBy(headers, sessionId, options);
+        return findLogbookBy(request, sessionId, options);
     }
 
-    private Response findLogbookBy(@Context HttpHeaders headers, @CookieParam("JSESSIONID") String sessionId,
+    private Response findLogbookBy(@Context HttpServletRequest request, @CookieParam("JSESSIONID") String sessionId,
         String options) {
         ParametersChecker.checkParameter("cookie is mandatory", sessionId);
-        final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+        final String xTenantId = request.getHeader(GlobalDataRest.X_TENANT_ID);
         Integer tenantId = null;
         if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
@@ -378,12 +380,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try {
             tenantId = Integer.parseInt(xTenantId);
             // VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            pagination = new OffsetBasedPagination(headers);
+            pagination = new OffsetBasedPagination(request);
         } catch (final VitamException e) {
             LOGGER.error("Bad request Exception ", e);
             return Response.status(Status.BAD_REQUEST).build();
         }
-        final List<String> requestIds = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.REQUEST_ID.name());
+        final List<String> requestIds = Collections.list(request.getHeaders(IhmWebAppHeader.REQUEST_ID.name()));
         if (requestIds != null && !requestIds.isEmpty()) {
             requestId = requestIds.get(0);
             // get result from shiro session
@@ -407,8 +409,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
                 LOGGER.debug("query >>>>>>>>>>>>>>>>> : " + query);
-                result = UserInterfaceTransactionManager.selectOperation(query, tenantId, DEFAULT_CONTRACT_NAME,
-                    getAppSessionId());
+                result = UserInterfaceTransactionManager.selectOperation(query, UserInterfaceTransactionManager.getVitamContext(request));
 
                 // save result
                 LOGGER.debug("resultr <<<<<<<<<<<<<<<<<<<<<<<: " + result);
@@ -450,9 +451,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 return Response.status(Response.Status.BAD_REQUEST).build();
             }
             tenantId = Integer.parseInt(xTenantId);
+            VitamContext context = new VitamContext(tenantId);
+            context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
             final RequestResponse<LogbookOperation> result =
-                UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId, DEFAULT_CONTRACT_NAME,
-                    getAppSessionId());
+                UserInterfaceTransactionManager.selectOperationbyId(operationId, context);
             return Response.status(Status.OK).entity(result).build();
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
@@ -508,9 +510,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
      */
     private void downloadObjectAsync(final AsyncResponse asyncResponse, String operationId, int tenantId) {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+
+            VitamContext context = new VitamContext(tenantId);
+            context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
             final RequestResponse<LogbookOperation> result =
-                UserInterfaceTransactionManager.selectOperationbyId(operationId, tenantId, DEFAULT_CONTRACT_NAME,
-                    getAppSessionId());
+                UserInterfaceTransactionManager.selectOperationbyId(operationId, context);
 
             RequestResponseOK<LogbookOperation> responseOK = (RequestResponseOK<LogbookOperation>) result;
             LogbookOperation operation = responseOK.getFirstResult();
@@ -586,7 +590,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * @param headers   needed for the request: X-TENANT-ID , X-Access-Contract-Id, X-Request-Method
+     * @param request  request http
      * @param sessionId json session id from shiro
      * @param criteria  criteria search for units
      * @return Reponse
@@ -595,24 +599,24 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/dslQueryTest")
     @Produces(MediaType.APPLICATION_JSON)
     // @RequiresPermissions("archivesearch:units:read")
-    public Response getAndExecuteTestRequest(@Context HttpHeaders headers, @Context HttpServletRequest request,
+    public Response getAndExecuteTestRequest(@Context HttpServletRequest request,
         @CookieParam("JSESSIONID") String sessionId,
         JsonNode criteria) {
         String requestId;
         RequestResponse result;
         OffsetBasedPagination pagination = null;
-        String requestMethod = headers.getHeaderString(GlobalDataRest.X_HTTP_METHOD_OVERRIDE);
-        String requestedCollection = headers.getHeaderString(X_REQUESTED_COLLECTION);
-        String objectID = headers.getHeaderString(X_OBJECT_ID);
-        String xAction = headers.getHeaderString(GlobalDataRest.X_ACTION);
+        String requestMethod = request.getHeader(GlobalDataRest.X_HTTP_METHOD_OVERRIDE);
+        String requestedCollection = request.getHeader(X_REQUESTED_COLLECTION);
+        String objectID = request.getHeader(X_OBJECT_ID);
+        String xAction = request.getHeader(GlobalDataRest.X_ACTION);
 
         try {
-            pagination = new OffsetBasedPagination(headers);
+            pagination = new OffsetBasedPagination(request);
         } catch (final VitamException e) {
             LOGGER.error("Bad request Exception ", e);
             return Response.status(Status.BAD_REQUEST).build();
         }
-        final List<String> requestIds = HttpHeaderHelper.getHeaderValues(headers, IhmWebAppHeader.REQUEST_ID.name());
+        final List<String> requestIds = Collections.list(request.getHeaders(IhmWebAppHeader.REQUEST_ID.name()));
 
         if (requestIds != null && !requestIds.isEmpty()) {
             requestId = requestIds.get(0);

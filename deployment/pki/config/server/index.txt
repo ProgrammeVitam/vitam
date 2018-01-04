@@ -50,3 +50,5 @@ V	200808160443Z		D4	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ingest-external.serv
 V	200808160445Z		D5	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=access-external.service.consul
 V	200808160447Z		D6	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=offer.service.consul
 V	200808160449Z		D7	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-recette.service.consul
+V	201220155740Z		D8	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-demo.service.consul
+V	201220162151Z		D9	unknown	/C=fr/ST=idf/L=paris/O=vitam/CN=ihm-demo.service.consul

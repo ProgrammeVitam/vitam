@@ -30,11 +30,17 @@ import static com.jayway.restassured.RestAssured.given;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
 import org.junit.AfterClass;
+import org.junit.Assert;
+import static org.junit.Assert.assertTrue;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -51,6 +57,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.ihmdemo.common.api.IhmDataRest;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import org.mockito.Matchers;
+import static org.mockito.Matchers.contains;
 
 /**
  *
@@ -61,7 +69,7 @@ public class WebApplicationResourceAuthTest {
     private static final String DEFAULT_WEB_APP_CONTEXT_V2 = "/ihm-demo-v2";
     private static final String DEFAULT_STATIC_CONTENT_V2 = "webapp/v2";
     private static final String OPTIONS = "{\"name\": \"myName\"}";
-    private static final String CREDENTIALS = "{\"token\": {\"principal\": \"user\", \"credentials\": \"user\"}}";
+    private static final String CREDENTIALS = "{\"token\": {\"principal\": \"admin\", \"credentials\": \"admin\"}}";
     private static final String CREDENTIALS_NO_VALID =
         "{\"token\": {\"principal\": \"myName\", \"credentials\": \"myName\"}}";
     private static final String OPTIONS_DOWNLOAD = "{\"usage\": \"Dissemination\", \"version\": 1}";
@@ -92,10 +100,12 @@ public class WebApplicationResourceAuthTest {
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
         final WebApplicationConfig webApplicationConfig =
             (WebApplicationConfig) new WebApplicationConfig().setPort(port)
-            .setServerHost(DEFAULT_HOST).setJettyConfig(JETTY_CONFIG)
-            .setBaseUrl(DEFAULT_WEB_APP_CONTEXT).setAuthentication(true)
-            .setStaticContent(DEFAULT_STATIC_CONTENT).setBaseUri(DEFAULT_WEB_APP_CONTEXT)
-            .setStaticContentV2(DEFAULT_STATIC_CONTENT_V2).setBaseUriV2(DEFAULT_WEB_APP_CONTEXT_V2).setTenants(tenants);;
+                .setServerHost(DEFAULT_HOST).setJettyConfig(JETTY_CONFIG)
+                .setBaseUrl(DEFAULT_WEB_APP_CONTEXT).setAuthentication(true)
+                .setStaticContent(DEFAULT_STATIC_CONTENT).setBaseUri(DEFAULT_WEB_APP_CONTEXT)
+                .setStaticContentV2(DEFAULT_STATIC_CONTENT_V2).setBaseUriV2(DEFAULT_WEB_APP_CONTEXT_V2)
+                .setTenants(tenants);
+        webApplicationConfig.setSecureMode(Arrays.asList("File", "LDAP"));
         final File conf = PropertiesUtils.findFile(IHM_DEMO_CONF);
         final File newConf = File.createTempFile("test", IHM_DEMO_CONF, conf.getParentFile());
         PropertiesUtils.writeYaml(newConf, webApplicationConfig);
@@ -109,16 +119,22 @@ public class WebApplicationResourceAuthTest {
             .body(CREDENTIALS)
             .post("/login");
         JsonNode body= JsonHandler.getFromString(response.body().asString());
-
         sessionId = response.getCookie("JSESSIONID");
         tokenCSRF = body.get("tokenCSRF").asText();
-        
+
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         application.stop();
         junitHelper.releasePort(port);
+    }
+
+    @Test
+    public void testSecureModeAPI() throws InvalidParseOperationException {
+        String authMode = given()
+            .get("/securemode").body().asString();
+        assertTrue(authMode.contains("LDAP"));
     }
 
     @Test

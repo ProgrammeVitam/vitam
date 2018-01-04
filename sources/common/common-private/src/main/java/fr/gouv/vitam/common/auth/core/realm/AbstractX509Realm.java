@@ -34,12 +34,18 @@ import org.apache.shiro.realm.AuthenticatingRealm;
 
 import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationInfo;
 import fr.gouv.vitam.common.auth.core.authc.X509AuthenticationToken;
+import org.apache.shiro.realm.AuthorizingRealm;
 
 /**
  * Based on work: Copyright Paul Merlin 2011 (Apache Licence v2.0)
  */
 public abstract class AbstractX509Realm
-    extends AuthenticatingRealm {
+    extends AuthorizingRealm {
+
+    private String grantedKeyStoreName;
+    private String grantedKeyStorePassphrase;
+    private String trustedKeyStoreName;
+    private String trustedKeyStorePassphrase;
 
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) {
@@ -49,4 +55,64 @@ public abstract class AbstractX509Realm
     protected abstract X509AuthenticationInfo doGetX509AuthenticationInfo(
         X509AuthenticationToken x509AuthenticationToken);
 
+
+    /**
+     * @return the grantedKeyStoreName
+     */
+    public String getGrantedKeyStoreName() {
+        return grantedKeyStoreName;
+    }
+
+    /**
+     * @param grantedKeyStoreName the grantedKeyStoreName to set
+     *
+     */
+    public void setGrantedKeyStoreName(String grantedKeyStoreName) {
+        this.grantedKeyStoreName = grantedKeyStoreName;
+    }
+
+    /**
+     * @return the grantedKeyStorePassphrase
+     */
+    public String getGrantedKeyStorePassphrase() {
+        return grantedKeyStorePassphrase;
+    }
+
+    /**
+     * @param grantedKeyStorePassphrase the grantedKeyStorePassphrase to set
+     *
+     */
+    public void setGrantedKeyStorePassphrase(String grantedKeyStorePassphrase) {
+        this.grantedKeyStorePassphrase = grantedKeyStorePassphrase;
+    }
+
+    /**
+     * @return the trustedKeyStoreName
+     */
+    public String getTrustedKeyStoreName() {
+        return trustedKeyStoreName;
+    }
+
+    /**
+     * @param trustedKeyStoreName the trustedKeyStoreName to set
+     *
+     */
+    public void setTrustedKeyStoreName(String trustedKeyStoreName) {
+        this.trustedKeyStoreName = trustedKeyStoreName;
+    }
+
+    /**
+     * @return the trustedKeyStorePassphrase
+     */
+    public String getTrustedKeyStorePassphrase() {
+        return trustedKeyStorePassphrase;
+    }
+
+    /**
+     * @param trustedKeyStorePassphrase the trustedKeyStorePassphrase to set
+     *
+     */
+    public void setTrustedKeyStorePassphrase(String trustedKeyStorePassphrase) {
+        this.trustedKeyStorePassphrase = trustedKeyStorePassphrase;
+    }
 }

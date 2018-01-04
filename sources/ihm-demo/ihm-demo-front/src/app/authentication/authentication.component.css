@@ -5,3 +5,15 @@
 .loginForm {
     margin-top: 50px;
 }
+
+.loginMinHeight {
+    min-height: 125px;
+}
+
+.loginCertificat {
+    padding-top: 25px;
+}
+
+.loginContainer {
+    align-content: center;
+}

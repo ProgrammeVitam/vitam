@@ -1,28 +1,45 @@
 <div class="loginForm">
   <p-panel [header]="'Authentification'">
-    <form class="ui-g ui-fluid" [formGroup]="loginForm" (ngSubmit)="login()">
+    <div class="ui-g">
       <div class="ui-g-12 ui-md-12 login-error-message">
         {{errorMessage}}
       </div>
-      <div class="ui-g-12 ui-md-4">
-        <label>Identifiant</label><br/>
-        <input type="text" pInputText  formControlName="username">
-      </div>
-      <div class="ui-g-12 ui-md-4">
-        <label>Mot de passe</label><br/>
-        <input pInputText type="password" formControlName="password"/>
-      </div>
-      <div class="ui-g-12 ui-md-2">
-        <label>Tenant de la session</label><br/>
-        <select formControlName="tenant" style="display: inline; margin: 0 0 0 10px" >
+      <div class="ui-g-12 ui-md-12">
+        <label>Tenant de la session: </label>
+        <select  [(ngModel)]="tenantId" style="display: inline; margin: 0 0 0 10px" >
           <option *ngFor='let tenant of tenants' value="{{tenant}}">{{tenant}}</option>
         </select>
       </div>
+      <div class="loginContainer ui-g-12 ui-md-12">
+        <div class="ui-g-2 ui-md-2 " *ngIf="!isTLSEnabled"></div>
+        <div class="ui-g-8 ui-md-8 ">
+          <p-panel [header]="'Authentification par identifiant'">
+            <form class="ui-g ui-fluid loginMinHeight" [formGroup]="loginForm" (ngSubmit)="login()">
+              <div class="ui-g-12 ui-md-6">
+                <label>Identifiant</label><br/>
+                <input type="text" pInputText  formControlName="username">
+              </div>
+              <div class="ui-g-12 ui-md-6">
+                <label>Mot de passe</label><br/>
+                <input pInputText type="password" formControlName="password"/>
+              </div>
 
-      <div class="ui-g-12 ui-md-5"></div>
-      <div class="ui-g-12 ui-md-2">
-        <button pButton label="Connexion"></button>
+              <div class="ui-g-4 ui-g-offset-4">
+                <button pButton label="Connexion"></button>
+              </div>
+            </form>
+          </p-panel>
+        </div>
+        <div class="ui-g-4 ui-md-4 " *ngIf="isTLSEnabled">
+          <p-panel [header]="'Authentification par certificat'">
+            <div class="ui-g loginMinHeight loginCertificat">
+              <div class="ui-g-8 ui-g-offset-2">
+                <button pButton label="Connexion avec certificat" (click)="loginWithCertificat()"></button>
+              </div>
+            </div>
+          </p-panel>
+        </div>
       </div>
-    </form>
+    </div>
   </p-panel>
 </div>

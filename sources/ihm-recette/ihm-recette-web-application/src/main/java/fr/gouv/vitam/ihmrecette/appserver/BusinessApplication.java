@@ -93,7 +93,7 @@ public class BusinessApplication extends Application {
 
             final WebApplicationResourceDelete deleteResource = new WebApplicationResourceDelete(configuration);
             final WebApplicationResource resource =
-                new WebApplicationResource(configuration.getTenants(), configuration.getSecureMode());
+                new WebApplicationResource(configuration);
             singletons.add(deleteResource);
             singletons.add(resource);
 

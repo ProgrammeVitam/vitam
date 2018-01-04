@@ -68,7 +68,7 @@ public class ServerApplicationWithoutMongo extends Application {
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
             
-            final WebApplicationResource resource = new WebApplicationResource(configuration.getTenants(), configuration.getSecureMode());
+            final WebApplicationResource resource = new WebApplicationResource(configuration);
             singletons.add(resource);
         } catch (IOException e) {
             throw new RuntimeException(e);
