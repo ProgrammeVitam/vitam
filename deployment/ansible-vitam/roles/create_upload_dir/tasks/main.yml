@@ -1,0 +1,16 @@
+---
+
+- name: ensure upload directories are present for special local ingests (huge files)
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_upload_permission }}"
+  with_items:
+    - "{{ vitam_struct.upload_dir }}"
+    - "{{ vitam_struct.success_dir }}"
+    - "{{ vitam_struct.fail_dir }}"
+
+
+

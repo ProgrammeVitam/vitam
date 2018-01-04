@@ -333,7 +333,10 @@ public enum VitamCode {
         "Ingest external client error in executeOperationProcess method."),
     INGEST_EXTERNAL_GET_OPERATION_PROCESS_DETAIL_ERROR(ServiceName.EXTERNAL_INGEST, DomainName.IO, "09",
         Status.BAD_REQUEST,
-        "Ingest external client error in getOperationProcessExecutionDetails method.");
+        "Ingest external client error in getOperationProcessExecutionDetails method."),
+    INGEST_EXTERNAL_LOCAL_UPLOAD_FILE_HANDLING_ERROR(ServiceName.EXTERNAL_INGEST, DomainName.IO, "10",
+            Status.BAD_REQUEST,
+            "File error during local ingest attempt.");
 
     private final ServiceName service;
     private final DomainName domain;

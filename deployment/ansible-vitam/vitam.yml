@@ -257,6 +257,7 @@
   roles:
     - siegfried
     - antivirus
+    - create_upload_dir
     - vitam
    #- {role: clamav, when: vitam_struct.antivirus=='clamav' }
   vars:
