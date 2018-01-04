@@ -10,8 +10,8 @@
   roles:
     - {role: metricbeat, when: "{{groups['hosts-elasticsearch-log'] | length > 0}}" }
 
-#- hosts: vitam
-#  roles:
+# - hosts: vitam
+#   roles:
 #    - {role: packetbeat, when: "inventory_hostname != 'localhost'"}
 
 - hosts: hosts-elasticsearch-log
@@ -30,6 +30,9 @@
   vars:
     vitam_struct: "{{ vitam.library }}"
 
+- hosts: ldap
+  roles:
+    - openldap_server
 
 - import_playbook: ihm-recette.yml
 

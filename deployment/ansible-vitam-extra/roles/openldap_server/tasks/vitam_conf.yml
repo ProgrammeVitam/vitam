@@ -1,0 +1,60 @@
+---
+
+- name: Make sure we have groups & people branches
+  ldap_entry:
+    bind_dn: "cn=Manager,dc={{ openldap_server_domain_name.split('.')[0] }},dc={{ openldap_server_domain_name.split('.')[1] }}"
+    bind_pw: "{{ openldap_server_rootpw }}"
+    dn: "ou={{ item }},dc=programmevitam,dc=fr"
+    objectClass:
+      - top
+      - organizationalUnit
+    attributes:
+      ou: "{{ item }}"
+      description: generic groups branch
+  with_items:
+    - groups
+    - people
+
+- name: Create the users
+  ldap_entry:
+    bind_dn: "cn=Manager,dc={{ openldap_server_domain_name.split('.')[0] }},dc={{ openldap_server_domain_name.split('.')[1] }}"
+    bind_pw: "{{ openldap_server_rootpw }}"
+    dn: "uid={{ item.login }},ou=people,dc=programmevitam,dc=fr"
+    objectClass:
+      - top
+      - inetOrgPerson
+      - person
+      - organizationalPerson
+    attributes:
+      uid: "{{ item.login }}"
+      sn:  "{{ item.login }}"
+      cn:  "{{ item.login }}"
+      userPassword: "{{ item.password }}"
+  with_items:
+    - "{{ vitam_users }}"
+
+- name: Create the groups
+  ldap_entry:
+    bind_dn: "cn=Manager,dc={{ openldap_server_domain_name.split('.')[0] }},dc={{ openldap_server_domain_name.split('.')[1] }}"
+    bind_pw: "{{ openldap_server_rootpw }}"
+    dn: "cn={{ item.role }},ou=groups,dc=programmevitam,dc=fr"
+    objectClass:
+      - top
+      - groupOfNames
+    attributes:
+      cn: "{{ item.role }}"
+      description:  "{{ item.role }} group"
+      member:  "cn={{ item.login }},ou=people,dc=programmevitam,dc=fr"
+  with_items:
+    - "{{ vitam_users }}"
+
+- name: Add the users into the groups
+  ldap_attr:
+    bind_dn: "cn=Manager,dc={{ openldap_server_domain_name.split('.')[0] }},dc={{ openldap_server_domain_name.split('.')[1] }}"
+    bind_pw: "{{ openldap_server_rootpw }}"
+    dn: "cn={{ item.role }},ou=groups,dc=programmevitam,dc=fr"
+    name: 'member'
+    state: 'present'
+    values: "cn={{ item.login }},ou=people,dc=programmevitam,dc=fr"
+  with_items:
+    - "{{ vitam_users }}"

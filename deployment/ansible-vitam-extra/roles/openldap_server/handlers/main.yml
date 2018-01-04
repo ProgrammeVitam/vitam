@@ -1,0 +1,4 @@
+---
+    
+- name: restart slapd
+  service: name=slapd state=restarted enabled=yes

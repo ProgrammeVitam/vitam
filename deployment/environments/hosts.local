@@ -5,12 +5,15 @@ vitam
 reverse
 library
 hosts-dev-tools
+ldap
 
 ########### Tests environments specifics ###########
 
 [reverse] # EXTRA : Front reverse-proxy (test environments ONLY)
 
 ########### Extra VITAM applications ###########
+
+[ldap] # Extra : OpenLDAP server
 
 [library] # EXTRA : Library server
 

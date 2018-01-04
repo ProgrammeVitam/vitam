@@ -5,6 +5,7 @@ vitam
 reverse
 library
 hosts-dev-tools
+ldap
 
 ########### Tests environments specifics ###########
 
@@ -12,6 +13,9 @@ hosts-dev-tools
 localhost
 
 ########### Extra VITAM applications ###########
+
+[ldap] # Extra : OpenLDAP server
+localhost
 
 [library] # EXTRA : Library server
 
