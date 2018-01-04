@@ -231,4 +231,14 @@ public enum FunctionalAdminCollections {
         }
         return null;
     }
+
+    public static FunctionalAdminCollections getFromValue(String collection) {
+        for (FunctionalAdminCollections coll : FunctionalAdminCollections.values()) {
+            if (coll.name().equalsIgnoreCase(collection)) {
+                return coll;
+            }
+        }
+        return null;
+    }
+
 }

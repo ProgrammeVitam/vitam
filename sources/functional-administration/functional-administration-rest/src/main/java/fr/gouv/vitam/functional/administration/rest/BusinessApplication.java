@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.VitamRepositoryFactory;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
@@ -79,6 +80,7 @@ public class BusinessApplication extends Application {
             singletons.add(new SecurityProfileResource(mongoDbAccess, vitamCounterService, functionalBackupService));
             singletons.add(new AgenciesResource(mongoDbAccess, vitamCounterService));
 
+            singletons.add(new AdminReconstructionResource(configuration, VitamRepositoryFactory.getInstance()));
 
             singletons.add(profileResource);
 

@@ -18,42 +18,70 @@
 package fr.gouv.vitam.functional.administration.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import org.bson.Document;
 
 import java.util.List;
 
 /**
- * Description of reconstruction parameters model. <br/>
+ * Description of reconstruction item model. <br/>
  */
 public class ReconstructionItem {
 
     /**
-     * The type of Vitam collection.
+     * Collection name.
      */
     @JsonProperty("collection")
-    private FunctionalAdminCollections collection;
+    private String Collection;
 
     /**
-     * The list of Vitam tenants.
+     * List of tenants.
      */
     @JsonProperty("tenants")
-    private List<Integer> tenants;
+    private List<Integer> Tenants;
 
-
-    public FunctionalAdminCollections getCollection() {
-        return collection;
+    /**
+     * Constructor.
+     */
+    public ReconstructionItem() {
+        super();
     }
 
-    public void setCollection(FunctionalAdminCollections collection) {
-        this.collection = collection;
+    /**
+     * Get the Collection of the profile
+     *
+     * @return Collection as String
+     */
+    public String getCollection() {
+        return Collection;
     }
 
+    /**
+     * Set the Collection of the profile This value must be unique by tenant
+     *
+     * @param collection as String
+     * @return this
+     */
+    public ReconstructionItem setCollection(String collection) {
+        this.Collection = collection;
+        return this;
+    }
+
+    /**
+     * Get Tenants
+     *
+     * @return Tenants
+     */
     public List<Integer> getTenants() {
-        return tenants;
+        return Tenants;
     }
 
-    public void setTenants(List<Integer> tenants) {
-        this.tenants = tenants;
+    /**
+     * Set or change tenants
+     *
+     * @param tenants
+     * @return this
+     */
+    public ReconstructionItem setTenants(List<Integer> tenants) {
+        Tenants = tenants;
+        return this;
     }
 }

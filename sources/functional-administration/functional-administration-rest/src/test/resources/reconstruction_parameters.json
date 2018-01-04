@@ -1,0 +1,10 @@
+[
+  {
+    "collection":"rules",
+    "tenants":[0]
+  },
+  {
+    "collection":"formats",
+    "tenants":[1, 5]
+  }
+]
