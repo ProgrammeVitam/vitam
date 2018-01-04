@@ -30,6 +30,7 @@ import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodStarter;
 import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
@@ -87,6 +88,10 @@ public class MongoRule extends ExternalResource {
 
     public MongoClient getMongoClient() {
         return mongoClient;
+    }
+
+    public MongoDatabase getMongoDatabase() {
+        return mongoClient.getDatabase(clusterName);
     }
 
     public MongoCollection<Document> getMongoCollection(String certificateCollection) {

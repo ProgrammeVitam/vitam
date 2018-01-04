@@ -26,26 +26,29 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 
 public class UnitModel {
 
     @JsonProperty("_id")
     private String id;
 
+    @JsonProperty("_og")
+    private String og;
+
     // replace by DescriptiveMetadataContentType and JSonWrapped.
     @JsonUnwrapped
     private DescriptiveMetadataModel descriptiveMetadataModel;
 
     @JsonProperty("_up")
-    private String up;
+    private String up; // change to array
 
     @JsonProperty("_us")
     private Set<String> us = new HashSet<>();
@@ -71,6 +74,14 @@ public class UnitModel {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public String getOg() {
+        return og;
+    }
+
+    public void setOg(String og) {
+        this.og = og;
     }
 
     public String getUp() {

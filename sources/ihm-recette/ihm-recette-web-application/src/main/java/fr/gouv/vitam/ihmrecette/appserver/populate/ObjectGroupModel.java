@@ -26,40 +26,93 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
-import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
-import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
-import fr.gouv.vitam.common.model.unit.TextByLang;
+import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 
-import static com.google.common.collect.Lists.newArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
-public class DescriptiveMetadataGenerator {
+public class ObjectGroupModel {
 
-    public static DescriptiveMetadataModel generateDescriptiveMetadataModel(Integer index) {
-        DescriptiveMetadataModel content = new DescriptiveMetadataModel();
-        content.setDescriptionLevel(LevelType.ITEM);
+    @JsonProperty("_id")
+    private String id;
 
-        String title = "Title: " + index;
-        content.setTitle(title);
-
-        TextType textType = new TextType();
-        textType.setLang("fr");
-        textType.setValue(title);
-
-        content.setTitles(new TextByLang(newArrayList(textType)));
-
-        content.setDescription("un exemple de description" + index);
-        return content;
-    }
+    @JsonProperty("FileInfo")
+    private FileInfoModel fileInfoModel;
     
-    public static FileInfoModel generateFileInfoModel(Integer index){
-        FileInfoModel fileInfoModel = new FileInfoModel();
-        
-        String fileName = "Filename: " + index;
-        fileInfoModel.setFilename(fileName);
-        
+    @JsonProperty("_qualifiers")
+    private List<QualifiersModel> qualifiers;
+
+    @JsonProperty("_up")
+    private String up; // change to array
+
+    @JsonProperty("_sp")
+    private String sp;
+
+    @JsonProperty("_sps")
+    private Set<String> sps = new HashSet<>();
+
+    @JsonProperty("_tenant")
+    private int tenant;
+
+    /*
+     * getter and setter
+     */
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public FileInfoModel getFileInfoModel() {
         return fileInfoModel;
     }
 
+    public void setFileInfoModel(FileInfoModel fileInfoModel) {
+        this.fileInfoModel = fileInfoModel;
+    }
+
+    public List<QualifiersModel> getQualifiers() {
+        return qualifiers;
+    }
+
+    public void setQualifiers(List<QualifiersModel> qualifiers) {
+        this.qualifiers = qualifiers;
+    }
+
+    public String getUp() {
+        return up;
+    }
+
+    public void setUp(String up) {
+        this.up = up;
+    }
+
+    public String getSp() {
+        return sp;
+    }
+
+    public void setSp(String sp) {
+        this.sp = sp;
+    }
+
+    public Set<String> getSps() {
+        return sps;
+    }
+
+    public void setSps(Set<String> sps) {
+        this.sps = sps;
+    }
+
+    public int getTenant() {
+        return tenant;
+    }
+
+    public void setTenant(int tenant) {
+        this.tenant = tenant;
+    }
 }

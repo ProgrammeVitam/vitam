@@ -26,15 +26,10 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import static com.mongodb.client.model.Filters.eq;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.InsertOneModel;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -46,6 +41,14 @@ import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.xcontent.XContentType;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static com.mongodb.client.model.Filters.eq;
+
 /**
  * insert into metadata in bulk mode
  */
@@ -53,42 +56,27 @@ public class MetadataRepository {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataRepository.class);
 
-    private MongoCollection<Document> mongoCollection;
-
+    private MongoDatabase metadataDb;
     private TransportClient transportClient;
 
-    public MetadataRepository(MongoCollection<Document> mongoCollection, TransportClient transportClient) {
-        this.mongoCollection = mongoCollection;
+    private Map<MetadataType, MongoCollection<Document>> mongoCollections = new HashMap<>();
+    
+    public MetadataRepository(MongoDatabase metadataDb, TransportClient transportClient) {
+        this.metadataDb = metadataDb;
         this.transportClient = transportClient;
+        
+        // init collections for available metadataTypes
+        initCollections();
     }
 
-    public void store(int tenant, List<Document> units) {
-        List<InsertOneModel<Document>> collect =
-            units.stream().map(InsertOneModel::new).collect(Collectors.toList());
-
-        BulkWriteResult bulkWriteResult = mongoCollection.bulkWrite(collect);
-        LOGGER.info("{}", bulkWriteResult.getInsertedCount());
-
-        BulkRequestBuilder bulkRequestBuilder = transportClient.prepareBulk();
-
-        units.forEach(unit -> {
-            String id = (String) unit.remove("_id");
-            String source = unit.toJson();
-            bulkRequestBuilder
-                .add(transportClient.prepareIndex(String.format("%d_unit", tenant), "type_unique", id)
-                    .setSource(source, XContentType.JSON));
-        });
-
-        BulkResponse bulkRes = bulkRequestBuilder.execute().actionGet();
-
-        LOGGER.info("{}", bulkRes.getItems().length);
-        if (bulkRes.hasFailures()) {
-            LOGGER.error("##### Bulk Request failure with error: " + bulkRes.buildFailureMessage());
-        }
-    }
-
+    /**
+     * Find a unit by id
+     * 
+     * @param rootId unitId to fetch
+     * @return UnitModel if unit is found
+     */
     public Optional<UnitModel> findUnitById(String rootId) {
-        FindIterable<Document> models = mongoCollection.find(eq("_id", rootId));
+        FindIterable<Document> models = this.getCollection(MetadataType.UNIT).find(eq("_id", rootId));
 
         Document first = models.first();
         if (first == null) {
@@ -100,6 +88,104 @@ public class MetadataRepository {
         } catch (InvalidParseOperationException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Store unit and got in database and es
+     * 
+     * @param tenant tenant identifier
+     * @param unitGotList list of (unit,got) model to use
+     */
+    public void store(int tenant, List<UnitGotModel> unitGotList) {
+        List<Document> gots = unitGotList.stream().filter(unitGot -> unitGot.getGot() != null).map(unitGot ->
+                getDocument(unitGot.getGot())).collect(Collectors.toList());
+        
+        if(!gots.isEmpty()){
+            storeDocuments(gots, MetadataType.GOT);
+            indexDocuments(gots, MetadataType.GOT, tenant);
+        }
+        
+        List<Document> units = unitGotList.stream().map(unitGot ->
+                getDocument(unitGot.getUnit())).collect(Collectors.toList());
+        storeDocuments(units, MetadataType.UNIT);
+        indexDocuments(units, MetadataType.UNIT, tenant);
+    }
+
+    /**
+     * store a list of documents in db
+     * 
+     * @param documents to store
+     * @param metadataType of the documents to store
+     */
+    private void storeDocuments(List<Document> documents, MetadataType metadataType) {
+        List<InsertOneModel<Document>> collect =
+                documents.stream().map(InsertOneModel::new).collect(Collectors.toList());
+
+        BulkWriteResult bulkWriteResult = this.getCollection(metadataType).bulkWrite(collect);
+        LOGGER.info("{}", bulkWriteResult.getInsertedCount());
+    }
+
+    /**
+     * index a list of documents
+     * 
+     * @param documents to index
+     * @param metadataType of the documents
+     * @param tenant related tenant
+     */
+    private void indexDocuments(List<Document> documents, MetadataType metadataType, int tenant) {
+        BulkRequestBuilder bulkRequestBuilder = transportClient.prepareBulk();
+
+        documents.forEach(document -> {
+            String id = (String) document.remove("_id");
+            String source = document.toJson();
+            bulkRequestBuilder
+                    .add(transportClient.prepareIndex(String.format(metadataType.getIndexName(), tenant), "type_unique", id)
+                            .setSource(source, XContentType.JSON));
+        });
+
+        BulkResponse bulkRes = bulkRequestBuilder.execute().actionGet();
+
+        LOGGER.info("{}", bulkRes.getItems().length);
+        if (bulkRes.hasFailures()) {
+            LOGGER.error("##### Bulk Request failure with error: " + bulkRes.buildFailureMessage());
+        }
+    }
+
+    /**
+     * init collection's list for available metadataTypes
+     */
+    private void initCollections() {
+        for (MetadataType mdt : MetadataType.values()) {
+            MongoCollection<Document> collection = metadataDb.getCollection(mdt.getCollectionName());
+            mongoCollections.put(mdt, collection);
+        }
+    }
+
+    /**
+     * Get a collection
+     * 
+     * @param metadataType to fetch a collection for
+     * @return MongoCollection
+     */
+    private MongoCollection<Document> getCollection(MetadataType metadataType) {
+        return mongoCollections.getOrDefault(metadataType, 
+                metadataDb.getCollection(MetadataType.UNIT.getCollectionName()));
+    }
+
+    /**
+     * Create a document
+     * 
+     * @param obj to convert
+     * @return new document
+     */
+    private Document getDocument(Object obj){
+        String source = null;
+        try {
+            source = JsonHandler.writeAsString(obj);
+        } catch (InvalidParseOperationException e) {
+            throw new RuntimeException(e);
+        }
+        return Document.parse(source);
     }
 
 }

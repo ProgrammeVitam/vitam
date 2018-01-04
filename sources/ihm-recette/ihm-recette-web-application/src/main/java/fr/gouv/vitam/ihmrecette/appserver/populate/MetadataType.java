@@ -26,40 +26,23 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
-import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
-import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
-import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
-import fr.gouv.vitam.common.model.unit.TextByLang;
+public enum MetadataType {
+    UNIT("Unit", "%d_unit"),
+    GOT("ObjectGroup", "%d_objectgroup");
+    
+    private String collectionName;
+    private String indexName;
 
-import static com.google.common.collect.Lists.newArrayList;
+    MetadataType(String collectionName, String indexName) {
+        this.collectionName = collectionName;
+        this.indexName = indexName;
+    }
 
-public class DescriptiveMetadataGenerator {
-
-    public static DescriptiveMetadataModel generateDescriptiveMetadataModel(Integer index) {
-        DescriptiveMetadataModel content = new DescriptiveMetadataModel();
-        content.setDescriptionLevel(LevelType.ITEM);
-
-        String title = "Title: " + index;
-        content.setTitle(title);
-
-        TextType textType = new TextType();
-        textType.setLang("fr");
-        textType.setValue(title);
-
-        content.setTitles(new TextByLang(newArrayList(textType)));
-
-        content.setDescription("un exemple de description" + index);
-        return content;
+    public String getCollectionName() {
+        return collectionName;
     }
     
-    public static FileInfoModel generateFileInfoModel(Integer index){
-        FileInfoModel fileInfoModel = new FileInfoModel();
-        
-        String fileName = "Filename: " + index;
-        fileInfoModel.setFilename(fileName);
-        
-        return fileInfoModel;
+    public String getIndexName() {
+        return indexName;
     }
-
 }

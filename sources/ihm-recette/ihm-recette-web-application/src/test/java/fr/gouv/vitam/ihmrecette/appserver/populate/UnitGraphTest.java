@@ -1,18 +1,19 @@
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.BDDMockito.given;
-
-import java.util.Optional;
-
-import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.BDDMockito.given;
 
 public class UnitGraphTest {
 
@@ -36,15 +37,19 @@ public class UnitGraphTest {
         given(metadataRepository.findUnitById(rootId)).willReturn(Optional.of(rootUnit));
 
         // When
-        UnitModel unitModel = unitGraph.createGraph(new DescriptiveMetadataModel(), rootId, tenantId, originatingAgency);
-
+        UnitGotModel unitGotModel = unitGraph.createGraph(0, rootId, tenantId, originatingAgency, false);
+        UnitModel unitModel = unitGotModel.getUnit();
+        
         // Then
+        assertNotNull(unitModel);
         assertThat(unitModel.getId()).isNotNull();
         assertThat(unitModel.getTenant()).isEqualTo(1);
         assertThat(unitModel.getSp()).isEqualTo(originatingAgency);
         assertThat(unitModel.getSps()).contains(originatingAgency, "saphir");
         assertThat(unitModel.getUp()).isEqualTo(rootId);
         assertThat(unitModel.getUs()).contains(rootId);
+        // and 
+        assertNull(unitGotModel.getGot());
     }
 
     @Test
@@ -60,15 +65,24 @@ public class UnitGraphTest {
         given(metadataRepository.findUnitById(rootId)).willReturn(Optional.of(rootUnit));
 
         // When
-        UnitModel unitModel = unitGraph.createGraph(new DescriptiveMetadataModel(), rootId, tenantId, originatingAgency);
-
+        UnitGotModel unitGotModel = unitGraph.createGraph(0, rootId, tenantId, originatingAgency, true);
+        UnitModel unitModel = unitGotModel.getUnit();
+        ObjectGroupModel gotModel = unitGotModel.getGot();
+        
         // Then
+        assertNotNull(unitModel);
         assertThat(unitModel.getTenant()).isEqualTo(1);
         assertThat(unitModel.getSp()).isEqualTo(originatingAgency);
         assertThat(unitModel.getSps()).contains(originatingAgency);
         assertThat(unitModel.getUp()).isEqualTo(rootId);
         assertThat(unitModel.getUs()).contains(rootId, "123");
         assertThat(unitModel.getUds()).containsEntry(rootId, 1).containsEntry("123", 2);
+        // and
+        assertNotNull(gotModel);
+        assertThat(gotModel.getTenant()).isEqualTo(1);
+        assertThat(gotModel.getSp()).isEqualTo(originatingAgency);
+        assertThat(gotModel.getSps()).contains(originatingAgency);
+        assertThat(gotModel.getUp()).isEqualTo(unitModel.getId());
     }
 
     @Test
@@ -80,7 +94,7 @@ public class UnitGraphTest {
         given(metadataRepository.findUnitById(rootId)).willReturn(Optional.empty());
 
         // When / Then
-        assertThatThrownBy(() -> unitGraph.createGraph(new DescriptiveMetadataModel(), rootId, tenantId, originatingAgency))
+        assertThatThrownBy(() -> unitGraph.createGraph(0, rootId, tenantId, originatingAgency, false))
             .hasMessageContaining("rootId not present in database: 1234");
     }
 
