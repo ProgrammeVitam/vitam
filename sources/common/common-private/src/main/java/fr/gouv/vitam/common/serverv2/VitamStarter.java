@@ -356,7 +356,7 @@ public class VitamStarter {
         Class<? extends Application> businessApplication,
         Class<? extends Application> adminApplication,
         List<ServletContextListener> customListeners) {
-            
+
         VitamStarter vitamStarter =
             new VitamStarter(configurationType, configurationFile, 
                 businessApplication, adminApplication, customListeners);
@@ -391,15 +391,6 @@ public class VitamStarter {
         ContextHandlerCollection applicationHandlers = new ContextHandlerCollection();
 
         final HandlerList handlerList = new HandlerList();
-
-        // Static Content Ihm V1
-        final ResourceHandler staticContentHandler = new ResourceHandler();
-        staticContentHandler.setDirectoriesListed(true);
-        staticContentHandler.setWelcomeFiles(new String[] {"index.html"});
-        staticContentHandler.setResourceBase(configuration.getStaticContent());
-        final ContextHandler staticContext = new ContextHandler(configuration.getBaseUri());
-        staticContext.setHandler(staticContentHandler);
-        handlerList.addHandler(staticContext);
 
        // Static Content Ihm V2
         if (configuration.getBaseUriV2() != null) {
