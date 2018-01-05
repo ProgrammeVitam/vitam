@@ -145,8 +145,8 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                     sequenceRepository.save(sequenceCollection);
 
                     // saving the backup collection in mongoDB and elasticSearch.
-                    mongoRepository.save(collectionBackup.get().getCollections());
-                    elasticsearchRepository.save(collectionBackup.get().getCollections());
+                    mongoRepository.save(collectionBackup.get().getDocuments());
+                    elasticsearchRepository.save(collectionBackup.get().getDocuments());
 
                     // log the recontruction of Vitam collection.
                     LOGGER.debug(String

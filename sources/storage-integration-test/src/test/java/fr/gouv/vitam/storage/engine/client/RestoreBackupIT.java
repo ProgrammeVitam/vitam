@@ -256,7 +256,7 @@ public class RestoreBackupIT {
             .readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES);
 
         Assert.assertTrue(collectionBackup.isPresent());
-        Assert.assertEquals(52, collectionBackup.get().getCollections().size());
+        Assert.assertEquals(52, collectionBackup.get().getDocuments().size());
         Assert.assertEquals(36543, collectionBackup.get().getSequence().getCounter().intValue());
     }
 

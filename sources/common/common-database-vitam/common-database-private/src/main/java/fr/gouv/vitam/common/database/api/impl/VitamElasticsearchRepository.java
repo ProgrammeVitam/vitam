@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.api.impl;
 
+import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
 import java.util.List;
@@ -64,6 +65,7 @@ import org.elasticsearch.search.sort.SortOrder;
  */
 public class VitamElasticsearchRepository implements VitamRepository {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamElasticsearchRepository.class);
+    public static final String IDENTIFIER = "Identifier";
 
     private Client client;
     private String indexName;
@@ -242,4 +244,30 @@ public class VitamElasticsearchRepository implements VitamRepository {
         }
     }
 
+
+    @Override
+    public Optional<Document> findByIdentifierAndTenant(String identifier, Integer tenant)
+        throws DatabaseException {
+        ParametersChecker.checkParameter("All params are required", tenant);
+
+        String index = indexName;
+        if (indexByTenant) {
+            index = index + "_" + tenant;
+        }
+        QueryBuilder qb = boolQuery().must(termQuery(IDENTIFIER, identifier))
+            .must(termQuery(VitamDocument.TENANT_ID, tenant));
+
+        SearchResponse search = client.prepareSearch(index)
+            .setQuery(qb).get();
+        for (SearchHit hit : search.getHits().getHits()) {
+            try {
+                return Optional.of(JsonHandler.getFromString(hit.getSourceAsString(), Document.class));
+            } catch (InvalidParseOperationException e) {
+                throw new DatabaseException(e);
+            }
+        }
+
+        return Optional.empty();
+
+    }
 }

@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -67,7 +68,8 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
     private static final String EXTENSION_JSON = ".json";
 
     @Override
-    public Optional<String> getLatestSavedFileName(String strategy, DataCategory type, FunctionalAdminCollections collection) {
+    public Optional<String> getLatestSavedFileName(String strategy, DataCategory type,
+        FunctionalAdminCollections collection) {
         try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
             // listing the content of the storage -> list of backup files.
@@ -77,20 +79,21 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
             Iterable<JsonNode> iterable = () -> listing;
             Stream<JsonNode> stream = StreamSupport.stream(iterable.spliterator(), false);
             // regex -> filter on json and the sequence's version.
-            String regex = "\\d+_+\\w+_+(\\d+)?" + EXTENSION_JSON + "$";
+            String regex = "\\d+_+(\\w+)_+(\\d+)?" + EXTENSION_JSON + "$";
             Pattern pattern = Pattern.compile(regex);
 
             Optional<Integer> result = stream.map(n -> n.get(OBJECT_ID_TAG).asText())
-                    .map(pattern::matcher)
-                    .filter(Matcher::matches)
-                    .map(matcher -> Integer.valueOf(matcher.group(1)))
-                    .max(Comparator.naturalOrder());
+                .map(pattern::matcher)
+                .filter(Matcher::matches)
+                .filter(matcher -> collection.getName().equals(matcher.group(1)))
+                .map(matcher -> Integer.valueOf(matcher.group(2)))
+                .max(Comparator.naturalOrder());
 
             // get the last version of the json backup files.
             if (result.isPresent()) {
-                // FIXME: 19/12/17 use method definied in US-3895 when merged
-                return Optional.of(String.format("%d_%s_%s", ParameterHelper.getTenantParameter(),
-                        collection.toString(), result.get() + EXTENSION_JSON));
+                return Optional.of(
+                    FunctionalBackupService
+                        .getBackupFileName(collection, ParameterHelper.getTenantParameter(), result.get()));
             }
         } catch (StorageServerClientException e) {
             LOGGER.error("ERROR: Exception has been thrown when using storage service:", e);
@@ -107,9 +110,11 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
 
         if (lastBackupVersion.isPresent()) {
             try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-                Response response = storageClient.getContainerAsync(strategy, lastBackupVersion.get(), StorageCollectionType.BACKUP);
+                Response response =
+                    storageClient.getContainerAsync(strategy, lastBackupVersion.get(), StorageCollectionType.BACKUP);
                 if (null != response && response.getStatus() == Response.Status.OK.getStatusCode()) {
-                    final InputStream inputStream = storageClient.getContainerAsync(strategy, lastBackupVersion.get(), StorageCollectionType.BACKUP)
+                    final InputStream inputStream =
+                        storageClient.getContainerAsync(strategy, lastBackupVersion.get(), StorageCollectionType.BACKUP)
                             .readEntity(InputStream.class);
 
                     // get backup collections to reconstruct.

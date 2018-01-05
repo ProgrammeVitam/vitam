@@ -64,6 +64,7 @@ public interface VitamRepository {
 
     /**
      * Remove collection by name and tenant
+     *
      * @param name
      * @param tenant
      * @throws DatabaseException
@@ -72,6 +73,7 @@ public interface VitamRepository {
 
     /**
      * Remove by tenant
+     *
      * @param tenant
      * @return
      * @throws DatabaseException
@@ -81,10 +83,20 @@ public interface VitamRepository {
 
     /**
      * Get vitam document by id
+     *
      * @param id
      * @param tenant
      * @return Optional
      * @throws DatabaseException
      */
     Optional<Document> getByID(String id, Integer tenant) throws DatabaseException;
+
+
+    /**
+     * @param identifier
+     * @param tenant
+     * @return
+     * @throws DatabaseException
+     */
+    Optional<Document> findByIdentifierAndTenant(String identifier, Integer tenant) throws DatabaseException;
 }

@@ -17,10 +17,11 @@
  */
 package fr.gouv.vitam.functional.administration.common;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.bson.Document;
-
-import java.util.List;
 
 /**
  * Description of collectionBackup model. <br/>
@@ -30,8 +31,8 @@ public class CollectionBackupModel {
     /**
      * Collections list.
      */
-    @JsonProperty("collections")
-    private List<Document> collections;
+    @JsonProperty("collection")
+    private List<Document> documents;
 
     /**
      * Sequence.
@@ -39,13 +40,15 @@ public class CollectionBackupModel {
     @JsonProperty("sequence")
     private VitamSequence sequence;
 
-    public List<Document> getCollections() {
-        return collections;
+    public List<Document> getDocuments() {
+        if (null == documents) {
+            return new ArrayList<>();
+        }
+        return documents;
     }
 
-    public void setCollections(List<Document> collections) {
-
-        this.collections = collections;
+    public void setDocuments(List<Document> documents) {
+        this.documents = documents;
     }
 
     public VitamSequence getSequence() {

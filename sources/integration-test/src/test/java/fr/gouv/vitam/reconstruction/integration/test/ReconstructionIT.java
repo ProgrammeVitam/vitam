@@ -28,20 +28,20 @@ package fr.gouv.vitam.reconstruction.integration.test;
 
 import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
 import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
+import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.VitamRepositoryFactory;
 import fr.gouv.vitam.functional.administration.common.VitamRepositoryProvider;
@@ -69,7 +70,6 @@ import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImp
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
-import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
@@ -78,6 +78,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.util.Files;
+import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -107,8 +108,16 @@ public class ReconstructionIT {
 
     private static final String OFFER_FOLDER = "offer";
     private static final String BACKUP_COPY_FOLDER = "integration-reconstruction/backup";
-    private static final int TENANT_ID = 0;
     private static final String STRATEGY_ID = "default";
+    public static final int TENANT_0 = 0;
+    public static final String AGENCY_IDENTIFIER_1 = "FR_ORG_AGEN";
+    public static final String AGENCY_IDENTIFIER_2 = "FRAN_NP_005568";
+    public static final String INTEGRATION_RECONSTRUCTION_DATA_AGENCIES_1_CSV =
+        "integration-reconstruction/data/agencies_1.csv";
+
+    public static final String INTEGRATION_RECONSTRUCTION_DATA_AGENCIES_2_CSV =
+        "integration-reconstruction/data/agencies_2.csv";
+
     private static String CONTAINER = "0_rules";
     private static String containerName = "";
 
@@ -145,13 +154,13 @@ public class ReconstructionIT {
     @ClassRule
     public static MongoRule mongoRule =
         new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "vitam-test",
-            FunctionalAdminCollections.SECURITY_PROFILE.getName(), FunctionalAdminCollections.RULES.getName());
+            FunctionalAdminCollections.SECURITY_PROFILE.getName(), FunctionalAdminCollections.AGENCIES.getName());
 
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =
         new ElasticsearchRule(Files.newTemporaryFolder(), FunctionalAdminCollections.SECURITY_PROFILE.getName(),
-            FunctionalAdminCollections.RULES.getName());
+            FunctionalAdminCollections.AGENCIES.getName());
 
 
     @Rule
@@ -171,7 +180,7 @@ public class ReconstructionIT {
             }
         }
 
-        containerName = String.format("%s_%s", TENANT_ID, StorageCollectionType.BACKUP.toString().toLowerCase());
+        containerName = String.format("%s_%s", TENANT_0, StorageCollectionType.BACKUP.toString().toLowerCase());
         recoverBuckupService = new RestoreBackupServiceImpl();
 
         // launch functional Admin server
@@ -289,8 +298,8 @@ public class ReconstructionIT {
 
     @Before
     public void setup() throws Exception {
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID));
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_0));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
 
         // create a container on the Workspace
         workspaceClient.createContainer(containerName);
@@ -307,67 +316,177 @@ public class ReconstructionIT {
         elasticsearchRule.handleAfter();
     }
 
+    /**
+     * Test reconstruction of agencies
+     * For tenant 0
+     * 1. Import one agency using import service
+     * 2. Check that imported
+     * 3. purge mongo and es
+     * 4. Check that purged
+     * 5. reconstruct
+     * 6. Check that document reconstructed
+     * 7. check that initial document is equal to the reconstructed one
+     * 8. import agencies containing the first one + an other agency
+     * 9. Check that imported two documents
+     * 10. purge mongo and es
+     * 11. Check that purged
+     * 12. reconstruct
+     * 13. Check that two documents are reconstructed
+     * 14. check that initial documents are equal to the reconstructed documents
+     *
+     *
+     * @throws Exception
+     */
     @Test
     @RunWithCustomExecutor
-    public void testReconstructionOk() throws Exception {
+    public void testReconstructionAgenciesOk() throws Exception {
 
-        // create and save some backup files for reconstruction.
-        prepareBackupStorage();
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+
+        // Import 1 document agencies
+
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            client.importAgenciesFile(PropertiesUtils.getResourceAsStream(
+                INTEGRATION_RECONSTRUCTION_DATA_AGENCIES_1_CSV), "agencies_1.csv");
+        }
+        final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.getInstance();
+
+        final VitamMongoRepository agenciesMongo =
+            vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.AGENCIES);
+
+        final VitamElasticsearchRepository agenciesEs =
+            vitamRepository.getVitamESRepository(FunctionalAdminCollections.AGENCIES);
+
+        Optional<Document> agencyDoc = agenciesMongo.findByIdentifierAndTenant(AGENCY_IDENTIFIER_1, TENANT_0);
+        assertThat(agencyDoc).isPresent();
+        Document inMogo11 = agencyDoc.get();
+        assertThat(inMogo11.getString("Identifier")).isEqualTo(AGENCY_IDENTIFIER_1);
+        assertThat(inMogo11.getString("Name")).isEqualTo("agency 1");
+
+
+        agencyDoc = agenciesEs.findByIdentifierAndTenant(AGENCY_IDENTIFIER_1, TENANT_0);
+        assertThat(agencyDoc).isPresent();
+        Document inEs11 = agencyDoc.get();
+        assertThat(inEs11.getString("Identifier")).isEqualTo(AGENCY_IDENTIFIER_1);
+        assertThat(inEs11.getString("Name")).isEqualTo("agency 1");
+
+        agenciesMongo.purge(TENANT_0);
+        agenciesEs.purge(TENANT_0);
+
+        agencyDoc = agenciesMongo.findByIdentifierAndTenant(AGENCY_IDENTIFIER_1, TENANT_0);
+        assertThat(agencyDoc).isEmpty();
+
+        agencyDoc = agenciesEs.findByIdentifierAndTenant(AGENCY_IDENTIFIER_1, TENANT_0);
+        assertThat(agencyDoc).isEmpty();
 
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
         final AdminManagementConfiguration configuration =
             PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
 
-        final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.getInstance();
 
         ReconstructionServiceImpl reconstructionService =
             new ReconstructionServiceImpl(configuration, vitamRepository,
                 new RestoreBackupServiceImpl());
 
-        reconstructionService.reconstruct(FunctionalAdminCollections.RULES, TENANT_ID);
+        reconstructionService.reconstruct(FunctionalAdminCollections.AGENCIES, TENANT_0);
+
+        agencyDoc = agenciesMongo.findByIdentifierAndTenant(AGENCY_IDENTIFIER_1, TENANT_0);
+        assertThat(agencyDoc).isPresent();
+        Document inMogo11Reconstructed = agencyDoc.get();
+        assertThat(inMogo11Reconstructed.getString("Identifier")).isEqualTo(AGENCY_IDENTIFIER_1);
+        assertThat(inMogo11Reconstructed.getString("Name")).isEqualTo("agency 1");
+
+        agencyDoc = agenciesEs.findByIdentifierAndTenant(AGENCY_IDENTIFIER_1, TENANT_0);
+        assertThat(agencyDoc).isPresent();
+        Document inEs11Reconstructed = agencyDoc.get();
+        assertThat(inEs11Reconstructed.getString("Identifier")).isEqualTo(AGENCY_IDENTIFIER_1);
+        assertThat(inEs11Reconstructed.getString("Name")).isEqualTo("agency 1");
 
 
-    }
+        assertThat(inMogo11).isEqualTo(inMogo11Reconstructed);
+        assertThat(inEs11).isEqualTo(inEs11Reconstructed);
 
-    /**
-     * Creation and storage of backup files copies.
-     *
-     * @throws Exception
-     */
-    private void prepareBackupStorage() throws Exception {
+        // Import 2 documents agencies
 
-        // create and store different backup copies from the backup folder.
-        File backupFolder = PropertiesUtils.findFile(BACKUP_COPY_FOLDER);
-        LOGGER.debug(String.format("Start storage backup copies -> Folder : %s", backupFolder));
-        if (backupFolder.exists()) {
-            LOGGER.debug(String.format("Storage of %s backup copies.", backupFolder.list().length));
-            Arrays.stream(backupFolder.listFiles()).forEach(f -> storeBackupCopies(f));
+        // Create and save some backup files for reconstruction.
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            client.importAgenciesFile(PropertiesUtils.getResourceAsStream(
+                INTEGRATION_RECONSTRUCTION_DATA_AGENCIES_2_CSV), "agencies_2.csv");
         }
+
+
+        agencyDoc = agenciesMongo.findByIdentifierAndTenant(AGENCY_IDENTIFIER_1, TENANT_0);
+        assertThat(agencyDoc).isPresent();
+        Document inMogo12 = agencyDoc.get();
+        assertThat(inMogo12.getString("Identifier")).isEqualTo(AGENCY_IDENTIFIER_1);
+        assertThat(inMogo12.getString("Name")).isEqualTo("agency 1");
+
+        agencyDoc = agenciesEs.findByIdentifierAndTenant(AGENCY_IDENTIFIER_1, TENANT_0);
+        assertThat(agencyDoc).isPresent();
+        Document inEs12 = agencyDoc.get();
+        assertThat(inEs12.getString("Identifier")).isEqualTo(AGENCY_IDENTIFIER_1);
+        assertThat(inEs12.getString("Name")).isEqualTo("agency 1");
+
+        agencyDoc = agenciesMongo.findByIdentifierAndTenant(AGENCY_IDENTIFIER_2, TENANT_0);
+        assertThat(agencyDoc).isPresent();
+        Document inMogo22 = agencyDoc.get();
+        assertThat(inMogo22.getString("Identifier")).isEqualTo(AGENCY_IDENTIFIER_2);
+        assertThat(inMogo22.getString("Name")).isEqualTo("agency 2");
+
+        agencyDoc = agenciesEs.findByIdentifierAndTenant(AGENCY_IDENTIFIER_2, TENANT_0);
+        assertThat(agencyDoc).isPresent();
+        Document inEs22 = agencyDoc.get();
+        assertThat(inEs22.getString("Identifier")).isEqualTo(AGENCY_IDENTIFIER_2);
+        assertThat(inEs22.getString("Name")).isEqualTo("agency 2");
+
+        agenciesMongo.purge(TENANT_0);
+        agenciesEs.purge(TENANT_0);
+
+        agencyDoc = agenciesMongo.findByIdentifierAndTenant(AGENCY_IDENTIFIER_1, TENANT_0);
+        assertThat(agencyDoc).isEmpty();
+
+        agencyDoc = agenciesEs.findByIdentifierAndTenant(AGENCY_IDENTIFIER_1, TENANT_0);
+        assertThat(agencyDoc).isEmpty();
+
+        agencyDoc = agenciesMongo.findByIdentifierAndTenant(AGENCY_IDENTIFIER_2, TENANT_0);
+        assertThat(agencyDoc).isEmpty();
+
+        agencyDoc = agenciesEs.findByIdentifierAndTenant(AGENCY_IDENTIFIER_2, TENANT_0);
+        assertThat(agencyDoc).isEmpty();
+
+
+        reconstructionService.reconstruct(FunctionalAdminCollections.AGENCIES, TENANT_0);
+
+        agencyDoc = agenciesMongo.findByIdentifierAndTenant(AGENCY_IDENTIFIER_1, TENANT_0);
+        assertThat(agencyDoc).isPresent();
+        Document inMogo12Reconstructed = agencyDoc.get();
+        assertThat(inMogo12Reconstructed.getString("Identifier")).isEqualTo(AGENCY_IDENTIFIER_1);
+        assertThat(inMogo12Reconstructed.getString("Name")).isEqualTo("agency 1");
+
+        agencyDoc = agenciesEs.findByIdentifierAndTenant(AGENCY_IDENTIFIER_1, TENANT_0);
+        assertThat(agencyDoc).isPresent();
+        Document inEs12Reconstructed = agencyDoc.get();
+        assertThat(inEs12Reconstructed.getString("Identifier")).isEqualTo(AGENCY_IDENTIFIER_1);
+        assertThat(inEs12Reconstructed.getString("Name")).isEqualTo("agency 1");
+
+        agencyDoc = agenciesMongo.findByIdentifierAndTenant(AGENCY_IDENTIFIER_2, TENANT_0);
+        assertThat(agencyDoc).isPresent();
+        Document inMogo22Reconstructed = agencyDoc.get();
+        assertThat(inMogo22Reconstructed.getString("Identifier")).isEqualTo(AGENCY_IDENTIFIER_2);
+        assertThat(inMogo22Reconstructed.getString("Name")).isEqualTo("agency 2");
+
+        agencyDoc = agenciesEs.findByIdentifierAndTenant(AGENCY_IDENTIFIER_2, TENANT_0);
+        assertThat(agencyDoc).isPresent();
+        Document inEs22Reconstructed = agencyDoc.get();
+        assertThat(inEs22Reconstructed.getString("Identifier")).isEqualTo(AGENCY_IDENTIFIER_2);
+        assertThat(inEs22Reconstructed.getString("Name")).isEqualTo("agency 2");
+
+        assertThat(inMogo12).isEqualTo(inMogo12Reconstructed);
+        assertThat(inEs12).isEqualTo(inEs12Reconstructed);
+        assertThat(inMogo22).isEqualTo(inMogo22Reconstructed);
+        assertThat(inEs22).isEqualTo(inEs22Reconstructed);
     }
 
-    /**
-     * Save backup copies of files.
-     *
-     * @param file
-     */
-    private void storeBackupCopies(final File file) {
-        final String extension = "json";
-        try (InputStream in = new BufferedInputStream(new FileInputStream(file));) {
-            final String uri = file.getName();
-
-            // add the object on the container on the Workspace
-            workspaceClient.putObject(containerName, uri, in);
-
-            // store on the storage
-            final ObjectDescription description = new ObjectDescription();
-            description.setWorkspaceContainerGUID(containerName);
-            description.setWorkspaceObjectURI(uri);
-            storageClient.storeFileFromWorkspace(STRATEGY_ID, StorageCollectionType.BACKUP, uri, description);
-
-        } catch (Exception e) {
-            LOGGER.error("ERROR: Exception has been thrown when storing the backup copy.", e);
-        }
-    }
 
     /**
      * Clean offers content.

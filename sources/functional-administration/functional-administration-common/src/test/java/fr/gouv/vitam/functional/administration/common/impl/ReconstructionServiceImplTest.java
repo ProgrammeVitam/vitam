@@ -167,11 +167,11 @@ public class ReconstructionServiceImplTest {
             .readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES);
 
         verify(multiTenantMongoRepository, times(1))
-            .save(backupCollection.get().getCollections());
+            .save(backupCollection.get().getDocuments());
         verify(multiTenantMongoRepository, times(1))
             .save(backupCollection.get().getSequence());
         verify(mutliTenantElasticsearchRepository, times(1))
-            .save(backupCollection.get().getCollections());
+            .save(backupCollection.get().getDocuments());
     }
 
 
@@ -203,11 +203,11 @@ public class ReconstructionServiceImplTest {
             .readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.FORMATS);
 
         verify(crossTenantMongoRepository, times(1))
-            .save(backupCollection.get().getCollections());
+            .save(backupCollection.get().getDocuments());
         verify(crossTenantMongoRepository, times(1))
             .save(backupCollection.get().getSequence());
         verify(crossTenantElasticsearchRepository, times(1))
-            .save(backupCollection.get().getCollections());
+            .save(backupCollection.get().getDocuments());
     }
 
     @Test
@@ -232,11 +232,11 @@ public class ReconstructionServiceImplTest {
 
         // No call of the saving services when no backup copy found..
         verify(multiTenantMongoRepository, never())
-            .save(getBackupCollection(TENANT_ID_0).get().getCollections());
+            .save(getBackupCollection(TENANT_ID_0).get().getDocuments());
         verify(multiTenantMongoRepository, never())
             .save(getBackupCollection(TENANT_ID_0).get().getSequence());
         verify(mutliTenantElasticsearchRepository, never())
-            .save(getBackupCollection(TENANT_ID_0).get().getCollections());
+            .save(getBackupCollection(TENANT_ID_0).get().getDocuments());
     }
 
     @Test
@@ -365,7 +365,7 @@ public class ReconstructionServiceImplTest {
 
         // create collection backup.
         CollectionBackupModel backupCollection = new CollectionBackupModel();
-        backupCollection.setCollections(documents);
+        backupCollection.setDocuments(documents);
         backupCollection.setSequence(vitamSequence);
 
         return Optional.of(backupCollection);

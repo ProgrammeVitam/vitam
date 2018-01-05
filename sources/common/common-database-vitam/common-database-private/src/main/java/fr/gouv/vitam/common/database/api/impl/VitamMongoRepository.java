@@ -110,9 +110,12 @@ public class VitamMongoRepository implements VitamRepository {
         DeleteResult delete = collection.deleteOne(query);
         long count = delete.getDeletedCount();
         if (count == 0) {
-            LOGGER.error(String.format("Documents with name %s and tenant %s are not deleted", name, tenant));
-            throw new DatabaseException(
-                String.format("Documents with name %s and tenant %s are not deleted", name, tenant));
+            LOGGER.error(String
+                .format("Error while removeByNameAndTenant> identifier : %s and tenant: %s",
+                    name, tenant));
+            throw new DatabaseException(String
+                .format("Error while removeByNameAndTenant> identifier : %s and tenant: %s",
+                    name, tenant));
         }
 
     }
@@ -142,8 +145,33 @@ public class VitamMongoRepository implements VitamRepository {
                 return Optional.empty();
             }
         } catch (Exception e) {
-            LOGGER.error("Error while gessting document by id :", e);
-            throw new DatabaseException(String.format("DatabaseException while calling fetch by id : %s", e));
+            LOGGER.error(String.format("DatabaseException while getting document by id : %s", id), e);
+            throw new DatabaseException(String.format("DatabaseException while getting document by id : %s", id), e);
+        }
+    }
+
+
+    @Override
+    public Optional<Document> findByIdentifierAndTenant(String identifier, Integer tenant)
+        throws DatabaseException {
+        ParametersChecker.checkParameter("All params are required", identifier, tenant);
+
+
+        Bson query = and(eq("Identifier", identifier), eq(VitamDocument.TENANT_ID, tenant));
+        try {
+            FindIterable<Document> result = collection.find(query);
+            if (result.iterator().hasNext()) {
+                return Optional.of(result.first());
+            } else {
+                return Optional.empty();
+            }
+        } catch (Exception e) {
+            LOGGER.error(String
+                .format("Error while findByIdentifierAndTenant > identifier : %s and tenant: %s",
+                    identifier, tenant), e);
+            throw new DatabaseException(String
+                .format("Error while findByIdentifierAndTenant > identifier : %s and tenant: %s",
+                    identifier, tenant), e);
         }
     }
 }
