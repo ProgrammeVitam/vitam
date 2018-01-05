@@ -100,6 +100,7 @@ vitam:
         port_admin: 28002
         baseurl: "/ihm-demo"
         static_content_v2: "{{ vitam_defaults.folder.root_path }}/app/ihm-demo/v2"
+        baseuri: "ihm-demo"
         baseuri_v2: "ihm-demo-v2"
         https_enabled: false
         secret_platform: "false"
@@ -185,7 +186,7 @@ vitam:
         https_enabled: false
         secret_platform: "true"
 
-# ingestexternal: 
+# ingestexternal:
 # upload_final_action can be set to three different values (lower or upper case does not matter)
 #   MOVE : After upload, the local file will be moved to either success_dir or fail_dir depending on the status of the ingest towards ingest-internal
 #   DELETE : After upload, the local file will be deleted if the upload succeeded
