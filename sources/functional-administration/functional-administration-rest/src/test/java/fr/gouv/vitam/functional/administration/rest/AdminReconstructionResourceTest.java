@@ -213,7 +213,7 @@ public class AdminReconstructionResourceTest {
     }
 
     @Test
-    @Ignore
+    @Ignore("integration tests on the collections and tenants are done on the service level.")
     @RunWithCustomExecutor
     public void testReconstructionOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);

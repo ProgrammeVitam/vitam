@@ -120,13 +120,9 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                 break;
         }
         try {
-            // purge collection content
             for (Integer tenant : tenants) {
                 // This is a hak, we must set manually the tenant is the VitamSession (used and transmitted in the headers)
                 VitamThreadUtils.getVitamSession().setTenantId(tenant);
-
-                mongoRepository.purge(tenant);
-                elasticsearchRepository.purge(tenant);
 
                 // get the last version of the backup copies.
                 Optional<CollectionBackupModel> collectionBackup =
@@ -135,6 +131,10 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                 // reconstruct Vitam collection from the backup copy.
                 if (collectionBackup.isPresent()) {
                     LOGGER.debug(String.format("Last backup copy version : %s", collectionBackup));
+
+                    // purge collection content
+                    mongoRepository.purge(tenant);
+                    elasticsearchRepository.purge(tenant);
 
                     // saving the backup sequence in mongoDB
                     VitamSequence sequenceCollection =

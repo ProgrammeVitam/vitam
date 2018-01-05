@@ -212,11 +212,14 @@ public class ReconstructionServiceImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void reconstructCollectionByTenantKO_NoBackupCopy() throws Exception {
+    public void reconstructCollectionByTenantOK_NoBackupCopy() throws Exception {
 
-        // mock the recoverBackupCopy service.
+        Optional<CollectionBackupModel> backupCollection = getBackupCollection(TENANT_ID_1);
         when(recoverBuckupService.readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES))
-            .thenReturn(Optional.empty());
+            .thenReturn(backupCollection);
+
+        when(repositoryFactory.getVitamMongoRepository(FunctionalAdminCollections.VITAM_SEQUENCE))
+            .thenReturn(multiTenantMongoRepository);
 
         // call the reconstruction service.
         LOGGER.debug(String.format("Reconstruction of Vitam collection by tenant %s.", TENANT_ID_0));
@@ -244,6 +247,11 @@ public class ReconstructionServiceImplTest {
         when(mutliTenantElasticsearchRepository.purge(TENANT_ID_0))
             .thenThrow(new DatabaseException(ES_BULK_EXCEPTION_MESSAGE));
 
+        // mock the recoverBackupCopy service.
+        Optional<CollectionBackupModel> backupCollection = getBackupCollection(TENANT_ID_1);
+        when(recoverBuckupService.readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES))
+            .thenReturn(backupCollection);
+
         // verify type and message of the thrown elasticSearch Exception.
         assertThatThrownBy(() -> reconstructionService.reconstruct(FunctionalAdminCollections.RULES, TENANT_ID_0))
             .isInstanceOf(DatabaseException.class)
@@ -253,6 +261,11 @@ public class ReconstructionServiceImplTest {
     @Test
     @RunWithCustomExecutor
     public void reconstructCollectionByTenantMongoKO() throws Exception {
+
+        // mock the recoverBackupCopy service.
+        Optional<CollectionBackupModel> backupCollection = getBackupCollection(TENANT_ID_1);
+        when(recoverBuckupService.readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES))
+            .thenReturn(backupCollection);
 
         // mock thrown database Exception by mongoDB.
         when(multiTenantMongoRepository.purge(TENANT_ID_0))

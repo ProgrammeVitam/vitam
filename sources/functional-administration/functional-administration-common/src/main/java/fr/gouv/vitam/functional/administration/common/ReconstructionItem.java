@@ -27,16 +27,16 @@ import java.util.List;
 public class ReconstructionItem {
 
     /**
-     * Collection name.
+     * collection name.
      */
     @JsonProperty("collection")
-    private String Collection;
+    private String collection;
 
     /**
      * List of tenants.
      */
     @JsonProperty("tenants")
-    private List<Integer> Tenants;
+    private List<Integer> tenants;
 
     /**
      * Constructor.
@@ -46,32 +46,32 @@ public class ReconstructionItem {
     }
 
     /**
-     * Get the Collection of the profile
+     * Get the collection of the profile
      *
-     * @return Collection as String
+     * @return collection as String
      */
     public String getCollection() {
-        return Collection;
+        return collection;
     }
 
     /**
-     * Set the Collection of the profile This value must be unique by tenant
+     * Set the collection of the profile This value must be unique by tenant
      *
      * @param collection as String
      * @return this
      */
     public ReconstructionItem setCollection(String collection) {
-        this.Collection = collection;
+        this.collection = collection;
         return this;
     }
 
     /**
-     * Get Tenants
+     * Get tenants
      *
-     * @return Tenants
+     * @return tenants
      */
     public List<Integer> getTenants() {
-        return Tenants;
+        return tenants;
     }
 
     /**
@@ -81,7 +81,7 @@ public class ReconstructionItem {
      * @return this
      */
     public ReconstructionItem setTenants(List<Integer> tenants) {
-        Tenants = tenants;
+        this.tenants = tenants;
         return this;
     }
 }
