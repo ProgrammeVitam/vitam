@@ -444,17 +444,21 @@ public class UserInterfaceTransactionManager {
     }
 
     public static VitamContext getVitamContext(HttpServletRequest request) {
-        return new VitamContext(getTenantId(request))
-            .setAccessContract(getContractId(request))
-            .setApplicationSessionId(getAppSessionId())
-            .setPersonalCertificate(getPersonalCertificate(request));
+        return getVitamContext(getTenantId(request), getContractId(request), request);
     }
 
     public static VitamContext getVitamContext(Integer tenantId, String contractId, HttpServletRequest request) {
-        return new VitamContext(tenantId)
-            .setAccessContract(contractId)
-            .setApplicationSessionId(getAppSessionId())
-            .setPersonalCertificate(getPersonalCertificate(request));
+        String personalCert  = getPersonalCertificate(request);
+        if (personalCert != null) {
+            return new VitamContext(tenantId)
+                .setAccessContract(contractId)
+                .setApplicationSessionId(getAppSessionId())
+                .setPersonalCertificate(personalCert);
+        } else {
+            return new VitamContext(tenantId)
+                .setAccessContract(contractId)
+                .setApplicationSessionId(getAppSessionId());
+        }
     }
 
     private static String getPersonalCertificate(HttpServletRequest request) {

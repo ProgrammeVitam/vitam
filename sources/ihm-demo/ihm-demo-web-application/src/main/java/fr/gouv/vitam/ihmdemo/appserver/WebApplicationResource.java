@@ -485,6 +485,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         String chunkSizeTotal = request.getHeader(X_SIZE_TOTAL);
         String contextId = request.getHeader(GlobalDataRest.X_CONTEXT_ID);
         String action = request.getHeader(GlobalDataRest.X_ACTION);
+        Integer tenantId = UserInterfaceTransactionManager.getTenantId(request);
 
         if (request.getHeader(GlobalDataRest.X_REQUEST_ID) == null ||
             request.getHeader(GlobalDataRest.X_REQUEST_ID).isEmpty()) {
@@ -506,7 +507,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             long size = Long.parseLong(chunkSizeTotal);
             if (total >= size) {
                 fileChannel.force(false);
-                startUpload(operationGuid, request, contextId, action);
+                startUpload(operationGuid, tenantId, contextId, action);
                 uploadMap.remove(operationGuid);
             }
             return Response
@@ -532,20 +533,20 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
-    private void startUpload(String operationGUID, HttpServletRequest request, String contextId, String action) {
-        final IngestThread ingestThread = new IngestThread(operationGUID, request, contextId, action);
+    private void startUpload(String operationGUID, Integer tenantId, String contextId, String action) {
+        final IngestThread ingestThread = new IngestThread(operationGUID, tenantId, contextId, action);
         ingestThread.start();
     }
 
     class IngestThread extends Thread {
         String operationGuidFirstLevel;
-        HttpServletRequest request;
+        Integer tenantId;
         String contextId;
         String action;
 
-        IngestThread(String operationGuidFirstLevel, HttpServletRequest request, String contextId, String action) {
+        IngestThread(String operationGuidFirstLevel, Integer tenantId, String contextId, String action) {
             this.operationGuidFirstLevel = operationGuidFirstLevel;
-            this.request = request;
+            this.tenantId = tenantId;
             this.contextId = contextId;
             this.action = action;
         }
@@ -558,7 +559,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
             try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
                 final RequestResponse<Void> finalResponse =
-                    client.ingest(UserInterfaceTransactionManager.getVitamContext(request),
+                    client.ingest(new VitamContext(tenantId)
+                            .setApplicationSessionId(UserInterfaceTransactionManager.getAppSessionId()),
                         new FileInputStream(temporarSipFile), contextId, action);
 
                 int responseStatus = finalResponse.getHttpCode();
