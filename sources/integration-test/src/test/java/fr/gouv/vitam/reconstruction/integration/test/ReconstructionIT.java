@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
@@ -45,8 +46,10 @@ import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -107,6 +110,7 @@ public class ReconstructionIT {
 
     private static final String OFFER_FOLDER = "offer";
     public static final int TENANT_0 = 0;
+    public static final int TENANT_1 = 1;
     public static final String AGENCY_IDENTIFIER_1 = "FR_ORG_AGEN";
     public static final String AGENCY_IDENTIFIER_2 = "FRAN_NP_005568";
     public static final String INTEGRATION_RECONSTRUCTION_DATA_AGENCIES_1_CSV =
@@ -114,6 +118,14 @@ public class ReconstructionIT {
 
     public static final String INTEGRATION_RECONSTRUCTION_DATA_AGENCIES_2_CSV =
         "integration-reconstruction/data/agencies_2.csv";
+
+    public static final String INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_1_JSON =
+        "integration-reconstruction/data/security_profile_1.json";
+    public static final String INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_2_JSON =
+        "integration-reconstruction/data/security_profile_2.json";
+
+    public static final String SECURITY_PROFILE_IDENTIFIER_1 = "SEC_PROFILE-000001";
+    public static final String SECURITY_PROFILE_IDENTIFIER_2 = "SEC_PROFILE-000002";
 
     private static String CONTAINER = "0_rules";
     private static String containerName = "";
@@ -125,7 +137,6 @@ public class ReconstructionIT {
     private static final int PORT_SERVICE_OFFER = 8194;
 
     private static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
-
 
     private static WorkspaceMain workspaceMain;
     private static WorkspaceClient workspaceClient;
@@ -205,7 +216,6 @@ public class ReconstructionIT {
         realAdminConfig.setWorkspaceUrl("http://localhost:" + PORT_SERVICE_WORKSPACE);
 
         PropertiesUtils.writeYaml(adminConfig, realAdminConfig);
-
 
         // prepare functional admin
         adminManagementMain = new AdminManagementMain(adminConfig.getAbsolutePath());
@@ -468,6 +478,155 @@ public class ReconstructionIT {
         assertThat(inEs22).isEqualTo(inEs22Reconstructed);
     }
 
+
+    @Test
+    @RunWithCustomExecutor
+    public void testReconstructionSecurityProfileOk() throws Exception {
+
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
+
+        // Import 1 document securityProfile.
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            File securityProfileFiles = PropertiesUtils.getResourceFile(INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_1_JSON);
+            List<SecurityProfileModel> securityProfileModelList =
+                JsonHandler.getFromFileAsTypeRefence(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {
+                });
+            client.importSecurityProfiles(securityProfileModelList);
+        }
+        final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.getInstance();
+
+        final VitamMongoRepository securityProfileMongo =
+            vitamRepository.getVitamMongoRepository(FunctionalAdminCollections.SECURITY_PROFILE);
+
+        final VitamElasticsearchRepository securityProfileEs =
+            vitamRepository.getVitamESRepository(FunctionalAdminCollections.SECURITY_PROFILE);
+
+        Optional<Document> securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isPresent();
+        Document inMogo11 = securityProfileyDoc.get();
+        assertThat(inMogo11.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(inMogo11.getString("Name")).isEqualTo("SEC_PROFILE_1");
+
+        securityProfileyDoc = securityProfileEs.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isPresent();
+        Document inEs11 = securityProfileyDoc.get();
+        assertThat(inEs11.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(inEs11.getString("Name")).isEqualTo("SEC_PROFILE_1");
+
+        securityProfileMongo.purge();
+        securityProfileEs.purge();
+
+        securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isEmpty();
+
+        securityProfileyDoc = securityProfileEs.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isEmpty();
+
+        final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
+        final AdminManagementConfiguration configuration =
+            PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
+
+        // Reconstruction service
+        ReconstructionServiceImpl reconstructionService =
+            new ReconstructionServiceImpl(configuration, vitamRepository,
+                new RestoreBackupServiceImpl());
+        reconstructionService.reconstruct(FunctionalAdminCollections.SECURITY_PROFILE, TENANT_1);
+
+        securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isPresent();
+        Document inMogo11Reconstructed = securityProfileyDoc.get();
+        assertThat(inMogo11Reconstructed.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(inMogo11Reconstructed.getString("Name")).isEqualTo("SEC_PROFILE_1");
+
+        securityProfileyDoc = securityProfileEs.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isPresent();
+        Document inEs11Reconstructed = securityProfileyDoc.get();
+        assertThat(inEs11Reconstructed.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(inEs11Reconstructed.getString("Name")).isEqualTo("SEC_PROFILE_1");
+
+
+        assertThat(inMogo11).isEqualTo(inMogo11Reconstructed);
+        assertThat(inEs11).isEqualTo(inEs11Reconstructed);
+
+        // Import 2 document securityProfile.
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            File securityProfileFiles = PropertiesUtils.getResourceFile(INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_2_JSON);
+            List<SecurityProfileModel> securityProfileModelList =
+                JsonHandler.getFromFileAsTypeRefence(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {
+                });
+            client.importSecurityProfiles(securityProfileModelList);
+        }
+
+        securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isPresent();
+        Document inMogo12 = securityProfileyDoc.get();
+        assertThat(inMogo12.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(inMogo12.getString("Name")).isEqualTo("SEC_PROFILE_1");
+
+        securityProfileyDoc = securityProfileEs.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isPresent();
+        Document inEs12 = securityProfileyDoc.get();
+        assertThat(inEs12.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(inEs12.getString("Name")).isEqualTo("SEC_PROFILE_1");
+
+        securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_2);
+        assertThat(securityProfileyDoc).isPresent();
+        Document inMogo22 = securityProfileyDoc.get();
+        assertThat(inMogo22.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_2);
+        assertThat(inMogo22.getString("Name")).isEqualTo("SEC_PROFILE_2");
+
+        securityProfileyDoc = securityProfileEs.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_2);
+        assertThat(securityProfileyDoc).isPresent();
+        Document inEs22 = securityProfileyDoc.get();
+        assertThat(inEs22.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_2);
+        assertThat(inEs22.getString("Name")).isEqualTo("SEC_PROFILE_2");
+
+        securityProfileMongo.purge();
+        securityProfileEs.purge();
+
+        securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isEmpty();
+
+        securityProfileyDoc = securityProfileEs.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isEmpty();
+
+        securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_2);
+        assertThat(securityProfileyDoc).isEmpty();
+
+        securityProfileyDoc = securityProfileEs.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_2);
+        assertThat(securityProfileyDoc).isEmpty();
+
+        reconstructionService.reconstruct(FunctionalAdminCollections.SECURITY_PROFILE, TENANT_1);
+
+        securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isPresent();
+        Document inMogo12Reconstructed = securityProfileyDoc.get();
+        assertThat(inMogo12Reconstructed.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(inMogo12Reconstructed.getString("Name")).isEqualTo("SEC_PROFILE_1");
+
+        securityProfileyDoc = securityProfileEs.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(securityProfileyDoc).isPresent();
+        Document inEs12Reconstructed = securityProfileyDoc.get();
+        assertThat(inEs12Reconstructed.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_1);
+        assertThat(inEs12Reconstructed.getString("Name")).isEqualTo("SEC_PROFILE_1");
+
+        securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_2);
+        assertThat(securityProfileyDoc).isPresent();
+        Document inMogo22Reconstructed = securityProfileyDoc.get();
+        assertThat(inMogo22Reconstructed.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_2);
+        assertThat(inMogo22Reconstructed.getString("Name")).isEqualTo("SEC_PROFILE_2");
+
+        securityProfileyDoc = securityProfileEs.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_2);
+        assertThat(securityProfileyDoc).isPresent();
+        Document inEs22Reconstructed = securityProfileyDoc.get();
+        assertThat(inEs22Reconstructed.getString("Identifier")).isEqualTo(SECURITY_PROFILE_IDENTIFIER_2);
+        assertThat(inEs22Reconstructed.getString("Name")).isEqualTo("SEC_PROFILE_2");
+
+        assertThat(inMogo12).isEqualTo(inMogo12Reconstructed);
+        assertThat(inEs12).isEqualTo(inEs12Reconstructed);
+        assertThat(inMogo22).isEqualTo(inMogo22Reconstructed);
+        assertThat(inEs22).isEqualTo(inEs22Reconstructed);
+    }
 
     /**
      * Clean offers content.

@@ -34,19 +34,31 @@ import java.util.Arrays;
 import java.util.List;
 
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.NodeWithPlugins;
 import org.apache.commons.io.FileUtils;
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
+import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.node.InternalSettingsPreparer;
 import org.elasticsearch.node.NodeValidationException;
 import org.elasticsearch.plugin.analysis.icu.AnalysisICUPlugin;
 import org.elasticsearch.plugins.Plugin;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.elasticsearch.transport.Netty4Plugin;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.junit.rules.ExternalResource;
+
+import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 
 /**
  */
@@ -131,10 +143,38 @@ public class ElasticsearchRule extends ExternalResource {
     @Override
     protected void after() {
         for (String collectionName : collectionNames) {
+
             if (client.admin().indices().prepareExists(collectionName.toLowerCase()).get().isExists()) {
-                if (!client.admin().indices().prepareDelete(collectionName.toLowerCase()).get()
-                    .isAcknowledged()) {
-                    System.err.println("Error delete index ...");
+                QueryBuilder qb = matchAllQuery();
+
+                SearchResponse scrollResp = client.prepareSearch(collectionName.toLowerCase())
+                    .addSort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC)
+                    .setScroll(new TimeValue(60000))
+                    .setQuery(qb)
+                    .setSize(100).get();
+
+                BulkRequestBuilder bulkRequest = client.prepareBulk();
+
+                do {
+                    for (SearchHit hit : scrollResp.getHits().getHits()) {
+                        bulkRequest.add(client.prepareDelete(collectionName.toLowerCase(), "typeunique", hit.getId()));
+                    }
+
+                    scrollResp =
+                        client.prepareSearchScroll(scrollResp.getScrollId()).setScroll(new TimeValue(60000)).execute()
+                            .actionGet();
+                } while (scrollResp.getHits().getHits().length != 0);
+
+                bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
+
+                if (bulkRequest.request().numberOfActions() != 0) {
+                    BulkResponse bulkResponse = bulkRequest.get();
+
+                    if (bulkResponse.hasFailures()) {
+                        throw new RuntimeException(
+                            String.format("DatabaseException when calling purge by bulk Request %s",
+                                bulkResponse.buildFailureMessage()));
+                    }
                 }
             }
         }

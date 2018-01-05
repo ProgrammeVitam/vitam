@@ -116,7 +116,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
             case SECURITY_PROFILE:
             case VITAM_SEQUENCE:
                 // TODO: 1/3/18 admin tenant must be request from configuration
-                tenants = new Integer[]{ADMIN_TENANT};
+                tenants = new Integer[] {ADMIN_TENANT};
                 break;
         }
         try {
@@ -133,8 +133,13 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                     LOGGER.debug(String.format("Last backup copy version : %s", collectionBackup));
 
                     // purge collection content
-                    mongoRepository.purge(tenant);
-                    elasticsearchRepository.purge(tenant);
+                    if (collection.isMultitenant()) {
+                        mongoRepository.purge(tenant);
+                        elasticsearchRepository.purge(tenant);
+                    } else {
+                        mongoRepository.purge();
+                        elasticsearchRepository.purge();
+                    }
 
                     // saving the backup sequence in mongoDB
                     VitamSequence sequenceCollection =

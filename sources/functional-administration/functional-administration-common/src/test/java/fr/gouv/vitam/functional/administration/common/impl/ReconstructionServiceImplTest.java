@@ -192,10 +192,10 @@ public class ReconstructionServiceImplTest {
 
         reconstructionService.reconstruct(FunctionalAdminCollections.FORMATS, TENANT_ID_0);
 
-        verify(crossTenantMongoRepository, times(1)).purge(tenantCaptor.capture());
+        verify(crossTenantMongoRepository, times(1)).purge();
         verify(crossTenantMongoRepository, times(1))
             .removeByNameAndTenant(nameCaptor.capture(), tenantCaptor.capture());
-        verify(crossTenantElasticsearchRepository, times(1)).purge(tenantCaptor.capture());
+        verify(crossTenantElasticsearchRepository, times(1)).purge();
 
         Assert.assertEquals(TENANT_ID_1, tenantCaptor.getValue());
 

@@ -54,7 +54,7 @@ import static org.junit.Assume.assumeTrue;
 public class AdminReconstructionResourceTest {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AgenciesResourceTest.class);
-    private static final String ADMIN_MANAGEMENT_CONF = "functional-administration-test.conf";
+    private static final String ADMIN_MANAGEMENT_CONF = "functional-admin-reconstruction-test.conf";
 
     private static final String RESOURCE_URI = "/adminmanagement/v1";
     private static final String STATUS_URI = "/status";
