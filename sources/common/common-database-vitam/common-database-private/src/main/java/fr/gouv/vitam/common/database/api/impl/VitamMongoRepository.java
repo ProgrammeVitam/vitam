@@ -135,6 +135,17 @@ public class VitamMongoRepository implements VitamRepository {
     }
 
     @Override
+    public long purge() throws DatabaseException {
+        try {
+            DeleteResult response = collection.deleteMany(new BasicDBObject());
+            return response.getDeletedCount();
+        } catch (Exception e) {
+            LOGGER.error(String.format("Error while delete documents"), e);
+            throw new DatabaseException(String.format("Error while delete documents", e));
+        }
+    }
+
+    @Override
     public Optional<Document> getByID(String id, Integer tenant) throws DatabaseException {
         ParametersChecker.checkParameter("All params are required", id);
         try {

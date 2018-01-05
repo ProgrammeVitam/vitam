@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.database.api.impl;
 
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
+import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
 import java.util.List;
@@ -183,6 +184,47 @@ public class VitamElasticsearchRepository implements VitamRepository {
         }
 
         QueryBuilder qb = termQuery(VitamDocument.TENANT_ID, tenant);
+
+        SearchResponse scrollResp = client.prepareSearch(index)
+            .addSort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC)
+            .setScroll(new TimeValue(60000))
+            .setQuery(qb)
+            .setSize(100).get();
+
+        BulkRequestBuilder bulkRequest = client.prepareBulk();
+
+        do {
+            for (SearchHit hit : scrollResp.getHits().getHits()) {
+                bulkRequest.add(client.prepareDelete(index, VitamCollection.getTypeunique(), hit.getId()));
+            }
+
+            scrollResp = client.prepareSearchScroll(scrollResp.getScrollId()).setScroll(new TimeValue(60000)).execute()
+                .actionGet();
+        } while (scrollResp.getHits().getHits().length != 0);
+
+        bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
+
+        if (bulkRequest.request().numberOfActions() != 0) {
+            BulkResponse bulkResponse = bulkRequest.get();
+
+            if (bulkResponse.hasFailures()) {
+                LOGGER.error("Bulk Request failure with error: " + bulkResponse.buildFailureMessage());
+                throw new DatabaseException(String.format("DatabaseException when calling purge by bulk Request %s",
+                    bulkResponse.buildFailureMessage()));
+            }
+
+            return bulkResponse.getItems().length;
+        }
+
+        return 0;
+    }
+
+
+    @Override
+    public long purge() throws DatabaseException {
+        String index = indexName;
+
+        QueryBuilder qb = matchAllQuery();
 
         SearchResponse scrollResp = client.prepareSearch(index)
             .addSort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC)

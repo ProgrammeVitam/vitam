@@ -129,6 +129,7 @@ public class VitamElasticsearchRepositoryTest {
     @Test
     public void testSaveMultipleDocumentsAndPurgeDocumentsOK() throws IOException, DatabaseException {
         List<Document> documents = new ArrayList<>();
+        // purge tenant 0
         for (int i = 0; i < 101; i++) {
             XContentBuilder builder = jsonBuilder()
                 .startObject()
@@ -138,9 +139,26 @@ public class VitamElasticsearchRepositoryTest {
                 .endObject();
             documents.add(Document.parse(builder.string()));
         }
+
+        // pruge all tenants
+        for (int i = 0; i < 101; i++) {
+            XContentBuilder builder = jsonBuilder()
+                .startObject()
+                .field(VitamDocument.ID, GUIDFactory.newGUID().toString())
+                .field(VitamDocument.TENANT_ID, 1)
+                .field("Title", "Test save " + RandomUtils.nextDouble())
+                .endObject();
+            documents.add(Document.parse(builder.string()));
+        }
+
         repository.save(documents);
 
+        // purge tenant 0
         long deleted = repository.purge(0);
+        assertThat(deleted).isEqualTo(101);
+
+        // purge all other tenants
+        deleted = repository.purge();
         assertThat(deleted).isEqualTo(101);
 
     }

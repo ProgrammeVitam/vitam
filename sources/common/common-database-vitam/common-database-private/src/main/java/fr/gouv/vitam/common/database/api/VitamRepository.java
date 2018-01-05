@@ -72,13 +72,20 @@ public interface VitamRepository {
     void removeByNameAndTenant(String name, Integer tenant) throws DatabaseException;
 
     /**
-     * Remove by tenant
+     * Remove by tenant for collection multi-tenant
      *
      * @param tenant
      * @return
      * @throws DatabaseException
      */
     long purge(Integer tenant) throws DatabaseException;
+
+    /**
+     * Remove by tenant for collection cross-tenant
+     * @return
+     * @throws DatabaseException
+     */
+    long purge() throws DatabaseException;
 
 
     /**
