@@ -78,34 +78,34 @@ public class VitamRepositoryFactory implements VitamRepositoryProvider {
 
 
         esRepository.put(FunctionalAdminCollections.RULES,
-            new VitamElasticsearchRepository(rules.getEsClient().getClient(), rules.getName(),
+            new VitamElasticsearchRepository(rules.getEsClient().getClient(), rules.getName().toLowerCase(),
                 rules.isCreateIndexByTenant()));
         esRepository.put(FunctionalAdminCollections.FORMATS,
-            new VitamElasticsearchRepository(formats.getEsClient().getClient(), formats.getName(),
+            new VitamElasticsearchRepository(formats.getEsClient().getClient(), formats.getName().toLowerCase(),
                 formats.isCreateIndexByTenant()));
         esRepository.put(FunctionalAdminCollections.PROFILE,
-            new VitamElasticsearchRepository(profile.getEsClient().getClient(), profile.getName(),
+            new VitamElasticsearchRepository(profile.getEsClient().getClient(), profile.getName().toLowerCase(),
                 profile.isCreateIndexByTenant()));
         esRepository.put(FunctionalAdminCollections.AGENCIES,
-            new VitamElasticsearchRepository(agencies.getEsClient().getClient(), agencies.getName(),
+            new VitamElasticsearchRepository(agencies.getEsClient().getClient(), agencies.getName().toLowerCase(),
                 agencies.isCreateIndexByTenant()));
         esRepository.put(FunctionalAdminCollections.ACCESS_CONTRACT,
-            new VitamElasticsearchRepository(accessContract.getEsClient().getClient(), accessContract.getName(),
+            new VitamElasticsearchRepository(accessContract.getEsClient().getClient(), accessContract.getName().toLowerCase(),
                 accessContract.isCreateIndexByTenant()));
         esRepository.put(FunctionalAdminCollections.SECURITY_PROFILE,
-            new VitamElasticsearchRepository(securityProfile.getEsClient().getClient(), securityProfile.getName(),
+            new VitamElasticsearchRepository(securityProfile.getEsClient().getClient(), securityProfile.getName().toLowerCase(),
                 securityProfile.isCreateIndexByTenant()));
         esRepository.put(FunctionalAdminCollections.INGEST_CONTRACT,
-            new VitamElasticsearchRepository(ingestContract.getEsClient().getClient(), ingestContract.getName(),
+            new VitamElasticsearchRepository(ingestContract.getEsClient().getClient(), ingestContract.getName().toLowerCase(),
                 ingestContract.isCreateIndexByTenant()));
         esRepository.put(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY,
             new VitamElasticsearchRepository(accessionRegisterSummary.getEsClient().getClient(),
-                accessionRegisterSummary.getName(), accessionRegisterSummary.isCreateIndexByTenant()));
+                accessionRegisterSummary.getName().toLowerCase(), accessionRegisterSummary.isCreateIndexByTenant()));
         esRepository.put(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
             new VitamElasticsearchRepository(accessionRegisterDetail.getEsClient().getClient(),
-                accessionRegisterDetail.getName(), accessionRegisterDetail.isCreateIndexByTenant()));
+                accessionRegisterDetail.getName().toLowerCase(), accessionRegisterDetail.isCreateIndexByTenant()));
         esRepository.put(FunctionalAdminCollections.CONTEXT,
-            new VitamElasticsearchRepository(context.getEsClient().getClient(), context.getName(),
+            new VitamElasticsearchRepository(context.getEsClient().getClient(), context.getName().toLowerCase(),
                 context.isCreateIndexByTenant()));
     }
 

@@ -204,14 +204,19 @@ public class VitamElasticsearchRepository implements VitamRepository {
 
         bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
 
-        BulkResponse bulkResponse = bulkRequest.get();
+        if (bulkRequest.request().numberOfActions() != 0) {
+            BulkResponse bulkResponse = bulkRequest.get();
 
-        if (bulkResponse.hasFailures()) {
-            LOGGER.error("Bulk Request failure with error: " + bulkResponse.buildFailureMessage());
-            throw new DatabaseException(String.format("DatabaseException when calling purge by bulk Request %s", bulkResponse.buildFailureMessage()));
+            if (bulkResponse.hasFailures()) {
+                LOGGER.error("Bulk Request failure with error: " + bulkResponse.buildFailureMessage());
+                throw new DatabaseException(String.format("DatabaseException when calling purge by bulk Request %s",
+                    bulkResponse.buildFailureMessage()));
+            }
+
+            return bulkResponse.getItems().length;
         }
 
-        return bulkResponse.getItems().length;
+        return 0;
     }
 
     @Override

@@ -24,31 +24,50 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.storage.engine.client;
+package fr.gouv.vitam.reconstruction.integration.test;
 
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
+import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
+import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.VitamRepositoryFactory;
 import fr.gouv.vitam.functional.administration.common.VitamRepositoryProvider;
 import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
 import fr.gouv.vitam.functional.administration.common.impl.ReconstructionServiceImpl;
 import fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
-import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
+import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.logbook.rest.LogbookMain;
+import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
@@ -58,29 +77,15 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.apache.commons.io.FileUtils;
-import org.jhades.JHades;
+import org.assertj.core.util.Files;
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
-import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
 
 /**
  * Integration tests for the reconstruction services. <br/>
@@ -92,28 +97,61 @@ public class ReconstructionIT {
      */
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReconstructionIT.class);
 
-    private static DefaultOfferMain defaultOfferApplication;
-    private static final String DEFAULT_OFFER_CONF = "storage-test/storage-default-offer-ssl.conf";
+    private static final String DEFAULT_OFFER_CONF = "integration-reconstruction/storage-default-offer.conf";
+    private static final String LOGBOOK_CONF = "integration-reconstruction/logbook.conf";
+    private static final String LOGBOOK_CONF_FILE_NAME = "logbook.conf";
+    private static final String STORAGE_CONF = "integration-reconstruction/storage-engine.conf";
+    private static final String WORKSPACE_CONF = "integration-reconstruction/workspace.conf";
+    private static final String ADMIN_MANAGEMENT_CONF =
+        "integration-reconstruction/functional-administration.conf";
+
     private static final String OFFER_FOLDER = "offer";
-    private static StorageMain storageMain;
-    private static StorageClient storageClient;
-    private static final String STORAGE_CONF = "storage-test/storage-engine.conf";
-    private static final String BACKUP_COPY_FOLDER = "backup";
+    private static final String BACKUP_COPY_FOLDER = "integration-reconstruction/backup";
     private static final int TENANT_ID = 0;
     private static final String STRATEGY_ID = "default";
     private static String CONTAINER = "0_rules";
     private static String containerName = "";
+
+    private static final int PORT_SERVICE_WORKSPACE = 8094;
+    private static final int PORT_SERVICE_FUNCTIONAL_ADMIN = 8093;
+    private static final int PORT_SERVICE_LOGBOOK = 8099;
+    private static final int PORT_SERVICE_STORAGE = 8193;
+    private static final int PORT_SERVICE_OFFER = 8194;
+
+    private static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
+
+
     private static WorkspaceMain workspaceMain;
     private static WorkspaceClient workspaceClient;
-    private static int workspacePort = 8987;
-    private static final String WORKSPACE_CONF = "storage-test/workspace.conf";
-    private static final String ADMIN_MANAGEMENT_CONF = "functional-administration-test.conf";
-    static TemporaryFolder folder = new TemporaryFolder();
+
+    private static LogbookMain logbookApplication;
+
+
+    private static StorageMain storageMain;
+    private static StorageClient storageClient;
+
+    private static DefaultOfferMain defaultOfferApplication;
+
+
+    private static AdminManagementMain adminManagementMain;
+
+
 
     private static RestoreBackupService recoverBuckupService;
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
+
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "vitam-test",
+            FunctionalAdminCollections.SECURITY_PROFILE.getName(), FunctionalAdminCollections.RULES.getName());
+
+
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule =
+        new ElasticsearchRule(Files.newTemporaryFolder(), FunctionalAdminCollections.SECURITY_PROFILE.getName(),
+            FunctionalAdminCollections.RULES.getName());
 
 
     @Rule
@@ -122,52 +160,99 @@ public class ReconstructionIT {
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
+        File workspaceFolder = new File(CONTAINER);
+        if (workspaceFolder.exists()) {
+            try {
+                // if clean workspace delete did not work
+                FileUtils.cleanDirectory(workspaceFolder);
+                FileUtils.deleteDirectory(workspaceFolder);
+            } catch (Exception e) {
+                LOGGER.error("ERROR: Exception has been thrown when cleanning workspace:", e);
+            }
+        }
 
         containerName = String.format("%s_%s", TENANT_ID, StorageCollectionType.BACKUP.toString().toLowerCase());
         recoverBuckupService = new RestoreBackupServiceImpl();
 
-        // Identify overlapping in particular jsr311
-        new JHades().overlappingJarsReport();
+        // launch functional Admin server
+        final List<ElasticsearchNode> nodesEs = new ArrayList<>();
+        nodesEs.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
 
-        // prepare workspace
-        workspaceMain = new WorkspaceMain(WORKSPACE_CONF);
+        // launch workspace
+        SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT,
+            Integer.toString(PORT_SERVICE_WORKSPACE));
+        workspaceMain = new WorkspaceMain(PropertiesUtils.getResourcePath(WORKSPACE_CONF).toString());
         workspaceMain.start();
-
-        WorkspaceClientFactory.changeMode("http://localhost:" + workspacePort);
+        SystemPropertyUtil.clear(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT);
+        WorkspaceClientFactory.changeMode(WORKSPACE_URL);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        // launch logbook
+        SystemPropertyUtil
+            .set(LogbookMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_LOGBOOK));
+
+        final File logbookConfigFile = PropertiesUtils.findFile(LOGBOOK_CONF);
+        final LogbookConfiguration logbookConfiguration =
+            PropertiesUtils.readYaml(logbookConfigFile, LogbookConfiguration.class);
+        logbookConfiguration.setElasticsearchNodes(nodesEs);
+        logbookConfiguration.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
+        logbookConfiguration.setWorkspaceUrl("http://localhost:" + PORT_SERVICE_WORKSPACE);
+
+        PropertiesUtils.writeYaml(logbookConfigFile, logbookConfiguration);
+
+        logbookApplication = new LogbookMain(logbookConfigFile.getAbsolutePath());
+        logbookApplication.start();
+        SystemPropertyUtil.clear(LogbookMain.PARAMETER_JETTY_SERVER_PORT);
+        LogbookOperationsClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
+        LogbookLifeCyclesClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_LOGBOOK));
+
+
+        final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
+        final AdminManagementConfiguration realAdminConfig =
+            PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
+        realAdminConfig.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
+        realAdminConfig.setElasticsearchNodes(nodesEs);
+        realAdminConfig.setClusterName(elasticsearchRule.getClusterName());
+        realAdminConfig.setWorkspaceUrl("http://localhost:" + PORT_SERVICE_WORKSPACE);
+
+        PropertiesUtils.writeYaml(adminConfig, realAdminConfig);
+
+
+        // prepare functional admin
+        adminManagementMain = new AdminManagementMain(adminConfig.getAbsolutePath());
+        adminManagementMain.start();
+
+        AdminManagementClientFactory
+            .changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_FUNCTIONAL_ADMIN));
 
         // prepare offer
-        final fr.gouv.vitam.common.storage.StorageConfiguration offerConfiguration =
-            readYaml(PropertiesUtils.findFile(DEFAULT_OFFER_CONF),
-                fr.gouv.vitam.common.storage.StorageConfiguration.class);
+        SystemPropertyUtil
+            .set(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_OFFER));
         defaultOfferApplication = new DefaultOfferMain(DEFAULT_OFFER_CONF);
         defaultOfferApplication.start();
+        SystemPropertyUtil.clear(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT);
 
         // storage engine
         File storageConfigurationFile = PropertiesUtils.findFile(STORAGE_CONF);
         final StorageConfiguration serverConfiguration = readYaml(storageConfigurationFile, StorageConfiguration.class);
-        final Pattern compiledPattern = Pattern.compile(":(\\d+)");
-        final Matcher matcher = compiledPattern.matcher(serverConfiguration.getUrlWorkspace());
-        if (matcher.find()) {
-            final String seg[] = serverConfiguration.getUrlWorkspace().split(":(\\d+)");
-            serverConfiguration.setUrlWorkspace(seg[0]);
-        }
         serverConfiguration
-            .setUrlWorkspace(serverConfiguration.getUrlWorkspace() + ":" + Integer.toString(workspacePort));
+            .setUrlWorkspace("http://localhost:" + PORT_SERVICE_WORKSPACE);
 
-        folder.create();
-        serverConfiguration.setZippingDirecorty(folder.newFolder().getAbsolutePath());
-        serverConfiguration.setLoggingDirectory(folder.newFolder().getAbsolutePath());
+        serverConfiguration.setZippingDirecorty(tempFolder.newFolder().getAbsolutePath());
+        serverConfiguration.setLoggingDirectory(tempFolder.newFolder().getAbsolutePath());
 
         writeYaml(storageConfigurationFile, serverConfiguration);
 
         // prepare storage
+        SystemPropertyUtil
+            .set(StorageMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_STORAGE));
         storageMain = new StorageMain(STORAGE_CONF);
         storageMain.start();
+        SystemPropertyUtil.clear(StorageMain.PARAMETER_JETTY_SERVER_PORT);
 
         StorageClientFactory.getInstance().setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
         storageClient = StorageClientFactory.getInstance().getClient();
     }
+
 
     @AfterClass
     public static void afterClass() throws Exception {
@@ -198,7 +283,8 @@ public class ReconstructionIT {
         storageClient.close();
         defaultOfferApplication.stop();
         storageMain.stop();
-        folder.delete();
+        adminManagementMain.stop();
+        elasticsearchRule.afterClass();
     }
 
     @Before
@@ -216,6 +302,9 @@ public class ReconstructionIT {
         workspaceClient.deleteContainer(containerName, true);
         // clean offers
         cleanOffers();
+
+        mongoRule.handleAfter();
+        elasticsearchRule.handleAfter();
     }
 
     @Test

@@ -86,6 +86,18 @@ public class MongoRule extends ExternalResource {
         }
     }
 
+    /**
+     * Used when annotated @ClassRule
+     */
+    public  void handleAfter() {
+        after();
+    }
+
+
+    public static int getDataBasePort() {
+        return dataBasePort;
+    }
+
     public MongoClient getMongoClient() {
         return mongoClient;
     }

@@ -26,6 +26,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.client;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -52,26 +64,16 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  * !!! WARNING !!! : in case of modification of class fr.gouv.vitam.driver.fake.FakeDriverImpl, you need to recompile
  * the storage-offer-mock.jar from the storage-offer-mock module and copy it in src/test/resources in place of the
  * previous one.
  */
+@Ignore("Really test of storage and offer is developped in the ReconstructionIT that does not use mock")
 public class StorageClientIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageClientIT.class);
     private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not have raized an exception";

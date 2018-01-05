@@ -5,6 +5,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,9 +74,12 @@ public class DbRequestSingleTest {
             "Unit", "ObjectGroup");
 
     @Rule
-    public ElasticsearchRule elasticsearchRule = new ElasticsearchRule(tempFolder, "Unit", "ObjectGroup");
+    public ElasticsearchRule elasticsearchRule = new ElasticsearchRule(tempFolder.newFolder(), "Unit", "ObjectGroup");
 
     private MongoClient mongoClient = mongoRule.getMongoClient();
+
+    public DbRequestSingleTest() throws IOException {
+    }
 
 
     /**

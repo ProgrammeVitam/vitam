@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.common.elasticsearch;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -45,7 +46,6 @@ import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.transport.Netty4Plugin;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.junit.rules.ExternalResource;
-import org.junit.rules.TemporaryFolder;
 
 /**
  */
@@ -53,10 +53,11 @@ public class ElasticsearchRule extends ExternalResource {
 
     private static int tcpPort;
     private static int httpPort;
+    private File temporaryFolder;
 
     public static final String VITAM_CLUSTER = "vitam-cluster";
 
-    synchronized void init(TemporaryFolder temporaryFolder) {
+    synchronized void init() {
         if (tcpPort > 0) {
             return;
         }
@@ -72,7 +73,7 @@ public class ElasticsearchRule extends ExternalResource {
                 .put("transport.type", "netty4")
                 .put("http.port", httpPort)
                 .put("cluster.name", VITAM_CLUSTER)
-                .put("path.home", temporaryFolder.newFolder().getCanonicalPath())
+                .put("path.home", temporaryFolder.getCanonicalPath())
                 .put("plugin.mandatory", "org.elasticsearch.plugin.analysis.icu.AnalysisICUPlugin")
                 .put("transport.tcp.connect_timeout", "1s")
                 .put("transport.profiles.tcp.connect_timeout", "1s")
@@ -92,10 +93,11 @@ public class ElasticsearchRule extends ExternalResource {
         }
     }
 
-    public ElasticsearchRule(TemporaryFolder tempFolder, String... collectionNames) {
+    public ElasticsearchRule(File tempFolder, String... collectionNames) {
 
         try {
-            init(tempFolder);
+            this.temporaryFolder = tempFolder;
+            init();
 
             client = new PreBuiltTransportClient(getClientSettings()).addTransportAddress(
                 new InetSocketTransportAddress(InetAddress.getByName("localhost"), tcpPort));
@@ -137,7 +139,22 @@ public class ElasticsearchRule extends ExternalResource {
         }
     }
 
+    /**
+     * Used when annotated @ClassRule
+     */
+    public void handleAfter() {
+        after();
+    }
 
+    /**
+     * Used when annotated @ClassRule
+     */
+    public void afterClass() {
+
+        if (null != temporaryFolder && temporaryFolder.exists()) {
+            temporaryFolder.delete();
+        }
+    }
 
     public String getClusterName() {
         return VITAM_CLUSTER;

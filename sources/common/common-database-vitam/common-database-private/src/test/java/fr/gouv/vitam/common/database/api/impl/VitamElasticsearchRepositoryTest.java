@@ -59,7 +59,10 @@ public class VitamElasticsearchRepositoryTest {
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Rule
-    public ElasticsearchRule elasticsearchRule = new ElasticsearchRule(tempFolder, TESTINDEX);
+    public ElasticsearchRule elasticsearchRule = new ElasticsearchRule(tempFolder.newFolder(), TESTINDEX);
+
+    public VitamElasticsearchRepositoryTest() throws IOException {
+    }
 
 
     @Before
