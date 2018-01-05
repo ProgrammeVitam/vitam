@@ -30,12 +30,18 @@ import com.google.common.annotations.VisibleForTesting;
 
 /**
  * Description of Vitam Basic authentication. <br/>
- *
  */
 public class BasicAuthModel {
 
     private String userName = "";
     private String password = "";
+
+    /**
+     * MongodbNode empty constructor for YAMLFactory
+     */
+    public BasicAuthModel() {
+        // empty
+    }
 
     public String getUserName() {
         return userName;

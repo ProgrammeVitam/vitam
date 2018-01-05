@@ -25,6 +25,9 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
+import java.util.Arrays;
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -65,7 +68,7 @@ public class EndpointAuthenticationFilterTest {
     public void setup() {
 
         // Instanciate Vitam configuration credentials.
-        BasicAuthModel basicAuthConfig = new BasicAuthModel("adminUserName", "adminPassword");
+        List<BasicAuthModel> basicAuthConfig = Arrays.asList(new BasicAuthModel("adminUserName", "adminPassword"));
 
         // mock admin basic authentication informations.
         when(configuration.getAdminBasicAuth())

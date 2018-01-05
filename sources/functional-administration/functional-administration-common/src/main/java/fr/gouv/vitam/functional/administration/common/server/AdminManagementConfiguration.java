@@ -167,11 +167,4 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
         return this;
     }
 
-    public BasicAuthModel getAdminBasicAuth() {
-        return adminBasicAuth;
-    }
-
-    public void setAdminBasicAuth(BasicAuthModel adminBasicAuth) {
-        this.adminBasicAuth = adminBasicAuth;
-    }
 }

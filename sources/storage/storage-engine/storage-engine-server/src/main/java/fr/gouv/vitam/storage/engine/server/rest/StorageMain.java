@@ -43,7 +43,6 @@ public class StorageMain {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageMain.class);
     private static final String CONF_FILE_NAME = "storage-engine.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
-    public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.storage.port";
     private VitamStarter vitamStarter;
 
     public StorageMain(String configurationFile) {

@@ -112,10 +112,10 @@ public class EndpointAuthenticationFilter implements ContainerRequestFilter {
 
         // validate the authentication information with the Vitam configuration.
         List<String> decodedAuthentgInfos = Arrays.asList(decodedAuthent.split(":"));
-        BasicAuthModel basicAuthConfig = configuration.getAdminBasicAuth();
+        List<BasicAuthModel> basicAuthConfig = configuration.getAdminBasicAuth();
         if (decodedAuthentgInfos.isEmpty() || (basicAuthConfig != null &&
-            (!basicAuthConfig.getUserName().equalsIgnoreCase(decodedAuthentgInfos.get(0)) ||
-                !basicAuthConfig.getPassword()
+            (!basicAuthConfig.get(0).getUserName().equalsIgnoreCase(decodedAuthentgInfos.get(0)) ||
+                !basicAuthConfig.get(0).getPassword()
                     .equalsIgnoreCase(decodedAuthentgInfos.get(1))))) {
             throw new IllegalArgumentException("VitamAuthentication failed: Wrong credentials.");
 

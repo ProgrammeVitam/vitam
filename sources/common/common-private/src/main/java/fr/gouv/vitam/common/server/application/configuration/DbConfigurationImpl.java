@@ -30,6 +30,7 @@ package fr.gouv.vitam.common.server.application.configuration;
 import java.util.List;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.model.BasicAuthModel;
 
 /**
  * Implementation of DbConfiguraton Interface
@@ -42,6 +43,11 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
     private boolean dbAuthentication = false;
     private String dbUserName;
     private String dbPassword;
+
+    /**
+     * Vitam Basic authentication -> username & password
+     */
+    private List<BasicAuthModel> adminBasicAuth;
 
     /**
      * DbConfiguration empty constructor for YAMLFactory
@@ -176,5 +182,13 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
     public DbConfigurationImpl setDbAuthentication(boolean authentication) {
         dbAuthentication = authentication;
         return this;
+    }
+
+    public List<BasicAuthModel> getAdminBasicAuth() {
+        return adminBasicAuth;
+    }
+
+    public void setAdminBasicAuth(List<BasicAuthModel> adminBasicAuth) {
+        this.adminBasicAuth = adminBasicAuth;
     }
 }
