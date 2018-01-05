@@ -164,6 +164,9 @@ public class FunctionalAdminIT {
         } catch (IOException e) {
             TMP_FOLDER = "/vitam/temp";
         }
+
+        System.setProperty("vitam.tmp.folder", TMP_FOLDER);
+
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         junitHelper = JunitHelper.getInstance();
         mongoPort = junitHelper.findAvailablePort();

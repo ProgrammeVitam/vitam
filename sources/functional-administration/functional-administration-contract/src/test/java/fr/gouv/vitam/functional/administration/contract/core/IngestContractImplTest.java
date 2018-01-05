@@ -18,8 +18,12 @@
 package fr.gouv.vitam.functional.administration.contract.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -67,6 +71,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
@@ -80,6 +85,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 
 public class IngestContractImplTest {
@@ -100,6 +106,7 @@ public class IngestContractImplTest {
     static MongoClient client;
     static VitamCounterService vitamCounterService;
     static MetaDataClient metaDataClientMock;
+    static FunctionalBackupService functionalBackupService;
 
     static ContractService<IngestContractModel> ingestContractService;
     static int mongoPort;
@@ -136,8 +143,10 @@ public class IngestContractImplTest {
 
         metaDataClientMock = mock(MetaDataClient.class);
 
+        functionalBackupService = mock(FunctionalBackupService.class);
+
         ingestContractService =
-            new IngestContractImpl(dbImpl, vitamCounterService, metaDataClientMock);
+            new IngestContractImpl(dbImpl, vitamCounterService, metaDataClientMock, functionalBackupService);
 
     }
 
@@ -154,6 +163,7 @@ public class IngestContractImplTest {
     public void afterTest() {
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         collection.deleteMany(new Document());
+        Mockito.reset(functionalBackupService);
     }
 
 
@@ -173,7 +183,8 @@ public class IngestContractImplTest {
         assertThat(responseCast.getResults().get(0).getIdentifier()).contains("IC-000");
         assertThat(responseCast.getResults().get(1).getIdentifier()).contains("IC-000");
 
-
+        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(IngestContractImpl.CONTRACT_BACKUP_EVENT),
+            eq(FunctionalAdminCollections.INGEST_CONTRACT));
     }
 
     @Test
@@ -187,6 +198,8 @@ public class IngestContractImplTest {
         final RequestResponse response = ingestContractService.createContracts(IngestContractModelList);
 
         assertThat(!response.isOk());
+
+        verifyNoMoreInteractions(functionalBackupService);
 
     }
 
@@ -631,7 +644,8 @@ public class IngestContractImplTest {
     @RunWithCustomExecutor
     public void givenIngestContractsTestLinkParentIdKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(metaDataClientMock.selectUnitbyId(anyObject(), anyObject())).thenReturn(new RequestResponseOK<>().toJsonNode());
+        when(metaDataClientMock.selectUnitbyId(anyObject(), anyObject()))
+            .thenReturn(new RequestResponseOK<>().toJsonNode());
 
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_link_parentId.json");
         final List<IngestContractModel> IngestContractModelList =
@@ -651,7 +665,7 @@ public class IngestContractImplTest {
     public void givenIngestContractsTestLinkParentIdOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         RequestResponseOK ok = new RequestResponseOK<>();
-        ok.setHits(1,0,1,1);// simulate returning result when query for filing or holding unit
+        ok.setHits(1, 0, 1, 1);// simulate returning result when query for filing or holding unit
         when(metaDataClientMock.selectUnitbyId(anyObject(), anyObject())).thenReturn(ok.toJsonNode());
 
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_link_parentId.json");

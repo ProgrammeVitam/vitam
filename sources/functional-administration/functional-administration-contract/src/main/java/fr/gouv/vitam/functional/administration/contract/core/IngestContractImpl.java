@@ -75,6 +75,7 @@ import fr.gouv.vitam.common.model.administration.ContractStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -85,7 +86,6 @@ import fr.gouv.vitam.functional.administration.contract.core.GenericContractVali
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -109,11 +109,13 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     private static final String CONTRACT_IS_MANDATORY_PATAMETER = "The collection of ingest contracts is mandatory";
     private static final String CONTRACTS_IMPORT_EVENT = "STP_IMPORT_INGEST_CONTRACT";
     private static final String CONTRACT_UPDATE_EVENT = "STP_UPDATE_INGEST_CONTRACT";
+    public static final String CONTRACT_BACKUP_EVENT = "STP_BACKUP_INGEST_CONTRACT";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestContractImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
-    private final LogbookOperationsClient logBookclient;
+    private final LogbookOperationsClient logbookClient;
     private final VitamCounterService vitamCounterService;
-    private final IngestContractManager manager;
+    private final MetaDataClient metaDataClient;
+    private final FunctionalBackupService functionalBackupService;
     private static final String _TENANT = "_tenant";
     private static final String _ID = "_id";
 
@@ -124,22 +126,26 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
      * @param vitamCounterService the vitam counter service
      */
     public IngestContractImpl(MongoDbAccessAdminImpl dbConfiguration, VitamCounterService vitamCounterService) {
-        this(dbConfiguration, vitamCounterService, MetaDataClientFactory.getInstance().getClient());
+        this(dbConfiguration, vitamCounterService, MetaDataClientFactory.getInstance().getClient(),
+            new FunctionalBackupService(vitamCounterService));
     }
 
     /**
      * Constructor
      *
-     * @param dbConfiguration     the Database configuration
-     * @param vitamCounterService the vitam counter service
-     * @param metaDataClient      the metadata client
+     * @param dbConfiguration         the Database configuration
+     * @param vitamCounterService     the vitam counter service
+     * @param metaDataClient          the metadata client
+     * @param functionalBackupService
      */
     public IngestContractImpl(MongoDbAccessAdminImpl dbConfiguration, VitamCounterService vitamCounterService,
-        MetaDataClient metaDataClient) {
+        MetaDataClient metaDataClient,
+        FunctionalBackupService functionalBackupService) {
         mongoAccess = dbConfiguration;
         this.vitamCounterService = vitamCounterService;
-        logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
-        manager = new IngestContractManager(logBookclient, metaDataClient);
+        this.metaDataClient = metaDataClient;
+        this.functionalBackupService = functionalBackupService;
+        logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
     }
 
     @Override
@@ -154,6 +160,9 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             .isSlaveFunctionnalCollectionOnTenant(SequenceType.INGEST_CONTRACT_SEQUENCE.getCollection(),
                 ParameterHelper.getTenantParameter());
 
+        GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+
+        IngestContractManager manager = new IngestContractManager(logbookClient, metaDataClient, eip);
         manager.logStarted();
 
         ArrayNode contractsToPersist = null;
@@ -247,6 +256,12 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         }
 
+        functionalBackupService.saveCollectionAndSequence(
+            eip,
+            CONTRACT_BACKUP_EVENT,
+            FunctionalAdminCollections.INGEST_CONTRACT
+        );
+
         manager.logSuccess();
 
 
@@ -255,7 +270,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     }
 
     private void setIdentifier(boolean slaveMode, IngestContractModel acm)
-        throws InvalidCreateOperationException, InvalidParseOperationException, ReferentialException {
+        throws ReferentialException {
         if (!slaveMode) {
             final String code = vitamCounterService
                 .getNextSequenceAsString(ParameterHelper.getTenantParameter(),
@@ -307,15 +322,16 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
         private List<IngestContractValidator> validators;
 
-        final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
-        private GUID eip = null;
+        private final GUID eip;
 
-        private final LogbookOperationsClient logBookclient;
+        private final LogbookOperationsClient logbookClient;
         private final MetaDataClient metaDataClient;
 
-        public IngestContractManager(LogbookOperationsClient logBookclient, MetaDataClient metaDataClient) {
-            this.logBookclient = logBookclient;
+        public IngestContractManager(LogbookOperationsClient logbookClient, MetaDataClient metaDataClient,
+            GUID eip) {
+            this.logbookClient = logbookClient;
             this.metaDataClient = metaDataClient;
+            this.eip = eip;
             // Init validator
             validators = Arrays.asList(
                 createMandatoryParamsValidator(),
@@ -355,8 +371,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     StatusCode.KO,
                     VitamLogbookMessages.getCodeOp(eventType, StatusCode.KO), eip);
             logbookMessageError(errorsDetails, logbookParameters);
-            helper.updateDelegate(logbookParameters);
-            logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
+            logbookClient.update(logbookParameters);
         }
 
         /**
@@ -374,8 +389,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTRACTS_IMPORT_EVENT + "." +
                 StatusCode.FATAL);
             logbookMessageError(errorsDetails, logbookParameters);
-            helper.updateDelegate(logbookParameters);
-            logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
+            logbookClient.update(logbookParameters);
         }
 
 
@@ -399,15 +413,13 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
          * @throws VitamException
          */
         private void logStarted() throws VitamException {
-            eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eip, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.STARTED,
                     VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.STARTED), eip);
             logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTRACTS_IMPORT_EVENT + "." +
                 StatusCode.STARTED);
-            helper.createDelegate(logbookParameters);
-
+            logbookClient.create(logbookParameters);
         }
 
         /**
@@ -422,8 +434,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.OK), eip);
             logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTRACTS_IMPORT_EVENT + "." +
                 StatusCode.OK);
-            helper.updateDelegate(logbookParameters);
-            logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
+            logbookClient.update(logbookParameters);
         }
 
         /**
@@ -432,7 +443,6 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
          * @throws VitamException
          */
         private void logUpdateStarted(String id) throws VitamException {
-            eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eip, CONTRACT_UPDATE_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.STARTED,
@@ -442,7 +452,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             if (null != id && !id.isEmpty()) {
                 logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, id);
             }
-            helper.createDelegate(logbookParameters);
+            logbookClient.create(logbookParameters);
 
         }
 
@@ -474,8 +484,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 wellFormedJson);
             logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTRACT_UPDATE_EVENT +
                 "." + StatusCode.OK);
-            helper.updateDelegate(logbookParameters);
-            logBookclient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
+            logbookClient.update(logbookParameters);
         }
 
 
@@ -652,7 +661,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
     @Override
     public void close() {
-        logBookclient.close();
+        logbookClient.close();
     }
 
 
@@ -674,6 +683,11 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             return error.addToErrors(new VitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem()).setMessage(
                 INGEST_CONTRACT_NOT_FOUND + identifier));
         }
+
+        GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+
+        IngestContractManager manager = new IngestContractManager(logbookClient, metaDataClient, eip);
+
         manager.logUpdateStarted(ingestContractModel.getId());
 
         final JsonNode actionNode = queryDsl.get(GLOBAL.ACTION.exactToken());
@@ -752,6 +766,13 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
             return error;
         }
+
+        functionalBackupService.saveCollectionAndSequence(
+            eip,
+            CONTRACT_BACKUP_EVENT,
+            FunctionalAdminCollections.INGEST_CONTRACT
+        );
+
         manager.logUpdateSuccess(ingestContractModel.getId(), updateDiffs.get(ingestContractModel.getId()));
         return new RequestResponseOK<>();
     }

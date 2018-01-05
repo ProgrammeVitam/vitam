@@ -15,7 +15,7 @@
  * generally, to use and operate it in the same conditions as regards security. <p> The fact that you are presently
  * reading this means that you have had knowledge of the CeCILL 2.1 license and that you accept its terms.
  */
-package fr.gouv.vitam.functionnal.administration.context.core;
+package fr.gouv.vitam.functional.administration.context.core;
 
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
@@ -25,6 +25,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -70,15 +73,12 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.Context;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.context.api.ContextService;
-import fr.gouv.vitam.functional.administration.context.core.ContextServiceImpl;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
-import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
-import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.security.profile.core.SecurityProfileService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -112,6 +112,7 @@ public class ContextServiceImplTest {
     static MongoClient client;
     private static VitamCounterService vitamCounterService;
     private static MongoDbAccessAdminImpl dbImpl;
+    private static FunctionalBackupService functionalBackupService;
 
     private static ElasticsearchTestConfiguration esConfig = null;
     private final static String HOST_NAME = "127.0.0.1";
@@ -127,6 +128,10 @@ public class ContextServiceImplTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+
+        File tmpFolder = tempFolder.newFolder();
+        System.setProperty("vitam.tmp.folder", tmpFolder.getAbsolutePath());
+
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         junitHelper = JunitHelper.getInstance();
         mongoPort = junitHelper.findAvailablePort();
@@ -153,7 +158,6 @@ public class ContextServiceImplTest {
         esNodes.add(new ElasticsearchNode(HOST_NAME, esConfig.getTcpPort()));
         ElasticsearchAccessAdminFactory.create(CLUSTER_NAME, esNodes);
 
-
         final List tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
         tenants.add(new Integer(EXTERNAL_TENANT));
@@ -168,18 +172,20 @@ public class ContextServiceImplTest {
         securityProfileService = mock(SecurityProfileService.class);
         String securityProfileIdentifier = "SEC_PROFILE-000001";
         when(securityProfileService.findOneByIdentifier(securityProfileIdentifier)).thenReturn(
-            Optional.of(new SecurityProfileModel("guid", securityProfileIdentifier, "SEC PROFILE", true, Collections.EMPTY_SET)));
+            Optional.of(new SecurityProfileModel("guid", securityProfileIdentifier, "SEC PROFILE", true,
+                Collections.EMPTY_SET)));
+
+        functionalBackupService = mock(FunctionalBackupService.class);
+        ingestContractService = mock(ContractService.class);
+        accessContractService = mock(ContractService.class);
 
         contextService =
             new ContextServiceImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
-                vitamCounterService, securityProfileService);
-
-        ingestContractService = new IngestContractImpl(dbImpl, vitamCounterService);
-        accessContractService = new AccessContractImpl(dbImpl, vitamCounterService);
+                vitamCounterService, ingestContractService, accessContractService, securityProfileService);
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(mongoPort);
@@ -188,9 +194,10 @@ public class ContextServiceImplTest {
     }
 
     @After
-    public void afterTest() throws ReferentialException {
+    public void afterTest() {
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         collection.deleteMany(new Document());
+        reset(ingestContractService);
     }
 
     @Test
@@ -201,20 +208,25 @@ public class ContextServiceImplTest {
         final List<IngestContractModel> ingestContractModels =
             JsonHandler.getFromFileAsTypeRefence(fileIngest, new TypeReference<List<IngestContractModel>>() {
             });
+        String INGEST_CONTRACT_ID = "IC-000001";
+        when(ingestContractService.findByIdentifier(INGEST_CONTRACT_ID)).thenReturn(ingestContractModels.get(0));
 
-        ingestContractService.createContracts(ingestContractModels);
-        ingestContractService.findContracts(new Select().getFinalSelect());
         final File fileContexts = PropertiesUtils.getResourceFile("contexts_empty.json");
         final List<ContextModel> ModelList =
             JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
             });
 
-        contextService.createContexts(ModelList);
+        RequestResponse<ContextModel> response = contextService.createContexts(ModelList);
+        assertThat(response.isOk()).isTrue();
+
+        verifyZeroInteractions(ingestContractService);
+        verifyZeroInteractions(accessContractService);
 
         final ObjectNode permissionsNode = JsonHandler.createObjectNode();
         final ObjectNode permissionNode = JsonHandler.createObjectNode();
         permissionNode.put("_tenant", TENANT_ID);
-        permissionNode.set("IngestContracts", JsonHandler.createArrayNode().add("IC-000001"));
+
+        permissionNode.set("IngestContracts", JsonHandler.createArrayNode().add(INGEST_CONTRACT_ID));
         permissionNode.set("AccessContracts", JsonHandler.createArrayNode());
         permissionsNode.set("Permissions", JsonHandler.createArrayNode().add(permissionNode));
         final SetAction setPermission = UpdateActionHelper.set(permissionsNode);
@@ -234,9 +246,13 @@ public class ContextServiceImplTest {
         JsonNode queryDslForUpdate = update.getFinalUpdate();
         final RequestResponse<ContextModel> updateResponse =
             contextService.updateContext(context.getIdentifier(), queryDslForUpdate);
-        assertTrue(updateResponse.isOk());
 
-        permissionNode.set("IngestContracts", JsonHandler.createArrayNode().add("IC-000001500000"));
+        assertTrue(updateResponse.isOk());
+        verify(ingestContractService).findByIdentifier(INGEST_CONTRACT_ID);
+        reset(ingestContractService);
+
+        String INVALID_INGEST_CONTRACT_IDENTIFIER = "IC-000001500000";
+        permissionNode.set("IngestContracts", JsonHandler.createArrayNode().add(INVALID_INGEST_CONTRACT_IDENTIFIER));
         permissionsNode.set("Permissions", JsonHandler.createArrayNode().add(permissionNode));
         final SetAction setInvalidPermission = UpdateActionHelper.set(permissionsNode);
         update.getActions().clear();
@@ -244,6 +260,8 @@ public class ContextServiceImplTest {
         final RequestResponse<ContextModel> updateError =
             contextService.updateContext(context.getIdentifier(), update.getFinalUpdate());
         assertFalse(updateError.isOk());
+        verify(ingestContractService).findByIdentifier(INVALID_INGEST_CONTRACT_IDENTIFIER);
+        verifyZeroInteractions(ingestContractService);
     }
 
     @Test
@@ -251,12 +269,7 @@ public class ContextServiceImplTest {
     public void givenTestImportExternalIdentifier() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
-        final File fileIngest = PropertiesUtils.getResourceFile("referential_contracts_ok_1.json");
-        final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileIngest, new TypeReference<List<IngestContractModel>>() {
-            });
-        ingestContractService.createContracts(IngestContractModelList);
-        ingestContractService.findContracts(new Select().getFinalSelect());
+
         final File fileContexts = PropertiesUtils.getResourceFile("contexts_empty_1.json");
         final List<ContextModel> ModelList =
             JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
@@ -264,18 +277,13 @@ public class ContextServiceImplTest {
 
         RequestResponse<ContextModel> response = contextService.createContexts(ModelList);
         assertThat(response.isOk()).isTrue();
+        verifyZeroInteractions(ingestContractService);
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenTestImportExternalIdentifier_KO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
-        final File fileIngest = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
-        final List<IngestContractModel> IngestContractModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileIngest, new TypeReference<List<IngestContractModel>>() {
-            });
-        ingestContractService.createContracts(IngestContractModelList);
-        ingestContractService.findContracts(new Select().getFinalSelect());
         final File fileContexts = PropertiesUtils.getResourceFile("contexts_empty.json");
         final List<ContextModel> ModelList =
             JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
@@ -284,6 +292,6 @@ public class ContextServiceImplTest {
         RequestResponse<ContextModel> response = contextService.createContexts(ModelList);
         assertThat(response.isOk()).isFalse();
 
+        verifyZeroInteractions(ingestContractService);
     }
-
 }

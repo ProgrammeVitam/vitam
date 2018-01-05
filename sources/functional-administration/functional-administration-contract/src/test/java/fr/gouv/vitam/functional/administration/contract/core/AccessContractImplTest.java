@@ -27,9 +27,15 @@
 package fr.gouv.vitam.functional.administration.contract.core;
 
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.AGENCIES;
+import static fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl.CONTRACT_BACKUP_EVENT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -82,7 +88,9 @@ import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AgenciesParser;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
@@ -122,6 +130,7 @@ public class AccessContractImplTest {
     static MongodProcess mongod;
     static MongoClient client;
     static MetaDataClient metaDataClientMock;
+    static FunctionalBackupService functionalBackupService;
     static VitamCounterService vitamCounterService;
 
 
@@ -159,9 +168,11 @@ public class AccessContractImplTest {
 
         metaDataClientMock = mock(MetaDataClient.class);
 
+        functionalBackupService = mock(FunctionalBackupService.class);
+
         accessContractService =
             new AccessContractImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
-                vitamCounterService, metaDataClientMock);
+                vitamCounterService, metaDataClientMock, functionalBackupService);
         final File fileAgencies = PropertiesUtils.getResourceFile("agencies.csv");
 
         final Thread thread = VitamThreadFactory.getInstance().newThread(() -> {
@@ -217,6 +228,7 @@ public class AccessContractImplTest {
     public void afterTest() {
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         collection.deleteMany(new Document());
+        reset(functionalBackupService);
     }
 
 
@@ -235,6 +247,9 @@ public class AccessContractImplTest {
         assertThat(responseCast.getResults()).hasSize(2);
         assertThat(responseCast.getResults().get(0).getIdentifier()).contains("AC-000");
         assertThat(responseCast.getResults().get(1).getIdentifier()).contains("AC-000");
+
+        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(CONTRACT_BACKUP_EVENT), eq(
+            FunctionalAdminCollections.ACCESS_CONTRACT));
     }
 
     @Test
@@ -248,6 +263,9 @@ public class AccessContractImplTest {
         final RequestResponse response = accessContractService.createContracts(accessContractModelList);
 
         assertThat(response.isOk()).isFalse();
+
+        verifyNoMoreInteractions(functionalBackupService);
+
     }
 
     @Test
@@ -768,15 +786,15 @@ public class AccessContractImplTest {
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_empty_root_units.json");
 
         final List<AccessContractModel> accessContractModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
-                });
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
+            });
         final RequestResponse response = accessContractService.createContracts(accessContractModelList);
 
         assertThat(response.isOk()).isTrue();
         assertThat(((RequestResponseOK) response).getResults()).hasSize(2);
         assertThat(((RequestResponseOK<AccessContractModel>) response).getResults().get(0).getName()).contains("aName");
         assertThat(((RequestResponseOK<AccessContractModel>) response).getResults().get(1).getName())
-                .contains("aName1");
+            .contains("aName1");
     }
 
 

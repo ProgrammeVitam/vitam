@@ -28,7 +28,9 @@ package fr.gouv.vitam.functional.administration.context.core;
 
 import java.util.Optional;
 
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 
 public interface ContextValidator {
     /**
@@ -37,7 +39,8 @@ public interface ContextValidator {
      * @param context to validate
      * @return empty optional if OK, Else return the rejection cause
      */
-    Optional<ContextRejectionCause> validate(ContextModel context);
+    Optional<ContextRejectionCause> validate(ContextModel context)
+        throws ReferentialException, InvalidParseOperationException;
 
     public class ContextRejectionCause {
         public static String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating context (%s)";

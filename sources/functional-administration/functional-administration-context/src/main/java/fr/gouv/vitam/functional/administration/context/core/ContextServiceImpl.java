@@ -84,10 +84,10 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminI
 import fr.gouv.vitam.functional.administration.context.api.ContextService;
 import fr.gouv.vitam.functional.administration.context.core.ContextValidator.ContextRejectionCause;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
-import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
-import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
+import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
 import fr.gouv.vitam.functional.administration.security.profile.core.SecurityProfileService;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
@@ -97,6 +97,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import org.apache.commons.lang.StringUtils;
+import org.assertj.core.util.VisibleForTesting;
 import org.bson.conversions.Bson;
 
 public class ContextServiceImpl implements ContextService {
@@ -130,8 +131,28 @@ public class ContextServiceImpl implements ContextService {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
-        manager = new ContextManager(logBookclient, mongoAccess, vitamCounterService, securityProfileService);
+        ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess, vitamCounterService);
+        ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess, vitamCounterService);
+        manager = new ContextManager(logBookclient, accessContract, ingestContract,
+            securityProfileService);
+    }
 
+    /**
+     * Constructor
+     *
+     * @param mongoAccess MongoDB client
+     */
+    @VisibleForTesting
+    public ContextServiceImpl(
+        MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService,
+        ContractService<IngestContractModel> ingestContract,
+        ContractService<AccessContractModel> accessContract,
+        SecurityProfileService securityProfileService) {
+        this.mongoAccess = mongoAccess;
+        this.vitamCounterService = vitamCounterService;
+        logBookclient = LogbookOperationsClientFactory.getInstance().getClient();
+        manager = new ContextManager(logBookclient, accessContract, ingestContract,
+            securityProfileService);
     }
 
     @Override
@@ -223,13 +244,13 @@ public class ContextServiceImpl implements ContextService {
 
     @Override
     public DbRequestResult findContexts(JsonNode queryDsl)
-        throws ReferentialException, InvalidParseOperationException {
+        throws ReferentialException {
         return mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.CONTEXT);
     }
 
     @Override
     public ContextModel findOneContextById(String id)
-        throws ReferentialNotFoundException, ReferentialException, InvalidParseOperationException {
+        throws ReferentialException, InvalidParseOperationException {
         SanityChecker.checkParameter(id);
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         parser.parse(new Select().getFinalSelect());
@@ -293,34 +314,34 @@ public class ContextServiceImpl implements ContextService {
         String diff = null;
         try {
             DbRequestResult result = mongoAccess.updateData(queryDsl, FunctionalAdminCollections.CONTEXT);
-            
+
             List<String> updates = null;
             // if at least one change was applied
-            if(result.getCount() > 0) {
+            if (result.getCount() > 0) {
                 // get first list of changes as we updated only one context
                 updates = result.getDiffs().values().stream().findFirst().get();
             }
 
             // close result
             result.close();
-            
+
             // create diff for evDetData
-            if(updates != null && updates.size() > 0){
+            if (updates != null && updates.size() > 0) {
                 // concat changes
-                String modifs = updates.stream ().map (i -> i.toString ()).collect (Collectors.joining ("\n"));
-                
+                String modifs = updates.stream().map(i -> i.toString()).collect(Collectors.joining("\n"));
+
                 // create diff as json string
                 final ObjectNode diffObject = JsonHandler.createObjectNode();
                 diffObject.put("diff", modifs);
                 diff = SanityChecker.sanitizeJson(diffObject);
             }
-        
+
         } catch (final ReferentialException e) {
             final String err = "Update context error > " + e.getMessage();
             error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
-                    .setDescription(err)
-                    .setHttpCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
-            
+                .setDescription(err)
+                .setHttpCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+
             // logbook error event 
             manager.logFatalError(err);
             return error;
@@ -345,11 +366,12 @@ public class ContextServiceImpl implements ContextService {
         private List<ContextValidator> validators;
 
         public ContextManager(LogbookOperationsClient logBookclient,
-            MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService,
+            ContractService<AccessContractModel> accessContract,
+            ContractService<IngestContractModel> ingestContract,
             SecurityProfileService securityProfileService) {
             this.logBookclient = logBookclient;
-            ingestContract = new IngestContractImpl(mongoAccess, vitamCounterService);
-            accessContract = new AccessContractImpl(mongoAccess, vitamCounterService);
+            this.accessContract = accessContract;
+            this.ingestContract = ingestContract;
             this.securityProfileService = securityProfileService;
             // Init validator
             validators = Arrays.asList(
@@ -359,7 +381,8 @@ public class ContextServiceImpl implements ContextService {
                 checkContract());
         }
 
-        public boolean validateContext(ContextModel context, VitamError error) {
+        public boolean validateContext(ContextModel context, VitamError error)
+            throws ReferentialException, InvalidParseOperationException {
             for (final ContextValidator validator : validators) {
                 final Optional<ContextRejectionCause> result = validator.validate(context);
                 if (result.isPresent()) {
@@ -445,7 +468,7 @@ public class ContextServiceImpl implements ContextService {
                 logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, id);
             }
             logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
-                    evDetData);
+                evDetData);
             logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTEXTS_UPDATE_EVENT +
                 "." + StatusCode.OK);
             helper.updateDelegate(logbookParameters);
@@ -598,39 +621,28 @@ public class ContextServiceImpl implements ContextService {
         }
 
 
-        public boolean checkIdentifierOfIngestContract(String ic, int tenant) {
-            final Select select = new Select();
+        public boolean checkIdentifierOfIngestContract(String ic, int tenant)
+            throws ReferentialException, InvalidParseOperationException {
+
+            int initialTenant = VitamThreadUtils.getVitamSession().getTenantId();
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(tenant);
-                final Query query = QueryHelper.and().add(QueryHelper.eq(IDENTIFIER, ic));
-                select.setQuery(query);
-                final JsonNode queryDsl = select.getFinalSelect();
-                if (ingestContract.findContracts(queryDsl).isEmpty()) {
-                    return false;
-                }
-            } catch (InvalidCreateOperationException | ReferentialException | InvalidParseOperationException e) {
-                return false;
+                return (null != ingestContract.findByIdentifier(ic));
+            } finally {
+                VitamThreadUtils.getVitamSession().setTenantId(initialTenant);
             }
-
-            return true;
         }
 
-        public boolean checkIdentifierOfAccessContract(String ac, int tenant) {
+        public boolean checkIdentifierOfAccessContract(String ac, int tenant)
+            throws ReferentialException, InvalidParseOperationException {
 
-            final Select select = new Select();
+            int initialTenant = VitamThreadUtils.getVitamSession().getTenantId();
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(tenant);
-                final Query query = QueryHelper.and().add(QueryHelper.eq(IDENTIFIER, ac));
-                select.setQuery(query);
-                final JsonNode queryDsl = select.getFinalSelect();
-                if (accessContract.findContracts(queryDsl).isEmpty()) {
-                    return false;
-                }
-            } catch (InvalidCreateOperationException | ReferentialException | InvalidParseOperationException e) {
-                return false;
+                return (null != accessContract.findByIdentifier(ac));
+            } finally {
+                VitamThreadUtils.getVitamSession().setTenantId(initialTenant);
             }
-
-            return true;
         }
 
         /**
