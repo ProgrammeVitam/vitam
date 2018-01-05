@@ -1,57 +1,5 @@
 {
-  "collections": [
-    {
-      "RuleId": "R3",
-      "RuleType": "StorageRule",
-      "RuleValue": "Règle de gestion R3 de test de trois ans",
-      "RuleDescription": "",
-      "RuleDuration": "3",
-      "RuleMeasurement": "Year",
-      "CreationDate": "2017-11-07T12:10:55.487",
-      "UpdateDate": "2017-11-07T12:10:55.487",
-      "_v": 1,
-      "#id": "aeaaaaaaaaexsls2aaf3sak7szr7xsiaaaeq",
-      "#tenant": 0
-    },
-    {
-      "RuleId": "ACC-00019",
-      "RuleType": "AccessRule",
-      "RuleValue": "Communicabilité des informations portant atteinte au secret en matière de statistiques lorsque sont en cause des données collectées au moyen de questionnaires ayant trait aux faits et comportements d'ordre privé (individus dont la date de décès est inconnue)",
-      "RuleDescription": "Durée de communicabilité applicable aux informations portant atteinte au secret en matière de statistiques lorsque sont en cause des données collectées au moyen de questionnaires ayant trait aux faits et comportements d'ordre privé (individus dont la date de décès est inconnue)\nL’échéance est calculée à partir de la date du document ou du document le plus récent inclus dans le dossier",
-      "RuleDuration": "75",
-      "RuleMeasurement": "Year",
-      "CreationDate": "2017-11-07T12:10:55.484",
-      "UpdateDate": "2017-11-07T12:10:55.484",
-      "_v": 1,
-      "#id": "aeaaaaaaaaexsls2aaf3sak7szr7xsaaaakq",
-      "#tenant": 0
-    },
-    {
-      "RuleId": "ACC-00012",
-      "RuleType": "AccessRule",
-      "RuleValue": "Communicabilité des informations portant atteinte aux intérêts fondamentaux de l’État dans la conduite de la politique extérieure",
-      "RuleDescription": "Durée de communicabilité applicable aux informations portant atteinte aux intérêts fondamentaux de l’État dans la conduite de la politique extérieure\nL’échéance est calculée à partir de la date du document ou du document le plus récent inclus dans le dossier",
-      "RuleDuration": "50",
-      "RuleMeasurement": "Year",
-      "CreationDate": "2017-11-07T12:10:55.484",
-      "UpdateDate": "2017-11-07T12:10:55.484",
-      "_v": 1,
-      "#id": "aeaaaaaaaaexsls2aaf3sak7szr7xsaaaaha",
-      "#tenant": 0
-    },
-    {
-      "RuleId": "ACC-00004",
-      "RuleType": "AccessRule",
-      "RuleValue": "Communicabilité des informations portant atteinte à la monnaie et au crédit public (date du document)",
-      "RuleDescription": "Durée de communicabilité applicable aux informations portant atteinte à la monnaie et au crédit public\nL’échéance est calculée à partir de la date du document ou du document le plus récent inclus dans le dossier",
-      "RuleDuration": "25",
-      "RuleMeasurement": "Year",
-      "CreationDate": "2017-11-07T12:10:55.483",
-      "UpdateDate": "2017-11-07T12:10:55.483",
-      "_v": 1,
-      "#id": "aeaaaaaaaaexsls2aaf3sak7szr7xsaaaada",
-      "#tenant": 0
-    },
+  "collection": [
     {
       "RuleId": "STO-00002",
       "RuleType": "StorageRule",
@@ -714,51 +662,12 @@
       "_v": 1,
       "#id": "aeaaaaaaaaexsls2aaf3sak7szr7xsiaaadq",
       "#tenant": 0
-    },
-    {
-      "RuleId": "APP-00001",
-      "RuleType": "AppraisalRule",
-      "RuleValue": "Dossier individuel d’agent civil",
-      "RuleDescription": "Durée de conservation des dossiers individuels d’agents. \nL’échéance est calculée à partir de la date de naissance de l’agent",
-      "RuleDuration": "80",
-      "RuleMeasurement": "Year",
-      "CreationDate": "2017-11-07T12:10:55.482",
-      "UpdateDate": "2017-11-07T12:10:55.482",
-      "_v": 1,
-      "#id": "aeaaaaaaaaexsls2aaf3sak7szr7xsaaaaaq",
-      "#tenant": 0
-    },
-    {
-      "RuleId": "ACC-00016",
-      "RuleType": "AccessRule",
-      "RuleValue": "Communicabilité des informations portant atteinte à la protection de la vie privée",
-      "RuleDescription": "Durée de communicabilité applicable aux informations portant atteinte à la protection de la vie privée\nL’échéance est calculée à partir de la date du document ou du document le plus récent inclus dans le dossier",
-      "RuleDuration": "50",
-      "RuleMeasurement": "Year",
-      "CreationDate": "2017-11-07T12:10:55.484",
-      "UpdateDate": "2017-11-07T12:10:55.484",
-      "_v": 1,
-      "#id": "aeaaaaaaaaexsls2aaf3sak7szr7xsaaaaja",
-      "#tenant": 0
-    },
-    {
-      "RuleId": "ACC-00008",
-      "RuleType": "AccessRule",
-      "RuleValue": "Communicabilité des documents mentionnés à l’article L311-2 du code des relations entre le public et l’administration",
-      "RuleDescription": "Durée de communicabilité applicable aux documents mentionnés à l’article L311-2 du code des relations entre le public et l’administration\nL’échéance est calculée à partir de la date du document ou du document le plus récent inclus dans le dossier",
-      "RuleDuration": "25",
-      "RuleMeasurement": "Year",
-      "CreationDate": "2017-11-07T12:10:55.483",
-      "UpdateDate": "2017-11-07T12:10:55.483",
-      "_v": 1,
-      "#id": "aeaaaaaaaaexsls2aaf3sak7szr7xsaaaafa",
-      "#tenant": 0
     }
   ],
   "sequence": {
     "_id": "aeaaaaaaaahxgulrabfakalaehpmthyaaaaq",
     "Name": "PR",
-    "Counter": 1,
+    "Counter": 3,
     "_tenant": 0,
     "_v": 0
   }

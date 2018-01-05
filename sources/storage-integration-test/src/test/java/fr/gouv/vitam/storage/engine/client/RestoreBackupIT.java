@@ -228,7 +228,7 @@ public class RestoreBackupIT {
 
         Assert.assertTrue(lastBackupVersion.isPresent());
         LOGGER.debug(String.format("Last backup version -> %s", lastBackupVersion.get()));
-        Assert.assertEquals("0_RULES_101.json", lastBackupVersion.get());
+        Assert.assertEquals("0_FileRules_101.json", lastBackupVersion.get());
     }
 
     @Test
