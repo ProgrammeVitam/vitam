@@ -35,29 +35,29 @@ import fr.gouv.vitam.common.server.application.configuration.DefaultVitamIHMAppl
  */
 public class WebApplicationConfig extends DefaultVitamIHMApplicationConfiguration {
 
-    private String staticContentV2;
-    private String baseUriV2;
+    private String staticContent;
+    private String baseUri;
     private List<String> secureMode;
 
     @Override
-    public String getStaticContentV2() {
-        return staticContentV2;
+    public String getStaticContent() {
+        return staticContent;
     }
 
     @Override
-    public WebApplicationConfig setStaticContentV2(String staticContentV2) {
-        this.staticContentV2 = staticContentV2;
+    public WebApplicationConfig setStaticContent(String staticContent) {
+        this.staticContent = staticContent;
         return this;
     }
 
     @Override
-    public String getBaseUriV2() {
-        return baseUriV2;
+    public String getBaseUri() {
+        return baseUri;
     }
 
     @Override
-    public WebApplicationConfig setBaseUriV2(String baseUriV2) {
-        this.baseUriV2 = baseUriV2;
+    public WebApplicationConfig setBaseUri(String baseUri) {
+        this.baseUri = baseUri;
         return this;
     }
 

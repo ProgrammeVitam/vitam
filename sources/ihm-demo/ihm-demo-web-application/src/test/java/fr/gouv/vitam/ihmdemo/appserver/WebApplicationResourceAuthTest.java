@@ -102,7 +102,7 @@ public class WebApplicationResourceAuthTest {
             (WebApplicationConfig) new WebApplicationConfig().setPort(port)
                 .setServerHost(DEFAULT_HOST).setJettyConfig(JETTY_CONFIG)
                 .setBaseUrl(DEFAULT_WEB_APP_CONTEXT).setAuthentication(true)
-                .setStaticContentV2(DEFAULT_STATIC_CONTENT_V2).setBaseUriV2(DEFAULT_WEB_APP_CONTEXT_V2)
+                .setStaticContent(DEFAULT_STATIC_CONTENT_V2).setBaseUri(DEFAULT_WEB_APP_CONTEXT_V2)
                 .setTenants(tenants);
         webApplicationConfig.setSecureMode(Arrays.asList("File", "LDAP"));
         final File conf = PropertiesUtils.findFile(IHM_DEMO_CONF);

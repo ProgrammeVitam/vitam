@@ -2,8 +2,8 @@ serverHost: {{ ip_service }}
 port: {{ vitam_struct.port_http }}
 
 baseUrl: "{{ vitam_struct.baseurl }}"
-staticContentV2: {{ vitam_struct.static_content_v2 }}
-baseUriV2: /{{vitam_struct.baseuri_v2}}
+staticContent: {{ vitam_struct.static_content }}
+baseUri: /{{vitam_struct.baseuri}}
 secureMode:
 {% for realm in vitam_struct.authentication_realms %}
 - {{ realm }}
