@@ -93,10 +93,20 @@ public interface VitamRepository {
 
 
     /**
+     * find by identifier for all tenant
      * @param identifier
      * @param tenant
      * @return
      * @throws DatabaseException
      */
     Optional<Document> findByIdentifierAndTenant(String identifier, Integer tenant) throws DatabaseException;
+
+    /**
+     * Find by identifier for collections cross tenant
+     * @param identifier
+     * @return
+     * @throws DatabaseException
+     */
+    Optional<Document> findByIdentifier(String identifier) throws DatabaseException;
+
 }

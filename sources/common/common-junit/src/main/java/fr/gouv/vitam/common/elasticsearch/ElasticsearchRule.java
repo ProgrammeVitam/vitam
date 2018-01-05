@@ -36,6 +36,7 @@ import java.util.List;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.NodeWithPlugins;
+import org.apache.commons.io.FileUtils;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
@@ -152,7 +153,13 @@ public class ElasticsearchRule extends ExternalResource {
     public void afterClass() {
 
         if (null != temporaryFolder && temporaryFolder.exists()) {
-            temporaryFolder.delete();
+            try {
+                // if clean offer delete did not work
+                FileUtils.cleanDirectory(temporaryFolder);
+                FileUtils.deleteDirectory(temporaryFolder);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

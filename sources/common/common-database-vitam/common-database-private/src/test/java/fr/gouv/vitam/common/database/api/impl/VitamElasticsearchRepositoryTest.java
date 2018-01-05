@@ -40,8 +40,11 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import org.apache.commons.lang3.RandomUtils;
 import org.bson.Document;
+import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -52,9 +55,36 @@ import org.junit.rules.TemporaryFolder;
  */
 public class VitamElasticsearchRepositoryTest {
 
+    private static String ES_CONFIGURATION_FILE = "/elasticsearch-configuration.json";
+
     public static final String TESTINDEX = "testindex";
     private static VitamElasticsearchRepository repository;
 
+
+    private static final String mapping = "{\n" +
+        "  \"properties\": {\n" +
+        "    \"Identifier\": {\n" +
+        "      \"type\": \"keyword\"\n" +
+        "    },\n" +
+        "    \"Name\": {\n" +
+        "      \"type\": \"text\",\n" +
+        "      \"fielddata\": true\n" +
+        "    },\n" +
+        "    \"Description\": {\n" +
+        "      \"type\": \"text\"\n" +
+        "    },\n" +
+        "    \"_tenant\": {\n" +
+        "      \"type\": \"long\"\n" +
+        "    },\n" +
+        "    \"_v\": {\n" +
+        "      \"type\": \"long\"\n" +
+        "    },\n" +
+        "    \"_score\": {\n" +
+        "      \"type\": \"object\",\n" +
+        "      \"enabled\": false\n" +
+        "    }\n" +
+        "  }\n" +
+        "}";
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
@@ -65,10 +95,16 @@ public class VitamElasticsearchRepositoryTest {
     }
 
 
+
     @Before
     public void setUpBeforeClass() throws Exception {
         repository = new VitamElasticsearchRepository(elasticsearchRule.getClient(), TESTINDEX, false);
 
+        /*
+         *findByIdentifierAndTenant works only if identifier is term (not text)
+         * As es by default detect Identifier as text we shoud pre-create index with correct mapping
+         */
+        createIndexWithMapping(elasticsearchRule.getClient());
     }
 
     @Test
@@ -161,5 +197,87 @@ public class VitamElasticsearchRepositoryTest {
         }
         Optional<Document> response = repository.getByID(GUIDFactory.newGUID().toString(), tenant);
         assertThat(response).isEmpty();
+    }
+
+    @Test
+    public void testFindByIdentifierAndTenantFoundOK() throws IOException, DatabaseException {
+        String id = GUIDFactory.newGUID().toString();
+        Integer tenant = 0;
+        XContentBuilder builder = jsonBuilder()
+            .startObject()
+            .field(VitamDocument.ID, id)
+            .field(VitamDocument.TENANT_ID, tenant)
+            .field("Identifier", "FakeIdentifier")
+            .field("Title", "Test save")
+            .endObject();
+
+        Document document = Document.parse(builder.string());
+        repository.save(document);
+
+        Optional<Document> response = repository.getByID(id, tenant);
+        assertThat(response).isPresent();
+        assertThat(response.get()).extracting("Title").contains("Test save");
+
+        response = repository.findByIdentifierAndTenant("FakeIdentifier", tenant);
+        assertThat(response).isPresent();
+        assertThat(response.get()).extracting("Title").contains("Test save");
+    }
+
+    @Test
+    public void testFindByIdentifierFoundOK() throws IOException, DatabaseException {
+        String id = GUIDFactory.newGUID().toString();
+        Integer tenant = 0;
+        XContentBuilder builder = jsonBuilder()
+            .startObject()
+            .field(VitamDocument.ID, id)
+            .field("Identifier", "FakeIdentifier")
+            .field("Title", "Test save")
+            .endObject();
+
+        Document document = Document.parse(builder.string());
+        repository.save(document);
+
+        Optional<Document> response = repository.getByID(id, tenant);
+        assertThat(response).isPresent();
+        assertThat(response.get()).extracting("Title").contains("Test save");
+
+        response = repository.findByIdentifier("FakeIdentifier");
+        assertThat(response).isPresent();
+        assertThat(response.get()).extracting("Title").contains("Test save");
+    }
+
+    private void createIndexWithMapping(Client client) throws IOException {
+        if (!client.admin().indices().prepareExists(TESTINDEX).get().isExists()) {
+            final CreateIndexResponse createIndexResponse =
+                client.admin().indices().prepareCreate(TESTINDEX)
+                    .setSettings(settings())
+                    .addMapping("typeunique", mapping, XContentType.JSON)
+                    .get();
+            assertThat(createIndexResponse.isAcknowledged()).isTrue();
+        }
+    }
+
+    @Test
+    public void testFindByIdentifierFoundEmpty() throws DatabaseException {
+        Integer tenant = 0;
+        Optional<Document> response = repository.findByIdentifier("FakeIdentifier");
+        assertThat(response).isEmpty();
+    }
+
+    @Test
+    public void testFindByIdentifierAndTenantFoundEmpty() throws DatabaseException {
+        Integer tenant = 0;
+        Optional<Document> response = repository.findByIdentifierAndTenant("FakeIdentifier", tenant);
+        assertThat(response).isEmpty();
+    }
+
+    @Test(expected = DatabaseException.class)
+    public void testRemoveByNameAndTenantNotImplemented() throws DatabaseException {
+        repository.removeByNameAndTenant("FakeName", 0);
+    }
+
+    public Settings.Builder settings() throws IOException {
+        return Settings.builder().loadFromStream(ES_CONFIGURATION_FILE,
+            VitamElasticsearchRepositoryTest.class.getResourceAsStream(ES_CONFIGURATION_FILE));
     }
 }

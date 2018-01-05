@@ -43,7 +43,6 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import org.apache.commons.lang3.RandomUtils;
-import org.assertj.core.api.Assertions;
 import org.bson.Document;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.junit.Before;
@@ -89,8 +88,8 @@ public class VitamMongoRepositoryTest {
         repository.save(document);
 
         Optional<Document> response = repository.getByID(id, tenant);
-        Assertions.assertThat(response).isPresent();
-        Assertions.assertThat(response.get()).extracting("Title").contains("Test save");
+        assertThat(response).isPresent();
+        assertThat(response.get()).extracting("Title").contains("Test save");
     }
 
     @Test
@@ -110,7 +109,7 @@ public class VitamMongoRepositoryTest {
         MongoCollection<Document> collection = mongoRule.getMongoCollection(TEST_COLLECTION);
 
         long count = collection.count();
-        Assertions.assertThat(count).isEqualTo(100);
+        assertThat(count).isEqualTo(100);
     }
 
     @Test
@@ -130,7 +129,7 @@ public class VitamMongoRepositoryTest {
         MongoCollection<Document> collection = mongoRule.getMongoCollection(TEST_COLLECTION);
 
         long count = collection.count();
-        Assertions.assertThat(count).isEqualTo(101);
+        assertThat(count).isEqualTo(101);
 
         long deleted = repository.purge(0);
         assertThat(deleted).isEqualTo(101);
@@ -152,26 +151,109 @@ public class VitamMongoRepositoryTest {
         repository.save(document);
 
         Optional<Document> response = repository.getByID(id, tenant);
-        Assertions.assertThat(response).isPresent();
-        Assertions.assertThat(response.get()).extracting("Title").contains("Test save");
+        assertThat(response).isPresent();
+        assertThat(response.get()).extracting("Title").contains("Test save");
 
         repository.remove(id, tenant);
         response = repository.getByID(id, tenant);
-        Assertions.assertThat(response).isEmpty();
+        assertThat(response).isEmpty();
     }
 
 
     @Test(expected = DatabaseException.class)
-    public void testRemoveNotExists() throws IOException, DatabaseException {
+    public void testRemoveNotExists() throws DatabaseException {
         String id = GUIDFactory.newGUID().toString();
         Integer tenant = 0;
         repository.remove(id, tenant);
     }
 
     @Test
-    public void testGetByIDNotExistsOK() throws IOException, DatabaseException {
+    public void testGetByIDNotExistsOK() throws DatabaseException {
         Optional<Document> response = repository.getByID(GUIDFactory.newGUID().toString(), 0);
-        Assertions.assertThat(response).isEmpty();
+        assertThat(response).isEmpty();
     }
 
+    @Test
+    public void testFindByIdentifierAndTenantFoundOK() throws IOException, DatabaseException {
+        String id = GUIDFactory.newGUID().toString();
+        Integer tenant = 0;
+        XContentBuilder builder = jsonBuilder()
+            .startObject()
+            .field(VitamDocument.ID, id)
+            .field(VitamDocument.TENANT_ID, tenant)
+            .field("Identifier", "FakeIdentifier")
+            .field("Title", "Test save")
+            .endObject();
+
+        Document document = Document.parse(builder.string());
+        repository.save(document);
+
+        Optional<Document> response = repository.findByIdentifierAndTenant("FakeIdentifier", tenant);
+        assertThat(response).isPresent();
+        assertThat(response.get()).extracting("Title").contains("Test save");
+    }
+
+    @Test
+    public void testFindByIdentifierFoundOK() throws IOException, DatabaseException {
+        String id = GUIDFactory.newGUID().toString();
+        Integer tenant = 0;
+        XContentBuilder builder = jsonBuilder()
+            .startObject()
+            .field(VitamDocument.ID, id)
+            .field("Identifier", "FakeIdentifier")
+            .field("Title", "Test save")
+            .endObject();
+
+        Document document = Document.parse(builder.string());
+        repository.save(document);
+
+        Optional<Document> response = repository.findByIdentifier("FakeIdentifier");
+        assertThat(response).isPresent();
+        assertThat(response.get()).extracting("Title").contains("Test save");
+    }
+
+    @Test
+    public void testFindByIdentifierAndTenantFoundEmpty() throws DatabaseException {
+        Integer tenant = 0;
+        Optional<Document> response = repository.findByIdentifierAndTenant("FakeIdentifier", tenant);
+        assertThat(response).isEmpty();
+    }
+
+    @Test
+    public void testFindByIdentifierFoundEmpty() throws DatabaseException {
+        Integer tenant = 0;
+        Optional<Document> response = repository.findByIdentifier("FakeIdentifier");
+        assertThat(response).isEmpty();
+    }
+
+    @Test
+    public void testRemoveByNameAndTenantOK() throws IOException, DatabaseException {
+        String id = GUIDFactory.newGUID().toString();
+        Integer tenant = 0;
+        XContentBuilder builder = jsonBuilder()
+            .startObject()
+            .field(VitamDocument.ID, id)
+            .field(VitamDocument.TENANT_ID, tenant)
+            .field("Identifier", "FakeIdentifier")
+            .field("Name", "FakeName")
+            .field("Title", "Test save")
+            .endObject();
+
+        Document document = Document.parse(builder.string());
+        repository.save(document);
+
+        Optional<Document> response = repository.findByIdentifierAndTenant("FakeIdentifier", tenant);
+        assertThat(response).isPresent();
+        assertThat(response.get()).extracting("Title").contains("Test save");
+
+        repository.removeByNameAndTenant("FakeName", tenant);
+        response = repository.findByIdentifierAndTenant("FakeIdentifier", tenant);
+        assertThat(response).isEmpty();
+    }
+
+    @Test(expected = DatabaseException.class)
+    public void testRemoveByNameAndTenantNotExistingOK() throws DatabaseException {
+        Integer tenant = 0;
+        repository.removeByNameAndTenant("FakeName", tenant);
+    }
 }

@@ -72,9 +72,6 @@ public class VitamElasticsearchRepository implements VitamRepository {
     private boolean indexByTenant;
 
 
-    public VitamElasticsearchRepository() {
-    }
-
     /**
      * @param client
      * @param indexName
@@ -259,6 +256,28 @@ public class VitamElasticsearchRepository implements VitamRepository {
 
         SearchResponse search = client.prepareSearch(index)
             .setQuery(qb).get();
+        for (SearchHit hit : search.getHits().getHits()) {
+            try {
+                return Optional.of(JsonHandler.getFromString(hit.getSourceAsString(), Document.class));
+            } catch (InvalidParseOperationException e) {
+                throw new DatabaseException(e);
+            }
+        }
+
+        return Optional.empty();
+
+    }
+
+    @Override
+    public Optional<Document> findByIdentifier(String identifier)
+        throws DatabaseException {
+        ParametersChecker.checkParameter("All params are required");
+
+        String index = indexName;
+
+
+        SearchResponse search = client.prepareSearch(index)
+            .setQuery(termQuery(IDENTIFIER, identifier)).get();
         for (SearchHit hit : search.getHits().getHits()) {
             try {
                 return Optional.of(JsonHandler.getFromString(hit.getSourceAsString(), Document.class));

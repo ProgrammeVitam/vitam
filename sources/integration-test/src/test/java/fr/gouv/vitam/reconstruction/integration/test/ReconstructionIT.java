@@ -56,7 +56,6 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.VitamRepositoryFactory;
 import fr.gouv.vitam.functional.administration.common.VitamRepositoryProvider;
-import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
 import fr.gouv.vitam.functional.administration.common.impl.ReconstructionServiceImpl;
 import fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
@@ -107,8 +106,6 @@ public class ReconstructionIT {
         "integration-reconstruction/functional-administration.conf";
 
     private static final String OFFER_FOLDER = "offer";
-    private static final String BACKUP_COPY_FOLDER = "integration-reconstruction/backup";
-    private static final String STRATEGY_ID = "default";
     public static final int TENANT_0 = 0;
     public static final String AGENCY_IDENTIFIER_1 = "FR_ORG_AGEN";
     public static final String AGENCY_IDENTIFIER_2 = "FRAN_NP_005568";
@@ -144,10 +141,6 @@ public class ReconstructionIT {
 
     private static AdminManagementMain adminManagementMain;
 
-
-
-    private static RestoreBackupService recoverBuckupService;
-
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
@@ -169,19 +162,7 @@ public class ReconstructionIT {
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
-        File workspaceFolder = new File(CONTAINER);
-        if (workspaceFolder.exists()) {
-            try {
-                // if clean workspace delete did not work
-                FileUtils.cleanDirectory(workspaceFolder);
-                FileUtils.deleteDirectory(workspaceFolder);
-            } catch (Exception e) {
-                LOGGER.error("ERROR: Exception has been thrown when cleanning workspace:", e);
-            }
-        }
-
         containerName = String.format("%s_%s", TENANT_0, StorageCollectionType.BACKUP.toString().toLowerCase());
-        recoverBuckupService = new RestoreBackupServiceImpl();
 
         // launch functional Admin server
         final List<ElasticsearchNode> nodesEs = new ArrayList<>();

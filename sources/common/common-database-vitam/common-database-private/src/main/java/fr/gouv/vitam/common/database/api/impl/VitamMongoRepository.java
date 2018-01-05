@@ -111,10 +111,10 @@ public class VitamMongoRepository implements VitamRepository {
         long count = delete.getDeletedCount();
         if (count == 0) {
             LOGGER.error(String
-                .format("Error while removeByNameAndTenant> identifier : %s and tenant: %s",
+                .format("Error while removeByNameAndTenant> Name : %s and tenant: %s",
                     name, tenant));
             throw new DatabaseException(String
-                .format("Error while removeByNameAndTenant> identifier : %s and tenant: %s",
+                .format("Error while removeByNameAndTenant> Name : %s and tenant: %s",
                     name, tenant));
         }
 
@@ -155,8 +155,6 @@ public class VitamMongoRepository implements VitamRepository {
     public Optional<Document> findByIdentifierAndTenant(String identifier, Integer tenant)
         throws DatabaseException {
         ParametersChecker.checkParameter("All params are required", identifier, tenant);
-
-
         Bson query = and(eq("Identifier", identifier), eq(VitamDocument.TENANT_ID, tenant));
         try {
             FindIterable<Document> result = collection.find(query);
@@ -172,6 +170,26 @@ public class VitamMongoRepository implements VitamRepository {
             throw new DatabaseException(String
                 .format("Error while findByIdentifierAndTenant > identifier : %s and tenant: %s",
                     identifier, tenant), e);
+        }
+    }
+
+    @Override
+    public Optional<Document> findByIdentifier(String identifier) throws DatabaseException {
+        ParametersChecker.checkParameter("All params are required", identifier);
+        try {
+            FindIterable<Document> result = collection.find(eq("Identifier", identifier));
+            if (result.iterator().hasNext()) {
+                return Optional.of(result.first());
+            } else {
+                return Optional.empty();
+            }
+        } catch (Exception e) {
+            LOGGER.error(String
+                .format("Error while findByIdentifierAndTenant > identifier : %s",
+                    identifier), e);
+            throw new DatabaseException(String
+                .format("Error while findByIdentifierAndTenant > identifier : %s",
+                    identifier), e);
         }
     }
 }
