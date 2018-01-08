@@ -896,7 +896,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                 if (message.contains(RULE_MEASUREMENT + " not found")) {
                     message = ReportConstants.FILE_INVALID + RULE_MEASUREMENT;
                 }
-                throw new ReferentialException(message);
+                throw new FileRulesCsvException(message);
             } catch (Exception e) {
                 throw new ReferentialException(e);
             }
