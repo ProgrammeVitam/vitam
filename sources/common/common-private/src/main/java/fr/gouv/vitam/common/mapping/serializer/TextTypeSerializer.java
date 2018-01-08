@@ -25,30 +25,25 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.worker.core.extractseda;
-
-import static java.util.Objects.isNull;
-
-import java.io.IOException;
-import java.util.Objects;
+package fr.gouv.vitam.common.mapping.serializer;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.google.common.base.Strings;
-
-import fr.gouv.culture.archivesdefrance.seda.v2.KeywordsType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+
+import java.io.IOException;
 
 /**
  * textType serializer
  */
-public class KeywordTypeSerializer extends StdSerializer<KeywordsType.KeywordType> {
+public class TextTypeSerializer extends StdSerializer<TextType> {
 
     /**
      * default constructor
      */
-    public KeywordTypeSerializer() {
+    public TextTypeSerializer() {
         this(null);
     }
 
@@ -57,23 +52,23 @@ public class KeywordTypeSerializer extends StdSerializer<KeywordsType.KeywordTyp
      *
      * @param type
      */
-    public KeywordTypeSerializer(Class<KeywordsType.KeywordType> type) {
+    public TextTypeSerializer(Class<TextType> type) {
         super(type);
     }
 
     /**
-     * @param keywordType
+     * @param textType
      * @param jgen
      * @param provider
      * @throws IOException
      */
     @Override
-    public void serialize(KeywordsType.KeywordType keywordType, JsonGenerator jgen, SerializerProvider provider)
+    public void serialize(TextType textType, JsonGenerator jgen, SerializerProvider provider)
         throws IOException {
-        if (isNull(keywordType.getValue())) {
+        if (Strings.isNullOrEmpty(textType.getValue())) {
             jgen.writeNull();
             return;
         }
-        jgen.writeString(keywordType.getValue().value());
+        jgen.writeString(textType.getValue());
     }
 }

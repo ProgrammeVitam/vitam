@@ -26,14 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.unit;
 
-import java.util.List;
-
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+
+import java.util.List;
 
 public class TextByLang {
 
     private List<TextType> textTypes;
 
+    public TextByLang() {}
+    
     public TextByLang(List<TextType> textTypes) {
         this.textTypes = textTypes;
     }

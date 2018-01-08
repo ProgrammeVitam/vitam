@@ -42,7 +42,7 @@ public enum MetadataType {
         return collectionName;
     }
     
-    public String getIndexName() {
-        return indexName;
+    public String getIndexName(int tenantId) {
+        return String.format(indexName, tenantId);
     }
 }

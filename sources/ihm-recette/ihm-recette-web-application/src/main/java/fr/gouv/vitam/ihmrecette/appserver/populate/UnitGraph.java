@@ -37,8 +37,7 @@ public class UnitGraph {
      * @param withGot if true, one got is created for every unit
      * @return new UnitGotModel (unitModel, gotModel)
      */
-    public UnitGotModel createGraph(int i, String rootId, int tenantId,
-                                    String originatingAgency, boolean withGot) {
+    public UnitGotModel createGraph(int i, String rootId, int tenantId, String originatingAgency, boolean withGot) {
         
         // id of the unit.
         String uuid = GUIDFactory.newUnitGUID(tenantId).toString();
@@ -58,7 +57,7 @@ public class UnitGraph {
         }
 
         // id of the got.
-        String guid = GUIDFactory.newUnitGUID(tenantId).toString();
+        String guid = GUIDFactory.newObjectGroupGUID(tenantId).toString();
 
         // update unitModel
         unitModel.setOg(guid);
@@ -83,19 +82,20 @@ public class UnitGraph {
      * @return a UnitModel
      */
     private UnitModel createUnitModel(String uuid, String originatingAgency, String rootId, int tenantId,
-                                      DescriptiveMetadataModel descriptiveMetadataModel, UnitModel rootUnit){
+                                      DescriptiveMetadataModel descriptiveMetadataModel, UnitModel rootUnit) {
         UnitModel unitModel = new UnitModel();
 
         unitModel.setId(uuid);
         unitModel.setSp(originatingAgency);
-        unitModel.setUp(rootId);
+        unitModel.getSps().add(originatingAgency);
+
+        unitModel.getUp().add(rootId);
         unitModel.setTenant(tenantId);
         unitModel.setDescriptiveMetadataModel(descriptiveMetadataModel);
 
         // setup graph info
         if(rootUnit != null) {
             unitModel.getSps().addAll(rootUnit.getSps());
-            unitModel.getSps().add(originatingAgency);
 
             unitModel.getUs().addAll(rootUnit.getUs());
             unitModel.getUs().add(rootId);
@@ -126,7 +126,7 @@ public class UnitGraph {
         
         gotModel.setId(guid);
         gotModel.setTenant(tenantId);
-        gotModel.setUp(parentUnit.getId());
+        gotModel.getUp().add(parentUnit.getId());
         gotModel.setFileInfoModel(fileInfoModel);
         gotModel.setQualifiers(null); // Use to inject BDO and Physical Object metadatas
 

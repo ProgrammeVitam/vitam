@@ -39,14 +39,14 @@ public class UnitGraphTest {
         // When
         UnitGotModel unitGotModel = unitGraph.createGraph(0, rootId, tenantId, originatingAgency, false);
         UnitModel unitModel = unitGotModel.getUnit();
-        
+
         // Then
         assertNotNull(unitModel);
         assertThat(unitModel.getId()).isNotNull();
         assertThat(unitModel.getTenant()).isEqualTo(1);
         assertThat(unitModel.getSp()).isEqualTo(originatingAgency);
         assertThat(unitModel.getSps()).contains(originatingAgency, "saphir");
-        assertThat(unitModel.getUp()).isEqualTo(rootId);
+        assertThat(unitModel.getUp()).contains(rootId);
         assertThat(unitModel.getUs()).contains(rootId);
         // and 
         assertNull(unitGotModel.getGot());
@@ -59,7 +59,7 @@ public class UnitGraphTest {
         String originatingAgency = "vitam";
         String rootId = "1234";
         UnitModel rootUnit = new UnitModel();
-        rootUnit.setUp("123");
+        rootUnit.getUp().add("123");
         rootUnit.getUs().add("123");
         rootUnit.getUds().put("123", 1);
         given(metadataRepository.findUnitById(rootId)).willReturn(Optional.of(rootUnit));
@@ -68,13 +68,13 @@ public class UnitGraphTest {
         UnitGotModel unitGotModel = unitGraph.createGraph(0, rootId, tenantId, originatingAgency, true);
         UnitModel unitModel = unitGotModel.getUnit();
         ObjectGroupModel gotModel = unitGotModel.getGot();
-        
+
         // Then
         assertNotNull(unitModel);
         assertThat(unitModel.getTenant()).isEqualTo(1);
         assertThat(unitModel.getSp()).isEqualTo(originatingAgency);
         assertThat(unitModel.getSps()).contains(originatingAgency);
-        assertThat(unitModel.getUp()).isEqualTo(rootId);
+        assertThat(unitModel.getUp()).contains(rootId);
         assertThat(unitModel.getUs()).contains(rootId, "123");
         assertThat(unitModel.getUds()).containsEntry(rootId, 1).containsEntry("123", 2);
         // and
@@ -82,7 +82,7 @@ public class UnitGraphTest {
         assertThat(gotModel.getTenant()).isEqualTo(1);
         assertThat(gotModel.getSp()).isEqualTo(originatingAgency);
         assertThat(gotModel.getSps()).contains(originatingAgency);
-        assertThat(gotModel.getUp()).isEqualTo(unitModel.getId());
+        assertThat(gotModel.getUp()).contains(unitModel.getId());
     }
 
     @Test
@@ -95,7 +95,7 @@ public class UnitGraphTest {
 
         // When / Then
         assertThatThrownBy(() -> unitGraph.createGraph(0, rootId, tenantId, originatingAgency, false))
-            .hasMessageContaining("rootId not present in database: 1234");
+                .hasMessageContaining("rootId not present in database: 1234");
     }
 
 }

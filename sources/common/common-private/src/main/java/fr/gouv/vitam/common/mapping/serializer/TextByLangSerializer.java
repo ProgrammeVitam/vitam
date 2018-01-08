@@ -24,25 +24,28 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.extractseda;
 
-import java.io.IOException;
-
-import javax.xml.datatype.XMLGregorianCalendar;
+package fr.gouv.vitam.common.mapping.serializer;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.google.common.base.Strings;
+import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.model.unit.TextByLang;
+
+import java.io.IOException;
 
 /**
- * XMLGregorian calendar Serializer
+ * textType serializer
  */
-public class XMLGregorianCalendarSerializer extends StdSerializer<XMLGregorianCalendar> {
+public class TextByLangSerializer extends StdSerializer<TextByLang> {
 
     /**
-     * constructor
+     * default constructor
      */
-    public XMLGregorianCalendarSerializer() {
+    public TextByLangSerializer() {
         this(null);
     }
 
@@ -51,22 +54,25 @@ public class XMLGregorianCalendarSerializer extends StdSerializer<XMLGregorianCa
      *
      * @param type
      */
-    public XMLGregorianCalendarSerializer(Class<XMLGregorianCalendar> type) {
+    public TextByLangSerializer(Class<TextByLang> type) {
         super(type);
     }
 
     /**
-     * serialize date
-     *
-     * @param calendar
+     * @param textByLang
      * @param jgen
      * @param provider
      * @throws IOException
      */
     @Override
-    public void serialize(XMLGregorianCalendar calendar, JsonGenerator jgen, SerializerProvider provider)
+    public void serialize(TextByLang textByLang, JsonGenerator jgen, SerializerProvider provider)
         throws IOException {
-        jgen.writeString(calendar.toString());
-    }
+        jgen.writeStartObject();
+        for (TextType textType : textByLang.getTextTypes()) {
+            String lang = Strings.isNullOrEmpty(textType.getLang()) ? VitamConfiguration.getDefaultLang() : textType.getLang();
+            jgen.writeStringField(lang, textType.getValue());
+        }
+        jgen.writeEndObject();
 
+    }
 }

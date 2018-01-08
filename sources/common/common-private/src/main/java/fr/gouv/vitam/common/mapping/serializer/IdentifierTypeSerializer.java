@@ -24,52 +24,46 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-
-package fr.gouv.vitam.worker.core.extractseda;
+package fr.gouv.vitam.common.mapping.serializer;
 
 import java.io.IOException;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import com.google.common.base.Strings;
 
-import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
+import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 
 /**
- * textType serializer
+ * Identifier Type Serializer
  */
-public class TextTypeSerializer extends StdSerializer<TextType> {
+public class IdentifierTypeSerializer extends StdSerializer<IdentifierType> {
 
     /**
-     * default constructor
+     * constructor
      */
-    public TextTypeSerializer() {
+    public IdentifierTypeSerializer() {
         this(null);
     }
 
     /**
      * constructor
-     *
-     * @param type
      */
-    public TextTypeSerializer(Class<TextType> type) {
+    public IdentifierTypeSerializer(Class<IdentifierType> type) {
         super(type);
     }
 
     /**
-     * @param textType
-     * @param jgen
+     * serialize IdentifierType
+     * @param identifierType
+     * @param gen
      * @param provider
      * @throws IOException
      */
     @Override
-    public void serialize(TextType textType, JsonGenerator jgen, SerializerProvider provider)
+    public void serialize(IdentifierType identifierType, JsonGenerator gen, SerializerProvider provider)
         throws IOException {
-        if (Strings.isNullOrEmpty(textType.getValue())) {
-            jgen.writeNull();
-            return;
-        }
-        jgen.writeString(textType.getValue());
+        gen.writeString(identifierType.getValue());
     }
 }

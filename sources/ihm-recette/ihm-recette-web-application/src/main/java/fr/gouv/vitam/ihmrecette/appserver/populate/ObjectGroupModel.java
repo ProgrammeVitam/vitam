@@ -46,7 +46,7 @@ public class ObjectGroupModel {
     private List<QualifiersModel> qualifiers;
 
     @JsonProperty("_up")
-    private String up; // change to array
+    private Set<String> up = new HashSet<>(); // change to array
 
     @JsonProperty("_sp")
     private String sp;
@@ -84,11 +84,11 @@ public class ObjectGroupModel {
         this.qualifiers = qualifiers;
     }
 
-    public String getUp() {
+    public Set<String> getUp() {
         return up;
     }
 
-    public void setUp(String up) {
+    public void setUp(Set<String> up) {
         this.up = up;
     }
 

@@ -26,13 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.unit;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -44,6 +37,12 @@ import fr.gouv.culture.archivesdefrance.seda.v2.KeywordsType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class DescriptiveMetadataModel {
 
@@ -384,7 +383,7 @@ public class DescriptiveMetadataModel {
     }
 
     public void setRelatedObjectReference(
-        DescriptiveMetadataContentType.RelatedObjectReference relatedObjectReference) {
+            DescriptiveMetadataContentType.RelatedObjectReference relatedObjectReference) {
         this.relatedObjectReference = relatedObjectReference;
     }
 
