@@ -1024,19 +1024,17 @@ CheckArchiveUnitSchema permet d'exécuter un contrôle intelligent des archive u
 
 .. only:: html
 
-  .. literalinclude:: includes/archive-unit-schema.json
-     :language: json
-     :linenos:
+    .. literalinclude:: includes/archive-unit-schema.json
+       :language: json
+       :linenos:
 
 
 .. only:: latex
 
-  .. literalinclude:: includes/archive-unit-schema.json
-     :language: json
-     :dedent: 4
-     :linenos:
+    .. literalinclude:: includes/archive-unit-schema.json
+       :dedent: 4
 
-..  ne semble pas marcher.
+.. FIXME : Ne  marche pas !.
 
 Détail des données utilisées
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
