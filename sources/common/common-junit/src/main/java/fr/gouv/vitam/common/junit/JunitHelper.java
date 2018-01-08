@@ -398,7 +398,7 @@ public class JunitHelper extends ExternalResource {
                     new NodeWithPlugins(InternalSettingsPreparer.prepareEnvironment(settings, null), plugins);
             config.node.start();
         } catch (BindTransportException | BindHttpException | IOException | NodeValidationException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            LOGGER.error(e);
             config.node = null;
             try {
                 Thread.sleep(WAIT_BETWEEN_TRY);

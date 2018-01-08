@@ -100,8 +100,8 @@ public class VerifyTimeStampActionHandlerTest {
 
         File tempFolder = temporaryFolder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
-
         SystemPropertyUtil.refresh();
+
         workspaceClient = mock(WorkspaceClient.class);
 
         guid = GUIDFactory.newGUID();

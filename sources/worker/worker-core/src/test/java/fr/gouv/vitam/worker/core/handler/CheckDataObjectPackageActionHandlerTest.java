@@ -129,8 +129,8 @@ public class CheckDataObjectPackageActionHandlerTest {
 
         File tempFolder = temporaryFolder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
-
         SystemPropertyUtil.refresh();
+
         LogbookOperationsClientFactory.changeMode(null);
         LogbookLifeCyclesClientFactory.changeMode(null);
 

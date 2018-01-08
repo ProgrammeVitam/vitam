@@ -13,6 +13,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -102,6 +103,7 @@ public class SecurityProfileResourceTest {
 
         File tmpFolder = tempFolder.newFolder();
         System.setProperty("vitam.tmp.folder", tmpFolder.getAbsolutePath());
+        SystemPropertyUtil.refresh();
 
         // ES
         try {

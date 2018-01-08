@@ -141,13 +141,9 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                         elasticsearchRepository.purge();
                     }
 
-                    // saving the backup sequence in mongoDB
-                    VitamSequence sequenceCollection =
-                        collectionBackup.get().getSequence();
-
-                    sequenceRepository
-                        .removeByNameAndTenant(sequenceCollection.getName(), sequenceCollection.getTenantId());
-                    sequenceRepository.save(sequenceCollection);
+                    // saving the sequence & backup sequence in mongoDB
+                    restoreSequence(sequenceRepository, collectionBackup.get().getSequence());
+                    restoreSequence(sequenceRepository, collectionBackup.get().getBackupSequence());
 
                     // saving the backup collection in mongoDB and elasticSearch.
                     mongoRepository.save(collectionBackup.get().getDocuments());
@@ -164,6 +160,13 @@ public class ReconstructionServiceImpl implements ReconstructionService {
             VitamThreadUtils.getVitamSession().setTenantId(originalTenant);
         }
 
+    }
+
+    private void restoreSequence(VitamMongoRepository sequenceRepository,
+        VitamSequence sequenceCollection) throws DatabaseException {
+        sequenceRepository
+            .removeByNameAndTenant(sequenceCollection.getName(), sequenceCollection.getTenantId());
+        sequenceRepository.save(sequenceCollection);
     }
 
     @Override

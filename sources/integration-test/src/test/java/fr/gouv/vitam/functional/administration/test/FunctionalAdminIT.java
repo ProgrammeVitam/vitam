@@ -32,7 +32,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -116,6 +115,7 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
  */
 public class FunctionalAdminIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FunctionalAdminIT.class);
+    public static final String CONFIG_WORKSPACE_PATH = "functional-admin/workspace.conf";
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
         VitamThreadPoolExecutor.getDefaultExecutor());
@@ -159,13 +159,9 @@ public class FunctionalAdminIT {
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
-        try {
-            TMP_FOLDER = temporaryFolder.newFolder().getAbsolutePath();
-        } catch (IOException e) {
-            TMP_FOLDER = "/vitam/temp";
-        }
-
-        System.setProperty("vitam.tmp.folder", TMP_FOLDER);
+        File tmpFolder = temporaryFolder.newFolder();
+        TMP_FOLDER = tmpFolder.getAbsolutePath();
+        SystemPropertyUtil.set("vitam.tmp.folder", TMP_FOLDER);
 
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         junitHelper = JunitHelper.getInstance();
@@ -184,17 +180,22 @@ public class FunctionalAdminIT {
         tenants.add(new Integer(TENANT_ID));
 
         vitamCounterService = new VitamCounterService(dbImpl, tenants, null);
-        workspacePort = junitHelper.findAvailablePort();
-        logbookPort = junitHelper.findAvailablePort();
 
         // ES
         ElasticsearchTestConfiguration config =
             JunitHelper.startElasticsearchForTest(temporaryFolder, CLUSTER_NAME);
 
         // launch workspace
+        File workspaceConfigurationFile = PropertiesUtils.findFile(CONFIG_WORKSPACE_PATH);
+        final fr.gouv.vitam.common.storage.StorageConfiguration workspaceConfiguration =
+            PropertiesUtils.readYaml(workspaceConfigurationFile, fr.gouv.vitam.common.storage.StorageConfiguration.class);
+        workspaceConfiguration.setStoragePath(TMP_FOLDER);
+        PropertiesUtils.writeYaml(workspaceConfigurationFile, workspaceConfiguration);
+
+        workspacePort = junitHelper.findAvailablePort();
         try {
             SystemPropertyUtil.set("jetty.port", workspacePort);
-            workspaceMain = new WorkspaceMain("functional-admin/workspace.conf");
+            workspaceMain = new WorkspaceMain(CONFIG_WORKSPACE_PATH);
             workspaceMain.start();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
@@ -262,20 +263,34 @@ public class FunctionalAdminIT {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
-        logbookMain.stop();
-        workspaceMain.stop();
-        storageMain.stop();
+        if(logbookMain != null) {
+            logbookMain.stop();
+        }
+        if(workspaceMain != null) {
+            workspaceMain.stop();
+        }
+        if(storageMain != null) {
+            storageMain.stop();
+        }
         if (config != null) {
             JunitHelper.stopElasticsearchForTest(config);
         }
-        mongod.stop();
-        mongodExecutable.stop();
+        if(mongod != null) {
+            mongod.stop();
+        }
+        if(mongodExecutable != null) {
+            mongodExecutable.stop();
+        }
         junitHelper.releasePort(mongoPort);
         junitHelper.releasePort(storagePort);
         junitHelper.releasePort(workspacePort);
         junitHelper.releasePort(logbookPort);
-        client.close();
-        profileService.close();
+        if(client != null) {
+            client.close();
+        }
+        if(profileService != null) {
+            profileService.close();
+        }
     }
 
     @Test

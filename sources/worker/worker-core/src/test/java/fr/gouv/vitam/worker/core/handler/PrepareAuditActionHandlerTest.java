@@ -89,8 +89,8 @@ public class PrepareAuditActionHandlerTest {
         File tempFolder = folder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
-
         PowerMockito.mockStatic(MetaDataClientFactory.class);
+
         metadataClient = mock(MetaDataClient.class);
         metadataClientFactory = mock(MetaDataClientFactory.class);
 

@@ -13,6 +13,7 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -101,17 +102,18 @@ public class AdminReconstructionResourceTest {
     public static void setUpBeforeClass() throws Exception {
         new JHades().overlappingJarsReport();
 
+        File tmpFolder = tempFolder.newFolder();
+        System.setProperty("vitam.tmp.folder", tmpFolder.getAbsolutePath());
+        SystemPropertyUtil.refresh();
+
         junitHelper = JunitHelper.getInstance();
         databasePort = junitHelper.findAvailablePort();
-
-        databasePort = 41909;
 
         // ES
         try {
             configEs = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
         } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
-
         }
 
         final List<ElasticsearchNode> nodesEs = new ArrayList<>();

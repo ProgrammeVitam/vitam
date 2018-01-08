@@ -165,6 +165,7 @@ public class FinalizeLifecycleTraceabilityActionHandlerTest {
 
         File tempFolder = folder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
+        SystemPropertyUtil.refresh();
 
         PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
@@ -186,7 +187,6 @@ public class FinalizeLifecycleTraceabilityActionHandlerTest {
         PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookOperationsClientFactory);
         PowerMockito.when(LogbookOperationsClientFactory.getInstance().getClient()).thenReturn(logbookOperationsClient);
 
-        SystemPropertyUtil.refresh();
         handlerIO = new HandlerIOImpl(workspaceClient, "FinalizeLifecycleTraceabilityActionHandlerTest", "workerId");
         in = new ArrayList<>();
         in.add(new IOParameter()

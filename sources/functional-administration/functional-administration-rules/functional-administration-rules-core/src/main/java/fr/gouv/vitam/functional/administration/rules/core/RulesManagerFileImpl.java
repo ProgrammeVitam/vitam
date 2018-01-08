@@ -347,7 +347,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
             backupService
                 .saveFile(new FileInputStream(file), eip, STP_IMPORT_RULES_BACKUP_CSV, StorageCollectionType.RULES,
-                    ParameterHelper.getTenantParameter(), CSV);
+                    ParameterHelper.getTenantParameter(), eip.getId() + CSV);
 
             backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, FunctionalAdminCollections.RULES);
 

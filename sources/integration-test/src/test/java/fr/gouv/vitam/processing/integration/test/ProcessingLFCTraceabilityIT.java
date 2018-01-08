@@ -30,7 +30,6 @@ import static com.jayway.restassured.RestAssured.get;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.InputStream;
@@ -79,6 +78,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -88,7 +88,6 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
@@ -213,10 +212,7 @@ public class ProcessingLFCTraceabilityIT {
             PropertiesUtils.getResourcePath("integration-processing/format-identifiers.conf").toString();
 
         File tempFolder = temporaryFolder.newFolder();
-        System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
-
-        SystemPropertyUtil.refresh();
-
+        SystemPropertyUtil.set("vitam.tmp.folder", tempFolder.getAbsolutePath());
 
         // ES
         config = JunitHelper.startElasticsearchForTest(temporaryFolder, CLUSTER_NAME, TCP_PORT, HTTP_PORT);
@@ -241,6 +237,12 @@ public class ProcessingLFCTraceabilityIT {
         MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA));
 
         // launch workspace
+        File workspaceConfigurationFile = PropertiesUtils.findFile(CONFIG_WORKSPACE_PATH);
+        final StorageConfiguration workspaceConfiguration =
+            PropertiesUtils.readYaml(workspaceConfigurationFile, StorageConfiguration.class);
+        workspaceConfiguration.setStoragePath(tempFolder.getAbsolutePath());
+        PropertiesUtils.writeYaml(workspaceConfigurationFile, workspaceConfiguration);
+
         SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_WORKSPACE));
         workspaceMain = new WorkspaceMain(CONFIG_WORKSPACE_PATH);
@@ -294,20 +296,32 @@ public class ProcessingLFCTraceabilityIT {
         if (config != null) {
             JunitHelper.stopElasticsearchForTest(config);
         }
-
-        mongod.stop();
-        mongodExecutable.stop();
-
-        try {
+        if (mongod != null) {
+            mongod.stop();
+        }
+        if (mongodExecutable != null) {
+            mongodExecutable.stop();
+        }
+        if (workspaceMain != null) {
             workspaceMain.stop();
+        }
+        if (adminApplication != null) {
             adminApplication.stop();
+        }
+        if (workerApplication != null) {
             workerApplication.stop();
+        }
+        if (logbookApplication != null) {
             logbookApplication.stop();
+        }
+        if (processManagementApplication != null) {
             processManagementApplication.stop();
+        }
+        if (metadataMain != null) {
             metadataMain.stop();
+        }
+        if (mongoClient != null) {
             mongoClient.close();
-        } catch (final Exception e) {
-            LOGGER.error(e);
         }
     }
 
@@ -321,31 +335,26 @@ public class ProcessingLFCTraceabilityIT {
 
     @Test
     public void testServersStatus() throws Exception {
-        try {
-            RestAssured.port = PORT_SERVICE_PROCESSING;
-            RestAssured.basePath = PROCESSING_PATH;
+        RestAssured.port = PORT_SERVICE_PROCESSING;
+        RestAssured.basePath = PROCESSING_PATH;
 
-            get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
+        get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
 
-            RestAssured.port = PORT_SERVICE_WORKSPACE;
-            RestAssured.basePath = WORKSPACE_PATH;
-            get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
+        RestAssured.port = PORT_SERVICE_WORKSPACE;
+        RestAssured.basePath = WORKSPACE_PATH;
+        get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
 
-            RestAssured.port = PORT_SERVICE_METADATA;
-            RestAssured.basePath = METADATA_PATH;
-            get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
+        RestAssured.port = PORT_SERVICE_METADATA;
+        RestAssured.basePath = METADATA_PATH;
+        get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
 
-            RestAssured.port = PORT_SERVICE_WORKER;
-            RestAssured.basePath = WORKER_PATH;
-            get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
+        RestAssured.port = PORT_SERVICE_WORKER;
+        RestAssured.basePath = WORKER_PATH;
+        get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
 
-            RestAssured.port = PORT_SERVICE_LOGBOOK;
-            RestAssured.basePath = LOGBOOK_PATH;
-            get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
-        } catch (final Exception e) {
-            e.printStackTrace();
-            fail("should not raized an exception");
-        }
+        RestAssured.port = PORT_SERVICE_LOGBOOK;
+        RestAssured.basePath = LOGBOOK_PATH;
+        get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
     private void tryImportFile() {
@@ -409,14 +418,12 @@ public class ProcessingLFCTraceabilityIT {
     }
 
     private void createLogbookOperation(GUID operationId, GUID objectId)
-        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
-        LogbookClientNotFoundException {
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
         createLogbookOperation(operationId, objectId, null);
     }
 
     private void createLogbookOperation(GUID operationId, GUID objectId, String type)
-        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
-        LogbookClientNotFoundException {
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
 
         final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         if (type == null) {
@@ -492,58 +499,53 @@ public class ProcessingLFCTraceabilityIT {
     @RunWithCustomExecutor
     @Test
     public void testWorkflowLFCTraceability() throws Exception {
-        try {
-            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            tryImportFile();
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        tryImportFile();
 
-            launchIngest();
-            String containerName = launchLogbookLFC();
-            wait(containerName);
-            ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
-            assertNotNull(processWorkflow);
-            assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
-            assertEquals(StatusCode.OK, processWorkflow.getStatus());
+        launchIngest();
+        String containerName = launchLogbookLFC();
+        wait(containerName);
+        ProcessWorkflow processWorkflow =
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+        assertNotNull(processWorkflow);
+        assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
+        assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
-            // Launch securization a second time, with no lfc added
-            String containerName2nd = launchLogbookLFC();
-            wait(containerName2nd);
-            ProcessWorkflow processWorkflow2nd =
-                processMonitoring.findOneProcessWorkflow(containerName2nd, tenantId);
-            assertNotNull(processWorkflow2nd);
-            assertEquals(ProcessState.COMPLETED, processWorkflow2nd.getState());
-            // SINCE NO LFC ARE HANDLED, WARNING
-            assertEquals(StatusCode.WARNING, processWorkflow2nd.getStatus());
+        // Launch securization a second time, with no lfc added
+        String containerName2nd = launchLogbookLFC();
+        wait(containerName2nd);
+        ProcessWorkflow processWorkflow2nd =
+            processMonitoring.findOneProcessWorkflow(containerName2nd, tenantId);
+        assertNotNull(processWorkflow2nd);
+        assertEquals(ProcessState.COMPLETED, processWorkflow2nd.getState());
+        // SINCE NO LFC ARE HANDLED, WARNING
+        assertEquals(StatusCode.WARNING, processWorkflow2nd.getStatus());
 
-            // launch an ingest
-            launchIngest();
+        // launch an ingest
+        launchIngest();
 
-            // Launch securization a second time, with new lfc added
-            String containerName3rd = launchLogbookLFC();
-            wait(containerName3rd);
-            ProcessWorkflow processWorkflow3rd =
-                processMonitoring.findOneProcessWorkflow(containerName3rd, tenantId);
-            assertNotNull(processWorkflow3rd);
-            assertEquals(ProcessState.COMPLETED, processWorkflow3rd.getState());
-            assertEquals(StatusCode.OK, processWorkflow3rd.getStatus());
-            
-            // simulate audit, update some object LFC
-            changeOneGotLFC();
-            // simulate unit update, update some unit LFC
-            changeOneUnitLFC();
-            
-            // Launch securization a second time, with lfc updated > so status OK
-            String containerName4rd = launchLogbookLFC();
-            wait(containerName4rd);
-            ProcessWorkflow processWorkflow4rd =
-                    processMonitoring.findOneProcessWorkflow(containerName4rd, tenantId);
-            assertNotNull(processWorkflow4rd);
-            assertEquals(ProcessState.COMPLETED, processWorkflow4rd.getState());
-            assertEquals(StatusCode.OK, processWorkflow4rd.getStatus());
-        } catch (final Exception e) {
-            e.printStackTrace();
-            fail("should not raized an exception");
-        }
+        // Launch securization a second time, with new lfc added
+        String containerName3rd = launchLogbookLFC();
+        wait(containerName3rd);
+        ProcessWorkflow processWorkflow3rd =
+            processMonitoring.findOneProcessWorkflow(containerName3rd, tenantId);
+        assertNotNull(processWorkflow3rd);
+        assertEquals(ProcessState.COMPLETED, processWorkflow3rd.getState());
+        assertEquals(StatusCode.OK, processWorkflow3rd.getStatus());
+
+        // simulate audit, update some object LFC
+        changeOneGotLFC();
+        // simulate unit update, update some unit LFC
+        changeOneUnitLFC();
+
+        // Launch securization a second time, with lfc updated > so status OK
+        String containerName4rd = launchLogbookLFC();
+        wait(containerName4rd);
+        ProcessWorkflow processWorkflow4rd =
+                processMonitoring.findOneProcessWorkflow(containerName4rd, tenantId);
+        assertNotNull(processWorkflow4rd);
+        assertEquals(ProcessState.COMPLETED, processWorkflow4rd.getState());
+        assertEquals(StatusCode.OK, processWorkflow4rd.getStatus());
     }
     
     private void changeOneGotLFC() throws Exception {

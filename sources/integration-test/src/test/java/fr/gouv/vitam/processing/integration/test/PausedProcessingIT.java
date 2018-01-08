@@ -69,6 +69,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -176,6 +177,10 @@ public class PausedProcessingIT {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+
+        File vitamTempFolder = tempFolder.newFolder();
+        SystemPropertyUtil.set("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
+
         VitamConfiguration.getConfiguration()
             .setData(PropertiesUtils.getResourcePath("integration-processing/").toString());
         CONFIG_METADATA_PATH = PropertiesUtils.getResourcePath("integration-processing/metadata.conf").toString();
@@ -209,6 +214,12 @@ public class PausedProcessingIT {
         MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA));
 
         // launch workspace
+        File workspaceConfigurationFile = PropertiesUtils.findFile(CONFIG_WORKSPACE_PATH);
+        final StorageConfiguration workspaceConfiguration =
+            PropertiesUtils.readYaml(workspaceConfigurationFile, StorageConfiguration.class);
+        workspaceConfiguration.setStoragePath(vitamTempFolder.getAbsolutePath());
+        PropertiesUtils.writeYaml(workspaceConfigurationFile, workspaceConfiguration);
+
         SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_WORKSPACE));
         workspaceMain = new WorkspaceMain(CONFIG_WORKSPACE_PATH);
@@ -254,22 +265,37 @@ public class PausedProcessingIT {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-        workspaceClient.deleteContainer("process", true);
+        try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
+            workspaceClient.deleteContainer("process", true);
+        } catch (Exception e) {
+            LOGGER.error(e);
+        }
         if (configES != null) {
             JunitHelper.stopElasticsearchForTest(configES);
         }
-        mongod.stop();
-        mongodExecutable.stop();
-        try {
+        if (mongod != null) {
+            mongod.stop();
+        }
+        if (mongodExecutable != null) {
+            mongodExecutable.stop();
+        }
+        if (workspaceMain != null) {
             workspaceMain.stop();
+        }
+        if (adminManagementApplication != null) {
             adminManagementApplication.stop();
+        }
+        if (workerApplication != null) {
             workerApplication.stop();
+        }
+        if (logbookApplication != null) {
             logbookApplication.stop();
+        }
+        if (processManagementMain != null) {
             processManagementMain.stop();
+        }
+        if (metadataApplication != null) {
             metadataApplication.stop();
-        } catch (final Exception e) {
-            LOGGER.error(e);
         }
     }
 

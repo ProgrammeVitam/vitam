@@ -27,17 +27,6 @@
 package fr.gouv.vitam.functional.administration.common;
 
 
-import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.common.json.JsonHandler.createJsonGenerator;
-import static fr.gouv.vitam.functional.administration.common.counter.SequenceType.fromFunctionalAdminCollections;
-
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCursor;
@@ -63,6 +52,17 @@ import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.common.json.JsonHandler.createJsonGenerator;
+import static fr.gouv.vitam.functional.administration.common.counter.SequenceType.fromFunctionalAdminCollections;
+
 
 /**
  * Functional backupService
@@ -72,6 +72,7 @@ public class FunctionalBackupService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FunctionalBackupService.class);
     public static final String FIELD_COLLECTION = "collection";
     public static final String FIELD_SEQUENCE = "sequence";
+    public static final String FIELD_BACKUP_SEQUENCE = "backup_sequence";
     public static final String DEFAULT_EXTENSION = "json";
     private static final int DEFAULT_ADMIN_TENANT = 1;
     private final BackupService backupService;
@@ -111,7 +112,10 @@ public class FunctionalBackupService {
             int initialTenant = ParameterHelper.getTenantParameter();
             int storageTenant = getStorageTenant(collection, initialTenant);
 
-            String fileName = buildBackupFilenameSequence(collection, storageTenant);
+            VitamSequence backupSequence = vitamCounterService
+                .getNextBackupSequenceDocument(storageTenant, fromFunctionalAdminCollections(collection));
+
+            String fileName = getBackupFileName(collection, storageTenant, backupSequence.getCounter());
 
             String digestStr;
             File file = null;
@@ -120,7 +124,7 @@ public class FunctionalBackupService {
                 // Force storage tenant to 1 for cross-tenant collections (impersonate admin tenant)
                 VitamThreadUtils.getVitamSession().setTenantId(storageTenant);
 
-                file = saveFunctionalCollectionToTempFile(collection, storageTenant);
+                file = saveFunctionalCollectionToTempFile(collection, storageTenant, backupSequence);
 
                 digestStr = storeBackupFileInStorage(fileName, file);
 
@@ -129,21 +133,27 @@ public class FunctionalBackupService {
                 // Restore initial tenant before logbook update (success or ko)
                 VitamThreadUtils.getVitamSession().setTenantId(initialTenant);
 
-                if (file != null) {
-                    if (!file.delete()) {
-                        LOGGER.warn("Could not delete temp file {0}", file.getAbsolutePath());
-                    }
-                }
+                deleteTmpFile(file);
             }
 
             backupLogbookManager.logEventSuccess(eipMaster, eventCode, digestStr, fileName);
 
         } catch (ReferentialException | IOException | BackupServiceException e) {
-            LOGGER.error(e);
-            backupLogbookManager.logError(eipMaster, eventCode, e.getMessage());
-            throw new FunctionalBackupServiceException(e);
+            try {
+                backupLogbookManager.logError(eipMaster, eventCode, e.getMessage());
+            } catch (VitamException | RuntimeException logbookErrorException) {
+                LOGGER.error("Could not persist backup error in logbook operation", logbookErrorException);
+            }
+            throw new FunctionalBackupServiceException("Could not backup collection " + collection.toString(), e);
         }
+    }
 
+    private void deleteTmpFile(File file) {
+        if (file != null) {
+            if (!file.delete()) {
+                LOGGER.warn("Could not delete temp file {0}", file.getAbsolutePath());
+            }
+        }
     }
 
     /**
@@ -158,12 +168,6 @@ public class FunctionalBackupService {
             return sessionTenant;
         else
             return DEFAULT_ADMIN_TENANT;
-    }
-
-    private String buildBackupFilenameSequence(FunctionalAdminCollections functionalAdminCollections, int tenant)
-        throws ReferentialException {
-        Integer sequence = vitamCounterService.getNextBackUpSequence(tenant);
-        return getBackupFileName(functionalAdminCollections, tenant, sequence);
     }
 
     public static String getBackupFileName(FunctionalAdminCollections functionalAdminCollections, int tenant,
@@ -213,8 +217,8 @@ public class FunctionalBackupService {
     }
 
 
-    private File saveFunctionalCollectionToTempFile(final FunctionalAdminCollections collectionToSave, final int tenant)
-        throws ReferentialException, IOException {
+    private File saveFunctionalCollectionToTempFile(FunctionalAdminCollections collectionToSave, int tenant,
+        VitamSequence backupSequence) throws ReferentialException, IOException {
 
         String uniqueFileId = GUIDFactory.newGUID().getId();
         File file = PropertiesUtils.fileFromTmpFolder(uniqueFileId);
@@ -232,7 +236,8 @@ public class FunctionalBackupService {
              *      json_doc2,
              *      ...
              *   ],
-             *   "sequence": { ... }
+             *   "sequence": { ... },
+             *   "backup_sequence": { ... }
              * }
              */
 
@@ -254,9 +259,13 @@ public class FunctionalBackupService {
             jsonGenerator.writeFieldName(FIELD_SEQUENCE);
             VitamSequence sequence = vitamCounterService
                 .getSequenceDocument(tenant, fromFunctionalAdminCollections(collectionToSave));
-
             jsonGenerator.writeRawValue(sequence.toJson());
+
+            jsonGenerator.writeFieldName(FIELD_BACKUP_SEQUENCE);
+            jsonGenerator.writeRawValue(backupSequence.toJson());
+
             jsonGenerator.writeEndObject();
+
             jsonGenerator.flush();
         }
 

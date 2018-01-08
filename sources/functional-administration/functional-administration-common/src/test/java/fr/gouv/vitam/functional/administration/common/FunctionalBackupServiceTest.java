@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
 import fr.gouv.vitam.functional.administration.common.exception.FunctionalBackupServiceException;
@@ -81,7 +82,9 @@ public class FunctionalBackupServiceTest {
     public static final String DOC2_TENANT1 =
         "{ \"_id\" : \"aeaaaaaaaadw44zlabowqalanjdt5maaaaaq\", \"_tenant\" : 1, \"Name\" : \"B\", \"Identifier\" : \"ID-123\" }";
     public static final String SEQUENCE_DOC =
-        "{ \"_id\" : \"iidd\", \"Counter\" : \"0\", \"Name\" : \"A\", \"_tenant\" : \"0\" }";
+        "{ \"_id\" : \"aeaaaaaaaadw44zlabowqalanjdt5naaaaaq\", \"Counter\" : 0, \"Name\" : \"A\", \"_tenant\" : 0 }";
+    public static final String BACKUP_SEQUENCE_DOC =
+        "{ \"_id\" : \"aeaaaaaaaadw44zlabowqalanjdt5oaaaaaq\", \"Counter\" : 10, \"Name\" : \"BACKUP_A\", \"_tenant\" : 0 }";
 
     private String FUNCTIONAL_COLLECTION = "AGENCIES";
     @Rule
@@ -117,10 +120,15 @@ public class FunctionalBackupServiceTest {
         functionalCollection.insertOne(Document.parse(DOC1_TENANT0));
         functionalCollection.insertOne(Document.parse(DOC2_TENANT1));
 
-        VitamSequence vitamSequence = new VitamSequence();
-        vitamSequence.append("Counter", "0").append("_id", "iidd").append("Name", "A").append("_tenant", "0");
-        given(vitamCounterService.getSequenceDocument(any(), any()))
+        VitamSequence vitamSequence =
+            new VitamSequence(Document.parse(SEQUENCE_DOC));
+        given(vitamCounterService.getSequenceDocument(any(), eq(SequenceType.AGENCIES_SEQUENCE)))
             .willReturn(vitamSequence);
+
+        VitamSequence vitamBackupSequence =
+            new VitamSequence(Document.parse(BACKUP_SEQUENCE_DOC));
+        given(vitamCounterService.getNextBackupSequenceDocument(any(), eq(SequenceType.AGENCIES_SEQUENCE)))
+            .willReturn(vitamBackupSequence);
     }
 
     @After
@@ -148,9 +156,9 @@ public class FunctionalBackupServiceTest {
 
         ArgumentCaptor<String> hashArgCaptor = ArgumentCaptor.forClass(String.class);
         verify(backupLogbookManager)
-            .logEventSuccess(eq(guid), eq("STP_TEST"), hashArgCaptor.capture(), eq("0_Agencies_0.json"));
+            .logEventSuccess(eq(guid), eq("STP_TEST"), hashArgCaptor.capture(), eq("0_Agencies_10.json"));
 
-        String expectedDump = "{\"collection\":[" + DOC1_TENANT0 + "],\"sequence\":" + SEQUENCE_DOC + "}";
+        String expectedDump = "{\"collection\":[" + DOC1_TENANT0 + "],\"sequence\":" + SEQUENCE_DOC + ",\"backup_sequence\":" + BACKUP_SEQUENCE_DOC + "}";
         String expectedDigest = new Digest(VitamConfiguration.getDefaultDigestType()).update(expectedDump).digestHex();
 
         assertThat(savedDocCapture).hasSize(1);

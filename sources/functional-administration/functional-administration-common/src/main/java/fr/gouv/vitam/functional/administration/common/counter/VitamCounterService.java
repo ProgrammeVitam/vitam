@@ -73,10 +73,11 @@ import static com.mongodb.client.model.Updates.inc;
  * Vitam functional counter service
  */
 public class VitamCounterService {
+
+    private static final int DEFAULT_ADMIN_TENANT = 1;
     private static final String ARGUMENT_MUST_NOT_BE_NULL = "Argument must not be null";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamCounterService.class);
-    public static final String BACK_UP_SEQUENCE = "BackUp";
     private final MongoDbAccessAdminImpl mongoAccess;
     private final Set<Integer> tenants;
     private final Map<SequenceType, FunctionalAdminCollections> collections = new HashMap<>();
@@ -128,14 +129,13 @@ public class VitamCounterService {
                     VitamThreadUtils.getVitamSession().setTenantId(tenantId);
                     try {
                         for (Map.Entry<SequenceType, FunctionalAdminCollections> entry : collections.entrySet()) {
-                            JsonNode query = generateQuery(entry.getKey());
-                            try (DbRequestResult result =
-                                mongoAccess.findDocuments(query, FunctionalAdminCollections.VITAM_SEQUENCE)) {
-                                if (!result.hasResult()) {
-                                    createSequence(tenantId, entry.getKey().getName());
-                                }
+
+                            SequenceType sequenceType = entry.getKey();
+
+                            if (canCreateSequenceForTenant(tenantId, sequenceType)) {
+                                createSequenceIfNotExists(tenantId, sequenceType.getName());
+                                createSequenceIfNotExists(tenantId, sequenceType.getBackupSequenceName());
                             }
-                            createSequence(tenantId, BACK_UP_SEQUENCE);
                         }
                     } catch (VitamException | InvalidCreateOperationException e) {
                         throw new RuntimeException(e);
@@ -148,14 +148,39 @@ public class VitamCounterService {
         }
     }
 
-    private JsonNode generateQuery(SequenceType sequenceType)
+    /**
+     * For cross-tenant collections, only tenant for 'admin tenant' is created.
+     * For multi-tenant collections, all tenants are created.
+     *
+     * @param tenantId
+     * @param sequenceType
+     * @return
+     */
+    private boolean canCreateSequenceForTenant(Integer tenantId, SequenceType sequenceType) {
+
+        if (sequenceType.getCollection().isMultitenant())
+            return true;
+
+        return (tenantId == DEFAULT_ADMIN_TENANT);
+    }
+
+    private void createSequenceIfNotExists(Integer tenantId, String sequenceName)
+        throws InvalidCreateOperationException, VitamException {
+        JsonNode query = generateQuery(tenantId, sequenceName);
+        try (DbRequestResult result =
+            mongoAccess.findDocuments(query, FunctionalAdminCollections.VITAM_SEQUENCE)) {
+            if (!result.hasResult()) {
+                createSequence(tenantId, sequenceName);
+            }
+        }
+    }
+
+    private JsonNode generateQuery(Integer tenantId, String sequenceName)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         parser.parse(new Select().getFinalSelect());
-        parser.addCondition(QueryHelper.eq(VitamSequence.NAME, sequenceType.getName()));
-        if (sequenceType.getCollection().isMultitenant()) {
-            parser.addCondition(QueryHelper.eq(VitamFieldsHelper.tenant(), HeaderIdHelper.getTenantId()));
-        }
+        parser.addCondition(QueryHelper.eq(VitamSequence.NAME, sequenceName));
+        parser.addCondition(QueryHelper.eq(VitamFieldsHelper.tenant(), tenantId));
         return parser.getRequest().getFinalSelect();
     }
 
@@ -202,15 +227,44 @@ public class VitamCounterService {
      * @throws ReferentialException
      */
     public Integer getNextSequence(Integer tenant, SequenceType sequenceType) throws ReferentialException {
+        return getNextSequenceDocument(tenant, sequenceType, sequenceType.getName()).getCounter();
+    }
+
+    /**
+     * Atomically find a backup sequence and update it, returning updated document.
+     *
+     * @param tenant
+     * @param sequenceType
+     * @return the sequence
+     * @throws InvalidCreateOperationException
+     * @throws InvalidParseOperationException
+     * @throws ReferentialException
+     */
+    public VitamSequence getNextBackupSequenceDocument(Integer tenant, SequenceType sequenceType) throws ReferentialException {
+        return getNextSequenceDocument(tenant, sequenceType, sequenceType.getBackupSequenceName());
+    }
+
+
+    /**
+     * Atomically find a sequence and update it, returning updated document.
+     *
+     * @param tenant
+     * @param sequenceType
+     * @return the sequence
+     * @throws InvalidCreateOperationException
+     * @throws InvalidParseOperationException
+     * @throws ReferentialException
+     */
+    private VitamSequence getNextSequenceDocument(Integer tenant, SequenceType sequenceType, String name) throws ReferentialException {
         final BasicDBObject incQuery = new BasicDBObject();
         incQuery.append("$inc", new BasicDBObject(VitamSequence.COUNTER, 1));
         Bson query;
         if (sequenceType.getCollection().isMultitenant()) {
             query = and(
-                eq(VitamSequence.NAME, sequenceType.getName()),
+                eq(VitamSequence.NAME, name),
                 eq(VitamDocument.TENANT_ID, tenant));
         } else {
-            query = eq(VitamSequence.NAME, sequenceType.getName());
+            query = eq(VitamSequence.NAME, name);
         }
 
         FindOneAndUpdateOptions findOneAndUpdateOptions = new FindOneAndUpdateOptions();
@@ -218,34 +272,10 @@ public class VitamCounterService {
         try {
             final Object result = FunctionalAdminCollections.VITAM_SEQUENCE.getCollection()
                 .findOneAndUpdate(query, incQuery, findOneAndUpdateOptions);
-            return ((VitamSequence) result).getCounter();
+            return ((VitamSequence) result);
         } catch (final Exception e) {
             LOGGER.error("find Document Exception", e);
             throw new ReferentialException(e);
-        }
-    }
-
-    /**
-     * @param tenant
-     * @return
-     * @throws ReferentialException
-     */
-    public Integer getNextBackUpSequence(Integer tenant) throws ReferentialException {
-
-        final Bson incQuery = inc(VitamSequence.COUNTER, 1);
-        Bson query = and(
-            eq(VitamSequence.NAME, BACK_UP_SEQUENCE),
-            eq(VitamDocument.TENANT_ID, tenant));
-
-        FindOneAndUpdateOptions findOneAndUpdateOptions = new FindOneAndUpdateOptions();
-
-        findOneAndUpdateOptions.returnDocument(ReturnDocument.AFTER);
-        try {
-            final Object result = FunctionalAdminCollections.VITAM_SEQUENCE.getCollection()
-                .findOneAndUpdate(query, incQuery, findOneAndUpdateOptions);
-            return ((VitamSequence) result).getCounter();
-        } catch (final Exception e) {
-            throw new ReferentialException("Could not get next backup sequence", e);
         }
     }
 
@@ -263,7 +293,7 @@ public class VitamCounterService {
     }
 
     /**
-     * Get the last sequence Functiontionnal collection
+     * Get the last sequence functional collection
      *
      * @param tenant
      * @param sequenceType
