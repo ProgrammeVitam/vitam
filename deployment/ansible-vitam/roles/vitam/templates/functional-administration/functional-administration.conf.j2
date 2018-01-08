@@ -12,8 +12,8 @@ dbPassword: {{mongoFunctionalAdminPassword}}
 
 #Basic Authentication
 adminBasicAuth:
-  userName: {{vitam.functional_administration.basic_auth_user}}
-  password: {{vitam.functional_administration.basic_auth_password}}
+  userName: {{ admin_basic_auth_user }}
+  password: {{ admin_basic_auth_password }}
 
 jettyConfig: jetty-config.xml
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]

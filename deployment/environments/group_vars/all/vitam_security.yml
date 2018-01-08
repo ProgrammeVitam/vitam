@@ -13,3 +13,5 @@ admin_personal_certs: [ "userOK.crt" ]
 
 # Admin security profile name
 admin_security_profile: "admin-security-profile"
+
+admin_basic_auth_user: "adminUser"
