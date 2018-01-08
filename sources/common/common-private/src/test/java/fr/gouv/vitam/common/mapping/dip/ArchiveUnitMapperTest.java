@@ -60,6 +60,8 @@ public class ArchiveUnitMapperTest {
 
         //ClassificationRule
         rule = generateRule(SedaConstants.TAG_RULE_CLASSIFICATION);
+        rule.setClassificationLevel("fakeClassificationLevel");
+        rule.setClassificationOwner("fakeClassificationOwner");
         archiveUnitModel.getManagement().setRuleCategoryModel(rule, SedaConstants.TAG_RULE_CLASSIFICATION);
 
         //DisseminationRule
@@ -124,8 +126,6 @@ public class ArchiveUnitMapperTest {
         assertThat(date.getYear()).isEqualTo(2000);
         assertThat(date.getMonth()).isEqualTo(1);
         assertThat(date.getDay()).isEqualTo(1);
-        assertThat(management.getClassificationRule().getClassificationLevel()).isEqualTo("fakeClassificationLevel");
-        assertThat(management.getClassificationRule().getClassificationOwner()).isEqualTo("fakeClassificationOwner");
         assertThat(management.getClassificationRule().isNeedReassessingAuthorization()).isTrue();
         date = management.getClassificationRule().getClassificationReassessingDate();
         assertThat(date.getYear()).isEqualTo(2000);
@@ -213,8 +213,6 @@ public class ArchiveUnitMapperTest {
             case SedaConstants.TAG_RULE_REUSE:
                 break;
             case SedaConstants.TAG_RULE_CLASSIFICATION:
-                rule.setClassificationLevel("fakeClassificationLevel");
-                rule.setClassificationOwner("fakeClassificationOwner");
                 rule.setNeedReassessingAuthorization(true);
                 rule.setClassificationReassessingDate("2000-01-02");
                 break;

@@ -245,11 +245,7 @@
                   "NeedReassessingAuthorization": {
                     "type": "boolean"
                   }
-                },
-                "required": [
-                  "ClassificationLevel",
-                  "ClassificationOwner"
-                ]
+                }
               }
             },
             "Inheritance": {

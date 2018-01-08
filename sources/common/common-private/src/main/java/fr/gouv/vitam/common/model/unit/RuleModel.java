@@ -45,15 +45,6 @@ public class RuleModel {
     private String startDate;
 
 
-    /**
-     * classification level
-     */
-    private String classificationLevel;
-
-    /**
-     * classification owner
-     */
-    private String classificationOwner;
 
     /**
      * classificationReassessingDate
@@ -87,22 +78,6 @@ public class RuleModel {
 
     public void setStartDate(String startDate) {
         this.startDate = startDate;
-    }
-
-    public String getClassificationLevel() {
-        return classificationLevel;
-    }
-
-    public void setClassificationLevel(String classificationLevel) {
-        this.classificationLevel = classificationLevel;
-    }
-
-    public String getClassificationOwner() {
-        return classificationOwner;
-    }
-
-    public void setClassificationOwner(String classificationOwner) {
-        this.classificationOwner = classificationOwner;
     }
 
     public String getClassificationReassessingDate() {

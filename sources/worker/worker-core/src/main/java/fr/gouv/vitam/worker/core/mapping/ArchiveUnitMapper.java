@@ -169,6 +169,16 @@ public class ArchiveUnitMapper {
     private void fillClassificationRule(ArchiveUnitType archiveUnitType, ArchiveUnitModel archiveUnit) {
         ClassificationRuleType classificationRule = archiveUnitType.getManagement().getClassificationRule();
         RuleCategoryModel classificationRuleCategory = ruleMapper.fillCommonRule(classificationRule);
+
+        if (classificationRule != null && (classificationRule.getClassificationLevel() != null || classificationRule.getClassificationOwner() != null)) {
+
+            if (classificationRuleCategory == null ) {
+                classificationRuleCategory = new RuleCategoryModel();
+            }
+            classificationRuleCategory.setClassificationLevel(classificationRule.getClassificationLevel());
+            classificationRuleCategory.setClassificationOwner(classificationRule.getClassificationOwner());
+        }
+
         if (archiveUnit.getManagement().getClassification() != null) {
             archiveUnit.getManagement().getClassification().merge(classificationRuleCategory);
         } else {
@@ -179,8 +189,6 @@ public class ArchiveUnitMapper {
             archiveUnit.getManagement().getClassification().getRules().size() > 0) {
             RuleModel lastRule = Iterables.getLast(archiveUnit.getManagement().getClassification().getRules());
             if (classificationRule != null) {
-                lastRule.setClassificationLevel(classificationRule.getClassificationLevel());
-                lastRule.setClassificationOwner(classificationRule.getClassificationOwner());
                 if (classificationRule.getClassificationReassessingDate() != null) {
                     lastRule
                         .setClassificationReassessingDate(
