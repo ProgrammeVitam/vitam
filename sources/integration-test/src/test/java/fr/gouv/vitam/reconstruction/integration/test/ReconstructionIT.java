@@ -39,7 +39,6 @@ import java.util.Optional;
 import com.fasterxml.jackson.core.type.TypeReference;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
-import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
@@ -71,7 +70,6 @@ import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
@@ -102,7 +100,6 @@ public class ReconstructionIT {
 
     private static final String DEFAULT_OFFER_CONF = "integration-reconstruction/storage-default-offer.conf";
     private static final String LOGBOOK_CONF = "integration-reconstruction/logbook.conf";
-    private static final String LOGBOOK_CONF_FILE_NAME = "logbook.conf";
     private static final String STORAGE_CONF = "integration-reconstruction/storage-engine.conf";
     private static final String WORKSPACE_CONF = "integration-reconstruction/workspace.conf";
     private static final String ADMIN_MANAGEMENT_CONF =
@@ -128,8 +125,6 @@ public class ReconstructionIT {
     public static final String SECURITY_PROFILE_IDENTIFIER_2 = "SEC_PROFILE-000002";
 
     private static String CONTAINER = "0_rules";
-    private static String containerName = "";
-
     private static final int PORT_SERVICE_WORKSPACE = 8094;
     private static final int PORT_SERVICE_FUNCTIONAL_ADMIN = 8093;
     private static final int PORT_SERVICE_LOGBOOK = 8099;
@@ -149,7 +144,6 @@ public class ReconstructionIT {
 
     private static DefaultOfferMain defaultOfferApplication;
 
-
     private static AdminManagementMain adminManagementMain;
 
     @ClassRule
@@ -157,7 +151,7 @@ public class ReconstructionIT {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "vitam-test",
+        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "Vitam-Test",
             FunctionalAdminCollections.SECURITY_PROFILE.getName(), FunctionalAdminCollections.AGENCIES.getName());
 
 
@@ -173,7 +167,9 @@ public class ReconstructionIT {
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
-        containerName = String.format("%s_%s", TENANT_0, StorageCollectionType.BACKUP.toString().toLowerCase());
+
+        File vitamTempFolder = tempFolder.newFolder();
+        System.setProperty("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
 
         // launch functional Admin server
         final List<ElasticsearchNode> nodesEs = new ArrayList<>();
@@ -182,7 +178,16 @@ public class ReconstructionIT {
         // launch workspace
         SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_WORKSPACE));
-        workspaceMain = new WorkspaceMain(PropertiesUtils.getResourcePath(WORKSPACE_CONF).toString());
+
+        final File workspaceConfigFile = PropertiesUtils.findFile(WORKSPACE_CONF);
+
+        fr.gouv.vitam.common.storage.StorageConfiguration workspaceConfiguration =
+            PropertiesUtils.readYaml(workspaceConfigFile, fr.gouv.vitam.common.storage.StorageConfiguration.class);
+        workspaceConfiguration.setStoragePath(vitamTempFolder.getAbsolutePath());
+
+        writeYaml(workspaceConfigFile, workspaceConfiguration);
+
+        workspaceMain = new WorkspaceMain(workspaceConfigFile.getAbsolutePath());
         workspaceMain.start();
         SystemPropertyUtil.clear(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT);
         WorkspaceClientFactory.changeMode(WORKSPACE_URL);
@@ -249,7 +254,7 @@ public class ReconstructionIT {
         storageMain.start();
         SystemPropertyUtil.clear(StorageMain.PARAMETER_JETTY_SERVER_PORT);
 
-        StorageClientFactory.getInstance().setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
+        StorageClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_STORAGE));
         storageClient = StorageClientFactory.getInstance().getClient();
     }
 
@@ -288,18 +293,13 @@ public class ReconstructionIT {
     }
 
     @Before
-    public void setup() throws Exception {
+    public void setup() {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_0));
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
-
-        // create a container on the Workspace
-        workspaceClient.createContainer(containerName);
     }
 
     @After
-    public void tearDown() throws Exception {
-        // delete the container on the Workspace
-        workspaceClient.deleteContainer(containerName, true);
+    public void tearDown() {
         // clean offers
         cleanOffers();
 
@@ -325,7 +325,6 @@ public class ReconstructionIT {
      * 13. Check that two documents are reconstructed
      * 14. check that initial documents are equal to the reconstructed documents
      *
-     *
      * @throws Exception
      */
     @Test
@@ -335,11 +334,11 @@ public class ReconstructionIT {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
 
         // Import 1 document agencies
-
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             client.importAgenciesFile(PropertiesUtils.getResourceAsStream(
                 INTEGRATION_RECONSTRUCTION_DATA_AGENCIES_1_CSV), "agencies_1.csv");
         }
+
         final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.getInstance();
 
         final VitamMongoRepository agenciesMongo =
@@ -478,7 +477,6 @@ public class ReconstructionIT {
         assertThat(inEs22).isEqualTo(inEs22Reconstructed);
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void testReconstructionSecurityProfileOk() throws Exception {
@@ -487,10 +485,12 @@ public class ReconstructionIT {
 
         // Import 1 document securityProfile.
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            File securityProfileFiles = PropertiesUtils.getResourceFile(INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_1_JSON);
+            File securityProfileFiles =
+                PropertiesUtils.getResourceFile(INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_1_JSON);
             List<SecurityProfileModel> securityProfileModelList =
-                JsonHandler.getFromFileAsTypeRefence(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {
-                });
+                JsonHandler
+                    .getFromFileAsTypeRefence(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {
+                    });
             client.importSecurityProfiles(securityProfileModelList);
         }
         final VitamRepositoryProvider vitamRepository = VitamRepositoryFactory.getInstance();
@@ -550,10 +550,12 @@ public class ReconstructionIT {
 
         // Import 2 document securityProfile.
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            File securityProfileFiles = PropertiesUtils.getResourceFile(INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_2_JSON);
+            File securityProfileFiles =
+                PropertiesUtils.getResourceFile(INTEGRATION_RECONSTRUCTION_DATA_SECURITY_PROFILE_2_JSON);
             List<SecurityProfileModel> securityProfileModelList =
-                JsonHandler.getFromFileAsTypeRefence(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {
-                });
+                JsonHandler
+                    .getFromFileAsTypeRefence(securityProfileFiles, new TypeReference<List<SecurityProfileModel>>() {
+                    });
             client.importSecurityProfiles(securityProfileModelList);
         }
 
@@ -633,7 +635,7 @@ public class ReconstructionIT {
      */
     private static void cleanOffers() {
         // ugly style but we don't have the digest here
-        File directory = new File(OFFER_FOLDER + "/" + containerName);
+        File directory = new File(OFFER_FOLDER);
         try {
             FileUtils.cleanDirectory(directory);
             FileUtils.deleteDirectory(directory);

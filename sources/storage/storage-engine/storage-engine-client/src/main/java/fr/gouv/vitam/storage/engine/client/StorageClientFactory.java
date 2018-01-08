@@ -128,7 +128,7 @@ public class StorageClientFactory extends VitamClientFactory<StorageClient> {
         return configuration;
     }
 
-    static final void changeMode(ClientConfiguration configuration) {
+    public static final void changeMode(ClientConfiguration configuration) {
         getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
 

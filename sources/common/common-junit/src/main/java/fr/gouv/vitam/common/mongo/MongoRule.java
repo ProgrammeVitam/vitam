@@ -26,6 +26,10 @@
  */
 package fr.gouv.vitam.common.mongo;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ServerAddress;
@@ -40,10 +44,6 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import org.bson.Document;
 import org.junit.rules.ExternalResource;
-
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Launch a single instance of Mongo database, drop collection after each test
@@ -69,11 +69,16 @@ public class MongoRule extends ExternalResource {
     }
 
     private final MongoClient mongoClient;
-    private String clusterName;
+    private String dataBaseName;
     private List<String> collectionNames;
 
-    public MongoRule(MongoClientOptions clientOptions, String clusterName, String... collectionNames) {
-        this.clusterName = clusterName;
+    /**
+     * @param clientOptions
+     * @param dataBaseName
+     * @param collectionNames
+     */
+    public MongoRule(MongoClientOptions clientOptions, String dataBaseName, String... collectionNames) {
+        this.dataBaseName = dataBaseName;
         this.collectionNames = Arrays.asList(collectionNames);
 
         mongoClient = new MongoClient(new ServerAddress("localhost", dataBasePort), clientOptions);
@@ -82,7 +87,7 @@ public class MongoRule extends ExternalResource {
     @Override
     protected void after() {
         for (String collectionName : collectionNames) {
-            mongoClient.getDatabase(clusterName).getCollection(collectionName).drop();
+            mongoClient.getDatabase(dataBaseName).getCollection(collectionName).drop();
         }
     }
 
@@ -103,11 +108,11 @@ public class MongoRule extends ExternalResource {
     }
 
     public MongoDatabase getMongoDatabase() {
-        return mongoClient.getDatabase(clusterName);
+        return mongoClient.getDatabase(dataBaseName);
     }
 
     public MongoCollection<Document> getMongoCollection(String collectionName) {
-        return mongoClient.getDatabase(clusterName).getCollection(collectionName);
+        return mongoClient.getDatabase(dataBaseName).getCollection(collectionName);
     }
 
 }
