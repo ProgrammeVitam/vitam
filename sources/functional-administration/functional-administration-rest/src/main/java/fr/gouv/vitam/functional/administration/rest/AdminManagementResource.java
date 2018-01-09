@@ -56,11 +56,10 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.error.ServiceName;
-import fr.gouv.vitam.functional.administration.common.FilesSecurisator;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.annotations.VisibleForTesting;
+
 import com.google.common.collect.Iterables;
 
 import fr.gouv.vitam.common.CharsetUtils;
@@ -172,8 +171,6 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private final MongoDbAccessAdminImpl mongoAccess;
     private final ElasticsearchAccessFunctionalAdmin elasticsearchAccess;
     private VitamCounterService vitamCounterService;
-    private FilesSecurisator securisator = new FilesSecurisator();
-    private VitamRuleService vitamRuleService;
 
     /**
      * Constructor
@@ -197,17 +194,10 @@ public class AdminManagementResource extends ApplicationStatusResource {
         mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration);
         WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
-        vitamRuleService = new VitamRuleService(configuration.getListMinimumRuleDuration());
         LOGGER.debug("init Admin Management Resource server");
     }
 
-    @VisibleForTesting
-    AdminManagementResource(AdminManagementConfiguration configuration,
-        FilesSecurisator securisator) {
-        this(configuration);
-        this.securisator = securisator;
-        vitamRuleService = new VitamRuleService(configuration.getListMinimumRuleDuration());
-    }
+
 
     MongoDbAccessAdminImpl getLogbookDbAccess() {
         return mongoAccess;
@@ -405,8 +395,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
         List<FileRulesModel> usedUpdatedRules = new ArrayList<>();
         Set<String> notUsedDeletedRules = new HashSet<>();
         Set<String> notUsedUpdatedRules = new HashSet<>();
-        try (RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService,
-            securisator)) {
+        try {
+            RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService);
+
             try {
                 rulesManagerFileImpl.checkFile(document, errors, usedDeletedRules, usedUpdatedRules,
                     notUsedDeletedRules, notUsedUpdatedRules);
@@ -440,8 +431,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private Response handleGenerateReport(Map<Integer, List<ErrorReport>> errors,
         List<FileRulesModel> usedDeletedRules, List<FileRulesModel> usedUpdatedRules) {
         InputStream errorReportInputStream = null;
-        try (RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService,
-            securisator)) {
+        try {
+            RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService);
             errorReportInputStream =
                 rulesManagerFileImpl.generateErrorReport(errors, usedDeletedRules, usedUpdatedRules, StatusCode.KO,
                     null);
@@ -474,8 +465,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
         throws InvalidParseOperationException, ReferentialException, IOException {
         ParametersChecker.checkParameter("rulesStream is a mandatory parameter", rulesStream);
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
-        try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess, vitamCounterService,
-            securisator)) {
+        try {
+            RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess, vitamCounterService);
+
 
             rulesFileManagement.importFile(rulesStream, filename);
             return Response.status(Status.CREATED).entity(Status.CREATED.getReasonPhrase()).build();
@@ -519,8 +511,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
         ReferentialException, InvalidCreateOperationException {
         ParametersChecker.checkParameter("ruleId is a mandatory parameter", ruleId);
         FileRules fileRules = null;
-        try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess, vitamCounterService,
-            securisator)) {
+        try {
+            RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess, vitamCounterService);
+
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(ruleId));
             fileRules = rulesFileManagement.findDocumentById(ruleId);
             if (fileRules == null) {
@@ -572,8 +565,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
         throws InvalidParseOperationException, IOException {
         ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         RequestResponseOK<FileRules> filerulesList;
-        try (RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess, vitamCounterService,
-            securisator)) {
+        try {
+            RulesManagerFileImpl rulesFileManagement = new RulesManagerFileImpl(mongoAccess, vitamCounterService);
             SanityChecker.checkJsonAll(select);
             filerulesList = rulesFileManagement.findDocuments(select).setQuery(select);
             return Response.status(Status.OK)

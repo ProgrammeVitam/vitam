@@ -87,7 +87,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.FilesSecurisator;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
@@ -249,7 +248,7 @@ public class FunctionalAdminIT {
 
         rulesManagerFile =
             new RulesManagerFileImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
-                vitamCounterService, new FilesSecurisator());
+                vitamCounterService);
 
         referentialFormatFile = new ReferentialFormatFileImpl(
             MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)));
@@ -276,7 +275,6 @@ public class FunctionalAdminIT {
         junitHelper.releasePort(logbookPort);
         client.close();
         profileService.close();
-        rulesManagerFile.close();
     }
 
     @Test
