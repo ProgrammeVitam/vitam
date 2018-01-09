@@ -4,9 +4,9 @@ import static com.jayway.restassured.RestAssured.given;
 import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.reset;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
-import static org.mockito.Mockito.reset;
 
 import javax.ws.rs.core.Response.Status;
 
@@ -25,7 +25,6 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.response.Response;
 
-import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -46,7 +45,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*", "javax.management.*"})
 @PrepareForTest({AccessInternalClientFactory.class})
-public class LogbookExternalResourceImplTest {
+public class LogbookExternalResourceTest {
 
     private static final String TRACEABILITY_OPERATION_ID = "op_id";
 
@@ -59,7 +58,7 @@ public class LogbookExternalResourceImplTest {
     private static VitamServer vitamServer;
 
     // LOGGER
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookExternalResourceImplTest.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookExternalResourceTest.class);
 
     private static JunitHelper junitHelper = JunitHelper.getInstance();
     private static int port = junitHelper.findAvailablePort();
@@ -70,28 +69,6 @@ public class LogbookExternalResourceImplTest {
 
     private static final String OPERATIONS_URI = "/logbookoperations";
     private static final String OPERATION_ID_URI = "/{id_op}";
-
-    private static final String CHECK_TRACEABILITY_OPERATION_URI = AccessExtAPI.TRACEABILITY_API + "/check";
-    private static final String TRACEABILITY_OPERATION_BASE_URI = AccessExtAPI.TRACEABILITY_API + "/";
-
-    private static final String MOCK_SELECT_RESULT = "{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-        "    \"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
-        "    \"evType\": \"Process_SIP_unitary\"," +
-        "    \"evDateTime\": \"2016-06-10T11:56:35.914\"," +
-        "    \"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-        "    \"evTypeProc\": \"INGEST\"," +
-        "    \"outcome\": \"STARTED\"," +
-        "    \"outDetail\": null," +
-        "    \"outMessg\": \"SIP entry : SIP.zip\"," +
-        "    \"agId\": {\"name\":\"ingest_1\",\"role\":\"ingest\",\"pid\":425367}," +
-        "    \"agIdApp\": null," +
-        "    \"evIdAppSession\": null," +
-        "    \"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-        "    \"agIdExt\": null," +
-        "    \"obId\": null," +
-        "    \"obIdReq\": null," +
-        "    \"obIdIn\": null," +
-        "    \"events\": []}";
 
     private static final String BODY_TEST = "{$query: {$eq: {\"aa\" : \"vv\" }}, $projection: {}, $filter: {}}";
     private static final String BODY_TEST_WITH_ID =

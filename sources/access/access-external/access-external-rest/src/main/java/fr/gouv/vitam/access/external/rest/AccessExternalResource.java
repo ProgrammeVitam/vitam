@@ -90,16 +90,16 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 
 /**
- * AccessResourceImpl implements AccessResource
+ * Access External Resource
  */
 @Path("/access-external/v1")
 @javax.ws.rs.ApplicationPath("webresources")
-public class AccessExternalResourceImpl extends ApplicationStatusResource {
+public class AccessExternalResource extends ApplicationStatusResource {
 
     private static final String PREDICATES_FAILED_EXCEPTION = "Predicates Failed Exception ";
     private static final String ACCESS_EXTERNAL_MODULE = "ACCESS_EXTERNAL";
     private static final String CODE_VITAM = "code_vitam";
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalResourceImpl.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalResource.class);
 
     private final SecureEndpointRegistry secureEndpointRegistry;
 
@@ -108,7 +108,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
      *
      * @param secureEndpointRegistry endpoint list registry
      */
-    public AccessExternalResourceImpl(SecureEndpointRegistry secureEndpointRegistry) {
+    public AccessExternalResource(SecureEndpointRegistry secureEndpointRegistry) {
         this.secureEndpointRegistry = secureEndpointRegistry;
         LOGGER.debug("AccessExternalResource initialized");
     }
@@ -124,7 +124,7 @@ public class AccessExternalResourceImpl extends ApplicationStatusResource {
     @Unsecured()
     public Response listResourceEndpoints() {
 
-        String resourcePath = AccessExternalResourceImpl.class.getAnnotation(Path.class).value();
+        String resourcePath = AccessExternalResource.class.getAnnotation(Path.class).value();
 
         List<EndpointInfo> securedEndpointList = this.secureEndpointRegistry.getEndPointsByResourcePath(resourcePath);
 

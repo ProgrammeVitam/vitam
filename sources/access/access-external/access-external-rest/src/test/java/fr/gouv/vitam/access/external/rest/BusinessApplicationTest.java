@@ -35,11 +35,11 @@ public class BusinessApplicationTest extends Application {
 
             commonBusinessApplication = new CommonBusinessApplication(true);
 
-            final AccessExternalResourceImpl accessExternalResource =
-                new AccessExternalResourceImpl(secureEndpointRegistry);
-            final LogbookExternalResourceImpl logbookExternalResource = new LogbookExternalResourceImpl();
-            final AdminManagementExternalResourceImpl adminManagementExternalResource =
-                new AdminManagementExternalResourceImpl(secureEndpointRegistry);
+            final AccessExternalResource accessExternalResource =
+                new AccessExternalResource(secureEndpointRegistry);
+            final LogbookExternalResource logbookExternalResource = new LogbookExternalResource();
+            final AdminManagementExternalResource adminManagementExternalResource =
+                new AdminManagementExternalResource(secureEndpointRegistry);
 
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());

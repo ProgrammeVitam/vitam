@@ -92,7 +92,7 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*", "javax.management.*"})
 @PrepareForTest({AccessInternalClientFactory.class, AdminManagementClientFactory.class})
-public class AccessExternalResourceImplTest {
+public class AccessExternalResourceTest {
     @Rule
     public ExpectedException thrownException = ExpectedException.none();
 
@@ -105,7 +105,7 @@ public class AccessExternalResourceImplTest {
     private static VitamServer vitamServer;
 
     // LOGGER
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalResourceImplTest.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalResourceTest.class);
     private static JunitHelper junitHelper = JunitHelper.getInstance();
     private static int port = junitHelper.findAvailablePort();
     private static AccessInternalClient clientAccessInternal;
