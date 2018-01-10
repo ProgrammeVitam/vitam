@@ -447,6 +447,13 @@ public class UserInterfaceTransactionManager {
         return getVitamContext(getTenantId(request), getContractId(request), request);
     }
 
+    public static VitamContext getVitamContext(Integer tenantId, String contractId, String personalCert) {
+        return new VitamContext(tenantId)
+            .setAccessContract(contractId)
+            .setApplicationSessionId(getAppSessionId())
+            .setPersonalCertificate(personalCert);
+    }
+
     public static VitamContext getVitamContext(Integer tenantId, String contractId, HttpServletRequest request) {
         String personalCert  = getPersonalCertificate(request);
         if (personalCert != null) {
@@ -461,11 +468,11 @@ public class UserInterfaceTransactionManager {
         }
     }
 
-    private static String getPersonalCertificate(HttpServletRequest request) {
+    public static String getPersonalCertificate(HttpServletRequest request) {
         return (String) request.getAttribute(REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE);
     }
 
-    private static String getContractId(HttpServletRequest request) {
+    public static String getContractId(HttpServletRequest request) {
         return request.getHeader(GlobalDataRest.X_ACCESS_CONTRAT_ID);
     }
 

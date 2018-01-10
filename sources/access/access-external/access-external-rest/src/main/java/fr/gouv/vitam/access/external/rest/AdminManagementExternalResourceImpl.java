@@ -65,6 +65,8 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServer
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.alert.AlertService;
+import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -140,6 +142,7 @@ public class AdminManagementExternalResourceImpl {
     private static final String HTML_CONTENT_MSG_ERROR = "document has toxic HTML content";
 
     private final SecureEndpointRegistry secureEndpointRegistry;
+    private static final AlertService alertService = new AlertServiceImpl();
 
     /**
      * Constructor
@@ -396,7 +399,7 @@ public class AdminManagementExternalResourceImpl {
             final Status status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
         } catch (InvalidParseOperationException e) {
-            // TODO: LOG alert
+            alertService.createAlert("Rules contain an HTML injection");
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, HTML_CONTENT_MSG_ERROR, null)).build();
@@ -990,7 +993,7 @@ public class AdminManagementExternalResourceImpl {
             final Status status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage(), null)).build();
         } catch (InvalidParseOperationException e) {
-            // TODO: LOG alert
+            alertService.createAlert("Agencies contain an HTML injection");
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;
             return Response.status(status).entity(getErrorEntity(status, HTML_CONTENT_MSG_ERROR, null)).build();

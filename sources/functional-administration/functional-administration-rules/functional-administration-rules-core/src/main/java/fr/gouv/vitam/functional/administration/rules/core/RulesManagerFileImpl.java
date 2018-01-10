@@ -62,6 +62,8 @@ import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.common.alert.AlertService;
+import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -199,6 +201,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
     private final MetaDataClientFactory metaDataClientFactory;
     private final FunctionalBackupService backupService;
+    private static final AlertService alertService = new AlertServiceImpl();
 
 
     // event in logbook
@@ -302,6 +305,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                     updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.KO, filename);
                 throw e;
             } catch (FileRulesDurationException e) {
+                alertService.createAlert(RULE_DURATION_EXCEED);
                     updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(MAX_DURATION_EXCEEDS, eip);
                 generateReport(errors, eip, usedDeletedRulesForReport, usedUpdateRulesForReport);
                     updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.KO, filename);

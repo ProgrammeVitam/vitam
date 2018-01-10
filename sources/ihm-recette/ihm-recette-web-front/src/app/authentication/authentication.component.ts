@@ -27,7 +27,7 @@ export class AuthenticationComponent implements OnInit {
           this.authenticationService.loggedIn();
         },
         (error) => {
-          if (data == 'x509') {
+          if (data.body.indexOf('x509') > -1) {
             this.needCertificate = true;
           } else {
             this.showLoginForm = true;

@@ -1001,7 +1001,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Retrieve an Object data as an input stream. Download by access.
      *
-     * @param request HTTP request
      * @param unitId the unit Id
      * @param usage additional mandatory parameters usage
      * @param filename additional mandatory parameters filename
@@ -1013,14 +1012,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/archiveunit/objects/download/{unitId}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @RequiresPermissions("archiveunit:objects:read")
-    public void getObjectAsInputStreamAsync(@Context HttpServletRequest request, @PathParam("unitId") String unitId,
+    public void getObjectAsInputStreamAsync(@PathParam("unitId") String unitId,
         @QueryParam("usage") String usage, @QueryParam("filename") String filename,
         @QueryParam("tenantId") Integer tenantId,
         @QueryParam("contractId") String contractId,
         @Suspended final AsyncResponse asyncResponse) {
         threadPoolExecutor
             .execute(() -> asyncGetObjectStream(asyncResponse, unitId, usage, filename, tenantId,
-                contractId, request));
+                contractId));
     }
 
     /**
@@ -1038,12 +1037,15 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public void getObjectFromStorageAsInputStreamAsync(@Context HttpServletRequest request,
         @PathParam("idObject") String objectId, @PathParam("type") String type,
         @Suspended final AsyncResponse asyncResponse) {
+        Integer tenantId = UserInterfaceTransactionManager.getTenantId(request);
+        String contractId = UserInterfaceTransactionManager.getContractId(request);
+        String personalCert = UserInterfaceTransactionManager.getPersonalCertificate(request);
         threadPoolExecutor
-            .execute(() -> asyncGetObjectStorageStream(asyncResponse, objectId, type, request));
+            .execute(() -> asyncGetObjectStorageStream(asyncResponse, objectId, type, tenantId, contractId, personalCert));
     }
 
     private void asyncGetObjectStorageStream(AsyncResponse asyncResponse, String objectId, String type,
-        HttpServletRequest request) {
+        Integer tenantId, String contractId, String personalCert) {
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectId));
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(type));
@@ -1060,7 +1062,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try (IngestExternalClient client = IngestExternalClientFactory.getInstance().getClient()) {
             IngestCollection collection = IngestCollection.valueOf(type.toUpperCase());
             Response response = client.downloadObjectAsync(
-                UserInterfaceTransactionManager.getVitamContext(request), objectId, collection);
+                UserInterfaceTransactionManager.getVitamContext(tenantId, contractId, personalCert), objectId, collection);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             if (response.getStatus() == Status.OK.getStatusCode()) {
                 helper.writeResponse(Response.ok().header(CONTENT_DISPOSITION, "filename=" + objectId + ".xml"));
@@ -1078,7 +1080,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     private void asyncGetObjectStream(AsyncResponse asyncResponse, String unitId, String usage, String filename,
-        Integer tenantId, String contractId, HttpServletRequest request) {
+        Integer tenantId, String contractId) {
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(unitId));
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(usage));
@@ -1095,17 +1097,14 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return;
         }
         try {
-            final HashMap<String, String> emptyMap = new HashMap<>();
-            final JsonNode preparedQueryDsl = DslQueryHelper.createSelectDSLQuery(emptyMap);
             String[] usageAndVersion = usage.split("_");
             if (usageAndVersion.length != 2) {
                 throw new InvalidParameterException();
             }
             UserInterfaceTransactionManager.getObjectAsInputStream(asyncResponse, unitId, usageAndVersion[0],
-                Integer.parseInt(usageAndVersion[1]), filename, UserInterfaceTransactionManager.getVitamContext(tenantId, contractId, request));
-        } catch (InvalidParseOperationException | InvalidCreateOperationException exc) {
-            LOGGER.error(BAD_REQUEST_EXCEPTION_MSG, exc);
-            AsyncInputStreamHelper.asyncResponseResume(asyncResponse, Response.status(Status.BAD_REQUEST).build());
+                Integer.parseInt(usageAndVersion[1]), filename,
+                new VitamContext(tenantId).setAccessContract(contractId)
+                    .setApplicationSessionId(UserInterfaceTransactionManager.getAppSessionId()));
         } catch (final VitamClientException exc) {
             LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, exc);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
@@ -1265,8 +1264,11 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("rules:create")
     public void checkRefRule(@Context HttpServletRequest request, InputStream input,
         @Suspended final AsyncResponse asyncResponse) {
+        Integer tenantId = UserInterfaceTransactionManager.getTenantId(request);
+        String contractId = UserInterfaceTransactionManager.getContractId(request);
+        String personalCert = UserInterfaceTransactionManager.getPersonalCertificate(request);
         VitamThreadPoolExecutor.getDefaultExecutor()
-            .execute(() -> asyncDownloadErrorReport(input, request, asyncResponse));
+            .execute(() -> asyncDownloadErrorReport(input, asyncResponse, tenantId, contractId, personalCert));
     }
 
 
@@ -1275,14 +1277,16 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * async Download Error Report
      *
      * @param document the input stream to test
-     * @param request http request
      * @param asyncResponse asyncResponse
+     * @param tenantId http request
+     * @param contractId http request
      */
-    private void asyncDownloadErrorReport(InputStream document, HttpServletRequest request, final AsyncResponse asyncResponse) {
+    private void asyncDownloadErrorReport(InputStream document, final AsyncResponse asyncResponse,
+        Integer tenantId, String contractId, String personalCert) {
         AsyncInputStreamHelper helper;
         try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
             final Response response = client.checkRules(
-                UserInterfaceTransactionManager.getVitamContext(request), document);
+                UserInterfaceTransactionManager.getVitamContext(tenantId, contractId, personalCert), document);
             helper = new AsyncInputStreamHelper(asyncResponse, response);
             final Response.ResponseBuilder responseBuilder =
                 Response.status(response.getStatus())
@@ -2288,19 +2292,22 @@ public class WebApplicationResource extends ApplicationStatusResource {
         @Suspended final AsyncResponse asyncResponse) {
 
         ParametersChecker.checkParameter("Profile id should be filled", profileMetadataId);
+        Integer tenantId = UserInterfaceTransactionManager.getTenantId(request);
+        String contractId = UserInterfaceTransactionManager.getContractId(request);
+        String personalCert = UserInterfaceTransactionManager.getPersonalCertificate(request);
         threadPoolExecutor
-            .execute(() -> asyncDownloadProfileFile(profileMetadataId, request, asyncResponse));
+            .execute(() -> asyncDownloadProfileFile(profileMetadataId, asyncResponse, tenantId, contractId, personalCert));
     }
 
-    private void asyncDownloadProfileFile(String profileMetadataId, HttpServletRequest request,
-        final AsyncResponse asyncResponse) {
+    private void asyncDownloadProfileFile(String profileMetadataId, final AsyncResponse asyncResponse,
+        Integer tenantId, String contractId, String personalCert) {
 
         AsyncInputStreamHelper helper;
 
         try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
 
             final Response response = client.downloadProfileFile(
-                UserInterfaceTransactionManager.getVitamContext(request), profileMetadataId);
+                UserInterfaceTransactionManager.getVitamContext(tenantId, contractId, personalCert), profileMetadataId);
             helper = new AsyncInputStreamHelper(asyncResponse, response);
             final Response.ResponseBuilder responseBuilder =
                 Response.status(Status.OK)
@@ -2500,19 +2507,26 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
         // Check parameters
         ParametersChecker.checkParameter("Operation Id should be filled", operationId);
-
+        Integer tenantId;
+        // Get tenantId from headers
+        if (tenantIdParam != null && StringUtils.isNumeric(tenantIdParam)) {
+            tenantId = Integer.parseInt(tenantIdParam);
+        } else {
+            tenantId = UserInterfaceTransactionManager.getTenantId(request);
+        }
+        String personalCert = UserInterfaceTransactionManager.getPersonalCertificate(request);
         threadPoolExecutor
-            .execute(() -> downloadTraceabilityFileAsync(asyncResponse, operationId, request));
+            .execute(() -> downloadTraceabilityFileAsync(asyncResponse, operationId,  tenantId, contractId, personalCert));
     }
 
     private void downloadTraceabilityFileAsync(final AsyncResponse asyncResponse, String operationId,
-        HttpServletRequest request) {
+        Integer tenantId, String contractId, String personalCert) {
 
         Response response = null;
         try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
 
-            response = client
-                .downloadTraceabilityOperationFile(UserInterfaceTransactionManager.getVitamContext(request), operationId);
+            response = client.downloadTraceabilityOperationFile(
+                UserInterfaceTransactionManager.getVitamContext(tenantId, contractId, personalCert), operationId);
 
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
 
@@ -2744,13 +2758,18 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @RequiresPermissions("dipexport:read")
     public void getDIPAsInputStreamAsync(@Context HttpServletRequest request,
         @PathParam("id") String id, @Suspended final AsyncResponse asyncResponse) {
+
+        Integer tenantId = UserInterfaceTransactionManager.getTenantId(request);
+        String contractId = UserInterfaceTransactionManager.getContractId(request);
+        String personalCert = UserInterfaceTransactionManager.getPersonalCertificate(request);
         threadPoolExecutor
             .execute(() -> {
-                asyncGetDIPStream(asyncResponse, id, request);
+                asyncGetDIPStream(asyncResponse, id, tenantId, contractId, personalCert);
             });
     }
 
-    private void asyncGetDIPStream(AsyncResponse asyncResponse, String dipId, HttpServletRequest request) {
+    private void asyncGetDIPStream(AsyncResponse asyncResponse, String dipId, Integer tenantId,
+        String contracId, String personalCert) {
         try {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(dipId));
             ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, dipId);
@@ -2763,7 +2782,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return;
         }
         try {
-            UserInterfaceTransactionManager.downloadDIP(asyncResponse, dipId, UserInterfaceTransactionManager.getVitamContext(request));
+            UserInterfaceTransactionManager.downloadDIP(asyncResponse, dipId,
+                UserInterfaceTransactionManager.getVitamContext(tenantId, contracId, personalCert));
         } catch (final VitamClientException exc) {
             LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, exc);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,

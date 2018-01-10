@@ -10,7 +10,8 @@ vitam:
         baseurl: /ihm-recette
         static_content: "{{ vitam_defaults.folder.root_path }}/app/ihm-recette"
         baseuri: "ihm-recette"
-        secure_mode: authc
+        secure_mode: 
+            - authc
         https_enabled: true
         secret_platform: "false"
         cluster_name: "{{ elasticsearch.data.cluster_name }}"
