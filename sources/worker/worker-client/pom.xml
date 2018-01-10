@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>worker</artifactId>
-		<version>0.29.0-SNAPSHOT</version>
+		<version>0.30.0-SNAPSHOT</version>
 	</parent>
 	<artifactId>worker-client</artifactId>
 	<name>Worker Client</name>
