@@ -48,7 +48,7 @@ public class UnitModel {
     private DescriptiveMetadataModel descriptiveMetadataModel;
 
     @JsonProperty("_up")
-    private String up; // change to array
+    private Set<String> up = new HashSet<>(); // change to array
 
     @JsonProperty("_us")
     private Set<String> us = new HashSet<>();
@@ -84,11 +84,11 @@ public class UnitModel {
         this.og = og;
     }
 
-    public String getUp() {
+    public Set<String> getUp() {
         return up;
     }
 
-    public void setUp(String up) {
+    public void setUp(Set<String> up) {
         this.up = up;
     }
 

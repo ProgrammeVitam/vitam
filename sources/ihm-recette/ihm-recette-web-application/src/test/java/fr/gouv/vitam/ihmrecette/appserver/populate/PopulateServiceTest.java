@@ -88,7 +88,7 @@ public class PopulateServiceTest {
         mongoRule.getMongoCollection(MetadataType.UNIT.getCollectionName()).find().skip(1).
             forEach((Block<? super Document>) document -> {
                 assertThat(document.getString("Title").equals("Title: " + (idx[0]++)));
-                assertThat(!document.getString("_up").equals("1234"));
+                assertThat(!document.get("_up", List.class).contains("1234"));
                 assertThat(document.get("_us", List.class).size() == 1);
                 assertThat(document.get("_sps", List.class).size() == 1);
                 assertThat(document.get("_uds", Document.class).getInteger("1234").equals(1));
@@ -101,7 +101,7 @@ public class PopulateServiceTest {
                 assertThat(document.get("FileInfo", Document.class).
                         getString("Filename").equals("Filename: " + (jdx[0]++)));
                 assertThat(document.get("_sps", List.class).size() == 1);
-                assertThat(!document.getString("_up").isEmpty());
+                assertThat(!document.get("_up", List.class).isEmpty());
         });
         
     }

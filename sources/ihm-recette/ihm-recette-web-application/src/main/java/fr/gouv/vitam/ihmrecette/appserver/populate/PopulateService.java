@@ -50,7 +50,7 @@ public class PopulateService {
     }
 
     /**
-     * Populate vitam with data using populateMode
+     * Populate vitam with data using populateModel
      * 
      * @param populateModel config to use
      */
