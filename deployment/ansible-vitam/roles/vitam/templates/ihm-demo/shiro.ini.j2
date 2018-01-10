@@ -57,7 +57,7 @@ x509Realm.grantedKeyStorePassphrase = {{password_grantedstore}}
 x509Realm.trustedKeyStoreName = {{vitam_folder_conf}}/truststore_ihm-demo.jks
 x509Realm.trustedKeyStorePassphrase = {{password_truststore}}
 x509Realm.credentialsMatcher = $x509credentialsMatcher
-x509Realm.certificateDnRoleMapping = "CN=userAdmin,O=Vitam,L=Paris":"admin", "CN=userUser,O=Vitam,L=Paris":"user"
+x509Realm.certificateDnRoleMapping = "CN=userAdmin,O=Vitam,L=Paris":"admin", "CN=userUser,O=Vitam,L=Paris,C=FR":"user"
 {% endif %}
 
 securityManager.realms = {% for realm in vitam_struct.authentication_realms %}{% if not loop.first %},{% endif %}${{ realm }}{% endfor %}
