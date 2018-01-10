@@ -28,6 +28,7 @@ package fr.gouv.vitam.functional.administration.rules.core;
 
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -36,8 +37,10 @@ import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -77,6 +80,8 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
@@ -91,8 +96,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileRules;
-import fr.gouv.vitam.functional.administration.common.FilesSecurisator;
-import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesCsvException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesDeleteException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
@@ -106,6 +110,7 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminF
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -114,14 +119,9 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+
+import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -187,17 +187,13 @@ public class RulesManagerFileImplTest {
     @Mock
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
 
-    @Mock
-    private WorkspaceClientFactory workspaceClientFactory;
 
-    @Mock
-    private StorageClientFactory storageClientFactory;
 
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
 
     @Mock
-    private FilesSecurisator securisator;
+    private FunctionalBackupService functionalBackupService;
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -233,7 +229,7 @@ public class RulesManagerFileImplTest {
         nodes.add(new MongoDbNode(DATABASE_HOST, port));
 
         LogbookOperationsClientFactory.changeMode(null);
-        dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
+        dbImpl = create(new DbConfigurationImpl(nodes, DATABASE_NAME));
         List<Integer> tenants = new ArrayList<>();
         Integer tenantsList[] = {TENANT_ID, 1, 2, 3, 4, 5, 60, 70};
         tenants.addAll(Arrays.asList(tenantsList));
@@ -247,12 +243,11 @@ public class RulesManagerFileImplTest {
 
     @Before
     public void setUp() throws Exception {
+        MongoDbAccessAdminImpl dbAccess = create(
+            new DbConfigurationImpl(nodes, DATABASE_NAME));
         rulesFileManager =
-            new RulesManagerFileImpl(
-                MongoDbAccessAdminFactory.create(
-                    new DbConfigurationImpl(nodes, DATABASE_NAME)),
-                vitamCounterService, securisator,
-                logbookOperationsClientFactory, storageClientFactory, workspaceClientFactory, metaDataClientFactory);
+            new RulesManagerFileImpl(dbAccess,
+                vitamCounterService, functionalBackupService, logbookOperationsClientFactory, metaDataClientFactory);
 
     }
 
@@ -279,11 +274,6 @@ public class RulesManagerFileImplTest {
         when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
             .thenReturn(getJsonResult(STP_IMPORT_RULES, TENANT_ID));
 
-        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-
-        StorageClient storageClient = mock(StorageClient.class);
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
 
 
         Map<Integer, List<ErrorReport>> errors = new HashMap<>();
@@ -341,13 +331,8 @@ public class RulesManagerFileImplTest {
         LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
         when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
-                .thenReturn(getJsonResult(STP_IMPORT_RULES, TENANT_ID));
+            .thenReturn(getJsonResult(STP_IMPORT_RULES, TENANT_ID));
 
-        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-
-        StorageClient storageClient = mock(StorageClient.class);
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
 
 
         Map<Integer, List<ErrorReport>> errors = new HashMap<>();
@@ -375,11 +360,7 @@ public class RulesManagerFileImplTest {
     public void testNoImportInProgess() throws Exception {
         int tenantId = 1;
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
-        StorageClient storageClient = mock(StorageClient.class);
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
 
         LogbookOperationsClient client = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(client);
@@ -486,11 +467,7 @@ public class RulesManagerFileImplTest {
     @RunWithCustomExecutor
     public void shouldRetrieveAllRules() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
-        StorageClient storageClient = mock(StorageClient.class);
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
 
         final Select select = new Select();
         select.setQuery(eq("#tenant", TENANT_ID));
@@ -511,11 +488,6 @@ public class RulesManagerFileImplTest {
     public void shouldInsertUpdateAndDeleteNewFileRules() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final Select select = new Select();
-        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-
-        StorageClient storageClient = mock(StorageClient.class);
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
 
         LogbookOperationsClient client = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(client);
@@ -565,13 +537,6 @@ public class RulesManagerFileImplTest {
             when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
                 .thenReturn(getJsonResult(STP_IMPORT_RULES, TENANT_ID));
 
-            WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-            when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-
-            StorageClient storageClient = mock(StorageClient.class);
-            when(storageClientFactory.getClient()).thenReturn(storageClient);
-
-
             List<FileRules> fileRules = new ArrayList<>();
             try {
                 select.setQuery(eq("#tenant", TENANT_ID));
@@ -618,11 +583,6 @@ public class RulesManagerFileImplTest {
     public void shouldDoNothingOnFileRulesReferential() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final Select select = new Select();
-        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-
-        StorageClient storageClient = mock(StorageClient.class);
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
 
         LogbookOperationsClient client = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(client);
@@ -673,13 +633,6 @@ public class RulesManagerFileImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         // mock Storage
-        StorageClient storageClient = mock(StorageClient.class);
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
-        when(storageClient.storeFileFromWorkspace(Matchers.anyObject(), Matchers.anyObject(), Matchers.anyObject(),
-            Matchers.anyObject())).thenReturn(new StoredInfoResult());
-        // mock workspace
-        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
@@ -701,7 +654,8 @@ public class RulesManagerFileImplTest {
     public void should_not_duplicate_error_on_each_line_in_report_when_error_append()
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final InputStream inputStream = getInputStreamAndInitialiseMockWhenCheckRulesFile(FILE_TO_TEST_RULES_DURATION_KO);
+        final InputStream inputStream =
+            getInputStreamAndInitialiseMockWhenCheckRulesFile(FILE_TO_TEST_RULES_DURATION_KO);
 
         // Then
         final JsonNode errorReportAtJson = JsonHandler.getFromInputStream(inputStream);
@@ -727,7 +681,8 @@ public class RulesManagerFileImplTest {
         throws Exception {
         //Given
         // mock Storage
-        final InputStream inputStream = getInputStreamAndInitialiseMockWhenCheckRulesFile(FILE_TO_TEST_RULES_DURATION_KO);
+        final InputStream inputStream =
+            getInputStreamAndInitialiseMockWhenCheckRulesFile(FILE_TO_TEST_RULES_DURATION_KO);
         // Then
         final JsonNode errorReportAtJson = JsonHandler.getFromInputStream(inputStream);
         final JsonNode errorNode = errorReportAtJson.get("JDO");
@@ -742,7 +697,8 @@ public class RulesManagerFileImplTest {
         throws Exception {
         //Given
         // mock Storage
-        final InputStream inputStream = getInputStreamAndInitialiseMockWhenCheckRulesFile(FILE_TO_TEST_KO_INVALID_FORMAT);
+        final InputStream inputStream =
+            getInputStreamAndInitialiseMockWhenCheckRulesFile(FILE_TO_TEST_KO_INVALID_FORMAT);
         // Then
         final JsonNode errorReportAtJson = JsonHandler.getFromInputStream(inputStream);
         final JsonNode errorNode = errorReportAtJson.get("JDO");
@@ -752,18 +708,8 @@ public class RulesManagerFileImplTest {
     }
 
     private InputStream getInputStreamAndInitialiseMockWhenCheckRulesFile(String filename)
-        throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException,
-        MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
+        throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
         MetaDataClientServerException, FileRulesException {
-        //Given
-        // mock Storage
-        StorageClient storageClient = mock(StorageClient.class);
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
-        when(storageClient.storeFileFromWorkspace(Matchers.anyObject(), Matchers.anyObject(), Matchers.anyObject(),
-            Matchers.anyObject())).thenReturn(new StoredInfoResult());
-        // mock workspace
-        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
         // mock logbook client
         LogbookOperationsClient client = mock(LogbookOperationsClient.class);
@@ -813,20 +759,17 @@ public class RulesManagerFileImplTest {
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
         when(metaDataClient.selectUnits(any())).thenReturn(JsonHandler.createArrayNode());
 
-        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
-        StorageClient storageClient = mock(StorageClient.class);
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
 
         File file = folder.newFolder();
         final Path report = Paths.get(file.getAbsolutePath(), "report.json");
-        getInputStreamAndInitialiseMockWhenImportFileRules(workspaceClient, report);
+        getInputStreamAndInitialiseMockWhenImportFileRules(report);
         // when
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
             FILE_TO_TEST_OK);
         // then
-        verify(workspaceClient, times(1)).putObject(anyString(), anyString(), any(InputStream.class));
+        verify(functionalBackupService, times(1)).saveFile(any(InputStream.class), any(GUID.class), anyString(),
+            eq(StorageCollectionType.REPORTS), eq(TENANT_ID), anyString());
         final JsonNode fromFile = JsonHandler.getFromFile(report.toFile());
         final JsonNode jdoNode = fromFile.get("JDO");
         final String evId = jdoNode.get("evId").asText();
@@ -848,7 +791,7 @@ public class RulesManagerFileImplTest {
 
 
         final Path reportAfterUpdate = Paths.get(file.getAbsolutePath(), "reportAfterUpdate.json");
-        getInputStreamAndInitialiseMockWhenImportFileRules(workspaceClient, reportAfterUpdate);
+        getInputStreamAndInitialiseMockWhenImportFileRules(reportAfterUpdate);
 
         // FILE_TO_COMPARE => insert 1 rule, delete 1 rule, update 1 rule
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_UPDATE_RULE_TYPE)),
@@ -888,20 +831,16 @@ public class RulesManagerFileImplTest {
         when(metaDataClient.selectUnits(any()))
             .thenReturn(JsonHandler.getFromFile(PropertiesUtils.findFile(USED_UPDATED_RULE_RESULT)));
 
-        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-
-        StorageClient storageClient = mock(StorageClient.class);
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
 
         File file = folder.newFolder();
         final Path report = Paths.get(file.getAbsolutePath(), "report.json");
-        getInputStreamAndInitialiseMockWhenImportFileRules(workspaceClient, report);
+        getInputStreamAndInitialiseMockWhenImportFileRules(report);
         // when
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
             FILE_TO_TEST_OK);
         // then
-        verify(workspaceClient, times(1)).putObject(anyString(), anyString(), any(InputStream.class));
+        verify(functionalBackupService, times(1)).saveFile(any(InputStream.class), any(GUID.class), anyString(),
+            eq(StorageCollectionType.REPORTS), eq(TENANT_ID), anyString());
         final JsonNode fromFile = JsonHandler.getFromFile(report.toFile());
         final JsonNode jdoNode = fromFile.get("JDO");
         final String evId = jdoNode.get("evId").asText();
@@ -924,7 +863,7 @@ public class RulesManagerFileImplTest {
 
 
         final Path reportAfterUpdate = Paths.get(file.getAbsolutePath(), "reportAfterUpdate.json");
-        getInputStreamAndInitialiseMockWhenImportFileRules(workspaceClient, reportAfterUpdate);
+        getInputStreamAndInitialiseMockWhenImportFileRules(reportAfterUpdate);
 
         // FILE_TO_COMPARE => insert 1 rule, delete 1 rule, update 1 rule
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_UPDATE_RULE_TYPE)),
@@ -948,28 +887,28 @@ public class RulesManagerFileImplTest {
 
     }
 
-    private void getInputStreamAndInitialiseMockWhenImportFileRules(WorkspaceClient workspaceClient, Path report)
+    private void getInputStreamAndInitialiseMockWhenImportFileRules(Path report)
         throws Exception {
 
         doAnswer(invocation -> {
-            InputStream argumentAt = invocation.getArgumentAt(2, InputStream.class);
+            InputStream argumentAt = invocation.getArgumentAt(0, InputStream.class);
             Files.copy(argumentAt, report);
             return null;
-        }).when(workspaceClient).putObject(anyString(), anyString(), any(InputStream.class));
+        }).when(functionalBackupService).saveFile(any(InputStream.class), any(GUID.class), anyString(),
+            eq(StorageCollectionType.REPORTS), eq(TENANT_ID), anyString());
 
     }
-    
+
     private static void createRuleDurationConfigration(List<Integer> tenants) {
         Map<Integer, Map<String, String>> durationList = new HashMap<>();
         Map<String, String> duration = new HashMap<>();
         duration.put("AppraisalRule", "6 day");
         duration.put("AccessRule", "5");
         for (Integer tenant : tenants) {
-            
+
             durationList.put(tenant, duration);
         }
-        
-        VitamRuleService vitamRuleService = new VitamRuleService(durationList);
+        new VitamRuleService(durationList);
     }
 
 }

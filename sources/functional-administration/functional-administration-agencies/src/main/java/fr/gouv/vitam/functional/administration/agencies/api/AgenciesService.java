@@ -674,9 +674,9 @@ public class AgenciesService implements VitamAutoCloseable {
      *
      * @param fileAgenciesModel Agencies to update
      * @param sequence sequence identifier
-     * @throws InvalidCreateOperationException
-     * @throws ReferentialException
-     * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException InvalidCreateOperationException
+     * @throws ReferentialException ReferentialException
+     * @throws InvalidParseOperationException InvalidParseOperationException
      */
     private void updateAgency(AgenciesModel fileAgenciesModel, Integer sequence)
         throws InvalidCreateOperationException,
@@ -715,7 +715,7 @@ public class AgenciesService implements VitamAutoCloseable {
      * generate Error Report
      *
      * @return the error report inputStream
-     * @throws ReferentialException
+     * @throws ReferentialException ReferentialException
      */
     private InputStream generateReportOK() throws ReferentialException {
         AgenciesReport reportFinal = generateReport();

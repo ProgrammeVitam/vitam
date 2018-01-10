@@ -96,7 +96,7 @@ public class BackupLogbookManager {
         LogbookOperationsClient logbookClient = logbookClientFactory.getClient();
         logbookClient.update(logbookParameters);
     }
-
+  
     /**
      * log error (system or technical error)
      * @param logbookOperationMasterId

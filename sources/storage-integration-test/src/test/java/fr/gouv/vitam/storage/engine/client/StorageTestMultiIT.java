@@ -35,6 +35,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -50,7 +51,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.functional.administration.common.BackupService;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import org.apache.commons.io.FileUtils;
 import org.jhades.JHades;
 import org.junit.AfterClass;
@@ -64,11 +64,8 @@ import org.junit.rules.TemporaryFolder;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.FakeInputStream;
@@ -78,7 +75,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.FilesSecurisator;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
@@ -120,7 +116,7 @@ public class StorageTestMultiIT {
     private static final String logbookSecurisation = "RULES_SECURISATION";
     private static final String logbookSecurisation_agencies = "RULES_SECURISATION";
 
-    private static final String file_name = "RULES";
+    private static final String FILE_NAME = "RULES";
     private static final String file_name_agencies = "AGENCIES";
 
     private static final String CONTAINER = "object";
@@ -277,51 +273,17 @@ public class StorageTestMultiIT {
 
     @Test
     @RunWithCustomExecutor
-    public void testRulesSecurisator() throws Exception {
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-
-        FilesSecurisator filesSecurisator = new FilesSecurisator();
-        final GUID eipMaster = GUIDFactory.newOperationLogbookGUID(0);
-
-        File file = PropertiesUtils.findFile("static-offer.json");
-        final DigestType digestType = VitamConfiguration.getDefaultTimestampDigestType();
-        final Digest digest = new Digest(digestType);
-        digest.update(new FileInputStream(file));
-        filesSecurisator.secureFiles(1, new FileInputStream(file), "json", eipMaster,
-            digest.toString(), LogbookTypeProcess.STORAGE_RULE, StorageCollectionType.RULES, logbookSecurisation,
-            file_name
-        );
-        filesSecurisator.secureFiles(2, new FileInputStream(file), "json", eipMaster,
-            digest.toString(), LogbookTypeProcess.STORAGE_RULE, StorageCollectionType.RULES, logbookSecurisation,
-            file_name);
-        VitamRequestIterator<JsonNode> result = storageClient.listContainer("default", DataCategory.RULES);
-
-        TestCase.assertNotNull(result);
-
-        Assert.assertTrue(result.hasNext());
-        JsonNode node = result.next();
-        TestCase.assertNotNull(node);
-
-        // assertEquals(node.get("objectId").asText()., "0_RULES-1.json");
-        assertTrue(node.get("objectId").asText().startsWith("0_RULES-1"));
-        assertTrue(node.get("objectId").asText().endsWith(".json"));
-
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void should_test_backUpService() throws Exception {
+    public void testBackupService() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
         BackupService backupService = new BackupService();
         final GUID eipMaster = GUIDFactory.newOperationLogbookGUID(0);
 
-        File file = PropertiesUtils.findFile("static-offer.json");
+        InputStream fileIS = PropertiesUtils.getResourceAsStream("static-offer.json");
 
-        backupService.backup(new FileInputStream(file), StorageCollectionType.RULES, eipMaster.getId()
-        );
+        backupService.backup(fileIS, StorageCollectionType.RULES, FILE_NAME);
+
         VitamRequestIterator<JsonNode> result = storageClient.listContainer("default", DataCategory.RULES);
 
         TestCase.assertNotNull(result);
@@ -329,43 +291,6 @@ public class StorageTestMultiIT {
         Assert.assertTrue(result.hasNext());
         JsonNode node = result.next();
         TestCase.assertNotNull(node);
-
-        assertTrue(node.get("objectId").asText().startsWith(eipMaster.getId()));
-
-    }
-
-
-    @Test
-    @RunWithCustomExecutor
-    public void testAgenciesSecurisator() throws Exception {
-        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-
-        FilesSecurisator filesSecurisator = new FilesSecurisator();
-        final GUID eipMaster = GUIDFactory.newOperationLogbookGUID(0);
-
-        File file = PropertiesUtils.findFile("static-offer.json");
-        final DigestType digestType = VitamConfiguration.getDefaultTimestampDigestType();
-        final Digest digest = new Digest(digestType);
-        digest.update(new FileInputStream(file));
-        filesSecurisator.secureFiles(1, new FileInputStream(file), "json", eipMaster,
-            digest.toString(), LogbookTypeProcess.STORAGE_AGENCIES, StorageCollectionType.AGENCIES,
-            logbookSecurisation_agencies, file_name_agencies);
-        filesSecurisator.secureFiles(2, new FileInputStream(file), "json", eipMaster,
-            digest.toString(), LogbookTypeProcess.STORAGE_AGENCIES, StorageCollectionType.AGENCIES,
-            logbookSecurisation_agencies, file_name_agencies);
-        VitamRequestIterator<JsonNode> result = storageClient.listContainer("default", DataCategory.AGENCIES);
-
-        TestCase.assertNotNull(result);
-
-        Assert.assertTrue(result.hasNext());
-        JsonNode node = result.next();
-        TestCase.assertNotNull(node);
-
-        // assertEquals(node.get("objectId").asText()., "0_RULES-1.json");
-        assertTrue(node.get("objectId").asText().startsWith("0_AGENCIES-1"));
-        assertTrue(node.get("objectId").asText().endsWith(".json"));
-
     }
 
     @RunWithCustomExecutor
