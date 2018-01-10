@@ -18,7 +18,7 @@ vitam_defaults:
         log_level: WARN
         start_timeout: 150
         stop_timeout: 3600
-        port_http_timeout: 86400
+        port_service_timeout: 86400
     # Filter for the vitam package version to install
     # FIXME : commented as has to be removed becuase doesn't work under Debain
     #package_version: "*"
@@ -43,16 +43,15 @@ vitam:
     accessexternal:
         vitam_component: access-external
         host: "access-external.service.{{consul_domain}}"
-        port_http: 8102
         port_admin: 28102
-        port_https: 8444
+        port_service: 8444
         baseuri: "access-external"
         https_enabled: true
         secret_platform: "false"
     accessinternal:
         vitam_component: access-internal
         host: "access-internal.service.{{consul_domain}}"
-        port_http: 8101
+        port_service: 8101
         port_admin: 28101
         baseuri: "access-internal"
         https_enabled: false
@@ -60,7 +59,7 @@ vitam:
     functional_administration:
         vitam_component: functional-administration
         host: "functional-administration.service.{{consul_domain}}"
-        port_http: 8004
+        port_service: 8004
         port_admin: 18004
         baseuri: "functional-administration"
         https_enabled: false
@@ -69,9 +68,8 @@ vitam:
     ingestexternal:
         vitam_component: ingest-external
         host: "ingest-external.service.{{consul_domain}}"
-        port_http: 8001
         port_admin: 28001
-        port_https: 8443
+        port_service: 8443
         baseuri: "ingest-external"
         https_enabled: true
         secret_platform: "false"
@@ -87,7 +85,7 @@ vitam:
     ingestinternal:
         vitam_component: ingest-internal
         host: "ingest-internal.service.{{consul_domain}}"
-        port_http: 8100
+        port_service: 8100
         port_admin: 28100
         baseuri: "ingest-internal"
         https_enabled: false
@@ -95,8 +93,7 @@ vitam:
     ihm_demo:
         vitam_component: "ihm-demo"
         host: "ihm-demo.service.{{consul_domain}}"
-        port_http: 8002
-        port_https: 8446
+        port_service: 8002
         port_admin: 28002
         baseurl: "/ihm-demo"
         static_content: "{{ vitam_defaults.folder.root_path }}/app/ihm-demo/v2"
@@ -120,7 +117,7 @@ vitam:
     logbook:
         vitam_component: logbook
         host: "logbook.service.{{consul_domain}}"
-        port_http: 9002
+        port_service: 9002
         port_admin: 29002
         baseuri: "logbook"
         https_enabled: false
@@ -129,7 +126,7 @@ vitam:
     metadata:
         vitam_component: metadata
         host: "metadata.service.{{consul_domain}}"
-        port_http: 8200
+        port_service: 8200
         port_admin: 28200
         baseuri: "metadata"
         https_enabled: false
@@ -138,7 +135,7 @@ vitam:
     processing:
         vitam_component: processing
         host: "processing.service.{{consul_domain}}"
-        port_http: 8203
+        port_service: 8203
         port_admin: 28203
         baseuri: "processing"
         https_enabled: false
@@ -146,7 +143,7 @@ vitam:
     security_internal:
         vitam_component: security-internal
         host: "security-internal.service.{{consul_domain}}"
-        port_http: 8005
+        port_service: 8005
         port_admin: 28005
         baseuri: "security-internal"
         https_enabled: false
@@ -154,24 +151,21 @@ vitam:
     storageengine:
         vitam_component: storage
         host: "storage.service.{{consul_domain}}"
-        port_http: 9102
+        port_service: 9102
         port_admin: 29102
         baseuri: "storage-engine"
-        # FIXME: replace with https_enabled
-        test_tls_offer_enabled: false
         https_enabled: false
         secret_platform: "true"
     storageofferdefault:
         vitam_component: "offer"
-        port_http: 9900
+        port_service: 9900
         port_admin: 29900
-        port_https: 9901
         baseuri: "storage-offer-default"
         https_enabled: false
         secret_platform: "true"
     worker:
         vitam_component: worker
-        port_http: 9104
+        port_service: 9104
         port_admin: 29104
         baseuri: "worker"
         https_enabled: false
@@ -179,7 +173,7 @@ vitam:
     workspace:
         vitam_component: workspace
         host: "workspace.service.{{consul_domain}}"
-        port_http: 8201
+        port_service: 8201
         port_admin: 28201
         baseuri: "workspace"
         https_enabled: false

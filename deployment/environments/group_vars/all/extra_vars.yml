@@ -4,13 +4,12 @@ vitam:
     ihm_recette:
         vitam_component: ihm-recette
         host: "ihm-recette.service.{{consul_domain}}"
-        port_http: 8204
-        port_https: 8445
+        port_service: 8445
         port_admin: 28204
         baseurl: /ihm-recette
         static_content: "{{ vitam_defaults.folder.root_path }}/app/ihm-recette"
         baseuri: "ihm-recette"
-        secure_mode: 
+        secure_mode:
             - authc
         https_enabled: true
         secret_platform: "false"
@@ -18,7 +17,7 @@ vitam:
     library:
         vitam_component: library
         host: "library.service.{{consul_domain}}"
-        port_http: 8090
+        port_service: 8090
         port_admin: 28090
         baseuri: "doc"
         https_enabled: false

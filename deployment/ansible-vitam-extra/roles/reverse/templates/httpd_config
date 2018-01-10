@@ -104,13 +104,13 @@
 
     # IHM Demo
     {% for host in groups['hosts-ihm-demo'] %}
-    ProxyPass /{{ vitam.ihm_demo.baseuri }} http://{{hostvars[host]['ip_service']}}:{{ vitam.ihm_demo.port_http }}/{{ vitam.ihm_demo.baseuri }} {{reverse_connection_params}}
-    ProxyPassReverse  {{ vitam.ihm_demo.baseuri }} http://{{hostvars[host]['ip_service']}}:{{ vitam.ihm_demo.port_http }}/{{ vitam.ihm_demo.baseuri }}
+    ProxyPass /{{ vitam.ihm_demo.baseuri }} http://{{hostvars[host]['ip_service']}}:{{ vitam.ihm_demo.port_service }}/{{ vitam.ihm_demo.baseuri }} {{reverse_connection_params}}
+    ProxyPassReverse  {{ vitam.ihm_demo.baseuri }} http://{{hostvars[host]['ip_service']}}:{{ vitam.ihm_demo.port_service }}/{{ vitam.ihm_demo.baseuri }}
     {% endfor %}
     # IHM Recette
     {% for host in groups['hosts-ihm-recette'] %}
-    ProxyPass /{{ vitam.ihm_recette.baseuri }}  https://{{hostvars[host]['ip_service']}}:{{ vitam.ihm_recette.port_https }}/{{ vitam.ihm_recette.baseuri }} {{reverse_connection_params}}
-    ProxyPassReverse  /{{ vitam.ihm_recette.baseuri }}  https://{{ hostvars[host]['ip_service'] }}:{{ vitam.ihm_recette.port_https }}/{{ vitam.ihm_recette.baseuri }}
+    ProxyPass /{{ vitam.ihm_recette.baseuri }}  https://{{hostvars[host]['ip_service']}}:{{ vitam.ihm_recette.port_service }}/{{ vitam.ihm_recette.baseuri }} {{reverse_connection_params}}
+    ProxyPassReverse  /{{ vitam.ihm_recette.baseuri }}  https://{{ hostvars[host]['ip_service'] }}:{{ vitam.ihm_recette.port_service }}/{{ vitam.ihm_recette.baseuri }}
     {% endfor %}
 
     # Enable chunked mode for all requests to access-external & ingest-external
@@ -121,22 +121,22 @@
 
     # External API for ingest-external
     {% for host in groups['hosts-ingest-external'] %}
-     ProxyPass /{{ vitam.ingestexternal.baseuri }} https://{{ hostvars[host]['ip_service'] }}:{{ vitam.ingestexternal.port_https }}/{{ vitam.ingestexternal.baseuri }} {{ reverse_connection_params }}
-     ProxyPassReverse  /{{ vitam.ingestexternal.baseuri}} https://{{ hostvars[host]['ip_service'] }}:{{ vitam.ingestexternal.port_https }}/{{ vitam.ingestexternal.baseuri }}
+     ProxyPass /{{ vitam.ingestexternal.baseuri }} https://{{ hostvars[host]['ip_service'] }}:{{ vitam.ingestexternal.port_service }}/{{ vitam.ingestexternal.baseuri }} {{ reverse_connection_params }}
+     ProxyPassReverse  /{{ vitam.ingestexternal.baseuri}} https://{{ hostvars[host]['ip_service'] }}:{{ vitam.ingestexternal.port_service }}/{{ vitam.ingestexternal.baseuri }}
     {% endfor %}
 
     # External API for access-external
     {% for host in groups['hosts-access-external'] %}
-     ProxyPass /{{ vitam.accessexternal.baseuri}} https://{{ hostvars[host]['ip_service'] }}:{{vitam.accessexternal.port_https}}/{{ vitam.accessexternal.baseuri}} {{reverse_connection_params}}
-     ProxyPassReverse  /{{ vitam.accessexternal.baseuri}} https://{{ hostvars[host]['ip_service'] }}:{{vitam.accessexternal.port_https}}/{{ vitam.accessexternal.baseuri}}
-     ProxyPass /admin-external  https://{{ hostvars[host]['ip_service'] }}:{{vitam.accessexternal.port_https}}/admin-external {{reverse_connection_params}}
-     ProxyPassReverse  /admin-external  https://{{ hostvars[host]['ip_service'] }}:{{vitam.accessexternal.port_https}}/admin-external
+     ProxyPass /{{ vitam.accessexternal.baseuri}} https://{{ hostvars[host]['ip_service'] }}:{{vitam.accessexternal.port_service}}/{{ vitam.accessexternal.baseuri}} {{reverse_connection_params}}
+     ProxyPassReverse  /{{ vitam.accessexternal.baseuri}} https://{{ hostvars[host]['ip_service'] }}:{{vitam.accessexternal.port_service}}/{{ vitam.accessexternal.baseuri}}
+     ProxyPass /admin-external  https://{{ hostvars[host]['ip_service'] }}:{{vitam.accessexternal.port_service}}/admin-external {{reverse_connection_params}}
+     ProxyPassReverse  /admin-external  https://{{ hostvars[host]['ip_service'] }}:{{vitam.accessexternal.port_service}}/admin-external
     {% endfor %}
 
     # @Deprecated, TODO: check if this proxypass is still needed.
     {% for host in groups['hosts-logbook'] %}
-     ProxyPass /{{ vitam.logbook.baseuri }} http://{{ hostvars[host]['ip_service'] }}:{{ vitam.logbook.port_http }}/{{ vitam.logbook.baseuri }} {{reverse_connection_short_params}}
-     ProxyPassReverse /{{ vitam.logbook.baseuri }} http://{{ hostvars[host]['ip_service'] }}:{{ vitam.logbook.port_http }}/{{ vitam.logbook.baseuri }}
+     ProxyPass /{{ vitam.logbook.baseuri }} http://{{ hostvars[host]['ip_service'] }}:{{ vitam.logbook.port_service }}/{{ vitam.logbook.baseuri }} {{reverse_connection_short_params}}
+     ProxyPassReverse /{{ vitam.logbook.baseuri }} http://{{ hostvars[host]['ip_service'] }}:{{ vitam.logbook.port_service }}/{{ vitam.logbook.baseuri }}
     {% endfor %}
 
     # /vitam subdir browser
@@ -206,8 +206,8 @@
 
     {% if groups['library']|length >0 %}
     # Documentation
-    ProxyPass /{{ vitam.library.baseuri }} http://{{ hostvars[groups['library'][0]]['ip_service']}}:{{ vitam.library.port_http }}/{{ vitam.library.baseuri }}
-    ProxyPassReverse /{{ vitam.library.baseuri }} http://{{ hostvars[groups['library'][0]]['ip_service']}}:{{vitam.library.port_http}}/{{ vitam.library.baseuri }}
+    ProxyPass /{{ vitam.library.baseuri }} http://{{ hostvars[groups['library'][0]]['ip_service']}}:{{ vitam.library.port_service }}/{{ vitam.library.baseuri }}
+    ProxyPassReverse /{{ vitam.library.baseuri }} http://{{ hostvars[groups['library'][0]]['ip_service'] }}:{{ vitam.library.port_service }}/{{ vitam.library.baseuri }}
     {% endif %}
 
     {% if groups['hosts-elasticsearch-log']|length >0 %}

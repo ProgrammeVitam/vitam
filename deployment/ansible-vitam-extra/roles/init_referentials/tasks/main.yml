@@ -14,7 +14,7 @@
 
 - name: Connection to ihm-demo before uploading
   uri:
-    url: "http://{{ ip_service }}:{{ vitam.ihm_demo.port_http }}/{{ vitam.ihm_demo.baseuri }}/v1/api/login"
+    url: "http://{{ ip_service }}:{{ vitam.ihm_demo.port_service }}/{{ vitam.ihm_demo.baseuri }}/v1/api/login"
     method: POST
     body: '{"token":{"principal":"{{vitam_users[0].login}}","credentials": "{{vitam_users[0].password}}" }}' # First account is used
     body_format: json
@@ -31,7 +31,7 @@
 
 - name: upload PRONOM
   uri:
-    url: "http://{{ ip_service }}:{{ vitam.ihm_demo.port_http }}/{{ vitam.ihm_demo.baseuri }}/v1/api/format/upload"
+    url: "http://{{ ip_service }}:{{ vitam.ihm_demo.port_service }}/{{ vitam.ihm_demo.baseuri }}/v1/api/format/upload"
     method: POST
     headers:
       Connection: "keep-alive"

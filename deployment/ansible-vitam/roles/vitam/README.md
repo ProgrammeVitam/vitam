@@ -24,8 +24,8 @@ Les variables attendues pour ce rôle sont :
   + {{ gc_opts }} : paramétrage du garbage collector (valeur par défaut : "" )
   + {{ java_opts }} : autres variables à passer à la JVM (valeur par défaut : "")
   + {{ java_args }} : arguments à passer à la JVM (valeur par défaut : "")
-  + {{ port_http }} : port d'écoute du service vitam (valeur par défaut : 8082)
-  + {{ port_http_admin }} : port d'écoute du service admin vitam (valeur par défaut : 28082)  + {{ tls_active }} : activation du https
+  + {{ port_service }} : port d'écoute du service vitam (valeur par défaut : 8082)
+  + {{ port_admin }} : port d'écoute du service admin vitam (valeur par défaut : 28082)  + {{ tls_active }} : activation du https
   + {{ days_to_delete_logback_logfiles }} : nombre de jours de conservation des fichiers de log logback (logs java des composants vitam)
   + {{ days_to_delete_access_local }} :
   + {{ vitam_worker_capacity }} : nombre de parallélisme des threads du composant vitam-worker
