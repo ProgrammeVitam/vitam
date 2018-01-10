@@ -711,7 +711,7 @@ public class AccessExternalResourceTest {
             .put("/units/" + ID)
             .then()
             .statusCode(Status.OK.getStatusCode());
-        
+
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -1250,16 +1250,26 @@ public class AccessExternalResourceTest {
     public void getObjectGroupMetadata() throws Exception {
         reset(clientAccessInternal);
         String unitId = "good_id";
-        JsonNode unit = JsonHandler.getFromString("{\"#id\":\"1\",\"#object\":\"goodResult\",\"Title\":\"Archive 1\",\"DescriptionLevel\":\"Archive Mock\"}");
-        JsonNode unitNoObject = JsonHandler.getFromString("{\"#id\":\"1\",\"Title\":\"Archive 1\",\"DescriptionLevel\":\"Archive Mock\"}");
+        JsonNode unit = JsonHandler.getFromString(
+            "{\"#id\":\"1\",\"#object\":\"goodResult\",\"Title\":\"Archive 1\",\"DescriptionLevel\":\"Archive Mock\"}");
+        JsonNode unitNoObject =
+            JsonHandler.getFromString("{\"#id\":\"1\",\"Title\":\"Archive 1\",\"DescriptionLevel\":\"Archive Mock\"}");
         JsonNode got = JsonHandler.getFromString("{\"#id\":\"goodResult\"}");
-        final RequestResponse<JsonNode> responseUnit = new RequestResponseOK<JsonNode>(JsonHandler.getFromString(BODY_TEST_MULTIPLE)).addResult(unit).setHttpCode(200);
-        final RequestResponse<JsonNode> responseUnitNoObject = new RequestResponseOK<JsonNode>(JsonHandler.getFromString(BODY_TEST_MULTIPLE)).addResult(unitNoObject).setHttpCode(200);
-        final RequestResponse<JsonNode> responseGOT = new RequestResponseOK<JsonNode>(JsonHandler.getFromString(BODY_TEST_MULTIPLE)).addResult(got).setHttpCode(200);
-        when(clientAccessInternal.selectUnitbyId(JsonHandler.getFromString("\"" + anyString() + "\""), "\"" + anyString() + "\""))
-        .thenReturn(responseUnit);
-        when(clientAccessInternal.selectObjectbyId(JsonHandler.getFromString("\"" + anyString() + "\""), "\"" + anyString() + "\""))
-            .thenReturn(responseGOT);
+        final RequestResponse<JsonNode> responseUnit =
+            new RequestResponseOK<JsonNode>(JsonHandler.getFromString(BODY_TEST_MULTIPLE)).addResult(unit)
+                .setHttpCode(200);
+        final RequestResponse<JsonNode> responseUnitNoObject =
+            new RequestResponseOK<JsonNode>(JsonHandler.getFromString(BODY_TEST_MULTIPLE)).addResult(unitNoObject)
+                .setHttpCode(200);
+        final RequestResponse<JsonNode> responseGOT =
+            new RequestResponseOK<JsonNode>(JsonHandler.getFromString(BODY_TEST_MULTIPLE)).addResult(got)
+                .setHttpCode(200);
+        when(clientAccessInternal.selectUnitbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
+            "\"" + anyString() + "\""))
+                .thenReturn(responseUnit);
+        when(clientAccessInternal.selectObjectbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
+            "\"" + anyString() + "\""))
+                .thenReturn(responseGOT);
 
         // POST override GET ok
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
@@ -1347,7 +1357,7 @@ public class AccessExternalResourceTest {
             .when().get("/units/" + unitId + "/objects").then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
 
-        
+
         // applicative error 404 => unit without object
         reset(clientAccessInternal);
         when(clientAccessInternal.selectUnitbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
@@ -1360,7 +1370,7 @@ public class AccessExternalResourceTest {
             .headers(getStreamHeaders())
             .when().get("/units/" + unitId + "/objects").then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
-        
+
         // applicative error 404 => object empty
         reset(clientAccessInternal);
         when(clientAccessInternal.selectUnitbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
@@ -1591,6 +1601,16 @@ public class AccessExternalResourceTest {
             .post("/units/" + ID_UNIT)
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void should_respond_no_content_when_status() {
+        given()
+            .accept(ContentType.JSON)
+            .when()
+            .get("/status")
+            .then()
+            .statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
     @Test

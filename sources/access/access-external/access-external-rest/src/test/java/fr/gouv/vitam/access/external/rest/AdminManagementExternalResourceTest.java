@@ -1317,7 +1317,7 @@ public class AdminManagementExternalResourceTest {
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(AGENCY_URI + "/id")
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
-        
+
     }
 
     @Test
@@ -2042,6 +2042,16 @@ public class AdminManagementExternalResourceTest {
             .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
             .when().get(AccessExtAPI.RULES_REPORT_API + "/id")
             .then().statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void should_respond_no_content_when_status() {
+        given()
+            .accept(ContentType.JSON)
+            .when()
+            .get("/status")
+            .then()
+            .statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
 }
