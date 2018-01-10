@@ -392,16 +392,13 @@ public class VitamStarter {
 
         final HandlerList handlerList = new HandlerList();
 
-       // Static Content Ihm V2
-        if (configuration.getBaseUriV2() != null) {
-            final ResourceHandler staticContentHandler2 = new ResourceHandler();
-            staticContentHandler2.setDirectoriesListed(true);
-            staticContentHandler2.setWelcomeFiles(new String[] {"index.html"});
-            staticContentHandler2.setResourceBase(configuration.getStaticContentV2());
-            final ContextHandler staticContext2 = new ContextHandler(configuration.getBaseUriV2());
-            staticContext2.setHandler(staticContentHandler2);
-            handlerList.addHandler(staticContext2);
-        }
+        final ResourceHandler staticContentHandler = new ResourceHandler();
+        staticContentHandler.setDirectoriesListed(true);
+        staticContentHandler.setWelcomeFiles(new String[] {"index.html"});
+        staticContentHandler.setResourceBase(configuration.getStaticContent());
+        final ContextHandler staticContext = new ContextHandler(configuration.getBaseUri());
+        staticContext.setHandler(staticContentHandler);
+        handlerList.addHandler(staticContext);
 
         try {
             handlerList.addHandler(buildApplicationHandler(configurationFile, configuration, contextPath, "@business", true));

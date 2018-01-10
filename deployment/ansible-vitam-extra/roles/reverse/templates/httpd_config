@@ -106,8 +106,6 @@
     {% for host in groups['hosts-ihm-demo'] %}
     ProxyPass /{{ vitam.ihm_demo.baseuri }} http://{{hostvars[host]['ip_service']}}:{{ vitam.ihm_demo.port_http }}/{{ vitam.ihm_demo.baseuri }} {{reverse_connection_params}}
     ProxyPassReverse  {{ vitam.ihm_demo.baseuri }} http://{{hostvars[host]['ip_service']}}:{{ vitam.ihm_demo.port_http }}/{{ vitam.ihm_demo.baseuri }}
-    ProxyPass /{{ vitam.ihm_demo.baseuri_v2 }} http://{{hostvars[host]['ip_service']}}:{{ vitam.ihm_demo.port_http }}/{{ vitam.ihm_demo.baseuri_v2 }} {{reverse_connection_params}}
-    ProxyPassReverse  {{ vitam.ihm_demo.baseuri_v2 }} http://{{hostvars[host]['ip_service']}}:{{ vitam.ihm_demo.port_http }}/{{ vitam.ihm_demo.baseuri_v2 }}
     {% endfor %}
     # IHM Recette
     {% for host in groups['hosts-ihm-recette'] %}

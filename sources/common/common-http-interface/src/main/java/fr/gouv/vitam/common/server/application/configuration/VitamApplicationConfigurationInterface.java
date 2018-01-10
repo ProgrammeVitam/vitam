@@ -88,11 +88,11 @@ public interface VitamApplicationConfigurationInterface {
     VitamApplicationConfigurationInterface setTenantFilter(boolean tenantFilter);
     
     default String getBaseUrl() { return null; }
-    default String getStaticContentV2() { return null; }
-    default String getBaseUriV2() { return null; }
+    default String getStaticContent() { return null; }
+    default String getBaseUri() { return null; }
 
     default VitamApplicationConfigurationInterface setBaseUrl(String baseUrl) { return this; }
-    default VitamApplicationConfigurationInterface setStaticContentV2(String staticContentV2) { return this; }
-    default VitamApplicationConfigurationInterface setBaseUriV2(String baseUriV2) { return this; }
+    default VitamApplicationConfigurationInterface setStaticContent(String staticContent) { return this; }
+    default VitamApplicationConfigurationInterface setBaseUri(String baseUri) { return this; }
 
 }

@@ -99,9 +99,8 @@ vitam:
         port_https: 8446
         port_admin: 28002
         baseurl: "/ihm-demo"
-        static_content_v2: "{{ vitam_defaults.folder.root_path }}/app/ihm-demo/v2"
+        static_content: "{{ vitam_defaults.folder.root_path }}/app/ihm-demo/v2"
         baseuri: "ihm-demo"
-        baseuri_v2: "ihm-demo-v2"
         https_enabled: false
         secret_platform: "false"
         # Specify here the realms you want to use for authentication in ihm-demo
