@@ -64,6 +64,7 @@ import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -1984,8 +1985,8 @@ public class ProcessingIT {
         logbookClient.create(initParameters);
     }
 
-
     @RunWithCustomExecutor
+    @Ignore
     @Test
     public void testBigWorkflow() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
@@ -2086,6 +2087,7 @@ public class ProcessingIT {
 
     @RunWithCustomExecutor
     @Test
+    @Ignore
     public void testWorkerUnRegister() throws Exception {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
