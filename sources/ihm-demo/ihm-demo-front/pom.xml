@@ -23,6 +23,7 @@
     </properties>
 
     <build>
+        <sourceDirectory>src/app</sourceDirectory>
         <plugins>
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
