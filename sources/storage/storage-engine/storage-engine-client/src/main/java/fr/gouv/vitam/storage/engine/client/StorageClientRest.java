@@ -372,7 +372,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         Response response = null;
         boolean ok = false;
         try {
-            response = performRequest(HttpMethod.GET, "/" + type.getCollectionName() + "/" + guid,
+            response = performRequest(HttpMethod.GET,  type.getCollectionName() + "/" + guid,
                     getDefaultHeaders(tenantId, strategyId, null, null), MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());

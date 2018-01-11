@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- This test file exemplifies an authentication rule. Authentication applies 
+<!-- This test file exemplifies an authentication rule. VitamAuthentication applies
 	to: /.* Session variable whose existence implies authentication: sessionUserObjKey 
 	Static exception: <path-exception>/index.html</path-exception> Pattern exception: 
 	<path-exception type="regex">/images/.*</path-exception> -->

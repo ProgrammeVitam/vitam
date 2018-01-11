@@ -27,28 +27,14 @@
 package fr.gouv.vitam.storage.offers.common.rest;
 
 
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.ServerIdentity;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
-import fr.gouv.vitam.common.serverv2.VitamStarter;
-
 import static fr.gouv.vitam.common.server.VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT;
 import static fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START;
 
-import static fr.gouv.vitam.common.server.VitamServer.*;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
@@ -58,6 +44,7 @@ public class DefaultOfferMain {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferMain.class);
     private static final String CONF_FILE_NAME = "default-offer.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
+    public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.offer.port";
     private VitamStarter vitamStarter;
 
     public DefaultOfferMain(String configurationFile) {

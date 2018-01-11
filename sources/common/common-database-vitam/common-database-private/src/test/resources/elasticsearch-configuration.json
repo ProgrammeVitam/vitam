@@ -1,0 +1,94 @@
+{
+  "analysis": {
+    "analyzer": {
+      "default": {
+        "type": "custom",
+        "tokenizer": "icu_tokenizer",
+        "filter": [
+          "_stopwords",
+          "asciifolding",
+          "lowercase",
+          "_snowball",
+          "_elision",
+          "_word_delimiter",
+          "_stemmer"
+        ],
+        "char_filter": [
+          "dotreplace",
+          "html_strip",
+          "underscoreReplace"
+        ]
+      },
+      "default_search": {
+        "type": "custom",
+        "tokenizer": "icu_tokenizer",
+        "filter": [
+          "_stopwords",
+          "asciifolding",
+          "lowercase",
+          "_snowball",
+          "_elision",
+          "_word_delimiter",
+          "_stemmer"
+        ],
+        "char_filter": [
+          "dotreplace",
+          "html_strip",
+          "underscoreReplace"
+        ]
+      }
+    },
+    "char_filter": {
+      "dotreplace": {
+        "type": "pattern_replace",
+        "pattern": "\\.",
+        "replacement": " "
+      },
+      "underscoreReplace": {
+        "type": "pattern_replace",
+        "pattern": "_",
+        "replacement": " "
+      }
+    },
+    "tokenizer": {
+      "letter": {
+        "type": "letter"
+      }
+    },
+    "filter": {
+      "_snowball": {
+        "type": "snowball",
+        "language": "French"
+      },
+      "_elision": {
+        "type": "elision",
+        "articles": [
+          "l",
+          "m",
+          "t",
+          "qu",
+          "n",
+          "s",
+          "j",
+          "d",
+          "jusqu",
+          "quoiqu",
+          "lorsqu",
+          "puisqu"
+        ]
+      },
+      "_stopwords": {
+        "type": "stop",
+        "stopwords": "_french_",
+        "ignore_case": true
+      },
+      "_word_delimiter": {
+        "type": "word_delimiter"
+      },
+      "_stemmer": {
+        "type" : "stemmer",
+        "name" : "french"
+      }
+    }
+  }
+}

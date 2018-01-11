@@ -70,7 +70,7 @@ public enum MetadataCollections {
      */
 
     protected void initialize(final ElasticsearchAccessMetadata esClient) {
-        vitamCollection.initialize(esClient);
+        vitamCollection.initialize(esClient, true);
     }
 
     /**

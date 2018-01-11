@@ -42,9 +42,12 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.VitamRepositoryFactory;
+import fr.gouv.vitam.functional.administration.common.VitamRepositoryProvider;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
 
 public class AdminFunctionalApplication extends Application {
 
@@ -65,6 +68,9 @@ public class AdminFunctionalApplication extends Application {
 
             final MongoDbAccessAdminImpl mongoDbAccess = resource.getLogbookDbAccess();
 
+            final VitamRepositoryProvider vitamRepositoryProvider = VitamRepositoryFactory.getInstance();
+            singletons.add(new AdminReconstructionResource(configuration, vitamRepositoryProvider));
+
             Map<Integer, List<String>> externalIdentifiers = configuration.getListEnableExternalIdentifiers();
             final VitamCounterService vitamCounterService =
                 new VitamCounterService(mongoDbAccess, configuration.getTenants(), externalIdentifiers);
@@ -82,6 +88,8 @@ public class AdminFunctionalApplication extends Application {
             AdminSecurityProfileResource adminSecurityProfileResource =
                     new AdminSecurityProfileResource(securityProfileResource);
             singletons.add(adminSecurityProfileResource);
+
+            singletons.add(new BasicAuthenticationFilter(configuration));
 
         } catch (VitamException | IOException e) {
             throw new RuntimeException(e);

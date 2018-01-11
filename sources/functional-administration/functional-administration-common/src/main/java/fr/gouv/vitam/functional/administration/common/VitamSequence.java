@@ -36,8 +36,6 @@ import org.bson.Document;
  */
 public class VitamSequence extends VitamDocument<VitamSequence> {
 
-
-
     /**
      * the contract sequence name
      */
@@ -53,6 +51,7 @@ public class VitamSequence extends VitamDocument<VitamSequence> {
     public VitamSequence() {
         //nothing To do
     }
+
 
     /**
      * Constructor

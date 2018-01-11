@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.model.BasicAuthModel;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 
@@ -44,6 +45,12 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
 
     private String clusterName;
     private List<ElasticsearchNode> elasticsearchNodes;
+
+    /**
+     * Vitam Basic authentication -> username & password
+     */
+    private BasicAuthModel adminBasicAuth;
+
     // constructor
     AdminManagementConfiguration() {
         super();
@@ -159,4 +166,5 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
         this.listMinimumRuleDuration = listMinimumRuleDuration;
         return this;
     }
+
 }

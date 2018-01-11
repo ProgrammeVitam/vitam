@@ -1,0 +1,16 @@
+[
+  {
+    "id" : "default",
+    "baseUrl" : "http://workspaceOfferService",
+    "parameters" : {
+      "user" : "bob"
+    }
+  },
+  {
+    "id" : "default2",
+    "baseUrl" : "http://workspaceOfferService",
+    "parameters" : {
+      "user" : "bob"
+    }
+  }
+]

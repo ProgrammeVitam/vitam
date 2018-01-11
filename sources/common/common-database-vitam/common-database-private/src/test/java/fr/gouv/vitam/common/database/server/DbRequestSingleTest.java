@@ -4,25 +4,15 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.bson.Document;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.mongodb.MongoClient;
-
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
@@ -35,10 +25,10 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.CollectionSample;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -48,6 +38,13 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import org.bson.Document;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class DbRequestSingleTest {
 
@@ -67,7 +64,6 @@ public class DbRequestSingleTest {
     private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
 
-    private static ElasticsearchAccess esClient;
     private static ElasticsearchTestConfiguration config = null;
 
     private static final Integer TENANT_ID = 0;
@@ -77,17 +73,14 @@ public class DbRequestSingleTest {
         new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(CollectionSample.class)), "vitam-test",
             "Unit", "ObjectGroup");
 
+    @Rule
+    public ElasticsearchRule elasticsearchRule = new ElasticsearchRule(tempFolder.newFolder(), "Unit", "ObjectGroup");
+
     private MongoClient mongoClient = mongoRule.getMongoClient();
 
-
-    @BeforeClass
-    public static void beforeClass() throws Exception {
-        try {
-            config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
+    public DbRequestSingleTest() throws IOException {
     }
+
 
     /**
      * @throws java.lang.Exception
@@ -97,12 +90,11 @@ public class DbRequestSingleTest {
 
 
         final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
+        nodes.add(new ElasticsearchNode(HOST_NAME, elasticsearchRule.getTcpPort()));
 
-        esClient = new ElasticsearchAccess(CLUSTER_NAME, nodes);
 
         vitamCollection = VitamCollectionHelper.getCollection(CollectionSample.class, true, false);
-        vitamCollection.initialize(esClient);
+        vitamCollection.initialize(new ElasticsearchAccess(CLUSTER_NAME, nodes));
         vitamCollection.initialize(mongoClient.getDatabase(DATABASE_NAME), true);
 
 
@@ -118,7 +110,6 @@ public class DbRequestSingleTest {
         }
 
         JunitHelper.stopElasticsearchForTest(config);
-        esClient.close();
     }
 
     @Test
@@ -153,7 +144,7 @@ public class DbRequestSingleTest {
 
         // find all
         Select select2 = new Select();
-        select2.setLimitFilter(11000, 11000);        
+        select2.setLimitFilter(11000, 11000);
         try {
             final DbRequestResult selectResult2 = dbRequestSingle.execute(select2);
             final List<VitamDocument> selectCursor2 = selectResult2.getDocuments(VitamDocument.class);

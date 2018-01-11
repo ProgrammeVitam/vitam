@@ -27,6 +27,17 @@
 package fr.gouv.vitam.functional.administration.common;
 
 
+import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.common.json.JsonHandler.createJsonGenerator;
+import static fr.gouv.vitam.functional.administration.common.counter.SequenceType.fromFunctionalAdminCollections;
+
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCursor;
@@ -51,17 +62,6 @@ import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
-import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.common.json.JsonHandler.createJsonGenerator;
-import static fr.gouv.vitam.functional.administration.common.counter.SequenceType.fromFunctionalAdminCollections;
 
 
 /**
@@ -163,6 +163,11 @@ public class FunctionalBackupService {
     private String buildBackupFilenameSequence(FunctionalAdminCollections functionalAdminCollections, int tenant)
         throws ReferentialException {
         Integer sequence = vitamCounterService.getNextBackUpSequence(tenant);
+        return getBackupFileName(functionalAdminCollections, tenant, sequence);
+    }
+
+    public static String getBackupFileName(FunctionalAdminCollections functionalAdminCollections, int tenant,
+        Integer sequence) {
         return String.format("%d_%s_%d.%s",
             tenant, functionalAdminCollections.getName(), sequence, DEFAULT_EXTENSION);
     }

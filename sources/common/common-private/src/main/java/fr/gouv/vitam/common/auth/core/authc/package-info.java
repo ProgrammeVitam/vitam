@@ -26,7 +26,7 @@
  *******************************************************************************/
 
 /**
- * Shiro x509 Authentication Modules
+ * Shiro x509 VitamAuthentication Modules
  *
  */
 package fr.gouv.vitam.common.auth.core.authc;

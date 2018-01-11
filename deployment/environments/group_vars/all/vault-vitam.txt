@@ -37,3 +37,4 @@ vitam_offers:
 ldap_authentification:
     ldap_pwd: "admin"
 
+admin_basic_auth_password: adminPassword

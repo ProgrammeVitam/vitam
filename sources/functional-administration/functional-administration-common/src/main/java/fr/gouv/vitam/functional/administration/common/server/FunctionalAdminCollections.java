@@ -67,26 +67,20 @@ public enum FunctionalAdminCollections {
     /**
      * Accession Register detail Collection
      */
-    /**
-     *
-     */
     ACCESSION_REGISTER_DETAIL(AccessionRegisterDetail.class, true, false),
 
     /**
      * Ingest contract collection
-     *
      */
     INGEST_CONTRACT(IngestContract.class, true, true),
 
     /**
      * Access contract collection
-     *
      */
     ACCESS_CONTRACT(AccessContract.class, true, true),
 
     /**
      * Access contract collection
-     *
      */
     VITAM_SEQUENCE(VitamSequence.class, false, false),
 
@@ -120,7 +114,6 @@ public enum FunctionalAdminCollections {
     }
 
     /**
-     *
      * @return True if this collection is multitenant
      */
     public boolean isMultitenant() {
@@ -137,7 +130,7 @@ public enum FunctionalAdminCollections {
     /**
      * Initialize the collection
      *
-     * @param db database type
+     * @param db       database type
      * @param recreate true is as recreate type
      */
     protected void initialize(final MongoDatabase db, final boolean recreate) {
@@ -155,7 +148,6 @@ public enum FunctionalAdminCollections {
     }
 
     /**
-     *
      * @return the name of the collection
      */
     public String getName() {
@@ -163,15 +155,13 @@ public enum FunctionalAdminCollections {
     }
 
     /**
-     * 
      * @return the type
      */
     public String getType() {
         return "typeunique";
     }
-    
+
     /**
-     *
      * @return the associated MongoCollection
      */
     @SuppressWarnings("rawtypes")
@@ -187,7 +177,6 @@ public enum FunctionalAdminCollections {
     }
 
     /**
-     *
      * @return the associated class
      */
     protected Class<?> getClasz() {
@@ -195,8 +184,6 @@ public enum FunctionalAdminCollections {
     }
 
     /**
-     *
-     *
      * @return the count of associated MongoCollection
      */
 
@@ -205,7 +192,6 @@ public enum FunctionalAdminCollections {
     }
 
     /**
-     * 
      * @return the associated VarNameAdapter
      */
     public VarNameAdapter getVarNameAdapater() {
@@ -214,15 +200,14 @@ public enum FunctionalAdminCollections {
 
     /**
      * get ElasticSearch Client
-     * 
+     *
      * @return client Es
      */
     public ElasticsearchAccessFunctionalAdmin getEsClient() {
         return (ElasticsearchAccessFunctionalAdmin) vitamCollection.getEsClient();
     }
-    
+
     /**
-     * 
      * @param collection
      * @return the corresponding FunctionalAdminCollections
      */
@@ -234,4 +219,20 @@ public enum FunctionalAdminCollections {
         }
         return null;
     }
+
+    /**
+     * get collection from value.
+     *
+     * @param collection
+     * @return the corresponding FunctionalAdminCollections
+     */
+    public static FunctionalAdminCollections getFromValue(String collection) {
+        for (FunctionalAdminCollections coll : FunctionalAdminCollections.values()) {
+            if (coll.name().equalsIgnoreCase(collection)) {
+                return coll;
+            }
+        }
+        return null;
+    }
+
 }
