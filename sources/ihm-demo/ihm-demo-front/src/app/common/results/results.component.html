@@ -1,9 +1,9 @@
 <p-panel header="Résultats ({{hits.total}})" *ngIf="data && hits && items">
-    <div style="float: left; padding: 5px;" *ngIf="!!extraCols && extraCols.length > 0">
+    <div style="float: left; padding: 5px;" *ngIf="!!extraCols && extraCols.length > 0" #infoSupp>
         <button pButton class="secondaryButton" [icon]="displayOptions ? 'fa-chevron-up' : 'fa-chevron-down'" iconPos="right"                
         (click)="clickOutside($event)" [label]="'Informations supplémentaires'"></button>
     </div>
-    <div style="float: left" *ngIf="displayOptions">
+    <div style="float: left" *ngIf="displayOptions" #infoList>
         <p-listbox [options]="extraColsSelection" [(ngModel)]="extraSelectedCols"
                    [style]="{'text-align': 'left', 'z-index': 5000, 'position': 'absolute', 'background-color': 'white', 'width': '250px'}"
                    (onChange)="onRowSelect($event)"

@@ -1,19 +1,22 @@
-import { Component, ChangeDetectorRef, SimpleChanges } from '@angular/core';
+import { Component, ChangeDetectorRef, SimpleChanges, HostListener, ViewChild } from '@angular/core';
 import { ActivatedRoute, ParamMap } from '@angular/router';
-import { Title } from "@angular/platform-browser";
-import { BreadcrumbService } from "../../../common/breadcrumb.service";
-import { PageComponent } from "../../../common/page/page-component";
-import { LogbookService } from "../../../ingest/logbook.service";
-import { ColumnDefinition } from "../../../common/generic-table/column-definition";
-import { SelectItem } from "primeng/primeng";
-import { ArchiveUnitHelper } from "../../archive-unit.helper";
-import { DateService } from "../../../common/utils/date.service";
+import { Title } from '@angular/platform-browser';
+import { BreadcrumbService } from '../../../common/breadcrumb.service';
+import { PageComponent } from '../../../common/page/page-component';
+import { LogbookService } from '../../../ingest/logbook.service';
+import { ColumnDefinition } from '../../../common/generic-table/column-definition';
+import { SelectItem } from 'primeng/primeng';
+import { ArchiveUnitHelper } from '../../archive-unit.helper';
+import { DateService } from '../../../common/utils/date.service';
 
 @Component({
   selector: 'vitam-lifecycle',
   templateUrl: './lifecycle.component.html'
 })
 export class LifecycleComponent extends PageComponent {
+  @ViewChild('infoSuppLfc') infoSuppLfcElem;
+  @ViewChild('infoListLfc') infoListLfcElem;
+
   id: string;
   events: Event[] = [];
   lifecycleTenantId: string;
@@ -34,7 +37,7 @@ export class LifecycleComponent extends PageComponent {
   firstItem = 0;
   path = '';
   getClass: () => string;
-  identifier = "evId";
+  identifier = 'evId';
   cols = [
     ColumnDefinition.makeStaticColumn('evType', 'Intitulé de l\'évènement', undefined,
       () => ({'width': '175px', 'overflow-wrap': 'break-word'})),
@@ -127,7 +130,7 @@ export class LifecycleComponent extends PageComponent {
 
     if (changes.extraCols) {
       this.extraSelectedCols = [];
-      if (this.extraCols.length == 0) {
+      if (this.extraCols.length === 0) {
         this.displayOptions = false;
       }
       this.extraColsSelection = this.extraCols.map((x) => ({label: x.label, value: x}));
@@ -136,6 +139,12 @@ export class LifecycleComponent extends PageComponent {
         this.displayedItems = this.items.slice(this.firstItem, this.firstItem + this.nbRows);
       }
     }
+  }
+
+  @HostListener('document:click', ['$event', '$event.target'])
+  clickOutside($event, targetElement) {
+    this.displayOptions = ((this.infoSuppLfcElem && this.infoSuppLfcElem.nativeElement.contains(targetElement))
+      || (this.infoListLfcElem && this.infoListLfcElem.nativeElement.contains(targetElement))) ? true : false;
   }
 
   onRowSelect() {

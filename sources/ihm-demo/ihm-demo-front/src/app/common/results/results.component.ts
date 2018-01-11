@@ -1,8 +1,8 @@
-import { ChangeDetectorRef, Component, Input, OnInit, SimpleChanges, HostListener, ElementRef } from '@angular/core';
+import { ChangeDetectorRef, Component, Input, OnInit, SimpleChanges, HostListener, ViewChild } from '@angular/core';
 import { ColumnDefinition } from '../generic-table/column-definition';
 import { SelectItem } from 'primeng/primeng';
-import { Hits, VitamResponse } from "../utils/response";
-import { Observable } from "rxjs/Observable";
+import { Hits, VitamResponse } from '../utils/response';
+import { Observable } from 'rxjs/Observable';
 
 @Component({
   selector: 'vitam-results',
@@ -15,12 +15,13 @@ export class ResultsComponent implements OnInit {
   @Input() extraCols: ColumnDefinition[] = [];
   @Input() searchFunction: (service: any, offset: number, rows?: number, searchScope?: any) => Observable<VitamResponse>;
   @Input() path: string;
-  @Input() identifier = "#id";
+  @Input() identifier = '#id';
   @Input() getClass: () => string;
   @Input() service: any;
   @Input() searchForm: any;
   @Input() specificRowCss: (item, index) => string;
-
+  @ViewChild('infoSupp') infoSuppElem;
+  @ViewChild('infoList') infoListElem;
   errorOnResults = false;
 
   selectedCols: ColumnDefinition[] = [];
@@ -36,7 +37,7 @@ export class ResultsComponent implements OnInit {
   firstPage = 0;
   lastPage = 0;
 
-  constructor(private changeDetectorRef: ChangeDetectorRef, private elemRef: ElementRef) {
+  constructor(private changeDetectorRef: ChangeDetectorRef) {
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -58,7 +59,7 @@ export class ResultsComponent implements OnInit {
 
     if (changes.extraCols) {
       this.extraSelectedCols = [];
-      if (this.extraCols.length == 0) {
+      if (this.extraCols.length === 0) {
         this.displayOptions = false;
       }
       this.extraColsSelection = this.extraCols.map((x) => ({ label: x.label, value: x }));
@@ -93,8 +94,11 @@ export class ResultsComponent implements OnInit {
 
   @HostListener('document:click', ['$event', '$event.target'])
   clickOutside($event, targetElement) {
-    this.displayOptions = this.elemRef.nativeElement.contains(targetElement) ? true : false;
+    this.displayOptions = ((this.infoSuppElem && this.infoSuppElem.nativeElement.contains(targetElement))
+    || (this.infoListElem && this.infoListElem.nativeElement.contains(targetElement))) ? true : false;
   }
+
+
 
   onRowSelect() {
     this.changeDetectorRef.detectChanges();

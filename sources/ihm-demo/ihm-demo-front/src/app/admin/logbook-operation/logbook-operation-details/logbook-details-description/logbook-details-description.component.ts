@@ -1,6 +1,6 @@
-import {ChangeDetectorRef, Component, Input, OnInit, SimpleChanges} from '@angular/core';
-import {SelectItem} from 'primeng/primeng';
-import {ColumnDefinition} from "../../../../common/generic-table/column-definition";
+import { ChangeDetectorRef, Component, Input, OnInit, SimpleChanges, HostListener, ViewChild } from '@angular/core';
+import { SelectItem } from 'primeng/primeng';
+import { ColumnDefinition } from '../../../../common/generic-table/column-definition';
 
 @Component({
   selector: 'vitam-logbook-details-description',
@@ -14,6 +14,8 @@ export class LogbookDetailsDescriptionComponent implements OnInit {
   @Input() getClass: () => string;
   @Input() service: any;
   @Input() isIngestOperation: boolean;
+  @ViewChild('infoSuppDetail') infoSuppDetailElem;
+  @ViewChild('infoListDetail') infoListDetailElem;
 
   selectedCols: ColumnDefinition[] = [];
   extraColsSelection: SelectItem[];
@@ -22,7 +24,7 @@ export class LogbookDetailsDescriptionComponent implements OnInit {
   items: any[] = [];
   displayedItems: ColumnDefinition[] = [];
   path = '';
-  identifier = "#id";
+  identifier = '#id';
 
   constructor(private changeDetectorRef: ChangeDetectorRef) { }
 
@@ -38,10 +40,10 @@ export class LogbookDetailsDescriptionComponent implements OnInit {
 
     if (changes.extraCols) {
       this.extraSelectedCols = [];
-      if (this.extraCols.length == 0) {
+      if (this.extraCols.length === 0) {
         this.displayOptions = false;
       }
-      this.extraColsSelection = this.extraCols.map((x) => ({label: x.label, value: x}));
+      this.extraColsSelection = this.extraCols.map((x) => ({ label: x.label, value: x }));
       if (!!this.data) {
         this.items = this.data.$results;
       }
@@ -51,10 +53,16 @@ export class LogbookDetailsDescriptionComponent implements OnInit {
 
   ngOnInit() {
     this.selectedCols = this.cols;
-    this.extraColsSelection = this.extraCols.map((x) => ({label: x.label, value: x}));
+    this.extraColsSelection = this.extraCols.map((x) => ({ label: x.label, value: x }));
     if (!!this.data) {
       this.items = this.data.$results;
     }
+  }
+
+  @HostListener('document:click', ['$event', '$event.target'])
+  clickOutside($event, targetElement) {
+    this.displayOptions = ((this.infoSuppDetailElem && this.infoSuppDetailElem.nativeElement.contains(targetElement))
+      || (this.infoListDetailElem && this.infoListDetailElem.nativeElement.contains(targetElement))) ? true : false;
   }
 
   onRowSelect() {
