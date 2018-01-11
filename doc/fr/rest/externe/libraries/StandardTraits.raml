@@ -61,33 +61,6 @@ traits:
             type: string
             example: https://callback-host:port/uri/idcallback?status={status}&id={id}
 
-  PaginationRequestHeader:
-    headers:
-      X-Cursor?:
-        description: |
-          **UNSUPPORTED** If present and true means the query could use a cursor as response if necessary
-        type: boolean
-
-  PaginationNextHeader:
-    headers: &pagination
-      X-Cursor-Id?:
-        description: |
-          **UNSUPPORTED** If present, means the query could continue with the next set of response, according to current position of the Cursor Id
-        type: string
-
-  PaginationResponseHeader:
-    responses:
-      206:
-        headers:
-          X-Cursor-Id?:
-            description: |
-              **UNSUPPORTED** If present, means the query could continue with the next set of response, according to current position of the Cursor Id
-            type: string
-          X-Cursor-Timeout?:
-            description: |
-              **UNSUPPORTED** When X-Cursor-Id is present, it specifies the date and time limit of the availability of this cursor Id
-            type: datetime
-
   UploadFileOptionalHeader:
     headers: &optionalheader
       X-Filename:
