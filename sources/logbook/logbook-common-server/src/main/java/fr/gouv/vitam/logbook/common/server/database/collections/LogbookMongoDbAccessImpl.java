@@ -43,6 +43,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.conversions.Bson;
+import org.bson.json.JsonMode;
+import org.bson.json.JsonWriterSettings;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.rest.RestStatus;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.sort.SortBuilder;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
@@ -65,6 +78,7 @@ import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -102,18 +116,6 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookExecutionException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
-import org.bson.Document;
-import org.bson.codecs.configuration.CodecRegistries;
-import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.conversions.Bson;
-import org.bson.json.JsonMode;
-import org.bson.json.JsonWriterSettings;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.rest.RestStatus;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.SearchHits;
-import org.elasticsearch.search.sort.SortBuilder;
 
 /**
  * MongoDb Access implementation base class
@@ -760,6 +762,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             List<Bson> listUpdates = new ArrayList<>();
             Bson mainUpdate = Updates.push(LogbookDocument.EVENTS, document);
             listUpdates.add(mainUpdate);
+            // add 1 to version
+            listUpdates.add(Updates.inc(LogbookDocument.VERSION, 1));
 
             if (item.getParameterValue(LogbookParameterName.masterData) != null &&
                 !item.getParameterValue(LogbookParameterName.masterData).isEmpty()) {
@@ -1015,6 +1019,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             events.add(currentEvent);
         }
         listMaster.add(Updates.pushEach(LogbookDocument.EVENTS, events));
+        // add 1 to version
+        listMaster.add(Updates.inc(LogbookDocument.VERSION, 1));
         try {
             final VitamDocument<?> result = (VitamDocument<?>) collection.getCollection().findOneAndUpdate(
                 eq(LogbookDocument.ID, mainLogbookDocumentId),
