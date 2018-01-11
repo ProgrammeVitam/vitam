@@ -41,6 +41,7 @@ import java.util.regex.Pattern;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.error.VitamError;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -434,6 +435,12 @@ public class FunctionalAdminIT {
         RequestResponse response = ingestContract.updateContract("wrongId", updateQuery.getFinalUpdate());
         assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getHttpCode());
 
-
+        updateQuery = new UpdateMultiQuery();
+        updateQuery.addActions(new SetAction("LinkParentId", "invalid_id"));
+        RequestResponse response2 = ingestContract.updateContract(contractToUpdate, updateQuery.getFinalUpdate());
+        assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response2.getHttpCode());
+        assertThat(response2).isInstanceOf(VitamError.class);
+        final VitamError vitamError2 = (VitamError) response2;
+        assertThat(vitamError2.toString()).contains("is not in filing nor holding schema");
     }
 }

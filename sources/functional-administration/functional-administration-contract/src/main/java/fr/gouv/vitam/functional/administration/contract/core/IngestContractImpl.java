@@ -118,6 +118,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     private final FunctionalBackupService functionalBackupService;
     private static final String _TENANT = "_tenant";
     private static final String _ID = "_id";
+    private static final String RESULT_HITS = "$hits";
+    private static final String HITS_SIZE = "size";
 
     /**
      * Constructor
@@ -640,7 +642,17 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             };
         }
 
-
+        /**
+         * Check if the linkParentId is a valid existing FILING or HOLDING Unit identifier
+         * 
+         * @param linkParentId GUID as String
+         * @return boolean true if valid identifier passed
+         * @throws InvalidCreateOperationException
+         * @throws MetaDataExecutionException
+         * @throws MetaDataDocumentSizeException
+         * @throws MetaDataClientServerException
+         * @throws InvalidParseOperationException
+         */
         private boolean checkIfAUInFilingOrHoldingSchema(String linkParentId)
             throws InvalidCreateOperationException, MetaDataExecutionException, MetaDataDocumentSizeException,
             MetaDataClientServerException, InvalidParseOperationException {
@@ -648,24 +660,19 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             String[] schemaArray = new String[] {UnitType.FILING_UNIT.name(), UnitType.HOLDING_UNIT.name()};
             select.setQuery(QueryHelper.in(UNITTYPE.exactToken(), schemaArray).setDepthLimit(0));
             final JsonNode queryDsl = select.getFinalSelect();
-            // if the filing id is in the filing schema
-            if (metaDataClient.selectUnitbyId(queryDsl, linkParentId).get("$hits").get("size").asInt() == 0) {
-                return false;
-            } else {
-                return true;
-            }
+            
+            JsonNode jsonNode = metaDataClient.selectUnitbyId(queryDsl, linkParentId);
+            return (jsonNode != null && jsonNode.get(RESULT_HITS) != null 
+                        && jsonNode.get(RESULT_HITS).get(HITS_SIZE).asInt() > 0);
         }
 
     }
-
 
     @Override
     public void close() {
         logbookClient.close();
     }
-
-
-
+    
     @Override
     public RequestResponse<IngestContractModel> updateContract(String identifier, JsonNode queryDsl)
         throws VitamException {
@@ -722,10 +729,6 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                                 GenericRejectionCause
                                     .rejectWrongLinkParentId(linkParentId)
                                     .getReason()));
-
-                        final String errorsDetails =
-                            error.getErrors().stream().map(c -> c.getMessage()).collect(Collectors.joining(","));
-                        manager.logValidationError(errorsDetails, CONTRACT_UPDATE_EVENT);
                     }
                 }
             }
