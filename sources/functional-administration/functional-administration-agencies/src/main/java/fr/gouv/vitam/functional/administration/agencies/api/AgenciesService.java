@@ -57,7 +57,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -128,12 +127,9 @@ public class AgenciesService implements VitamAutoCloseable {
     private static final String AGENCIES_IMPORT_AU_USAGE = AGENCIES_IMPORT_EVENT + ".USED_AU";
     private static final String AGENCIES_IMPORT_CONTRACT_USAGE = AGENCIES_IMPORT_EVENT + ".USED_CONTRACT";
 
-
     public static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AgenciesService.class);
 
-    private static final String TMP = "tmpAgencies";
     private static final String CSV = "csv";
-    private static final String JSON = "json";
 
     private static final String INVALID_CSV_FILE = "Invalid CSV File";
 

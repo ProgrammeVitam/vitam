@@ -39,6 +39,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -78,11 +82,11 @@ import fr.gouv.vitam.functional.administration.common.server.AdminManagementConf
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import org.mockito.Mockito;
 
 public class ReferentialFormatFileImplTest {
     String FILE_TO_TEST_KO = "FF-vitam-format-KO.xml";
     String FILE_TO_TEST_OK = "FF-vitam.xml";
-    File pronomFile = null;
     private static final Integer TENANT_ID = 0;
 
     @Rule
@@ -91,14 +95,14 @@ public class ReferentialFormatFileImplTest {
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
-
+    static FunctionalBackupService functionalBackupService = Mockito.mock(FunctionalBackupService.class);
+    static LogbookOperationsClient logbookOperationsClient = Mockito.mock(LogbookOperationsClient.class);
     private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
     private static ElasticsearchTestConfiguration esConfig = null;
 
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
-    static MongoClient mongoClient;
     static JunitHelper junitHelper;
     static final String DATABASE_HOST = "localhost";
     static final String DATABASE_NAME = "vitam-test";
@@ -115,23 +119,27 @@ public class ReferentialFormatFileImplTest {
         } catch (final VitamApplicationServerException e1) {
             assumeTrue(false);
         }
+        port = junitHelper.findAvailablePort();
 
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode(HOST_NAME, esConfig.getTcpPort()));
 
-        port = junitHelper.findAvailablePort();
+        final List<MongoDbNode> mongoDbNodes = new ArrayList<>();
+        mongoDbNodes.add(new MongoDbNode(DATABASE_HOST, port));
+
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .withLaunchArgument("--enableMajorityReadConcern")
             .version(Version.Main.PRODUCTION)
             .net(new Net(port, Network.localhostIsIPv6()))
             .build());
         mongod = mongodExecutable.start();
+
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, port));
         LogbookOperationsClientFactory.changeMode(null);
         formatFile = new ReferentialFormatFileImpl(
             MongoDbAccessAdminFactory.create(
-                new DbConfigurationImpl(nodes, DATABASE_NAME)));
+                    new DbConfigurationImpl(nodes, DATABASE_NAME)), functionalBackupService, logbookOperationsClient);
         ElasticsearchAccessAdminFactory.create(
             new AdminManagementConfiguration(nodes, DATABASE_NAME, CLUSTER_NAME, esNodes));
 

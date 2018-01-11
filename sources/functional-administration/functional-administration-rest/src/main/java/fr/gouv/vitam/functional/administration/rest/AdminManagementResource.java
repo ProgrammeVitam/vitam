@@ -121,7 +121,6 @@ import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
 import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
-import fr.gouv.vitam.functional.administration.rules.core.VitamRuleService;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -223,7 +222,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     public Response checkFormat(InputStream xmlPronom) {
         ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", xmlPronom);
         Map<Integer, List<ErrorReport>> errors = new HashMap<>();
-        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess)) {
+        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess, vitamCounterService)) {
             formatManagement.checkFile(xmlPronom, errors, null, null, null, null);
             return Response.status(Status.OK).build();
         } catch (final ReferentialException e) {
@@ -252,7 +251,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     public Response importFormat(@Context HttpHeaders headers, InputStream xmlPronom) {
         ParametersChecker.checkParameter("xmlPronom is a mandatory parameter", xmlPronom);
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
-        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess)) {
+        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess, vitamCounterService)) {
             formatManagement.importFile(xmlPronom, filename);
             return Response.status(Status.CREATED).entity(Status.CREATED.getReasonPhrase()).build();
         } catch (final ReferentialException e) {
@@ -292,7 +291,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         throws InvalidParseOperationException, IOException {
         ParametersChecker.checkParameter("formatId is a mandatory parameter", formatId);
         FileFormat fileFormat = null;
-        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess)) {
+        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess, vitamCounterService)) {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(formatId));
             fileFormat = formatManagement.findDocumentById(formatId);
             if (fileFormat == null) {
@@ -344,7 +343,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         throws InvalidParseOperationException, IOException {
         ParametersChecker.checkParameter(SELECT_IS_A_MANDATORY_PARAMETER, select);
         RequestResponseOK<FileFormat> fileFormatList;
-        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess)) {
+        try (ReferentialFormatFileImpl formatManagement = new ReferentialFormatFileImpl(mongoAccess, vitamCounterService)) {
             SanityChecker.checkJsonAll(select);
             fileFormatList = formatManagement.findDocuments(select).setQuery(select);
             return Response.status(Status.OK)

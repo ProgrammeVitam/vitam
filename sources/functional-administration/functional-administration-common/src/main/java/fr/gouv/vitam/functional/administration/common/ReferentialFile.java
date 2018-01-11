@@ -39,6 +39,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
@@ -70,9 +71,8 @@ public interface ReferentialFile<E> {
      * @throws InvalidCreateOperationException
      */
     void importFile(InputStream file, String filename)
-        throws ReferentialException, DatabaseConflictException, IOException, InvalidParseOperationException,
-        InvalidCreateOperationException, LogbookClientServerException, StorageException,
-        LogbookClientBadRequestException, LogbookClientAlreadyExistsException;
+            throws VitamException, IOException,
+            InvalidCreateOperationException;
 
     /**
      * find document based on a given Id
