@@ -1,0 +1,4 @@
+---
+- include: install_ldap.yml
+- include: configure_ldap.yml
+- include: vitam_conf.yml

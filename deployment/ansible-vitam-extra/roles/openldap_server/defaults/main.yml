@@ -1,0 +1,18 @@
+---
+
+#The domain prefix for ldap
+openldap_server_domain_name: programmevitam.fr
+
+#This is the password for admin for openldap
+openldap_server_rootpw: "{{ ldap_authentification.ldap_pwd }}"
+
+#The self signed ssl parameters
+openldap_server_country: FR
+openldap_server_state: Ile de France
+openldap_server_location: Paris
+openldap_server_organization: Vitam
+
+openldap_server_enable_ssl: true
+
+#The ldif file
+openldap_server_ldif: domain.ldif

@@ -41,7 +41,7 @@ ldapRealm.ldapContextFactory = $contextFactory
 ldapRealm.searchBase = "{{ ldap_authentification.ldap_base }}"
 ldapRealm.groupRequestFilter = {{ ldap_authentification.ldap_group_request }}
 ldapRealm.userDnTemplate = {{ ldap_authentification.ldap_userDn_Template }}
-ldapRealm.groupRolesMap = "{{ ldap_authentification.ldap_admin_groups }}":"admin", "{{ ldap_authentification.ldap_user_groups }}":"user", "{{ ldap_authentification.ldap_guest_groups }}":"guest"
+ldapRealm.groupRolesMap = "{{ ldap_authentification.ldap_admin_group }}":"admin", "{{ ldap_authentification.ldap_user_group }}":"user", "{{ ldap_authentification.ldap_guest_group }}":"guest"
 {% endif %}
 
 x509 = fr.gouv.vitam.common.auth.web.filter.X509AuthenticationFilter
