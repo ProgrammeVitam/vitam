@@ -110,6 +110,7 @@ Exemple d'un scénario constitué de trois actions :
     Quand je télécharge le SIP
     Alors le statut final du journal des opérations est KO	
 
+
 Insérer une requète DSL
 -----------------------
 
@@ -170,14 +171,20 @@ Annexes
 Liste des contextes disponibles
 -------------------------------
 
+Les types de contexte sont les suivants :
+
+* un contexte initial (les acquis) : **Etant donné**
+* un événement survient : **Quand** (peut être suivi de **Et** et/ou **Mais**)
+* on s’assure de l’obtention de certains résultats : **Alors** (peut être suivi de **Et** et/ou **Mais**)
+
 .. csv-table::
 	:header: Action
 
 	"Etant donné"
-	"Et"
 	"Quand"
-	"Mais"
 	"Alors"
+	"Mais"
+	"Et"
 
 Liste des fonctions disponibles
 -------------------------------
@@ -185,11 +192,35 @@ Liste des fonctions disponibles
 .. csv-table::
 	:header: "Fonctionnalité", "Doit être suivi par"
 
-	"les metadonnées sont","un tableau"
-	"le nombre de résultat est","un nombre"
-	"j'utilise la requête suivante","une requête"
-	"je recherche les unités archivistiques","une autre action"
+	"les tests effectués sur le tenant (*)","un tenant"
+	"les données du jeu de test du SIP nommé (.*)","un fichier"
 	"un fichier SIP nommé (.*)","un fichier"
 	"je télécharge le SIP","une autre action"
+	"je recherche le journal des opérations","une autre action"
+	"je télécharge son fichier ATR","une autre action"
+	"je recherche le JCV de l'unité archivistique dont le titre est (.*)","un titre d'unité archivistique"
+	"je recherche le JCV du groupe d'objet de l'unité archivistique dont le titre est (.*)","un titre d'unité archivistique"
 	"le statut final du journal des opérations est (.*)","un statut"
 	"le[s]? statut[s]? (?:de l'événement|des événements) (.*) (?:est|sont) (.*)","un ou plusieur evType et un Statut"
+	"l'outcome détail de l'événement (.*) est (.*)","un outcome detail et une valeur"
+	"l'état final du fichier ATR est (.*)","un statut"
+	"le fichier ATR contient (.*) balise[s] de type (.*)","un nombre et un type de balise"
+	"le fichier ATR contient les valeurs (.*)","une ou plusieurs valeurs séparées par des virgules"
+	"le fichier ATR contient la  chaîne de caractères (.*)","un texte ou une simple chaîne de caractères"
+	"j'utilise la requête suivante","une requête"
+	"j'utilise le fichier de requête suivant (.*)","un fichier"
+	"j'utilise dans la requête le GUID de l'unité archivistique pour le titre (.*)","un titre d'unité archivistique"
+	"j'utilise dans la requête le paramètre (.*) avec la valeur (.*)","un nom de paramétre et une valeur de remplacement"
+	"je recherche les unités archivistiques","une autre action"
+	"je recherche les groupes d'objets des unités archivistiques","une autre action"
+	"je recherche les groupes d'objets de l'unité archivistique dont le titre est (.*)","un titre d'unité archivistique"
+	"le nombre de résultat est","un nombre"
+	"les metadonnées sont","un tableau"
+	"les metadonnées pour le résultat (.*)", "un nombre et un tableau"
+	"je recherche les registres de fond","une autre action"
+	"le nombre de registres de fond est (.*)","un nombre"
+	"les metadonnées pour le registre de fond sont","un tableau"
+	"je recherche les détails des registres de fond pour le service producteur (.*)","un identifiant de service producteur"
+	"le nombre de détails du registre de fond est (.*)","un nombre"
+	"les metadonnées pour le détail du registre de fond sont","un tableau"
+	

@@ -66,13 +66,14 @@ La requête est ensuite écrite dans le champ texte de gauche. Le bouton "Valide
 
 
 Tests Automatisés
-####################
+#################
 
+Dans Vitam, les tests automatisés sont aussi appelés TNR. Pour avoir plus de détails sur leur écriture, se reporter à la section de la documentation associée aux TNR.
 
 Tests fonctionnels
 -------------------
 
-** Cucumber **
+**Cucumber**
 
 Cucumber est un outil de tests fonctionnels, il est accessible via l'IHM de recette dans le menu "Tests / Tests fonctionnels". Ces tests sont effectués via des ordres écrits avec des phrases simples, ce qui offre une grande variété de combinaisons.
 
@@ -85,18 +86,6 @@ Les résultats sont retournés sous forme de tableau
 .. image:: images/RECETTE_detail_tests.png
 
 .. image:: images/RECETTE_detail_test_OK.png
-
-** Tests de stockage **
-
-Ces tests permettent de vérifier qu'un objet est bien stocké plusieurs fois sur la plateforme, afin d'assurer sa pérennité.
-
-Ce test vérifie :
-
- - Le tenant sur lequel est stocké l'objet
- - Le nom de l'objet stocké
- - La strategie de stockage
- - La liste des stratégies où est stocké l'objet
- - La présence de l'objet dans ces stratégies
 
 
 Séquencement de tests

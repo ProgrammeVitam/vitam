@@ -8,4 +8,3 @@
 
    introduction
    outils
-   exemples_cucumber
