@@ -18,6 +18,17 @@ La base Masterdata contient les collections relatives aux référentiels utilis�
   * SecurityProfile
   * VitamSequence
 
+Collections Cross-tenant
+-------------------------
+
+Certaines collections sont enregistrées sur un tenant et utilisables pour tous les tenants. Elles sont qualifiées de "Cross-tenant". Il s'agit des collections suivantes :
+
+  * Context
+  * FileFormat
+  * SecurityProfile
+
+Elles sont enregistrées sur le tenant d'administration.
+
 Collection AccessContract
 =========================
 
