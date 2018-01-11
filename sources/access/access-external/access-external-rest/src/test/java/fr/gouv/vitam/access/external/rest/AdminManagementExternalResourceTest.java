@@ -76,12 +76,12 @@ import fr.gouv.vitam.logbook.common.parameters.Contexts;
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*", "javax.management.*"})
 @PrepareForTest({AdminManagementClientFactory.class, IngestInternalClientFactory.class})
-public class AdminManagementExternalResourceImplTest {
+public class AdminManagementExternalResourceTest {
 
     private static final String CODE_VALIDATION_DSL = VitamCodeHelper.getCode(VitamCode.GLOBAL_INVALID_DSL);
 
     private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(AdminManagementExternalResourceImplTest.class);
+        VitamLoggerFactory.getInstance(AdminManagementExternalResourceTest.class);
 
     private static final String RESOURCE_URI = "/admin-external/v1";
 

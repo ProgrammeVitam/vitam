@@ -126,15 +126,15 @@ import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientServer
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 
 /**
- * Admin Management External Resource Implement
+ * Admin Management External Resource
  */
 @Path("/admin-external/v1")
 @javax.ws.rs.ApplicationPath("webresources")
-public class AdminManagementExternalResourceImpl {
+public class AdminManagementExternalResource {
 
     private static final String IDENTIFIER = "Identifier";
     private static final String ATTACHEMENT_FILENAME = "attachment; filename=rapport.json";
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementExternalResourceImpl.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementExternalResource.class);
     private static final String ACCESS_EXTERNAL_MODULE = "ADMIN_EXTERNAL";
     // Should be replaced in code by a real code from VitamCode
     @Deprecated
@@ -149,7 +149,7 @@ public class AdminManagementExternalResourceImpl {
      * 
      * @param secureEndpointRegistry endpoint list registry
      */
-    public AdminManagementExternalResourceImpl(SecureEndpointRegistry secureEndpointRegistry) {
+    public AdminManagementExternalResource(SecureEndpointRegistry secureEndpointRegistry) {
         this.secureEndpointRegistry = secureEndpointRegistry;
         LOGGER.debug("init Admin Management Resource server");
     }
@@ -163,7 +163,7 @@ public class AdminManagementExternalResourceImpl {
     @Unsecured()
     public Response listResourceEndpoints() {
 
-        String resourcePath = AdminManagementExternalResourceImpl.class.getAnnotation(Path.class).value();
+        String resourcePath = AdminManagementExternalResource.class.getAnnotation(Path.class).value();
 
         List<EndpointInfo> securedEndpointList = this.secureEndpointRegistry.getEndPointsByResourcePath(resourcePath);
 

@@ -60,22 +60,22 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 /**
- * AccessResourceImpl implements AccessResource
+ * Logbook external resource
  */
 @Path("/access-external/v1")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @javax.ws.rs.ApplicationPath("webresources")
-public class LogbookExternalResourceImpl {
+public class LogbookExternalResource {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookExternalResourceImpl.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookExternalResource.class);
     private static final String EVENT_ID_PROCESS = "evIdProc";
     private static final String OB_ID = "obId";
 
     /**
      * Constructor
      */
-    public LogbookExternalResourceImpl() {
+    public LogbookExternalResource() {
         LOGGER.debug("LogbookExternalResource initialized");
     }
 
