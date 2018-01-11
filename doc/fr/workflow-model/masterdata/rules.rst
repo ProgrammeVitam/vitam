@@ -50,6 +50,7 @@ De plus le fichier rempli les conditions suivantes :
       * Au moins un champs RuleDuration a une valeur incorrecte (STP_IMPORT_RULES_WRONG_RULEDURATION.KO)
       * L'association de RuleDuration et de RuleMeasurement doit être  inférieure ou égale à 999 ans (STP_IMPORT_RULES_WRONG_TOTALDURATION.KO)
       * Des règles supprimées sont actuellement utilisées (STP_IMPORT_RULES_DELETE_USED_RULES.KO)
+      * Des durées sont inférieures ou égales aux durées minimales autorisées dans la configuration de la plateforme (STP_IMPORT_RULES_RULEDURATION_EXCEED.KO). Ce cas provoque de plus une alerte de sécurité, enregistrée dans les logs de sécurité.
 
     - FATAL : une erreur technique est survenue lors du contrôle des règles de gestion (CHECK_RULES.FATAL=Erreur fatale lors du contrôle de la conformité du fichier de règles de gestion)
 

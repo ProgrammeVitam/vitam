@@ -304,6 +304,21 @@ Vérification globale de l'unité archivistique (CHECK_UNIT_SCHEMA)
 
   - FATAL : une erreur technique est survenue lors de la vérification de l'unité archivistique (CHECK_UNIT_SCHEMA.FATAL ==Erreur fatale lors de la vérification globale de l'unité archivistique)
 
+Vérification du niveau de classification (CHECK_CLASSIFICATION_LEVEL)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++ **Règle** : vérification des niveaux de classification associés, si il existe, aux unités archivistiques. Ces niveaux doivent exister dans la liste des niveaux de classifications autorisés par la plateforme (paramètre configuré dans la configuration des workers). Pour les unités archivistiques sans niveau de classification, la vérification contrôle que la plateforme autorise le versement d'unités archivistiques sans niveau de classification.
+
++ **Type** : bloquant
+
++ **Statuts** :
+
+  - OK : les unités archivistiques versées ont un niveau de classification autorisé par la plateforme. Si il existe dans le SIP des unités archivistiques sans niveau de classification, c'est que la plateforme autorise le versement d'unités archivistiques sans niveau de classifications. (CHECK_CLASSIFICATION_LEVEL.OK=Succès de la vérification du niveau de classification)
+
+  - KO : au moins une unité archivistique du SIP possède un niveau de classification qui n'est pas un niveau de classification autorisé par la plateforme, ou une unité archivistique n'a pas de niveau de classification alors que la plateforme requiert que toutes les unités archivistiques possèdent un niveau de classification. (CHECK_CLASSIFICATION_LEVEL.KO=Échec de la vérification du niveau de classification, non autorisés par la plateforme)
+
+  - FATAL : une erreur technique est survenue lors de la vérification des niveaux de classifications (CHECK_CLASSIFICATION_LEVEL.FATAL=Erreur fatale lors de la vérification du niveau de classification)
+
 Application des règles de gestion et calcul des dates d'échéances (UNITS_RULES_COMPUTE)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
