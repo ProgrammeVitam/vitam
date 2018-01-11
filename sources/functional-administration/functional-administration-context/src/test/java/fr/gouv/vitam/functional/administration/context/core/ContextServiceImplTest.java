@@ -24,9 +24,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
@@ -76,6 +78,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.context.api.ContextService;
@@ -91,6 +94,7 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
 
 public class ContextServiceImplTest {
 
@@ -183,7 +187,8 @@ public class ContextServiceImplTest {
 
         contextService =
             new ContextServiceImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
-                vitamCounterService, ingestContractService, accessContractService, securityProfileService);
+                vitamCounterService, ingestContractService, accessContractService, securityProfileService,
+                functionalBackupService);
     }
 
     @AfterClass
@@ -200,6 +205,7 @@ public class ContextServiceImplTest {
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         collection.deleteMany(new Document());
         reset(ingestContractService);
+        reset(functionalBackupService);
     }
 
     @Test
@@ -223,6 +229,11 @@ public class ContextServiceImplTest {
 
         verifyZeroInteractions(ingestContractService);
         verifyZeroInteractions(accessContractService);
+
+        verify(functionalBackupService).saveCollectionAndSequence(any(),
+            Mockito.eq(ContextServiceImpl.CONTEXTS_BACKUP_EVENT), Mockito.eq(FunctionalAdminCollections.CONTEXT));
+        verifyNoMoreInteractions(functionalBackupService);
+        reset(functionalBackupService);
 
         final ObjectNode permissionsNode = JsonHandler.createObjectNode();
         final ObjectNode permissionNode = JsonHandler.createObjectNode();
@@ -250,6 +261,12 @@ public class ContextServiceImplTest {
             contextService.updateContext(context.getIdentifier(), queryDslForUpdate);
 
         assertTrue(updateResponse.isOk());
+
+        verify(functionalBackupService).saveCollectionAndSequence(any(),
+            Mockito.eq(ContextServiceImpl.CONTEXTS_BACKUP_EVENT), Mockito.eq(FunctionalAdminCollections.CONTEXT));
+        verifyNoMoreInteractions(functionalBackupService);
+        reset(functionalBackupService);
+
         verify(ingestContractService).findByIdentifier(INGEST_CONTRACT_ID);
         reset(ingestContractService);
 
@@ -262,6 +279,9 @@ public class ContextServiceImplTest {
         final RequestResponse<ContextModel> updateError =
             contextService.updateContext(context.getIdentifier(), update.getFinalUpdate());
         assertFalse(updateError.isOk());
+
+        verifyZeroInteractions(functionalBackupService);
+
         verify(ingestContractService).findByIdentifier(INVALID_INGEST_CONTRACT_IDENTIFIER);
         verifyZeroInteractions(ingestContractService);
     }
@@ -279,6 +299,11 @@ public class ContextServiceImplTest {
 
         RequestResponse<ContextModel> response = contextService.createContexts(ModelList);
         assertThat(response.isOk()).isTrue();
+
+        verify(functionalBackupService).saveCollectionAndSequence(any(),
+            Mockito.eq(ContextServiceImpl.CONTEXTS_BACKUP_EVENT), Mockito.eq(FunctionalAdminCollections.CONTEXT));
+        verifyNoMoreInteractions(functionalBackupService);
+
         verifyZeroInteractions(ingestContractService);
     }
 
@@ -295,5 +320,6 @@ public class ContextServiceImplTest {
         assertThat(response.isOk()).isFalse();
 
         verifyZeroInteractions(ingestContractService);
+        verifyZeroInteractions(functionalBackupService);
     }
 }

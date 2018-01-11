@@ -26,20 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.context.core;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.common.database.parser.request.adapter.SimpleVarNameAdapter.change;
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.TENANT_ID;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -75,7 +61,10 @@ import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.Context;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
+import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
@@ -83,13 +72,10 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminI
 import fr.gouv.vitam.functional.administration.context.api.ContextService;
 import fr.gouv.vitam.functional.administration.context.core.ContextValidator.ContextRejectionCause;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
-import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
 import fr.gouv.vitam.functional.administration.contract.core.IngestContractImpl;
 import fr.gouv.vitam.functional.administration.security.profile.core.SecurityProfileService;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -98,6 +84,19 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import org.apache.commons.lang.StringUtils;
 import org.assertj.core.util.VisibleForTesting;
 import org.bson.conversions.Bson;
+
+import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.common.database.parser.request.adapter.SimpleVarNameAdapter.change;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.TENANT_ID;
 
 public class ContextServiceImpl implements ContextService {
     private static final String INVALID_IDENTIFIER_OF_THE_ACCESS_CONTRACT =
@@ -111,12 +110,16 @@ public class ContextServiceImpl implements ContextService {
     private static final String CONTEXT_IS_MANDATORY_PARAMETER = "contexts parameter is mandatory";
     private static final String CONTEXTS_IMPORT_EVENT = "STP_IMPORT_CONTEXT";
     private static final String CONTEXTS_UPDATE_EVENT = "STP_UPDATE_CONTEXT";
+    public static final String CONTEXTS_BACKUP_EVENT = "STP_BACKUP_CONTEXT";
     private static final String UPDATE_CONTEXT_MANDATORY_PARAMETER = "context is mandatory";
 
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logbookClient;
     private final VitamCounterService vitamCounterService;
-    private final ContextServiceImpl.ContextManager manager;
+    private final FunctionalBackupService functionalBackupService;
+    private final ContractService<IngestContractModel> ingestContract;
+    private final ContractService<AccessContractModel> accessContract;
+    private final SecurityProfileService securityProfileService;
 
     /**
      * Constructor
@@ -131,8 +134,10 @@ public class ContextServiceImpl implements ContextService {
         logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         ContractService<IngestContractModel> ingestContract = new IngestContractImpl(mongoAccess, vitamCounterService);
         ContractService<AccessContractModel> accessContract = new AccessContractImpl(mongoAccess, vitamCounterService);
-        manager = new ContextManager(logbookClient, accessContract, ingestContract,
-            securityProfileService);
+        this.ingestContract = ingestContract;
+        this.accessContract = accessContract;
+        this.securityProfileService = securityProfileService;
+        this.functionalBackupService = new FunctionalBackupService(vitamCounterService);
     }
 
     /**
@@ -145,12 +150,14 @@ public class ContextServiceImpl implements ContextService {
         MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService,
         ContractService<IngestContractModel> ingestContract,
         ContractService<AccessContractModel> accessContract,
-        SecurityProfileService securityProfileService) {
+        SecurityProfileService securityProfileService, FunctionalBackupService functionalBackupService) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-        manager = new ContextManager(logbookClient, accessContract, ingestContract,
-            securityProfileService);
+        this.ingestContract = ingestContract;
+        this.accessContract = accessContract;
+        this.securityProfileService = securityProfileService;
+        this.functionalBackupService = functionalBackupService;
     }
 
     @Override
@@ -163,6 +170,11 @@ public class ContextServiceImpl implements ContextService {
         boolean slaveMode = vitamCounterService
             .isSlaveFunctionnalCollectionOnTenant(SequenceType.CONTEXT_SEQUENCE.getCollection(),
                 ParameterHelper.getTenantParameter());
+
+        GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+
+        ContextManager manager = new ContextManager(logbookClient, accessContract, ingestContract,
+            securityProfileService, eip);
 
         manager.logStarted();
 
@@ -227,6 +239,13 @@ public class ContextServiceImpl implements ContextService {
             }
 
             mongoAccess.insertDocuments(contextsToPersist, FunctionalAdminCollections.CONTEXT).close();
+
+            functionalBackupService.saveCollectionAndSequence(
+                eip,
+                CONTEXTS_BACKUP_EVENT,
+                FunctionalAdminCollections.CONTEXT
+            );
+
         } catch (final Exception exp) {
             final String err = "Import contexts error > " + exp.getMessage();
             manager.logFatalError(err);
@@ -276,6 +295,12 @@ public class ContextServiceImpl implements ContextService {
             .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
         final ContextModel contextModel = findOneContextById(id);
+
+        GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+
+        ContextManager manager = new ContextManager(logbookClient, accessContract, ingestContract,
+            securityProfileService, eip);
+
         manager.logUpdateStarted(contextModel.getId());
         final JsonNode permissionsNode = queryDsl.findValue(ContextModel.TAG_PERMISSIONS);
         if (permissionsNode != null && permissionsNode.isArray()) {
@@ -334,7 +359,14 @@ public class ContextServiceImpl implements ContextService {
                 diff = SanityChecker.sanitizeJson(diffObject);
             }
 
-        } catch (final ReferentialException e) {
+            functionalBackupService.saveCollectionAndSequence(
+                eip,
+                CONTEXTS_BACKUP_EVENT,
+                FunctionalAdminCollections.CONTEXT
+            );
+
+        } catch (final Exception e) {
+            LOGGER.error(e);
             final String err = "Update context error > " + e.getMessage();
             error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
                 .setDescription(err)
@@ -355,8 +387,7 @@ public class ContextServiceImpl implements ContextService {
      * Context validator and logBook manager
      */
     private final static class ContextManager {
-        final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
-        private GUID eip = null;
+        private final GUID eip;
         private final LogbookOperationsClient logbookClient;
         private ContractService<AccessContractModel> accessContract;
         private ContractService<IngestContractModel> ingestContract;
@@ -366,7 +397,8 @@ public class ContextServiceImpl implements ContextService {
         public ContextManager(LogbookOperationsClient logbookClient,
             ContractService<AccessContractModel> accessContract,
             ContractService<IngestContractModel> ingestContract,
-            SecurityProfileService securityProfileService) {
+            SecurityProfileService securityProfileService, GUID eip) {
+            this.eip = eip;
             this.logbookClient = logbookClient;
             this.accessContract = accessContract;
             this.ingestContract = ingestContract;
@@ -401,13 +433,12 @@ public class ContextServiceImpl implements ContextService {
          * @throws VitamException
          */
         private void logStarted() throws VitamException {
-            eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eip, CONTEXTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.STARTED,
                     VitamLogbookMessages.getCodeOp(CONTEXTS_IMPORT_EVENT, StatusCode.STARTED), eip);
 
-            helper.createDelegate(logbookParameters);
+            logbookClient.create(logbookParameters);
         }
 
         /**
@@ -421,8 +452,7 @@ public class ContextServiceImpl implements ContextService {
                 .newLogbookOperationParameters(eipUsage, CONTEXTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.OK,
                     VitamLogbookMessages.getCodeOp(CONTEXTS_IMPORT_EVENT, StatusCode.OK), eip);
-            helper.updateDelegate(logbookParameters);
-            logbookClient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
+            logbookClient.update(logbookParameters);
         }
 
         /**
@@ -431,7 +461,6 @@ public class ContextServiceImpl implements ContextService {
          * @throws VitamException
          */
         private void logUpdateStarted(String id) throws VitamException {
-            eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
             final LogbookOperationParameters logbookParameters = LogbookParametersFactory
                 .newLogbookOperationParameters(eip, CONTEXTS_UPDATE_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                     StatusCode.STARTED,
@@ -441,8 +470,7 @@ public class ContextServiceImpl implements ContextService {
             if (null != id && !id.isEmpty()) {
                 logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, id);
             }
-            helper.createDelegate(logbookParameters);
-
+            logbookClient.create(logbookParameters);
         }
 
         /**
@@ -470,8 +498,7 @@ public class ContextServiceImpl implements ContextService {
                 evDetData);
             logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTEXTS_UPDATE_EVENT +
                 "." + StatusCode.OK);
-            helper.updateDelegate(logbookParameters);
-            logbookClient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
+            logbookClient.update(logbookParameters);
         }
 
         /**
@@ -488,8 +515,7 @@ public class ContextServiceImpl implements ContextService {
                     StatusCode.FATAL,
                     VitamLogbookMessages.getCodeOp(CONTEXTS_IMPORT_EVENT, StatusCode.FATAL), eip);
             logbookMessageError(errorsDetails, logbookParameters);
-            helper.updateDelegate(logbookParameters);
-            logbookClient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
+            logbookClient.update(logbookParameters);
         }
 
         private void logValidationError(String errorsDetails, String action) throws VitamException {
@@ -500,9 +526,7 @@ public class ContextServiceImpl implements ContextService {
                     StatusCode.KO,
                     VitamLogbookMessages.getCodeOp(action, StatusCode.KO), eip);
             logbookMessageError(errorsDetails, logbookParameters);
-            helper.updateDelegate(logbookParameters);
-            logbookClient.bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
-
+            logbookClient.update(logbookParameters);
         }
 
         private void logbookMessageError(String errorsDetails, LogbookOperationParameters logbookParameters) {
