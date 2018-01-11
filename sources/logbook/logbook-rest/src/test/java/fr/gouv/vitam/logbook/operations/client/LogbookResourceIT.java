@@ -183,6 +183,7 @@ public class LogbookResourceIT {
             LogbookEvent alertEvent=new LogbookEvent();
             alertEvent.setEvType(ALERT_EVENT_TYPE);
             alertEvent.setOutcome(ALERT_EVENT_OUTCOME);
+            alertEvent.setOutDetail(ALERT_EVENT_TYPE + "." + ALERT_EVENT_OUTCOME);
             alertEvents.add(alertEvent);
             logbookConf.setAlertEvents(alertEvents);
             File file = temporaryFolder.newFile();

@@ -31,6 +31,7 @@ import java.util.List;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import com.google.common.base.Strings;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
@@ -45,101 +46,125 @@ import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
 /**
  * LogbookOperationsDecorator implementation.
  * This implementation create a LogbookOperation and if necessary create an alert
- *
  */
-public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator{
-    
-     
-    
-    private static final String SECURITY_ALERT="Evénement de securité déclenché pour l''eventType {0} et l''outcome {1} : {2} {3}";
-    
+public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator {
+
+
+    private static final String SECURITY_ALERT = "Evénement de securité déclenché pour l''eventType {0} et l''outcome {1} : {2} {3}";
+
     /**
      * the configured alertEvents
      */
     private List<LogbookEvent> alertEvents;
-    
+
     private AlertService alertService;
 
-	public AlertLogbookOperationsDecorator(LogbookOperations logbookOperations,List<LogbookEvent> alertEvents) {
-		super(logbookOperations);
-		this.alertEvents=alertEvents;
-		alertService=new AlertServiceImpl();
-	}
-	
-	 
-	@VisibleForTesting AlertLogbookOperationsDecorator(LogbookOperations logbookOperations,List<LogbookEvent> alertEvents,AlertService alertService) {
+    public AlertLogbookOperationsDecorator(LogbookOperations logbookOperations, List<LogbookEvent> alertEvents) {
         super(logbookOperations);
-        this.alertEvents=alertEvents;
-        this.alertService=alertService;
+        this.alertEvents = alertEvents;
+        alertService = new AlertServiceImpl();
     }
 
-	@Override
-	public void create(LogbookOperationParameters parameters)
-			throws LogbookAlreadyExistsException, LogbookDatabaseException {
-		logbookOperations.create(parameters);		
-		createAlertIfNecessary(parameters);
-	}
 
-	@Override
-	public void update(LogbookOperationParameters parameters)
-			throws LogbookNotFoundException, LogbookDatabaseException {
-		logbookOperations.update(parameters);
-		createAlertIfNecessary(parameters);
-	}
+    @VisibleForTesting
+    AlertLogbookOperationsDecorator(LogbookOperations logbookOperations, List<LogbookEvent> alertEvents, AlertService alertService) {
+        super(logbookOperations);
+        this.alertEvents = alertEvents;
+        this.alertService = alertService;
+    }
 
-	@Override
-	public void createBulkLogbookOperation(LogbookOperationParameters[] operationArray)
-			throws LogbookDatabaseException, LogbookAlreadyExistsException {
-		logbookOperations.createBulkLogbookOperation(operationArray);
-		createAlertIfNecessary(operationArray);
-	}
+    @Override
+    public void create(LogbookOperationParameters parameters)
+            throws LogbookAlreadyExistsException, LogbookDatabaseException {
+        logbookOperations.create(parameters);
+        createAlertIfNecessary(parameters);
+    }
 
-	@Override
-	public void updateBulkLogbookOperation(LogbookOperationParameters[] operationArray)
-			throws LogbookDatabaseException, LogbookNotFoundException {
-		logbookOperations.updateBulkLogbookOperation(operationArray);
-		createAlertIfNecessary(operationArray);
-	}
-	
-	
-	/**Create an alert for the configured LogbookOperationParameters eventType and outcome if the specified eventType should raise an alert 
-	 * @param parameters
-	 */
-	private void createAlertIfNecessary(LogbookOperationParameters parameters) {
-	    if (isAlertEvent(parameters)) {	       
-	        String message=MessageFormat.format(SECURITY_ALERT, parameters.getParameterValue(LogbookParameterName.eventType),parameters.getParameterValue(LogbookParameterName.outcome),parameters.getParameterValue(LogbookParameterName.outcomeDetail),parameters.getParameterValue(LogbookParameterName.outcomeDetailMessage));
-	        alertService.createAlert(VitamLogLevel.INFO,message);
-	    }	 
-	}
-	
-	/**Create an alert for all the specified LogbookOperationParameters
-	 * @param operationArray
-	 */
-	private void createAlertIfNecessary(LogbookOperationParameters[] operationArray) {
-		for (LogbookOperationParameters parameters : operationArray) {
-			createAlertIfNecessary(parameters);
-		}
-	
-	}
-	
-	
-	/**Check if the LogbookOperationParameters should raise an alert
-	 * @param parameters 
-	 * @return
-	 */	
-	@VisibleForTesting boolean isAlertEvent(LogbookOperationParameters parameters) {
-	    String eventType=parameters.getParameterValue(LogbookParameterName.eventType);
-	    if (eventType==null || eventType.length()==0)return false;
-	    String outcome=parameters.getParameterValue(LogbookParameterName.outcome);
-	    if (outcome==null || outcome.length()==0)return false;
+    @Override
+    public void update(LogbookOperationParameters parameters)
+            throws LogbookNotFoundException, LogbookDatabaseException {
+        logbookOperations.update(parameters);
+        createAlertIfNecessary(parameters);
+    }
 
-	    for (LogbookEvent logbookEvent : alertEvents) {
-	        if (eventType.equals(logbookEvent.getEvType()) && outcome.equals(logbookEvent.getOutcome())) {
-	            return true;
-	        }	        
-	    }
-	    return false;
-	}
-	
+    @Override
+    public void createBulkLogbookOperation(LogbookOperationParameters[] operationArray)
+            throws LogbookDatabaseException, LogbookAlreadyExistsException {
+        logbookOperations.createBulkLogbookOperation(operationArray);
+        createAlertIfNecessary(operationArray);
+    }
+
+    @Override
+    public void updateBulkLogbookOperation(LogbookOperationParameters[] operationArray)
+            throws LogbookDatabaseException, LogbookNotFoundException {
+        logbookOperations.updateBulkLogbookOperation(operationArray);
+        createAlertIfNecessary(operationArray);
+    }
+
+
+    /**
+     * Create an alert for the configured LogbookOperationParameters eventType and outcome if the specified eventType should raise an alert
+     *
+     * @param parameters
+     */
+    private void createAlertIfNecessary(LogbookOperationParameters parameters) {
+        if (isAlertEvent(parameters)) {
+            String message = MessageFormat.format(SECURITY_ALERT, parameters.getParameterValue(LogbookParameterName.eventType), parameters.getParameterValue(LogbookParameterName.outcome), parameters.getParameterValue(LogbookParameterName.outcomeDetail), parameters.getParameterValue(LogbookParameterName.outcomeDetailMessage));
+            alertService.createAlert(VitamLogLevel.INFO, message);
+        }
+    }
+
+    /**
+     * Create an alert for all the specified LogbookOperationParameters
+     *
+     * @param operationArray
+     */
+    private void createAlertIfNecessary(LogbookOperationParameters[] operationArray) {
+        for (LogbookOperationParameters parameters : operationArray) {
+            createAlertIfNecessary(parameters);
+        }
+
+    }
+
+
+    /**
+     * Check if the LogbookOperationParameters should raise an alert
+     *
+     * @param parameters
+     * @return
+     */
+    @VisibleForTesting
+    boolean isAlertEvent(LogbookOperationParameters parameters) {
+
+        for (LogbookEvent logbookEvent : alertEvents) {
+            if (logbookEvent.getOutDetail() != null) {
+                String outDetail = parameters.getParameterValue(LogbookParameterName.outcomeDetail);
+
+                if (Strings.isNullOrEmpty(outDetail)) {
+                    return false;
+                }
+
+                if (outDetail.equals(logbookEvent.getOutDetail())) {
+                    return true;
+                }
+            } else {
+                String eventType = parameters.getParameterValue(LogbookParameterName.eventType);
+                if (Strings.isNullOrEmpty(eventType)) {
+                    return false;
+                }
+
+                String outcome = parameters.getParameterValue(LogbookParameterName.outcome);
+                if (Strings.isNullOrEmpty(outcome)) {
+                    return false;
+                }
+
+                if (eventType.equals(logbookEvent.getEvType()) && outcome.equals(logbookEvent.getOutcome())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 
 }
