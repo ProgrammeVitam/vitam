@@ -164,6 +164,30 @@
 				{% for item in groups['vitam'] %}
 				<p class="row" style="vertical-align: middle"><div class="col-md-3">{{ item }}</div>
 				<div class="col-md-2">
+
+				{% for groupe in group_names %}
+					{% if item in groups[groupe] %}
+						{% if (groupe not in ('hosts','vitam','reverse','elasticsearch','mongo_common')) and (not(groupe|search('^zone'))) %}
+							{{ groupe|regex_replace('hosts-', '') }}<br/>
+						{% endif %}
+					{% endif %}
+				{% endfor %}
+
+				</div>
+
+
+				<div class="col-md-2">
+
+				{% for groupe in group_names %}
+					{% if groupe |search('^zone') %}
+						{% if item in groups[groupe] %}{{ groupe }}<br/>{% endif %}
+					{% endif %}
+				{% endfor %}
+
+				</div>
+
+
+				<div class="col-md-2">
 					<a href="/nodes/{{ item }}/browse" class="btn btn-primary btn-xs" target="_blank">/vitam browser</a>
 				</div></p>
 				{% endfor %}
