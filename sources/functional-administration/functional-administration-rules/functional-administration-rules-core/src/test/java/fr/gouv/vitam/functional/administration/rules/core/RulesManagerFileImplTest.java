@@ -153,6 +153,7 @@ public class RulesManagerFileImplTest {
     private static final String FILE_TO_COMPARE = "jeu_donnees_OK_regles_CSV.csv";
     private static final String FILE_UPDATE_RULE_TYPE = "jeu_donnees_OK_regles_CSV_update_ruleType.csv";
     private static final String FILE_TO_TEST_KO_INVALID_FORMAT = "jeu_donnees_KO_regles_CSV_invalid_format.csv";
+    private static final String FILE_TO_TEST_KO_MISSING_COLUMN = "jeu_donnees_KO_regles_CSV_missing_column.csv";    
     private static final Integer TENANT_ID = 0;
     private static final String STP_IMPORT_RULES = "STP_IMPORT_RULES";
     private static final String USED_UPDATED_RULE_RESULT = "used_updated_rule_result.json";
@@ -699,6 +700,22 @@ public class RulesManagerFileImplTest {
         // mock Storage
         final InputStream inputStream =
             getInputStreamAndInitialiseMockWhenCheckRulesFile(FILE_TO_TEST_KO_INVALID_FORMAT);
+        // Then
+        final JsonNode errorReportAtJson = JsonHandler.getFromInputStream(inputStream);
+        final JsonNode errorNode = errorReportAtJson.get("JDO");
+
+        assertThat(errorNode.get("outMessg").asText())
+            .isEqualTo("Échec du processus d'import du référentiel des règles de gestion");
+    }
+    
+    
+    @Test
+    @RunWithCustomExecutor
+    public void should_contains_outMessg_in_error_report_when_csv_with_missing_Column()
+        throws Exception {
+        //Given
+        // mock Storage
+        final InputStream inputStream = getInputStreamAndInitialiseMockWhenCheckRulesFile(FILE_TO_TEST_KO_MISSING_COLUMN);
         // Then
         final JsonNode errorReportAtJson = JsonHandler.getFromInputStream(inputStream);
         final JsonNode errorNode = errorReportAtJson.get("JDO");
