@@ -107,6 +107,7 @@ import fr.gouv.vitam.common.security.rest.EndpointInfo;
 import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
 import fr.gouv.vitam.common.security.rest.Secured;
 import fr.gouv.vitam.common.security.rest.Unsecured;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -130,7 +131,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
  */
 @Path("/admin-external/v1")
 @javax.ws.rs.ApplicationPath("webresources")
-public class AdminManagementExternalResource {
+public class AdminManagementExternalResource extends ApplicationStatusResource {
 
     private static final String IDENTIFIER = "Identifier";
     private static final String ATTACHEMENT_FILENAME = "attachment; filename=rapport.json";
