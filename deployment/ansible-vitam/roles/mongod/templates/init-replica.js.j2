@@ -15,7 +15,7 @@ rs.initiate(
 {% for host in groups['mongod'] %}
     {% if mongo_shard_id == hostvars[host]['mongo_shard_id'] %}
         {% if hostvars[host]['mongo_rs_bootstrap'] is not defined or hostvars[host]['mongo_rs_bootstrap']|lower != "true" %}
-            rs.add("{{ hostvars[host]['ip_service'] }}")
+            rs.add("{{ hostvars[host]['ip_service'] }}:{{ mongodb.mongod_port }}")
         {% endif %}
     {% endif %}
 {% endfor %}
