@@ -539,7 +539,7 @@ public class IngestContractImplTest {
             assertThat(activeStatus.equals(ingestContractModel.getStatus())).isTrue();
         }
         final String identifier = responseCast.getResults().get(0).getIdentifier();
-        // Test update for access contract Status => inactive
+        // Test update for ingest contract Status => inactive
         final String now = LocalDateUtil.now().toString();
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
         final SetAction setActionStatusInactive = UpdateActionHelper.set("Status", inactiveStatus);
@@ -569,7 +569,7 @@ public class IngestContractImplTest {
             assertThat(ingestContractModel.getLastupdate()).isNotEmpty();
         }
 
-        // Test update for access contract Status => Active
+        // Test update for ingest contract Status => Active
         final UpdateParserSingle updateParserActive = new UpdateParserSingle(new SingleVarNameAdapter());
         final SetAction setActionStatusActive = UpdateActionHelper.set("Status", activeStatus);
         final SetAction setActionDesactivationDateActive = UpdateActionHelper.set("ActivationDate", now);
@@ -582,12 +582,11 @@ public class IngestContractImplTest {
         updateParserActive.parse(updateStatusActive.getFinalUpdate());
         JsonNode queryDslStatusActive = updateParserActive.getRequest().getFinalUpdate();
         ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslStatusActive);
-
-
-        final RequestResponseOK<IngestContractModel> accessContractModelListForassert2 =
+        
+        final RequestResponseOK<IngestContractModel> ingestContractModelListForassert2 =
             ingestContractService.findContracts(queryDsl2);
-        assertThat(accessContractModelListForassert2.getResults()).isNotEmpty();
-        for (final IngestContractModel ingestContractModel : accessContractModelListForassert2.getResults()) {
+        assertThat(ingestContractModelListForassert2.getResults()).isNotEmpty();
+        for (final IngestContractModel ingestContractModel : ingestContractModelListForassert2.getResults()) {
             assertThat(inactiveStatus.equals(ingestContractModel.getStatus())).isFalse();
             assertThat(activeStatus.equals(ingestContractModel.getStatus())).isTrue();
             assertThat(ingestContractModel.getActivationdate()).isNotEmpty();
@@ -650,7 +649,7 @@ public class IngestContractImplTest {
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_link_parentId.json");
         final List<IngestContractModel> IngestContractModelList =
             JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
-            });
+        });
         final RequestResponse response = ingestContractService.createContracts(IngestContractModelList);
 
         assertThat(response).isInstanceOf(VitamError.class);
@@ -671,7 +670,7 @@ public class IngestContractImplTest {
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_link_parentId.json");
         final List<IngestContractModel> IngestContractModelList =
             JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
-            });
+        });
         final RequestResponse response = ingestContractService.createContracts(IngestContractModelList);
 
         final RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
