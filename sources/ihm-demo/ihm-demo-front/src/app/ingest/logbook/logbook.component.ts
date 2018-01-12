@@ -35,7 +35,7 @@ export class LogbookComponent extends PageComponent {
   public searchForm: any = {};
 
   public logbookData = [
-    FieldDefinition.createIdField('evId', 'Identifiant de la demande d\'entrée', 6, 8),
+    FieldDefinition.createIdField('obIdIn', 'Identifiant de la demande d\'entrée', 6, 8),
     FieldDefinition.createSelectMultipleField('evType', "Catégorie d\'opération", operationType, 6, 10),
     FieldDefinition.createDateField('IngestStartDate', 'Date de début', 6, 10),
     FieldDefinition.createDateField('IngestEndDate', 'Date de fin', 6, 10),
