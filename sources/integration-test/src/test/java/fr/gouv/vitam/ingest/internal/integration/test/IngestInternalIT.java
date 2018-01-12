@@ -697,12 +697,12 @@ public class IngestInternalIT {
 
             // get initial lfc version
             String unitId = unit.findValuesAsText("#id").get(0);
-            assertEquals(checkAndRetrieveLfcVersionForUnit(unitId, accessClient), 0);
+            assertEquals( 5, checkAndRetrieveLfcVersionForUnit(unitId, accessClient));
             // execute update
             RequestResponse response = accessClient.updateUnitbyId(new UpdateMultiQuery().getFinalUpdate(), unitId);
             assertEquals(response.toJsonNode().get("$hits").get("size").asInt(), 1);
             // check version incremented in lfc
-            assertEquals(checkAndRetrieveLfcVersionForUnit(unitId, accessClient), 1);
+            assertEquals(6, checkAndRetrieveLfcVersionForUnit(unitId, accessClient));
 
             sizedInputStream = new SizedInputStream(inputStream);
             final long size2 = StreamUtils.closeSilently(sizedInputStream);
