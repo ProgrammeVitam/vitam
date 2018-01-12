@@ -35,6 +35,7 @@
       Accept: "application/json, text/plain, */*"
       Connection: "keep-alive"
       Host: "{{ ip_service }}"
+    validate_certs: no
   run_once: true
   no_log: true
   register: connected
@@ -56,6 +57,7 @@
     body: "{{ lookup('template','perf.json.j2') }}"
     body_format: json
     status_code: 202
+    validate_certs: no
   run_once: true # Limit as this upload is not related to tenants
   when: connected.set_cookie != ''
   with_items:
