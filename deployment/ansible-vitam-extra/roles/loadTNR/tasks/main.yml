@@ -19,6 +19,7 @@
       body_format: json
       Host: "{{ ip_service }}"
     url: "{{ vitam.ihm_recette| client_url }}{{ vitam.ihm_recette.baseuri }}/v1/api/login"
+    validate_certs: no
   ignore_errors: true
   run_once: true
   register: login
@@ -38,6 +39,7 @@
       X-Tenant-Id: "{{ item }}"
       Cookie: "{{login.set_cookie}}"
     url: "{{ vitam.ihm_recette| client_url }}{{ vitam.ihm_recette.baseuri }}/v1/api/delete/deleteTnr"
+    validate_certs: no
   # TNR are used on tenant 0 & 1 only
   with_items:
     - "0"
