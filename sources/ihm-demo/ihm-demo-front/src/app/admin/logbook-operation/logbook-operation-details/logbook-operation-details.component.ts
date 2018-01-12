@@ -1,13 +1,13 @@
 import {Component} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
-import {PageComponent} from "../../../common/page/page-component";
-import {BreadcrumbElement, BreadcrumbService} from "../../../common/breadcrumb.service";
-import {Title} from "@angular/platform-browser";
-import {VitamResponse} from "../../../common/utils/response";
-import {ColumnDefinition} from "../../../common/generic-table/column-definition";
-import {LogbookOperationComponent} from "../logbook-operation.component";
-import {LogbookService} from "../../../ingest/logbook.service";
-import {DateService} from "../../../common/utils/date.service";
+import {PageComponent} from '../../../common/page/page-component';
+import {BreadcrumbElement, BreadcrumbService} from '../../../common/breadcrumb.service';
+import {Title} from '@angular/platform-browser';
+import {VitamResponse} from '../../../common/utils/response';
+import {ColumnDefinition} from '../../../common/generic-table/column-definition';
+import {LogbookOperationComponent} from '../logbook-operation.component';
+import {LogbookService} from '../../../ingest/logbook.service';
+import {DateService} from '../../../common/utils/date.service';
 
 const breadcrumb: BreadcrumbElement[] = [
   {label: 'Administration', routerLink: ''},
@@ -53,8 +53,6 @@ export class LogbookOperationDetailsComponent extends PageComponent {
     ColumnDefinition.makeStaticColumn('agIdApp', 'Identifiant de l\'application demandée', undefined,
       () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeStaticColumn('evIdReq', 'Numéro de transaction', undefined,
-      () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
-    ColumnDefinition.makeStaticColumn('obId', 'Identifiant de l\'opération', undefined,
       () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
     ColumnDefinition.makeSpecialValueColumn('Message', (item) => item.events[item.events.length - 1].outMessg,
       undefined, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),

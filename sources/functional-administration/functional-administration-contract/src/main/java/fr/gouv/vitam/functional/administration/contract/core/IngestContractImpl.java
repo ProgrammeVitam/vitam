@@ -110,6 +110,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     private static final String CONTRACTS_IMPORT_EVENT = "STP_IMPORT_INGEST_CONTRACT";
     private static final String CONTRACT_UPDATE_EVENT = "STP_UPDATE_INGEST_CONTRACT";
     public static final String CONTRACT_BACKUP_EVENT = "STP_BACKUP_INGEST_CONTRACT";
+    private static final String EVDETDATA_IDENTIFIER = "identifier";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestContractImpl.class);
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logbookClient;
@@ -458,16 +459,17 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
         }
 
-        private void logUpdateSuccess(String id, List<String> listDiffs) throws VitamException {
+        private void logUpdateSuccess(String id, String identifier, List<String> listDiffs) throws VitamException {
             final ObjectNode evDetData = JsonHandler.createObjectNode();
             final ObjectNode evDetDataContract = JsonHandler.createObjectNode();
             final String diffs = listDiffs.stream().reduce("", String::concat);
 
             final ObjectNode msg = JsonHandler.createObjectNode();
+            msg.put(EVDETDATA_IDENTIFIER, identifier);
             msg.put(UPDATED_DIFFS, diffs);
             evDetDataContract.set(id, msg);
-
             evDetData.set(INGEST_CONTRACT, msg);
+
             final String wellFormedJson = SanityChecker.sanitizeJson(evDetData);
             final LogbookOperationParameters logbookParameters =
                 LogbookParametersFactory
@@ -776,7 +778,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             FunctionalAdminCollections.INGEST_CONTRACT
         );
 
-        manager.logUpdateSuccess(ingestContractModel.getId(), updateDiffs.get(ingestContractModel.getId()));
+        manager.logUpdateSuccess(ingestContractModel.getId(), identifier, updateDiffs.get(ingestContractModel.getId()));
         return new RequestResponseOK<>();
     }
 }
