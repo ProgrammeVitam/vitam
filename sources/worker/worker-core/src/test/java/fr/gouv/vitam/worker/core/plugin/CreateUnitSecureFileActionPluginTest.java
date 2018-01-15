@@ -127,6 +127,7 @@ public class CreateUnitSecureFileActionPluginTest {
     public void setUp() throws Exception {
         File tempFolder = folder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
+        SystemPropertyUtil.refresh();
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
@@ -136,7 +137,6 @@ public class CreateUnitSecureFileActionPluginTest {
         PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(metadataClientFactory);
         PowerMockito.when(MetaDataClientFactory.getInstance().getClient())
             .thenReturn(metadataClient);
-        SystemPropertyUtil.refresh();
         handler = new HandlerIOImpl(workspaceClient, "CreateUnitSecureFileActionPluginTest", "workerId");
     }
     

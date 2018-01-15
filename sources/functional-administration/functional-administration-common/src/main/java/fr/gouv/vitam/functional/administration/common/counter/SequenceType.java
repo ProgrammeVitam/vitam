@@ -34,7 +34,6 @@ import java.util.Optional;
 
 public enum SequenceType {
 
-
     /**
      * Agencies Collection
      */
@@ -54,7 +53,6 @@ public enum SequenceType {
      */
     ACCESS_CONTRACT_SEQUENCE(FunctionalAdminCollections.ACCESS_CONTRACT, "AC"),
 
-
     /**
      * Profile collection
      */
@@ -70,6 +68,8 @@ public enum SequenceType {
      */
     SECURITY_PROFILE_SEQUENCE(FunctionalAdminCollections.SECURITY_PROFILE, "SEC_PROFILE");
 
+    public static final String BACK_UP_SEQUENCE_PREFIX = "BACKUP_";
+
     SequenceType(FunctionalAdminCollections collection, String prefix) {
         this.collection = collection;
         this.name = prefix;
@@ -84,6 +84,13 @@ public enum SequenceType {
      */
     public String getName() {
         return name;
+    }
+
+    /**
+     * Getter for   name;
+     */
+    public String getBackupSequenceName() {
+        return BACK_UP_SEQUENCE_PREFIX + name;
     }
 
     /**

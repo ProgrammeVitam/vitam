@@ -176,8 +176,6 @@ public class AdminManagementResourceTest {
     public static void setUpBeforeClass() throws Exception {
         new JHades().overlappingJarsReport();
 
-        databasePort = junitHelper.findAvailablePort();
-
         // ES
         try {
             configEs = JunitHelper.startElasticsearchForTest(temporaryFolder, CLUSTER_NAME);
@@ -187,8 +185,16 @@ public class AdminManagementResourceTest {
 
         File tempFolder = temporaryFolder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
-
         SystemPropertyUtil.refresh();
+
+        databasePort = junitHelper.findAvailablePort();
+        final MongodStarter starter = MongodStarter.getDefaultInstance();
+        mongodExecutable = starter.prepare(new MongodConfigBuilder()
+            .withLaunchArgument("--enableMajorityReadConcern")
+            .version(Version.Main.PRODUCTION)
+            .net(new Net(databasePort, Network.localhostIsIPv6()))
+            .build());
+        mongod = mongodExecutable.start();
 
         final List<ElasticsearchNode> nodesEs = new ArrayList<>();
         nodesEs.add(new ElasticsearchNode("localhost", configEs.getTcpPort()));
@@ -206,13 +212,6 @@ public class AdminManagementResourceTest {
         adminConfigFile = File.createTempFile("test", ADMIN_MANAGEMENT_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(databasePort, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, databasePort));
@@ -222,7 +221,6 @@ public class AdminManagementResourceTest {
 
         RestAssured.port = serverPort;
         RestAssured.basePath = RESOURCE_URI;
-
         
         dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
 

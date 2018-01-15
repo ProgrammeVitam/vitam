@@ -14,6 +14,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -110,6 +111,7 @@ public class ContextResourceTest {
 
         File tmpFolder = tempFolder.newFolder();
         System.setProperty("vitam.tmp.folder", tmpFolder.getAbsolutePath());
+        SystemPropertyUtil.refresh();
 
         databasePort = junitHelper.findAvailablePort();
 

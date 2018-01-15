@@ -81,6 +81,7 @@ import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -111,6 +112,7 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
@@ -184,6 +186,10 @@ public class ReplayProcessingIT {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+
+        File vitamTempFolder = tempFolder.newFolder();
+        SystemPropertyUtil.set("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
+
         VitamConfiguration.getConfiguration()
             .setData(PropertiesUtils.getResourcePath("integration-processing/").toString());
         CONFIG_METADATA_PATH = PropertiesUtils.getResourcePath("integration-processing/metadata.conf").toString();
@@ -217,6 +223,12 @@ public class ReplayProcessingIT {
         MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA));
 
         // launch workspace
+        File workspaceConfigurationFile = PropertiesUtils.findFile(CONFIG_WORKSPACE_PATH);
+        final StorageConfiguration workspaceConfiguration =
+            PropertiesUtils.readYaml(workspaceConfigurationFile, StorageConfiguration.class);
+        workspaceConfiguration.setStoragePath(vitamTempFolder.getAbsolutePath());
+        PropertiesUtils.writeYaml(workspaceConfigurationFile, workspaceConfiguration);
+
         SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_WORKSPACE));
         workspaceApplication = new WorkspaceMain(CONFIG_WORKSPACE_PATH);
@@ -262,22 +274,38 @@ public class ReplayProcessingIT {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-        workspaceClient.deleteContainer("process", true);
+
+        try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()){
+            workspaceClient.deleteContainer("process", true);
+        } catch (ContentAddressableStorageNotFoundException e) {
+            LOGGER.error(e);
+        }
         if (configES != null) {
             JunitHelper.stopElasticsearchForTest(configES);
         }
-        mongod.stop();
-        mongodExecutable.stop();
-        try {
+        if (mongod != null) {
+            mongod.stop();
+        }
+        if (mongodExecutable != null) {
+            mongodExecutable.stop();
+        }
+        if (workspaceApplication != null) {
             workspaceApplication.stop();
+        }
+        if (adminManagementApplication != null) {
             adminManagementApplication.stop();
+        }
+        if (workerApplication != null) {
             workerApplication.stop();
+        }
+        if (logbookApplication != null) {
             logbookApplication.stop();
+        }
+        if (processManagementApplication != null) {
             processManagementApplication.stop();
+        }
+        if (metadataApplication != null) {
             metadataApplication.stop();
-        } catch (final Exception e) {
-            LOGGER.error(e);
         }
     }
 

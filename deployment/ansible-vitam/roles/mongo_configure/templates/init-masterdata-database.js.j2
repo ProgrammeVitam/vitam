@@ -31,3 +31,4 @@ db.SecurityProfile.createIndex ( { "Name" : 1  } , { unique: true } )
 db.SecurityProfile.createIndex ( { "Identifier" : 1 } , { unique: true } )
 
 db.VitamSequence.createIndex( { "Name" : 1 } )
+db.VitamSequence.createIndex( { "Name" : 1, "_tenant" : 1 } , { unique: true } )

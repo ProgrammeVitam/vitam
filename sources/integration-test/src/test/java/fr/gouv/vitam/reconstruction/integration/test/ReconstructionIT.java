@@ -169,7 +169,7 @@ public class ReconstructionIT {
     public static void setupBeforeClass() throws Exception {
 
         File vitamTempFolder = tempFolder.newFolder();
-        System.setProperty("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
+        SystemPropertyUtil.set("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
 
         // launch functional Admin server
         final List<ElasticsearchNode> nodesEs = new ArrayList<>();
@@ -273,8 +273,12 @@ public class ReconstructionIT {
                 LOGGER.error("ERROR: Exception has been thrown when cleanning workspace:", e);
             }
         }
-        workspaceClient.close();
-        workspaceMain.stop();
+        if(workspaceClient != null ) {
+            workspaceClient.close();
+        }
+        if(workspaceMain != null) {
+            workspaceMain.stop();
+        }
         File offerFolder = new File(OFFER_FOLDER);
         if (offerFolder.exists()) {
             try {
@@ -285,10 +289,18 @@ public class ReconstructionIT {
                 LOGGER.error("ERROR: Exception has been thrown when cleanning offer:", e);
             }
         }
-        storageClient.close();
-        defaultOfferApplication.stop();
-        storageMain.stop();
-        adminManagementMain.stop();
+        if(storageClient != null) {
+            storageClient.close();
+        }
+        if(defaultOfferApplication != null) {
+            defaultOfferApplication.stop();
+        }
+        if(storageMain != null) {
+            storageMain.stop();
+        }
+        if(adminManagementMain !=null) {
+            adminManagementMain.stop();
+        }
         elasticsearchRule.afterClass();
     }
 

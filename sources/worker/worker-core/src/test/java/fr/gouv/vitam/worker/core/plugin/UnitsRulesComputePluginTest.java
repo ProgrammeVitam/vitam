@@ -125,7 +125,6 @@ public class UnitsRulesComputePluginTest {
     public void setUp() throws Exception {
         File tempFolder = temporaryFolder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
-
         SystemPropertyUtil.refresh();
 
         PowerMockito.mockStatic(AdminManagementClientFactory.class);

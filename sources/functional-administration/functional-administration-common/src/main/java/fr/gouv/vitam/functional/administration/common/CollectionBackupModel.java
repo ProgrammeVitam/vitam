@@ -40,6 +40,12 @@ public class CollectionBackupModel {
     @JsonProperty("sequence")
     private VitamSequence sequence;
 
+    /**
+     * Sequence.
+     */
+    @JsonProperty("backup_sequence")
+    private VitamSequence backupSequence;
+
     public List<Document> getDocuments() {
         if (null == documents) {
             return new ArrayList<>();
@@ -59,5 +65,11 @@ public class CollectionBackupModel {
         this.sequence = sequence;
     }
 
+    public VitamSequence getBackupSequence() {
+        return backupSequence;
+    }
 
+    public void setBackupSequence(VitamSequence backupSequence) {
+        this.backupSequence = backupSequence;
+    }
 }

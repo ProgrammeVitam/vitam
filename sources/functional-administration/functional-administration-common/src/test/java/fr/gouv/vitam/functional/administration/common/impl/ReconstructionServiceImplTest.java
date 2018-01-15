@@ -26,18 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.impl;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
@@ -56,7 +44,6 @@ import fr.gouv.vitam.functional.administration.common.server.AdminManagementConf
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import org.bson.Document;
 import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -67,6 +54,19 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Test the reconstruction services.
@@ -86,6 +86,8 @@ public class ReconstructionServiceImplTest {
 
     private static final String ES_BULK_EXCEPTION_MESSAGE = "ElasticSearch: Bulk Request failure.";
     private static final String MONGODB_BULK_EXCEPTION_MESSAGE = "MongoDB: Bulk Request failure.";
+    public static final String SEQUENCE_NAME = "fake name";
+    public static final String BACKUP_SEQUENCE_NAME = "fake backup name";
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -115,13 +117,6 @@ public class ReconstructionServiceImplTest {
 
     @Captor
     private ArgumentCaptor<Integer> tenantCaptor;
-
-    @Captor
-    private ArgumentCaptor<String> nameCaptor;
-
-
-    @Captor
-    private ArgumentCaptor<FunctionalAdminCollections> collCaptor;
 
     @InjectMocks
     @Spy
@@ -156,12 +151,12 @@ public class ReconstructionServiceImplTest {
 
         reconstructionService.reconstruct(FunctionalAdminCollections.RULES, TENANT_ID_0);
 
-        verify(multiTenantMongoRepository, times(1)).purge(tenantCaptor.capture());
-        verify(mutliTenantElasticsearchRepository, times(1)).purge(tenantCaptor.capture());
+        verify(multiTenantMongoRepository, times(1)).purge(TENANT_ID_0);
+        verify(mutliTenantElasticsearchRepository, times(1)).purge(TENANT_ID_0);
         verify(multiTenantMongoRepository, times(1))
-            .removeByNameAndTenant(nameCaptor.capture(), tenantCaptor.capture());
-
-        Assert.assertEquals(TENANT_ID_0, tenantCaptor.getValue());
+            .removeByNameAndTenant(SEQUENCE_NAME, TENANT_ID_0);
+        verify(multiTenantMongoRepository, times(1))
+            .removeByNameAndTenant(BACKUP_SEQUENCE_NAME, TENANT_ID_0);
 
         verify(recoverBuckupService)
             .readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES);
@@ -170,6 +165,8 @@ public class ReconstructionServiceImplTest {
             .save(backupCollection.get().getDocuments());
         verify(multiTenantMongoRepository, times(1))
             .save(backupCollection.get().getSequence());
+        verify(multiTenantMongoRepository, times(1))
+            .save(backupCollection.get().getBackupSequence());
         verify(mutliTenantElasticsearchRepository, times(1))
             .save(backupCollection.get().getDocuments());
     }
@@ -194,10 +191,10 @@ public class ReconstructionServiceImplTest {
 
         verify(crossTenantMongoRepository, times(1)).purge();
         verify(crossTenantMongoRepository, times(1))
-            .removeByNameAndTenant(nameCaptor.capture(), tenantCaptor.capture());
+            .removeByNameAndTenant(SEQUENCE_NAME, TENANT_ID_1);
+        verify(crossTenantMongoRepository, times(1))
+            .removeByNameAndTenant(BACKUP_SEQUENCE_NAME, TENANT_ID_1);
         verify(crossTenantElasticsearchRepository, times(1)).purge();
-
-        Assert.assertEquals(TENANT_ID_1, tenantCaptor.getValue());
 
         verify(recoverBuckupService)
             .readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.FORMATS);
@@ -206,6 +203,8 @@ public class ReconstructionServiceImplTest {
             .save(backupCollection.get().getDocuments());
         verify(crossTenantMongoRepository, times(1))
             .save(backupCollection.get().getSequence());
+        verify(crossTenantMongoRepository, times(1))
+            .save(backupCollection.get().getBackupSequence());
         verify(crossTenantElasticsearchRepository, times(1))
             .save(backupCollection.get().getDocuments());
     }
@@ -235,6 +234,8 @@ public class ReconstructionServiceImplTest {
             .save(getBackupCollection(TENANT_ID_0).get().getDocuments());
         verify(multiTenantMongoRepository, never())
             .save(getBackupCollection(TENANT_ID_0).get().getSequence());
+        verify(multiTenantMongoRepository, never())
+            .save(getBackupCollection(TENANT_ID_0).get().getBackupSequence());
         verify(mutliTenantElasticsearchRepository, never())
             .save(getBackupCollection(TENANT_ID_0).get().getDocuments());
     }
@@ -279,7 +280,7 @@ public class ReconstructionServiceImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void reconstructCollectiontOnAllVitamTenantsOK() throws Exception {
+    public void reconstructCollectionOnAllVitamTenantsOK() throws Exception {
 
         // mock the recoverBackupCopy service.
         Optional<CollectionBackupModel> backupCollection0 = getBackupCollection(TENANT_ID_0);
@@ -306,13 +307,13 @@ public class ReconstructionServiceImplTest {
 
         // for the "3" tenants, the reconstruction service is called at most 3 times.
         verify(reconstructionService, times(1))
-            .reconstruct(collCaptor.capture(), tenantCaptor.capture());
+            .reconstruct(any(), tenantCaptor.capture());
     }
 
 
     @Test
     @RunWithCustomExecutor
-    public void reconstructCollectiontOnAllVitamTenantsKO() throws Exception {
+    public void reconstructCollectionOnAllVitamTenantsKO() throws Exception {
 
         // mock adminManagement configuration with empty list of Vitam tenants.
         when(configuration.getTenants())
@@ -322,7 +323,7 @@ public class ReconstructionServiceImplTest {
 
         // the reconstruction is never done when no Vitam tenant.
         verify(reconstructionService, never())
-            .reconstruct(collCaptor.capture(), tenantCaptor.capture());
+            .reconstruct(any(), any());
     }
 
     /**
@@ -350,8 +351,16 @@ public class ReconstructionServiceImplTest {
             .startObject()
             .field(VitamDocument.ID, GUIDFactory.newGUID().toString())
             .field(VitamDocument.TENANT_ID, tenant)
-            .field("Name", "fake name")
+            .field("Name", SEQUENCE_NAME)
             .field("Counter", 3)
+            .endObject();
+
+        XContentBuilder builderBackupSequence = jsonBuilder()
+            .startObject()
+            .field(VitamDocument.ID, GUIDFactory.newGUID().toString())
+            .field(VitamDocument.TENANT_ID, tenant)
+            .field("Name", BACKUP_SEQUENCE_NAME)
+            .field("Counter", 17)
             .endObject();
 
         // create collection of documents.
@@ -363,10 +372,15 @@ public class ReconstructionServiceImplTest {
         Document document3 = Document.parse(builderSequence.string());
         VitamSequence vitamSequence = new VitamSequence(document3);
 
+        // create sequence document.
+        Document document4 = Document.parse(builderBackupSequence.string());
+        VitamSequence vitamBackupSequence = new VitamSequence(document4);
+
         // create collection backup.
         CollectionBackupModel backupCollection = new CollectionBackupModel();
         backupCollection.setDocuments(documents);
         backupCollection.setSequence(vitamSequence);
+        backupCollection.setBackupSequence(vitamBackupSequence);
 
         return Optional.of(backupCollection);
     }

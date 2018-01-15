@@ -36,25 +36,29 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.security.internal.client.InternalSecurityClient;
 import fr.gouv.vitam.security.internal.client.InternalSecurityClientFactory;
 import fr.gouv.vitam.security.internal.common.exception.InternalSecurityException;
 import fr.gouv.vitam.security.internal.rest.IdentityMain;
+import fr.gouv.vitam.security.internal.rest.server.InternalSecurityConfiguration;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.assertj.core.util.Lists;
 import org.bson.Document;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -62,6 +66,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.File;
 import java.io.InputStream;
 
 import static com.google.common.io.ByteStreams.toByteArray;
@@ -69,7 +74,6 @@ import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongo
 import static fr.gouv.vitam.security.internal.rest.repository.PersonalRepository.PERSONAL_COLLECTION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 
 public class SecurityInternalIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SecurityInternalIT.class);
@@ -96,10 +100,12 @@ public class SecurityInternalIT {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
 
+        File vitamTempFolder = temporaryFolder.newFolder();
+        SystemPropertyUtil.set("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
+
         final MongodStarter starter = MongodStarter.getDefaultInstance();
         junitHelper = JunitHelper.getInstance();
         mongoPort = junitHelper.findAvailablePort();
-        mongoPort = 12346;
 
         mongodExecutable = starter.prepare(new MongodConfigBuilder()
             .withLaunchArgument("--enableMajorityReadConcern")
@@ -110,10 +116,33 @@ public class SecurityInternalIT {
         mongod = mongodExecutable.start();
         mongoClient = new MongoClient(new ServerAddress("localhost", mongoPort), getMongoClientOptions());
 
+        File securityInternalConfigurationFile = PropertiesUtils.findFile(IDENTITY_CONF);
+        final InternalSecurityConfiguration internalSecurityConfiguration =
+            PropertiesUtils.readYaml(securityInternalConfigurationFile, InternalSecurityConfiguration.class);
+        internalSecurityConfiguration.getMongoDbNodes().get(0).setDbPort(mongoPort);
+        PropertiesUtils.writeYaml(securityInternalConfigurationFile, internalSecurityConfiguration);
+
         identityMain = new IdentityMain(IDENTITY_CONF);
 
         identityMain.start();
         internalSecurityClient = InternalSecurityClientFactory.getInstance().getClient();
+    }
+
+    @AfterClass
+    public static void shutdownAfterClass() throws Exception {
+        junitHelper.releasePort(mongoPort);
+        if (identityMain != null) {
+            identityMain.stop();
+        }
+        if (mongod != null) {
+            mongod.stop();
+        }
+        if (mongodExecutable != null) {
+            mongodExecutable.stop();
+        }
+        if (internalSecurityClient != null) {
+            internalSecurityClient.close();
+        }
     }
 
 
@@ -127,6 +156,7 @@ public class SecurityInternalIT {
     @RunWithCustomExecutor
     public void should_fail_when_no_valid_certificate_transmitted() throws Exception {
         // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         InputStream stream = getClass().getResourceAsStream("/certificate.pem");
         byte[] certificate = toByteArray(stream);
         //WHEN //THEN
@@ -138,8 +168,8 @@ public class SecurityInternalIT {
     @Test
     @RunWithCustomExecutor
     public void should_fail_when_no_certificate_transmitted() throws Exception {
-        // When         // Then
-
+        // When / Then
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         assertThatThrownBy(
             () -> internalSecurityClient.checkPersonalCertificate(null, "tt:read"))
             .isInstanceOf(InternalSecurityException.class);
@@ -148,8 +178,8 @@ public class SecurityInternalIT {
     @Test
     @RunWithCustomExecutor
     public void should_check_valid_certificate_transmitted() throws Exception {
-
         // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         should_create_certificate_transmitted();
         InputStream stream = getClass().getResourceAsStream("/certificate.pem");
         byte[] certificate = toByteArray(stream);
@@ -159,12 +189,14 @@ public class SecurityInternalIT {
 
     //Admin Test resources
     @Test
+    @RunWithCustomExecutor
     public void should_create_certificate_transmitted() throws Exception {
         // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         InputStream stream = getClass().getResourceAsStream("/certificate.pem");
         byte[] certificate = toByteArray(stream);
         String url = "http://localhost:29003/v1/api/personalCertificate";
-        // WHEN
+        // When
         HttpClient client = HttpClientBuilder.create().build();
         HttpPost post = new HttpPost(url);
         HttpEntity entity = new ByteArrayEntity(certificate);
@@ -177,9 +209,10 @@ public class SecurityInternalIT {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_delete_one_certificate() throws Exception {
         // Given
-
+        VitamThreadUtils.getVitamSession().setTenantId(0);
         should_create_certificate_transmitted();
         String url = "http://localhost:29003/v1/api/personalCertificate";
         InputStream stream = getClass().getResourceAsStream("/certificate.pem");

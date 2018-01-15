@@ -30,7 +30,6 @@ package fr.gouv.vitam.processing.integration.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.InputStream;
@@ -70,6 +69,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -79,7 +79,6 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -175,9 +174,13 @@ public class PauseOnFatalProcessingIT {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+
         // set bulk size to 1 for tests
         VitamConfiguration.setWorkerBulkSize(1);
-        
+
+        File vitamTempFolder = tempFolder.newFolder();
+        SystemPropertyUtil.set("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
+
         VitamConfiguration.getConfiguration()
                 .setData(PropertiesUtils.getResourcePath("integration-processing/").toString());
 
@@ -212,6 +215,12 @@ public class PauseOnFatalProcessingIT {
         MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA));
 
         // launch workspace
+        File workspaceConfigurationFile = PropertiesUtils.findFile(CONFIG_WORKSPACE_PATH);
+        final StorageConfiguration workspaceConfiguration =
+            PropertiesUtils.readYaml(workspaceConfigurationFile, StorageConfiguration.class);
+        workspaceConfiguration.setStoragePath(vitamTempFolder.getAbsolutePath());
+        PropertiesUtils.writeYaml(workspaceConfigurationFile, workspaceConfiguration);
+
         SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT,
                 Integer.toString(PORT_SERVICE_WORKSPACE));
         workspaceMain = new WorkspaceMain(CONFIG_WORKSPACE_PATH);
@@ -237,8 +246,6 @@ public class PauseOnFatalProcessingIT {
         processManagementMain.start();
         SystemPropertyUtil.clear(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT);
 
-        ProcessingManagementClientFactory.changeConfigurationUrl(PROCESSING_URL);
-
         // launch worker
         SystemPropertyUtil.set("jetty.worker.port", Integer.toString(PORT_SERVICE_WORKER));
         workerApplication = new WorkerMain(CONFIG_WORKER_PATH);
@@ -258,23 +265,37 @@ public class PauseOnFatalProcessingIT {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         VitamConfiguration.setWorkerBulkSize(10);
-        
-        WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-        workspaceClient.deleteContainer("process", true);
+        try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
+            workspaceClient.deleteContainer("process", true);
+        } catch (final Exception e) {
+            LOGGER.error(e);
+        }
         if (configES != null) {
             JunitHelper.stopElasticsearchForTest(configES);
         }
-        mongod.stop();
-        mongodExecutable.stop();
-        try {
+        if(mongod != null) {
+            mongod.stop();
+        }
+        if(mongodExecutable != null) {
+            mongodExecutable.stop();
+        }
+        if (workspaceMain != null) {
             workspaceMain.stop();
+        }
+        if (adminManagementApplication != null) {
             adminManagementApplication.stop();
+        }
+        if (workerApplication != null) {
             workerApplication.stop();
+        }
+        if (logbookApplication != null) {
             logbookApplication.stop();
+        }
+        if (processManagementMain != null) {
             processManagementMain.stop();
+        }
+        if (metadataApplication != null) {
             metadataApplication.stop();
-        } catch (final Exception e) {
-            LOGGER.error(e);
         }
     }
 
@@ -302,31 +323,33 @@ public class PauseOnFatalProcessingIT {
         if (!imported) {
             try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 client.importFormat(
-                        PropertiesUtils.getResourceAsStream("integration-processing/DROID_SignatureFile_V88.xml"),
-                        "DROID_SignatureFile_V88.xml");
+                    PropertiesUtils.getResourceAsStream("integration-processing/DROID_SignatureFile_V88.xml"),
+                    "DROID_SignatureFile_V88.xml");
 
                 // Import Rules
                 client.importRulesFile(
-                        PropertiesUtils.getResourceAsStream("integration-processing/jeu_donnees_OK_regles_CSV_regles.csv"),
-                        "jeu_donnees_OK_regles_CSV_regles.csv");
+                    PropertiesUtils.getResourceAsStream("integration-processing/jeu_donnees_OK_regles_CSV_regles.csv"),
+                    "jeu_donnees_OK_regles_CSV_regles.csv");
 
                 client.importAgenciesFile(PropertiesUtils.getResourceAsStream("agencies.csv"), "agencies.csv");
 
                 File fileProfiles = PropertiesUtils.getResourceFile("integration-processing/OK_profil.json");
                 List<ProfileModel> profileModelList =
-                        JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {});
+                    JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {
+                    });
                 RequestResponse improrResponse = client.createProfiles(profileModelList);
 
                 RequestResponseOK<ProfileModel> response =
-                        (RequestResponseOK<ProfileModel>) client.findProfiles(new Select().getFinalSelect());
+                    (RequestResponseOK<ProfileModel>) client.findProfiles(new Select().getFinalSelect());
                 client.importProfileFile(response.getResults().get(0).getIdentifier(),
-                        PropertiesUtils.getResourceAsStream("integration-processing/profil_ok.rng"));
+                    PropertiesUtils.getResourceAsStream("integration-processing/profil_ok.rng"));
 
                 // import contract
                 File fileContracts =
-                        PropertiesUtils.getResourceFile("integration-processing/referential_contracts_ok.json");
+                    PropertiesUtils.getResourceFile("integration-processing/referential_contracts_ok.json");
                 List<IngestContractModel> IngestContractModelList = JsonHandler
-                        .getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
+                    .getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                    });
 
                 client.importIngestContracts(IngestContractModelList);
             } catch (final Exception e) {
@@ -337,8 +360,7 @@ public class PauseOnFatalProcessingIT {
     }
 
     private void createLogbookOperation(GUID operationId, GUID objectId)
-            throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
-            LogbookClientNotFoundException {
+            throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
 
         final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
 
@@ -496,9 +518,6 @@ public class PauseOnFatalProcessingIT {
                 assertEquals(ProcessState.PAUSE, processWorkflow.getState());
                 assertEquals(StatusCode.FATAL, processWorkflow.getStatus());
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            fail("should not raized an exception");
         } finally {
             // restart metadata if not already done 
             if(!restartMDServerAfterFatal){

@@ -28,11 +28,9 @@ package fr.gouv.vitam.storage.engine.client;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
@@ -42,28 +40,23 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SingletonUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -76,7 +69,7 @@ import org.junit.rules.TemporaryFolder;
 @Ignore("Really test of storage and offer is developped in the ReconstructionIT that does not use mock")
 public class StorageClientIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageClientIT.class);
-    private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not have raized an exception";
+    public static final String CONFIG_WORKSPACE_PATH = "integration-storage/workspace.conf";
     private static WorkspaceMain workspaceMain;
 
     private static final String REST_URI = StorageClientFactory.RESOURCE_PATH;
@@ -101,17 +94,29 @@ public class StorageClientIT {
 
     private static final String MANIFEST =
         "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa802";
-    private static final String TMP_FOLDER = "tmp";
+
+    @ClassRule
+    public static TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
+        File vitamTempFolder = temporaryFolder.newFolder();
+        String TMP_FOLDER = vitamTempFolder.getAbsolutePath();
+        SystemPropertyUtil.set("vitam.tmp.folder", TMP_FOLDER);
+
         // junitHelper = JunitHelper.getInstance();
         // serverPort = junitHelper.findAvailablePort();
         // launch workspace
-        workspaceMain = new WorkspaceMain("integration-storage/workspace.conf");
+        File workspaceConfigurationFile = PropertiesUtils.findFile(CONFIG_WORKSPACE_PATH);
+        final fr.gouv.vitam.common.storage.StorageConfiguration workspaceConfiguration =
+            PropertiesUtils.readYaml(workspaceConfigurationFile, fr.gouv.vitam.common.storage.StorageConfiguration.class);
+        workspaceConfiguration.setStoragePath(TMP_FOLDER);
+        PropertiesUtils.writeYaml(workspaceConfigurationFile, workspaceConfiguration);
+
+        workspaceMain = new WorkspaceMain(CONFIG_WORKSPACE_PATH);
         workspaceMain.start();
         RestAssured.port = serverPort;
         RestAssured.basePath = REST_URI;
@@ -146,9 +151,7 @@ public class StorageClientIT {
         createWorkspaceFiles();
     }
 
-    private static void createWorkspaceFiles()
-        throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException,
-        FileNotFoundException {
+    private static void createWorkspaceFiles() {
         try {
             workspaceClient.createContainer(CONTAINER_1);
             workspaceClient.createContainer(CONTAINER_2);
@@ -176,8 +179,7 @@ public class StorageClientIT {
 
     }
 
-    private static void destroyWorkspaceFiles()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+    private static void destroyWorkspaceFiles() {
         try {
             workspaceClient.deleteObject(CONTAINER_1,
                 OBJECT_ID);
@@ -201,8 +203,15 @@ public class StorageClientIT {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         destroyWorkspaceFiles();
-        workspaceMain.stop();
-        storageMain.stop();
+        if(workspaceMain != null) {
+            workspaceMain.stop();
+        }
+        if(storageMain != null) {
+            storageMain.stop();
+        }
+        if(workspaceClient != null) {
+            workspaceClient.close();
+        }
         // junitHelper.releasePort(workspacePort);
         // junitHelper.releasePort(serverPort);
     }
@@ -210,123 +219,67 @@ public class StorageClientIT {
 
     // TODO P0 test integration to finish (bug on exiting folder)
     @Test
-    public final void testStorage() throws VitamClientException, FileNotFoundException {
-        try {
-            final ObjectDescription description = new ObjectDescription();
-            description.setWorkspaceContainerGUID(CONTAINER_1);
-            description.setWorkspaceObjectURI(OBJECT_ID);
-            final ObjectDescription description1 = new ObjectDescription();
-            description1.setWorkspaceContainerGUID(CONTAINER_2);
-            description1.setWorkspaceObjectURI(REPORT);
+    public final void testStorage() throws Exception {
+        final ObjectDescription description = new ObjectDescription();
+        description.setWorkspaceContainerGUID(CONTAINER_1);
+        description.setWorkspaceObjectURI(OBJECT_ID);
+        final ObjectDescription description1 = new ObjectDescription();
+        description1.setWorkspaceContainerGUID(CONTAINER_2);
+        description1.setWorkspaceObjectURI(REPORT);
 
-            final ObjectDescription description2 = new ObjectDescription();
-            description2.setWorkspaceContainerGUID(CONTAINER_3);
-            description2.setWorkspaceObjectURI(MANIFEST);
-            // status
-            // storageClient.getStatus();
-            try {
-                final JsonNode node = storageClient.getStorageInformation("default");
-                assertNotNull(node);
-                // fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-            } catch (final VitamException svce) {
-                LOGGER.error(svce);
-                fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-            }
-            // TODO P0 : when implemented, uncomment this
-            /*
-             * try { storageClient.exists("0", "default", StorageCollectionType.OBJECTS, "objectId");
-             * fail(SHOULD_NOT_RAIZED_AN_EXCEPTION); } catch (StorageServerClientException svce) { // not yet
-             * implemented }
-             */
-            try {
-                storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS, "objectId",
-                    description);
-                storageClient.storeFileFromWorkspace("default2", StorageCollectionType.OBJECTS, "objectId",
-                    description);
-            } catch (final StorageServerClientException svce) {
-                LOGGER.error(svce);
-                fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-            }
+        final ObjectDescription description2 = new ObjectDescription();
+        description2.setWorkspaceContainerGUID(CONTAINER_3);
+        description2.setWorkspaceObjectURI(MANIFEST);
+        // status
+        // storageClient.getStatus();
+        final JsonNode node = storageClient.getStorageInformation("default");
+        assertNotNull(node);
 
-            try {
-                storageClient.storeFileFromWorkspace("default", StorageCollectionType.REPORTS, "objectId",
-                    description1);
-            } catch (final StorageServerClientException svce) {
-                LOGGER.error(svce);
-                fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-            }
+        // TODO P0 : when implemented, uncomment this
+        /*
+         * try { storageClient.exists("0", "default", StorageCollectionType.OBJECTS, "objectId");
+         * fail(SHOULD_NOT_RAIZED_AN_EXCEPTION); } catch (StorageServerClientException svce) { // not yet
+         * implemented }
+         */
+        storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS, "objectId",
+            description);
+        storageClient.storeFileFromWorkspace("default2", StorageCollectionType.OBJECTS, "objectId",
+            description);
 
-            try {
-                storageClient.storeFileFromWorkspace("default", StorageCollectionType.MANIFESTS, "objectId",
-                    description2);
-            } catch (final StorageServerClientException svce) {
-                LOGGER.error(svce);
-                fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-            }
+        storageClient.storeFileFromWorkspace("default", StorageCollectionType.REPORTS, "objectId",
+            description1);
 
+        storageClient.storeFileFromWorkspace("default", StorageCollectionType.MANIFESTS, "objectId",
+            description2);
 
-            try {
-                final InputStream stream =
-                    storageClient.getContainerAsync("default", OBJECT_ID, StorageCollectionType.OBJECTS)
-                        .readEntity(InputStream.class);
-                assertNotNull(stream);
-                final InputStream stream2 =
-                    storageClient.getContainerAsync("default2", OBJECT_ID, StorageCollectionType.OBJECTS)
-                        .readEntity(InputStream.class);
-                assertNotNull(stream2);
-            } catch (StorageServerClientException | StorageNotFoundException svce) {
-                fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-            }
+        final InputStream stream =
+            storageClient.getContainerAsync("default", OBJECT_ID, StorageCollectionType.OBJECTS)
+                .readEntity(InputStream.class);
+        assertNotNull(stream);
+        final InputStream stream2 =
+            storageClient.getContainerAsync("default2", OBJECT_ID, StorageCollectionType.OBJECTS)
+                .readEntity(InputStream.class);
+        assertNotNull(stream2);
 
-            try {
-                final InputStream stream =
-                    storageClient.getContainerAsync("default", REPORT, StorageCollectionType.REPORTS)
-                        .readEntity(InputStream.class);
-                assertNotNull(stream);
-            } catch (StorageServerClientException | StorageNotFoundException svce) {
-                LOGGER.error(svce);
-                fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-            }
+        final InputStream stream3 =
+            storageClient.getContainerAsync("default", REPORT, StorageCollectionType.REPORTS)
+                .readEntity(InputStream.class);
+        assertNotNull(stream3);
 
-            try {
-                final InputStream stream =
-                    storageClient.getContainerAsync("default", MANIFEST, StorageCollectionType.MANIFESTS)
-                        .readEntity(InputStream.class);
-                assertNotNull(stream);
-            } catch (StorageServerClientException | StorageNotFoundException svce) {
-                LOGGER.error(svce);
-                fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-            }
+        final InputStream stream4 =
+            storageClient.getContainerAsync("default", MANIFEST, StorageCollectionType.MANIFESTS)
+                .readEntity(InputStream.class);
+        assertNotNull(stream4);
 
-            try {
-                assertTrue(storageClient
-                    .exists("default", StorageCollectionType.MANIFESTS, MANIFEST, SingletonUtils.singletonList()));
-            } catch (StorageServerClientException svce) { // not yet implemented
-                LOGGER.error(svce);
-                fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-            }
+        assertTrue(storageClient
+            .exists("default", StorageCollectionType.MANIFESTS, MANIFEST, SingletonUtils.singletonList()));
 
-            try {
-                final InputStream stream =
-                    storageClient.getContainerAsync("default", MANIFEST, StorageCollectionType.MANIFESTS)
-                        .readEntity(InputStream.class);
-                assertNotNull(stream);
-                Digest digest = Digest.digest(stream, VitamConfiguration.getDefaultDigestType());
-                storageClient.delete("default", StorageCollectionType.OBJECTS, "objectId", digest.toString(),
-                    VitamConfiguration.getDefaultDigestType());
-            } catch (Exception svce) {
-                LOGGER.error(svce);
-                fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-            }
-
-
-
-        } catch (
-
-            final Exception e) {
-            e.printStackTrace();
-            fail("should not raized an exception");
-        }
+        final InputStream stream5 =
+            storageClient.getContainerAsync("default", MANIFEST, StorageCollectionType.MANIFESTS)
+                .readEntity(InputStream.class);
+        assertNotNull(stream5);
+        Digest digest = Digest.digest(stream5, VitamConfiguration.getDefaultDigestType());
+        storageClient.delete("default", StorageCollectionType.OBJECTS, "objectId", digest.toString(),
+            VitamConfiguration.getDefaultDigestType());
     }
-
 }

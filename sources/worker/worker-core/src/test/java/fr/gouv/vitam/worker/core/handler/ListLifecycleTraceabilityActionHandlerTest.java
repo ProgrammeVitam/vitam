@@ -128,6 +128,8 @@ public class ListLifecycleTraceabilityActionHandlerTest {
     public void setUp() throws Exception {
         File tempFolder = folder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
+        SystemPropertyUtil.refresh();
+
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
@@ -139,8 +141,6 @@ public class ListLifecycleTraceabilityActionHandlerTest {
         PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCyclesClientFactory);
         PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getClient())
             .thenReturn(logbookLifeCyclesClient);
-
-        SystemPropertyUtil.refresh();
         handlerIO = new HandlerIOImpl(workspaceClient, "ListLifecycleTraceabilityActionHandlerTest", "workerId");
         // mock later ?
         out = new ArrayList<>();

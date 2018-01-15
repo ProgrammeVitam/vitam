@@ -150,8 +150,8 @@ public class ExtractSedaActionHandlerTest {
 
         File tempFolder = folder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
-
         SystemPropertyUtil.refresh();
+
         LogbookOperationsClientFactory.changeMode(null);
         LogbookLifeCyclesClientFactory.changeMode(null);
 

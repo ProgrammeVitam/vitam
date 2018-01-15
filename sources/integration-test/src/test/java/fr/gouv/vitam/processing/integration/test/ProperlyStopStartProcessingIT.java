@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -131,6 +132,9 @@ public class ProperlyStopStartProcessingIT {
     @Before
     public void setUp() throws Exception {
 
+        File vitamTempFolder = tempFolder.newFolder();
+        SystemPropertyUtil.set("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
+
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         final WorkerBean workerBean =
             new WorkerBean("DefaultWorker", "DefaultWorker", 10, 0, "status",
@@ -166,6 +170,9 @@ public class ProperlyStopStartProcessingIT {
     public static void setUpBeforeClass() throws Exception {
         // set bulk size to 1 for tests
         VitamConfiguration.setWorkerBulkSize(1);
+
+        File vitamTempFolder = tempFolder.newFolder();
+        SystemPropertyUtil.set("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
         
         VitamConfiguration.getConfiguration()
             .setData(PropertiesUtils.getResourcePath("integration-processing/").toString());
@@ -173,6 +180,12 @@ public class ProperlyStopStartProcessingIT {
         CONFIG_PROCESSING_PATH = PropertiesUtils.getResourcePath("integration-processing/processing.conf").toString();
         
         // launch workspace
+        File workspaceConfigurationFile = PropertiesUtils.findFile(CONFIG_WORKSPACE_PATH);
+        final StorageConfiguration workspaceConfiguration =
+            PropertiesUtils.readYaml(workspaceConfigurationFile, StorageConfiguration.class);
+        workspaceConfiguration.setStoragePath(vitamTempFolder.getAbsolutePath());
+        PropertiesUtils.writeYaml(workspaceConfigurationFile, workspaceConfiguration);
+
         SystemPropertyUtil.set(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_WORKSPACE));
         workspaceMain = new WorkspaceMain(CONFIG_WORKSPACE_PATH);
@@ -195,14 +208,17 @@ public class ProperlyStopStartProcessingIT {
     public static void tearDownAfterClass() throws Exception {
         VitamConfiguration.setWorkerBulkSize(10);
         
-        WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-        workspaceClient.deleteContainer("process", true);
-
-        try {
-            workspaceMain.stop();
-            processManagementApplication.stop();
-        } catch (final Exception e) {
+        try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
+            workspaceClient.deleteContainer("process", true);
+        } catch (Exception e) {
             LOGGER.error(e);
+        }
+
+        if(workspaceMain != null) {
+            workspaceMain.stop();
+        }
+        if(processManagementApplication != null) {
+            processManagementApplication.stop();
         }
     }
 
