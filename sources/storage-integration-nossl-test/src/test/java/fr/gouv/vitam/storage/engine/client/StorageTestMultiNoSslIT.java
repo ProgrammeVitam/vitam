@@ -27,7 +27,36 @@
 
 package fr.gouv.vitam.storage.engine.client;
 
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.io.FileUtils;
+import org.jhades.JHades;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
@@ -45,7 +74,6 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
@@ -56,32 +84,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import junit.framework.TestCase;
-import org.apache.commons.io.FileUtils;
-import org.jhades.JHades;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static org.junit.Assert.assertTrue;
 
 public class StorageTestMultiNoSslIT {
     private static final int NB_MULTIPLE_THREADS = 100;
@@ -254,7 +256,7 @@ public class StorageTestMultiNoSslIT {
             assert (false);
         }
         try {
-            storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS,
+            storageClient.storeFileFromWorkspace("default", DataCategory.OBJECT,
                 GUIDFactory.newObjectGroupGUID(0).getId(), description);
         } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
             StorageServerClientException e) {
@@ -308,7 +310,7 @@ public class StorageTestMultiNoSslIT {
                 break;
             }
             try {
-                storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS, OBJECT_ID, description);
+                storageClient.storeFileFromWorkspace("default", DataCategory.OBJECT, OBJECT_ID, description);
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
                 LOGGER.error("Size: " + size, e);
                 assert (false);
@@ -487,7 +489,7 @@ public class StorageTestMultiNoSslIT {
             description.setWorkspaceObjectURI(objectId.getId());
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
                 try {
-                    storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS, storageId.getId(),
+                    storageClient.storeFileFromWorkspace("default", DataCategory.OBJECT, storageId.getId(),
                         description);
                 } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
                     LOGGER.error("Size: " + size, e);
@@ -496,7 +498,7 @@ public class StorageTestMultiNoSslIT {
                 Response response = null;
                 try {
                     response =
-                        storageClient.getContainerAsync("default", storageId.getId(), StorageCollectionType.OBJECTS);
+                        storageClient.getContainerAsync("default", storageId.getId(), DataCategory.OBJECT);
                     final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
                     if (status == Status.OK && response.hasEntity()) {
                         return true;
@@ -533,7 +535,7 @@ public class StorageTestMultiNoSslIT {
                 break;
             }
             try {
-                storageClient.storeFileFromWorkspace("default", StorageCollectionType.OBJECTS, OBJECT_ID, description);
+                storageClient.storeFileFromWorkspace("default", DataCategory.OBJECT, OBJECT_ID, description);
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
                 LOGGER.error("Size: " + size, e);
                 assert (false);

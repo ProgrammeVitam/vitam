@@ -51,11 +51,9 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 
 /**
@@ -78,7 +76,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO actionDefinition)
-        throws ProcessingException, ContentAddressableStorageServerException {
+        throws ProcessingException {
         checkMandatoryParameters(params);
         handlerIO = actionDefinition;
         final ItemStatus itemStatus = new ItemStatus(OG_METADATA_STORAGE);
@@ -123,12 +121,13 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
             LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient();) {
 
             //// get metadata
-            JsonNode got = selectMetadataDocumentRawById(guid, DataCategory.OBJECT_GROUP, metaDataClient);
+            JsonNode got = selectMetadataDocumentRawById(guid, DataCategory.OBJECTGROUP, metaDataClient);
+
             //// get lfc
-            JsonNode lfc = retrieveLogbookLifeCycleById(guid, DataCategory.OBJECT_GROUP, logbookClient);
+            JsonNode lfc = retrieveLogbookLifeCycleById(guid, DataCategory.OBJECTGROUP, logbookClient);
 
             //// create file for storage (in workspace or temp or memory)
-            JsonNode docWithLfc = getDocumentWithLFC(got, lfc, DataCategory.OBJECT_GROUP);
+            JsonNode docWithLfc = getDocumentWithLFC(got, lfc, DataCategory.OBJECTGROUP);
             // transfer json to workspace
             try {
                 handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER, fileName,
@@ -141,7 +140,7 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
             //// call storage (save in offers)
             // object Description
             final ObjectDescription description =
-                new ObjectDescription(StorageCollectionType.OBJECTGROUPS, params.getContainerName(),
+                new ObjectDescription(DataCategory.OBJECTGROUP, params.getContainerName(),
                     fileName, IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + fileName);
             // store metadata object from workspace
             StoredInfoResult result = storeObject(description, itemStatus);

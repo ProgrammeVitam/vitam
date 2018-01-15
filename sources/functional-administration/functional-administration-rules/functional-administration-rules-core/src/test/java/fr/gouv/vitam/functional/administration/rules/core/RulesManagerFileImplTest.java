@@ -60,19 +60,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.flipkart.zjsonpatch.JsonDiff;
-import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
-import com.mongodb.client.MongoCollection;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -86,6 +73,21 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.flipkart.zjsonpatch.JsonDiff;
+import com.mongodb.MongoClient;
+import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoCollection;
+
+import de.flapdoodle.embed.mongo.MongodExecutable;
+import de.flapdoodle.embed.mongo.MongodProcess;
+import de.flapdoodle.embed.mongo.MongodStarter;
+import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
+import de.flapdoodle.embed.mongo.config.Net;
+import de.flapdoodle.embed.mongo.distribution.Version;
+import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -130,8 +132,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
-
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 
 /**
  * Warning : To avoid error on import rules (actually we cannot update) and to be able to test each case, the tenant ID
@@ -782,7 +783,7 @@ public class RulesManagerFileImplTest {
             FILE_TO_TEST_OK);
         // then
         verify(functionalBackupService, times(1)).saveFile(any(InputStream.class), any(GUID.class), anyString(),
-            eq(StorageCollectionType.REPORTS), anyString());
+            eq(DataCategory.REPORT), anyString());
         final JsonNode fromFile = JsonHandler.getFromFile(report.toFile());
         final JsonNode jdoNode = fromFile.get("JDO");
         final String evId = jdoNode.get("evId").asText();
@@ -853,7 +854,7 @@ public class RulesManagerFileImplTest {
             FILE_TO_TEST_OK);
         // then
         verify(functionalBackupService, times(1)).saveFile(any(InputStream.class), any(GUID.class), anyString(),
-            eq(StorageCollectionType.REPORTS), anyString());
+            eq(DataCategory.REPORT), anyString());
         final JsonNode fromFile = JsonHandler.getFromFile(report.toFile());
         final JsonNode jdoNode = fromFile.get("JDO");
         final String evId = jdoNode.get("evId").asText();
@@ -908,8 +909,7 @@ public class RulesManagerFileImplTest {
             Files.copy(argumentAt, report);
             return null;
         }).when(functionalBackupService).saveFile(any(InputStream.class), any(GUID.class), anyString(),
-            eq(StorageCollectionType.REPORTS), anyString());
-
+            eq(DataCategory.REPORT), anyString());
     }
 
     private static void createRuleDurationConfigration(List<Integer> tenants) {

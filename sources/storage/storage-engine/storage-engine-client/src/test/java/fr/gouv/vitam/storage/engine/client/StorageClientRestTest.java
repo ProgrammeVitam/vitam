@@ -50,8 +50,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.SingletonUtils;
-import fr.gouv.vitam.common.stream.StreamUtils;
 import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Rule;
@@ -61,6 +59,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -68,6 +67,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -76,7 +76,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientE
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
@@ -344,7 +344,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post())
                 .thenReturn(Response.status(Response.Status.CREATED).entity(generateStoredInfoResult("idObject")).build());
-        client.storeFileFromWorkspace("idStrategy", StorageCollectionType.OBJECTS, "idObject", getDescription());
+        client.storeFileFromWorkspace("idStrategy", DataCategory.OBJECT, "idObject", getDescription());
     }
 
     @RunWithCustomExecutor
@@ -352,7 +352,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void createFromWorkspaceNotFound() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
-        client.storeFileFromWorkspace("idStrategy", StorageCollectionType.OBJECTS, "idObject", getDescription());
+        client.storeFileFromWorkspace("idStrategy", DataCategory.OBJECT, "idObject", getDescription());
     }
 
     @RunWithCustomExecutor
@@ -360,7 +360,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void createFromWorkspaceAlreadyExist() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Response.Status.CONFLICT).build());
-        client.storeFileFromWorkspace("idStrategy", StorageCollectionType.OBJECTS, "idObject", getDescription());
+        client.storeFileFromWorkspace("idStrategy", DataCategory.OBJECT, "idObject", getDescription());
     }
 
     @RunWithCustomExecutor
@@ -368,7 +368,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void createFromWorkspaceInternalServerError() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.post()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
-        client.storeFileFromWorkspace("idStrategy", StorageCollectionType.OBJECTS, "idObject", getDescription());
+        client.storeFileFromWorkspace("idStrategy", DataCategory.OBJECT, "idObject", getDescription());
     }
 
     @RunWithCustomExecutor
@@ -376,28 +376,28 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void createFromWorkspaceWithTenantIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(null);
         when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
-        client.storeFileFromWorkspace("idStrategy", StorageCollectionType.OBJECTS, "idObject", getDescription());
+        client.storeFileFromWorkspace("idStrategy", DataCategory.OBJECT, "idObject", getDescription());
     }
 
     @RunWithCustomExecutor
     @Test(expected = IllegalArgumentException.class)
     public void createFromWorkspaceWithStrategyIllegalArgumentException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
-        client.storeFileFromWorkspace(null, StorageCollectionType.OBJECTS, "idObject", getDescription());
+        client.storeFileFromWorkspace(null, DataCategory.OBJECT, "idObject", getDescription());
     }
 
     @RunWithCustomExecutor
     @Test(expected = IllegalArgumentException.class)
     public void createFromWorkspaceWithObjectIdIllegalArgumentException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
-        client.storeFileFromWorkspace("idStrategy", StorageCollectionType.OBJECTS, "", getDescription());
+        client.storeFileFromWorkspace("idStrategy", DataCategory.OBJECT, "", getDescription());
     }
 
     @RunWithCustomExecutor
     @Test(expected = IllegalArgumentException.class)
     public void createFromWorkspaceWithDecritionIllegalArgumentException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
-        client.storeFileFromWorkspace("idStrategy", StorageCollectionType.OBJECTS, "idObject", null);
+        client.storeFileFromWorkspace("idStrategy", DataCategory.OBJECT, "idObject", null);
     }
 
     private ObjectDescription getDescription() {
@@ -414,10 +414,10 @@ public class StorageClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.head()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
         assertTrue(client.existsContainer("idStrategy"));
-        assertTrue(client.exists("idStrategy", StorageCollectionType.OBJECTS, "idObject", SingletonUtils.singletonList()));
-        assertTrue(client.exists("idStrategy", StorageCollectionType.UNITS, "idUnits", SingletonUtils.singletonList()));
-        assertTrue(client.exists("idStrategy", StorageCollectionType.LOGBOOKS, "idLogbooks", SingletonUtils.singletonList()));
-        assertTrue(client.exists("idStrategy", StorageCollectionType.OBJECTGROUPS, "idObjectGroups", SingletonUtils.singletonList()));
+        assertTrue(client.exists("idStrategy", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList()));
+        assertTrue(client.exists("idStrategy", DataCategory.UNIT, "idUnits", SingletonUtils.singletonList()));
+        assertTrue(client.exists("idStrategy", DataCategory.LOGBOOK, "idLogbooks", SingletonUtils.singletonList()));
+        assertTrue(client.exists("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups", SingletonUtils.singletonList()));
     }
 
     @RunWithCustomExecutor
@@ -426,10 +426,10 @@ public class StorageClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.head()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         assertFalse(client.existsContainer("idStrategy"));
-        assertFalse(client.exists("idStrategy", StorageCollectionType.OBJECTS, "idObject", SingletonUtils.singletonList()));
-        assertFalse(client.exists("idStrategy", StorageCollectionType.UNITS, "idUnits", SingletonUtils.singletonList()));
-        assertFalse(client.exists("idStrategy", StorageCollectionType.LOGBOOKS, "idLogbooks", SingletonUtils.singletonList()));
-        assertFalse(client.exists("idStrategy", StorageCollectionType.OBJECTGROUPS, "idObjectGroups", SingletonUtils.singletonList()));
+        assertFalse(client.exists("idStrategy", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList()));
+        assertFalse(client.exists("idStrategy", DataCategory.UNIT, "idUnits", SingletonUtils.singletonList()));
+        assertFalse(client.exists("idStrategy", DataCategory.LOGBOOK, "idLogbooks", SingletonUtils.singletonList()));
+        assertFalse(client.exists("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups", SingletonUtils.singletonList()));
     }
 
     @RunWithCustomExecutor
@@ -437,7 +437,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void existsWithTenantIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(null);
         when(mock.head()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
-        client.exists("idStrategy", StorageCollectionType.OBJECTS, "idObject", SingletonUtils.singletonList());
+        client.exists("idStrategy", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList());
     }
 
     @RunWithCustomExecutor
@@ -445,7 +445,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void existsWithStrategyIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.head()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
-        client.exists("", StorageCollectionType.OBJECTS, "idObject", SingletonUtils.singletonList());
+        client.exists("", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList());
     }
 
     @RunWithCustomExecutor
@@ -453,7 +453,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void existsWorkspaceWithObjectTypeIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.head()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
-        client.exists("idStrategy", StorageCollectionType.CONTAINERS, "0", SingletonUtils.singletonList());
+        client.exists("idStrategy", DataCategory.CONTAINER, "0", SingletonUtils.singletonList());
     }
 
     @RunWithCustomExecutor
@@ -461,7 +461,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void existsWithObjectIdIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.head()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
-        client.exists("idStrategy", StorageCollectionType.OBJECTS, "", SingletonUtils.singletonList());
+        client.exists("idStrategy", DataCategory.OBJECT, "", SingletonUtils.singletonList());
     }
 
     @RunWithCustomExecutor
@@ -491,13 +491,13 @@ public class StorageClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.delete()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
         assertTrue(client.deleteContainer("idStrategy"));
-        assertTrue(client.delete("idStrategy", StorageCollectionType.OBJECTS, "idObject", "digest",
+        assertTrue(client.delete("idStrategy", DataCategory.OBJECT, "idObject", "digest",
                 VitamConfiguration.getDefaultDigestType()));
-        assertTrue(client.delete("idStrategy", StorageCollectionType.UNITS, "idUnits", "digest",
+        assertTrue(client.delete("idStrategy", DataCategory.UNIT, "idUnits", "digest",
                 VitamConfiguration.getDefaultDigestType()));
-        assertTrue(client.delete("idStrategy", StorageCollectionType.LOGBOOKS, "idLogbooks", "digest",
+        assertTrue(client.delete("idStrategy", DataCategory.LOGBOOK, "idLogbooks", "digest",
                 VitamConfiguration.getDefaultDigestType()));
-        assertTrue(client.delete("idStrategy", StorageCollectionType.OBJECTGROUPS, "idObjectGroups", "digest",
+        assertTrue(client.delete("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups", "digest",
                 VitamConfiguration.getDefaultDigestType()));
     }
 
@@ -507,13 +507,13 @@ public class StorageClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.delete()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         assertFalse(client.deleteContainer("idStrategy"));
-        assertFalse(client.delete("idStrategy", StorageCollectionType.OBJECTS, "idObject", "digest",
+        assertFalse(client.delete("idStrategy", DataCategory.OBJECT, "idObject", "digest",
                 VitamConfiguration.getDefaultDigestType()));
-        assertFalse(client.delete("idStrategy", StorageCollectionType.UNITS, "idUnits", "digest",
+        assertFalse(client.delete("idStrategy", DataCategory.UNIT, "idUnits", "digest",
                 VitamConfiguration.getDefaultDigestType()));
-        assertFalse(client.delete("idStrategy", StorageCollectionType.LOGBOOKS, "idLogbooks", "digest",
+        assertFalse(client.delete("idStrategy", DataCategory.LOGBOOK, "idLogbooks", "digest",
                 VitamConfiguration.getDefaultDigestType()));
-        assertFalse(client.delete("idStrategy", StorageCollectionType.OBJECTGROUPS, "idObjectGroups", "digest",
+        assertFalse(client.delete("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups", "digest",
                 VitamConfiguration.getDefaultDigestType()));
     }
 
@@ -521,7 +521,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     @Test(expected = IllegalArgumentException.class)
     public void deleteContainerWithIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        client.delete("idStrategy", StorageCollectionType.CONTAINERS, "guid", null, null);
+        client.delete("idStrategy", DataCategory.CONTAINER, "guid", null, null);
     }
 
     @RunWithCustomExecutor
@@ -529,7 +529,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void deleteWithTenantIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(null);
         when(mock.delete()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
-        client.exists("idStrategy", StorageCollectionType.OBJECTS, "idObject", SingletonUtils.singletonList());
+        client.exists("idStrategy", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList());
     }
 
     @RunWithCustomExecutor
@@ -537,7 +537,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void deleteWithStrategyIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.delete()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
-        client.exists("", StorageCollectionType.OBJECTS, "idObject", SingletonUtils.singletonList());
+        client.exists("", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList());
     }
 
     @RunWithCustomExecutor
@@ -545,7 +545,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void deleteWorkspaceWithObjectTypeIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.delete()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
-        client.exists("idStrategy", StorageCollectionType.CONTAINERS, "0", SingletonUtils.singletonList());
+        client.exists("idStrategy", DataCategory.CONTAINER, "0", SingletonUtils.singletonList());
     }
 
     @RunWithCustomExecutor
@@ -553,7 +553,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void deleteWithObjectIdIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.delete()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
-        client.exists("idStrategy", StorageCollectionType.OBJECTS, "", SingletonUtils.singletonList());
+        client.exists("idStrategy", DataCategory.OBJECT, "", SingletonUtils.singletonList());
     }
 
     @RunWithCustomExecutor
@@ -604,7 +604,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void failsGetContainerObjectExecutionWhenPreconditionFailed() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.getContainerAsync("idStrategy", "guid", StorageCollectionType.OBJECTS);
+        client.getContainerAsync("idStrategy", "guid", DataCategory.OBJECT);
     }
 
     @RunWithCustomExecutor
@@ -612,7 +612,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void failsGetContainerObjectExecutionWhenInternalServerError() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.getContainerAsync("idStrategy", "guid", StorageCollectionType.OBJECTS);
+        client.getContainerAsync("idStrategy", "guid", DataCategory.OBJECT);
     }
 
     @RunWithCustomExecutor
@@ -620,7 +620,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void failsGetContainerObjectExecutionWhenNotFound() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.getContainerAsync("idStrategy", "guid", StorageCollectionType.OBJECTS);
+        client.getContainerAsync("idStrategy", "guid", DataCategory.OBJECT);
     }
 
     @RunWithCustomExecutor
@@ -628,7 +628,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void successGetContainerObjectExecutionWhenFound() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(StreamUtils.toInputStream("Vitam test")).build());
-        final InputStream stream = client.getContainerAsync("idStrategy", "guid", StorageCollectionType.OBJECTS)
+        final InputStream stream = client.getContainerAsync("idStrategy", "guid", DataCategory.OBJECT)
                 .readEntity(InputStream.class);
         final InputStream stream2 = StreamUtils.toInputStream("Vitam test");
         assertNotNull(stream);

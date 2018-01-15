@@ -51,7 +51,6 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 
 /**
  * Service used to recover a Backup copy of the given Vitam collection.<br/>
@@ -110,10 +109,10 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
         if (lastBackupVersion.isPresent()) {
             try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
                 Response response =
-                    storageClient.getContainerAsync(strategy, lastBackupVersion.get(), StorageCollectionType.BACKUP);
+                    storageClient.getContainerAsync(strategy, lastBackupVersion.get(), DataCategory.BACKUP);
                 if (null != response && response.getStatus() == Response.Status.OK.getStatusCode()) {
                     final InputStream inputStream =
-                        storageClient.getContainerAsync(strategy, lastBackupVersion.get(), StorageCollectionType.BACKUP)
+                        storageClient.getContainerAsync(strategy, lastBackupVersion.get(), DataCategory.BACKUP)
                             .readEntity(InputStream.class);
 
                     // get backup collections to reconstruct.

@@ -473,7 +473,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             case UNIT:
                 description.append("Unit ");
                 break;
-            case OBJECT_GROUP:
+            case OBJECTGROUP:
                 description.append("ObjectGroup ");
                 break;
             case LOGBOOK:
@@ -505,6 +505,9 @@ public class StorageDistributionImpl implements StorageDistribution {
                 break;
             case BACKUP:
                 description.append("Backup ");
+                break;
+            case BACKUP_OPERATION:
+                description.append("Backup Operation ");
                 break;
             default:
                 throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);

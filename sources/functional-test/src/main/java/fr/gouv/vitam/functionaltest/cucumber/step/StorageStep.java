@@ -45,7 +45,6 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
@@ -180,7 +179,7 @@ public class StorageStep {
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
                 Response response =
-                    world.storageClient.getContainerAsync(strategy, guid, StorageCollectionType.OBJECTS);
+                    world.storageClient.getContainerAsync(strategy, guid, DataCategory.OBJECT);
                 responseStatus = response.getStatusInfo();
                 world.storageClient.consumeAnyEntityAndClose(response);
             } catch (Exception | AssertionError e) {
@@ -226,7 +225,7 @@ public class StorageStep {
     private void store_from_workSpace(String uri, ObjectDescription description, String strategy)
         throws StorageNotFoundClientException, StorageServerClientException, StorageAlreadyExistsClientException {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-            info = storageClient.storeFileFromWorkspace(strategy, StorageCollectionType.OBJECTS, uri, description);
+            info = storageClient.storeFileFromWorkspace(strategy, DataCategory.OBJECT, uri, description);
         }
     }
 }

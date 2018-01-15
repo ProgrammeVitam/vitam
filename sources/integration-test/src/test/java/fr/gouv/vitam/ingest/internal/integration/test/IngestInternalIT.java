@@ -151,7 +151,7 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFact
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
@@ -689,7 +689,7 @@ public class IngestInternalIT {
             final String objectId = valuesAsText.get(0);
             final StorageClient storageClient = StorageClientFactory.getInstance().getClient();
             Response responseStorage = storageClient.getContainerAsync("default", objectId,
-                StorageCollectionType.OBJECTS);
+                DataCategory.OBJECT);
             InputStream inputStream = responseStorage.readEntity(InputStream.class);
             SizedInputStream sizedInputStream = new SizedInputStream(inputStream);
             final long size = StreamUtils.closeSilently(sizedInputStream);

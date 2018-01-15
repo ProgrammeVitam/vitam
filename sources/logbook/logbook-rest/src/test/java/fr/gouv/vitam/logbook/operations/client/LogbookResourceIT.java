@@ -39,10 +39,22 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.jhades.JHades;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.google.common.collect.Lists;
 import com.jayway.restassured.RestAssured;
 import com.mongodb.client.FindIterable;
+
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -50,6 +62,7 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.database.builder.query.Query;
@@ -88,13 +101,6 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbNa
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
-import org.jhades.JHades;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 public class LogbookResourceIT {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResourceIT.class);
@@ -118,7 +124,7 @@ public class LogbookResourceIT {
     private static ElasticsearchTestConfiguration config = null;
 
     private static final String REST_URI = "/logbook/v1";
-    private static JunitHelper junitHelper;
+    private static JunitHelper junitHelper = JunitHelper.getInstance();
     private static int databasePort;
     private static int serverPort;
     private static LogbookMain application;
@@ -136,13 +142,16 @@ public class LogbookResourceIT {
     private static LogbookLifeCycleObjectGroupParameters logbookLcParametersWrongStart;
     private static LogbookLifeCycleObjectGroupParameters logbookLcParametersWrongAppend;
 
+    private static int workspacePort = junitHelper.findAvailablePort();
+    @ClassRule
+    public static WireMockClassRule workspaceWireMockRule = new WireMockClassRule(workspacePort);
+    @Rule
+    public WireMockClassRule workspaceInstanceRule = workspaceWireMockRule;
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
-
-        junitHelper = JunitHelper.getInstance();
-
 
         databasePort = junitHelper.findAvailablePort();
 
@@ -172,7 +181,7 @@ public class LogbookResourceIT {
             logbookConf.setJettyConfig(JETTY_CONFIG);
             logbookConf.setP12LogbookFile("tsa.p12");
             logbookConf.setP12LogbookPassword("1234");
-            logbookConf.setWorkspaceUrl("http://localhost:8082");
+            logbookConf.setWorkspaceUrl("http://localhost:" + workspacePort);
             logbookConf.setProcessingUrl("http://localhost:8097");
             logbookConf.setClusterName(ES_CLUSTER_NAME);
             logbookConf.setElasticsearchNodes(esNodes);
@@ -206,6 +215,17 @@ public class LogbookResourceIT {
         LOGGER.debug("Initialize client: " + DATABASE_HOST + ":" + serverPort);
     }
 
+    @Before
+    public void setUp() {
+        workspaceInstanceRule.stubFor(WireMock.post(WireMock.urlMatching("/workspace/v1/containers/(.*)")).willReturn
+            (WireMock.aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(0))));
+        workspaceInstanceRule.stubFor(WireMock.post(WireMock.urlMatching("/workspace/v1/containers/(.*)/objects/(.*)"))
+            .willReturn(WireMock.aResponse().withStatus(201)
+                .withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(0))));
+        workspaceInstanceRule.stubFor(WireMock.delete(WireMock.urlMatching("/workspace/v1/containers/(.*)")).willReturn
+            (WireMock.aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(0))));
+    }
+
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
@@ -223,6 +243,7 @@ public class LogbookResourceIT {
         mongodExecutable.stop();
         junitHelper.releasePort(databasePort);
         junitHelper.releasePort(serverPort);
+        junitHelper.releasePort(workspacePort);
     }
 
     @RunWithCustomExecutor

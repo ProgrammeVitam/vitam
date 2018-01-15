@@ -71,7 +71,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -183,7 +183,7 @@ public class StorageLogbookAdministration {
 
                 try (final StorageClient storageClient = storageClientFactory.getClient()) {
                     storageClient.storeFileFromWorkspace(
-                        STRATEGY_ID, StorageCollectionType.STORAGELOG, fileName, description);
+                        STRATEGY_ID, DataCategory.STORAGELOG, fileName, description);
                     workspaceClient.deleteContainer(fileName, true);
                 } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
                     StorageServerClientException | ContentAddressableStorageNotFoundException e) {

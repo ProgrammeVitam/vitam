@@ -44,7 +44,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
@@ -96,7 +96,7 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
                         offerIds.add(offerId.textValue());
                     }
 
-                    if (!storageClient.exists(strategy, StorageCollectionType.OBJECTS,
+                    if (!storageClient.exists(strategy, DataCategory.OBJECT,
                         version.get("#id").asText(), offerIds)) {
                         nbObjectKO += 1;
                         ObjectNode objectError = JsonHandler.createObjectNode();

@@ -51,10 +51,15 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -101,7 +106,6 @@ import fr.gouv.vitam.functional.administration.common.exception.AgencyImportDele
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
@@ -109,10 +113,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 
 /**
  * AgenciesService class allowing multiple operation on AgenciesService collection
@@ -552,11 +553,11 @@ public class AgenciesService implements VitamAutoCloseable {
 
             reportStream = generateReportOK();
             //store report
-            backupService.saveFile(reportStream, eip, AGENCIES_REPORT_EVENT, StorageCollectionType.REPORTS,
+            backupService.saveFile(reportStream, eip, AGENCIES_REPORT_EVENT, DataCategory.REPORT,
                 eip + ".json");
 
             //store source File
-            backupService.saveFile(new FileInputStream(file), eip, AGENCIES_REPORT_EVENT, StorageCollectionType.REPORTS,
+            backupService.saveFile(new FileInputStream(file), eip, AGENCIES_REPORT_EVENT, DataCategory.REPORT,
                 eip + ".csv");
             //store collection
             backupService.saveCollectionAndSequence(eip, AGENCIES_BACKUP_EVENT,
@@ -568,7 +569,7 @@ public class AgenciesService implements VitamAutoCloseable {
             LOGGER.error(MESSAGE_ERROR, e);
             InputStream errorStream = generateErrorReport();
 
-            backupService.saveFile(errorStream, eip, AGENCIES_REPORT_EVENT, StorageCollectionType.REPORTS,
+            backupService.saveFile(errorStream, eip, AGENCIES_REPORT_EVENT, DataCategory.REPORT,
                 eip + ".json");
             errorStream.close();
             
@@ -582,7 +583,7 @@ public class AgenciesService implements VitamAutoCloseable {
         } catch (final Exception e) {
             LOGGER.error(MESSAGE_ERROR, e);
             InputStream errorStream = generateErrorReport();
-            backupService.saveFile(errorStream, eip, AGENCIES_REPORT_EVENT, StorageCollectionType.REPORTS,
+            backupService.saveFile(errorStream, eip, AGENCIES_REPORT_EVENT, DataCategory.REPORT,
                 eip + ".json");
             errorStream.close();
             return generateVitamError(MESSAGE_ERROR + e.getMessage(), null);

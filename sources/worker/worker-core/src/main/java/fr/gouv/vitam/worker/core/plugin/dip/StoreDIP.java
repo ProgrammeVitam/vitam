@@ -35,7 +35,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
@@ -89,7 +89,7 @@ public class StoreDIP extends ActionHandler {
 
             storageClient.storeFileFromWorkspace(
                 DEFAULT_STRATEGY,
-                StorageCollectionType.DIP,
+                DataCategory.DIP,
                 params.getContainerName(), description);
 
             itemStatus.increment(StatusCode.OK);

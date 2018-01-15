@@ -32,11 +32,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.apache.commons.io.FileUtils;
+import org.assertj.core.util.Files;
+import org.bson.Document;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.fasterxml.jackson.core.type.TypeReference;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
@@ -44,10 +59,12 @@ import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -63,40 +80,34 @@ import fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceI
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
-import org.apache.commons.io.FileUtils;
-import org.assertj.core.util.Files;
-import org.bson.Document;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 /**
  * Integration tests for the reconstruction services. <br/>
  */
-public class ReconstructionIT {
+public class BackupAndReconstructionIT {
 
     /**
      * Vitam logger.
      */
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReconstructionIT.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BackupAndReconstructionIT.class);
 
     private static final String DEFAULT_OFFER_CONF = "integration-reconstruction/storage-default-offer.conf";
     private static final String LOGBOOK_CONF = "integration-reconstruction/logbook.conf";
@@ -137,7 +148,6 @@ public class ReconstructionIT {
     private static WorkspaceClient workspaceClient;
 
     private static LogbookMain logbookApplication;
-
 
     private static StorageMain storageMain;
     private static StorageClient storageClient;
@@ -643,11 +653,40 @@ public class ReconstructionIT {
         assertThat(inEs22).isEqualTo(inEs22Reconstructed);
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void testBackupOperationOk() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
+        final GUID eip = GUIDFactory.newEventGUID(TENANT_0);
+        final LogbookOperationParameters logbookParametersStart = LogbookParametersFactory
+            .newLogbookOperationParameters(eip, "eventType", eip, LogbookTypeProcess.INGEST,
+            StatusCode.STARTED, "start ingest", eip);
+        final LogbookOperationParameters logbookParametersAppend = LogbookParametersFactory.newLogbookOperationParameters(
+            GUIDFactory.newEventGUID(TENANT_0),"eventType", eip, LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", eip);
+
+        Path backup0Folder = Paths.get(OFFER_FOLDER, TENANT_0 + "_" + DataCategory.BACKUP_OPERATION.getFolder());
+        Path backup1Folder = Paths.get(OFFER_FOLDER, TENANT_1 + "_" + DataCategory.BACKUP_OPERATION.getFolder());
+
+        assertThat(java.nio.file.Files.exists(backup0Folder)).isFalse();
+        assertThat(java.nio.file.Files.exists(backup1Folder)).isFalse();
+
+        assertThat(java.nio.file.Files.exists(Paths.get(backup0Folder.toString(), eip.getId()))).isFalse();
+
+        LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient();
+
+        client.create(logbookParametersStart);
+        assertThat(java.nio.file.Files.exists(Paths.get(backup0Folder.toString(), eip.getId()))).isTrue();
+
+        client.update(logbookParametersAppend);
+        assertThat(java.nio.file.Files.exists(Paths.get(backup0Folder.toString(), eip.getId()))).isTrue();
+    }
+
     /**
      * Clean offers content.
      */
     private static void cleanOffers() {
-        // ugly style but we don't have the digest here
+        // ugly style but we don't have the digest herelo
         File directory = new File(OFFER_FOLDER);
         try {
             FileUtils.cleanDirectory(directory);

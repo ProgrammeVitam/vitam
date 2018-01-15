@@ -30,16 +30,16 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 
 public class StorageCollectionTypeTest {
 
     @Test
     public void collectionNameTest() {
-        assertEquals("", StorageCollectionType.CONTAINERS.getCollectionName());
-        assertEquals("logbooks", StorageCollectionType.LOGBOOKS.getCollectionName());
-        assertEquals("units", StorageCollectionType.UNITS.getCollectionName());
-        assertEquals("objects", StorageCollectionType.OBJECTS.getCollectionName());
-        assertEquals("objectgroups", StorageCollectionType.OBJECTGROUPS.getCollectionName());
+        assertEquals("", DataCategory.CONTAINER.getCollectionName());
+        assertEquals("logbooks", DataCategory.LOGBOOK.getCollectionName());
+        assertEquals("units", DataCategory.UNIT.getCollectionName());
+        assertEquals("objects", DataCategory.OBJECT.getCollectionName());
+        assertEquals("objectgroups", DataCategory.OBJECTGROUP.getCollectionName());
     }
 }

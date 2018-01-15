@@ -102,7 +102,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -521,7 +521,7 @@ public class LogbookInternalResourceImpl {
 
             // Get zip file
             final Response response =
-                storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, fileName, StorageCollectionType.LOGBOOKS);
+                storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, fileName, DataCategory.LOGBOOK);
             if (response.getStatus() == Status.OK.getStatusCode()) {
                 Map<String, String> headers = new HashMap<>();
                 headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);

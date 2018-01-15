@@ -46,64 +46,64 @@ import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
 
 /**
  * Decorator for LogbookOperations
- *
  */
 public abstract class LogbookOperationsDecorator implements LogbookOperations {
-	
-	protected LogbookOperations logbookOperations;	
-	
 
-	/**Constructor 
-	 * @param logbookOperations
-	 */
-	public LogbookOperationsDecorator(LogbookOperations logbookOperations) {
-		this.logbookOperations = logbookOperations;
-	}
+    protected LogbookOperations logbookOperations;
 
-	@Override
-	public void create(LogbookOperationParameters parameters)
-			throws LogbookAlreadyExistsException, LogbookDatabaseException {
-		logbookOperations.create(parameters);
-		
-	}
+    /**
+     * Constructor
+     *
+     * @param logbookOperations
+     */
+    public LogbookOperationsDecorator(LogbookOperations logbookOperations) {
+        this.logbookOperations = logbookOperations;
+    }
 
-	@Override
-	public void update(LogbookOperationParameters parameters)
-			throws LogbookNotFoundException, LogbookDatabaseException {
-		logbookOperations.update(parameters);
-		
-	}
+    @Override
+    public void create(LogbookOperationParameters parameters)
+        throws LogbookAlreadyExistsException, LogbookDatabaseException {
+        logbookOperations.create(parameters);
 
-	@Override
-	public List<LogbookOperation> select(JsonNode select)
-			throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
-		return logbookOperations.select(select);
-	}
+    }
 
-	@Override
-	public List<LogbookOperation> select(JsonNode select, boolean sliced)
-			throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
-		return logbookOperations.select(select,sliced);
-	}
+    @Override
+    public void update(LogbookOperationParameters parameters)
+        throws LogbookNotFoundException, LogbookDatabaseException {
+        logbookOperations.update(parameters);
 
-	@Override
-	public LogbookOperation getById(String IdProcess) throws LogbookDatabaseException, LogbookNotFoundException {
-		return logbookOperations.getById(IdProcess);
-	}
+    }
 
-	@Override
-	public void createBulkLogbookOperation(LogbookOperationParameters[] operationArray)
-			throws LogbookDatabaseException, LogbookAlreadyExistsException {
-		logbookOperations.createBulkLogbookOperation(operationArray);
-		
-	}
+    @Override
+    public List<LogbookOperation> select(JsonNode select)
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
+        return logbookOperations.select(select);
+    }
 
-	@Override
-	public void updateBulkLogbookOperation(LogbookOperationParameters[] operationArray)
-			throws LogbookDatabaseException, LogbookNotFoundException {
-		logbookOperations.updateBulkLogbookOperation(operationArray);
-		
-	}
+    @Override
+    public List<LogbookOperation> select(JsonNode select, boolean sliced)
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
+        return logbookOperations.select(select, sliced);
+    }
+
+    @Override
+    public LogbookOperation getById(String IdProcess) throws LogbookDatabaseException, LogbookNotFoundException {
+        return logbookOperations.getById(IdProcess);
+    }
+
+    @Override
+    public void createBulkLogbookOperation(LogbookOperationParameters[] operationArray)
+        throws LogbookDatabaseException, LogbookAlreadyExistsException {
+        logbookOperations.createBulkLogbookOperation(operationArray);
+
+    }
+
+    @Override
+    public void updateBulkLogbookOperation(LogbookOperationParameters[] operationArray)
+        throws LogbookDatabaseException, LogbookNotFoundException {
+        logbookOperations.updateBulkLogbookOperation(operationArray);
+
+    }
 
 	@Override
 	public MongoCursor<LogbookOperation> selectOperationsPersistedAfterDate(LocalDateTime date) throws LogbookDatabaseException,
@@ -117,20 +117,19 @@ public abstract class LogbookOperationsDecorator implements LogbookOperations {
 		return logbookOperations.findFirstTraceabilityOperationOKAfterDate(date);
 	}
 
-	@Override
-	public LogbookOperation findLastTraceabilityOperationOK() throws InvalidCreateOperationException,
-			LogbookNotFoundException, LogbookDatabaseException, InvalidParseOperationException {
-		return logbookOperations.findLastTraceabilityOperationOK();
-	}
+    @Override
+    public LogbookOperation findLastTraceabilityOperationOK() throws InvalidCreateOperationException,
+        LogbookNotFoundException, LogbookDatabaseException, InvalidParseOperationException {
+        return logbookOperations.findLastTraceabilityOperationOK();
+    }
 
-	@Override
-	public IndexationResult reindex(IndexParameters indexParameters) {
-		return logbookOperations.reindex(indexParameters);
-	}
+    @Override
+    public IndexationResult reindex(IndexParameters indexParameters) {
+        return logbookOperations.reindex(indexParameters);
+    }
 
-	@Override
-	public void switchIndex(String alias, String newIndexName) throws DatabaseException {
-		logbookOperations.switchIndex(alias, newIndexName);
-	}
-
+    @Override
+    public void switchIndex(String alias, String newIndexName) throws DatabaseException {
+        logbookOperations.switchIndex(alias, newIndexName);
+    }
 }

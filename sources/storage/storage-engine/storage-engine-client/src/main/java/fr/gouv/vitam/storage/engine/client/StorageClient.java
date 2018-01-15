@@ -40,7 +40,6 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
@@ -83,7 +82,7 @@ public interface StorageClient extends BasicClient {
      *             if the Server got an internal error
      * @return the result status of object creation
      */
-    StoredInfoResult storeFileFromWorkspace(String strategyId, StorageCollectionType type, String guid,
+    StoredInfoResult storeFileFromWorkspace(String strategyId, DataCategory type, String guid,
             ObjectDescription description)
             throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
 
@@ -100,7 +99,7 @@ public interface StorageClient extends BasicClient {
 
     /**
      * Check the existence of an object in storage by its id and type
-     * {@link StorageCollectionType}.
+     * {@link DataCategory}.
      *
      * @param strategyId
      *            the storage strategy id
@@ -112,7 +111,7 @@ public interface StorageClient extends BasicClient {
      * @throws StorageServerClientException
      *             if the Server got an internal error
      */
-    boolean exists(String strategyId, StorageCollectionType type, String guid, List<String> offerIds) throws StorageServerClientException;
+    boolean exists(String strategyId, DataCategory type, String guid, List<String> offerIds) throws StorageServerClientException;
 
     /**
      * Delete a container in the storage offer strategy A non-empty container
@@ -143,7 +142,7 @@ public interface StorageClient extends BasicClient {
      * @throws StorageServerClientException
      *             if the Server got an internal error
      */
-    boolean delete(String strategyId, StorageCollectionType type, String guid, String digest, DigestType digestAlgorithm)
+    boolean delete(String strategyId, DataCategory type, String guid, String digest, DigestType digestAlgorithm)
             throws StorageServerClientException;
 
     /**
@@ -162,7 +161,7 @@ public interface StorageClient extends BasicClient {
      *             if the Server got a NotFound result, if the container or the
      *             object does not exist
      */
-    Response getContainerAsync(String strategyId, String guid, StorageCollectionType type)
+    Response getContainerAsync(String strategyId, String guid, DataCategory type)
             throws StorageServerClientException, StorageNotFoundException;
 
     /**

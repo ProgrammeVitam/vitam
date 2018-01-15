@@ -45,7 +45,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.StepAlreadyExecutedException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -91,7 +91,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
                 description.setWorkspaceContainerGUID(params.getContainerName())
                     .setWorkspaceObjectURI(SIP + objectGuid.getValue());
                 // set type and object name
-                description.setType(StorageCollectionType.OBJECTS).setObjectName(objectGuid.getKey());
+                description.setType(DataCategory.OBJECT).setObjectName(objectGuid.getKey());
 
                 // create ItemStatus for subtask
                 ItemStatus subTaskItemStatus = new ItemStatus(STORING_OBJECT_TASK_ID);

@@ -260,7 +260,7 @@ public class StorageDistributionImplTest {
             .thenReturn(Response.status(Status.OK).entity(stream2).build());
         try {
             storedInfoResult = customDistribution.storeData(STRATEGY_ID, objectId, createObjectDescription,
-                DataCategory.OBJECT_GROUP, "testRequester");
+                DataCategory.OBJECTGROUP, "testRequester");
         } finally {
             IOUtils.closeQuietly(stream);
         }
@@ -517,7 +517,7 @@ public class StorageDistributionImplTest {
             // Store object
             TransferThread.setJunitMode(true);
             customDistribution.storeData(STRATEGY_ID, TransferThread.TIMEOUT_TEST, createObjectDescription,
-                DataCategory.OBJECT_GROUP, "testRequester");
+                DataCategory.OBJECTGROUP, "testRequester");
             TransferThread.setJunitMode(false);
         } finally {
             IOUtils.closeQuietly(stream);

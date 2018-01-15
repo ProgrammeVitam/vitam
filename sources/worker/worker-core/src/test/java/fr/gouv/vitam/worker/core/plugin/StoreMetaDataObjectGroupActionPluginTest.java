@@ -213,7 +213,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
                 .thenReturn(lfcResponse);
 
         when(workspaceClient.getObject(CONTAINER_NAME,
-            DataCategory.OBJECT_GROUP.name() + "/" + params.getObjectName()))
+            DataCategory.OBJECTGROUP.name() + "/" + params.getObjectName()))
                 .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
 
         when(storageClient.storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject()))
@@ -247,7 +247,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
             LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS))
                 .thenReturn(lfcResponse);
 
-        when(workspaceClient.getObject(CONTAINER_NAME, DataCategory.OBJECT_GROUP.name() + "/" + params.getObjectName()))
+        when(workspaceClient.getObject(CONTAINER_NAME, DataCategory.OBJECTGROUP.name() + "/" + params.getObjectName()))
             .thenReturn(Response.status(Status.OK).entity(objectGroup2).build());
 
         when(storageClientFactory.getClient()).thenReturn(storageClient);
@@ -287,17 +287,18 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         plugin = new StoreMetaDataObjectGroupActionPlugin();
 
         // select unit
-        JsonNode og = plugin.selectMetadataDocumentRawById(OG_GUID, DataCategory.OBJECT_GROUP, metadataClient);
+        JsonNode og = plugin.selectMetadataDocumentRawById(OG_GUID, DataCategory.OBJECTGROUP, metadataClient);
+
         assertNotNull(og);
         assertEquals(og.get("_id").asText(), OG_GUID);
 
         // select lfc
-        JsonNode lfc = plugin.retrieveLogbookLifeCycleById(OG_GUID, DataCategory.OBJECT_GROUP, logbookClient);
+        JsonNode lfc = plugin.retrieveLogbookLifeCycleById(OG_GUID, DataCategory.OBJECTGROUP, logbookClient);
         assertNotNull(lfc);
         assertEquals(lfc.get("_id").asText(), OG_GUID);
 
         // aggregate unit with lfc
-        JsonNode docWithLfc = plugin.getDocumentWithLFC(og, lfc, DataCategory.OBJECT_GROUP);
+        JsonNode docWithLfc = plugin.getDocumentWithLFC(og, lfc, DataCategory.OBJECTGROUP);
         assertNotNull(docWithLfc);
         assertNotNull(docWithLfc.get("got"));
         assertNotNull(docWithLfc.get("lfc"));
@@ -372,7 +373,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
                 .thenReturn(lfcResponse);
 
         when(workspaceClient.getObject(CONTAINER_NAME,
-            DataCategory.OBJECT_GROUP.name() + "/" + params.getObjectName()))
+            DataCategory.OBJECTGROUP.name() + "/" + params.getObjectName()))
                 .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
 
         Mockito.doThrow(new StorageNotFoundClientException("Error Metadata")).when(storageClient)
@@ -407,7 +408,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
                 .thenReturn(lfcResponse);
 
         when(workspaceClient.getObject(CONTAINER_NAME,
-            DataCategory.OBJECT_GROUP.name() + "/" + params.getObjectName()))
+            DataCategory.OBJECTGROUP.name() + "/" + params.getObjectName()))
                 .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
 
         Mockito.doThrow(new StorageAlreadyExistsClientException("Error Metadata ")).when(storageClient)

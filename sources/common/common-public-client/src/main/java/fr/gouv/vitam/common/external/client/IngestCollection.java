@@ -54,7 +54,7 @@ public enum IngestCollection {
      */
     private String collectionName;
 
-    private IngestCollection(String collectionName) {
+    IngestCollection(String collectionName) {
         this.collectionName = collectionName;
     }
 

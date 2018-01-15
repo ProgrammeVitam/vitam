@@ -52,7 +52,6 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -141,7 +140,7 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
             //// call storage (save in offers)
             // object Description
             final ObjectDescription description =
-                new ObjectDescription(StorageCollectionType.UNITS, params.getContainerName(),
+                new ObjectDescription(DataCategory.UNIT, params.getContainerName(),
                     fileName, IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + fileName);
             // store metadata object from workspace
             StoredInfoResult result = storeObject(description, itemStatus);

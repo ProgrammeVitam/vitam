@@ -35,22 +35,26 @@ import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
 import org.jhades.JHades;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
@@ -76,6 +80,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -92,7 +97,7 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAc
 
 @RunWithCustomExecutor
 public class LogbookResourceTest {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResourceTest.class);@Rule
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResourceTest.class);
 
     @ClassRule
     public static RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
@@ -128,21 +133,31 @@ public class LogbookResourceTest {
     private static LogbookOperationParameters logbookParametersWrongAppend;
     private static LogbookOperationParameters logbookParametersSelect;
     private static LogbookOperationParameters logbookParametersSelectId;
-    private static final String BODY_TEST = "{$query: {$eq: {\"aa\" : \"vv\" }}, $projection: {}, $filter: {}}";
     private static final String BODY_QUERY =
         "{$query: {$eq: {\"evType\" : \"eventTypeValueSelect\"}}, $projection: {}, $filter: {}}";
-    private static JunitHelper junitHelper;
+    private static JunitHelper junitHelper = JunitHelper.getInstance();
     private static LogbookConfiguration realLogbook;
 
     private static final int TENANT_ID = 0;
-    private static final List<Integer> tenantList = Arrays.asList(0);
+    private static final List<Integer> tenantList = Collections.singletonList(0);
+
+    private static int workspacePort = junitHelper.findAvailablePort();
+    private static int processingPort = junitHelper.findAvailablePort();
+
+    @ClassRule
+    public static WireMockClassRule workspaceWireMockRule = new WireMockClassRule(workspacePort);
+    @Rule
+    public WireMockClassRule workspaceInstanceRule = workspaceWireMockRule;
+    @ClassRule
+    public static WireMockClassRule processingWireMockRule = new WireMockClassRule(processingPort);
+    @Rule
+    public WireMockClassRule processingInstanceRule = processingWireMockRule;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
-        junitHelper = JunitHelper.getInstance();
         databasePort = junitHelper.findAvailablePort();
         final File logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
         realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
@@ -161,6 +176,8 @@ public class LogbookResourceTest {
             assumeTrue(false);
         }
         realLogbook.getElasticsearchNodes().get(0).setTcpPort(config.getTcpPort());
+        realLogbook.setWorkspaceUrl("http://localhost:" + workspacePort);
+        realLogbook.setProcessingUrl("http://localhost:" + processingPort);
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, databasePort));
@@ -219,6 +236,22 @@ public class LogbookResourceTest {
             StatusCode.OK, "start ingest", eip);
     }
 
+    @Before
+    public void setUp() {
+        workspaceInstanceRule.stubFor(WireMock.post(WireMock.urlMatching("/workspace/v1/containers/(.*)")).willReturn
+            (WireMock.aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+        workspaceInstanceRule.stubFor(WireMock.post(WireMock.urlMatching("/workspace/v1/containers/(.*)/objects/(.*)"))
+            .willReturn(WireMock.aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+        workspaceInstanceRule.stubFor(WireMock.delete(WireMock.urlMatching("/workspace/v1/containers/(.*)")).willReturn
+            (WireMock.aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+        processingInstanceRule.stubFor(WireMock.post(WireMock.urlMatching("/processing/v1/operations/(.*)")).willReturn
+            (WireMock.aResponse().withStatus(200)));
+        processingInstanceRule.stubFor(WireMock.put(WireMock.urlMatching("/processing/v1/operations/(.*)")).willReturn
+            (WireMock.aResponse().withStatus(202).withBody(JsonHandler.unprettyPrint(new ItemStatus()))
+                .withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID)).withHeader(HttpHeaders
+                    .CONTENT_TYPE, MediaType.APPLICATION_JSON)));
+    }
+
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
@@ -237,11 +270,12 @@ public class LogbookResourceTest {
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(databasePort);
+        junitHelper.releasePort(workspacePort);
+        junitHelper.releasePort(processingPort);
     }
 
     @Test
     public final void testTraceability() {
-        // TODO -> use mocks and get a proper status code        
         logbookParametersAppend.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         logbookParametersAppend.putParameterValue(LogbookParameterName.agentIdentifier,
@@ -251,12 +285,11 @@ public class LogbookResourceTest {
             .body(logbookParametersAppend)
             .post(TRACEABILITY_URI)
             .then()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
-    public final void testTraceabilityLFC() throws Exception {
-        // TODO -> use mocks and get a proper status code
+    public final void testTraceabilityLFC() {
         logbookParametersAppend.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         logbookParametersAppend.putParameterValue(LogbookParameterName.agentIdentifier,
@@ -266,7 +299,7 @@ public class LogbookResourceTest {
             .body(logbookParametersAppend)
             .post(TRACEABILITY_LFC_URI)
             .then()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .statusCode(Status.OK.getStatusCode());
     }
 
     @Test

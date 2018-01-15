@@ -39,11 +39,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.functional.administration.common.Agencies;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -53,7 +48,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
@@ -74,6 +68,7 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
@@ -86,13 +81,16 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.Agencies;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 
 
 public class AgenciesServiceTest {
@@ -112,13 +110,13 @@ public class AgenciesServiceTest {
 
     private static final Integer TENANT_ID = 1;
 
-    static JunitHelper junitHelper;
-    static final String COLLECTION_NAME = "Agency";
-    static final String DATABASE_HOST = "localhost";
-    static final String DATABASE_NAME = "vitam-test";
-    static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
-    static MongoClient client;
+    private static JunitHelper junitHelper;
+    private static final String COLLECTION_NAME = "Agency";
+    private static final String DATABASE_HOST = "localhost";
+    private static final String DATABASE_NAME = "vitam-test";
+    private static MongodExecutable mongodExecutable;
+    private static MongodProcess mongod;
+    private static MongoClient client;
     private static MongoDbAccessAdminImpl dbImpl;
     private static ElasticsearchTestConfiguration esConfig = null;
     private final static String HOST_NAME = "127.0.0.1";
@@ -132,8 +130,7 @@ public class AgenciesServiceTest {
 
     private AgenciesService agencyService;
 
-    static int mongoPort;
-    static private Path tmp;
+    private static int mongoPort;
 
     @RunWithCustomExecutor
     @BeforeClass
@@ -170,14 +167,14 @@ public class AgenciesServiceTest {
     }
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         agencyService =
             new AgenciesService(dbImpl, vitamCounterService, functionalBackupService, logbookOperationsClientFactory);
 
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
         mongod.stop();
         mongodExecutable.stop();
         junitHelper.releasePort(mongoPort);
@@ -185,7 +182,7 @@ public class AgenciesServiceTest {
     }
 
     @After
-    public void afterTest() throws ReferentialException {
+    public void afterTest() {
         final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
         collection.deleteMany(new Document());
     }
@@ -215,7 +212,7 @@ public class AgenciesServiceTest {
             Files.copy(argumentAt, reportPath);
             return null;
         }).when(functionalBackupService).saveFile(any(InputStream.class), any(GUID.class), eq(STP_AGENCIES_REPORT),
-            eq(StorageCollectionType.REPORTS), endsWith(".json")
+            eq(DataCategory.REPORT), endsWith(".json")
         );
 
         File fileAgencies1 = getResourceFile("agencies.csv");
@@ -232,14 +229,11 @@ public class AgenciesServiceTest {
         // import 2
         File fileAgencies2 = getResourceFile("agencies2.csv");
 
-
-
         response = agencyService.importAgencies(new FileInputStream(fileAgencies2));
         report = getFromFile(reportPath.toFile());
         assertThat(report.get("JDO")).isNotNull();
         assertThat(response.isOk()).isTrue();
         reportPath.toFile().delete();
-
 
         // import 3 error invalid
         agencyService =

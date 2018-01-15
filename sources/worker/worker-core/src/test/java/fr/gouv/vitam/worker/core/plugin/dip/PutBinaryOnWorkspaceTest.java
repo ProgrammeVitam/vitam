@@ -38,16 +38,6 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.net.URL;
 
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
-import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
-import fr.gouv.vitam.worker.common.HandlerIO;
 import org.jboss.resteasy.core.Headers;
 import org.jboss.resteasy.core.ServerResponse;
 import org.junit.Before;
@@ -57,6 +47,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.worker.common.HandlerIO;
 
 public class PutBinaryOnWorkspaceTest {
 
@@ -88,7 +89,7 @@ public class PutBinaryOnWorkspaceTest {
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
         ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] {1, 2, 3, 4});
-        given(storageClient.getContainerAsync("default", guid, StorageCollectionType.OBJECTS))
+        given(storageClient.getContainerAsync("default", guid, DataCategory.OBJECT))
             .willReturn(new ServerResponse(entity, 200, new Headers<>()));
         DefaultWorkerParameters param = WorkerParametersFactory.newWorkerParameters();
         param.setObjectName(guid);
@@ -107,7 +108,7 @@ public class PutBinaryOnWorkspaceTest {
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
         ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] {1, 2, 3, 4});
-        given(storageClient.getContainerAsync("default", guid, StorageCollectionType.OBJECTS))
+        given(storageClient.getContainerAsync("default", guid, DataCategory.OBJECT))
             .willThrow(new StorageServerClientException("transfer failed"))
             .willReturn(new ServerResponse(entity, 200, new Headers<>()));
         DefaultWorkerParameters param = WorkerParametersFactory.newWorkerParameters();
@@ -127,7 +128,7 @@ public class PutBinaryOnWorkspaceTest {
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
         ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] {1, 2, 3, 4});
-        given(storageClient.getContainerAsync("default", guid, StorageCollectionType.OBJECTS))
+        given(storageClient.getContainerAsync("default", guid, DataCategory.OBJECT))
             .willThrow(new StorageServerClientException("transfer failed"));
         DefaultWorkerParameters param = WorkerParametersFactory.newWorkerParameters();
         param.setObjectName(guid);
@@ -140,7 +141,7 @@ public class PutBinaryOnWorkspaceTest {
         verify(handlerIO, never())
             .transferInputStreamToWorkspace("Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq", entity, null, false);
         verify(storageClient, times(3)).
-            getContainerAsync("default", guid, StorageCollectionType.OBJECTS);
+            getContainerAsync("default", guid, DataCategory.OBJECT);
     }
 
     @Test
@@ -148,7 +149,7 @@ public class PutBinaryOnWorkspaceTest {
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
         ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] {1, 2, 3, 4});
-        given(storageClient.getContainerAsync("default", guid, StorageCollectionType.OBJECTS))
+        given(storageClient.getContainerAsync("default", guid, DataCategory.OBJECT))
             .willReturn(new ServerResponse(entity, 200, new Headers<>()));
 
         willThrow(new ProcessingException("transfer failed"))

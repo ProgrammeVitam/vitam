@@ -40,7 +40,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -75,7 +75,7 @@ public class BackupService {
     /**
      * Store file in offers
      */
-    public void backup(InputStream stream, StorageCollectionType storageCollectionType, String uri)
+    public void backup(InputStream stream, DataCategory storageCollectionType, String uri)
         throws BackupServiceException {
         WorkspaceClient workspaceClient = workspaceClientFactory.getClient();
         StorageClient storageClient = storageClientFactory.getClient();
