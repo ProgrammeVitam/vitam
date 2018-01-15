@@ -11,16 +11,25 @@ Le système comporte actuellement deux niveaux d'authentification :
 Connexion
 =========
 
-Pour s'identifier à l'IHM de la solution logicielle Vitam, l'utilisateur doit saisir son identifiant et son mot de passe dans les champs du même nom.
-Pour des mesures de sécurité, le mot de passe saisi ne s'affichera pas en toutes lettres.
+L'utilisateur de la solution logicielle Vitam peut s'authentifier de une ou deux façons différentes, selon le paramétrage qui a été effectué. Il est possible de se connecter en utilisant un login et un mot de passe, ou de se connecter en utilisant un certificat.
 
-L'utilisateur doit également choisir le tenant sur lequel il souhaite se connecter, en utilisant le sélecteur à la droite des champs "Identifiant" et "Mot de passe". Le tenant correspond à un espace réservé à une entité utilisatrice. Par exemple, un lot d'archives versé dans le tenant numéro deux ne sera pas consultable depuis les autres tenants.
-
-Cliquer sur le bouton "Connexion" permet de lancer l'authentification.
+Dans les deux cas, l'utilisateur doit choisir le tenant sur lequel il souhaite se connecter, en utilisant le sélecteur "Tenant de la session". Le tenant correspond à un espace réservé à une entité utilisatrice. Par exemple, un lot d'archives versé dans le tenant numéro deux ne sera pas consultable depuis les autres tenants.
 
 |
 
+
 .. image:: images/form_login.png
+
+
+Par défaut, après connexion, la page "Transfert de SIP et plan de classement" est affichée.
+
+Authentification par identifiant
+-------------------------------------
+
+Pour s'identifier à l'IHM de la solution logicielle Vitam dans ce mode d'authentification, l'utilisateur doit saisir son identifiant et son mot de passe dans les champs du même nom.
+Pour des mesures de sécurité, le mot de passe saisi ne s'affichera pas en toutes lettres.
+
+Cliquer sur le bouton "Connexion" permet de lancer l'authentification.
 
 Lorsque le couple Identifiant/Mot de passe n'est pas cohérent, c'est-à-dire :
 
@@ -33,7 +42,12 @@ Alors, un message d'erreur s'affiche à l'écran, demandant à l'utilisateur de 
 
 .. image:: images/form_login_ko.png
 
-Par défaut, après connexion, la page "Transfert de SIP et plan de classement" est affichée.
+Authentification par certificat
+-------------------------------------
+
+Pour utiliser ce mode d'authentification, l'utilisateur doit détenir un certificat délivré par son service informatique. En cliquant simplement sur le bouton de connexion, il sera alors authentifié. Si l'utilisateur utilise un mauvais certificat ou n'utilise pas de certificat, un message d'erreur est affiché pour notifier de cette erreur.
+
+|
 
 Si l'utilisateur souhaite accéder à la plate-forme en saisissant une URL menant à une page de la solution logicielle Vitam, une fois l'authentification effectuée, il sera redirigé vers la page demandée.
 Si la session de l'utilisateur est expirée (la durée de la session en cas d'inactivité est de 30 minutes, non paramétrable par le métier), il devra s'authentifier de nouveau et accédera directement à la dernière page consultée.
@@ -58,7 +72,7 @@ Deux niveaux de permissions sont gérés au travers des rôles suivants :
 .. image:: images/menu_admin.png
 
 **User** : permet d'accéder aux fonctionnalités suivantes :
-	
+
 - Transfert d'archives (en prodcution seulement)
 - Transfert de plan de classement
 - Suivi des opérations d'entrée
@@ -69,7 +83,7 @@ Deux niveaux de permissions sont gérés au travers des rôles suivants :
 - Consultation des journaux d'opération
 
 Mais n'a pas la possibilité de transférer un SIP en mode "Pas à pas".
-	  
+
 |
 
 .. image:: images/menu_user.png
