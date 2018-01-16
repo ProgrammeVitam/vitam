@@ -27,7 +27,15 @@
 
 package fr.gouv.vitam.storage.engine.client;
 
+import java.util.List;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
@@ -47,25 +55,27 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import java.util.List;
-
 /**
- * StorageClient Abstract class use to set generic client configuration (not
- * depending on client type)
+ * StorageClient Abstract class use to set generic client configuration (not depending on client type)
  */
 class StorageClientRest extends DefaultClient implements StorageClient {
-    private static final String OBJECT_DESCRIPTION_MUST_HAVE_A_VALID_VALUE = "Object's description must have a valid value";
-    private static final String OBJECT_DESCRIPTION_GUID_MUST_HAVE_A_VALID_VALUE = "Object's description container's GUID must have a valid value";
-    private static final String OBJECT_DESCRIPTION_URI_MUST_HAVE_A_VALID_VALUE = "Object's description workspace's URI must have a valid value";
+    private static final String OBJECT_DESCRIPTION_MUST_HAVE_A_VALID_VALUE =
+        "Object's description must have a valid value";
+    private static final String OBJECT_DESCRIPTION_GUID_MUST_HAVE_A_VALID_VALUE =
+        "Object's description container's GUID must have a valid value";
+    private static final String OBJECT_DESCRIPTION_URI_MUST_HAVE_A_VALID_VALUE =
+        "Object's description workspace's URI must have a valid value";
     private static final String GUID_MUST_HAVE_A_VALID_VALUE = "GUID must have a valid value";
-    private static final String TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE = "Type of storage object must have a valid value";
+    private static final String TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE =
+        "Type of storage object must have a valid value";
+    private static final String ORDER_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE =
+        "Order of storage object must have a valid value";
     private static final String STRATEGY_ID_MUST_HAVE_A_VALID_VALUE = "Strategy id must have a valid value";
     private static final String BACKUP_STORAGE_LOG_URI = "/storage/backup";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageClientRest.class);
@@ -75,16 +85,18 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public JsonNode getStorageInformation(String strategyId) throws StorageNotFoundClientException, StorageServerClientException {
+    public JsonNode getStorageInformation(String strategyId)
+        throws StorageNotFoundClientException, StorageServerClientException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, "/", getDefaultHeaders(tenantId, strategyId, null, null),
-                    MediaType.APPLICATION_JSON_TYPE);
+                MediaType.APPLICATION_JSON_TYPE);
             return handleCommonResponseStatus(response, JsonNode.class);
         } catch (final VitamClientInternalException e) {
-            final String errorMessage = VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            final String errorMessage =
+                VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
             LOGGER.error(errorMessage, e);
             throw new StorageServerClientException(errorMessage, e);
         } finally {
@@ -94,8 +106,8 @@ class StorageClientRest extends DefaultClient implements StorageClient {
 
     @Override
     public StoredInfoResult storeFileFromWorkspace(String strategyId, DataCategory type, String guid,
-            ObjectDescription description)
-            throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
+        ObjectDescription description)
+        throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         ParametersChecker.checkParameter(TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE, type);
@@ -103,17 +115,19 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         ParametersChecker.checkParameter(OBJECT_DESCRIPTION_MUST_HAVE_A_VALID_VALUE, description);
         if (description != null) {
             ParametersChecker.checkParameter(OBJECT_DESCRIPTION_GUID_MUST_HAVE_A_VALID_VALUE,
-                    description.getWorkspaceContainerGUID());
-            ParametersChecker.checkParameter(OBJECT_DESCRIPTION_URI_MUST_HAVE_A_VALID_VALUE, description.getWorkspaceObjectURI());
+                description.getWorkspaceContainerGUID());
+            ParametersChecker.checkParameter(OBJECT_DESCRIPTION_URI_MUST_HAVE_A_VALID_VALUE,
+                description.getWorkspaceObjectURI());
         }
         Response response = null;
         try {
             response = performRequest(HttpMethod.POST, "/" + type.getCollectionName() + "/" + guid,
-                    getDefaultHeaders(tenantId, strategyId, null, null), description, MediaType.APPLICATION_JSON_TYPE,
-                    MediaType.APPLICATION_JSON_TYPE);
+                getDefaultHeaders(tenantId, strategyId, null, null), description, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
             return handlePostResponseStatus(response, StoredInfoResult.class);
         } catch (final VitamClientInternalException e) {
-            final String errorMessage = VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            final String errorMessage =
+                VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
             LOGGER.error(errorMessage, e);
             throw new StorageServerClientException(errorMessage, e);
         } finally {
@@ -128,10 +142,11 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         Response response = null;
         try {
             response = performRequest(HttpMethod.HEAD, "/", getDefaultHeaders(tenantId, strategyId, null, null),
-                    MediaType.APPLICATION_JSON_TYPE);
+                MediaType.APPLICATION_JSON_TYPE);
             return notContentResponseToBoolean(handleNoContentResponseStatus(response));
         } catch (final VitamClientInternalException e) {
-            final String errorMessage = VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            final String errorMessage =
+                VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
             LOGGER.error(errorMessage, e);
             throw new StorageServerClientException(errorMessage, e);
         } finally {
@@ -151,7 +166,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         }
         Response response = null;
         MultivaluedHashMap<String, Object> headers = getDefaultHeaders(tenantId, strategyId, null, null);
-        for ( String offerId : offerIds) {
+        for (String offerId : offerIds) {
             headers.add(GlobalDataRest.X_OFFER_IDS, offerId);
         }
 
@@ -160,32 +175,34 @@ class StorageClientRest extends DefaultClient implements StorageClient {
                 headers, MediaType.APPLICATION_JSON_TYPE);
             return notContentResponseToBoolean(handleNoContentResponseStatus(response));
         } catch (final VitamClientInternalException e) {
-            final String errorMessage = VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            final String errorMessage =
+                VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
             LOGGER.error(errorMessage, e);
             throw new StorageServerClientException(errorMessage, e);
         } finally {
             consumeAnyEntityAndClose(response);
         }
     }
-    
+
     @Override
-    public JsonNode getObjectInformation(String strategyId, String guid, List<String> offerIds) 
+    public JsonNode getObjectInformation(String strategyId, String guid, List<String> offerIds)
         throws StorageServerClientException, StorageNotFoundClientException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, guid);
-        
+
         Response response = null;
         MultivaluedHashMap<String, Object> headers = getDefaultHeaders(tenantId, strategyId, null, null);
-        for ( String offerId : offerIds) {
+        for (String offerId : offerIds) {
             headers.add(GlobalDataRest.X_OFFER_IDS, offerId);
         }
-        
+
         try {
             response = performRequest(HttpMethod.GET, "/objects/" + guid, headers, MediaType.APPLICATION_JSON_TYPE);
             return handleCommonResponseStatus(response, JsonNode.class);
         } catch (VitamClientInternalException e) {
-            final String errorMessage = VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            final String errorMessage =
+                VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
             LOGGER.error(errorMessage, e);
             throw new StorageServerClientException(errorMessage, e);
         } finally {
@@ -200,10 +217,11 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         Response response = null;
         try {
             response = performRequest(HttpMethod.DELETE, "/", getDefaultHeaders(tenantId, strategyId, null, null),
-                    MediaType.APPLICATION_JSON_TYPE);
+                MediaType.APPLICATION_JSON_TYPE);
             return notContentResponseToBoolean(handleNoContentResponseStatus(response));
         } catch (final VitamClientInternalException e) {
-            final String errorMessage = VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            final String errorMessage =
+                VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
             LOGGER.error(errorMessage, e);
             throw new StorageServerClientException(errorMessage, e);
         } finally {
@@ -213,7 +231,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
 
     @Override
     public boolean delete(String strategyId, DataCategory type, String guid, String digest, DigestType digestAlgorithm)
-            throws StorageServerClientException {
+        throws StorageServerClientException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         ParametersChecker.checkParameter(TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE, type);
@@ -222,15 +240,16 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         ParametersChecker.checkParameter("Digest Algorithm must have a valid value", digestAlgorithm);
         if (DataCategory.CONTAINER.equals(type)) {
             throw new IllegalArgumentException(
-                    VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CLIENT_STORAGE_TYPE, type.getCollectionName()));
+                VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CLIENT_STORAGE_TYPE, type.getCollectionName()));
         }
         Response response = null;
         try {
             response = performRequest(HttpMethod.DELETE, "/" + type.getCollectionName() + "/" + guid,
-                    getDefaultHeaders(tenantId, strategyId, digest, digestAlgorithm), MediaType.APPLICATION_JSON_TYPE);
+                getDefaultHeaders(tenantId, strategyId, digest, digestAlgorithm), MediaType.APPLICATION_JSON_TYPE);
             return notContentResponseToBoolean(handleNoContentResponseStatus(response));
         } catch (final VitamClientInternalException e) {
-            final String errorMessage = VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            final String errorMessage =
+                VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
             LOGGER.error(errorMessage, e);
             throw new StorageServerClientException(errorMessage, e);
         } finally {
@@ -241,11 +260,9 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     /**
      * Tranform a noContent call response to a boolean (or error)
      *
-     * @param status
-     *            Http reponse
+     * @param status Http reponse
      * @return true 204, false if 404
-     * @throws StorageServerClientException
-     *             is thrown if an unexpected response is sent by the server
+     * @throws StorageServerClientException is thrown if an unexpected response is sent by the server
      */
     private boolean notContentResponseToBoolean(Response.Status status) throws StorageServerClientException {
         boolean result;
@@ -257,8 +274,8 @@ class StorageClientRest extends DefaultClient implements StorageClient {
                 result = false;
                 break;
             default:
-                final String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : "
-                        + status.getReasonPhrase();
+                final String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : " +
+                    status.getReasonPhrase();
                 LOGGER.error(log);
                 throw new StorageServerClientException(log);
         }
@@ -268,18 +285,14 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     /**
      * Generate the default header map
      *
-     * @param tenantId
-     *            the tenant id
-     * @param strategyId
-     *            the storage strategy id
-     * @param digest
-     *            the digest
-     * @param digestAlgorithm
-     *            the digest Algorithm
+     * @param tenantId the tenant id
+     * @param strategyId the storage strategy id
+     * @param digest the digest
+     * @param digestAlgorithm the digest Algorithm
      * @return header map
      */
     private MultivaluedHashMap<String, Object> getDefaultHeaders(Integer tenantId, String strategyId, String digest,
-            DigestType digestAlgorithm) {
+        DigestType digestAlgorithm) {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
         headers.add(GlobalDataRest.X_STRATEGY_ID, strategyId);
@@ -295,12 +308,9 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     /**
      * Common method to handle responses expecting NO_CONTENT (204) status
      *
-     * @param response
-     *            the server response
-     * @return the response status if it is an expected response (204, 404 and
-     *         412)
-     * @throws StorageServerClientException
-     *             is thrown if an unexpected response is sent by the server
+     * @param response the server response
+     * @return the response status if it is an expected response (204, 404 and 412)
+     * @throws StorageServerClientException is thrown if an unexpected response is sent by the server
      */
     protected Response.Status handleNoContentResponseStatus(Response response) throws StorageServerClientException {
         ParametersChecker.checkParameter("Response", response);
@@ -311,8 +321,8 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             case PRECONDITION_FAILED:
                 return status;
             default:
-                final String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : "
-                        + status.getReasonPhrase();
+                final String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : " +
+                    status.getReasonPhrase();
                 LOGGER.error(log);
                 throw new StorageServerClientException(log);
         }
@@ -320,7 +330,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     protected <R> R handlePostResponseStatus(Response response, Class<R> responseType)
-            throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
+        throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
         final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
         switch (status) {
             case OK:
@@ -328,20 +338,21 @@ class StorageClientRest extends DefaultClient implements StorageClient {
                 return response.readEntity(responseType);
             case CONFLICT:
                 throw new StorageAlreadyExistsClientException(
-                        VitamCodeHelper.getCode(VitamCode.STORAGE_CLIENT_ALREADY_EXISTS) + " : " + status.getReasonPhrase());
+                    VitamCodeHelper.getCode(VitamCode.STORAGE_CLIENT_ALREADY_EXISTS) + " : " +
+                        status.getReasonPhrase());
             case NOT_FOUND:
                 throw new StorageNotFoundClientException(
-                        VitamCodeHelper.getCode(VitamCode.STORAGE_NOT_FOUND) + " : " + status.getReasonPhrase());
+                    VitamCodeHelper.getCode(VitamCode.STORAGE_NOT_FOUND) + " : " + status.getReasonPhrase());
             default:
-                final String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : "
-                        + status.getReasonPhrase();
+                final String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : " +
+                    status.getReasonPhrase();
                 LOGGER.error(log);
                 throw new StorageServerClientException(log);
         }
     }
 
     protected <R> R handleCommonResponseStatus(Response response, Class<R> responseType)
-            throws StorageNotFoundClientException, StorageServerClientException {
+        throws StorageNotFoundClientException, StorageServerClientException {
         final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
         switch (status) {
             case OK:
@@ -354,8 +365,8 @@ class StorageClientRest extends DefaultClient implements StorageClient {
                 throw new StorageServerClientException(VitamCodeHelper.getCode(VitamCode.STORAGE_BAD_REQUEST) + " : " +
                     status.getReasonPhrase());
             default:
-                final String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : "
-                        + status.getReasonPhrase();
+                final String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : " +
+                    status.getReasonPhrase();
                 LOGGER.error(log);
                 throw new StorageServerClientException(log);
         }
@@ -363,15 +374,15 @@ class StorageClientRest extends DefaultClient implements StorageClient {
 
     @Override
     public Response getContainerAsync(String strategyId, String guid, DataCategory type)
-            throws StorageServerClientException, StorageNotFoundException {
+        throws StorageServerClientException, StorageNotFoundException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
         ParametersChecker.checkParameter(GUID_MUST_HAVE_A_VALID_VALUE, guid);
         Response response = null;
         boolean ok = false;
         try {
-            response = performRequest(HttpMethod.GET,  type.getCollectionName() + "/" + guid,
-                    getDefaultHeaders(tenantId, strategyId, null, null), MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            response = performRequest(HttpMethod.GET, type.getCollectionName() + "/" + guid,
+                getDefaultHeaders(tenantId, strategyId, null, null), MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -380,18 +391,19 @@ class StorageClientRest extends DefaultClient implements StorageClient {
                     return response;
                 case NOT_FOUND:
                     throw new StorageNotFoundException(
-                            VitamCodeHelper.getCode(VitamCode.STORAGE_NOT_FOUND) + " : " + status.getReasonPhrase());
+                        VitamCodeHelper.getCode(VitamCode.STORAGE_NOT_FOUND) + " : " + status.getReasonPhrase());
                 case PRECONDITION_FAILED:
                     throw new StorageServerClientException(
-                            VitamCodeHelper.getCode(VitamCode.STORAGE_MISSING_HEADER) + ": " + status.getReasonPhrase());
+                        VitamCodeHelper.getCode(VitamCode.STORAGE_MISSING_HEADER) + ": " + status.getReasonPhrase());
                 default:
-                    final String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : "
-                            + status.getReasonPhrase();
+                    final String log = VitamCodeHelper.getCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR) + " : " +
+                        status.getReasonPhrase();
                     LOGGER.error(log);
                     throw new StorageServerClientException(log);
             }
         } catch (final VitamClientInternalException e) {
-            final String errorMessage = VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            final String errorMessage =
+                VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
             LOGGER.error(errorMessage, e);
             throw new StorageServerClientException(errorMessage, e);
         } finally {
@@ -415,12 +427,14 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public RequestResponseOK backupStorageLog() throws StorageServerClientException ,InvalidParseOperationException {
+    public RequestResponseOK backupStorageLog()
+        throws StorageServerClientException, InvalidParseOperationException {
         Response response = null;
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter());
-            response = performRequest(HttpMethod.POST, BACKUP_STORAGE_LOG_URI, headers, MediaType.APPLICATION_JSON_TYPE);
+            response =
+                performRequest(HttpMethod.POST, BACKUP_STORAGE_LOG_URI, headers, MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
@@ -438,6 +452,31 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             consumeAnyEntityAndClose(response);
         }
 
+    }
+
+    @Override
+    public RequestResponse<OfferLog> getOfferLogs(String strategyId, DataCategory type, Long offset, int limit,
+        Order order)
+        throws StorageServerClientException {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
+        ParametersChecker.checkParameter(TYPE_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE, type);
+        ParametersChecker.checkParameter(ORDER_OF_STORAGE_OBJECT_MUST_HAVE_A_VALID_VALUE, order);
+
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET, "/" + type.name() + "/logs",
+                getDefaultHeaders(tenantId, strategyId, null, null), new OfferLogRequest(offset, limit, order),
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response, OfferLog.class);
+        } catch (VitamClientInternalException e) {
+            final String errorMessage =
+                VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            LOGGER.error(errorMessage, e);
+            throw new StorageServerClientException(errorMessage, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
     }
 
 }

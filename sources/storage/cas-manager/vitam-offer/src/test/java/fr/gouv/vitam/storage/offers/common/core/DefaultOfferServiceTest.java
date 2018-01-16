@@ -27,12 +27,14 @@
 
 package fr.gouv.vitam.storage.offers.common.core;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -44,15 +46,20 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.LongStream;
 
 import javax.ws.rs.core.Response;
 
-import fr.gouv.vitam.common.stream.StreamUtils;
-import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -63,11 +70,17 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.junit.AsyncResponseJunitTest;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 /**
  * Default offer service test implementation
@@ -88,14 +101,21 @@ public class DefaultOfferServiceTest {
     private static final String ARCHIVE_FILE_TXT = "archivefile.txt";
     private static final String OBJECT_ID_2_CONTENT = "Vitam Test Content";
 
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
+
+    @Mock
+    private OfferLogDatabaseService offerDatabaseService;
+
     @After
     public void deleteFiles() throws Exception {
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-                StorageConfiguration.class);
+            StorageConfiguration.class);
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID_2));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID_3));
-        Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID_DELETE));
+        Files.deleteIfExists(
+            Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID_DELETE));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder()));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, FOLDER_PATH));
         Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_ID));
@@ -122,26 +142,26 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void initOKTest() {
-        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
         assertNotNull(offerService);
     }
 
     @Test
     public void createObjectTestNoContainer() throws Exception {
-        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
         offerService.createObject("fakeContainer", OBJECT_ID, new FakeInputStream(1024), true, OBJECT_TYPE);
     }
 
     @Test
     public void createContainerTest() throws Exception {
-        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
         assertNotNull(offerService);
 
         offerService.initCreateObject(CONTAINER_PATH, getObjectInit(false), OBJECT_ID);
 
         // check
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-                StorageConfiguration.class);
+            StorageConfiguration.class);
         final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
@@ -151,7 +171,7 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void countObjectsTest() throws Exception {
-        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
         assertNotNull(offerService);
 
         offerService.initCreateObject(CONTAINER_PATH, getObjectInit(false), OBJECT_ID_2);
@@ -165,7 +185,7 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void createObjectTest() throws Exception {
-        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
         assertNotNull(offerService);
 
         // container
@@ -174,7 +194,7 @@ public class DefaultOfferServiceTest {
         // check
         assertEquals(OBJECT_ID, objectInit.getId());
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-                StorageConfiguration.class);
+            StorageConfiguration.class);
         final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
@@ -194,7 +214,7 @@ public class DefaultOfferServiceTest {
         final Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
         assertEquals(computedDigest, digest.toString());
         assertEquals(offerService.getObjectDigest(CONTAINER_PATH, OBJECT_ID, VitamConfiguration.getDefaultDigestType()),
-                digest.toString());
+            digest.toString());
 
         assertTrue(offerService.isObjectExist(CONTAINER_PATH, OBJECT_ID));
     }
@@ -204,7 +224,7 @@ public class DefaultOfferServiceTest {
     @Test
     @Ignore
     public void createObjectChunkTest() throws Exception {
-        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
         assertNotNull(offerService);
 
         // container
@@ -213,7 +233,7 @@ public class DefaultOfferServiceTest {
         // check
         assertEquals(OBJECT_ID, objectInit.getId());
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-                StorageConfiguration.class);
+            StorageConfiguration.class);
         final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
@@ -235,14 +255,15 @@ public class DefaultOfferServiceTest {
                     bytes = new byte[read];
                     bb.get(bytes, 0, read);
                     computedDigest = offerService.createObject(CONTAINER_PATH, objectInit.getId(),
-                            new ByteArrayInputStream(bytes), true, OBJECT_TYPE);
+                        new ByteArrayInputStream(bytes), true, OBJECT_TYPE);
                 } else {
                     bytes = bb.array();
                     computedDigest = offerService.createObject(CONTAINER_PATH, objectInit.getId(),
-                            new ByteArrayInputStream(bytes.clone()), false, OBJECT_TYPE);
+                        new ByteArrayInputStream(bytes.clone()), false, OBJECT_TYPE);
                     assertEquals(computedDigest,
-                            Digest.digest(new ByteArrayInputStream(bytes.clone()), VitamConfiguration.getDefaultDigestType())
-                                    .toString());
+                        Digest
+                            .digest(new ByteArrayInputStream(bytes.clone()), VitamConfiguration.getDefaultDigestType())
+                            .toString());
                 }
                 bb.clear();
                 read = fc.read(bb);
@@ -257,14 +278,14 @@ public class DefaultOfferServiceTest {
         final Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
         assertEquals(computedDigest, digest.toString());
         assertEquals(offerService.getObjectDigest(CONTAINER_PATH, objectInit.getType().getFolder() + "/" + OBJECT_ID,
-                VitamConfiguration.getDefaultDigestType()), digest.toString());
+            VitamConfiguration.getDefaultDigestType()), digest.toString());
 
         assertTrue(offerService.isObjectExist(CONTAINER_PATH, objectInit.getType().getFolder() + "/" + OBJECT_ID));
     }
 
     @Test
     public void getObjectTest() throws Exception {
-        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
         assertNotNull(offerService);
 
         offerService.initCreateObject(CONTAINER_PATH, getObjectInit(false), OBJECT_ID_2);
@@ -289,7 +310,7 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void getCapacityOk() throws Exception {
-        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
         assertNotNull(offerService);
 
         // container
@@ -298,7 +319,7 @@ public class DefaultOfferServiceTest {
         // check
         assertEquals(OBJECT_ID, objectInit.getId());
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-                StorageConfiguration.class);
+            StorageConfiguration.class);
         final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
@@ -311,7 +332,7 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void getCapacityNoContainerOK() throws Exception {
-        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
         assertNotNull(offerService);
         final JsonNode jsonNode = offerService.getCapacity(CONTAINER_PATH);
         assertNotNull(jsonNode);
@@ -321,7 +342,7 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void checkObjectTest() throws Exception {
-        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
         assertNotNull(offerService);
 
         final ObjectInit objectInit = getObjectInit(true);
@@ -331,18 +352,20 @@ public class DefaultOfferServiceTest {
         final InputStream streamToStore = StreamUtils.toInputStream(OBJECT_ID_2_CONTENT);
         String digest = offerService.createObject(CONTAINER_PATH, OBJECT_ID_3, streamToStore, true, OBJECT_TYPE);
 
-        assertTrue(offerService.checkObject(CONTAINER_PATH, OBJECT_ID_3, digest, VitamConfiguration.getDefaultDigestType()));
+        assertTrue(
+            offerService.checkObject(CONTAINER_PATH, OBJECT_ID_3, digest, VitamConfiguration.getDefaultDigestType()));
     }
 
     @Test
     public void deleteObjectTest() throws Exception {
-        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
         assertNotNull(offerService);
         offerService.initCreateObject(CONTAINER_PATH, getObjectInit(false), OBJECT_ID_DELETE);
 
         // creation of an object
         final InputStream streamToStore = StreamUtils.toInputStream(OBJECT_ID_2_CONTENT);
-        String digest = offerService.createObject(CONTAINER_PATH, OBJECT_ID_DELETE, streamToStore, true, DataCategory.UNIT);
+        String digest =
+            offerService.createObject(CONTAINER_PATH, OBJECT_ID_DELETE, streamToStore, true, DataCategory.UNIT);
 
         // check if the object has been created
         final Response response = offerService.getObject(CONTAINER_PATH, OBJECT_ID_DELETE);
@@ -370,8 +393,8 @@ public class DefaultOfferServiceTest {
 
         // check that if we try to delete an object with the correct digest +
         // algorithm, it succeeds
-        offerService.deleteObject(CONTAINER_PATH, OBJECT_ID_DELETE, digest, VitamConfiguration.getDefaultDigestType()
-            , DataCategory.UNIT);
+        offerService.deleteObject(CONTAINER_PATH, OBJECT_ID_DELETE, digest, VitamConfiguration.getDefaultDigestType(),
+            DataCategory.UNIT);
 
         try {
             // check that the object has been deleted
@@ -385,14 +408,14 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void listCreateCursorNoContainerTest() throws Exception {
-        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
         assertNotNull(offerService);
         offerService.createCursor(CONTAINER_PATH);
     }
 
     @Test
     public void listCreateCursorTest() throws Exception {
-        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
         assertNotNull(offerService);
         final ObjectInit objectInit = getObjectInit(false);
         offerService.initCreateObject(CONTAINER_PATH, objectInit, "fake");
@@ -408,7 +431,7 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void finalizeCursorTest() throws Exception {
-        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
         assertNotNull(offerService);
         String id = offerService.createCursor(CONTAINER_PATH);
         assertNotNull(id);
@@ -417,7 +440,7 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void listCursorTest() throws Exception {
-        final DefaultOfferService offerService = DefaultOfferServiceImpl.getInstance();
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
         assertNotNull(offerService);
         final ObjectInit objectInit = getObjectInit(false);
         for (int i = 0; i < 150; i++) {
@@ -446,5 +469,39 @@ public class DefaultOfferServiceTest {
         list = offerService.next(CONTAINER_PATH, cursorId);
         // TODO manage with exception
         assertNull(list);
+    }
+
+    @Test
+    public void getOfferLogs()
+        throws IOException, ContentAddressableStorageException {
+        when(offerDatabaseService.searchOfferLog(CONTAINER_PATH, 0L, 2, Order.DESC))
+            .thenReturn(getOfferLogs(CONTAINER_PATH, 0, 2, Order.DESC));
+        when(offerDatabaseService.searchOfferLog(CONTAINER_PATH, 2L, 3, Order.DESC))
+            .thenThrow(new ContentAddressableStorageDatabaseException("database error"));
+        when(offerDatabaseService.searchOfferLog(CONTAINER_PATH, 5L, 4, Order.DESC))
+            .thenThrow(new ContentAddressableStorageServerException("parse error"));
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+        assertNotNull(offerService);
+
+        assertThatCode(() -> {
+            offerService.getOfferLogs(CONTAINER_PATH, 0L, 2, Order.DESC);
+        }).doesNotThrowAnyException();
+        assertThatCode(() -> {
+            offerService.getOfferLogs(CONTAINER_PATH, 2L, 3, Order.DESC);
+        }).isInstanceOf(ContentAddressableStorageDatabaseException.class);
+        assertThatCode(() -> {
+            offerService.getOfferLogs(CONTAINER_PATH, 5L, 4, Order.DESC);
+        }).isInstanceOf(ContentAddressableStorageServerException.class);
+    }
+
+    private List<OfferLog> getOfferLogs(String containerName, long offset, int limit, Order order) {
+        List<OfferLog> offerLogs = new ArrayList<>();
+        LongStream.range(offset + 1, offset + 1 + limit).forEach(l -> {
+            OfferLog offerLog = new OfferLog(containerName, "object_" + l, "write");
+            offerLog.setSequence(l);
+            offerLog.setTime(LocalDateTime.now());
+            offerLogs.add(offerLog);
+        });
+        return offerLogs;
     }
 }

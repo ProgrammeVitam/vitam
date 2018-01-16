@@ -27,8 +27,36 @@
 
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.io.IOUtils;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -48,6 +76,8 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundExcept
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
@@ -56,30 +86,6 @@ import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogServiceImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import org.apache.commons.io.IOUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
 
 /**
  *
@@ -634,6 +640,30 @@ public class StorageDistributionImplTest {
         assertNotNull(result);
         assertTrue(result.isOk());
         assertFalse(Boolean.valueOf(result.getHeaderString(GlobalDataRest.X_CURSOR)));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void getOfferLogs() throws Exception {
+        assertThatCode(() -> {
+            simpleDistribution.getOfferLogs(STRATEGY_ID, DataCategory.OBJECT, 0L, 0, Order.ASC);
+        }).isInstanceOf(IllegalArgumentException.class);
+
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        RequestResponse<OfferLog> result =
+            simpleDistribution.getOfferLogs(STRATEGY_ID, DataCategory.OBJECT, 0L, 0, Order.ASC);
+        assertNotNull(result);
+        assertTrue(result.isOk());
+
+        assertThatCode(() -> {
+            simpleDistribution.getOfferLogs(null, null, 0L, 0, Order.ASC);
+        }).isInstanceOf(IllegalArgumentException.class);
+
+        assertThatCode(() -> {
+            simpleDistribution.getOfferLogs(STRATEGY_ID, null, 0L, 0, Order.ASC);
+        }).isInstanceOf(IllegalArgumentException.class);
+
+
     }
 
     private JsonNode getCheckObjectResult() throws IOException {

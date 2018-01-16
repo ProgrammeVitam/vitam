@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.After;
@@ -133,7 +134,7 @@ public class DriverManagerTest {
 
         @Override
         public List<String> getOffersFor(String driverName) throws StorageDriverMapperException {
-            return null;
+            return Arrays.asList("default");
         }
 
         @Override

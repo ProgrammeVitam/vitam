@@ -11,7 +11,7 @@ import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.security.internal.rest.SimpleMongoDBAccess;
+import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.security.internal.rest.mapper.CertificateExceptionMapper;
 import fr.gouv.vitam.security.internal.rest.mapper.IllegalArgumentExceptionMapper;
 import fr.gouv.vitam.security.internal.rest.repository.IdentityRepository;

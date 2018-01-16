@@ -27,8 +27,6 @@
 
 package fr.gouv.vitam.storage.driver;
 
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -39,6 +37,7 @@ import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
 import fr.gouv.vitam.storage.driver.model.StorageCountResult;
+import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
@@ -48,28 +47,25 @@ import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
 import fr.gouv.vitam.storage.driver.model.StorageRequest;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 
 /**
- * Represents a connection to the distant storage offer service that is provided
- * by the driver when calling the connect method:
+ * Represents a connection to the distant storage offer service that is provided by the driver when calling the connect
+ * method:
  * <p>
  * {@code myDriver.connect(serviceUrl, parameters);}
  * </p>
- * The connection implementation is driver dependent but MUST hold enough
- * informations/parameters/configurations to be able to contact the distant
- * offer service without the need to give additional connection related
- * parameters on further request done with this connection. In some cases it may
- * be considered as a "session".
+ * The connection implementation is driver dependent but MUST hold enough informations/parameters/configurations to be
+ * able to contact the distant offer service without the need to give additional connection related parameters on
+ * further request done with this connection. In some cases it may be considered as a "session".
  *
- * Note: Connection extends {@link AutoCloseable} so the connection
- * implementation MUST provide a close() method which responsibility is to
- * cleanly close and remove.
+ * Note: Connection extends {@link AutoCloseable} so the connection implementation MUST provide a close() method which
+ * responsibility is to cleanly close and remove.
  */
 
 public interface Connection extends AutoCloseable {
     /**
-     * Retrieve the remaining storage capacity available on the distant offer.
-     * Return values MUST in bytes
+     * Retrieve the remaining storage capacity available on the distant offer. Return values MUST in bytes
      *
      * @param tenantId the tenant id needed to get storage capacity
      * @return the usable and used space in bytes and a remind of the given tenantId
@@ -83,80 +79,56 @@ public interface Connection extends AutoCloseable {
     /**
      * Count the number of binary objects ine the container
      *
-     * @param request
-     *            the request to send. It contains informations of the
-     *            container.
-     * @return the number of binary objects and a remind of the given tenantId
-     *         and type
-     * @throws StorageDriverException
-     *             if any problem occurs during request
+     * @param request the request to send. It contains informations of the container.
+     * @return the number of binary objects and a remind of the given tenantId and type
+     * @throws StorageDriverException if any problem occurs during request
      */
     StorageCountResult countObjects(StorageRequest request) throws StorageDriverException;
 
     /**
-     * Retrieve an object from the storage offer based on criterias defined in
-     * request argument.
+     * Retrieve an object from the storage offer based on criterias defined in request argument.
      *
-     * @param request
-     *            the request to send. It contains informations needed to
-     *            retrieve a given object.
+     * @param request the request to send. It contains informations needed to retrieve a given object.
      * @return a result that may contains metadatas as well as the binary file
-     * @throws StorageDriverException
-     *             if any problem occurs during request
-     * @throws IllegalArgumentException
-     *             if request is wrong
+     * @throws StorageDriverException if any problem occurs during request
+     * @throws IllegalArgumentException if request is wrong
      */
     StorageGetResult getObject(StorageObjectRequest request) throws StorageDriverException;
 
     /**
-     * Put the object file into the storage offer based on criterias defined in
-     * request argument and underlaying connection parameters.
+     * Put the object file into the storage offer based on criterias defined in request argument and underlaying
+     * connection parameters.
      *
-     * @param request
-     *            the request to send. It may contains informations needed to
-     *            store the file.
-     * @return a result that may contains metadatas or statistics about the
-     *         object put operation.
-     * @throws StorageDriverException
-     *             if any problem occurs during request
+     * @param request the request to send. It may contains informations needed to store the file.
+     * @return a result that may contains metadatas or statistics about the object put operation.
+     * @throws StorageDriverException if any problem occurs during request
      */
     StoragePutResult putObject(StoragePutRequest request) throws StorageDriverException;
 
     /**
      * Delete an object on the distant storage offer.
      *
-     * @param request
-     *            the request to send, it contains information needed to delete
-     *            an object on the distant store
-     * @return a result that may contains metadatas or statistics about the
-     *         object removal operation.
-     * @throws StorageDriverException
-     *             if any problem occurs during request
+     * @param request the request to send, it contains information needed to delete an object on the distant store
+     * @return a result that may contains metadatas or statistics about the object removal operation.
+     * @throws StorageDriverException if any problem occurs during request
      */
     StorageRemoveResult removeObject(StorageRemoveRequest request) throws StorageDriverException;
 
     /**
      * Check if an object is present in the offer
      *
-     * @param request
-     *            the request to send. It contains informations needed to
-     *            retrieve a given object.
+     * @param request the request to send. It contains informations needed to retrieve a given object.
      * @return true if exists, else false
-     * @throws StorageDriverException
-     *             if any problem occurs during request
+     * @throws StorageDriverException if any problem occurs during request
      */
     boolean objectExistsInOffer(StorageObjectRequest request) throws StorageDriverException;
 
     /**
      * Check an object in order to validate its transfer
      *
-     * @param request
-     *            the request to send. It contains informations needed to check
-     *            the object.
-     * @return a result that may contains information about the object check
-     *         operation.
-     * @throws StorageDriverException
-     *             if any problem occurs during request
+     * @param request the request to send. It contains informations needed to check the object.
+     * @return a result that may contains information about the object check operation.
+     * @throws StorageDriverException if any problem occurs during request
      */
     StorageCheckResult checkObject(StorageCheckRequest request) throws StorageDriverException;
 
@@ -172,18 +144,25 @@ public interface Connection extends AutoCloseable {
     /**
      * List object on a container type
      *
-     * @param request
-     *            the request contains data needed to list container type
+     * @param request the request contains data needed to list container type
      * @return an iterator with each object metadata
      * @throws StorageDriverException
      */
     RequestResponse<JsonNode> listObjects(StorageListRequest request) throws StorageDriverException;
 
     /**
+     * Get a listing of offer logs on a container type
+     * 
+     * @param request the request contains data needed to retrieve the listing of the container
+     * @return the listing of last objects save according to the request
+     * @throws StorageDriverException to be thrown in case of any driver exception
+     */
+    RequestResponse<OfferLog> getOfferLogs(StorageOfferLogRequest request) throws StorageDriverException;
+
+    /**
      * Override AutoCloseable implementation to specify the exception
      *
-     * @throws StorageDriverException
-     *             to be thrown in case of any driver exception
+     * @throws StorageDriverException to be thrown in case of any driver exception
      */
     @Override
     void close() throws StorageDriverException;

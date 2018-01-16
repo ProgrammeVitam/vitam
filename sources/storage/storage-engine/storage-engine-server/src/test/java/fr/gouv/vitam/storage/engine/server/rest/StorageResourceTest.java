@@ -63,6 +63,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
@@ -76,7 +77,10 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 
@@ -587,7 +591,7 @@ public class StorageResourceTest {
 
         given().contentType(ContentType.JSON)
             .when().headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
-            TENANT_ID, LOGBOOKS_URI + LOGBOOK_ID_URI, "idl1")
+                TENANT_ID, LOGBOOKS_URI + LOGBOOK_ID_URI, "idl1")
             .then().statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
         // .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         given().contentType(ContentType.JSON)
@@ -800,7 +804,7 @@ public class StorageResourceTest {
 
         given().contentType(ContentType.JSON)
             .when().headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
-            TENANT_ID, UNITS_URI + METADATA_ID_URI, "idmd1")
+                TENANT_ID, UNITS_URI + METADATA_ID_URI, "idmd1")
             .then().statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
         // .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         given().contentType(ContentType.JSON)
@@ -923,7 +927,7 @@ public class StorageResourceTest {
 
         given().contentType(ContentType.JSON)
             .when().headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
-            TENANT_ID, OBJECT_GROUPS_URI + METADATA_ID_URI, "idmd1")
+                TENANT_ID, OBJECT_GROUPS_URI + METADATA_ID_URI, "idmd1")
             .then().statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
         // .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         given().contentType(ContentType.JSON)
@@ -972,8 +976,10 @@ public class StorageResourceTest {
     public void testGetCheckLogbookReportsStorageOk() throws Exception {
         given().accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID, VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
-            .when().get(CHECKLOGBOOKREPORTS + CHECKLOGBOOKREPORTS_URI, ID_0).then().statusCode(Status.OK.getStatusCode());
-        given().accept(MediaType.APPLICATION_OCTET_STREAM).when().get(CHECKLOGBOOKREPORTS + CHECKLOGBOOKREPORTS_URI, ID_0)
+            .when().get(CHECKLOGBOOKREPORTS + CHECKLOGBOOKREPORTS_URI, ID_0).then()
+            .statusCode(Status.OK.getStatusCode());
+        given().accept(MediaType.APPLICATION_OCTET_STREAM).when()
+            .get(CHECKLOGBOOKREPORTS + CHECKLOGBOOKREPORTS_URI, ID_0)
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
@@ -1047,8 +1053,8 @@ public class StorageResourceTest {
     public void backupOperationPreconditionFailed() {
         given().header(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID).accept(MediaType.APPLICATION_JSON)
             .contentType(MediaType.APPLICATION_JSON).when().post(STORAGE_BACKUP_OPERATION +
-            STORAGE_BACKUP_OPERATION_ID_URI, "id").then().statusCode(Status
-            .PRECONDITION_FAILED.getStatusCode());
+                STORAGE_BACKUP_OPERATION_ID_URI, "id")
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -1062,9 +1068,41 @@ public class StorageResourceTest {
         given().header(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID).header(VitamHttpHeader.STRATEGY_ID.getName(),
             "default").accept(MediaType.APPLICATION_JSON)
             .contentType(MediaType.APPLICATION_JSON).body(objectDescription).when().post(STORAGE_BACKUP_OPERATION +
-            STORAGE_BACKUP_OPERATION_ID_URI, "id").then().statusCode(Status
-            .CREATED.getStatusCode());
+                STORAGE_BACKUP_OPERATION_ID_URI, "id")
+            .then().statusCode(Status.CREATED.getStatusCode());
     }
+
+    @Test
+    public void getOfferLogs() {
+        final OfferLogRequest offerLogRequest = new OfferLogRequest(2L, 10, Order.DESC);
+        given()
+            .header(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .header(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
+            .contentType(ContentType.JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(offerLogRequest)
+            .when().get("/" + DataCategory.OBJECT.name() + "/logs")
+            .then().statusCode(Status.OK.getStatusCode());
+
+        given()
+            .header(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_A_E)
+            .header(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
+            .contentType(ContentType.JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(offerLogRequest)
+            .when().get("/" + DataCategory.OBJECT.name() + "/logs")
+            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+
+        given()
+            .header(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .header(VitamHttpHeader.STRATEGY_ID.getName(), "")
+            .contentType(ContentType.JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .body(offerLogRequest)
+            .when().get("/" + DataCategory.OBJECT.name() + "/logs")
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
 
     private static VitamStarter buildTestServer() {
         return new VitamStarter(StorageConfiguration.class, "storage-engine.conf",
@@ -1306,6 +1344,19 @@ public class StorageResourceTest {
         public void close() {
             // Nothing
         }
+
+        @Override
+        public RequestResponse<OfferLog> getOfferLogs(String strategyId, DataCategory category, Long offset, int limit,
+            Order order)
+            throws StorageException {
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            if (TENANT_ID_A_E.equals(tenantId)) {
+                throw new StorageTechnicalException("Technical error");
+            }
+            return new RequestResponseOK<OfferLog>().setHttpCode(Status.OK.getStatusCode());
+        }
+
+
 
     }
 

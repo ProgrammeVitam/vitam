@@ -37,7 +37,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
-import fr.gouv.vitam.common.storage.StorageConfiguration;
 
 public class DefaultOfferMain {
 
@@ -50,7 +49,7 @@ public class DefaultOfferMain {
     public DefaultOfferMain(String configurationFile) {
         ParametersChecker.checkParameter(String.format(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
             CONF_FILE_NAME), configurationFile);
-        vitamStarter = new VitamStarter(StorageConfiguration.class, configurationFile,
+        vitamStarter = new VitamStarter(OfferConfiguration.class, configurationFile,
             BusinessApplication.class,  AdminApplication.class);
     }
 

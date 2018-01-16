@@ -33,10 +33,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.cas.container.builder.StoreContextBuilder;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -55,7 +57,11 @@ import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -69,7 +75,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferServiceImpl.class);
 
-    private static final DefaultOfferService INSTANCE = new DefaultOfferServiceImpl();
     private final ContentAddressableStorage defaultStorage;
     private static final String STORAGE_CONF_FILE_NAME = "default-storage.conf";
 
@@ -78,9 +83,12 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     private final Map<String, String> mapXCusor;
 
+    private OfferLogDatabaseService offerDatabaseService;
+
     // FIXME When the server shutdown, it should be able to close the
     // defaultStorage (Http clients)
-    private DefaultOfferServiceImpl() {
+    public DefaultOfferServiceImpl(OfferLogDatabaseService offerDatabaseService) {
+        this.offerDatabaseService = offerDatabaseService;
         StorageConfiguration configuration;
         try {
             configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF_FILE_NAME),
@@ -93,13 +101,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         digestTypeFor = new HashMap<>();
         objectTypeFor = new HashMap<>();
         mapXCusor = new HashMap<>();
-    }
-
-    /**
-     * @return the default instance
-     */
-    public static DefaultOfferService getInstance() {
-        return INSTANCE;
     }
 
     @Override
@@ -117,7 +118,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public ObjectInit initCreateObject(String containerName, ObjectInit objectInit, String objectGUID)
-        throws ContentAddressableStorageServerException {
+        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
         try {
             defaultStorage.createContainer(containerName);
         } catch (ContentAddressableStorageAlreadyExistException ex) {
@@ -131,12 +132,14 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             digestTypeFor.put(objectGUID, VitamConfiguration.getDefaultDigestType());
         }
 
+        offerDatabaseService.save(containerName, objectInit.getId(), "write");
         return objectInit;
     }
 
     @Override
     public String createObject(String containerName, String objectId, InputStream objectPart, boolean ending,
-        DataCategory type) throws IOException, ContentAddressableStorageException {
+        DataCategory type)
+        throws IOException, ContentAddressableStorageException {
         // TODO No chunk mode (should be added in the future)
         // TODO the objectPart should contain the full object.
         try {
@@ -231,7 +234,8 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public void deleteObject(String containerName, String objectId, String digest, DigestType digestAlgorithm,
-        DataCategory type) throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+        DataCategory type)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
         if (!type.canDelete()) {
             throw new ContentAddressableStorageException("Object with id " + objectId + "can not be deleted");
         }
@@ -295,6 +299,12 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         if (mapXCusor.containsKey(getKeyMap(containerName, cursorId))) {
             mapXCusor.remove(getKeyMap(containerName, cursorId));
         }
+    }
+
+    @Override
+    public List<OfferLog> getOfferLogs(String containerName, Long offset, int limit, Order order)
+        throws ContentAddressableStorageDatabaseException, ContentAddressableStorageServerException {
+        return offerDatabaseService.searchOfferLog(containerName, offset, limit, order);
     }
 
     private List<JsonNode> getListFromPageSet(VitamPageSet<? extends VitamStorageMetadata> pageSet) {

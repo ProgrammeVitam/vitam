@@ -38,9 +38,6 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -48,12 +45,16 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
@@ -61,7 +62,10 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
 /**
@@ -199,6 +203,19 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
         } catch (InvalidParseOperationException e) {
             throw new StorageServerClientException(e);
         }
+    }
+
+    @Override
+    public RequestResponse<OfferLog> getOfferLogs(String strategyId, DataCategory type, Long offset, int limit, Order order)
+        throws StorageServerClientException {
+        RequestResponseOK<OfferLog> requestResponseOK = new RequestResponseOK<>();
+        OfferLog offerLog = new OfferLog();
+        offerLog.setContainer(type.getFolder() + "_0");
+        offerLog.setFileName("fileName_" + (offset + 1));
+        offerLog.setSequence(offset + 1);
+        offerLog.setTime(LocalDateTime.of(2017, 12, 13, 12, 0, 0, 0));
+        requestResponseOK.addResult(offerLog);
+        return requestResponseOK;
     }
 
 }

@@ -2,6 +2,7 @@
 # Strategy order (1st has to be the prefered one)
 vitam_strategy:
   - name: offer-fs-1
+    referent: true
 #  - name: offer_swift_1
 
 # DON'T forget to add associated passwords in vault-vitam.yml with same tree when using provider openstack-swift*

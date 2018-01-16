@@ -4,3 +4,15 @@ storagePath: {{vitam_folder_data}}
 jettyConfig: jetty-config.xml
 authentication : {{ vitam_struct.https_enabled }}
 tenants:  [ "{{ vitam_tenant_ids | join('", "') }}" ]
+# Configuration MongoDB
+mongoDbNodes:
+{% for server in groups['hosts-mongos-offer'] %}
+{% if hostvars[server]['mongo_cluster_name'] == offer_conf %}
+- dbHost: {{hostvars[server]['ip_service']}}
+  dbPort: {{ mongodb.mongos_port }}
+{% endif %}
+{% endfor %}
+dbName: offer
+dbAuthentication: {{ mongodb.mongo_authentication }}
+dbUserName: {{ mongodb.offer.offer.user }}
+dbPassword: {{ mongodb.offer.offer.password }}

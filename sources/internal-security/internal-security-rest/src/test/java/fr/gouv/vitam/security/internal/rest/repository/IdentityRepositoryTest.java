@@ -33,7 +33,7 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import fr.gouv.vitam.common.mongo.MongoRule;
-import fr.gouv.vitam.security.internal.rest.SimpleMongoDBAccess;
+import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import org.bson.Document;
 import org.junit.Before;
 import org.junit.Rule;

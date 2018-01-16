@@ -30,6 +30,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +66,8 @@ import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
 import fr.gouv.vitam.storage.driver.model.StorageCountResult;
+import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
+import fr.gouv.vitam.storage.driver.model.StorageOfferLogResult;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
@@ -74,6 +77,7 @@ import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
 import fr.gouv.vitam.storage.driver.model.StorageRequest;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 /**
@@ -289,7 +293,7 @@ public class FakeDriverImpl extends AbstractDriver {
             try (VitamRequestIterator<ObjectNode> iterator =
                 new VitamRequestIterator<>(this, HttpMethod.GET, "/iterator",
                     ObjectNode.class, null, null)) {
-                final RequestResponseOK response = new RequestResponseOK(JsonHandler.createObjectNode());
+                final RequestResponseOK<JsonNode> response = new RequestResponseOK<>(JsonHandler.createObjectNode());
                 final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
                 final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
                 final ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
@@ -305,6 +309,20 @@ public class FakeDriverImpl extends AbstractDriver {
 
                 return response;
             }
+        }
+
+        @Override
+        public RequestResponse<OfferLog> getOfferLogs(StorageOfferLogRequest storageOfferLogRequest) {
+            OfferLog offerLog = new OfferLog();
+            offerLog.setContainer(storageOfferLogRequest.getType() + "_" + storageOfferLogRequest.getTenantId());
+            offerLog.setFileName("fileName_" + (storageOfferLogRequest.getOffset() + 1));
+            offerLog.setSequence(storageOfferLogRequest.getOffset() + 1);
+            offerLog.setTime(LocalDateTime.of(2017, 12, 13, 12, 0, 0, 0));
+
+            RequestResponseOK<OfferLog> requestResponseOK = new RequestResponseOK<>();
+            requestResponseOK.addResult(offerLog);
+
+            return requestResponseOK;
         }
     }
 

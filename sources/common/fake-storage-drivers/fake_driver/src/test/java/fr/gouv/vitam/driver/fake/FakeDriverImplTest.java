@@ -26,30 +26,31 @@
  *******************************************************************************/
 package fr.gouv.vitam.driver.fake;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Properties;
 
-import fr.gouv.vitam.common.stream.StreamUtils;
-import org.apache.commons.io.IOUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
+import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRequest;
+import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 public class FakeDriverImplTest {
@@ -79,19 +80,15 @@ public class FakeDriverImplTest {
 
     @Test
     public void givenCorrectPropertiesThenConnect() throws Exception {
-        final Properties props = new Properties();
         final Connection connect = driver.connect(offer.getId());
         assertNotNull(connect);
         StorageCapacityResult storageCapacityResult = connect.getStorageCapacity(1);
         assertEquals(storageCapacityResult.getUsableSpace(), 1000000);
         assertEquals(storageCapacityResult.getUsedSpace(), 99999);
 
-        try {
-            storageCapacityResult = connect.getStorageCapacity(-1);
-            fail("Should raized an exception");
-        } catch (final StorageDriverException e) {
-
-        }
+        assertThatCode(() -> {
+            connect.getStorageCapacity(-1);
+        }).isInstanceOf(StorageDriverException.class);
 
         final StorageGetResult getObjectResult = connect.getObject(new StorageObjectRequest(tenant, "object", "guid"));
         assertNotNull(getObjectResult);
@@ -100,48 +97,48 @@ public class FakeDriverImplTest {
         assertNotNull(getObjectResult.getGuid());
         assertNotNull(getObjectResult.getObject());
         final StoragePutRequest putObjectRequest = new StoragePutRequest(tenant, "type", "guid",
-                VitamConfiguration.getDefaultDigestType().getName(), StreamUtils.toInputStream("Vitam" + " test"));
+            VitamConfiguration.getDefaultDigestType().getName(), StreamUtils.toInputStream("Vitam" + " test"));
         assertNotNull(connect.putObject(putObjectRequest));
 
-        try {
+        assertThatCode(() -> {
             final StoragePutRequest putObjectRequest2 = new StoragePutRequest(tenant, "type", "guid", "fakeAlgorithm",
                 StreamUtils.toInputStream("Vitam test"));
             connect.putObject(putObjectRequest2);
-            fail("Should raized an exception");
-        } catch (final StorageDriverException e) {
-
-        }
+        }).isInstanceOf(StorageDriverException.class);
 
         final StoragePutRequest putObjectRequest3 = new StoragePutRequest(tenant, "type", "digest_bad_test",
-                VitamConfiguration.getDefaultDigestType().getName(), StreamUtils.toInputStream("Vitam test"));
+            VitamConfiguration.getDefaultDigestType().getName(), StreamUtils.toInputStream("Vitam test"));
         assertNotNull(connect.putObject(putObjectRequest3));
         assertNotNull(connect.countObjects(new StorageRequest(tenant, "object")));
 
-        try {
-            final StorageRemoveRequest storageRemoveRequest = new StorageRemoveRequest(tenant, "type", "digest_bad_test",
-                    VitamConfiguration.getDefaultDigestType(), "digest_test");
+        assertThatCode(() -> {
+            final StorageRemoveRequest storageRemoveRequest =
+                new StorageRemoveRequest(tenant, "type", "digest_bad_test", VitamConfiguration.getDefaultDigestType(),
+                    "digest_test");
             connect.removeObject(storageRemoveRequest);
-            fail("Should raized an exception");
-        } catch (final StorageDriverException e) {
+        }).isInstanceOf(StorageDriverException.class);
 
-        }
         assertNotNull(connect.removeObject(
-                new StorageRemoveRequest(tenant, "type", "guid", VitamConfiguration.getDefaultDigestType(), "digest_test")));
+            new StorageRemoveRequest(tenant, "type", "guid", VitamConfiguration.getDefaultDigestType(),
+                "digest_test")));
 
         assertTrue(connect.objectExistsInOffer(new StorageObjectRequest(tenant, "object", "already_in_offer")));
 
         final StorageCheckRequest storageCheckRequest = new StorageCheckRequest(2, "type", "digest_test",
-                VitamConfiguration.getDefaultDigestType(), null);
+            VitamConfiguration.getDefaultDigestType(), null);
         assertNotNull(connect.checkObject(storageCheckRequest));
 
-        try {
+        assertThatCode(() -> {
             final StorageCheckRequest storageCheckRequest2 = new StorageCheckRequest(-1, "type", "digest_bad_test",
-                    VitamConfiguration.getDefaultDigestType(), null);
+                VitamConfiguration.getDefaultDigestType(), null);
             connect.checkObject(storageCheckRequest2);
-            fail("Should raized an exception");
-        } catch (final StorageDriverException e) {
+        }).isInstanceOf(StorageDriverException.class);
 
-        }
+        assertThatCode(() -> {
+            StorageOfferLogRequest request = new StorageOfferLogRequest(1, "type", 0L, 0, Order.ASC);
+            connect.getOfferLogs(request);
+        }).doesNotThrowAnyException();
+
 
         connect.close();
     }
@@ -155,7 +152,7 @@ public class FakeDriverImplTest {
     public void isStorageOfferAvailableOK() throws Exception {
         final StorageOffer offer = new StorageOffer();
         offer.setParameters(new HashMap<>());
-        offer.getParameters().put("s","s");
+        offer.getParameters().put("s", "s");
         offer.setId("FakeOffer");
         assertEquals(true, driver.isStorageOfferAvailable(offer.getId()));
     }
@@ -176,5 +173,6 @@ public class FakeDriverImplTest {
     public void getMinorVersionOK() throws Exception {
         assertEquals(0, driver.getMinorVersion());
     }
+
 
 }

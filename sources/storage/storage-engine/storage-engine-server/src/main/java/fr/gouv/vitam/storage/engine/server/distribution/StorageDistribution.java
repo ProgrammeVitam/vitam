@@ -29,7 +29,6 @@ package fr.gouv.vitam.storage.engine.server.distribution;
 import java.io.InputStream;
 import java.util.List;
 
-import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -42,6 +41,8 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
@@ -150,6 +151,23 @@ public interface StorageDistribution extends VitamAutoCloseable {
      *             thrown in case of any technical problem
      */
     RequestResponse<JsonNode> listContainerObjects(String strategyId, DataCategory category, String cursorId) throws StorageException;
+    
+    /**
+     * Get offer log from referent
+     * 
+     * @param strategyId
+     *            the strategy id to get offers
+     * @param category
+     *            the object type to list
+     * @param offset
+     *            offset of the excluded object
+     * @param limit the number of result wanted
+     * @param order order
+     * @return list of offer log
+     * @throws StorageException
+     *             thrown in case of any technical problem
+     */
+    RequestResponse<OfferLog> getOfferLogs(String strategyId, DataCategory category, Long offset, int limit, Order order) throws StorageException;
 
     /**
      * Get a specific Object binary data as an input stream
