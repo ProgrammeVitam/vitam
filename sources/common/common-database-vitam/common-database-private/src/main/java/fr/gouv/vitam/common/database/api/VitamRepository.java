@@ -58,6 +58,15 @@ public interface VitamRepository {
     void save(List<Document> documents) throws DatabaseException;
 
     /**
+     * Save or update a list of vitam documents
+     *
+     * @param documents
+     * @throws DatabaseException
+     */
+    void saveOrUpdate(List<Document> documents) throws DatabaseException;
+
+
+    /**
      * Remove document by id
      *
      * @param id

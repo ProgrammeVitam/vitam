@@ -336,4 +336,13 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
         throws LogbookClientAlreadyExistsException, LogbookClientBadRequestException, LogbookClientServerException {
         // do nothing
     }
+    
+    @Override
+    public void createRawbulkObjectgrouplifecycles(List<JsonNode> logbookLifeCycleRaws)
+        throws LogbookClientBadRequestException, LogbookClientServerException {}
+
+    @Override
+    public void createRawbulkUnitlifecycles(List<JsonNode> logbookLifeCycleRaws)
+        throws LogbookClientBadRequestException, LogbookClientServerException {}
+
 }

@@ -26,15 +26,20 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.lifecycles.client;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.Test;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -291,4 +296,26 @@ public class LogbookLifeCyclesClientMockTest {
         assertNotNull(objectGroupLifeCycleStatus);
         assertEquals(objectGroupLifeCycleStatus, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
     }
+    
+    @Test
+    public void testRawbulkLifecycles()
+        throws LogbookClientNotFoundException, LogbookClientServerException, LogbookClientBadRequestException {
+        LogbookLifeCyclesClientFactory.changeMode(null);
+
+        final LogbookLifeCyclesClient client =
+            LogbookLifeCyclesClientFactory.getInstance().getClient();
+        assertNotNull(client);
+
+        List<JsonNode> lifecycles = new ArrayList<>();
+        lifecycles.add(JsonHandler.createObjectNode());
+        lifecycles.add(JsonHandler.createObjectNode());
+
+        assertThatCode(() -> {
+            client.createRawbulkObjectgrouplifecycles(lifecycles);
+        }).doesNotThrowAnyException();
+        assertThatCode(() -> {
+            client.createRawbulkUnitlifecycles(lifecycles);
+        }).doesNotThrowAnyException();
+    }
+
 }

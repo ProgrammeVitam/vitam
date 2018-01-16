@@ -119,6 +119,9 @@ public class VitamElasticsearchRepositoryTest {
         Document document = Document.parse(builder.string());
         repository.save(document);
 
+        assertThat(document.get(VitamDocument.ID)).isNotNull();
+        assertThat(document.get(VitamDocument.ID)).isEqualTo(id);
+        
         Optional<Document> response = repository.getByID(id, tenant);
         assertThat(response).isPresent();
         assertThat(response.get()).extracting("Title").contains("Test save");
@@ -159,6 +162,57 @@ public class VitamElasticsearchRepositoryTest {
         assertThat(deleted).isEqualTo(101);
     }
 
+    @Test
+    public void testSaveOrUpdateMultipleDocumentsOK() throws IOException, DatabaseException {
+        List<String> guids = new ArrayList<>();
+
+        // insert tenant 0
+        List<Document> documents = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            String guid = GUIDFactory.newGUID().toString();
+            guids.add(guid);
+            XContentBuilder builder = jsonBuilder()
+                .startObject()
+                .field(VitamDocument.ID, guid)
+                .field(VitamDocument.TENANT_ID, 0)
+                .field("Title", "Test save " + RandomUtils.nextDouble())
+                .endObject();
+            documents.add(Document.parse(builder.string()));
+        }
+
+        repository.saveOrUpdate(documents);
+        for (int i = 0; i < 100; i++) {
+            assertThat(documents.get(i).get(VitamDocument.ID)).isNotNull();
+            assertThat(documents.get(i).get(VitamDocument.ID)).isEqualTo(guids.get(i));
+        }
+
+        // update tenant 0
+        List<Document> updatedDocuments = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            XContentBuilder builder = jsonBuilder()
+                .startObject()
+                .field(VitamDocument.ID, guids.get(i))
+                .field(VitamDocument.TENANT_ID, 0)
+                .field("Title", "Test save updated")
+                .endObject();
+            updatedDocuments.add(Document.parse(builder.string()));
+        }
+
+        repository.saveOrUpdate(updatedDocuments);
+        for (int i = 0; i < 100; i++) {
+            assertThat(updatedDocuments.get(i).get(VitamDocument.ID)).isNotNull();
+            assertThat(updatedDocuments.get(i).get(VitamDocument.ID)).isEqualTo(guids.get(i));
+        }
+
+        Optional<Document> response = repository.getByID(guids.get(0), 0);
+        assertThat(response).isPresent();
+        assertThat(response.get()).extracting("Title").contains("Test save updated");
+
+        // purge tenant 0
+        long deleted = repository.purge(0);
+        assertThat(deleted).isEqualTo(100);
+
+    }
 
     @Test
     public void testRemoveOK() throws IOException, DatabaseException {

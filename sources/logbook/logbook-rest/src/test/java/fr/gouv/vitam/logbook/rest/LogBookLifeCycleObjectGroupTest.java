@@ -30,13 +30,13 @@ import static com.jayway.restassured.RestAssured.given;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.PropertiesUtils;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.jhades.JHades;
@@ -46,6 +46,7 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 
@@ -58,12 +59,15 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -252,7 +256,7 @@ public class LogBookLifeCycleObjectGroupTest {
     }
 
     @Test
-    public final void given_lifeCycleObjectGroup_when_create_thenReturn_created() {
+    public final void given_lifeCycleObjectGroup_when_create_thenReturn_created() throws InvalidParseOperationException {
         // Creation OK
 
         logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventType, "event");
@@ -342,10 +346,12 @@ public class LogBookLifeCycleObjectGroupTest {
             .statusCode(Status.OK.getStatusCode());
 
         // Test direct access
+        JsonNode jsonNode =
+            JsonHandler.getFromString("{\"$query\":{\"$eq\":{\"_id\":\"" + objectId + "\"}}},  {\"$projection\":{}}\"");
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, 0)
-            .body(new Select().getFinalSelect())
+            .body(jsonNode)
             .when()
             .get("/objectgrouplifecycles/" + objectId)
             .then()
@@ -436,5 +442,45 @@ public class LogBookLifeCycleObjectGroupTest {
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
+    
+    @Test
+    public final void given_lifeCycleGO_bulk_raw_when_create_thenReturn_created()
+        throws InvalidParseOperationException, FileNotFoundException {
+        List<JsonNode> lfcGotList = new ArrayList<>();
+        lfcGotList.add(JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream("lfc_got_raw_aebaaaaaaaef6ys5absnuala7t4lfmiaaabq.json")));
+        lfcGotList.add(JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream("lfc_got_raw_aebaaaaaaageqltuabfg2ala73rnaqiaaaba.json")));
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, tenantId)
+            .body(lfcGotList)
+            .when()
+            .post("/objectgrouplifecycles/bulk/raw")
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, tenantId)
+            .body(lfcGotList)
+            .when()
+            .post("/objectgrouplifecycles/bulk/raw")
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        lfcGotList.add(JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream("lfc_got_raw_aebaaaaaaageqltuabfg2ala73rnaqiaaaba_diff.json")));
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, tenantId)
+            .body(lfcGotList)
+            .when()
+            .post("/objectgrouplifecycles/bulk/raw")
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
+    }
+
 
 }

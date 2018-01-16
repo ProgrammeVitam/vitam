@@ -180,6 +180,10 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         super(mongoClient, dbname, recreate);
         this.esClient = esClient;
 
+        // FIXME : externalize initialization of collections to avoid being dependant of current class instanciation
+        // when using the static LogbookCollections
+
+        
         LogbookCollections.OPERATION.initialize(getMongoDatabase(), recreate);
         LogbookCollections.LIFECYCLE_UNIT.initialize(getMongoDatabase(), recreate);
         LogbookCollections.LIFECYCLE_OBJECTGROUP.initialize(getMongoDatabase(), recreate);

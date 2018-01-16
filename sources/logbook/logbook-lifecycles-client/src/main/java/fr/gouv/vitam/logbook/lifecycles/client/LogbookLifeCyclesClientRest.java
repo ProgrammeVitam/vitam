@@ -79,6 +79,8 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     private static final String OPERATIONS_URL = "/operations";
     private static final String UNIT_LIFECYCLES_URL = "/unitlifecycles";
     private static final String OBJECT_GROUP_LIFECYCLES_URL = "/objectgrouplifecycles";
+    private static final String OBJECT_GROUP_LIFECYCLES_RAW_BULK_URL = "/objectgrouplifecycles/bulk/raw";
+    private static final String UNIT_LIFECYCLES_RAW_BULK_URL = "/unitlifecycles/bulk/raw";
     private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
 
 
@@ -146,29 +148,30 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
 
     @Override
     public void update(LogbookLifeCycleParameters parameters, LifeCycleStatusCode lifeCycleStatusCode)
-            throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier,
-                SERVER_IDENTITY.getJsonIdentity());
+            SERVER_IDENTITY.getJsonIdentity());
         if (parameters.getParameterValue(LogbookParameterName.eventDateTime) == null) {
             parameters.putParameterValue(LogbookParameterName.eventDateTime,
-                    LocalDateUtil.now().toString());
+                LocalDateUtil.now().toString());
         }
         ParameterHelper
-                .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
+            .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         final String eip = parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
         final String oid = parameters.getParameterValue(LogbookParameterName.objectIdentifier);
         final String lid = parameters.getParameterValue(LogbookParameterName.lifeCycleIdentifier);
 
         // Add X-EVENT-STATUS header
         MultivaluedHashMap<String, Object> headers = null;
-        if(lifeCycleStatusCode != null) {
+        if (lifeCycleStatusCode != null) {
             headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_EVENT_STATUS, lifeCycleStatusCode.toString());
         }
-        
+
         Response response = null;
         try {
-            response = performRequest(HttpMethod.PUT, getServiceUrl(parameters, eip, (lid != null) ? lid : oid), headers,
+            response =
+                performRequest(HttpMethod.PUT, getServiceUrl(parameters, eip, (lid != null) ? lid : oid), headers,
                     parameters, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
@@ -181,7 +184,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
                 case BAD_REQUEST:
                     LOGGER.error(eip + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
                     throw new LogbookClientBadRequestException(
-                            ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                        ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
                 default:
                     LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
                     throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
@@ -755,6 +758,47 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
                     throw new LogbookClientAlreadyExistsException(ErrorMessage.LOGBOOK_ALREADY_EXIST.getMessage());
                 case BAD_REQUEST:
                     LOGGER.error(eventIdProc + " " + ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                    throw new LogbookClientBadRequestException(
+                        ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
+                default:
+                    LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                    throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public void createRawbulkObjectgrouplifecycles(List<JsonNode> logbookLifeCycleRaws)
+        throws LogbookClientBadRequestException, LogbookClientServerException {
+        createRawbulk(logbookLifeCycleRaws, OBJECT_GROUP_LIFECYCLES_RAW_BULK_URL);
+    }
+
+    @Override
+    public void createRawbulkUnitlifecycles(List<JsonNode> logbookLifeCycleRaws)
+        throws LogbookClientBadRequestException, LogbookClientServerException {
+        createRawbulk(logbookLifeCycleRaws, UNIT_LIFECYCLES_RAW_BULK_URL);
+    }
+
+    private void createRawbulk(List<JsonNode> logbookLifeCycleRaws, String url)
+        throws LogbookClientBadRequestException, LogbookClientServerException {
+        Response response = null;
+        try {
+
+            response =
+                performRequest(HttpMethod.POST, url, null,
+                    logbookLifeCycleRaws, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case CREATED:
+                    LOGGER.debug(Response.Status.CREATED.getReasonPhrase());
+                    break;
+                case BAD_REQUEST:
+                    LOGGER.error(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
                     throw new LogbookClientBadRequestException(
                         ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
                 default:
