@@ -24,16 +24,11 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.logbook.administration.core;
+package fr.gouv.vitam.logbook.common.model;
 
-import fr.gouv.vitam.common.security.merkletree.MerkleTree;
-import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.logbook.administration.core.TraceabilityFile;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
-import org.apache.commons.io.IOUtils;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import static fr.gouv.vitam.common.PropertiesUtils.getResourceAsStream;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 import java.io.File;
 import java.io.InputStream;
@@ -41,9 +36,12 @@ import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import static fr.gouv.vitam.common.PropertiesUtils.getResourceAsStream;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import fr.gouv.vitam.common.security.merkletree.MerkleTree;
+import fr.gouv.vitam.common.stream.StreamUtils;
 
 /**
  * TraceabilityFile ClassTest
@@ -62,11 +60,11 @@ public class TraceabilityFileTest {
         File destination = folder.newFile();
 
         // When
-        TraceabilityFile traceabilityFile = new TraceabilityFile(destination);
-        traceabilityFile.initStoreOperationLog();
-        LogbookOperation lop = new LogbookOperation(StreamUtils.toString(getResourceAsStream(LOGBOOK_OPERATION)));
-        traceabilityFile.storeOperationLog(lop);
-        traceabilityFile.closeStoreOperationLog();
+        TraceabilityFile traceabilityFile = new TraceabilityFile(destination, "test");
+        traceabilityFile.initStoreLog();
+        byte[] line = StreamUtils.toString(getResourceAsStream(LOGBOOK_OPERATION)).getBytes();
+        traceabilityFile.storeLog(line);
+        traceabilityFile.closeStoreLog();
 
         MerkleTree merkleTree = mock(MerkleTree.class);
         traceabilityFile.storeMerkleTree(merkleTree);
@@ -76,7 +74,7 @@ public class TraceabilityFileTest {
         traceabilityFile.storeTimeStampToken(timeStampToken);
 
         traceabilityFile.storeAdditionalInformation(1, "2016-11-21T16:19:13.469", "2016-11-21T16:19:14.469");
-        traceabilityFile.storeHashCalculationInformation("hah11111", "hahss11221", "h12334", "hs12334SS");
+        traceabilityFile.storeComputedInformation("hah11111", "hahss11221", "h12334", "hs12334SS");
         traceabilityFile.close();
 
         //Then
