@@ -110,6 +110,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String PROFILE_URI = "/profiles";
     private static final String CONTEXT_URI = "/contexts";
     private static final String AUDIT_URI = "/audit";
+    private static final String AUDIT_RULE_URI = "/auditRule";
     private static final String UPDATE_CONTEXT_URI = "/context/";
     private static final String UPDATE_PROFIL_URI = "/profiles/";
     private static final String SECURITY_PROFILES_URI = "/securityprofiles";
@@ -1186,6 +1187,23 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
             return RequestResponse.parseFromResponse(response);
 
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> launchRuleAudit() throws AdminManagementClientServerException {
+        Response response = null;
+        RequestResponse result = null;
+        try {
+            response = performRequest(HttpMethod.POST, AUDIT_RULE_URI, null, null,
+                    MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);
             throw new AdminManagementClientServerException("Internal Server Error", e);

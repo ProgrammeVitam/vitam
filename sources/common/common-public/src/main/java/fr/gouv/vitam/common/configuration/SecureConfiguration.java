@@ -24,9 +24,10 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.logbook.administration.main;
+package fr.gouv.vitam.common.configuration;
 
 import java.util.List;
+
 /**
  * Secure configuration
  */
@@ -55,7 +56,7 @@ public class SecureConfiguration {
         this.tenants = tenants;
     }
 
-    protected List<String> tenants ;
+    protected List<String> tenants;
 
 
 }

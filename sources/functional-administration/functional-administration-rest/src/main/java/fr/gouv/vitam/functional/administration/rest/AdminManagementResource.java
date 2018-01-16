@@ -38,7 +38,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -55,13 +54,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.error.ServiceName;
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import com.google.common.collect.Iterables;
-
+import org.apache.commons.lang3.StringUtils;
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -72,6 +67,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
+import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
@@ -104,6 +100,7 @@ import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
@@ -118,7 +115,6 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminF
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
 import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
 import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -149,6 +145,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementResource.class);
     private static final String AUDIT_URI = "/audit";
+    private static final String AUDIT_RULE_URI = "/auditRule";
     private static final String OPTIONS_IS_MANDATORY_PATAMETER =
         "The json option is mandatory";
 
@@ -753,6 +750,25 @@ public class AdminManagementResource extends ApplicationStatusResource {
         return Response.status(Status.OK)
             .entity(accessionRegisterDetails)
             .build();
+    }
+
+    @Path(AUDIT_RULE_URI)
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response launchRuleAudit() {
+        RulesManagerFileImpl rulesManagerFileImpl = new RulesManagerFileImpl(mongoAccess, vitamCounterService);
+        int tenant = VitamThreadUtils.getVitamSession().getTenantId();
+        try {
+            rulesManagerFileImpl.checkRuleConformity(rulesManagerFileImpl.getRuleFromCollection(tenant),
+                    rulesManagerFileImpl.getRuleFromOffer(tenant), tenant);
+        } catch (IOException | ReferentialException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            final Status status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status).entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+        }
+        return Response.status(Status.ACCEPTED).entity(new RequestResponseOK()
+                .setHttpCode(Status.ACCEPTED.getStatusCode())).build();
     }
 
     /**

@@ -481,6 +481,15 @@ public interface AdminManagementClient extends MockOrRestClient {
         throws AdminManagementClientServerException;
 
     /**
+     * launch audit for rule management
+     *
+     * @return The server response as vitam RequestResponse
+     * @throws AdminManagementClientServerException
+     */
+    RequestResponse<JsonNode> launchRuleAudit()
+        throws AdminManagementClientServerException;
+
+    /**
      * Import a set of security profiles after passing the validation steps. If all the security profiles are valid,
      * they are stored in the database. The input is invalid in the following situations : </BR>
      * <ul>

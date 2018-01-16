@@ -28,11 +28,12 @@ package fr.gouv.vitam.functional.administration.rules.core;
 
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory.*;
+import static fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory.create;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 import static org.mockito.Matchers.any;
@@ -40,7 +41,6 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -62,6 +62,7 @@ import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.flipkart.zjsonpatch.JsonDiff;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
@@ -72,6 +73,19 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import org.bson.Document;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Matchers;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -81,7 +95,6 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
@@ -97,19 +110,18 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesCsvException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesDeleteException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesDurationException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesUpdateException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.common.exception.FileRulesDurationException;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -118,22 +130,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-
-
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
-import org.bson.Document;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.Matchers;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
 
 
 /**
@@ -925,6 +922,22 @@ public class RulesManagerFileImplTest {
             durationList.put(tenant, duration);
         }
         new VitamRuleService(durationList);
+    }
+
+    @Test
+    public void testJsonDiff() throws Exception {
+        String s1 = "{\"a\":1,\"b\":2,\"c\":[{\"a\":1,\"b\":2},{\"a\":3,\"b\":4}]}";
+        String s2 = "{\"a\":1,\"b\":2,\"c\":[{\"xa\":199,\"b\":20},{\"a\":1,\"b\":2}],\"e\":{\"alpha\":123,\"bravo\":1234}}";
+
+        JsonNode json1 = JsonHandler.getFromString(s1);
+        JsonNode json2 = JsonHandler.getFromString(s2);
+
+        JsonNode target = JsonDiff.asJson(json1, json2);
+        assertEquals(target.toString(), "[{\"op\":\"add\",\"path\":\"/c/0\",\"value\":{\"xa\":199,\"b\":20}},{\"op\":\"remove\",\"path\":\"/c/2\"},{\"op\":\"add\",\"path\":\"/e\",\"value\":{\"alpha\":123,\"bravo\":1234}}]");
+        target = JsonDiff.asJson(json1, json1);
+        assertEquals(target.toString(), "[]");
+
+        assertTrue(rulesFileManager.checkRuleConformity(JsonHandler.createArrayNode(), JsonHandler.createArrayNode(), TENANT_ID));
     }
 
 }

@@ -404,6 +404,14 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         }
 
         @POST
+        @Path("/auditRule")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response launchRuleAudit(JsonNode options) {
+            return expectedResponse.post();
+        }
+
+        @POST
         @Path("/reindex")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
@@ -1012,6 +1020,17 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
         return JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {});
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void launchRuleAuditWithCorrectJsonReturnAccepted()
+            throws ReferentialException, FileNotFoundException, InvalidParseOperationException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        when(mock.post()).thenReturn(Response.status(Status.ACCEPTED)
+                .build());
+        RequestResponse<JsonNode> resp = client.launchRuleAudit();
+        assertEquals(resp.getStatus(), Status.ACCEPTED.getStatusCode());
+    }
 
     @Test
     @RunWithCustomExecutor

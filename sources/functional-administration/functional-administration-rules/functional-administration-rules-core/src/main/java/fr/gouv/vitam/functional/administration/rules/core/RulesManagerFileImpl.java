@@ -51,27 +51,24 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
-import fr.gouv.vitam.common.alert.AlertService;
-import fr.gouv.vitam.common.alert.AlertServiceImpl;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.flipkart.zjsonpatch.JsonDiff;
 import com.google.common.annotations.VisibleForTesting;
-
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.alert.AlertService;
+import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -90,6 +87,7 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamErrorMessages;
@@ -106,26 +104,31 @@ import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
 import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.FileRulesErrorCode;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
 import fr.gouv.vitam.functional.administration.common.ReferentialFileUtils;
 import fr.gouv.vitam.functional.administration.common.ReportConstants;
 import fr.gouv.vitam.functional.administration.common.RuleMeasurementEnum;
 import fr.gouv.vitam.functional.administration.common.RuleTypeEnum;
+import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
+import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesCsvException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesDeleteException;
+import fr.gouv.vitam.functional.administration.common.exception.FileRulesDurationException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesUpdateException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.common.exception.FileRulesDurationException;
+import fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -148,7 +151,6 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.StorageCollectionType;
-
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -214,6 +216,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     private static final String DELETED_RULE_IDS = "deletedRuleIds";
     private static final String USED_UPDATED_RULE_IDS = "usedUpdatedRuleIds";
     private static final String RULES_REPORT = "RULES_REPORT";
+    private static final String STRATEGY_ID = "default";
 
 
     private static String NB_DELETED = "nbDeleted";
@@ -1625,6 +1628,66 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     }
 
+    /**
+     * get the rule file from collection
+     *
+     * @param tenant
+     * @return ArrayNode
+     * @throws IOException
+     * @throws ReferentialException
+     */
+    public ArrayNode getRuleFromCollection(int tenant) throws IOException, ReferentialException, InvalidParseOperationException {
+        return backupService.getCollectionInJson(backupService.getCurrentCollection(FunctionalAdminCollections.RULES, tenant));
+    }
 
+    /**
+     * get the last rule file from offer
+     *
+     * @param tenant
+     * @return ArrayNode
+     * @throws IOException
+     */
+    public ArrayNode getRuleFromOffer(int tenant) throws IOException{
+        Integer originalTenant = VitamThreadUtils.getVitamSession().getTenantId();
+        VitamThreadUtils.getVitamSession().setTenantId(tenant);
 
+        RestoreBackupService restoreBackupService = new RestoreBackupServiceImpl();
+        Optional<CollectionBackupModel> collectionBackup =
+                restoreBackupService.readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES);
+        ArrayNode arrayNode = JsonHandler.createArrayNode();
+
+        if (collectionBackup.isPresent()) {
+            try {
+                arrayNode = (ArrayNode) JsonHandler.toJsonNode(collectionBackup.get().getDocuments());
+            } catch (InvalidParseOperationException e) {
+                LOGGER.error("ERROR: The file isn't in JSON type");
+            }
+        }
+
+        VitamThreadUtils.getVitamSession().setTenantId(originalTenant);
+        return arrayNode;
+    }
+
+    /**
+     * Check if two arrayNodes are the same
+     *
+     * @param array1
+     * @param array2
+     * @param tenant
+     * @return true if rule conformity, false if not
+     * @throws IOException
+     */
+    public boolean checkRuleConformity(ArrayNode array1, ArrayNode array2, int tenant) throws IOException {
+
+        if (!array1.toString().equals(array2.toString())) {
+            JsonNode patch = JsonDiff.asJson(array1, array2);
+            LOGGER.error(array1.toString());
+            LOGGER.error(array2.toString());
+            alertService.createAlert("Check failed: the security save of the rules repository of tenant "
+                    + tenant + " is not equal to its value in database.\n" + patch);
+            return false;
+        }
+
+        return true;
+    }
 }
