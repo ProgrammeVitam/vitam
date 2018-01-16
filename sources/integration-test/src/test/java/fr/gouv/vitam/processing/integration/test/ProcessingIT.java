@@ -795,7 +795,7 @@ public class ProcessingIT {
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
             JsonNode logbookNode = logbookResult.get("$results").get(0);
             assertEquals(logbookNode.get(LogbookMongoDbName.eventDetailData.getDbname()).asText(),
-                "{\n  \"Vitam\" : {\n    \"OK\" : 1,\n    \"KO\" : 0\n  }\n}");
+                "{\n  \"Vitam\" : {\n    \"OK\" : 1,\n    \"KO\" : 0,\n    \"WARNING\" : 0\n  }\n}");
         }
     }
 
