@@ -12,6 +12,9 @@ rs.initiate(
     }
 )
 
+// Beurk FIXME: Try a while with rs.status()...
+sleep(10000)
+
 {% for host in groups['mongod'] %}
     {% if mongo_shard_id == hostvars[host]['mongo_shard_id'] %}
         {% if hostvars[host]['mongo_rs_bootstrap'] is not defined or hostvars[host]['mongo_rs_bootstrap']|lower != "true" %}
