@@ -99,21 +99,40 @@ public class MetadataRepository {
      * Store unit and got in database and es
      *
      * @param tenant      tenant identifier
-     * @param unitGotList list of (unit,got) model to use
+     * @param storeInDb   if true documents will be saved in DB
+     * @param indexInEs   if true documents will be indexed in ES
+     * @param unitGotList data list of (unit,got) to store
      */
-    public void store(int tenant, List<UnitGotModel> unitGotList) {
+    public void store(int tenant, List<UnitGotModel> unitGotList, boolean storeInDb, boolean indexInEs) {
         List<Document> gots = unitGotList.stream().filter(unitGot -> unitGot.getGot() != null).map(unitGot ->
                 getDocument(unitGot.getGot())).collect(Collectors.toList());
 
         if (!gots.isEmpty()) {
-            storeDocuments(gots, MetadataType.GOT);
-            indexDocuments(gots, MetadataType.GOT, tenant);
+            this.storeAndIndex(tenant, gots, MetadataType.GOT, storeInDb, indexInEs);
         }
 
         List<Document> units = unitGotList.stream().map(unitGot ->
                 getDocument(unitGot.getUnit())).collect(Collectors.toList());
-        storeDocuments(units, MetadataType.UNIT);
-        indexDocuments(units, MetadataType.UNIT, tenant);
+        this.storeAndIndex(tenant, units, MetadataType.UNIT, storeInDb, indexInEs);
+    }
+
+    /**
+     * Store and index a document list 
+     * 
+     * @param tenant        tenant identifier
+     * @param documents     documents to store and index
+     * @param metadataType  dataType of documents
+     * @param storeInDb     if true documents will be saved in DB
+     * @param indexInEs     if true documents will be indexed in ES
+     */
+    private void storeAndIndex(int tenant, List<Document> documents, MetadataType metadataType, 
+                               boolean storeInDb, boolean indexInEs){
+        if(storeInDb){
+            storeDocuments(documents, metadataType);
+        }
+        if(indexInEs) {
+            indexDocuments(documents, metadataType, tenant);
+        }
     }
 
     /**
