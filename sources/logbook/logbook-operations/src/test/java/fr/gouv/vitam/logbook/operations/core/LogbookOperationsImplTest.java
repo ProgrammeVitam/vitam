@@ -176,7 +176,7 @@ public class LogbookOperationsImplTest {
         Mockito.reset(mongoDbAccess);
         Mockito.doReturn(createFakeMongoCursor()).when(mongoDbAccess).getLogbookOperations(anyObject(), anyBoolean());
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
-        MongoCursor cursor = logbookOperationsImpl.selectAfterDate(LocalDateTime.now());
+        MongoCursor cursor = logbookOperationsImpl.selectOperationsPersistedAfterDate(LocalDateTime.now());
         assertNotNull(cursor);
         assertTrue(cursor.hasNext());
     }

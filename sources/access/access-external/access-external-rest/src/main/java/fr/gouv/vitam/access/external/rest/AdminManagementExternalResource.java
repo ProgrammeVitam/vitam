@@ -1940,7 +1940,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return new RequestResponseOK<ItemStatus>().addResult(itemStatus).setHttpCode(Status.OK.getStatusCode())
                 .toResponse();
         } catch (final WorkflowNotFoundException e) {
-            LOGGER.error("Workflow not found exception: " + e);
+            LOGGER.error("Workflow not found exception: ", e);
             status = Status.NOT_FOUND;
             return Response.status(status)
                 .entity(VitamCodeHelper
@@ -1948,7 +1948,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                     .setHttpCode(status.getStatusCode()))
                 .build();
         } catch (final IllegalArgumentException e) {
-            LOGGER.error("Illegal argument: " + e);
+            LOGGER.error("Illegal argument: ", e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
                 .entity(VitamCodeHelper
@@ -1956,7 +1956,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                     .setHttpCode(status.getStatusCode()))
                 .build();
         } catch (InternalServerException e) {
-            LOGGER.error("Cound get operation detail: " + e);
+            LOGGER.error("Could get operation detail: ", e);
             status = Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
                 .entity(VitamCodeHelper
@@ -1964,7 +1964,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                     .setHttpCode(status.getStatusCode()))
                 .build();
         } catch (BadRequestException e) {
-            LOGGER.error("Request invalid while trying to get operation detail: " + e);
+            LOGGER.error("Request invalid while trying to get operation detail: ", e);
             status = Status.BAD_REQUEST;
             return Response.status(status)
                 .entity(VitamCodeHelper
@@ -2051,21 +2051,21 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return new RequestResponseOK<ItemStatus>().addResult(itemStatus).setHttpCode(Status.OK.getStatusCode())
                 .toResponse();
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
-            LOGGER.error("Illegal argument: " + e);
+            LOGGER.error("Illegal argument: ", e);
             vitamError =
                 VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_ILLEGAL_ARGUMENT, e.getLocalizedMessage());
         } catch (WorkflowNotFoundException e) {
-            LOGGER.error("Cound not find workflow: " + e);
+            LOGGER.error("Cound not find workflow: ", e);
             vitamError = VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_NOT_FOUND, e.getLocalizedMessage());
         } catch (InternalServerException e) {
-            LOGGER.error("Cound not cancel operation: " + e);
+            LOGGER.error("Cound not cancel operation: ", e);
             vitamError =
                 VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         } catch (BadRequestException e) {
-            LOGGER.error("Request invalid while trying to cancel operation: " + e);
+            LOGGER.error("Request invalid while trying to cancel operation: ", e);
             vitamError = VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_UNAUTHORIZED, e.getLocalizedMessage());
         } catch (VitamClientException e) {
-            LOGGER.error("Client exception while trying to cancel operation: " + e);
+            LOGGER.error("Client exception while trying to cancel operation: ", e);
             vitamError =
                 VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_CLIENT_ERROR, e.getLocalizedMessage());
         }

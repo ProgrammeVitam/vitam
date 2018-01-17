@@ -118,10 +118,6 @@ public class LogbookResource extends ApplicationStatusResource {
     private static final int MAX_NB_PART_ITERATOR = 100;
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResource.class);
     
-    /**
-     * alias host
-     */
-    public static final String CERTIFICATE_ALIAS = "localhost";
     private final LogbookOperations logbookOperation;
     private final LogbookLifeCycles logbookLifeCycle;
     private final LogbookConfiguration logbookConfiguration;
@@ -160,7 +156,7 @@ public class LogbookResource extends ApplicationStatusResource {
                 new TimeStampSignatureWithKeystore(file, configuration.getP12LogbookPassword().toCharArray());
         } catch (KeyStoreException | CertificateException | IOException | UnrecoverableKeyException |
             NoSuchAlgorithmException e) {
-            LOGGER.error("unable to instanciate TimeStampGenerator", e);
+            LOGGER.error("unable to instantiate TimeStampGenerator", e);
             throw new RuntimeException(e);
         }
         final TimestampGenerator timestampGenerator = new TimestampGenerator(timeStampSignature);
@@ -168,20 +164,18 @@ public class LogbookResource extends ApplicationStatusResource {
         WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
 
         logbookAdministration = new LogbookAdministration(logbookOperation, timestampGenerator,
-            clientFactory);
+            clientFactory, configuration.getOperationTraceabilityOverlapDelay());
 
         final ProcessingManagementClientFactory processClientFactory = ProcessingManagementClientFactory.getInstance();
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
-        logbookLFCAdministration = new LogbookLFCAdministration(logbookOperation, processClientFactory, clientFactory);
+
+        logbookLFCAdministration = new LogbookLFCAdministration(logbookOperation, processClientFactory,
+            clientFactory, configuration.getLifecycleTraceabilityOverlapDelay());
 
         LOGGER.debug("LogbookResource operation initialized");
 
         logbookLifeCycle = new LogbookLifeCyclesImpl(mongoDbAccess);
         LOGGER.debug("LogbookResource lifecycles initialized");
-    }
-
-    LogbookDbAccess getLogbookDbAccess() {
-        return mongoDbAccess;
     }
 
     /**
@@ -1758,6 +1752,7 @@ public class LogbookResource extends ApplicationStatusResource {
         try {
             Integer tenantId = Integer.parseInt(xTenantId);
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+
             final GUID guid = logbookLFCAdministration.generateSecureLogbookLFC();
             final List<String> resultAsJson = new ArrayList<>();
 

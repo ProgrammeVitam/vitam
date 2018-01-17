@@ -97,12 +97,12 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException, ContentAddressableStorageServerException {
+        throws ProcessingException {
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
         // 1- Get the TRACEABILITY operation to check
-        LogbookOperation operationToCheck = null;
+        LogbookOperation operationToCheck;
         try (LogbookOperationsClient logbookOperationsClient =
             LogbookOperationsClientFactory.getInstance().getClient()) {
 

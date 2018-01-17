@@ -116,10 +116,8 @@ public class AgenciesStep {
                     .createAgencies(new VitamContext(world.getTenantId()), inputStream,
                         fileName);
             assertThat(response.getHttpCode()).isEqualTo(Response.Status.CREATED.getStatusCode());
-        } catch (IllegalStateException e) {
-            fail("should not produce this exception" + e);
         } catch (Exception e) {
-            fail("should not produce this exception" + e);
+            fail("should not produce this exception", e);
         }
     }
 

@@ -126,7 +126,12 @@ public enum WorkerParameterName {
      * the array of the different audit actions
      * there are three types of action: "check existence" , "check integrity", "correction"
      */
-    auditActions;
+    auditActions,
+    /**
+     * The overlap delay (in seconds) for logbook lifecycle traceability events.
+     * Used to catch up possibly missed events due to clock difference.
+     */
+    lifecycleTraceabilityOverlapDelayInSeconds;
 
     public static HashSet<String> getEnums() {
 

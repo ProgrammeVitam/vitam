@@ -141,7 +141,7 @@ public interface LogbookOperations {
      * @throws InvalidParseOperationException if invalid parse for selecting the operation
      * @throws InvalidCreateOperationException if the query could not be created
      */
-    MongoCursor<LogbookOperation> selectAfterDate(LocalDateTime date)
+    MongoCursor<LogbookOperation> selectOperationsPersistedAfterDate(LocalDateTime date)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException,
         InvalidCreateOperationException;
 

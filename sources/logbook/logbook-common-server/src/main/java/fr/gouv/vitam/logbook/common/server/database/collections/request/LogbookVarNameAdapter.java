@@ -27,8 +27,11 @@
 package fr.gouv.vitam.logbook.common.server.database.collections.request;
 
 
+import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 
 /**
  * Logbook VarName Adapater
@@ -48,7 +51,9 @@ public class LogbookVarNameAdapter extends VarNameAdapter {
     }
 
     @Override
-    public String getVariableName(String name) throws InvalidParseOperationException {
+    public String getVariableName(String name) {
+        if(name.equals(ParserTokens.PROJECTIONARGS.LAST_PERSISTED_DATE.exactToken()))
+            return LogbookDocument.LAST_PERSISTED_DATE;
         return null;
     }
 }

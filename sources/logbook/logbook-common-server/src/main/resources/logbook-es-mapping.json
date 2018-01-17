@@ -203,6 +203,10 @@
     "obId": {
       "type": "string",
       "index": "not_analyzed"
+    },
+    "_lastPersistedDate": {
+      "type": "date",
+      "format": "strict_date_optional_time"
     }
   }
 }

@@ -602,14 +602,18 @@ public abstract class BuilderToken {
         /**
          * Document scoring according to research
          */
-        SCORE("score");
+        SCORE("score"),
+        /**
+         * Last persisted date (logbook operation & lifecycle documents)
+         */
+        LAST_PERSISTED_DATE("lastPersistedDate");
 
         private final String exactToken;
 
         /**
          * Constructor Add DEFAULT_HASH_PREFIX before the exactToken (#+exactToken)
          */
-        private PROJECTIONARGS(String realName) {
+        PROJECTIONARGS(String realName) {
             exactToken = DEFAULT_HASH_PREFIX + realName;
         }
 

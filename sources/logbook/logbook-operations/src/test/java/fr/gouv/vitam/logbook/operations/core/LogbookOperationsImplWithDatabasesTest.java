@@ -39,15 +39,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
 
 import com.mongodb.client.MongoCursor;
 
@@ -288,32 +287,40 @@ public class LogbookOperationsImplWithDatabasesTest {
 
         final Select select = new Select();
         select.setQuery(new CompareQuery(QUERY.EQ, "evId", eip1.toString()));
-        List<LogbookOperation> res1 = new ArrayList<>();
+        List<LogbookOperation> res1;
         res1 = logbookOperationsImpl.select(select.getFinalSelect());
         assertNotNull(res1);
         assertTrue(res1.get(0).containsValue(eip1.getId()));
 
         select.setQuery(new CompareQuery(QUERY.EQ, "evType", "eventType"));
-        List<LogbookOperation> res3 = new ArrayList<>();
+        List<LogbookOperation> res3;
         select.addOrderByDescFilter("evDateTime");
         res3 = logbookOperationsImpl.select(select.getFinalSelect());
         assertTrue(res3.get(0).containsValue("2016-12-12"));
         assertTrue(res3.get(1).containsValue("2015-01-01"));
         assertTrue(res3.get(2).containsValue("1990-10-01"));
 
+        // Update new events
+        Thread.sleep(100);
+        LocalDateTime snapshotDate = LocalDateUtil.now();
 
         logbookOperationsImpl.create(logbookParameters4);
         logbookOperationsImpl.update(event);
 
-        MongoCursor<LogbookOperation> curseur;
-        curseur = logbookOperationsImpl.selectAfterDate(LocalDateTime.parse("2017-01-30T12:01:00"));
-        assertTrue(curseur.hasNext());
-        final LogbookOperation op = curseur.next();
+        MongoCursor<LogbookOperation> cursor;
+        cursor = logbookOperationsImpl.selectOperationsPersistedAfterDate(snapshotDate);
+        assertTrue(cursor.hasNext());
+        final LogbookOperation op = cursor.next();
+
+        assertDateBetween(
+            LocalDateUtil.parseMongoFormattedDate(op.getString(LogbookDocument.LAST_PERSISTED_DATE)),
+            snapshotDate,
+            LocalDateUtil.now());
 
         assertEquals(op.get("evDateTime"), "2017-09-01");
         final List<Document> list = (List<Document>) op.get(LogbookDocument.EVENTS);
         assertEquals(list.get(0).get("evDateTime"), "2017-09-02");
-        assertFalse(curseur.hasNext());
+        assertFalse(cursor.hasNext());
 
         logbookOperationsImpl.update(securityEvent);
         final LogbookOperation secureOperation =
@@ -329,7 +336,7 @@ public class LogbookOperationsImplWithDatabasesTest {
         logbookOperationsImpl.create(logbookParameters5);
         logbookOperationsImpl.update(event2);
         MongoCursor<LogbookOperation> curseur;
-        curseur = logbookOperationsImpl.selectAfterDate(LocalDateTime.parse("2021-01-30T12:01:00"));
+        curseur = logbookOperationsImpl.selectOperationsPersistedAfterDate(LocalDateTime.parse("2021-01-30T12:01:00"));
         assertFalse(curseur.hasNext());
 
 
@@ -366,10 +373,13 @@ public class LogbookOperationsImplWithDatabasesTest {
         
         logbookOperationsImpl.createBulkLogbookOperation(param);  
         
-        MongoCursor<LogbookOperation> curseur;
-        curseur = logbookOperationsImpl.selectAfterDate(LocalDateTime.parse("2021-01-30T12:01:00"));
-        assertFalse(curseur.hasNext());
-        
+        MongoCursor<LogbookOperation> cursor;
+        cursor = logbookOperationsImpl.selectOperationsPersistedAfterDate(LocalDateTime.parse("2021-01-30T12:01:00"));
+        assertFalse(cursor.hasNext());
     }
 
+    private static void assertDateBetween(LocalDateTime localDateTime, LocalDateTime gte, LocalDateTime lte) {
+        assert(localDateTime.isEqual(gte) || localDateTime.isAfter(gte));
+        assert(localDateTime.isEqual(lte) || localDateTime.isBefore(lte));
+    }
 }

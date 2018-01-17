@@ -33,7 +33,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Locale;
 
@@ -143,7 +142,7 @@ public class VitamConfigurationTest {
     }
 
     @Test
-    public void testConfiguration() {
+    public void testConfiguration() throws Exception {
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(VITAM_CONF_FILE_NAME)) {
             final VitamConfigurationParameters vitamConfigurationParameters =
                 PropertiesUtils.readYaml(yamlIS, VitamConfigurationParameters.class);
@@ -156,8 +155,6 @@ public class VitamConfigurationTest {
 
             assertThat(VitamConfiguration.getAcceptableRequestTime()).isEqualTo(25L);
             assertThat(VitamConfiguration.getDefaultDigestType()).isEqualTo(DigestType.SHA384);
-        } catch (final IOException e) {
-            fail("fail" + e);
         }
     }
 

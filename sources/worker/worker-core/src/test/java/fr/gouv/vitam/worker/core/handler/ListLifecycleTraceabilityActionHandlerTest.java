@@ -45,6 +45,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -118,7 +119,8 @@ public class ListLifecycleTraceabilityActionHandlerTest {
         WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
             .setUrlMetadata("http://localhost:8083")
             .setObjectName("objectName.json").setCurrentStep("currentStep")
-            .setContainerName(guid.getId()).setLogbookTypeProcess(LogbookTypeProcess.TRACEABILITY);
+            .setContainerName(guid.getId()).setLogbookTypeProcess(LogbookTypeProcess.TRACEABILITY)
+            .putParameterValue(WorkerParameterName.lifecycleTraceabilityOverlapDelayInSeconds, "300");
 
     public ListLifecycleTraceabilityActionHandlerTest() throws FileNotFoundException {
         // do nothing

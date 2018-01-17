@@ -123,6 +123,11 @@ vitam:
         https_enabled: false
         secret_platform: "true"
         cluster_name: "{{ elasticsearch.data.cluster_name }}"
+        # Overlap delay (in seconds) for logbook operation & lifecycle traceability events.
+        # Set it to a reasonable delay to cover max clock difference across servers
+        operationTraceabilityOverlapDelay: 300
+        lifecycleTraceabilityOverlapDelay: 300
+
     metadata:
         vitam_component: metadata
         host: "metadata.service.{{consul_domain}}"

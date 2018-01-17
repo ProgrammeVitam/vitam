@@ -53,7 +53,19 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
 
     private List<ElasticsearchNode> elasticsearchNodes;    
     
-    private List<LogbookEvent> alertEvents;    
+    private List<LogbookEvent> alertEvents;
+
+    /**
+     * The overlap delay (in seconds) for logbook operation traceability events. Used to catch up possibly missed events
+     * due to clock difference.
+     */
+    private Integer operationTraceabilityOverlapDelay;
+
+    /**
+     * The overlap delay (in seconds) for logbook lifecyle traceability events. Used to catch up possibly missed events
+     * due to clock difference.
+     */
+    private Integer lifecycleTraceabilityOverlapDelay;
     
 
     /**
@@ -204,8 +216,36 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
     public void setAlertEvents(List<LogbookEvent> alertEvents) {
         this.alertEvents = alertEvents;
     }
-    
-    
-    
-    
+
+    /**
+     * Gets the overlap delay (in seconds) for logbook operation traceability events. Used to catch up possibly missed events
+     * due to clock difference.
+     * @return The overlap delay (in seconds).
+     */
+    public Integer getOperationTraceabilityOverlapDelay() {
+        return operationTraceabilityOverlapDelay;
+    }
+
+    /**
+     * Sets the overlap delay (in seconds) for logbook operation traceability events.
+     */
+    public void setOperationTraceabilityOverlapDelay(Integer operationTraceabilityOverlapDelay) {
+        this.operationTraceabilityOverlapDelay = operationTraceabilityOverlapDelay;
+    }
+
+    /**
+     * Gets the overlap delay (in seconds) for logbook lifecyle traceability events. Used to catch up possibly missed events
+     * due to clock difference.
+     * @return The overlap delay (in seconds).
+     */
+    public Integer getLifecycleTraceabilityOverlapDelay() {
+        return lifecycleTraceabilityOverlapDelay;
+    }
+
+    /**
+     * Sets the overlap delay (in seconds) for logbook lifecycle traceability events.
+     */
+    public void setLifecycleTraceabilityOverlapDelay(Integer lifecycleTraceabilityOverlapDelay) {
+        this.lifecycleTraceabilityOverlapDelay = lifecycleTraceabilityOverlapDelay;
+    }
 }

@@ -53,7 +53,6 @@ import java.util.Date;
 import java.util.List;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.BaseXx;
@@ -128,29 +127,44 @@ public class LogbookAdministration {
     private final DateTimeFormatter formatter;
 
     private final File tmpFolder;
+    private final int operationTraceabilityOverlapDelayInSeconds;
 
     @VisibleForTesting //
     LogbookAdministration(LogbookOperations logbookOperations,
-        TimestampGenerator timestampGenerator, WorkspaceClientFactory workspaceClientFactory, File tmpFolder) {
+        TimestampGenerator timestampGenerator, WorkspaceClientFactory workspaceClientFactory, File tmpFolder,
+        Integer operationTraceabilityOverlapDelay) {
         this.logbookOperations = logbookOperations;
         this.timestampGenerator = timestampGenerator;
         this.workspaceClientFactory = workspaceClientFactory;
         this.tmpFolder = tmpFolder;
+        this.operationTraceabilityOverlapDelayInSeconds =
+            validateAndGetTraceabilityOverlapDelay(operationTraceabilityOverlapDelay);
         formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
         tmpFolder.mkdir();
+    }
+
+    private static int validateAndGetTraceabilityOverlapDelay(Integer operationTraceabilityOverlapDelay) {
+        if (operationTraceabilityOverlapDelay == null) {
+             return 0;
+        }
+        if (operationTraceabilityOverlapDelay < 0) {
+            throw new IllegalArgumentException("Operation traceability overlap delay cannot be negative");
+        }
+        return operationTraceabilityOverlapDelay;
     }
 
     /**
      * Constructor
      *
-     * @param logbookOperations logbook operation
-     * @param timestampGenerator to generate timestamp
-     * @param workspaceClientFactory to create workspace client
+     * @param logbookOperations                 logbook operation
+     * @param timestampGenerator                to generate timestamp
+     * @param workspaceClientFactory            to create workspace client
+     * @param operationTraceabilityOverlapDelay
      */
     public LogbookAdministration(LogbookOperations logbookOperations, TimestampGenerator timestampGenerator,
-        WorkspaceClientFactory workspaceClientFactory) {
+        WorkspaceClientFactory workspaceClientFactory, Integer operationTraceabilityOverlapDelay) {
         this(logbookOperations, timestampGenerator, workspaceClientFactory,
-            PropertiesUtils.fileFromTmpFolder("secure"));
+            PropertiesUtils.fileFromTmpFolder("secure"), operationTraceabilityOverlapDelay);
     }
 
     /**
@@ -185,7 +199,8 @@ public class LogbookAdministration {
             } catch (ParseException e) {
                 throw new InvalidParseOperationException("Invalid date");
             }
-            startDate = LocalDateUtil.fromDate(date);
+            LocalDateTime lastStartDate = LocalDateUtil.fromDate(date);
+            startDate = lastStartDate.minusSeconds(operationTraceabilityOverlapDelayInSeconds);
             expectedLogbookId.add(lastTraceabilityOperation.getString(EVENT_ID));
         }
 
@@ -200,7 +215,7 @@ public class LogbookAdministration {
 
         try (TraceabilityFile traceabilityFile = new TraceabilityFile(zipFile)) {
 
-            MongoCursor<LogbookOperation> mongoCursor = logbookOperations.selectAfterDate(startDate);
+            MongoCursor<LogbookOperation> mongoCursor = logbookOperations.selectOperationsPersistedAfterDate(startDate);
             final TraceabilityIterator traceabilityIterator = new TraceabilityIterator(mongoCursor);
 
             final MerkleTreeAlgo merkleTreeAlgo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());
@@ -264,11 +279,11 @@ public class LogbookAdministration {
                 }
             }
 
-            final LogbookOperation oneMounthBeforeTraceabilityOperation =
+            final LogbookOperation oneMonthBeforeTraceabilityOperation =
                 logbookOperations.findFirstTraceabilityOperationOKAfterDate(currentDate.minusMonths(1));
-            if (oneMounthBeforeTraceabilityOperation != null) {
+            if (oneMonthBeforeTraceabilityOperation != null) {
                 TraceabilityEvent oneMonthBeforeTraceabilityEvent =
-                    extractEventDetData(oneMounthBeforeTraceabilityOperation);
+                    extractEventDetData(oneMonthBeforeTraceabilityOperation);
                 if (oneMonthBeforeTraceabilityEvent != null) {
                     previousMonthDate = oneMonthBeforeTraceabilityEvent.getStartDate();
                 }
@@ -375,7 +390,7 @@ public class LogbookAdministration {
 
     @VisibleForTesting
     byte[] generateTimeStampToken(GUID eip, Integer tenantId, byte[] rootHash, byte[] hash1, byte[] hash2, byte[] hash3)
-        throws IOException, TraceabilityException {
+        throws TraceabilityException {
 
         try {
             final DigestType digestType = VitamConfiguration.getDefaultTimestampDigestType();

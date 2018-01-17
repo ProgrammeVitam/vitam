@@ -560,7 +560,11 @@ public class ParserTokens extends BuilderToken {
         /**
          * Document scoring according to research
          */
-        SCORE("score");
+        SCORE("score"),
+        /**
+         * Last persisted date (logbook operation & lifecycle documents)
+         */
+        LAST_PERSISTED_DATE("lastPersistedDate");
 
 
 
@@ -681,6 +685,8 @@ public class ParserTokens extends BuilderToken {
                         return VERSION;
                     case "_score":
                         return SCORE;
+                    case "_lastPersistedDate":
+                        return LAST_PERSISTED_DATE;
                     default:
                 }
             } else if (name.charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
@@ -747,6 +753,7 @@ public class ParserTokens extends BuilderToken {
                     case ORIGINATING_AGENCY:
                     case STORAGE:
                     case VERSION:
+                    case LAST_PERSISTED_DATE:
                         return false;
                     default:
                         break;
@@ -803,6 +810,7 @@ public class ParserTokens extends BuilderToken {
                         case USAGE:
                         case OPERATIONS:
                         case SCORE:
+                        case LAST_PERSISTED_DATE:
                             return true;
                         case STORAGE:
                             // FIXME should consider more security on this one!
