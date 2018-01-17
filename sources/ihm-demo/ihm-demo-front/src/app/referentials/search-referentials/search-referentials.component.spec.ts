@@ -7,6 +7,7 @@ import { SearchReferentialsComponent } from './search-referentials.component';
 import { BreadcrumbService } from "../../common/breadcrumb.service";
 import { ReferentialsService } from "../referentials.service";
 import {ArchiveUnitHelper} from "../../archive-unit/archive-unit.helper";
+import { forEach } from '@angular/router/src/utils/collection';
 
 const ReferentialsServiceStub = {
   getResults: (id) => Observable.of({'$results': [{}]})
@@ -71,4 +72,16 @@ describe('SearchReferentialsComponent', () => {
     };
     expect(SearchReferentialsComponent.appendUnitToRuleDuration(itemWithoutRuleMeasurement)).toEqual('40');
   });
+
+  it('should do initial sort', () => {
+    let data = [{"Name": "mn"}, {"Name": " ba"}, {"Name": "1z"}, {"Name": "ac"}, {"Name": "Ab"}];
+    let sortedData = [{"Name": "1z"}, {"Name": "Ab"}, {"Name": "ac"}, {"Name": " ba"}, {"Name": "mn"}];
+
+    SearchReferentialsComponent.doInitialSort(data, "Name");
+    
+    for (let i = 0, len = data.length; i < len; i++) {
+      expect(data[i]).toEqual(sortedData[i]);
+    }
+  });
+  
 });
