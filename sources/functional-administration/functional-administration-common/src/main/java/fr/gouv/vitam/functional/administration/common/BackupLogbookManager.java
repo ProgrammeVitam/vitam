@@ -83,7 +83,7 @@ public class BackupLogbookManager {
         final LogbookOperationParameters logbookParameters = LogbookParametersFactory
             .newLogbookOperationParameters(eipId, eventType, logbookOperationMasterId, LogbookTypeProcess.MASTERDATA,
                 StatusCode.OK,
-                getCodeOp(eventType, StatusCode.OK), eipId);
+                getCodeOp(eventType, StatusCode.OK), logbookOperationMasterId);
 
         ObjectNode evDetData = JsonHandler.createObjectNode();
         evDetData.put(FILE_NAME, fileName);
@@ -105,10 +105,11 @@ public class BackupLogbookManager {
      * @throws VitamException
      */
     public void logError(GUID logbookOperationMasterId, String eventType, String errorsDetails) throws VitamException {
-
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
+        
+        final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters logbookParameters = LogbookParametersFactory
-            .newLogbookOperationParameters(logbookOperationMasterId, eventType, logbookOperationMasterId,
+            .newLogbookOperationParameters(eipId, eventType, logbookOperationMasterId,
                 LogbookTypeProcess.MASTERDATA, StatusCode.KO, getCodeOp(eventType, StatusCode.KO),
                 logbookOperationMasterId);
         logbookMessageError(errorsDetails, logbookParameters);

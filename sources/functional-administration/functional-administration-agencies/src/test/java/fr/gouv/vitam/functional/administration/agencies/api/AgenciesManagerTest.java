@@ -17,9 +17,8 @@ import static fr.gouv.vitam.functional.administration.agencies.api.AgenciesServi
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventType;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventTypeProcess;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.outcome;
+import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.outcomeDetail;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -108,13 +107,34 @@ public class AgenciesManagerTest {
         AgenciesManager manager = new AgenciesManager(logbookOperationsClient, newOperationLogbookGUID(0));
 
         //When
-        manager.logError("ErorMessage");
+        manager.logError("ErorMessage", null);
         verify(logbookOperationsClient).update(captor.capture());
         LogbookOperationParameters log = captor.getValue();
         //Then
         assertThat(log.getParameterValue(eventType)).isEqualTo(AGENCIES_IMPORT_EVENT);
         assertThat(log.getParameterValue(eventTypeProcess)).isEqualTo("MASTERDATA");
         assertThat(log.getParameterValue(outcome)).isEqualTo("KO");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void logErrorWithDetails() throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        ArgumentCaptor<LogbookOperationParameters> captor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        AgenciesManager manager = new AgenciesManager(logbookOperationsClient, newOperationLogbookGUID(0));
+
+        //When
+        manager.logError("ErorMessage", "DELETION");
+        verify(logbookOperationsClient).update(captor.capture());
+        LogbookOperationParameters log = captor.getValue();
+        //Then
+        assertThat(log.getParameterValue(eventType)).isEqualTo(AGENCIES_IMPORT_EVENT);
+        assertThat(log.getParameterValue(eventTypeProcess)).isEqualTo("MASTERDATA");
+        assertThat(log.getParameterValue(outcome)).isEqualTo("KO");
+        assertThat(log.getParameterValue(outcomeDetail)).isEqualTo(AGENCIES_IMPORT_EVENT + ".DELETION.KO");
     }
 
 

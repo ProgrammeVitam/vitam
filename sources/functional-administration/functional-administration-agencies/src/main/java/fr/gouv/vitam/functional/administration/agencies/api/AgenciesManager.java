@@ -125,7 +125,7 @@ class AgenciesManager {
         final LogbookOperationParameters logbookParameters = LogbookParametersFactory
             .newLogbookOperationParameters(eipId, eventType, eip, LogbookTypeProcess.MASTERDATA,
                 StatusCode.OK,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.OK), eipId);
+                VitamLogbookMessages.getCodeOp(eventType, StatusCode.OK), eip);
         logBookclient.update(logbookParameters);
 
     }
@@ -144,7 +144,7 @@ class AgenciesManager {
         final LogbookOperationParameters logbookParameters = LogbookParametersFactory
             .newLogbookOperationParameters(eipId, eventType, eip, LogbookTypeProcess.MASTERDATA,
                 StatusCode.WARNING,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.WARNING), eipId);
+                VitamLogbookMessages.getCodeOp(eventType, StatusCode.WARNING), eip);
         logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
             JsonHandler.unprettyPrint(evDetData));
         logBookclient.update(logbookParameters);
@@ -157,16 +157,26 @@ class AgenciesManager {
      * log fatal error (system or technical error)
      *
      * @param errorsDetails the detail error
+     * @param subEvenType the sub event type 
      * @throws VitamException thrown if the logbook could not be updated
      */
-    public void logError(String errorsDetails) throws VitamException {
-
-
+    public void logError(String errorsDetails, String subEvenType) throws VitamException {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
+        
+        // create logbook parameters 
+        final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
         final LogbookOperationParameters logbookParameters = LogbookParametersFactory
-            .newLogbookOperationParameters(eip, AGENCIES_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
+            .newLogbookOperationParameters(eipId, AGENCIES_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
                 StatusCode.KO,
                 VitamLogbookMessages.getCodeOp(AGENCIES_IMPORT_EVENT, StatusCode.KO), eip);
+        // set outcomeDetail
+        if(subEvenType != null){
+            logbookParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, 
+                    VitamLogbookMessages.getCodeOp(AGENCIES_IMPORT_EVENT, subEvenType, StatusCode.KO));
+            logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail,
+                    VitamLogbookMessages.getOutcomeDetail(AGENCIES_IMPORT_EVENT, subEvenType, StatusCode.KO));
+        }
+        // set evDetData
         logbookMessageError(errorsDetails, logbookParameters);
 
         logBookclient.update(logbookParameters);

@@ -122,8 +122,10 @@ public class AgenciesService implements VitamAutoCloseable {
 
     public static final String AGENCIES_IMPORT_EVENT = "STP_IMPORT_AGENCIES";
     public static final String AGENCIES_REPORT_EVENT = "STP_AGENCIES_REPORT";
+    public static final String AGENCIES_BACKUP_EVENT = "STP_BACKUP_AGENCIES";
 
-    public static final String AGENCIES_IMPORT_AU_USAGE = AGENCIES_IMPORT_EVENT + ".USED_AU";
+    private static final String AGENCIES_IMPORT_DELETION_ERROR = "DELETION";
+    private static final String AGENCIES_IMPORT_AU_USAGE = AGENCIES_IMPORT_EVENT + ".USED_AU";
     private static final String AGENCIES_IMPORT_CONTRACT_USAGE = AGENCIES_IMPORT_EVENT + ".USED_CONTRACT";
 
 
@@ -561,7 +563,7 @@ public class AgenciesService implements VitamAutoCloseable {
             backupService.saveFile(new FileInputStream(file), eip, AGENCIES_REPORT_EVENT, StorageCollectionType.REPORTS,
                 ParameterHelper.getTenantParameter(), eip + ".csv");
             //store collection
-            backupService.saveCollectionAndSequence(eip, AGENCIES_IMPORT_EVENT,
+            backupService.saveCollectionAndSequence(eip, AGENCIES_BACKUP_EVENT,
                 FunctionalAdminCollections.AGENCIES);
 
             manager.logFinish();
@@ -573,14 +575,13 @@ public class AgenciesService implements VitamAutoCloseable {
             backupService.saveFile(errorStream, eip, AGENCIES_REPORT_EVENT, StorageCollectionType.REPORTS,
                 ParameterHelper.getTenantParameter(), eip + ".json");
             errorStream.close();
+            
             ObjectNode errorMessage = JsonHandler.createObjectNode();
-            errorMessage.put("ErrorMessage", MESSAGE_ERROR + e.getMessage());
-
             String listAgencies = agenciesToDelete.stream().map(AgenciesModel::getIdentifier)
                 .collect(Collectors.joining(","));
             errorMessage.put("Agencies ", listAgencies);
 
-            return generateVitamBadRequestError(errorMessage.toString());
+            return generateVitamBadRequestError(errorMessage.toString(), AGENCIES_IMPORT_DELETION_ERROR);
 
         } catch (final Exception e) {
             LOGGER.error(MESSAGE_ERROR, e);
@@ -588,7 +589,7 @@ public class AgenciesService implements VitamAutoCloseable {
             backupService.saveFile(errorStream, eip, AGENCIES_REPORT_EVENT, StorageCollectionType.REPORTS,
                 ParameterHelper.getTenantParameter(), eip + ".json");
             errorStream.close();
-            return generateVitamError(MESSAGE_ERROR + e.getMessage());
+            return generateVitamError(MESSAGE_ERROR + e.getMessage(), null);
         } finally {
             if (file != null) {
                 if (!file.delete()) {
@@ -607,10 +608,8 @@ public class AgenciesService implements VitamAutoCloseable {
         }
     }
 
-
-
-    private VitamError generateVitamBadRequestError(String err) throws VitamException {
-        manager.logError(err);
+    private VitamError generateVitamBadRequestError(String err, String subEvenType) throws VitamException {
+        manager.logError(err, subEvenType);
         return new VitamError(VitamCode.AGENCIES_VALIDATION_ERROR.getItem())
             .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
             .setCode(VitamCode.AGENCIES_VALIDATION_ERROR.getItem())
@@ -618,8 +617,8 @@ public class AgenciesService implements VitamAutoCloseable {
             .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
     }
 
-    private VitamError generateVitamError(String err) throws VitamException {
-        manager.logError(err);
+    private VitamError generateVitamError(String err, String subEvenType) throws VitamException {
+        manager.logError(err, subEvenType);
         return new VitamError(VitamCode.AGENCIES_VALIDATION_ERROR.getItem())
             .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
             .setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
