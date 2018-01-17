@@ -13,7 +13,6 @@ traits:
   OperationListingResponse:
     description: Response model for the listing of Logbook operations
     is: [ StandardTraits.StandardOptionalHeader,
-       StandardTraits.PaginationRequestHeader,  StandardTraits.PaginationNextHeader,  StandardTraits.PaginationResponseHeader,
        StandardTraits.StandardHeader200, StandardTraits.StandardHeader206,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
     body:
