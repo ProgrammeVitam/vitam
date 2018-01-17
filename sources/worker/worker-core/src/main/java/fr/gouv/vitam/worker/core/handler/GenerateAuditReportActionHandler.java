@@ -377,7 +377,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
             int nbKO = serviceProducteurKO.containsKey(sp.getKey()) ? serviceProducteurKO.get(sp.getKey()) : 0;
             result.set(sp.getKey(),
                 JsonHandler.createObjectNode().put("OK", sp.getValue() - nbKO)
-                    .put("KO", nbKO));
+                    .put("KO", nbKO).put("WARNING", 0));
 
             Optional<JsonNode> opt = StreamSupport.stream(serviceProducteurWarning.spliterator(), false)
                 .filter(s -> s.textValue().equals(sp.getKey())).findFirst();
