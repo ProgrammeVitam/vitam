@@ -116,6 +116,12 @@ public class AlertLogbookOperationsDecoratorTest {
        boolean isAlertEvent=alertLogbookOperationsDecorator.isAlertEvent(logbookParameters);
        assertFalse(isAlertEvent);
     }
-    
-    
+
+    @Test
+    public void testAlertParameteredByOutDetail() {
+        logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, eventType + "." + outcome);
+        logbookEvent.setOutDetail(eventType + "." + outcome);
+        boolean isAlertEvent=alertLogbookOperationsDecorator.isAlertEvent(logbookParameters);
+        assertTrue(isAlertEvent);
+    }
 }
