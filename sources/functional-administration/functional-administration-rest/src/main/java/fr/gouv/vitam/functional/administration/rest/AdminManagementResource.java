@@ -121,6 +121,7 @@ import fr.gouv.vitam.functional.administration.contract.core.AccessContractImpl;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl;
 import fr.gouv.vitam.functional.administration.rules.core.RulesManagerFileImpl;
+import fr.gouv.vitam.functional.administration.rules.core.VitamRuleService;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -170,6 +171,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
     private final MongoDbAccessAdminImpl mongoAccess;
     private final ElasticsearchAccessFunctionalAdmin elasticsearchAccess;
     private VitamCounterService vitamCounterService;
+    // TODO: this is not a real service, this should be improved
+    private VitamRuleService vitamRuleService;
 
     /**
      * Constructor
@@ -193,6 +196,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
         mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration);
         WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
+        vitamRuleService = new VitamRuleService(configuration.getListMinimumRuleDuration());
         LOGGER.debug("init Admin Management Resource server");
     }
 
