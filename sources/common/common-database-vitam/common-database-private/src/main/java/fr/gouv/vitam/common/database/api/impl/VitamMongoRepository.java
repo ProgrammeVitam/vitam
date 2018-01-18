@@ -42,6 +42,8 @@ import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.InsertOneModel;
+import com.mongodb.client.model.ReplaceOneModel;
+import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.DeleteResult;
 
 import fr.gouv.vitam.common.ParametersChecker;
@@ -92,6 +94,28 @@ public class VitamMongoRepository implements VitamRepository {
                 String.format("Error while bulk save document count : %s != size : %s :", count, documents.size()));
         }
     }
+
+    @Override
+    public void saveOrUpdate(List<Document> documents) throws DatabaseException {
+        ParametersChecker.checkParameter("All params are required", collection, documents);
+        List<ReplaceOneModel<Document>> collect =
+            documents.stream().map(document -> new ReplaceOneModel<Document>(eq("_id", document.get("_id")), document,
+                new UpdateOptions().upsert(true))).collect(Collectors.toList());
+
+        BulkWriteResult bulkWriteResult = collection.bulkWrite(collect);
+
+        int inserted = bulkWriteResult.getUpserts().size();
+        int matched = bulkWriteResult.getMatchedCount();
+        if ((inserted + matched) != documents.size()) {
+            LOGGER.error(
+                String.format("Error while bulk save or update document count : %d != size : %d :", inserted + matched,
+                    documents.size()));
+            throw new DatabaseException(
+                String.format("Error while bulk save or update document count : %d != size : %d :", inserted + matched,
+                    documents.size()));
+        }
+    }
+
 
     @Override
     public void remove(String id, Integer tenant) throws DatabaseException {

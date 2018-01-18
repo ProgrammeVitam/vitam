@@ -26,10 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.lifecycles.client;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -44,6 +48,8 @@ import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.server.ResourceConfig;
 import org.junit.Test;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
@@ -250,6 +256,21 @@ public class LogbookLifeCyclesClientRestTest extends VitamJerseyTest {
         public Response getObjectGroupLifeCycleStatus(String unitId) {
             return expectedResponse.head();
         }
+        
+        @POST
+        @Path("/unitlifecycles/bulk/raw")
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response rawbulkUnitLifeCycle(List<JsonNode> unitLifecycles) {
+            return expectedResponse.post();
+        }
+
+        @POST
+        @Path("/objectgrouplifecycles/bulk/raw")
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response rawbulkObjectgroupLifeCycle(List<JsonNode> objectgroupLifecycles) {
+            return expectedResponse.post();
+        }
+
     }
 
     private static final LogbookLifeCycleUnitParameters getCompleteLifeCycleUnitParameters() {
@@ -799,4 +820,76 @@ public class LogbookLifeCyclesClientRestTest extends VitamJerseyTest {
         GUID objectGroupId = GUIDFactory.newObjectGroupGUID(0);
         client.getObjectGroupLifeCycleStatus(objectGroupId.toString());
     }
+    @Test
+    public void testRawbulkUnitLifecycles_InternalError()
+        throws LogbookClientNotFoundException, LogbookClientServerException, LogbookClientBadRequestException {
+        reset(mock);
+        when(mock.post()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
+
+        List<JsonNode> lifecycles = new ArrayList<>();
+        assertThatCode(() -> {
+            client.createRawbulkUnitlifecycles(lifecycles);
+        }).isInstanceOf(LogbookClientServerException.class);
+    }
+
+    @Test
+    public void testRawbulkUnitLifecycles_BadRequest()
+        throws LogbookClientNotFoundException, LogbookClientServerException, LogbookClientBadRequestException {
+        reset(mock);
+        when(mock.post()).thenReturn(Response.status(Response.Status.BAD_REQUEST).build());
+
+        List<JsonNode> lifecycles = new ArrayList<>();
+        assertThatCode(() -> {
+            client.createRawbulkUnitlifecycles(lifecycles);
+        }).isInstanceOf(LogbookClientBadRequestException.class);
+    }
+
+    @Test
+    public void testRawbulkUnitLifecycles_Created()
+        throws LogbookClientNotFoundException, LogbookClientServerException, LogbookClientBadRequestException {
+        reset(mock);
+        when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
+
+        List<JsonNode> lifecycles = new ArrayList<>();
+        assertThatCode(() -> {
+            client.createRawbulkUnitlifecycles(lifecycles);
+        }).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void testRawbulkObjectgroupLifecycles_InternalError()
+        throws LogbookClientNotFoundException, LogbookClientServerException, LogbookClientBadRequestException {
+        reset(mock);
+        when(mock.post()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
+
+        List<JsonNode> lifecycles = new ArrayList<>();
+        assertThatCode(() -> {
+            client.createRawbulkObjectgrouplifecycles(lifecycles);
+        }).isInstanceOf(LogbookClientServerException.class);
+    }
+
+    @Test
+    public void testRawbulkObjectgroupLifecycles_BadRequest()
+        throws LogbookClientNotFoundException, LogbookClientServerException, LogbookClientBadRequestException {
+        reset(mock);
+        when(mock.post()).thenReturn(Response.status(Response.Status.BAD_REQUEST).build());
+
+        List<JsonNode> lifecycles = new ArrayList<>();
+        assertThatCode(() -> {
+            client.createRawbulkObjectgrouplifecycles(lifecycles);
+        }).isInstanceOf(LogbookClientBadRequestException.class);
+    }
+
+    @Test
+    public void testRawbulkObjectgroupLifecycles_Created()
+        throws LogbookClientNotFoundException, LogbookClientServerException, LogbookClientBadRequestException {
+        reset(mock);
+        when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
+
+        List<JsonNode> lifecycles = new ArrayList<>();
+        assertThatCode(() -> {
+            client.createRawbulkObjectgrouplifecycles(lifecycles);
+        }).doesNotThrowAnyException();
+    }
+
 }

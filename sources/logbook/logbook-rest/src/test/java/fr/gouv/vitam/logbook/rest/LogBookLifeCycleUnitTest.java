@@ -30,14 +30,13 @@ import static com.jayway.restassured.RestAssured.given;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.jhades.JHades;
@@ -60,6 +59,7 @@ import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -69,6 +69,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -97,7 +98,6 @@ public class LogBookLifeCycleUnitTest {
 
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
     private static final String SERVER_HOST = "localhost";
-    private static final String DATABASE_NAME = "vitam-test";
     private static MongodExecutable mongodExecutable;
     private static MongodProcess mongod;
 
@@ -111,17 +111,11 @@ public class LogBookLifeCycleUnitTest {
     private static final String LIFE_UNIT_ID_URI = "/operations/{id_op}/unitlifecycles/{id_lc}";
     private static final String LIFE_UNIT_URI = "/operations/{id_op}/unitlifecycles";
     private static final String LIFE_OG_ID_URI = "/operations/{id_op}/objectgrouplifecycles/{id_lc}";
-    private static final String COMMIT_OG_ID_URI = "/operations/{id_op}/objectgrouplifecycles/{id_lc}/commit";
-    private static final String COMMIT_UNIT_ID_URI = "/operations/{id_op}/unitlifecycles/{id_lc}/commit";
 
     private static final String FAKE_UNIT_LF_ID = "1";
     private static final String FAKE_OBG_LF_ID = "1";
     private static final String SELECT_UNIT_BY_ID_URI = "/unitlifecycles/" + FAKE_UNIT_LF_ID;
     private static final String SELECT_OBG_BY_ID_URI = "/objectgrouplifecycles/" + FAKE_OBG_LF_ID;
-
-    private static final String LIFECYCLE_SAMPLE =
-        "{'_id': 'aeaaaaaaaaaam7mxabaloakxrzydxbiaaaaq', 'evId': 'aeaaaaaaaaaam7mxabaloakxrzydxbyaaaaq', " +
-            "'evType': ''," + " 'events': []}";
 
     private static int databasePort;
     private static int serverPort;
@@ -564,7 +558,6 @@ public class LogBookLifeCycleUnitTest {
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testGetUnitLifeCycleByIdThenOkWhenLogbookNotFoundException()
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException,
@@ -580,7 +573,6 @@ public class LogBookLifeCycleUnitTest {
             .when().get(SELECT_UNIT_BY_ID_URI);
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testGetObjectGroupLifeCycleByIdThenOkWhenLogbookNotFoundException()
         throws LogbookDatabaseException, LogbookNotFoundException {
@@ -589,4 +581,43 @@ public class LogBookLifeCycleUnitTest {
             .param("id_lc", FAKE_OBG_LF_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
             .get(SELECT_OBG_BY_ID_URI);
     }
+    @Test
+    public final void given_lifeCycleUnit_bulk_raw_when_create_thenReturn_created()
+        throws InvalidParseOperationException, FileNotFoundException {
+        List<JsonNode> lfcGotList = new ArrayList<>();
+        lfcGotList.add(JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream("lfc_unit_raw_aeaqaaaaaaef6ys5absnuala7tya75iaaacq.json")));
+        lfcGotList.add(JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream("lfc_unit_raw_aeaqaaaaaageqltuabfg2ala73ny3zaaaacq.json")));
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(lfcGotList)
+            .when()
+            .post("/unitlifecycles/bulk/raw")
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(lfcGotList)
+            .when()
+            .post("/unitlifecycles/bulk/raw")
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        lfcGotList.add(JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream("lfc_unit_raw_aeaqaaaaaageqltuabfg2ala73ny3zaaaacq_diff.json")));
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(lfcGotList)
+            .when()
+            .post("/unitlifecycles/bulk/raw")
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
+    }
+
 }

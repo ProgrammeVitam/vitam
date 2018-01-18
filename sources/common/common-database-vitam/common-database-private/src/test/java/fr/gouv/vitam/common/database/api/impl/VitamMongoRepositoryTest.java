@@ -36,6 +36,7 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.RandomUtils;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -47,6 +48,7 @@ import com.google.common.collect.Lists;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Filters;
 
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.CollectionSample;
@@ -117,6 +119,59 @@ public class VitamMongoRepositoryTest {
         long count = collection.count();
         assertThat(count).isEqualTo(100);
     }
+
+    @Test
+    public void testSaveOrUpdateMultipleDocumentsOK() throws IOException, DatabaseException {
+        MongoCollection<Document> collection = mongoRule.getMongoCollection(TEST_COLLECTION);
+
+        // inserts
+        List<Document> documents = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            XContentBuilder builder = jsonBuilder()
+                .startObject()
+                .field(VitamDocument.ID, 1000 + i)
+                .field(VitamDocument.TENANT_ID, 0)
+                .field("Title", "Test save " + i)
+                .endObject();
+            documents.add(Document.parse(builder.string()));
+        }
+        repository.saveOrUpdate(documents);
+
+        long count = collection.count();
+        assertThat(count).isEqualTo(100);
+
+        // updates
+        List<Document> updatedDocuments = new ArrayList<>();
+        for (int i = 0; i < 50; i++) {
+            // change the title
+            XContentBuilder builder = jsonBuilder()
+                .startObject()
+                .field(VitamDocument.ID, 1000 + i)
+                .field(VitamDocument.TENANT_ID, 0)
+                .field("Title", "Test save updated")
+                .endObject();
+            updatedDocuments.add(Document.parse(builder.string()));
+        }
+        for (int i = 50; i < 100; i++) {
+            // same document
+            XContentBuilder builder = jsonBuilder()
+                .startObject()
+                .field(VitamDocument.ID, 1000 + i)
+                .field(VitamDocument.TENANT_ID, 0)
+                .field("Title", "Test save " + i)
+                .endObject();
+            updatedDocuments.add(Document.parse(builder.string()));
+        }
+        repository.saveOrUpdate(updatedDocuments);
+
+        count = collection.count();
+        assertThat(count).isEqualTo(100);
+        count = collection.count(Filters.eq("Title", "Test save updated"));
+        assertThat(count).isEqualTo(50);
+        assertThat(collection.find(Filters.eq(VitamDocument.ID, 1000 + 1)).first().get("Title"))
+            .isEqualTo("Test save updated");
+    }
+
 
     @Test
     public void testSaveMultipleDocumentsAndPurgeDocumentsOK() throws IOException, DatabaseException {

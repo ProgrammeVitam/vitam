@@ -90,8 +90,8 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws IllegalArgumentException if some mandatories parameters are empty or null
      */
     void update(LogbookLifeCycleParameters parameters, LifeCycleStatusCode lifeCycleStatusCode)
-            throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException;
-    
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException;
+
     /**
      * Commit logbook entry <br>
      * <br>
@@ -129,7 +129,8 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode selectUnitLifeCycleById(String id, JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException;
+    JsonNode selectUnitLifeCycleById(String id, JsonNode queryDsl)
+        throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * returns the unit life cycle in progress
@@ -141,7 +142,8 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode selectUnitLifeCycleById(String id, JsonNode queryDsl, LifeCycleStatusCode lifeCycleStatus) throws LogbookClientException, InvalidParseOperationException;
+    JsonNode selectUnitLifeCycleById(String id, JsonNode queryDsl, LifeCycleStatusCode lifeCycleStatus)
+        throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * returns the unit life cycle
@@ -162,7 +164,8 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode selectObjectGroupLifeCycleById(String id, JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException;
+    JsonNode selectObjectGroupLifeCycleById(String id, JsonNode queryDsl)
+        throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * returns the object group life cycle
@@ -174,7 +177,8 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode selectObjectGroupLifeCycleById(String id, JsonNode queryDsl, LifeCycleStatusCode lifeCycleStatus) throws LogbookClientException, InvalidParseOperationException;
+    JsonNode selectObjectGroupLifeCycleById(String id, JsonNode queryDsl, LifeCycleStatusCode lifeCycleStatus)
+        throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * returns the object group life cycles
@@ -184,7 +188,8 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode selectObjectGroupLifeCycle(JsonNode queryDsl) throws LogbookClientException, InvalidParseOperationException;
+    JsonNode selectObjectGroupLifeCycle(JsonNode queryDsl)
+        throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * returns VitamRequestIterator on ObjectGroupLifecycles for this operation.</br>
@@ -200,7 +205,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
                     // use it
                 }
             }
-
+    
         }
      * </code>
      * </pre>
@@ -229,7 +234,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
                     // use it
                 }
             }
-
+    
         }
      * </code>
      * </pre>
@@ -383,4 +388,25 @@ public interface LogbookLifeCyclesClient extends BasicClient {
 
     void bulkUnit(String eventIdProc, List<LogbookLifeCycleUnitModel> logbookLifeCycleModels)
         throws LogbookClientAlreadyExistsException, LogbookClientBadRequestException, LogbookClientServerException;
+
+    /**
+     * Create lifecycle objectgroup
+     * 
+     * @param logbookLifeCycleRaws list of lifecycle objectgroup as jsons
+     * @throws LogbookClientBadRequestException
+     * @throws LogbookClientServerException
+     */
+    void createRawbulkObjectgrouplifecycles(List<JsonNode> logbookLifeCycleRaws)
+        throws LogbookClientBadRequestException, LogbookClientServerException;
+
+    /**
+     * Create lifecycle unit
+     * 
+     * @param logbookLifeCycleRaws list of lifecycle unit as jsons
+     * @throws LogbookClientBadRequestException
+     * @throws LogbookClientServerException
+     */
+    void createRawbulkUnitlifecycles(List<JsonNode> logbookLifeCycleRaws)
+        throws LogbookClientBadRequestException, LogbookClientServerException;
+
 }

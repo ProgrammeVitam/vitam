@@ -30,6 +30,7 @@ import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -92,12 +93,12 @@ public class VitamElasticsearchRepository implements VitamRepository {
     @Override
     public void save(Document document) throws DatabaseException {
         ParametersChecker.checkParameter("All params are required", document);
-
-        String id = document.getString(VitamDocument.ID);
-        Integer tenant = document.getInteger(VitamDocument.TENANT_ID);
-        document.remove(VitamDocument.ID);
-        document.remove(VitamDocument.SCORE);
-        final String source = document.toJson(new JsonWriterSettings(JsonMode.STRICT));
+        Document internalDocument = new Document(document);
+        String id = internalDocument.getString(VitamDocument.ID);
+        Integer tenant = internalDocument.getInteger(VitamDocument.TENANT_ID);
+        internalDocument.remove(VitamDocument.ID);
+        internalDocument.remove(VitamDocument.SCORE);
+        final String source = internalDocument.toJson(new JsonWriterSettings(JsonMode.STRICT));
 
         String index = indexName;
         if (indexByTenant) {
@@ -126,11 +127,12 @@ public class VitamElasticsearchRepository implements VitamRepository {
         BulkRequestBuilder bulkRequest = client.prepareBulk();
 
         documents.forEach(document -> {
-            String id = document.getString(VitamDocument.ID);
-            Integer tenant = document.getInteger(VitamDocument.TENANT_ID);
-            document.remove(VitamDocument.ID);
-            document.remove(VitamDocument.SCORE);
-            final String source = document.toJson(new JsonWriterSettings(JsonMode.STRICT));
+            Document internalDocument = new Document(document);
+            String id = internalDocument.getString(VitamDocument.ID);
+            Integer tenant = internalDocument.getInteger(VitamDocument.TENANT_ID);
+            internalDocument.remove(VitamDocument.ID);
+            internalDocument.remove(VitamDocument.SCORE);
+            final String source = internalDocument.toJson(new JsonWriterSettings(JsonMode.STRICT));
 
             String index = indexName;
             if (indexByTenant) {
@@ -302,6 +304,12 @@ public class VitamElasticsearchRepository implements VitamRepository {
         vitamDocument.put("events", eventDocuments);
 
     }
+
+    @Override
+    public void saveOrUpdate(List<Document> documents) throws DatabaseException {
+        save(documents);
+    }
+
 
     @Override
     public void remove(String id, Integer tenant) throws DatabaseException {
@@ -496,7 +504,5 @@ public class VitamElasticsearchRepository implements VitamRepository {
         // Not implement yet
         throw new UnsupportedOperationException("Not implemented yet");
     }
-
-
 
 }
