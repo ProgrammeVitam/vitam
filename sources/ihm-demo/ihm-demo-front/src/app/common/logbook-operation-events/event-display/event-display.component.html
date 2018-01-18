@@ -2,18 +2,18 @@
   <div *ngIf="childLevel > 0" [ngClass]="indentChildClass" style="height: 100%; background-color: white"></div>
   <div class="logbookRowBorder no-padding" [ngClass]="[stepMessageClass, logbookRowStyle]">
     <div class="ui-g-6" style="height: 100%">
-      {{event.end.evType | translate}}
+      {{event.eventData.evType | translate}}
     </div>
 
     <div class="ui-g-6">
-      <div class="ui-g-12 no-padding">{{event.end.evDateTime | date:'dd/MM/yyyy à HH:mm'}}</div>
+      <div class="ui-g-12 no-padding">{{event.eventData.evDateTime | date:'dd/MM/yyyy à HH:mm'}}</div>
       <div class="ui-g-11" style="padding-bottom: 0;">
-        {{event.end.outMessg}}
-          <a class="toggleEvDetData" *ngIf="event.end.evDetData && event.end.evDetData.length > 2" (click)="showEvDetData = !showEvDetData">
+        {{event.eventData.outMessg}}
+          <a class="toggleEvDetData" *ngIf="event.eventData.evDetData && event.eventData.evDetData.length > 2" (click)="showEvDetData = !showEvDetData">
             <i [ngClass]="showEvDetData ? 'fa fa-minus fa-lg' : 'fa fa-plus fa-lg'"></i>
           </a>
-        <div class="ui-g-12" [ngClass]="logbookRowStyle" *ngIf="event.end.evDetData && showEvDetData">
-          <span style="font-weight: bold">Détails des données de l'évènement :</span> {{event.end.evDetData}}
+        <div class="ui-g-12" [ngClass]="logbookRowStyle" *ngIf="event.eventData.evDetData && showEvDetData">
+          <span style="font-weight: bold">Détails des données de l'évènement :</span> {{event.eventData.evDetData}}
         </div>
       </div>
       <div class="ui-g-1 no-padding">

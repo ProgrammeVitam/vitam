@@ -1,108 +1,43 @@
-import { Injectable } from '@angular/core';
-import {Event} from './event';
+import{Injectable}from'@angular/core';
+import {Event}from './event';
 
 
 @Injectable()
 export class LogbookHelperService {
-  eventData: any;
+eventData: any;
 
-  constructor() { }
+constructor() { }
 
   initEventsArray(logbook: any) {
     let events = [];
     this.eventData = this.getEventData(logbook);
-    let eventIndex = 0;
-    let tasks: Event[] = [];
-    let task: Event;
-    let eventsCount = 0;
-
-    if (logbook.events.length > 1) {
+    let rootEvent = null; // Step event
+    let actionEvent = null; // Action event
+    let started = false;
+    if (logbook.events.length > 0) {
       for (const event of logbook.events) {
-        eventsCount++;
         this.eventData = this.getEventData(event);
 
-        if (eventsCount >= logbook.events.length) {
-          if (event.outcome !== 'FATAL') {
-            if (task) {
-              tasks.push(task);
-              task = null;
-            }
-            if (event.evParentId === events[eventIndex].end.evId) {
-              task = new Event('', this.eventData, []);
-              tasks.push(task);
-              events[eventIndex].subEvents = tasks;
-            } else {
-              if (tasks.length > 0) {
-                events[eventIndex].subEvents = tasks;
-                eventIndex = events.length;
-              }
-              tasks = [];
-              if (events[eventIndex] && events[eventIndex].end
-                    && events[eventIndex].end.evType === event.evType) {
-                events[eventIndex].end = this.eventData;
-              } else {
-                events.push(new Event('', this.eventData, []));
-              }
-            }
-          } else {
-            if (event.evParentId === events[eventIndex].end.evId) {
-              if (task) {
-                tasks.push(task);
-                task = null;
-              }
-              task = new Event('', this.eventData, []);
-            } else {
-              task.subEvents.push(new Event('', this.eventData, []));
-            }
-            tasks.push(task);
-            events[eventIndex].subEvents = tasks;
-          }
-        } else {
-          if (!event.evParentId) {
-            if (task) {
-              tasks.push(task);
-              task = null;
-            }
-            if (tasks.length > 0) {
-              events[eventIndex].subEvents = tasks;
-            }
-            tasks = [];
+        if (!event.evParentId) { //Step event
+          rootEvent = new Event(this.eventData, []);
 
-            if (event.evType.indexOf('.STARTED') > -1) {
-              events.push(new Event(this.eventData, '', []));
-              eventIndex = events.length - 1;
-            } else {
-              if (events[eventIndex] && !events[eventIndex].end) {
-                events[eventIndex].end = this.eventData;
-              } else {
-                events.push(new Event('', this.eventData, []));
-                if (eventIndex > 0) {
-                  eventIndex = events.length;
-                }
-              }
-            }
+          if (event.evType.endsWith(".STARTED")) {
+            events.push(rootEvent);
+            started = true;
           } else {
-            if (events[eventIndex] && event.evParentId === events[eventIndex].end.evId) {
-              if (task) {
-                tasks.push(task);
-                task = null;
-              }
-              task = new Event('', this.eventData, []);
-            } else {
-              if (event.evParentId === task.end.evId) {
-                task.subEvents.push(new Event('', this.eventData, []));
-              }
+            if (logbook.events.indexOf(event) != logbook.events.length - 1 && started) {
+                events.pop();
+                started = false;
             }
+            events.push(rootEvent);
           }
+
+        } else if (event.evParentId === rootEvent.eventData.evId) { //Action events
+            actionEvent = new Event(this.eventData, []);
+            rootEvent.subEvents.push(actionEvent);
+        } else if (event.evParentId === actionEvent.eventData.evId) { //SubTask events
+            actionEvent.subEvents.push(new Event(this.eventData, []));
         }
-      }
-    } else {
-      if (logbook.events.length > 0) {
-        events.push(new Event(logbook, logbook.events[0], []));
-      } else {
-        // If logbook has no event then process must have failed
-        logbook.outcome = "KO";
-        events.push(new Event(logbook, logbook, []));
       }
     }
     return events;
