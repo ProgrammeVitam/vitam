@@ -33,6 +33,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -47,25 +48,26 @@ import fr.gouv.vitam.common.security.merkletree.MerkleTree;
  * Used to handle zip file for traceability
  */
 public class TraceabilityFile implements AutoCloseable {
-    
+
     private static final String EXTRACT_FILENAME_SUFFIX = ".txt";
     private static final String ADDITIONAL_INFORMATION_FILENAME = "additional_information.txt";
     private static final String COMPUTING_INFORMATION_FILENAME = "computing_information.txt";
     private static final String MEKLE_TREE_FILENAME = "merkleTree.json";
     private static final String TIMESTAMP_FILENAME = "token.tsp";
-    
-    private static final String LINE_SEPARATOR = "\n";
-    
+
+    private static final byte[] LINE_SEPARATOR = "\n".getBytes();
+
     private final ZipArchiveOutputStream archive;
     private final String extractedDataFileName;
 
     // FIXME: Do ArchiveException should be thrown as it is a local exception that not depend on any user data
     // FIXME ArchiveException thrown if ArchiveStreamFactory.ZIP is not found (Throw TraceabilityException instead ?)
+
     /**
-     * @param file the targeted file to store tmp zip file
+     * @param file                  the targeted file to store tmp zip file
      * @param extractedDataFileName the prefix name of the extractedData.txt file (depend on traceability type)
      * @throws FileNotFoundException if the given file is missing
-     * @throws ArchiveException if any error occurs while creating ZipArchiveOutputStram
+     * @throws ArchiveException      if any error occurs while creating ZipArchiveOutputStram
      */
     public TraceabilityFile(File file, String extractedDataFileName) throws FileNotFoundException, ArchiveException {
         final OutputStream archiveStream = new BufferedOutputStream(new FileOutputStream(file));
@@ -78,6 +80,7 @@ public class TraceabilityFile implements AutoCloseable {
 
     /**
      * Add a merkleTree file with the computed merkleTree in the zipFile
+     *
      * @param merkleTree the tree that should be store in zip
      * @throws IOException if any error occurs while attempting to write in zip
      */
@@ -90,6 +93,7 @@ public class TraceabilityFile implements AutoCloseable {
 
     /**
      * Add a timestampToken file with the computed token of the traceability operation in the zipFile
+     *
      * @param timestampToken of the traceability operation
      * @throws IOException if any error occurs while attempting to write in zip
      */
@@ -106,26 +110,29 @@ public class TraceabilityFile implements AutoCloseable {
      * Create a new file for extracted data.<br>
      * Should be directly followed by one or multiple storeOperationLog<br>
      * Must be close with closeStoreOperationLog
+     *
      * @throws IOException if any error occurs while attempting to write in zip
      */
     public void initStoreLog() throws IOException {
         final ZipArchiveEntry entry = new ZipArchiveEntry(extractedDataFileName);
         archive.putArchiveEntry(entry);
-        
+
     }
 
     /**
      * Add a line of extracted data in the recently created file.<br>
      * Must be directly preceded by a call of initStoreOperationLog or storeOperationLog
+     *
      * @throws IOException if any error occurs while attempting to write in zip
      */
     public void storeLog(byte[] line) throws IOException {
         archive.write(line);
-        archive.write(LINE_SEPARATOR.getBytes());
+        archive.write(LINE_SEPARATOR);
     }
 
     /**
      * Close the extracted data file
+     *
      * @throws IOException if error on closing stream
      */
     public void closeStoreLog() throws IOException {
@@ -134,49 +141,49 @@ public class TraceabilityFile implements AutoCloseable {
 
     /**
      * Add an additionalInformation file with the given data in the zipFile
-     * 
+     *
      * @param numberOfLine of the extracted data secured by the traceability process
-     * @param startDate of the traceability process
-     * @param endDate of the traceability process
+     * @param startDate    of the traceability process
+     * @param endDate      of the traceability process
      * @throws IOException if any error occurs while attempting to write in zip
      */
     public void storeAdditionalInformation(long numberOfLine, String startDate,
-            String endDate) throws IOException {
+        String endDate) throws IOException {
         ZipArchiveEntry entry;
         entry = new ZipArchiveEntry(ADDITIONAL_INFORMATION_FILENAME);
         archive.putArchiveEntry(entry);
         archive.write(String.format("numberOfElement=%d", numberOfLine).getBytes());
-        archive.write(LINE_SEPARATOR.getBytes());
+        archive.write(LINE_SEPARATOR);
         archive.write(String.format("startDate=%s", startDate).getBytes());
-        archive.write(LINE_SEPARATOR.getBytes());
+        archive.write(LINE_SEPARATOR);
         archive.write(String.format("endDate=%s", endDate).getBytes());
-        archive.write(LINE_SEPARATOR.getBytes());
+        archive.write(LINE_SEPARATOR);
         archive.closeArchiveEntry();
     }
 
     /**
      * Add an computedInformation file with the traceability data in the zipFile
-     * 
-     * @param currentHash hash of the new merkleTree root
-     * @param previousHash hash of the last traceability operation merkleTree root
+     *
+     * @param currentHash              hash of the new merkleTree root
+     * @param previousHash             hash of the last traceability operation merkleTree root
      * @param currentHashMinusOneMonth hash of the (Month - 1) traceability operation merkleTree root
-     * @param currentHashMinusOneYear hash of the (Year - 1) traceability operation merkleTree root
+     * @param currentHashMinusOneYear  hash of the (Year - 1) traceability operation merkleTree root
      * @throws IOException if any error occurs while attempting to write in zip
      */
     public void storeComputedInformation(String currentHash,
-            String previousHash, String currentHashMinusOneMonth, String currentHashMinusOneYear) throws IOException {
+        String previousHash, String currentHashMinusOneMonth, String currentHashMinusOneYear) throws IOException {
         final ZipArchiveEntry entry = new ZipArchiveEntry(COMPUTING_INFORMATION_FILENAME);
         archive.putArchiveEntry(entry);
         archive.write(String.format("currentHash=%s", currentHash).getBytes());
-        archive.write(LINE_SEPARATOR.getBytes());
+        archive.write(LINE_SEPARATOR);
         archive.write(String.format("previousTimestampToken=%s", previousHash).getBytes());
-        archive.write(LINE_SEPARATOR.getBytes());
+        archive.write(LINE_SEPARATOR);
         archive.write(String.format("previousTimestampTokenMinusOneMonth=%s", currentHashMinusOneMonth).getBytes());
-        archive.write(LINE_SEPARATOR.getBytes());
+        archive.write(LINE_SEPARATOR);
         archive.write(String.format("previousTimestampTokenMinusOneYear=%s", currentHashMinusOneYear).getBytes());
-        archive.write(LINE_SEPARATOR.getBytes());
+        archive.write(LINE_SEPARATOR);
         archive.closeArchiveEntry();
-        
+
     }
 
     /**

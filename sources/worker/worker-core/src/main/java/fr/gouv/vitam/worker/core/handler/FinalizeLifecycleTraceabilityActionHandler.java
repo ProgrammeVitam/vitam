@@ -88,13 +88,13 @@ public class FinalizeLifecycleTraceabilityActionHandler extends ActionHandler {
                     new TimeStampSignatureWithKeystore(file, configuration.getP12LogbookPassword().toCharArray());
             } catch (KeyStoreException | CertificateException | IOException | UnrecoverableKeyException |
                 NoSuchAlgorithmException e) {
-                LOGGER.error("unable to instanciate TimeStampGenerator", e);
+                LOGGER.error("unable to instantiate TimeStampGenerator", e);
                 // FIXME: Make a specific exception ?
                 throw new RuntimeException(e);
             }
             timestampGenerator = new TimestampGenerator(timeStampSignature);
         } else {
-            LOGGER.error("unable to instanciate TimeStampGenerator");
+            LOGGER.error("unable to instantiate TimeStampGenerator");
             throw new RuntimeException("Configuration is null");
         }
     }

@@ -30,7 +30,6 @@ package fr.gouv.vitam.logbook.administration.core;
 import java.io.File;
 
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -39,8 +38,6 @@ import fr.gouv.vitam.common.timestamp.TimestampGenerator;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.logbook.common.traceability.TraceabilityService;
 import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
 
 /**
  * Business class for Logbook Administration (traceability)
@@ -49,18 +46,16 @@ public class LogbookAdministration {
 
     private final LogbookOperations logbookOperations;
     private final TimestampGenerator timestampGenerator;
-    private final WorkspaceClientFactory workspaceClientFactory;
 
     private final File tmpFolder;
     private final int operationTraceabilityOverlapDelayInSeconds;
 
     @VisibleForTesting //
     LogbookAdministration(LogbookOperations logbookOperations,
-        TimestampGenerator timestampGenerator, WorkspaceClientFactory workspaceClientFactory, File tmpFolder,
+        TimestampGenerator timestampGenerator, File tmpFolder,
         Integer operationTraceabilityOverlapDelay) {
         this.logbookOperations = logbookOperations;
         this.timestampGenerator = timestampGenerator;
-        this.workspaceClientFactory = workspaceClientFactory;
         this.tmpFolder = tmpFolder;
         this.operationTraceabilityOverlapDelayInSeconds =
             validateAndGetTraceabilityOverlapDelay(operationTraceabilityOverlapDelay);
@@ -80,16 +75,14 @@ public class LogbookAdministration {
      * Constructor
      *
      * @param logbookOperations                 logbook operation
-     * @param timestampGenerator                to generate timestamp
      * @param workspaceClientFactory            to create workspace client
      * @param operationTraceabilityOverlapDelay
      */
     public LogbookAdministration(LogbookOperations logbookOperations, TimestampGenerator timestampGenerator,
-        WorkspaceClientFactory workspaceClientFactory, Integer operationTraceabilityOverlapDelay) {
-        this(logbookOperations, timestampGenerator, workspaceClientFactory,
+        Integer operationTraceabilityOverlapDelay) {
+        this(logbookOperations, timestampGenerator,
             PropertiesUtils.fileFromTmpFolder("secure"), operationTraceabilityOverlapDelay);
     }
-
     /**
      * secure the logbook operation since last securisation.
      *
@@ -102,11 +95,9 @@ public class LogbookAdministration {
 
         Integer tenantId = ParameterHelper.getTenantParameter();
         GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        
 
-        LogbookOperationTraceabilityHelper helper = 
-            new LogbookOperationTraceabilityHelper(workspaceClientFactory.getClient(), logbookOperations,
-                guid, operationTraceabilityOverlapDelayInSeconds);
+        LogbookOperationTraceabilityHelper helper =
+            new LogbookOperationTraceabilityHelper(logbookOperations, guid, operationTraceabilityOverlapDelayInSeconds);
 
         TraceabilityService generator =
             new TraceabilityService(timestampGenerator, helper, tenantId, tmpFolder);

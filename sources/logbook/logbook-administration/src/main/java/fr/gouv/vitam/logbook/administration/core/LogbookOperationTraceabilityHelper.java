@@ -43,6 +43,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -52,7 +53,6 @@ import org.bson.Document;
 
 import com.google.common.collect.Iterables;
 import com.mongodb.client.MongoCursor;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
@@ -89,6 +89,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExi
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHelper {
 
@@ -104,7 +105,6 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     private static final String ZIP_NAME = "LogbookOperation";
     private static final String LOGBOOK = "logbook";
 
-    private final WorkspaceClient workspaceClient;
     private final LogbookOperations logbookOperations;
     private final GUID operationID;
     private final int delay;
@@ -123,16 +123,13 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     private byte[] previousMonthTimestampToken = null;
     private byte[] previousYearTimestampToken = null;
 
-    //FIXME is workspaceClient useful as parameter or the Factory/client can be handle in the class ?
     /**
-     * @param workspaceClient used to store zipFile in workspace
      * @param logbookOperations used to search the operation to secure
      * @param operationID guid of the traceability operation
      * @param delay the overlap delay in second used to avoid to forgot logbook operation for traceability
      */
-    public LogbookOperationTraceabilityHelper(WorkspaceClient workspaceClient, LogbookOperations logbookOperations,
+    public LogbookOperationTraceabilityHelper(LogbookOperations logbookOperations,
         GUID operationID, int overlapDelayInSeconds) {
-        this.workspaceClient = workspaceClient;
         this.logbookOperations = logbookOperations;
         this.operationID = operationID;
         this.delay = overlapDelayInSeconds;
@@ -144,7 +141,7 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
         try {
             lastTraceabilityOperation = logbookOperations.findLastTraceabilityOperationOK();
         } catch (LogbookNotFoundException | LogbookDatabaseException | InvalidParseOperationException
-                | InvalidCreateOperationException e) {
+            | InvalidCreateOperationException e) {
             throw new TraceabilityException(e);
         }
         LocalDateTime startDate;
@@ -166,7 +163,8 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     }
 
     @Override
-    public LocalDateTime saveDataInZip(MerkleTreeAlgo algo, LocalDateTime startDate, TraceabilityFile file) throws IOException, TraceabilityException {
+    public LocalDateTime saveDataInZip(MerkleTreeAlgo algo, LocalDateTime startDate, TraceabilityFile file)
+        throws IOException, TraceabilityException {
         MongoCursor<LogbookOperation> mongoCursor;
         try {
             mongoCursor = logbookOperations.selectOperationsPersistedAfterDate(startDate);
@@ -183,11 +181,11 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
             logbookOperation.remove(VitamDocument.SCORE);
             final String logbookOperationStr = JsonHandler.unprettyPrint(logbookOperation);
 
-            file.storeLog(JsonHandler.unprettyPrint(logbookOperation).getBytes());
+            file.storeLog(logbookOperationStr.getBytes(StandardCharsets.UTF_8));
             algo.addLeaf(logbookOperationStr);
 
             if (INITIAL_START_DATE.equals(startDate) &&
-                    logbookOperation.getString(EVENT_DATE_TIME) != null) {
+                logbookOperation.getString(EVENT_DATE_TIME) != null) {
                 startDate = LocalDateTime.parse(logbookOperation.getString(EVENT_DATE_TIME));
             }
         }
@@ -247,43 +245,50 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     @Override
     public void createLogbookOperationStructure() throws TraceabilityException {
         final LogbookOperationParameters logbookParameters =
-            newLogbookOperationParameters(operationID, STP_OP_SECURISATION, operationID, TRACEABILITY, STARTED, null, null, operationID);
+            newLogbookOperationParameters(operationID, STP_OP_SECURISATION, operationID, TRACEABILITY, STARTED, null,
+                null, operationID);
 
         LogbookOperationsClientHelper.checkLogbookParameters(logbookParameters);
         try {
             logbookOperations.create(logbookParameters);
         } catch (LogbookDatabaseException | LogbookAlreadyExistsException e) {
-            LOGGER.error("unable to create traceability logbook", e);
-            throw new TraceabilityException(e);
+            throw new TraceabilityException("unable to create traceability logbook", e);
         }
     }
 
     @Override
     public void createLogbookOperationEvent(Integer tenantId, String eventType, StatusCode status,
-            TraceabilityEvent event) throws TraceabilityException {
+        TraceabilityEvent event) throws TraceabilityException {
         final GUID eventId = GUIDFactory.newEventGUID(tenantId);
         final LogbookOperationParameters logbookOperationParameters =
-                newLogbookOperationParameters(eventId, eventType, operationID, TRACEABILITY, status, null, null, operationID);
+            newLogbookOperationParameters(eventId, eventType, operationID, TRACEABILITY, status, null, null,
+                operationID);
 
         LogbookOperationsClientHelper.checkLogbookParameters(logbookOperationParameters);
 
         if (event != null) {
-            String eventdata = unprettyPrint(event);
+            String eventData = unprettyPrint(event);
             logbookOperationParameters
-            .putParameterValue(LogbookParameterName.eventDetailData, eventdata);
-            logbookOperationParameters.putParameterValue(LogbookParameterName.masterData, eventdata);
+                .putParameterValue(LogbookParameterName.eventDetailData, eventData);
+            logbookOperationParameters.putParameterValue(LogbookParameterName.masterData, eventData);
         }
         try {
             logbookOperations.update(logbookOperationParameters);
         } catch (LogbookNotFoundException | LogbookDatabaseException e) {
-            LOGGER.error("unable to update traceability logbook", e);
-            throw new TraceabilityException(e);
+            throw new TraceabilityException("unable to update traceability logbook", e);
         }
     }
 
     @Override
-    public void storeAndDeleteZip(Integer tenant, File zipFile, String fileName, String uri, TraceabilityEvent event) throws TraceabilityException {
-        try (InputStream inputStream = new BufferedInputStream(new FileInputStream(zipFile))) {
+    public void saveEvent(TraceabilityEvent event) {
+        // Nothing to do, event is saved in logbook after with 'createLogbookOperationEvent'
+    }
+
+    @Override
+    public void storeAndDeleteZip(Integer tenant, File zipFile, String fileName, String uri, TraceabilityEvent event)
+        throws TraceabilityException {
+        try (InputStream inputStream = new BufferedInputStream(new FileInputStream(zipFile));
+            final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
 
             workspaceClient.createContainer(fileName);
             workspaceClient.putObject(fileName, uri, inputStream);
@@ -297,24 +302,26 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
 
                 storageClient.storeFileFromWorkspace(
-                        STRATEGY_ID, StorageCollectionType.LOGBOOKS, fileName, description);
+                    STRATEGY_ID, StorageCollectionType.LOGBOOKS, fileName, description);
                 workspaceClient.deleteContainer(fileName, true);
 
                 createLogbookOperationEvent(tenant, OP_SECURISATION_STORAGE, OK, event);
 
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
-                    StorageServerClientException | ContentAddressableStorageNotFoundException e) {
+                StorageServerClientException | ContentAddressableStorageNotFoundException e) {
                 createLogbookOperationEvent(tenant, OP_SECURISATION_STORAGE, StatusCode.FATAL, event);
                 LOGGER.error("unable to store zip file", e);
                 throw new TraceabilityException(e);
             }
         } catch (ContentAddressableStorageAlreadyExistException | ContentAddressableStorageServerException |
-                IOException e) {
+            IOException e) {
             LOGGER.error("unable to create container", e);
             createLogbookOperationEvent(tenant, OP_SECURISATION_STORAGE, StatusCode.FATAL, event);
             throw new TraceabilityException(e);
         } finally {
-            zipFile.delete();
+            if (!zipFile.delete()) {
+                LOGGER.error("Unable to delete zipFile");
+            }
         }
     }
 
@@ -346,7 +353,7 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     @Override
     public Long getDataSize() throws TraceabilityException {
         if (traceabilityIterator != null) {
-            return traceabilityIterator.getNumberOfLine();
+            return traceabilityIterator.getNumberOfLines();
         }
         throw new TraceabilityException("Iterator is not yet initialized");
     }
@@ -370,15 +377,16 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
         isLastEventInit = true;
     }
 
-    private void extractMonthPreviousEvent(LocalDateTime currentDate) throws InvalidParseOperationException, TraceabilityException {
+    private void extractMonthPreviousEvent(LocalDateTime currentDate)
+        throws InvalidParseOperationException, TraceabilityException {
         try {
             previousMonthTimestampToken =
-                    findHashByTraceabilityEventExpect(expectedLogbookId, currentDate.minusMonths(1));
+                findHashByTraceabilityEventExpect(expectedLogbookId, currentDate.minusMonths(1));
             final LogbookOperation oneMounthBeforeTraceabilityOperation =
-                    logbookOperations.findFirstTraceabilityOperationOKAfterDate(currentDate.minusMonths(1));
+                logbookOperations.findFirstTraceabilityOperationOKAfterDate(currentDate.minusMonths(1));
             if (oneMounthBeforeTraceabilityOperation != null) {
                 TraceabilityEvent oneMonthBeforeTraceabilityEvent =
-                        extractEventDetData(oneMounthBeforeTraceabilityOperation);
+                    extractEventDetData(oneMounthBeforeTraceabilityOperation);
                 if (oneMonthBeforeTraceabilityEvent != null) {
                     previousMonthStartDate = oneMonthBeforeTraceabilityEvent.getStartDate();
                 }
@@ -389,15 +397,16 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
         isLastMonthEventInit = true;
     }
 
-    private void extractYearPreviousEvent(LocalDateTime currentDate) throws InvalidParseOperationException, TraceabilityException {
+    private void extractYearPreviousEvent(LocalDateTime currentDate)
+        throws InvalidParseOperationException, TraceabilityException {
         try {
             previousYearTimestampToken =
-                    findHashByTraceabilityEventExpect(expectedLogbookId, currentDate.minusYears(1));
+                findHashByTraceabilityEventExpect(expectedLogbookId, currentDate.minusYears(1));
             final LogbookOperation oneMounthBeforeTraceabilityOperation =
-                    logbookOperations.findFirstTraceabilityOperationOKAfterDate(currentDate.minusYears(1));
+                logbookOperations.findFirstTraceabilityOperationOKAfterDate(currentDate.minusYears(1));
             if (oneMounthBeforeTraceabilityOperation != null) {
                 TraceabilityEvent oneMonthBeforeTraceabilityEvent =
-                        extractEventDetData(oneMounthBeforeTraceabilityOperation);
+                    extractEventDetData(oneMounthBeforeTraceabilityOperation);
                 if (oneMonthBeforeTraceabilityEvent != null) {
                     previousYearStartDate = oneMonthBeforeTraceabilityEvent.getStartDate();
                 }
@@ -409,8 +418,8 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     }
 
     private byte[] findHashByTraceabilityEventExpect(List<String> expectIds, LocalDateTime date)
-            throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException,
-            InvalidParseOperationException {
+        throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException,
+        InvalidParseOperationException {
 
         final LogbookOperation logbookOperation = logbookOperations.findFirstTraceabilityOperationOKAfterDate(date);
 
@@ -430,7 +439,7 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     }
 
     private TraceabilityEvent extractEventDetData(LogbookOperation logbookOperation)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         if (logbookOperation == null) {
             return null;
         }

@@ -27,7 +27,6 @@
 package fr.gouv.vitam.logbook.administration.core;
 
 import com.mongodb.client.MongoCursor;
-
 import fr.gouv.vitam.logbook.common.model.TraceabilityIterator;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
@@ -39,7 +38,7 @@ public class LogbookTraceabilityIterator implements TraceabilityIterator<Logbook
 
     private LogbookOperation lastDocument;
 
-    private long numberOfLine;
+    private long numberOfLines;
 
     private final MongoCursor<LogbookOperation> mongoCursor;
 
@@ -47,8 +46,8 @@ public class LogbookTraceabilityIterator implements TraceabilityIterator<Logbook
      * @param mongoCursor of logbook operation
      */
     public LogbookTraceabilityIterator(MongoCursor<LogbookOperation> mongoCursor) {
-    	super();
-        numberOfLine = 0;
+        super();
+        numberOfLines = 0;
         this.mongoCursor = mongoCursor;
     }
 
@@ -70,7 +69,7 @@ public class LogbookTraceabilityIterator implements TraceabilityIterator<Logbook
      */
     @Override
     public LogbookOperation next() {
-        numberOfLine += 1;
+        numberOfLines += 1;
         lastDocument = mongoCursor.next();
         return lastDocument;
     }
@@ -87,8 +86,8 @@ public class LogbookTraceabilityIterator implements TraceabilityIterator<Logbook
      * @return size of the iterator
      */
     @Override
-    public long getNumberOfLine() {
-        return numberOfLine;
+    public long getNumberOfLines() {
+        return numberOfLines;
     }
 
 }

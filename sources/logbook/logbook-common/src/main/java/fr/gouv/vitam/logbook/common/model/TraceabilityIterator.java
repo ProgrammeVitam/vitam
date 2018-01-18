@@ -38,15 +38,15 @@ public interface TraceabilityIterator<T> extends Iterator<T> {
 
     /**
      * Warning: This method should only calculate the iterated data. The real result should be found when no "hasNext()" item left
-     * 
+     *
      * @return current size of the iterator
      */
-    public abstract long getNumberOfLine();
+    long getNumberOfLines();
 
     /**
      * Warning: This method should only calculate the iterated data. The real result should be found when no "hasNext()" item left
-     * 
+     *
      * @return the date of the last securised element
      */
-    public abstract String endDate();
+    String endDate();
 }
