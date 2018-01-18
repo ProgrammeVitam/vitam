@@ -123,7 +123,7 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
             LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
 
             //// get metadata
-            JsonNode unit = selectMetadataDocumentById(guid, DataCategory.UNIT, metaDataClient);
+            JsonNode unit = selectMetadataDocumentRawById(guid, DataCategory.UNIT, metaDataClient);
             //// get lfc
             JsonNode lfc = retrieveLogbookLifeCycleById(guid, DataCategory.UNIT, logbookClient);
 

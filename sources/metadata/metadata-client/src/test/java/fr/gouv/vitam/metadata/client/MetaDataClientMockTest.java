@@ -8,6 +8,7 @@ import org.junit.Test;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
@@ -78,6 +79,16 @@ public class MetaDataClientMockTest {
     public void switchIndexesTest()
         throws MetaDataClientServerException, MetaDataNotFoundException, InvalidParseOperationException {
         assertNotNull(client.switchIndexes(new SwitchIndexParameters()));
+    }
+    
+    @Test
+    public void getUnitByIdRawTest() throws VitamClientException {
+        assertNotNull(client.getUnitByIdRaw("unitId"));
+    }
+    
+    @Test
+    public void getObjectGroupByIdRawTest() throws VitamClientException {
+        assertNotNull(client.getObjectGroupByIdRaw("objectGroupId"));
     }
 
 }

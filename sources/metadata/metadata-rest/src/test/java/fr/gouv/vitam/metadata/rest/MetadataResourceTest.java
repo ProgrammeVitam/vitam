@@ -86,7 +86,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 
-public class MetaDataResourceTest {
+public class MetadataResourceTest {
     private static final String DATA =
         "{ \"#id\": \"aeaqaaaaaaaaaaabaawkwak2ha24fdaaaaaq\", " + "\"data\": \"data1\" }";
     private static final String DATA2 =
@@ -195,6 +195,7 @@ public class MetaDataResourceTest {
     @After
     public void tearDown() {
         MetadataCollections.UNIT.getCollection().drop();
+        MetadataCollections.OBJECTGROUP.getCollection().drop();
     }
 
     private static final JsonNode buildDSLWithOptions(String query, String data) throws Exception {
@@ -248,7 +249,7 @@ public class MetaDataResourceTest {
             .body(buildDSLWithOptions("{}", DATA)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
-
+        
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)

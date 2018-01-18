@@ -1,0 +1,63 @@
+{
+    "_id": "aebaaaaaaafek5loablywalbbfjbzfaaaabq",
+    "_tenant": 0,
+    "_profil": "",
+    "FileInfo": {
+        "Filename": "example.7z",
+        "LastModified": "2016-10-20T15:02:02.889+02:00"
+    },
+    "_qualifiers": [
+        {
+            "qualifier": "BinaryMaster",
+            "_nbc": 1,
+            "versions": [
+                {
+                    "_id": "aeaaaaaaaafek5loablywalbbfjbzfaaaaba",
+                    "DataObjectGroupId": "aebaaaaaaafek5loablywalbbfjbzfaaaabq",
+                    "DataObjectVersion": "BinaryMaster_1",
+                    "FormatIdentification": {
+                        "FormatLitteral": "7Zip format",
+                        "FormatId": "fmt/484",
+                        "MimeType": "application/epub+zip"
+                    },
+                    "FileInfo": {
+                        "Filename": "example.7z",
+                        "LastModified": "2016-10-20T15:02:02.889+02:00"
+                    },
+                    "Size": 356575,
+                    "Uri": "Content/ID33.7z",
+                    "MessageDigest": "18003097ad4ea78920a5ef0fd4a8abd5e6b3cc861cb02f9ae28a23508e4f5d3085dd995a549f7cb1c7c3248748af0b8e4119e2098821f588af938063f3e9c48b",
+                    "Algorithm": "SHA-512",
+                    "_storage": {
+                        "_nbc": 2,
+                        "offerIds": [
+                            "vitam-iaas-app-02.int",
+                            "vitam-iaas-app-03.int"
+                        ],
+                        "strategyId": "default"
+                    }
+                }
+            ]
+        }
+    ],
+    "_up": [
+        "aeaqaaaaaafek5loablywalbbfjbziaaaaba"
+    ],
+    "_nbc": 1,
+    "_ops": [
+        "aedqaaaaaced25kkaariealbbfi6jdaaaaaq"
+    ],
+    "_sp": "ABCDEFG",
+    "_sps": [
+        "ABCDEFG"
+    ],
+    "_storage": {
+        "_nbc": 2,
+        "offerIds": [
+            "vitam-iaas-app-02.int",
+            "vitam-iaas-app-03.int"
+        ],
+        "strategyId": "default"
+    },
+    "_v": 1
+}

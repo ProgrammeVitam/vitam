@@ -27,12 +27,14 @@
 
 package fr.gouv.vitam.metadata.client;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
+import java.io.InputStream;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -51,11 +53,15 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
@@ -158,6 +164,14 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
             return expectedResponse.get();
         }
 
+        @Path("units/{id_unit}/raw")
+        @GET
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getUnitByIdRaw(@PathParam("id_unit") String unitId) {
+            return expectedResponse.get();
+        }
+
         @Path("units/{id_unit}")
         @PUT
         @Consumes(MediaType.APPLICATION_JSON)
@@ -179,6 +193,14 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response selectObjectGroupById(String selectRequest, @PathParam("id_og") String objectGroupId) {
+            return expectedResponse.get();
+        }
+
+        @Path("objectgroups/{id_og}/raw")
+        @GET
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getObjectGroupByIdRaw(@PathParam("id_og") String objectGroupId) {
             return expectedResponse.get();
         }
 
@@ -534,5 +556,100 @@ public class MetaDataClientRestTest extends VitamJerseyTest {
         assertNotNull(resp);
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void given_OK_When_getObjectGroupByIdRaw_ThenReturn_ObjectGroup() throws Exception {
+        // Given
+        InputStream objectGroup = PropertiesUtils.getResourceAsStream("objectGroup_raw.json");
+        RequestResponse<JsonNode> requestResponseOK = new RequestResponseOK<JsonNode>()
+            .addResult(JsonHandler.getFromInputStream(objectGroup)).setHttpCode(Status.OK.getStatusCode());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(requestResponseOK).build());
+
+        // When
+        RequestResponse<JsonNode> requestResponse =
+            client.getObjectGroupByIdRaw("aebaaaaaaagwky22aboqialbbrqygmaaaaaq");
+
+        // Then
+        assertThat(requestResponse).isNotNull();
+        assertThat(requestResponse.getStatus()).isEqualTo(Status.OK.getStatusCode());
+        assertThat(requestResponse.isOk()).isTrue();
+        assertThat(((RequestResponseOK<JsonNode>) requestResponse).getResults().size()).isEqualTo(1);
+        assertThat(((RequestResponseOK<JsonNode>) requestResponse).getFirstResult().get("_id").asText())
+            .isEqualTo("aebaaaaaaagwky22aboqialbbrqygmaaaaaq");
+
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void given_NoIdSent_When_getObjectGroupByIdRaw_ThenThrow_IllegalArgumentException() throws Exception {
+        // Given
+        when(mock.get()).thenThrow(new IllegalArgumentException("test"));
+        assertThatCode(() -> {
+            // When
+            client.getObjectGroupByIdRaw(null);
+            // Then
+        }).isInstanceOf(IllegalArgumentException.class);
+    }
+    
+
+    @Test
+    @RunWithCustomExecutor
+    public void given_InvalidEntity_When_getObjectGroupByIdRaw_ThenThrow_VitamClientException() throws Exception {
+        // Given
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity("String").build());
+
+        assertThatCode(() -> {
+            // When
+            client.getObjectGroupByIdRaw("aebaaaaaaagwky22aboqialbbrqygmaaaaaq");
+            // Then
+        }).isInstanceOf(VitamClientException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void given_OK_When_getUnitByIdRaw_ThenReturn_Unit() throws Exception {
+        // Given
+        InputStream unit = PropertiesUtils.getResourceAsStream("unit_raw.json");
+        RequestResponse<JsonNode> requestResponseOK = new RequestResponseOK<JsonNode>()
+            .addResult(JsonHandler.getFromInputStream(unit)).setHttpCode(Status.OK.getStatusCode());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(requestResponseOK).build());
+
+        // When
+        RequestResponse<JsonNode> requestResponse =
+            client.getUnitByIdRaw("aeaqaaaaaagwky22aboqialbbrqygviaaaaq");
+
+        // Then
+        assertThat(requestResponse).isNotNull();
+        assertThat(requestResponse.getStatus()).isEqualTo(Status.OK.getStatusCode());
+        assertThat(requestResponse.isOk()).isTrue();
+        assertThat(((RequestResponseOK<JsonNode>) requestResponse).getResults().size()).isEqualTo(1);
+        assertThat(((RequestResponseOK<JsonNode>) requestResponse).getFirstResult().get("_id").asText())
+            .isEqualTo("aeaqaaaaaagwky22aboqialbbrqygviaaaaq");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void given_NoIdSent_When_getUnitByIdRaw_ThenThrow_IllegalArgumentException() throws Exception {
+        // Given
+        when(mock.get()).thenThrow(new IllegalArgumentException("test"));
+        assertThatCode(() -> {
+            // When
+            client.getUnitByIdRaw(null);
+            // Then
+        }).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void given_InvalidEntity_When_getUnitByIdRaw_ThenThrow_VitamClientException() throws Exception {
+        // Given
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity("String").build());
+
+        assertThatCode(() -> {
+            // When
+            client.getUnitByIdRaw("aeaqaaaaaagwky22aboqialbbrqygviaaaaq");
+            // Then
+        }).isInstanceOf(VitamClientException.class);
+    }
 }
 

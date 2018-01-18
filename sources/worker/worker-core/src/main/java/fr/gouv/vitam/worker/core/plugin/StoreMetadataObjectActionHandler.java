@@ -28,24 +28,22 @@ package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -57,7 +55,7 @@ public abstract class StoreMetadataObjectActionHandler extends StoreObjectAction
 
 
     private static final VitamLogger LOGGER =
-            VitamLoggerFactory.getInstance(StoreMetadataObjectActionHandler.class);
+        VitamLoggerFactory.getInstance(StoreMetadataObjectActionHandler.class);
 
     private static final String UNIT_KEY = "unit";
     private static final String GOT_KEY = "got";
@@ -70,34 +68,37 @@ public abstract class StoreMetadataObjectActionHandler extends StoreObjectAction
     /**
      * selectMetadataDocumentById, Retrieve Metadata Document from DB
      *
-     * @param idDocument     document uuid
-     * @param dataCategory   accepts UNIT or OBJECT_GROUP
+     * @param idDocument document uuid
+     * @param dataCategory accepts UNIT or OBJECT_GROUP
      * @param metaDataClient MetaDataClient to use
      * @return JsonNode from the found document
      * @throws ProcessingException if no result found or error during parsing response from metadata client
      */
-    protected JsonNode selectMetadataDocumentById(String idDocument, DataCategory dataCategory,
-                                                  MetaDataClient metaDataClient) throws VitamException {
+    protected JsonNode selectMetadataDocumentRawById(String idDocument, DataCategory dataCategory,
+        MetaDataClient metaDataClient)
+        throws VitamException {
         ParametersChecker.checkParameter("Data category ", dataCategory);
         ParametersChecker.checkParameter("idDocument is empty", idDocument);
 
+        RequestResponse<JsonNode> requestResponse;
         JsonNode jsonResponse;
         try {
-            SelectMultiQuery query = new SelectMultiQuery();
-            ObjectNode constructQuery = query.getFinalSelect();
-
             switch (dataCategory) {
                 case UNIT:
-                    jsonResponse = metaDataClient.selectUnitbyId(constructQuery, idDocument);
+                    requestResponse = metaDataClient.getUnitByIdRaw(idDocument);
                     break;
                 case OBJECT_GROUP:
-                    jsonResponse = metaDataClient.selectObjectGrouptbyId(constructQuery, idDocument);
+                    requestResponse = metaDataClient.getObjectGroupByIdRaw(idDocument);
                     break;
                 default:
                     throw new IllegalArgumentException("Unsupported category " + dataCategory);
             }
-        } catch (InvalidParseOperationException | MetadataInvalidSelectException | MetaDataDocumentSizeException
-                | MetaDataExecutionException | MetaDataClientServerException e) {
+            if (requestResponse.isOk()) {
+                jsonResponse = requestResponse.toJsonNode();
+            } else {
+                throw new ProcessingException("Document not found");
+            }
+        } catch (VitamClientException e) {
             LOGGER.error(e);
             throw e;
         }
@@ -108,14 +109,15 @@ public abstract class StoreMetadataObjectActionHandler extends StoreObjectAction
     /**
      * retrieveLogbookLifeCycleById, retrieve the LFC for the giving document (Unit or Got)
      *
-     * @param idDocument     document uuid
-     * @param dataCategory   accepts UNIT or OBJECT_GROUP
+     * @param idDocument document uuid
+     * @param dataCategory accepts UNIT or OBJECT_GROUP
      * @param loogbookClient LogbookLifeCyclesClient to use
      * @return the LFC of the giving document from logbook
      * @throws ProcessingException if no result found or error during parsing response from logbook client
      */
     protected JsonNode retrieveLogbookLifeCycleById(String idDocument, DataCategory dataCategory,
-                                                    LogbookLifeCyclesClient loogbookClient) throws VitamException {
+        LogbookLifeCyclesClient loogbookClient)
+        throws VitamException {
         JsonNode jsonResponse = null;
         try {
             final SelectParserSingle parser = new SelectParserSingle();
@@ -126,17 +128,19 @@ public abstract class StoreMetadataObjectActionHandler extends StoreObjectAction
 
             switch (dataCategory) {
                 case UNIT:
-                    jsonResponse = loogbookClient.selectUnitLifeCycleById(idDocument, queryDsl, LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS);
+                    jsonResponse = loogbookClient.selectUnitLifeCycleById(idDocument, queryDsl,
+                        LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS);
                     break;
                 case OBJECT_GROUP:
-                    jsonResponse = loogbookClient.selectObjectGroupLifeCycleById(idDocument, queryDsl, LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS);
+                    jsonResponse = loogbookClient.selectObjectGroupLifeCycleById(idDocument, queryDsl,
+                        LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS);
                     break;
                 default:
                     throw new IllegalArgumentException("Unsupported category " + dataCategory);
             }
         } catch (final InvalidCreateOperationException e) {
             LOGGER.error(e);
-        } catch (final InvalidParseOperationException | LogbookClientException e){
+        } catch (final InvalidParseOperationException | LogbookClientException e) {
             LOGGER.error(e);
             throw e;
         }
@@ -147,8 +151,8 @@ public abstract class StoreMetadataObjectActionHandler extends StoreObjectAction
     /**
      * getDocumentWithLFC, create a jsonNode with the document and its lfc
      *
-     * @param document     the document node
-     * @param lfc          the lfc node
+     * @param document the document node
+     * @param lfc the lfc node
      * @param dataCategory unit or got
      * @return a new JsonNode with document and lfc inside
      */
@@ -173,12 +177,12 @@ public abstract class StoreMetadataObjectActionHandler extends StoreObjectAction
      * extractNodeFromResponse, check response and extract single result
      *
      * @param jsonResponse
-     * @param error        message to throw if response is null or no result could be found
+     * @param error message to throw if response is null or no result could be found
      * @return a single result from response
      * @throws ProcessingException if no result found
      */
     private JsonNode extractNodeFromResponse(JsonNode jsonResponse, final String error)
-            throws VitamException {
+        throws VitamException {
 
         JsonNode jsonNode;
         // check response

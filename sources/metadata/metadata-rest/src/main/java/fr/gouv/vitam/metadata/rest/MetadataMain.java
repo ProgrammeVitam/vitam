@@ -48,7 +48,8 @@ public class MetadataMain {
 
             storageMain.startAndJoin();
         } catch (Exception e) {
-            LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
+            LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
+                e.getMessage(), e);
 
             System.exit(1);
         }
@@ -64,4 +65,5 @@ public class MetadataMain {
 
     public void stop() throws VitamApplicationServerException {
         vitamStarter.stop();
-    }}
+    }
+}

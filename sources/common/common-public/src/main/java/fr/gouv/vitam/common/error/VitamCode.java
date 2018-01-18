@@ -270,7 +270,7 @@ public enum VitamCode {
 
     ACCESS_EXTERNAL_SECURITY_PROFILE_NOT_FOUND(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "32",
         Status.NOT_FOUND, "Access external client error, security profile not found"),
-    
+
     ACCESS_INTERNAL_UPDATE_UNIT_CHECK_RULES(ServiceName.INTERNAL_ACCESS, DomainName.BUSINESS, "01",
         Status.BAD_REQUEST,
         "Access internal error while check update on rules"),
@@ -341,7 +341,11 @@ public enum VitamCode {
     METADATA_INDEXATION_ERROR(ServiceName.METADATA, DomainName.DATABASE, "00", Status.INTERNAL_SERVER_ERROR,
         "Indexation error"),
     METADATA_SWITCH_INDEX_ERROR(ServiceName.METADATA, DomainName.DATABASE, "01", Status.INTERNAL_SERVER_ERROR,
-        "Switch index error");
+        "Switch index error"),
+    METADATA_REPOSITORY_DATABASE_ERROR(ServiceName.METADATA, DomainName.DATABASE, "02", Status.INTERNAL_SERVER_ERROR,
+        "DatabaseException while accessing database through repository service"),
+
+    METADATA_NOT_FOUND(ServiceName.METADATA, DomainName.DATABASE, "03", Status.NOT_FOUND, "Metadata not found");
 
     private final ServiceName service;
     private final DomainName domain;

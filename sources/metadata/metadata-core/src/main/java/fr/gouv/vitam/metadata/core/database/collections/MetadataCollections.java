@@ -77,7 +77,7 @@ public enum MetadataCollections {
      *
      * @return the name of the collection
      */
-    protected String getName() {
+    public String getName() {
         return vitamCollection.getName();
     }
 
