@@ -216,7 +216,7 @@ public class SelectUnitResourceTest {
 
     @After
     public void tearDown() {
-        MetadataCollections.C_UNIT.getCollection().drop();
+        MetadataCollections.UNIT.getCollection().drop();
     }
 
     private static final JsonNode buildDSLWithOptions(String query, String data) throws InvalidParseOperationException {

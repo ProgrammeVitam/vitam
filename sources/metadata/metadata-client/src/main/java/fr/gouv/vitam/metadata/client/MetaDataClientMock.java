@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.database.parameter.IndexParameters;
+import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -81,7 +83,8 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
         return ClientMockResultHelper.getMetaDataResult().toJsonNode();
     }
 
-    @Override public List<UnitPerOriginatingAgency> selectAccessionRegisterOnUnitByOperationId(String operationId)
+    @Override
+    public List<UnitPerOriginatingAgency> selectAccessionRegisterOnUnitByOperationId(String operationId)
         throws MetaDataClientServerException {
         return new ArrayList<>();
     }
@@ -92,7 +95,8 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
         return new ArrayList<>();
     }
 
-    @Override public JsonNode selectObjectGroups(JsonNode selectQuery)
+    @Override
+    public JsonNode selectObjectGroups(JsonNode selectQuery)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
         MetaDataClientServerException {
         return ClientMockResultHelper.getMetaDataResult().toJsonNode();
@@ -111,6 +115,18 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     @Override
     public boolean flushObjectGroups() {
         return true;
+    }
+
+    @Override
+    public JsonNode reindex(IndexParameters indexParam)
+        throws InvalidParseOperationException, MetaDataClientServerException, MetaDataNotFoundException {
+        return ClientMockResultHelper.getReindexationInfo().toJsonNode();
+    }
+
+    @Override
+    public JsonNode switchIndexes(SwitchIndexParameters switchIndexParam)
+        throws InvalidParseOperationException, MetaDataClientServerException, MetaDataNotFoundException {
+        return ClientMockResultHelper.getSwitchIndexesInfo().toJsonNode();
     }
 
 }

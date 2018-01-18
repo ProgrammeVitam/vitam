@@ -5,6 +5,8 @@ import static org.junit.Assert.assertNotNull;
 import org.junit.Before;
 import org.junit.Test;
 
+import fr.gouv.vitam.common.database.parameter.IndexParameters;
+import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
@@ -64,6 +66,18 @@ public class MetaDataClientMockTest {
         throws MetaDataExecutionException, MetaDataNotFoundException, MetaDataAlreadyExistException,
         MetaDataDocumentSizeException, MetaDataClientServerException, InvalidParseOperationException {
         assertNotNull(client.insertObjectGroup(JsonHandler.getFromString(VALID_QUERY)));
+    }
+
+    @Test
+    public void launchReindexationTest()
+        throws MetaDataClientServerException, MetaDataNotFoundException, InvalidParseOperationException {
+        assertNotNull(client.reindex(new IndexParameters()));
+    }
+
+    @Test
+    public void switchIndexesTest()
+        throws MetaDataClientServerException, MetaDataNotFoundException, InvalidParseOperationException {
+        assertNotNull(client.switchIndexes(new SwitchIndexParameters()));
     }
 
 }

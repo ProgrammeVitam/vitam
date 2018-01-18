@@ -35,6 +35,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.database.parameter.IndexParameters;
+import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -176,5 +178,17 @@ class LogbookOperationsClientMock extends AbstractMockClient implements LogbookO
         final List<String> resultAsJson = new ArrayList<>();
         resultAsJson.add(GUID_EXAMPLE);
         return new RequestResponseOK().addAllResults(resultAsJson);
+    }
+
+    @Override
+    public JsonNode reindex(IndexParameters indexParam)
+        throws InvalidParseOperationException, LogbookClientServerException {
+        return ClientMockResultHelper.getReindexationInfo().toJsonNode();
+    }
+
+    @Override
+    public JsonNode switchIndexes(SwitchIndexParameters switchIndexParam)
+        throws InvalidParseOperationException, LogbookClientServerException {
+        return ClientMockResultHelper.getSwitchIndexesInfo().toJsonNode();
     }
 }

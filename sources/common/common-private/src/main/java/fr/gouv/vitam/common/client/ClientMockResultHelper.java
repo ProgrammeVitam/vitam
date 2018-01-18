@@ -294,6 +294,8 @@ public class ClientMockResultHelper {
             "}";
 
     private static final String DIP_RESULTS = "{}";
+    
+    private static final String REINDEXATION_INFO = "{}";
 
     private ClientMockResultHelper() {}
 
@@ -626,5 +628,13 @@ public class ClientMockResultHelper {
 
     public static RequestResponse getDipInfo() throws InvalidParseOperationException {
         return createReponse(DIP_RESULTS);
+    }
+    
+    public static RequestResponse getReindexationInfo() throws InvalidParseOperationException {
+        return createReponse(REINDEXATION_INFO);
+    }
+    
+    public static RequestResponse getSwitchIndexesInfo() throws InvalidParseOperationException {
+        return createReponse(REINDEXATION_INFO);
     }
 }

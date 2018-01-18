@@ -29,8 +29,13 @@ package fr.gouv.vitam.common.database.api;
 import java.util.List;
 import java.util.Optional;
 
-import fr.gouv.vitam.common.exception.DatabaseException;
 import org.bson.Document;
+
+import com.mongodb.client.FindIterable;
+
+import fr.gouv.vitam.common.exception.DatabaseException;
+
+import fr.gouv.vitam.common.exception.DatabaseException;
 
 /**
  * This repository is a specification of vitam data management
@@ -74,6 +79,7 @@ public interface VitamRepository {
     /**
      * Remove by tenant for collection multi-tenant
      *
+     * Remove by tenant
      * @param tenant
      * @return
      * @throws DatabaseException
@@ -82,6 +88,7 @@ public interface VitamRepository {
 
     /**
      * Remove by tenant for collection cross-tenant
+     * 
      * @return
      * @throws DatabaseException
      */
@@ -101,6 +108,7 @@ public interface VitamRepository {
 
     /**
      * find by identifier for all tenant
+     * 
      * @param identifier
      * @param tenant
      * @return
@@ -110,10 +118,27 @@ public interface VitamRepository {
 
     /**
      * Find by identifier for collections cross tenant
+     * 
      * @param identifier
      * @return
      * @throws DatabaseException
      */
     Optional<Document> findByIdentifier(String identifier) throws DatabaseException;
+    
+    /**
+     * Return iterable over document for the given collection for a specific tenant
+     *
+     * @param mongoBatchSize mongoBatchSize
+     * @param tenant         tenant id
+     * @return iterable over document for the given collection
+     */
+    FindIterable<Document> findDocuments(int mongoBatchSize, Integer tenant);
 
+    /**
+     * Return iterable over document for the given collection
+     *
+     * @param mongoBatchSize mongoBatchSize
+     * @return iterable over document for the given collection
+     */
+    FindIterable<Document> findDocuments(int mongoBatchSize);
 }

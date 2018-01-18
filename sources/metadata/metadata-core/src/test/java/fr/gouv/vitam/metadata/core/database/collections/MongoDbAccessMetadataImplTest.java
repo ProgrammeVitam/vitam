@@ -37,9 +37,7 @@ import java.util.List;
 
 import fr.gouv.vitam.common.mongo.MongoRule;
 import org.bson.Document;
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -47,29 +45,20 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
-import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
 
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
 
@@ -143,8 +132,8 @@ public class MongoDbAccessMetadataImplTest {
     public void givenMongoDbAccessConstructorWhenCreateWithRecreateThenAddDefaultCollections() {
         mongoDbAccess = new MongoDbAccessMetadataImpl(mongoClient, "vitam-test", true, esClient, tenantList);
         assertThat(mongoDbAccess.getInfo()).isEqualTo(DEFAULT_MONGO);
-        assertThat(MetadataCollections.C_UNIT.getName()).isEqualTo("Unit");
-        assertThat(MetadataCollections.C_OBJECTGROUP.getName()).isEqualTo("ObjectGroup");
+        assertThat(MetadataCollections.UNIT.getName()).isEqualTo("Unit");
+        assertThat(MetadataCollections.OBJECTGROUP.getName()).isEqualTo("ObjectGroup");
         assertThat(MongoDbAccessMetadataImpl.getUnitSize()).isEqualTo(0);
         assertThat(MongoDbAccessMetadataImpl.getObjectGroupSize()).isEqualTo(0);
     }
@@ -178,7 +167,7 @@ public class MongoDbAccessMetadataImplTest {
     @Test
     public void should_aggregate_unit_per_operation_id_and_originating_agency() throws Exception {
         // Given
-        final MongoCollection unit = MetadataCollections.C_UNIT.getCollection();
+        final MongoCollection unit = MetadataCollections.UNIT.getCollection();
 
         final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess);
 
@@ -206,7 +195,7 @@ public class MongoDbAccessMetadataImplTest {
     public void should_aggregate_object_group_per_operation_id_and_originating_agency() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         // Given
-        final MongoCollection objectGroup = MetadataCollections.C_OBJECTGROUP.getCollection();
+        final MongoCollection objectGroup = MetadataCollections.OBJECTGROUP.getCollection();
 
         final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess);
 

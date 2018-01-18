@@ -41,8 +41,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.mongodb.MongoClient;
-
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -124,13 +122,13 @@ public class ElasticsearchAccessMetadataTest {
     @Test
     public void testElasticsearchAccessMetadatas() throws InvalidParseOperationException {
         // add index
-        assertEquals(true, esClient.addIndex(MetadataCollections.C_UNIT, TENANT_ID_0));
+        assertEquals(true, esClient.addIndex(MetadataCollections.UNIT, TENANT_ID_0));
         // add unit
         final String id = GUIDFactory.newUnitGUID(TENANT_ID).toString();
-        assertEquals(true, esClient.addEntryIndex(MetadataCollections.C_UNIT, TENANT_ID_0, id, S1));
+        assertEquals(true, esClient.addEntryIndex(MetadataCollections.UNIT, TENANT_ID_0, id, S1));
         // delete unit
         try {
-            esClient.deleteEntryIndex(MetadataCollections.C_UNIT, TENANT_ID_0, VitamCollection.getTypeunique(), id);
+            esClient.deleteEntryIndex(MetadataCollections.UNIT, TENANT_ID_0, VitamCollection.getTypeunique(), id);
         } catch (final MetaDataExecutionException e) {
             fail(e.getMessage());
         } catch (final MetaDataNotFoundException e) {
@@ -138,20 +136,20 @@ public class ElasticsearchAccessMetadataTest {
         }
 
         try {
-            esClient.deleteEntryIndex(MetadataCollections.C_UNIT, TENANT_ID_0, VitamCollection.getTypeunique(),
+            esClient.deleteEntryIndex(MetadataCollections.UNIT, TENANT_ID_0, VitamCollection.getTypeunique(),
                 GUIDFactory.newUnitGUID(TENANT_ID).toString());
             fail("Unit not found");
 
         } catch (final MetaDataExecutionException e) {} catch (final MetaDataNotFoundException e) {}
 
         // delete index
-        assertEquals(true, esClient.deleteIndex(MetadataCollections.C_UNIT, TENANT_ID_0));
+        assertEquals(true, esClient.deleteIndex(MetadataCollections.UNIT, TENANT_ID_0));
 
         @SuppressWarnings("unchecked")
         final Map<String, String> targetMap = (Map<String, String>) (Object) JsonHandler.getMapFromString(S1);
         // add entries
-        esClient.addEntryIndexes(MetadataCollections.C_UNIT, TENANT_ID_0, targetMap);
-        esClient.addEntryIndexesBlocking(MetadataCollections.C_UNIT, TENANT_ID_0, targetMap);
+        esClient.addEntryIndexes(MetadataCollections.UNIT, TENANT_ID_0, targetMap);
+        esClient.addEntryIndexesBlocking(MetadataCollections.UNIT, TENANT_ID_0, targetMap);
 
         final Unit unit = new Unit();
         esClient.addBulkEntryIndex(targetMap, TENANT_ID_0, unit.load(S1));
@@ -162,38 +160,38 @@ public class ElasticsearchAccessMetadataTest {
     public void testElasticsearchUpdateAccessMetadatas() throws Exception {
 
         // add index
-        assertEquals(true, esClient.addIndex(MetadataCollections.C_UNIT, TENANT_ID_0));
+        assertEquals(true, esClient.addIndex(MetadataCollections.UNIT, TENANT_ID_0));
         // add unit
         final String id = GUIDFactory.newUnitGUID(TENANT_ID).toString();
-        assertEquals(true, esClient.addEntryIndex(MetadataCollections.C_UNIT, TENANT_ID_0, id, S1));
+        assertEquals(true, esClient.addEntryIndex(MetadataCollections.UNIT, TENANT_ID_0, id, S1));
 
         // update index
-        assertEquals(true, esClient.updateEntryIndex(MetadataCollections.C_UNIT, TENANT_ID_0, id, S3));
+        assertEquals(true, esClient.updateEntryIndex(MetadataCollections.UNIT, TENANT_ID_0, id, S3));
 
     }
 
     @Test
     public void testElasticsearchAccessOGMetadatas() throws MetaDataExecutionException, MetaDataNotFoundException {
 
-        esClient.refreshIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0);
+        esClient.refreshIndex(MetadataCollections.OBJECTGROUP, TENANT_ID_0);
         // add index
-        assertEquals(true, esClient.addIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0));
+        assertEquals(true, esClient.addIndex(MetadataCollections.OBJECTGROUP, TENANT_ID_0));
         // add OG
         final String id = GUIDFactory.newUnitGUID(TENANT_ID).toString();
-        assertEquals(true, esClient.addEntryIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0, id, S1_OG));
+        assertEquals(true, esClient.addEntryIndex(MetadataCollections.OBJECTGROUP, TENANT_ID_0, id, S1_OG));
         // delete OG
 
-        esClient.deleteEntryIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0, VitamCollection.getTypeunique(), id);
+        esClient.deleteEntryIndex(MetadataCollections.OBJECTGROUP, TENANT_ID_0, VitamCollection.getTypeunique(), id);
 
         // delete index
-        assertEquals(true, esClient.deleteIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0));
+        assertEquals(true, esClient.deleteIndex(MetadataCollections.OBJECTGROUP, TENANT_ID_0));
 
     }
 
     @Test(expected = MetaDataNotFoundException.class)
     public void testElasticSearchDeleteOGAccessMetadatsNotFoundThenThrowException()
         throws MetaDataExecutionException, MetaDataNotFoundException {
-        esClient.deleteEntryIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0, VitamCollection.getTypeunique(),
+        esClient.deleteEntryIndex(MetadataCollections.OBJECTGROUP, TENANT_ID_0, VitamCollection.getTypeunique(),
             GUIDFactory.newObjectGroupGUID(TENANT_ID).toString());
     }
 
@@ -201,13 +199,13 @@ public class ElasticsearchAccessMetadataTest {
     public void testElasticsearchUpdateOGAccessMetadatas() throws Exception {
 
         // add index
-        assertEquals(true, esClient.addIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0));
+        assertEquals(true, esClient.addIndex(MetadataCollections.OBJECTGROUP, TENANT_ID_0));
         // add OG
         final String id = GUIDFactory.newObjectGroupGUID(TENANT_ID).toString();
-        assertEquals(true, esClient.addEntryIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0, id, S1_OG));
+        assertEquals(true, esClient.addEntryIndex(MetadataCollections.OBJECTGROUP, TENANT_ID_0, id, S1_OG));
 
         // update index
-        assertEquals(true, esClient.updateEntryIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0, id, S3));
+        assertEquals(true, esClient.updateEntryIndex(MetadataCollections.OBJECTGROUP, TENANT_ID_0, id, S3));
 
     }
 
@@ -216,13 +214,13 @@ public class ElasticsearchAccessMetadataTest {
     public void testElasticsearchOGAccessMetadatas() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         // add index
-        assertEquals(true, esClient.addIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0));
+        assertEquals(true, esClient.addIndex(MetadataCollections.OBJECTGROUP, TENANT_ID_0));
         // add OG
         final String id = GUIDFactory.newObjectGroupGUID(TENANT_ID).toString();
-        assertEquals(true, esClient.addEntryIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0, id, S1_OG));
+        assertEquals(true, esClient.addEntryIndex(MetadataCollections.OBJECTGROUP, TENANT_ID_0, id, S1_OG));
 
         // update index
-        assertEquals(true, esClient.updateEntryIndex(MetadataCollections.C_OBJECTGROUP, TENANT_ID_0, id, S3));
+        assertEquals(true, esClient.updateEntryIndex(MetadataCollections.OBJECTGROUP, TENANT_ID_0, id, S3));
 
         final MetadataDocument<?> doc = new ObjectGroup(go);
         assertEquals(true, esClient.addEntryIndex(doc, TENANT_ID_0));

@@ -34,6 +34,8 @@ import javax.ws.rs.PathParam;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.client.BasicClient;
+import fr.gouv.vitam.common.database.parameter.IndexParameters;
+import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
@@ -60,7 +62,8 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataDocumentSizeException
      * @throws MetaDataClientServerException
      */
-    JsonNode insertUnit(JsonNode insertQuery) throws InvalidParseOperationException, MetaDataExecutionException,
+    JsonNode insertUnit(JsonNode insertQuery)
+        throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataNotFoundException, MetaDataAlreadyExistException, MetaDataDocumentSizeException,
         MetaDataClientServerException;
 
@@ -76,7 +79,8 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataDocumentSizeException thrown when Query document Size is Too Large
      * @throws MetaDataClientServerException
      */
-    JsonNode selectUnits(JsonNode selectQuery) throws MetaDataExecutionException, MetaDataDocumentSizeException,
+    JsonNode selectUnits(JsonNode selectQuery)
+        throws MetaDataExecutionException, MetaDataDocumentSizeException,
         InvalidParseOperationException, MetaDataClientServerException;
 
     /**
@@ -93,7 +97,8 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataDocumentSizeException thrown when Query document Size is Too Large
      * @throws MetaDataClientServerException
      */
-    JsonNode selectUnitbyId(JsonNode selectQuery, String unitId) throws MetaDataExecutionException,
+    JsonNode selectUnitbyId(JsonNode selectQuery, String unitId)
+        throws MetaDataExecutionException,
         MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException;
 
     /**
@@ -111,7 +116,8 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetadataInvalidSelectException thrown when objectGroupId or selectQuery id is null or blank
      * @throws MetaDataClientServerException
      */
-    JsonNode selectObjectGrouptbyId(JsonNode selectQuery, String objectGroupId) throws MetaDataExecutionException,
+    JsonNode selectObjectGrouptbyId(JsonNode selectQuery, String objectGroupId)
+        throws MetaDataExecutionException,
         MetaDataDocumentSizeException, InvalidParseOperationException, MetadataInvalidSelectException,
         MetaDataClientServerException;
 
@@ -144,7 +150,8 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataDocumentSizeException
      * @throws MetaDataClientServerException
      */
-    JsonNode insertObjectGroup(JsonNode insertQuery) throws InvalidParseOperationException, MetaDataExecutionException,
+    JsonNode insertObjectGroup(JsonNode insertQuery)
+        throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataNotFoundException, MetaDataAlreadyExistException, MetaDataDocumentSizeException,
         MetaDataClientServerException;
 
@@ -210,4 +217,30 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataClientServerException
      */
     boolean flushObjectGroups() throws MetaDataClientServerException;
+
+    /**
+     * 
+     * Reindex a collection with parameters
+     * 
+     * @param indexParam reindexation parameters
+     * @return JsonObject containing information about the newly created index
+     * @throws MetaDataClientServerException
+     * @throws MetaDataNotFoundException in case the index does not exist
+     * @throws InvalidParseOperationException
+     */
+    JsonNode reindex(IndexParameters indexParam)
+        throws InvalidParseOperationException, MetaDataClientServerException, MetaDataNotFoundException;
+
+    /**
+     * 
+     * Switch indexes
+     * 
+     * @param switchIndexParam switch index parameters
+     * @return JsonObject containing information about the newly created index
+     * @throws MetaDataClientServerException
+     * @throws MetaDataNotFoundException in case the index does not exist
+     * @throws InvalidParseOperationException
+     */
+    JsonNode switchIndexes(SwitchIndexParameters switchIndexParam)
+        throws InvalidParseOperationException, MetaDataClientServerException, MetaDataNotFoundException;
 }

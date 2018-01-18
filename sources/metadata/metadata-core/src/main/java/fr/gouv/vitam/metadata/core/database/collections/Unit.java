@@ -269,12 +269,12 @@ public class Unit extends MetadataDocument<Unit> {
     @SuppressWarnings("unchecked")
     @Override
     protected MongoCollection<Unit> getCollection() {
-        return MetadataCollections.C_UNIT.getCollection();
+        return MetadataCollections.UNIT.getCollection();
     }
 
     @Override
     protected MetadataCollections getMetadataCollections() {
-        return MetadataCollections.C_UNIT;
+        return MetadataCollections.UNIT;
     }
 
     /**
@@ -812,13 +812,13 @@ public class Unit extends MetadataDocument<Unit> {
     protected static void addIndexes() {
         // if not set, Unit and Tree are worst
         for (final BasicDBObject index : indexes) {
-            MetadataCollections.C_UNIT.getCollection().createIndex(index);
+            MetadataCollections.UNIT.getCollection().createIndex(index);
         }
     }
 
     protected static void dropIndexes() {
         for (final BasicDBObject index : indexes) {
-            MetadataCollections.C_UNIT.getCollection().dropIndex(index);
+            MetadataCollections.UNIT.getCollection().dropIndex(index);
         }
     }
 

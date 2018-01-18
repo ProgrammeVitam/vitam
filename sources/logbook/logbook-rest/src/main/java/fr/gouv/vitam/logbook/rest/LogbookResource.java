@@ -35,6 +35,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -52,6 +53,7 @@ import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
+
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -59,7 +61,13 @@ import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.index.model.IndexationResult;
+import fr.gouv.vitam.common.database.parameter.IndexParameters;
+import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -1770,4 +1778,85 @@ public class LogbookResource extends ApplicationStatusResource {
         }
     }
 
+    /**
+     * Reindex a collection
+     *
+     * @param indexParameters parameters specifying what to reindex
+     * @return Response response
+     */
+    @Path("/reindex")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response reindex(IndexParameters indexParameters) {
+        try {
+            ParametersChecker.checkParameter("Parameters are mandatory", indexParameters);
+        } catch (final IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            return Response.status(Status.PRECONDITION_FAILED).entity(
+                new VitamError(Status.PRECONDITION_FAILED.name()).setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                    .setContext(LOGBOOK)
+                    .setState("code_vitam")
+                    .setMessage(Status.PRECONDITION_FAILED.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        }
+        IndexationResult result = logbookOperation.reindex(indexParameters);
+        Response response = null;
+        if (result.getIndexKO() == null || result.getIndexKO().size() == 0) {
+            // No KO -> 201
+            response = Response.status(Status.CREATED).entity(new RequestResponseOK()
+                .setHttpCode(Status.CREATED.getStatusCode())).entity(result).build();
+        } else {
+            // OK and at least one KO -> 202
+            if (result.getIndexOK() != null && result.getIndexOK().size() > 0) {
+                Response.status(Status.ACCEPTED).entity(new RequestResponseOK()
+                    .setHttpCode(Status.ACCEPTED.getStatusCode())).entity(result).build();
+            } else {
+                // All KO -> 500
+                Status status = Status.INTERNAL_SERVER_ERROR;
+                VitamError error = VitamCodeHelper.toVitamError(VitamCode.METADATA_INDEXATION_ERROR,
+                    status.getReasonPhrase());
+                response = Response.status(status).entity(error).entity(result).build();
+            }
+        }
+        return response;
+    }
+
+    /**
+     * Switch indexes
+     *
+     * @param switchIndexParameters
+     * @return Response response
+     */
+    @Path("/alias")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response changeIndexes(SwitchIndexParameters switchIndexParameters) {
+        try {
+            ParametersChecker.checkParameter("parameter is mandatory", switchIndexParameters);
+            ParametersChecker.checkParameter("alias parameter is mandatory", switchIndexParameters.getAlias());
+            ParametersChecker.checkParameter("indexName parameter is mandatory", switchIndexParameters.getIndexName());
+        } catch (final IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            return Response.status(Status.PRECONDITION_FAILED).entity(
+                new VitamError(Status.PRECONDITION_FAILED.name()).setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                    .setContext(LOGBOOK)
+                    .setState("code_vitam")
+                    .setMessage(Status.PRECONDITION_FAILED.getReasonPhrase())
+                    .setDescription(exc.getMessage()))
+                .build();
+        }
+        try {
+            logbookOperation.switchIndex(switchIndexParameters.getAlias(), switchIndexParameters.getIndexName());
+            return Response.status(Status.OK).entity(new RequestResponseOK().setHttpCode(Status.OK.getStatusCode()))
+                .build();
+        } catch (DatabaseException exc) {
+            Status status = Status.INTERNAL_SERVER_ERROR;
+            VitamError error = VitamCodeHelper.toVitamError(VitamCode.METADATA_SWITCH_INDEX_ERROR,
+                exc.getMessage());
+            return Response.status(status).entity(error).build();
+        }
+    }
 }

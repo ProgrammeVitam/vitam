@@ -60,8 +60,8 @@ public class BusinessApplication extends Application {
         singletons.addAll(commonBusinessApplication.getResources());
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final AdminManagementConfiguration
-                configuration = PropertiesUtils.readYaml(yamlIS, AdminManagementConfiguration.class);
+            final AdminManagementConfiguration configuration =
+                PropertiesUtils.readYaml(yamlIS, AdminManagementConfiguration.class);
 
             final AdminManagementResource resource = new AdminManagementResource(configuration);
 
@@ -79,6 +79,7 @@ public class BusinessApplication extends Application {
             singletons.add(new ContextResource(mongoDbAccess, vitamCounterService, functionalBackupService));
             singletons.add(new SecurityProfileResource(mongoDbAccess, vitamCounterService, functionalBackupService));
             singletons.add(new AgenciesResource(mongoDbAccess, vitamCounterService));
+            singletons.add(new ReindexationResource());
 
             singletons.add(new AdminReconstructionResource(configuration, VitamRepositoryFactory.getInstance()));
 

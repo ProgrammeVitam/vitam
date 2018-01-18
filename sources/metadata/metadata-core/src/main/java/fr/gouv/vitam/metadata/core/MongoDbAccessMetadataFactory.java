@@ -58,7 +58,7 @@ public class MongoDbAccessMetadataFactory {
 
         ElasticsearchAccessMetadata esClient;
         try {
-            esClient = new ElasticsearchAccessMetadataFactory().create(configuration);
+            esClient = ElasticsearchAccessMetadataFactory.create(configuration);
 
         } catch (final MetaDataException | IOException e1) {
             throw new IllegalArgumentException(e1);

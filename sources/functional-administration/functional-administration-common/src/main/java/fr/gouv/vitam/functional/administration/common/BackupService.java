@@ -27,6 +27,8 @@
 package fr.gouv.vitam.functional.administration.common;
 
 
+import java.io.InputStream;
+
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
@@ -42,8 +44,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
-import java.io.InputStream;
 
 
 /**
@@ -79,17 +79,19 @@ public class BackupService {
 
             //store in workSpace
             workspaceClient.createContainer(uri);
-            workspaceClient.putObject(uri, uri, stream);
+            try {
+                workspaceClient.putObject(uri, uri, stream);
 
-            //store in offer
-            final ObjectDescription description = new ObjectDescription();
-            description.setWorkspaceContainerGUID(uri);
-            description.setWorkspaceObjectURI(uri);
-            storageClient.storeFileFromWorkspace(STRATEGY_ID, storageCollectionType, uri, description);
+                //store in offer
+                final ObjectDescription description = new ObjectDescription();
+                description.setWorkspaceContainerGUID(uri);
+                description.setWorkspaceObjectURI(uri);
 
-            //deleteContainer
-            workspaceClient.deleteContainer(uri, true);
-
+                storageClient.storeFileFromWorkspace(STRATEGY_ID, storageCollectionType, uri, description);
+            } finally {
+                //DeleteContainer
+                workspaceClient.deleteContainer(uri, true);
+            }
 
         } catch (ContentAddressableStorageServerException
             | ContentAddressableStorageAlreadyExistException e) {

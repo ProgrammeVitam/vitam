@@ -73,12 +73,12 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
         super(mongoClient, dbname, recreate);
         this.esClient = esClient;
 
-        MetadataCollections.C_UNIT.initialize(getMongoDatabase(), recreate);
-        MetadataCollections.C_OBJECTGROUP.initialize(getMongoDatabase(), recreate);
+        MetadataCollections.UNIT.initialize(getMongoDatabase(), recreate);
+        MetadataCollections.OBJECTGROUP.initialize(getMongoDatabase(), recreate);
         // Compute roots
         @SuppressWarnings("unchecked")
         final FindIterable<Unit> iterable =
-            MetadataCollections.C_UNIT.getCollection().find(new Document(MetadataDocument.UP, null));
+            MetadataCollections.UNIT.getCollection().find(new Document(MetadataDocument.UP, null));
         iterable.forEach(new Block<Unit>() {
             @Override
             public void apply(Unit t) {
@@ -87,14 +87,14 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
         });
 
         // init Unit Mapping for ES
-        MetadataCollections.C_UNIT.initialize(this.esClient);
+        MetadataCollections.UNIT.initialize(this.esClient);
 
         // init OG Mapping for ES
-        MetadataCollections.C_OBJECTGROUP.initialize(this.esClient);
+        MetadataCollections.OBJECTGROUP.initialize(this.esClient);
 
         for (Integer tenant : tenants) {
-            MetadataCollections.C_UNIT.getEsClient().addIndex(MetadataCollections.C_UNIT, tenant);
-            MetadataCollections.C_OBJECTGROUP.getEsClient().addIndex(MetadataCollections.C_OBJECTGROUP, tenant);
+            MetadataCollections.UNIT.getEsClient().addIndex(MetadataCollections.UNIT, tenant);
+            MetadataCollections.OBJECTGROUP.getEsClient().addIndex(MetadataCollections.OBJECTGROUP, tenant);
         }
     }
 
@@ -166,7 +166,7 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
      * @return the current number of Unit
      */
     public static long getUnitSize() {
-        return MetadataCollections.C_UNIT.getCollection().count();
+        return MetadataCollections.UNIT.getCollection().count();
     }
 
     /**
@@ -174,7 +174,7 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
      * @return the current number of ObjectGroup
      */
     public static long getObjectGroupSize() {
-        return MetadataCollections.C_OBJECTGROUP.getCollection().count();
+        return MetadataCollections.OBJECTGROUP.getCollection().count();
     }
 
     /**
@@ -199,22 +199,22 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
      * @throws DatabaseException thrown when error on delete
      */
     public void deleteUnitByTenant(Integer... tenantIds) throws DatabaseException {
-        final long count = MetadataCollections.C_UNIT.getCollection().count();
+        final long count = MetadataCollections.UNIT.getCollection().count();
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(MetadataCollections.C_UNIT.getName() + " count before: " + count);
+            LOGGER.debug(MetadataCollections.UNIT.getName() + " count before: " + count);
         }
         for (Integer tenantId : tenantIds) {
             if (count > 0) {
                 final DeleteResult result =
-                    MetadataCollections.C_UNIT.getCollection().deleteMany(new Document().append("_tenant", tenantId));
+                    MetadataCollections.UNIT.getCollection().deleteMany(new Document().append("_tenant", tenantId));
 
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug(MetadataCollections.C_UNIT.getName() + " result.result.getDeletedCount(): " + result
+                    LOGGER.debug(MetadataCollections.UNIT.getName() + " result.result.getDeletedCount(): " + result
                         .getDeletedCount());
                 }
 
-                esClient.deleteIndex(MetadataCollections.C_UNIT, tenantId);
-                esClient.addIndex(MetadataCollections.C_UNIT, tenantId);
+                esClient.deleteIndex(MetadataCollections.UNIT, tenantId);
+                esClient.addIndex(MetadataCollections.UNIT, tenantId);
             }
         }
     }
@@ -226,22 +226,22 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
      * @throws DatabaseException thrown when error on delete
      */
     public void deleteObjectGroupByTenant(Integer... tenantIds) throws DatabaseException {
-        final long count = MetadataCollections.C_OBJECTGROUP.getCollection().count();
+        final long count = MetadataCollections.OBJECTGROUP.getCollection().count();
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(MetadataCollections.C_OBJECTGROUP.getName() + " count before: " + count);
+            LOGGER.debug(MetadataCollections.OBJECTGROUP.getName() + " count before: " + count);
         }
         for (Integer tenantId : tenantIds) {
             if (count > 0) {
                 final DeleteResult result =
-                    MetadataCollections.C_OBJECTGROUP.getCollection()
+                    MetadataCollections.OBJECTGROUP.getCollection()
                         .deleteMany(new Document().append("_tenant", tenantId));
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug(
-                        MetadataCollections.C_OBJECTGROUP.getName() + " result.result.getDeletedCount(): " + result
+                        MetadataCollections.OBJECTGROUP.getName() + " result.result.getDeletedCount(): " + result
                             .getDeletedCount());
                 }
-                esClient.deleteIndex(MetadataCollections.C_OBJECTGROUP, tenantId);
-                esClient.addIndex(MetadataCollections.C_OBJECTGROUP, tenantId);
+                esClient.deleteIndex(MetadataCollections.OBJECTGROUP, tenantId);
+                esClient.addIndex(MetadataCollections.OBJECTGROUP, tenantId);
             }
         }
     }

@@ -94,7 +94,7 @@ public class MongoRule extends ExternalResource {
     /**
      * Used when annotated @ClassRule
      */
-    public  void handleAfter() {
+    public void handleAfter() {
         after();
     }
 
@@ -114,5 +114,4 @@ public class MongoRule extends ExternalResource {
     public MongoCollection<Document> getMongoCollection(String collectionName) {
         return mongoClient.getDatabase(dataBaseName).getCollection(collectionName);
     }
-
 }

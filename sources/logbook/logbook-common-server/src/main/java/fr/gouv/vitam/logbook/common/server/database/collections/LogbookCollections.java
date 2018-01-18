@@ -102,8 +102,7 @@ public enum LogbookCollections {
      *
      * @return the associated MongoCollection
      */
-    @SuppressWarnings("rawtypes")
-    protected MongoCollection getCollection() {
+    public MongoCollection getCollection() {
         return vitamCollection.getCollection();
     }
 
