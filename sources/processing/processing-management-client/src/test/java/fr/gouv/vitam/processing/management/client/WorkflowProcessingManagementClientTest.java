@@ -206,48 +206,6 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
     }
 
     @Test(expected = InternalServerException.class)
-    public void givenNotFoundWorkflowWhenUpdatingThenReturnNotFound() throws Exception {
-        when(mock.put()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.updateVitamProcess(CONTEXT_ID, ACTION_ID, CONTAINER, WORKFLOWID);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void givenIllegalArgumementWhenUpdatingThenReturnIllegalPrecondtionFailed() throws Exception {
-        when(mock.put()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.updateVitamProcess(CONTEXT_ID, ACTION_ID, CONTAINER, WORKFLOWID);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void givenUnauthorizedOperationWhenUpdatingThenReturnUnauthorized() throws Exception {
-        when(mock.put()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        client.updateVitamProcess(CONTEXT_ID, ACTION_ID, CONTAINER, WORKFLOWID);
-    }
-
-    @Test(expected = BadRequestException.class)
-    public void givenBadRequestWhenUpdatingWorkFlowThenReturnBadRequest() throws Exception {
-        final ItemStatus desired = new ItemStatus("ID");
-        when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).entity(desired).build());
-        final ItemStatus ret = client.updateVitamProcess(CONTEXT_ID, ACTION_ID, CONTAINER, WORKFLOWID);
-        assertNotNull(ret);
-        assertEquals(desired.getGlobalStatus(), ret.getGlobalStatus());
-    }
-
-    @Test(expected = InternalServerException.class)
-    public void givenInternalServerErrorWhenUpdatingThenReturnInternalServerError() throws Exception {
-        when(mock.put()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.updateVitamProcess(CONTEXT_ID, ACTION_ID, CONTAINER, WORKFLOWID);
-    }
-
-    @Test
-    public void updateVitamProcessOk() throws Exception {
-        final ItemStatus desired = new ItemStatus("ID");
-        when(mock.put()).thenReturn(Response.status(Status.OK).entity(desired).build());
-        final ItemStatus ret = client.updateVitamProcess(ACTION_ID, CONTEXT_ID, CONTAINER, WORKFLOWID);
-        assertNotNull(ret);
-        assertEquals(desired.getGlobalStatus(), ret.getGlobalStatus());
-    }
-
-    @Test(expected = InternalServerException.class)
     public void givenNotFoundWorkflowWhenUpdatingByIdThenReturnNotFound() throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.updateOperationActionProcess(ACTION_ID, ID);

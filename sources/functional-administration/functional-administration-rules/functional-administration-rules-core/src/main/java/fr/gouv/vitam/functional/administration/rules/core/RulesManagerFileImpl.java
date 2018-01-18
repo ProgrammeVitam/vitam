@@ -239,7 +239,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         metaDataClientFactory = MetaDataClientFactory.getInstance();
     }
 
-    @VisibleForTesting RulesManagerFileImpl(MongoDbAccessAdminImpl dbConfiguration,
+    @VisibleForTesting
+    RulesManagerFileImpl(MongoDbAccessAdminImpl dbConfiguration,
         VitamCounterService vitamCounterService,
         FunctionalBackupService backupService, LogbookOperationsClientFactory logbookOperationsClientFactory,
         MetaDataClientFactory metaDataClientFactory) {
@@ -254,7 +255,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     @Override
     public void importFile(InputStream rulesFileStream, String filename)
         throws IOException, InvalidParseOperationException, ReferentialException, InvalidCreateOperationException,
-         StorageException {
+        StorageException {
         ParametersChecker.checkParameter(RULES_FILE_STREAMIS_A_MANDATORY_PARAMETER, rulesFileStream);
         File file = convertInputStreamToFile(rulesFileStream, CSV);
         Map<Integer, List<ErrorReport>> errors = new HashMap<>();
@@ -270,57 +271,57 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         List<FileRulesModel> fileRulesModelsToImport = new ArrayList<>();
         ArrayNode validatedRules = JsonHandler.createArrayNode();
 
-            try {
-                initStpImportRulesLogbookOperation(eip);
-                if (!isImportOperationInProgress()) {
-                    /* To process import validate the file first */
-                    validatedRules =
-                        checkFile(new FileInputStream(file), errors, usedDeletedRulesForReport,
-                            usedUpdateRulesForReport,
-                            notUsedDeletedRulesForReport, notUsedUpdateRulesForReport);
-                    if (validatedRules != null) {
-                        generateReportCommitAndSecureFileRules(file, eip, eip1, notUsedDeletedRulesForReport,
-                            fileRulesModelToInsert, fileRulesModelToDelete, fileRulesModelToUpdate, validatedRules,
-                            errors,
-                            filename);
-                    }
-                } else {
-                    throw new FileRulesImportInProgressException(RULES_PROCESS_IMPORT_ALREADY_EXIST);
+        try {
+            initStpImportRulesLogbookOperation(eip);
+            if (!isImportOperationInProgress()) {
+                /* To process import validate the file first */
+                validatedRules =
+                    checkFile(new FileInputStream(file), errors, usedDeletedRulesForReport,
+                        usedUpdateRulesForReport,
+                        notUsedDeletedRulesForReport, notUsedUpdateRulesForReport);
+                if (validatedRules != null) {
+                    generateReportCommitAndSecureFileRules(file, eip, eip1, notUsedDeletedRulesForReport,
+                        fileRulesModelToInsert, fileRulesModelToDelete, fileRulesModelToUpdate, validatedRules,
+                        errors,
+                        filename);
                 }
-            } catch (FileRulesDeleteException e) {
-                generateReportWhenFileRulesDeletedExceptionAppend(file,
-                    errors, eip, eip1, usedDeletedRulesForReport, usedUpdateRulesForReport,
-                    notUsedDeletedRulesForReport, fileRulesModelToInsert, fileRulesModelToDelete,
-                    fileRulesModelToUpdate, fileRulesModelsToImport, validatedRules, filename);
-                throw e;
-            } catch (FileRulesUpdateException e) {
-                generateReportWhenFileRulesUpdatedExceptionAppend(file,
-                    errors, eip, eip1, usedDeletedRulesForReport, usedUpdateRulesForReport,
-                    notUsedDeletedRulesForReport, fileRulesModelToInsert, fileRulesModelToDelete,
-                    fileRulesModelsToImport, validatedRules, filename);
-            } catch (FileRulesCsvException e) {
-
-                    updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(CHECK_RULES_INVALID_CSV, eip);
-                generateReport(errors, eip, usedDeletedRulesForReport, usedUpdateRulesForReport);
-                    updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.KO, filename);
-                throw e;
-            } catch (FileRulesDurationException e) {
-                alertService.createAlert(RULE_DURATION_EXCEED);
-                    updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(MAX_DURATION_EXCEEDS, eip);
-                generateReport(errors, eip, usedDeletedRulesForReport, usedUpdateRulesForReport);
-                    updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.KO, filename);
-                throw e;
-            } catch (FileRulesException e) {
-                throw e;
-            } catch (FileRulesImportInProgressException e) {
-                updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(CHECK_RULES_IMPORT_IN_PROCESS, eip);
-                updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.KO, filename);
+            } else {
                 throw new FileRulesImportInProgressException(RULES_PROCESS_IMPORT_ALREADY_EXIST);
-            } catch (LogbookClientException e) {
-                throw new FileRulesException(e);
-            } finally {
-                file.delete();
             }
+        } catch (FileRulesDeleteException e) {
+            generateReportWhenFileRulesDeletedExceptionAppend(file,
+                errors, eip, eip1, usedDeletedRulesForReport, usedUpdateRulesForReport,
+                notUsedDeletedRulesForReport, fileRulesModelToInsert, fileRulesModelToDelete,
+                fileRulesModelToUpdate, fileRulesModelsToImport, validatedRules, filename);
+            throw e;
+        } catch (FileRulesUpdateException e) {
+            generateReportWhenFileRulesUpdatedExceptionAppend(file,
+                errors, eip, eip1, usedDeletedRulesForReport, usedUpdateRulesForReport,
+                notUsedDeletedRulesForReport, fileRulesModelToInsert, fileRulesModelToDelete,
+                fileRulesModelsToImport, validatedRules, filename);
+        } catch (FileRulesCsvException e) {
+
+            updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(CHECK_RULES_INVALID_CSV, eip);
+            generateReport(errors, eip, usedDeletedRulesForReport, usedUpdateRulesForReport);
+            updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.KO, filename);
+            throw e;
+        } catch (FileRulesDurationException e) {
+            alertService.createAlert(RULE_DURATION_EXCEED);
+            updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(MAX_DURATION_EXCEEDS, eip);
+            generateReport(errors, eip, usedDeletedRulesForReport, usedUpdateRulesForReport);
+            updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.KO, filename);
+            throw e;
+        } catch (FileRulesException e) {
+            throw e;
+        } catch (FileRulesImportInProgressException e) {
+            updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(CHECK_RULES_IMPORT_IN_PROCESS, eip);
+            updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.KO, filename);
+            throw new FileRulesImportInProgressException(RULES_PROCESS_IMPORT_ALREADY_EXIST);
+        } catch (LogbookClientException e) {
+            throw new FileRulesException(e);
+        } finally {
+            file.delete();
+        }
 
     }
 
@@ -328,7 +329,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         Set<String> notUsedDeletedRulesForReport, List<FileRulesModel> fileRulesModelToInsert,
         List<FileRulesModel> fileRulesModelToDelete, List<FileRulesModel> fileRulesModelToUpdate,
         ArrayNode validatedRules, Map<Integer, List<ErrorReport>> errors, String filename)
-        throws IOException, ReferentialException, InvalidParseOperationException{
+        throws IOException, ReferentialException, InvalidParseOperationException {
         List<FileRulesModel> fileRulesModelsToImport;
         List<FileRules> fileRulesInDb = findAllFileRulesQueryBuilder();
         List<FileRulesModel> fileRulesModelsInDb = transformFileRulesToFileRulesModel(fileRulesInDb);
@@ -347,7 +348,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
             backupService
                 .saveFile(new FileInputStream(file), eip, STP_IMPORT_RULES_BACKUP_CSV, StorageCollectionType.RULES,
-                    ParameterHelper.getTenantParameter(), eip.getId() + CSV);
+                    ParameterHelper.getTenantParameter(), eip != null ? eip.getId() : "" + CSV);
 
             backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, FunctionalAdminCollections.RULES);
 
@@ -366,18 +367,18 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     /**
      * Generate Report When FileRules Updated Exception Append
      *
-     * @param file                         to import
-     * @param errors                       errors of the report to build
-     * @param eip                          eip for logbookOperation
-     * @param eip1                         eip1 for logbookOperation
-     * @param usedDeletedRulesForReport    used Deleted Rules For Report
-     * @param usedUpdateRulesForReport     used Update Rules For Report
+     * @param file to import
+     * @param errors errors of the report to build
+     * @param eip eip for logbookOperation
+     * @param eip1 eip1 for logbookOperation
+     * @param usedDeletedRulesForReport used Deleted Rules For Report
+     * @param usedUpdateRulesForReport used Update Rules For Report
      * @param notUsedDeletedRulesForReport not Used Deleted Rules For Report
-     * @param fileRulesModelToInsert       Rules Model To Insert
-     * @param fileRulesModelToDelete       Rules Model To Delete
-     * @param fileRulesModelsToImport      Rules Models To Import
-     * @param validatedRules               Rules to import
-     * @param filename                     the filename of the file to import
+     * @param fileRulesModelToInsert Rules Model To Insert
+     * @param fileRulesModelToDelete Rules Model To Delete
+     * @param fileRulesModelsToImport Rules Models To Import
+     * @param validatedRules Rules to import
+     * @param filename the filename of the file to import
      */
     private void generateReportWhenFileRulesUpdatedExceptionAppend(File file, Map<Integer, List<ErrorReport>> errors,
         final GUID eip, final GUID eip1, List<FileRulesModel> usedDeletedRulesForReport,
@@ -385,7 +386,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         List<FileRulesModel> fileRulesModelToInsert, List<FileRulesModel> fileRulesModelToDelete,
         List<FileRulesModel> fileRulesModelsToImport,
         ArrayNode validatedRules, String filename)
-        throws IOException, ReferentialException, InvalidParseOperationException{
+        throws IOException, ReferentialException, InvalidParseOperationException {
         try {
             generateReport(errors, eip, usedDeletedRulesForReport, usedUpdateRulesForReport);
             Set<String> usedUpdateRules = new HashSet<>();
@@ -407,7 +408,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
             backupService
                 .saveFile(new FileInputStream(file), eip, STP_IMPORT_RULES_BACKUP_CSV, StorageCollectionType.RULES,
-                    ParameterHelper.getTenantParameter(), eip.getId() + CSV);
+                    ParameterHelper.getTenantParameter(), eip != null ? eip.getId() : "" + CSV);
 
             backupService.saveCollectionAndSequence(eip, STP_IMPORT_RULES_BACKUP, FunctionalAdminCollections.RULES);
 
@@ -426,12 +427,12 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     /**
      * Generate Report When File Rules Deleted Exception Append
      *
-     * @param errors                       errors of the report to build
-     * @param eip                          eip for logbookOperation
-     * @param eip1                         eip1 for logbookOperation
-     * @param usedDeletedRulesForReport    used Deleted Rules For Report
-     * @param usedUpdateRulesForReport     used Update Rules For Report
-     * @param filename                     filename of the file to import
+     * @param errors errors of the report to build
+     * @param eip eip for logbookOperation
+     * @param eip1 eip1 for logbookOperation
+     * @param usedDeletedRulesForReport used Deleted Rules For Report
+     * @param usedUpdateRulesForReport used Update Rules For Report
+     * @param filename filename of the file to import
      */
     private void generateReportWhenFileRulesDeletedExceptionAppend(File file, Map<Integer, List<ErrorReport>> errors,
         final GUID eip, final GUID eip1, List<FileRulesModel> usedDeletedRulesForReport,
@@ -439,7 +440,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         List<FileRulesModel> fileRulesModelToInsert, List<FileRulesModel> fileRulesModelToDelete,
         List<FileRulesModel> fileRulesModelToUpdate, List<FileRulesModel> fileRulesModelsToImport,
         ArrayNode validatedRules, String filename)
-        throws  ReferentialException, InvalidParseOperationException {
+        throws ReferentialException, InvalidParseOperationException {
         try {
             generateReport(errors, eip, usedDeletedRulesForReport, usedUpdateRulesForReport);
             Set<String> fileRulesIdLinkedToUnitForDelete = new HashSet<>();
@@ -460,16 +461,16 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     /**
      * Check File Linked To Au for generated errors report
      *
-     * @param validatedRules                    the rules to check
-     * @param filesRulesDeleted                 file rules deleted
-     * @param filesRulesUpdated                 file rules updated
+     * @param validatedRules the rules to check
+     * @param filesRulesDeleted file rules deleted
+     * @param filesRulesUpdated file rules updated
      * @param fileRulesNotLinkedToUnitForDelete file rules not linked to unit for delete
      * @param fileRulesNotLinkedToUnitForUpdate file rules not linked to unit for update
      */
     private void checkRulesLinkedToAu(ArrayNode validatedRules, List<FileRulesModel> filesRulesDeleted,
         List<FileRulesModel> filesRulesUpdated, Set<String> fileRulesNotLinkedToUnitForDelete,
         Set<String> fileRulesNotLinkedToUnitForUpdate)
-        throws  InvalidParseOperationException {
+        throws InvalidParseOperationException {
         List<FileRules> fileRulesInDb = findAllFileRulesQueryBuilder();
         List<FileRulesModel> fileRulesModelsInDb = transformFileRulesToFileRulesModel(fileRulesInDb);
         List<FileRulesModel> fileRulesModelToDelete = new ArrayList<>();
@@ -506,8 +507,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     /**
      * update STP_IMPORT_RULES LogbookOperation
      *
-     * @param eip    GUID master
-     * @param eip1   GUID of the eventIdentifier
+     * @param eip GUID master
+     * @param eip1 GUID of the eventIdentifier
      * @param status Logbook status
      */
     private void updateStpImportRulesLogbookOperation(final GUID eip, final GUID eip1, StatusCode status,
@@ -596,10 +597,10 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     /**
      * Commit in mongo/elastic for update, delete, insert
      *
-     * @param fileRulesModelToUpdate  fileRulesModelToUpdate
-     * @param fileRulesModelToDelete  fileRulesModelToDelete
-     * @param validatedRules          all the given rules to import
-     * @param fileRulesModelToInsert  fileRulesModelToInsert
+     * @param fileRulesModelToUpdate fileRulesModelToUpdate
+     * @param fileRulesModelToDelete fileRulesModelToDelete
+     * @param validatedRules all the given rules to import
+     * @param fileRulesModelToInsert fileRulesModelToInsert
      * @param fileRulesModelsToImport fileRulesModelsToImport
      * @return true if commited
      */
@@ -654,6 +655,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     /**
      * Update COMMIT_RULES logbookOperation step
+     * 
      * @param operationFileRules operationFileRules
      * @param statusCode statusCode
      * @param evIdentifierProcess evIdentifierProcess
@@ -800,6 +802,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     /**
      * Create a LogBook Entry related to object's update
+     * 
      * @param logbookParametersEnd logbookParametersEnd
      */
     private void updateLogBookEntry(LogbookOperationParameters logbookParametersEnd) {
@@ -812,6 +815,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     /**
      * Create a LogBook Entry related to object's creation
+     * 
      * @param logbookParametersStart logbookParametersStart
      */
     private void createLogBookEntry(LogbookOperationParameters logbookParametersStart) {
@@ -867,7 +871,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                             errors.add(new ErrorReport(FileRulesErrorCode.STP_IMPORT_RULES_WRONG_RULETYPE_UNKNOW,
                                 lineNumber, fileRulesModel));
                         }
-                        if (checkAssociationRuleDurationRuleMeasurementLimit(record, errors, lineNumber, fileRulesModel)) {
+                        if (checkAssociationRuleDurationRuleMeasurementLimit(record, errors, lineNumber,
+                            fileRulesModel)) {
                             checkRuleDurationWithConfiguration(record, errors, lineNumber, fileRulesModel);
                         }
                         if (errors.size() > 0) {
@@ -932,8 +937,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     /**
      * Save the error report in storage
      *
-     * @param errors           the given of errors to consume for generate error report
-     * @param eipMaster        GUID of the process
+     * @param errors the given of errors to consume for generate error report
+     * @param eipMaster GUID of the process
      * @param usedDeletedRules list of fileRules that attempt to be deleted but have reference to unit
      * @param usedUpdatedRules list of fileRules that attempt to be updated but have reference to unit
      */
@@ -976,10 +981,10 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * Check Referential To Import for create ruleFiles to delete, update, insert
      *
      * @param fileRulesModelsToImport the given list with all fileRules to import
-     * @param fileRulesModelsInDb     the given list with all fileRulesInDb
-     * @param fileRulesModelToDelete  the given list with fileRules to delete
-     * @param fileRulesModelToUpdate  the given list with fileRules to update
-     * @param fileRulesModelToInsert  the given list with fileRules to insert
+     * @param fileRulesModelsInDb the given list with all fileRulesInDb
+     * @param fileRulesModelToDelete the given list with fileRules to delete
+     * @param fileRulesModelToUpdate the given list with fileRules to update
+     * @param fileRulesModelToInsert the given list with fileRules to insert
      */
     private void createListToimportUpdateDelete(List<FileRulesModel> fileRulesModelsToImport,
         List<FileRulesModel> fileRulesModelsInDb, List<FileRulesModel> fileRulesModelToDelete,
@@ -1049,8 +1054,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * Check existence of file rules linked to unit in database
      *
      * @param fileRulesModelToCheck fileRulesModelToCheck
-     * @param rulesLinkedToUnit     rulesLinkedToUnit
-     * @param rulesNotLinkedToUnit  rulesNotLinkedToUnit
+     * @param rulesLinkedToUnit rulesLinkedToUnit
+     * @param rulesNotLinkedToUnit rulesNotLinkedToUnit
      * @return true if a given FileRules is linked to a unit, false if none of them are linked to a unit
      * @throws InvalidParseOperationException InvalidParseOperationException
      */
@@ -1120,7 +1125,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * Delete fileRules by id
      *
      * @param fileRulesModel fileRulesModel to delete
-     * @param collection     the given FunctionalAdminCollections
+     * @param collection the given FunctionalAdminCollections
      */
     private void deleteFileRules(FileRulesModel fileRulesModel, FunctionalAdminCollections collection) {
         final Delete delete = new Delete();
@@ -1130,7 +1135,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             delete.setQuery(eq(RULE_ID, fileRulesModel.getRuleId()));
             result = dbRequest.execute(delete);
             result.close();
-        } catch (InvalidParseOperationException | BadRequestException | InvalidCreateOperationException | DatabaseException e) {
+        } catch (InvalidParseOperationException | BadRequestException | InvalidCreateOperationException |
+            DatabaseException e) {
             LOGGER.error(e);
         }
     }
@@ -1219,13 +1225,13 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     /**
      * check if Records are not Empty
      *
-     * @param ruleId               ruleId
-     * @param ruleType             ruleType
-     * @param ruleValue            ruleValue
-     * @param ruleDuration         ruleDuration
+     * @param ruleId ruleId
+     * @param ruleType ruleType
+     * @param ruleValue ruleValue
+     * @param ruleDuration ruleDuration
      * @param ruleMeasurementValue ruleMeasurementValue
-     * @param errors               list of errors to set
-     * @param line                 the given line to treat
+     * @param errors list of errors to set
+     * @param line the given line to treat
      */
     private void checkParametersNotEmpty(String ruleId, String ruleType, String ruleValue, String ruleDuration,
         String ruleMeasurementValue, List<ErrorReport> errors, int line) {
@@ -1267,14 +1273,15 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     /**
      * Check if Rule duration associated to rule measurement respect the limit of 999 years
      *
-     * @param record        the list of record to check
-     * @param errors        the list of errors
-     * @param line          the current line
+     * @param record the list of record to check
+     * @param errors the list of errors
+     * @param line the current line
      * @param fileRuleModel the current object that contains all the record to check
      * @throws FileRulesException
      * @return true if rule's duration is inferior to 999 years false if it's not
      */
-    private boolean checkAssociationRuleDurationRuleMeasurementLimit(CSVRecord record, List<ErrorReport> errors, int line,
+    private boolean checkAssociationRuleDurationRuleMeasurementLimit(CSVRecord record, List<ErrorReport> errors,
+        int line,
         FileRulesModel fileRuleModel)
         throws FileRulesException {
         try {
@@ -1430,7 +1437,8 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                         .put(BuilderToken.PROJECTIONARGS.ID.exactToken(), 1)
                         .put(String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.eventType.getDbname()),
                             1)));
-            JsonNode logbookResult = logbookOperationsClientFactory.getClient().selectOperation(select.getFinalSelect());
+            JsonNode logbookResult =
+                logbookOperationsClientFactory.getClient().selectOperation(select.getFinalSelect());
             RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(logbookResult);
             // one result and last event type is STP_IMPORT_RULES -> import in progress
             if (requestResponseOK.getHits().getSize() != 0) {
@@ -1465,7 +1473,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
      * @param ruleFilesId Identifier
      * @return vitam document list
      * @throws FileFormatNotFoundException when no results found
-     * @throws ReferentialException        when error occurs
+     * @throws ReferentialException when error occurs
      */
     private ArrayNode checkUnitLinkedtofileRulesInDatabase(JsonNode select, String ruleFilesId)
         throws FileFormatNotFoundException, ReferentialException {
@@ -1485,7 +1493,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     /**
      * generate Error Report
      *
-     * @param errors           the list of error for generated errors
+     * @param errors the list of error for generated errors
      * @param usedDeletedRules list of fileRules that attempt to be deleted but have reference to unit
      * @param usedUpdatedRules list of fileRules that attempt to be updated but have reference to unit
      * @param status status
@@ -1546,7 +1554,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
                         ObjectNode info = JsonHandler.createObjectNode();
                         info.put("RuleType", error.getFileRulesModel().getRuleType());
                         info.put("RuleDurationMin", VitamRuleService.getMinimumRuleDuration(getTenant(),
-                                error.getFileRulesModel().getRuleType()));
+                            error.getFileRulesModel().getRuleType()));
                         errorNode.set(ReportConstants.ADDITIONAL_INFORMATION, info);
                     case STP_IMPORT_RULES_NOT_CSV_FORMAT:
                     case STP_IMPORT_RULES_DELETE_USED_RULES:
@@ -1579,7 +1587,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     /**
      * generate Error Report
      *
-     * @param errors           the list of error for generated errors
+     * @param errors the list of error for generated errors
      * @param usedDeletedRules list of fileRules that attempt to be deleted but have reference to unit
      * @param usedUpdatedRules list of fileRules that attempt to be updated but have reference to unit
      * @return the error report inputStream

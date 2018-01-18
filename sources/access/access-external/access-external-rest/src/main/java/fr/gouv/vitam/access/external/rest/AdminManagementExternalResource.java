@@ -461,6 +461,11 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             Status status = client.importIngestContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
                 new TypeReference<List<IngestContractModel>>() {}));
 
+            if (Status.BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
+                return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorEntity(Status.BAD_REQUEST, Status.BAD_REQUEST.getReasonPhrase(), null)).build();
+            }
+
             // Send the http response with the entity and the status got from internalService;
             ResponseBuilder ResponseBuilder = Response.status(status)
                 .entity("Successfully imported");
@@ -495,6 +500,11 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Status status = client.importAccessContracts(JsonHandler.getFromStringAsTypeRefence(select.toString(),
                 new TypeReference<List<AccessContractModel>>() {}));
+
+            if (Status.BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
+                return Response.status(Status.BAD_REQUEST)
+                    .entity(getErrorEntity(Status.BAD_REQUEST, Status.BAD_REQUEST.getReasonPhrase(), null)).build();
+            }
 
             // Send the http response with the entity and the status got from internalService;
             ResponseBuilder ResponseBuilder = Response.status(status)
@@ -2160,7 +2170,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response reindex(@Valid List<IndexParameters> indexParameters) {
         ParametersChecker.checkParameter("mandatory parameter", indexParameters);
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            RequestResponse<IndexationResult> result = client.launchReindexation(JsonHandler.toJsonNode(indexParameters));
+            RequestResponse<IndexationResult> result =
+                client.launchReindexation(JsonHandler.toJsonNode(indexParameters));
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
@@ -2174,7 +2185,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         }
 
     }
-    
+
     /**
      * Reindex a collection
      *
