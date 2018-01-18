@@ -26,28 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.lifecycles.client;
 
-import java.util.List;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client.DefaultClient;
-import fr.gouv.vitam.common.client.VitamRequestIterator;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -61,6 +52,14 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParame
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * LogbookLifeCyclesClient REST implementation
@@ -397,38 +396,39 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     }
 
     @Override
-    public VitamRequestIterator<JsonNode> objectGroupLifeCyclesByOperationIterator(String operationId,
-        LifeCycleStatusCode lifeCycleStatus)
+    public RequestResponse objectGroupLifeCyclesByOperationIterator(String operationId,
+        LifeCycleStatusCode lifeCycleStatus, JsonNode query)
         throws LogbookClientException, InvalidParseOperationException {
+        Response response = null;
         try {
             MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             if (lifeCycleStatus != null) {
                 headers.add(GlobalDataRest.X_EVENT_STATUS, lifeCycleStatus.toString());
             }
-
-            return new VitamRequestIterator<>(this, HttpMethod.GET,
+            response = performRequest(HttpMethod.GET,
                 OPERATIONS_URL + "/" + operationId + OBJECT_GROUP_LIFECYCLES_URL,
-                JsonNode.class, headers, new Select().getFinalSelect());
-        } catch (final IllegalArgumentException e) {
+                headers, query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        } catch (final IllegalArgumentException | VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
         }
     }
 
     @Override
-    public VitamRequestIterator<JsonNode> unitLifeCyclesByOperationIterator(String operationId,
-        LifeCycleStatusCode lifeCycleStatus)
+    public RequestResponse unitLifeCyclesByOperationIterator(String operationId,
+        LifeCycleStatusCode lifeCycleStatus, JsonNode query)
         throws LogbookClientException, InvalidParseOperationException {
+        Response response = null;
         try {
             MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             if (lifeCycleStatus != null) {
                 headers.add(GlobalDataRest.X_EVENT_STATUS, lifeCycleStatus.toString());
             }
-
-            return new VitamRequestIterator<>(this, HttpMethod.GET,
-                OPERATIONS_URL + "/" + operationId + UNIT_LIFECYCLES_URL,
-                JsonNode.class, headers, new Select().getFinalSelect());
-        } catch (final IllegalArgumentException e) {
+            response = performRequest(HttpMethod.GET, OPERATIONS_URL + "/" + operationId + UNIT_LIFECYCLES_URL,
+                headers, query, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        } catch (final IllegalArgumentException | VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
         }

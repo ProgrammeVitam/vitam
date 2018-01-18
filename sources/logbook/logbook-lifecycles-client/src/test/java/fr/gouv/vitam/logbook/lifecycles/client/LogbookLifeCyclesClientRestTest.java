@@ -667,8 +667,8 @@ public class LogbookLifeCyclesClientRestTest extends VitamJerseyTest {
         } catch (final LogbookClientException e) {
 
         }
-        assertNotNull(client.unitLifeCyclesByOperationIterator("id", LifeCycleStatusCode.LIFE_CYCLE_COMMITTED));
-        assertNotNull(client.objectGroupLifeCyclesByOperationIterator("id", LifeCycleStatusCode.LIFE_CYCLE_COMMITTED));
+        assertNotNull(client.unitLifeCyclesByOperationIterator("id", LifeCycleStatusCode.LIFE_CYCLE_COMMITTED, JsonHandler.createObjectNode()));
+        assertNotNull(client.objectGroupLifeCyclesByOperationIterator("id", LifeCycleStatusCode.LIFE_CYCLE_COMMITTED, JsonHandler.createObjectNode()));
     }
 
     @Test

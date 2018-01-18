@@ -26,14 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.lifecycles.client;
 
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.client.BasicClient;
-import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -42,6 +39,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleUnitModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
+
+import java.util.List;
 
 /**
  * Logbook client interface
@@ -216,8 +215,8 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    VitamRequestIterator<JsonNode> objectGroupLifeCyclesByOperationIterator(String operationId,
-        LifeCycleStatusCode lifeCycleStatus)
+    RequestResponse objectGroupLifeCyclesByOperationIterator(String operationId,
+        LifeCycleStatusCode lifeCycleStatus, JsonNode query)
         throws LogbookClientException, InvalidParseOperationException;
 
     /**
@@ -241,12 +240,13 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      *
      * @param operationId the operation id from which this UnitLife Lifecycles will be retrieved
      * @param lifeCycleStatus the lifecycle status
+     * @param query JsonNode query
      * @return the VitamRequestIterator on UnitLifeCycles as JsonNode
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    VitamRequestIterator<JsonNode> unitLifeCyclesByOperationIterator(String operationId,
-        LifeCycleStatusCode lifeCycleStatus)
+    RequestResponse unitLifeCyclesByOperationIterator(String operationId,
+        LifeCycleStatusCode lifeCycleStatus, JsonNode query)
         throws LogbookClientException, InvalidParseOperationException;
 
     /**

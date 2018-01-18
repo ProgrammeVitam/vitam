@@ -27,26 +27,19 @@
 package fr.gouv.vitam.logbook.lifecycles.client;
 
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
-import javax.ws.rs.HttpMethod;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
-import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -60,6 +53,13 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
+
+import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * LogbookLifeCyclesClient Mock implementation
@@ -102,13 +102,13 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
 
     @Override
     public void update(LogbookLifeCycleParameters parameters, LifeCycleStatusCode lifeCycleStatusCode)
-            throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier,
-                SERVER_IDENTITY.getJsonIdentity());
+            SERVER_IDENTITY.getJsonIdentity());
         parameters.putParameterValue(LogbookParameterName.eventDateTime,
-                LocalDateUtil.now().toString());
+            LocalDateUtil.now().toString());
         ParameterHelper
-                .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
+            .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
 
         logInformation(UPDATE, parameters);
     }
@@ -183,20 +183,19 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public VitamRequestIterator<JsonNode> objectGroupLifeCyclesByOperationIterator(String operationId,
-        LifeCycleStatusCode lifeCycleStatus)
+    public RequestResponse objectGroupLifeCyclesByOperationIterator(String operationId,
+        LifeCycleStatusCode lifeCycleStatus, JsonNode query)
         throws InvalidParseOperationException {
-        return new VitamRequestIterator(this, HttpMethod.GET,
-            "/", JsonNode.class, null, ClientMockResultHelper.getLogbookOperation());
+        return new RequestResponseOK().addResult(JsonHandler.createObjectNode());
+
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public VitamRequestIterator<JsonNode> unitLifeCyclesByOperationIterator(String operationId,
-        LifeCycleStatusCode lifeCycleStatus)
+    public RequestResponse unitLifeCyclesByOperationIterator(String operationId,
+        LifeCycleStatusCode lifeCycleStatus, JsonNode query)
         throws InvalidParseOperationException {
-        return new VitamRequestIterator(this, HttpMethod.GET,
-            "/", JsonNode.class, null, ClientMockResultHelper.getLogbookOperation());
+       return new RequestResponseOK().addResult(JsonHandler.createObjectNode());
     }
 
     private void bulkCreate(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)
@@ -336,13 +335,15 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
         throws LogbookClientAlreadyExistsException, LogbookClientBadRequestException, LogbookClientServerException {
         // do nothing
     }
-    
+
     @Override
     public void createRawbulkObjectgrouplifecycles(List<JsonNode> logbookLifeCycleRaws)
-        throws LogbookClientBadRequestException, LogbookClientServerException {}
+        throws LogbookClientBadRequestException, LogbookClientServerException {
+    }
 
     @Override
     public void createRawbulkUnitlifecycles(List<JsonNode> logbookLifeCycleRaws)
-        throws LogbookClientBadRequestException, LogbookClientServerException {}
+        throws LogbookClientBadRequestException, LogbookClientServerException {
+    }
 
 }

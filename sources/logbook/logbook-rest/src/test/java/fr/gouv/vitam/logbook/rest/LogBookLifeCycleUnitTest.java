@@ -377,26 +377,18 @@ public class LogBookLifeCycleUnitTest {
             .then()
             .statusCode(Status.OK.getStatusCode());
 
-        // Test Iterator
+
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(new Select().getFinalSelect()).header(GlobalDataRest.X_CURSOR, true)
+            .body(new Select().getFinalSelect())
             .when()
             .get(LIFE_UNIT_URI,
                 logbookLifeCyclesUnitParametersStart
                     .getParameterValue(LogbookParameterName.eventIdentifierProcess))
             .then()
-            .statusCode(Status.OK.getStatusCode()).header(GlobalDataRest.X_CURSOR_ID, new BaseMatcher() {
+            .statusCode(Status.OK.getStatusCode());
 
-                @Override
-                public boolean matches(Object item) {
-                    return item != null && item instanceof String && !((String) item).isEmpty();
-                }
-
-                @Override
-                public void describeTo(Description description) {}
-            });
     }
 
     @Test

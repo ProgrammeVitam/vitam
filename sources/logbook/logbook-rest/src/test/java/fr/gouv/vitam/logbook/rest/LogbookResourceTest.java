@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.rest;
 
+
 import static com.jayway.restassured.RestAssured.get;
 import static com.jayway.restassured.RestAssured.given;
 import static com.jayway.restassured.RestAssured.with;
@@ -33,31 +34,22 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assume.assumeTrue;
 
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-
-import org.jhades.JHades;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
+import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
-
+import com.jayway.restassured.response.Response;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -81,6 +73,7 @@ import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -94,14 +87,24 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
+import org.jhades.JHades;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 @RunWithCustomExecutor
 public class LogbookResourceTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResourceTest.class);
 
+    @Rule
     @ClassRule
     public static RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
         VitamThreadPoolExecutor.getDefaultExecutor());
+
 
     private static final String LOGBOOK_CONF = "logbook-test.conf";
     private static final String DATABASE_HOST = "localhost";
@@ -121,6 +124,7 @@ public class LogbookResourceTest {
     private static final String OPERATIONS_URI = "/operations";
     private static final String OPERATION_ID_URI = "/{id_op}";
     private static final String STATUS_URI = "/status";
+    private static final String UNIT_LIFECYCLES = "/unitlifecycles";
     private static final String TRACEABILITY_URI = "/operations/traceability";
     private static final String TRACEABILITY_LFC_URI = "/lifecycles/traceability";
     private static int databasePort;
@@ -136,6 +140,9 @@ public class LogbookResourceTest {
     private static final String BODY_QUERY =
         "{$query: {$eq: {\"evType\" : \"eventTypeValueSelect\"}}, $projection: {}, $filter: {}}";
     private static JunitHelper junitHelper = JunitHelper.getInstance();
+    private static final String FILE_QUERY_OFFSET_LIMIT = "logbook_request_offset_limit.json";
+
+
     private static LogbookConfiguration realLogbook;
 
     private static final int TENANT_ID = 0;
@@ -301,6 +308,8 @@ public class LogbookResourceTest {
             .then()
             .statusCode(Status.OK.getStatusCode());
     }
+
+
 
     @Test
     public final void testOperation() {
@@ -469,6 +478,49 @@ public class LogbookResourceTest {
     }
 
     @Test
+    public void should_getUnitLifeCyclesByOperation_status_ok() throws Exception {
+        // Given
+        // Create
+        final GUID eip = GUIDFactory.newEventGUID(TENANT_ID);
+        final LogbookOperationParameters start = LogbookParametersFactory.newLogbookOperationParameters(
+            eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.STARTED, "start ingest", eip);
+        LogbookOperationParameters append = LogbookParametersFactory.newLogbookOperationParameters(
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", eip);
+        final Queue<LogbookOperationParameters> queue = new ConcurrentLinkedQueue<>();
+        queue.add(start);
+        queue.add(append);
+        append = LogbookParametersFactory.newLogbookOperationParameters(
+            GUIDFactory.newEventGUID(0),
+            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+            StatusCode.OK, "end ingest", eip);
+        queue.add(append);
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(JsonHandler.unprettyPrint(queue))
+            .when()
+            .post(OPERATIONS_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
+        // When
+        InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(FILE_QUERY_OFFSET_LIMIT);
+        JsonNode queryJson = JsonHandler.getFromInputStream(resourceAsStream);
+        Response response = given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_EVENT_STATUS, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED.toString())
+            .body(queryJson)
+            .when()
+            .get(OPERATIONS_URI + OPERATION_ID_URI + UNIT_LIFECYCLES,
+                eip.getId());
+        // Then
+        response.then().statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
     public void testOperationSelect() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         logbookParametersSelect.putParameterValue(LogbookParameterName.eventDateTime,
@@ -477,7 +529,6 @@ public class LogbookResourceTest {
             ServerIdentity.getInstance().getJsonIdentity());
         with()
             .contentType(ContentType.JSON)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(logbookParametersSelect.toString())
             .when()

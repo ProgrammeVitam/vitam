@@ -456,7 +456,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         return exists(LogbookCollections.LIFECYCLE_OBJECTGROUP, objectGroupId);
     }
 
-    @SuppressWarnings("rawtypes") final VitamDocument getLogbook(final LogbookCollections collection, final String id)
+    @SuppressWarnings("rawtypes")
+    final VitamDocument getLogbook(final LogbookCollections collection, final String id)
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter("Logbook item", id);
         VitamDocument item = null;

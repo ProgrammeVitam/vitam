@@ -369,20 +369,11 @@ public class LogBookLifeCycleObjectGroupTest {
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, 0)
-            .body(new Select().getFinalSelect()).header(GlobalDataRest.X_CURSOR, true)
+            .body(new Select().getFinalSelect())
             .when()
             .get(LIFE_OBJECT_GROUP_URI, operationId)
             .then()
-            .statusCode(Status.OK.getStatusCode()).header(GlobalDataRest.X_CURSOR_ID, new BaseMatcher() {
-
-                @Override
-                public boolean matches(Object item) {
-                    return item != null && item instanceof String && !((String) item).isEmpty();
-                }
-
-                @Override
-                public void describeTo(Description description) {}
-            });
+            .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
