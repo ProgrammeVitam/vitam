@@ -113,27 +113,35 @@ public class TraceabilityService {
 
             // Get MerkleTree with given MerkleTreeAlgo
             final MerkleTree merkleTree = merkleAlgo.generateMerkle();
-            traceabilityFile.storeMerkleTree(merkleTree);
-            byte[] merkleRootHash = merkleTree.getRoot();
-            String rootHash = BaseXx.getBase64(merkleRootHash);
+            
+            if (merkleTree != null) {
+	            traceabilityFile.storeMerkleTree(merkleTree);
+	            byte[] merkleRootHash = merkleTree.getRoot();
+	            String rootHash = BaseXx.getBase64(merkleRootHash);
+	
+	            // Compute and store token
+	            byte[] timestampToken = computeAndStoreTimestampToken(now, traceabilityFile, merkleRootHash);
+	
+	            final long numberOfLine = helper.getDataSize();
+	            final String startDateStr = startDate != null ? LocalDateUtil.getString(startDate): "";
+	            final String endDate = helper.getEndDate();
+	
+	            traceabilityFile.storeAdditionalInformation(numberOfLine, startDateStr, endDate);
+	
+	            // fill traceability event
+	            String previousDate = helper.getPreviousStartDate();
+	            String previousMonthDate = helper.getPreviousMonthStartDate(now);
+	            String previousYearDate = helper.getPreviousYearStartDate(now);
+	            long size = zipFile.length();
+	
+	            event =  new TraceabilityEvent(helper.getTraceabilityType(), startDateStr, endDate, rootHash, timestampToken, previousDate,
+	                    previousMonthDate, previousYearDate, numberOfLine, fileName, size, VitamConfiguration.getDefaultDigestType());
+            } else {
+                // do nothing, nothing to be handled
+                LOGGER.warn("No entries to be processed");
+                return;
+            }
 
-            // Compute and store token
-            byte[] timestampToken = computeAndStoreTimestampToken(now, traceabilityFile, merkleRootHash);
-
-            final long numberOfLine = helper.getDataSize();
-            final String startDateStr = startDate != null ? LocalDateUtil.getString(startDate): "";
-            final String endDate = helper.getEndDate();
-
-            traceabilityFile.storeAdditionalInformation(numberOfLine, startDateStr, endDate);
-
-            // fill traceability event
-            String previousDate = helper.getPreviousStartDate();
-            String previousMonthDate = helper.getPreviousMonthStartDate(now);
-            String previousYearDate = helper.getPreviousYearStartDate(now);
-            long size = zipFile.length();
-
-            event =  new TraceabilityEvent(helper.getTraceabilityType(), startDateStr, endDate, rootHash, timestampToken, previousDate,
-                    previousMonthDate, previousYearDate, numberOfLine, fileName, size, VitamConfiguration.getDefaultDigestType());
             
         } catch (IOException | ArchiveException | InvalidParseOperationException e) {
             helper.createLogbookOperationEvent(tenantId, helper.getStepName(), StatusCode.FATAL, null);

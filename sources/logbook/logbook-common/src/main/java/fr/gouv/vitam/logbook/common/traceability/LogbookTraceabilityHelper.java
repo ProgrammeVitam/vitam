@@ -28,7 +28,7 @@ public interface LogbookTraceabilityHelper {
 	 * @return the startDate of the first element if found, INITIAL_START_DATE else.
 	 * @throws TraceabilityException for any error on the search
 	 */
-	LocalDateTime getLastEvent(GUID operationID) throws TraceabilityException;
+	LocalDateTime getLastEvent() throws TraceabilityException;
     
 	/**
 	 * Search for entries to secure with the traceability process and store data in the given Traceability zip file.<br/>
@@ -50,7 +50,7 @@ public interface LogbookTraceabilityHelper {
 	 * @param id id of the traceability operation (= id of the created entry in logbook)
 	 * @throws TraceabilityException if any error occurs
 	 */
-	void createLogbookOperationStructure(GUID id) throws TraceabilityException;
+	void createLogbookOperationStructure() throws TraceabilityException;
 
 	/**
 	 * Update or finalize the traceability entry in the logbook collection
@@ -62,7 +62,7 @@ public interface LogbookTraceabilityHelper {
 	 * @param event data of the entry
 	 * @throws TraceabilityException if any error occurs
 	 */
-	void createLogbookOperationEvent(GUID operationID, Integer tenantId, String eventType, StatusCode status, TraceabilityEvent event)
+	void createLogbookOperationEvent(Integer tenantId, String eventType, StatusCode status, TraceabilityEvent event)
 	    throws TraceabilityException;
 
 	/**
@@ -76,7 +76,7 @@ public interface LogbookTraceabilityHelper {
 	 * @param event traceability event that should be updated by this operation
 	 * @throws TraceabilityException if any error occurs
 	 */
-	void storeAndDeleteZip(GUID id, Integer tenant, File zipFile, String fileName, String uri, TraceabilityEvent event)
+	void storeAndDeleteZip(Integer tenant, File zipFile, String fileName, String uri, TraceabilityEvent event)
 	    throws TraceabilityException;
 	
 	/**

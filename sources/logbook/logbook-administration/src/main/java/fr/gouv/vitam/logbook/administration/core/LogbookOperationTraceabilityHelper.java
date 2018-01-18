@@ -112,7 +112,7 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     private List<String> expectedLogbookId = null;
     private LogbookOperation lastTraceabilityOperation = null;
     private TraceabilityIterator<LogbookOperation> traceabilityIterator = null;
-    
+
     private Boolean isLastEventInit = false;
     private Boolean isLastMonthEventInit = false;
     private Boolean isLastYearEventInit = false;
@@ -327,12 +327,12 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     public String getTimestampStepName() {
         return TIMESTAMP;
     }
-    
+
     @Override
     public String getZipName() {
         return ZIP_NAME;
     }
-    
+
     @Override
     public Object getUriName() {
         return LOGBOOK;
@@ -342,7 +342,7 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     public TraceabilityType getTraceabilityType() {
         return TraceabilityType.OPERATION;
     }
-    
+
     @Override
     public Long getDataSize() throws TraceabilityException {
         if (traceabilityIterator != null) {
