@@ -123,6 +123,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     private static final String CONTRACTS_IMPORT_EVENT = "STP_IMPORT_ACCESS_CONTRACT";
     private static final String CONTRACT_UPDATE_EVENT = "STP_UPDATE_ACCESS_CONTRACT";
     public static final String CONTRACT_BACKUP_EVENT = "STP_BACKUP_ACCESS_CONTRACT";
+    private static final String EVDETDATA_IDENTIFIER = "identifier";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessContractImpl.class);
     private static final String _TENANT = "_tenant";
@@ -457,12 +458,13 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             logbookClient.create(logbookParameters);
         }
 
-        private void logUpdateSuccess(String id, List<String> listDiffs) throws VitamException {
+        private void logUpdateSuccess(String id, String identifier, List<String> listDiffs) throws VitamException {
             final ObjectNode evDetData = JsonHandler.createObjectNode();
             final ObjectNode evDetDataContract = JsonHandler.createObjectNode();
             final String diffs = listDiffs.stream().reduce("", String::concat);
 
             final ObjectNode msg = JsonHandler.createObjectNode();
+            msg.put(EVDETDATA_IDENTIFIER, identifier);
             msg.put(UPDATED_DIFFS, diffs);
             evDetDataContract.set(id, msg);
 
@@ -800,7 +802,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             FunctionalAdminCollections.ACCESS_CONTRACT
         );
 
-        manager.logUpdateSuccess(accContractModel.getId(), updateDiffs.get(accContractModel.getId()));
+        manager.logUpdateSuccess(accContractModel.getId(), identifier, updateDiffs.get(accContractModel.getId()));
         return new RequestResponseOK<>();
     }
 
