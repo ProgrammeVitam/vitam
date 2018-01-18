@@ -76,6 +76,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     private static final Map<String, MongoCursor<?>> mapXCursor = new ConcurrentHashMap<>();
     private static final Map<String, LogbookCollections> mapXCursorByCollection = new ConcurrentHashMap<>();
     private final LogbookDbAccess mongoDbAccess;
+    private boolean disablePurge;
 
     /**
      * Constructor
@@ -84,6 +85,16 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
      */
     public LogbookLifeCyclesImpl(LogbookDbAccess mongoDbAccess) {
         this.mongoDbAccess = mongoDbAccess;
+    }
+
+    /**
+     * Constructor
+     *
+     * @param mongoDbAccess of logbook
+     */
+    public LogbookLifeCyclesImpl(LogbookDbAccess mongoDbAccess, boolean disablePurge) {
+        this.mongoDbAccess = mongoDbAccess;
+        this.disablePurge = disablePurge;
     }
 
 
@@ -293,13 +304,17 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     @Override
     public void rollbackUnit(String idOperation, String idLc)
         throws LogbookNotFoundException, LogbookDatabaseException, IllegalArgumentException {
-        mongoDbAccess.rollbackLogbookLifeCycleUnit(idOperation, idLc);
+        if (!disablePurge) {
+            mongoDbAccess.rollbackLogbookLifeCycleUnit(idOperation, idLc);
+        }
     }
 
     @Override
     public void rollbackObjectGroup(String idOperation, String idLc)
         throws LogbookNotFoundException, LogbookDatabaseException, IllegalArgumentException {
-        mongoDbAccess.rollbackLogbookLifeCycleObjectGroup(idOperation, idLc);
+        if (!disablePurge) {
+            mongoDbAccess.rollbackLogbookLifeCycleObjectGroup(idOperation, idLc);
+        }
     }
 
     @Override
@@ -445,13 +460,17 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
 
     @Override
     public void rollBackUnitsByOperation(String idOperation) throws LogbookNotFoundException, LogbookDatabaseException {
-        mongoDbAccess.rollBackUnitLifeCyclesByOperation(idOperation);
+        if (!disablePurge) {
+            mongoDbAccess.rollBackUnitLifeCyclesByOperation(idOperation);
+        }
     }
 
     @Override
     public void rollBackObjectGroupsByOperation(String idOperation)
         throws LogbookNotFoundException, LogbookDatabaseException {
-        mongoDbAccess.rollBackObjectGroupLifeCyclesByOperation(idOperation);
+        if (!disablePurge) {
+            mongoDbAccess.rollBackObjectGroupLifeCyclesByOperation(idOperation);
+        }
     }
 
 

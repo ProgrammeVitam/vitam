@@ -21,7 +21,7 @@ import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 
 /**
- * Description of reconstruction service factory.
+ * Description of Vitam repository provider.
  */
 public interface VitamRepositoryProvider {
 

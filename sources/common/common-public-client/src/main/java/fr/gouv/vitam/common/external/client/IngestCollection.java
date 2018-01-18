@@ -47,7 +47,12 @@ public enum IngestCollection {
     /**
      * rules collection
      */
-    RULES("rules");
+    RULES("rules"),
+
+    /**
+     * checklogbook_reports files
+     */
+    CHECKLOGBOOKREPORTS("checklogbookreports");
 
     /**
      * Name

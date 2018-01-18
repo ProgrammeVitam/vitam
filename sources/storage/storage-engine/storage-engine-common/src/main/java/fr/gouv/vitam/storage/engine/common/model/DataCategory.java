@@ -28,14 +28,12 @@
 package fr.gouv.vitam.storage.engine.common.model;
 
 /**
- * Define the differents type of "object" than can be stored, retrieve or
- * deleted from different storage offer
+ * Define the differents type of "object" than can be stored, retrieve or deleted from different storage offer
  */
 public enum DataCategory {
 
     /**
-     * Container
-     * TODO is this right ?
+     * Container TODO is this right ?
      */
     CONTAINER("", "", true, true),
     /**
@@ -92,7 +90,12 @@ public enum DataCategory {
     /**
      * backup operation files
      */
-    BACKUP_OPERATION("backupoperation", "backup_operation", true, false);
+    BACKUP_OPERATION("backupoperation", "backup_operation", true, false),
+
+    /**
+     * checklogbook_reports files
+     */
+    CHECKLOGBOOKREPORTS("checklogbookreports", "check_logbookreports", false, false);
 
     /**
      * Collection name
