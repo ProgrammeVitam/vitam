@@ -27,8 +27,8 @@
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
 public enum MetadataType {
-    UNIT("Unit", "%d_unit"),
-    GOT("ObjectGroup", "%d_objectgroup");
+    UNIT("Unit", "unit_%d"),
+    GOT("ObjectGroup", "objectgroup_%d");
     
     private String collectionName;
     private String indexName;

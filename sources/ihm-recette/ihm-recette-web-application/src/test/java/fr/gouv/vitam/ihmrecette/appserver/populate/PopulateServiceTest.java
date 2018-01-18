@@ -71,7 +71,7 @@ public class PopulateServiceTest {
         unitModel.setDescriptiveMetadataModel(content);
         unitModel.setId("1234");
 
-        metadataRepository.store(0, Lists.newArrayList(new UnitGotModel(unitModel)));
+        metadataRepository.store(0, Lists.newArrayList(new UnitGotModel(unitModel)), true, true);
 
         // When
         populateService.populateVitam(populateModel);

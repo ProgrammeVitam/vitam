@@ -68,7 +68,8 @@ public class PopulateService {
                 .createGraph(i, populateModel.getRootId(), populateModel.getTenant(), populateModel.getSp(), 
                         populateModel.isWithGots()))
             .buffer(populateModel.getBulkSize())
-            .subscribe(unitGotList -> metadataRepository.store(populateModel.getTenant(), unitGotList), t -> {
+            .subscribe(unitGotList -> metadataRepository.store(populateModel.getTenant(), unitGotList, 
+                    populateModel.isStoreInDb(), populateModel.isIndexInEs()), t -> {
                 LOGGER.error(t);
                 populateInProgress.set(false);
             }, () -> populateInProgress.set(false));

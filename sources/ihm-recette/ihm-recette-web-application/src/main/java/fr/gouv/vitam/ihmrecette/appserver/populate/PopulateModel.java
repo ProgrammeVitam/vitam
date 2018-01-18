@@ -38,7 +38,11 @@ public class PopulateModel {
 
     private int tenant;
     
-    private boolean withGots;
+    private boolean indexInEs = true;
+    
+    private boolean storeInDb = true;
+    
+    private boolean withGots = true;
 
     public int getNumberOfUnit() {
         return numberOfUnit;
@@ -78,6 +82,22 @@ public class PopulateModel {
 
     public void setTenant(int tenant) {
         this.tenant = tenant;
+    }
+
+    public boolean isIndexInEs() {
+        return indexInEs;
+    }
+
+    public void setIndexInEs(boolean indexInEs) {
+        this.indexInEs = indexInEs;
+    }
+
+    public boolean isStoreInDb() {
+        return storeInDb;
+    }
+
+    public void setStoreInDb(boolean storeInDb) {
+        this.storeInDb = storeInDb;
     }
 
     public boolean isWithGots() {
