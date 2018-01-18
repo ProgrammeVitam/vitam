@@ -197,20 +197,20 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
         report.put("DateTime", res.get("evDateTime").textValue());
 
         ArrayNode events = (ArrayNode) res.get(EVENT);
-        for (JsonNode event : events) {
-            if (event.get(LogbookMongoDbName.outcome.getDbname()).textValue().equals("WARNING")) {
-                report.put(STATUS, event.get(LogbookMongoDbName.outcome.getDbname()).textValue());
+        for (int l = events.size(), i = l-1; i > 0; i--) {
+            JsonNode event = events.get(i);
+            String eventType = event.get(LogbookMongoDbName.eventType.getDbname()).textValue();
+            String outcome = event.get(LogbookMongoDbName.outcome.getDbname()).textValue();
+            
+            // we get CHECK_OBJECT status if KO or LIST_OBJECTGROUP if WARNING else CHECK_OBJECT status (OK)
+            if(eventType.startsWith("AUDIT_CHECK_OBJECT") || 
+                    (eventType.startsWith("LIST_OBJECTGROUP_ID") && outcome.equals("WARNING"))) {
+                report.put(STATUS, outcome);
                 report.put(OUT_MESSAGE, event.get(LogbookMongoDbName.outcomeDetailMessage.getDbname()).textValue());
-                break;
-            } else if (event.get(LogbookMongoDbName.outcome.getDbname()).textValue().equals("KO")) {
-                report.put(STATUS, event.get(LogbookMongoDbName.outcome.getDbname()).textValue());
-                report.put(OUT_MESSAGE, event.get(LogbookMongoDbName.outcomeDetailMessage.getDbname()).textValue());
-                break;
-            } else if (event.get(LogbookMongoDbName.outcome.getDbname()).textValue().equals("OK") &&
-                event.get(LogbookMongoDbName.outcomeDetail.getDbname()).textValue().contains("AUDIT_CHECK_OBJECT")) {
-
-                report.put(STATUS, event.get(LogbookMongoDbName.outcome.getDbname()).textValue());
-                report.put(OUT_MESSAGE, event.get(LogbookMongoDbName.outcomeDetailMessage.getDbname()).textValue());
+                
+                if(outcome.equals("KO")){
+                    break;
+                }
             }
         }
 
@@ -272,7 +272,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
             for (JsonNode res : result.get(RequestResponseOK.TAG_RESULTS)) {
                 String idOp = res.get(EV_ID_PROC).asText();
                 JsonNode events = res.get(EVENT);
-                for (int l = events.size(), i = l-1; i > 0; i--){
+                for (int l = events.size(), i = l-1; i > 0; i--) {
                     JsonNode event = events.get(i);
                     if(event.get(EV_TYPE).asText().startsWith("LFC.AUDIT_") 
                             && event.get(EV_ID_PROC).asText().equals(auditOperationId)){
