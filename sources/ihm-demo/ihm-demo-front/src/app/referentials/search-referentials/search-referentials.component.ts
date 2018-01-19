@@ -26,6 +26,7 @@ export class SearchReferentialsComponent extends PageComponent {
   referentialIdentifier: string;
   public response: VitamResponse;
   public searchForm: any = {};
+  initialSortKey: string;
   searchButtonLabel: string;
 
   referentialData = [];
@@ -54,6 +55,7 @@ export class SearchReferentialsComponent extends PageComponent {
             "ContractName": "all",
             "orderby": {"field": "Name", "sortType": "ASC"}
           };
+          this.initialSortKey = "Name";
           this.columns = [
             ColumnDefinition.makeStaticColumn('Name', 'Intitulé', undefined,
               () => ({'width': '325px'})),
@@ -84,6 +86,7 @@ export class SearchReferentialsComponent extends PageComponent {
             "ContractName": "all",
             "orderby": {"field": "Name", "sortType": "ASC"}
           };
+          this.initialSortKey = "Name";
           this.columns = [
             ColumnDefinition.makeStaticColumn('Name', 'Intitulé', undefined,
               () => ({'width': '325px'})),
@@ -115,6 +118,7 @@ export class SearchReferentialsComponent extends PageComponent {
             "orderby": {"field": "Name", "sortType": "ASC"},
             "FORMAT": "all"
           };
+          this.initialSortKey = "Name";
           this.columns = [
             ColumnDefinition.makeStaticColumn('PUID', 'PUID', undefined,
               () => ({'width': '125px'})),
@@ -147,11 +151,8 @@ export class SearchReferentialsComponent extends PageComponent {
             new FieldDefinition('RuleValue', "Intitulé", 6, 8),
             FieldDefinition.createSelectMultipleField('RuleType', "Type", options, 6, 8)
           ];
-          this.searchForm = {
-            "RuleValue": "",
-            "RuleType": "All",
-            "RULES": "all"
-          };
+          this.searchForm = {"RuleValue": "", "RuleType": "All", "RULES": "all"};
+          this.initialSortKey = "RuleValue";
           this.columns = [
             ColumnDefinition.makeStaticColumn('RuleValue', 'Intitulé', undefined,
               () => ({'width': '325px'})),
@@ -176,6 +177,7 @@ export class SearchReferentialsComponent extends PageComponent {
             FieldDefinition.createIdField('ProfileID', "Identifiant", 6, 8)
           ];
           this.searchForm = {"ProfileID": "all", "ProfileName": "all", "orderby": {"field": "Name", "sortType": "ASC"}};
+          this.initialSortKey = "Name";
           this.columns = [
             ColumnDefinition.makeStaticColumn('Name', 'Intitulé', undefined,
               () => ({'width': '325px'})),
@@ -203,6 +205,7 @@ export class SearchReferentialsComponent extends PageComponent {
             FieldDefinition.createIdField('ContextID', "Identifiant", 6, 8)
           ];
           this.searchForm = {"ContextID": "all", "ContextName": "all", "orderby": {"field": "Name", "sortType": "ASC"}};
+          this.initialSortKey = "Name";
           this.columns = [
             ColumnDefinition.makeStaticColumn('Name', 'Intitulé', undefined,
               () => ({'width': '325px'})),
@@ -238,6 +241,7 @@ export class SearchReferentialsComponent extends PageComponent {
             new FieldDefinition('Description', "Description", 4, 10)
           ];
           this.searchForm = {"AgencyID": "all", "AgencyName": "all", "orderby": {"field": "Name", "sortType": "ASC"}};
+          this.initialSortKey = "Name";
           this.columns = [
             ColumnDefinition.makeStaticColumn('Name', 'Intitulé', undefined,
               () => ({'width': '125px'})),
@@ -261,6 +265,7 @@ export class SearchReferentialsComponent extends PageComponent {
             "ACCESSIONREGISTER": "ACCESSIONREGISTER",
             "orderby": {"field": "OriginatingAgency", "sortType": "ASC"}
           };
+          this.initialSortKey = "OriginatingAgency";
           this.columns = [
             ColumnDefinition.makeStaticColumn('OriginatingAgency', 'Service producteur', undefined,
               () => ({'width': '125px'})),
@@ -290,13 +295,24 @@ export class SearchReferentialsComponent extends PageComponent {
 
       this.searchReferentialsService.getResults(this.searchForm).subscribe(
         data => {
-          this.response = data;
+            if (!!data && !!data.$results && this.initialSortKey != null) 
+            {
+                SearchReferentialsComponent.doInitialSort(data.$results, this.initialSortKey);
+            }
+            this.response = data;
         },
         error => console.log('Error - ', this.response)
       );
+
     });
   }
 
+  static doInitialSort(items, sortKey) {
+    let comparer = (a, b) => {
+      return a[sortKey].trim().toLowerCase().localeCompare(b[sortKey].trim().toLowerCase());
+    };
+    items.sort(comparer);
+  }
 
   static getValue(item): number {
     switch (item.RuleMeasurement.toUpperCase()) {
