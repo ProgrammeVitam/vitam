@@ -51,6 +51,10 @@ public class RuleCategoryModel {
         return rules;
     }
 
+    public void setRules(List<RuleModel> listRUle) {
+        this.rules = listRUle;
+    }
+
     public InheritanceModel getInheritance() {
         return inheritance;
     }

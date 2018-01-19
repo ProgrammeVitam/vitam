@@ -45,6 +45,7 @@ public class Agencies extends VitamDocument<Agencies> {
      * the Agency description
      */
     public static final String DESCRIPTION = "Description";
+    private static final String TENANT = "_tenant";
 
     /**
      /**
@@ -53,7 +54,14 @@ public class Agencies extends VitamDocument<Agencies> {
     public Agencies() {
     }
 
-
+    /**
+     *
+     * @param tenantId the working tenant
+     */
+    public Agencies(Integer tenantId) {
+        // Empty
+        append(TENANT, tenantId);
+    }
     /**
      * Constructor
      *

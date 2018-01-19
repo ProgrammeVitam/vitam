@@ -32,18 +32,23 @@ import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.in;
 import com.mongodb.client.model.InsertOneModel;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.xcontent.XContentType;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,12 +63,37 @@ import static com.mongodb.client.model.Filters.eq;
 public class MetadataRepository {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataRepository.class);
+    public static final String GUID = "GUID";
+    public static final String TENANT_ID = "TENANT_ID";
+    public static final String AGENCY_NAME = "AGENCY_NAME";
+    public static final String RULE_ID = "RULE_ID";
+    public static final String RULE_CATEGORY = "RULE_CATEGORY";
 
     private MongoDatabase metadataDb;
     private TransportClient transportClient;
     private ObjectMapper objectMapper;
 
-    private Map<MetadataType, MongoCollection<Document>> mongoCollections = new HashMap<>();
+    private Map<VitamDataType, MongoCollection<Document>> mongoCollections = new HashMap<>();
+    private static final String RULE_TEMPLATE = "{\"_id\" : \"" + GUID +"\"," +
+        "    \"RuleId\" : \"" + RULE_ID +"\"," +
+        "    \"RuleType\" : \"" + RULE_CATEGORY +"\"," +
+        "    \"RuleValue\" : \"Dossier individuel d’agent civil\"," +
+        "    \"RuleDescription\" : \"Durée de conservation des dossiers\"," +
+        "    \"RuleDuration\" : \"80\"," +
+        "    \"RuleMeasurement\" : \"Year\"," +
+        "    \"CreationDate\" : \"2018-01-23T10:06:16.969\"," +
+        "    \"UpdateDate\" : \"2018-01-23T10:06:16.969\"," +
+        "    \"_v\" : 0," +
+        "    \"_tenant\" : " + TENANT_ID +
+        "}";
+
+    private static final String AGENCY_TEMPLATE = "{\"_id\" : \"" + GUID +"\"," +
+        "    \"Identifier\" : \"" + AGENCY_NAME +"\"," +
+        "    \"Name\" : \"" + AGENCY_NAME +"\"," +
+        "    \"Description\" : \"" + AGENCY_NAME +"\"," +
+        "    \"_v\" : 0," +
+        "    \"_tenant\" : " + TENANT_ID +
+        "}";
 
     public MetadataRepository(MongoDatabase metadataDb, TransportClient transportClient) {
         this.metadataDb = metadataDb;
@@ -81,7 +111,7 @@ public class MetadataRepository {
      * @return UnitModel if unit is found
      */
     public Optional<UnitModel> findUnitById(String rootId) {
-        FindIterable<Document> models = this.getCollection(MetadataType.UNIT).find(eq("_id", rootId));
+        FindIterable<Document> models = this.getCollection(VitamDataType.UNIT).find(eq("_id", rootId));
 
         Document first = models.first();
         if (first == null) {
@@ -93,6 +123,62 @@ public class MetadataRepository {
         } catch (final IOException | IllegalArgumentException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Find a document by key-value
+     *
+     * @param  documentType to fetch
+     * @param  options to fetch
+     * @return Document if found
+     */
+    public Optional<Document> findDocumentByMap(VitamDataType documentType,
+        Map<String, String> options) {
+
+        List<Bson> conditions = new ArrayList<>();
+        for (String option : options.keySet()) {
+            conditions.add(eq(option, options.get(option)));
+        }
+        FindIterable<Document> models = this.getCollection(documentType).find(and(conditions));
+
+        Document first = models.first();
+        if (first == null) {
+            return Optional.empty();
+        }
+
+        try {
+            return Optional.of(first);
+        } catch (final IllegalArgumentException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * import agency by name
+     *
+     * @param agencyName identifier to import
+     */
+    public void importAgency(String agencyName, int tenantId) {
+        String agencyToImport = AGENCY_TEMPLATE
+            .replace(GUID, GUIDFactory.newEventGUID(tenantId).toString())
+            .replace(TENANT_ID, tenantId + "")
+            .replace(AGENCY_NAME, agencyName);
+        this.getCollection(VitamDataType.AGENCIES).insertOne(Document.parse(agencyToImport));
+    }
+
+    /**
+     * import rule by id
+     *
+     * @param ruleId id to import
+     */
+    public void importRule(String ruleId, int tenantId) {
+        String ruleToImport = RULE_TEMPLATE
+            .replace(GUID, GUIDFactory.newEventGUID(tenantId).toString())
+            .replace(TENANT_ID, tenantId + "")
+            .replace(RULE_ID, ruleId)
+            .replace(RULE_CATEGORY, getRuleCategoryByRuleId(ruleId));
+
+        this.getCollection(VitamDataType.RULES).insertOne(Document.parse(ruleToImport));
     }
 
     /**
@@ -108,12 +194,12 @@ public class MetadataRepository {
                 getDocument(unitGot.getGot())).collect(Collectors.toList());
 
         if (!gots.isEmpty()) {
-            this.storeAndIndex(tenant, gots, MetadataType.GOT, storeInDb, indexInEs);
+            this.storeAndIndex(tenant, gots, VitamDataType.GOT, storeInDb, indexInEs);
         }
 
         List<Document> units = unitGotList.stream().map(unitGot ->
                 getDocument(unitGot.getUnit())).collect(Collectors.toList());
-        this.storeAndIndex(tenant, units, MetadataType.UNIT, storeInDb, indexInEs);
+        this.storeAndIndex(tenant, units, VitamDataType.UNIT, storeInDb, indexInEs);
     }
 
     /**
@@ -121,17 +207,17 @@ public class MetadataRepository {
      * 
      * @param tenant        tenant identifier
      * @param documents     documents to store and index
-     * @param metadataType  dataType of documents
+     * @param vitamDataType  dataType of documents
      * @param storeInDb     if true documents will be saved in DB
      * @param indexInEs     if true documents will be indexed in ES
      */
-    private void storeAndIndex(int tenant, List<Document> documents, MetadataType metadataType, 
+    private void storeAndIndex(int tenant, List<Document> documents, VitamDataType vitamDataType,
                                boolean storeInDb, boolean indexInEs){
         if(storeInDb){
-            storeDocuments(documents, metadataType);
+            storeDocuments(documents, vitamDataType);
         }
         if(indexInEs) {
-            indexDocuments(documents, metadataType, tenant);
+            indexDocuments(documents, vitamDataType, tenant);
         }
     }
 
@@ -139,13 +225,13 @@ public class MetadataRepository {
      * store a list of documents in db
      *
      * @param documents    to store
-     * @param metadataType of the documents to store
+     * @param vitamDataType of the documents to store
      */
-    private void storeDocuments(List<Document> documents, MetadataType metadataType) {
+    private void storeDocuments(List<Document> documents, VitamDataType vitamDataType) {
         List<InsertOneModel<Document>> collect =
                 documents.stream().map(InsertOneModel::new).collect(Collectors.toList());
 
-        BulkWriteResult bulkWriteResult = this.getCollection(metadataType).bulkWrite(collect);
+        BulkWriteResult bulkWriteResult = this.getCollection(vitamDataType).bulkWrite(collect);
         LOGGER.info("{}", bulkWriteResult.getInsertedCount());
     }
 
@@ -153,17 +239,17 @@ public class MetadataRepository {
      * index a list of documents
      *
      * @param documents    to index
-     * @param metadataType of the documents
+     * @param vitamDataType of the documents
      * @param tenant       related tenant
      */
-    private void indexDocuments(List<Document> documents, MetadataType metadataType, int tenant) {
+    private void indexDocuments(List<Document> documents, VitamDataType vitamDataType, int tenant) {
         BulkRequestBuilder bulkRequestBuilder = transportClient.prepareBulk();
 
         documents.forEach(document -> {
             String id = (String) document.remove("_id");
             String source = document.toJson();
             bulkRequestBuilder
-                    .add(transportClient.prepareIndex(metadataType.getIndexName(tenant), "type_unique", id)
+                    .add(transportClient.prepareIndex(vitamDataType.getIndexName(tenant), "type_unique", id)
                             .setSource(source, XContentType.JSON));
         });
 
@@ -179,7 +265,7 @@ public class MetadataRepository {
      * init collection's list for available metadataTypes
      */
     private void initCollections() {
-        for (MetadataType mdt : MetadataType.values()) {
+        for (VitamDataType mdt : VitamDataType.values()) {
             MongoCollection<Document> collection = metadataDb.getCollection(mdt.getCollectionName());
             mongoCollections.put(mdt, collection);
         }
@@ -188,12 +274,12 @@ public class MetadataRepository {
     /**
      * Get a collection
      *
-     * @param metadataType to fetch a collection for
+     * @param vitamDataType to fetch a collection for
      * @return MongoCollection
      */
-    private MongoCollection<Document> getCollection(MetadataType metadataType) {
-        return mongoCollections.getOrDefault(metadataType,
-                metadataDb.getCollection(MetadataType.UNIT.getCollectionName()));
+    private MongoCollection<Document> getCollection(VitamDataType vitamDataType) {
+        return mongoCollections.getOrDefault(vitamDataType,
+                metadataDb.getCollection(VitamDataType.UNIT.getCollectionName()));
     }
 
     /**
@@ -210,6 +296,25 @@ public class MetadataRepository {
             throw new RuntimeException(e);
         }
         return Document.parse(source);
+    }
+
+    public static String getRuleCategoryByRuleId(String ruleId) {
+        if (ruleId.startsWith("ACC-")) {
+            return "AccessRule";
+        }
+        if (ruleId.startsWith("APP-")) {
+            return "AppraisalRule";
+        }
+        if (ruleId.startsWith("DIS-")) {
+            return "DisseminationRule";
+        }
+        if (ruleId.startsWith("CLASS-")) {
+            return "ClassificationRule";
+        }
+        if (ruleId.startsWith("REU-")) {
+            return "ReuseRule";
+        }
+        return "StorageRule";
     }
 
 }

@@ -29,6 +29,7 @@ package fr.gouv.vitam.ihmrecette.appserver.populate;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
+import fr.gouv.vitam.common.model.unit.ManagementModel;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,6 +47,9 @@ public class UnitModel {
     // replace by DescriptiveMetadataContentType and JSonWrapped.
     @JsonUnwrapped
     private DescriptiveMetadataModel descriptiveMetadataModel;
+
+    @JsonProperty("_mgt")
+    private ManagementModel managementModel;
 
     @JsonProperty("_up")
     private Set<String> up = new HashSet<>(); // change to array
@@ -140,4 +144,11 @@ public class UnitModel {
         this.descriptiveMetadataModel = descriptiveMetadataModel;
     }
 
+    public ManagementModel getManagementModel() {
+        return managementModel;
+    }
+
+    public void setManagementModel(ManagementModel managementModel) {
+        this.managementModel = managementModel;
+    }
 }

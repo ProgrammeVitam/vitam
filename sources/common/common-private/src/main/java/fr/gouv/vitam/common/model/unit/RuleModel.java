@@ -26,10 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.unit;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-@JsonIgnoreProperties({"EndDate"})
 public class RuleModel {
 
     /**
@@ -43,6 +41,13 @@ public class RuleModel {
      */
     @JsonProperty("StartDate")
     private String startDate;
+
+    /**
+     * end date
+     */
+    @JsonProperty("EndDate")
+    private String endDate;
+
 
 
     /**
@@ -119,5 +124,13 @@ public class RuleModel {
 
     public void setNeedReassessingAuthorization(Boolean needReassessingAuthorization) {
         this.needReassessingAuthorization = needReassessingAuthorization;
+    }
+
+    public String getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(String endDate) {
+        this.endDate = endDate;
     }
 }

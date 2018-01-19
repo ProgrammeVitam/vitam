@@ -26,6 +26,10 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class PopulateModel {
 
     private int numberOfUnit;
@@ -37,12 +41,17 @@ public class PopulateModel {
     private String sp;
 
     private int tenant;
-    
+
     private boolean indexInEs = true;
     
     private boolean storeInDb = true;
     
     private boolean withGots = true;
+
+    @JsonProperty("ruleTemplatePercent")
+    private Map<String, Integer> ruleTemplatePercent;
+
+    private boolean withRules;
 
     public int getNumberOfUnit() {
         return numberOfUnit;
@@ -106,5 +115,21 @@ public class PopulateModel {
 
     public void setWithGots(boolean withGots) {
         this.withGots = withGots;
+    }
+
+    public boolean isWithRules() {
+        return withRules;
+    }
+
+    public void setWithRules(boolean withRules) {
+        this.withRules = withRules;
+    }
+
+    public Map<String, Integer> getRuleTemplatePercent() {
+        return ruleTemplatePercent;
+    }
+
+    public void setRuleTemplatePercent(Map<String, Integer> ruleTemplatePercent) {
+        this.ruleTemplatePercent = ruleTemplatePercent;
     }
 }

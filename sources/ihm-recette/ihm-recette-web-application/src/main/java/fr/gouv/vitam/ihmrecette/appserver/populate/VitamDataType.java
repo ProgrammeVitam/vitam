@@ -26,14 +26,16 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-public enum MetadataType {
+public enum VitamDataType {
     UNIT("Unit", "unit_%d"),
-    GOT("ObjectGroup", "objectgroup_%d");
+    GOT("ObjectGroup", "objectgroup_%d"),
+    RULES("FileRules", "filerules"),
+    AGENCIES("Agencies", "agencies");
     
     private String collectionName;
     private String indexName;
 
-    MetadataType(String collectionName, String indexName) {
+    VitamDataType(String collectionName, String indexName) {
         this.collectionName = collectionName;
         this.indexName = indexName;
     }
@@ -41,7 +43,11 @@ public enum MetadataType {
     public String getCollectionName() {
         return collectionName;
     }
-    
+
+    public String getIndexName() {
+        return indexName;
+    }
+
     public String getIndexName(int tenantId) {
         return String.format(indexName, tenantId);
     }
