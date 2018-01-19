@@ -158,22 +158,6 @@ public class ProcessingManagementClientMock extends AbstractMockClient implement
 
 
     @Override
-    public ItemStatus updateVitamProcess(String contextId, String actionId, String container, String workflow)
-        throws InternalServerException, BadRequestException, VitamClientException {
-        final List<Integer> status = new ArrayList<>();
-        status.add(0);
-        status.add(0);
-        status.add(1);
-        status.add(0);
-        status.add(0);
-        status.add(0);
-        return new ItemStatus("FakeId", "FakeMessage", StatusCode.OK, status, SingletonUtils.singletonMap(), null,
-            null, null);
-    }
-
-
-
-    @Override
     public void registerWorker(String familyId, String workerId, WorkerBean workerDescription)
         throws ProcessingBadRequestException, WorkerAlreadyExistsException {
         // TODO Auto-generated method stub

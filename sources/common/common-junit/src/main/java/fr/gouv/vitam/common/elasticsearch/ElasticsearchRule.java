@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.common.elasticsearch;
 
+import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -33,10 +35,6 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
 
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.NodeWithPlugins;
 import org.apache.commons.io.FileUtils;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -58,7 +56,9 @@ import org.elasticsearch.transport.Netty4Plugin;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.junit.rules.ExternalResource;
 
-import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.NodeWithPlugins;
 
 /**
  */
@@ -106,6 +106,12 @@ public class ElasticsearchRule extends ExternalResource {
         }
     }
 
+    /**
+     * ElasticsearchRule constructor
+     * 
+     * @param tempFolder
+     * @param collectionNames
+     */
     public ElasticsearchRule(File tempFolder, String... collectionNames) {
 
         try {
@@ -203,14 +209,29 @@ public class ElasticsearchRule extends ExternalResource {
         }
     }
 
+    /**
+     * get the cluster name
+     * 
+     * @return the vitam cluster name
+     */
     public String getClusterName() {
         return VITAM_CLUSTER;
     }
 
+    /**
+     * get the tcp port
+     * 
+     * @return tcpPort
+     */
     public static int getTcpPort() {
         return tcpPort;
     }
 
+    /**
+     * get the Client
+     * 
+     * @return the client
+     */
     public Client getClient() {
         return client;
     }

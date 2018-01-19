@@ -142,46 +142,6 @@ class ProcessingManagementClientRest extends DefaultClient implements Processing
         }
     }
 
-    @Override
-    public ItemStatus updateVitamProcess(String contextId, String actionId, String container, String workflow)
-        throws InternalServerException, BadRequestException {
-        ParametersChecker.checkParameter(CONTEXT_ID_MUST_HAVE_A_VALID_VALUE, contextId);
-        ParametersChecker.checkParameter(ACTION_ID_MUST_HAVE_A_VALID_VALUE, actionId);
-        ParametersChecker.checkParameter("container is a mandatory parameter", container);
-        ParametersChecker.checkParameter("workflow is a mandatory parameter", workflow);
-        Response response = null;
-        try {
-            response =
-                performRequest(HttpMethod.PUT, OPERATION_URI, getDefaultHeaders(contextId, actionId),
-                    JsonHandler.toJsonNode(new ProcessingEntry(container, workflow)), MediaType.APPLICATION_JSON_TYPE,
-                    MediaType.APPLICATION_JSON_TYPE);
-            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new WorkflowNotFoundException(NOT_FOUND);
-            } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                throw new IllegalArgumentException(ILLEGAL_ARGUMENT);
-            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                throw new InternalServerException(INTERNAL_SERVER_ERROR2);
-            } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-                throw new BadRequestException(BAD_REQUEST_EXCEPTION);
-            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new IllegalArgumentException(Status.UNAUTHORIZED.getReasonPhrase());
-            }
-
-            // XXX: theoretically OK status case
-            // Don't we thrown an exception if it is another status ?
-            return response.readEntity(ItemStatus.class);
-        } catch (final javax.ws.rs.ProcessingException e) {
-            LOGGER.error(e);
-            throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(PROCESSING_INTERNAL_SERVER_ERROR, e);
-            throw new InternalServerException(INTERNAL_SERVER_ERROR2, e);
-        } catch (final InvalidParseOperationException e) {
-            throw new IllegalArgumentException(ILLEGAL_ARGUMENT, e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
 
     @Override
     public RequestResponse<JsonNode> executeOperationProcess(String operationId, String workflow, String contextId,

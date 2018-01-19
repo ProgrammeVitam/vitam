@@ -182,15 +182,17 @@ public class AccessService {
         String rawCopy = new String(key);
         String[] paths = rawCopy.split("\\.");
         for (String path : paths) {
-            if (lastJsonNode.isArray()) {
-                try {
-                    int value = Integer.valueOf(path);
-                    lastJsonNode = lastJsonNode.get(value);
-                } catch (NumberFormatException e) {
-                    LOGGER.warn(e);
+            if (lastJsonNode != null) {
+                if (lastJsonNode.isArray()) {
+                    try {
+                        int value = Integer.valueOf(path);
+                        lastJsonNode = lastJsonNode.get(value);
+                    } catch (NumberFormatException e) {
+                        LOGGER.warn(e);
+                    }
+                } else {
+                    lastJsonNode = lastJsonNode.get(path);
                 }
-            } else {
-                lastJsonNode = lastJsonNode.get(path);
             }
         }
 

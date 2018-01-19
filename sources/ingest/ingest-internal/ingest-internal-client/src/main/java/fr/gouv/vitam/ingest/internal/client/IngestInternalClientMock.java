@@ -144,12 +144,6 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
     public void initWorkFlow(String contextId) throws VitamClientException, VitamException {}
 
     @Override
-    public ItemStatus updateVitamProcess(String contextId, String actionId, String container, String workflow)
-        throws InternalServerException, BadRequestException, VitamClientException {
-        return new ItemStatus(ID);
-    }
-
-    @Override
     public void initVitamProcess(String contextId, String container, String workflow)
         throws InternalServerException, VitamClientException, BadRequestException {}
 

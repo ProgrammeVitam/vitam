@@ -104,24 +104,6 @@ public interface OperationManagementClient extends MockOrRestClient {
     void initWorkFlow(String contextId) throws VitamException;
 
     /**
-     * updateVitamProcess : update vitam process status
-     * 
-     * 
-     * @param contextId
-     * @param actionId
-     * @param container
-     * @param workflow
-     * @return ItemStatus
-     * @throws InternalServerException
-     * @throws BadRequestException
-     * @throws VitamClientException
-     */
-
-    @Deprecated // FIXME clean lors de la 2745
-    ItemStatus updateVitamProcess(String contextId, String actionId, String container, String workflow)
-        throws InternalServerException, BadRequestException, VitamClientException;
-
-    /**
      * initVitamProcess
      * 
      * @param contextId

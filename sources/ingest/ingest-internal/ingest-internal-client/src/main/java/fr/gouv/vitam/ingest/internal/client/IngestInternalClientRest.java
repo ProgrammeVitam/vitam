@@ -416,34 +416,6 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     }
 
     @Override
-    public ItemStatus updateVitamProcess(String contextId, String actionId, String container, String workflow)
-        throws InternalServerException, BadRequestException, VitamClientException {
-        ParametersChecker.checkParameter(CONTEXT_ID_MUST_HAVE_A_VALID_VALUE, contextId);
-        final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-
-        // TODO I'm not sure that we can compare String and Enum
-        if (actionId.equals(ProcessAction.START)) {
-            ParametersChecker.checkParameter(CONTEXT_ID_MUST_HAVE_A_VALID_VALUE, contextId);
-            headers.add(GlobalDataRest.X_CONTEXT_ID, contextId);
-        }
-        Response response = null;
-        try {
-            response =
-                performRequest(HttpMethod.PUT, OPERATION_URI,
-                    headers,
-                    MediaType.APPLICATION_JSON_TYPE);
-            checkResponseStatus(response);
-            return response.readEntity(ItemStatus.class);
-        } catch (VitamClientInternalException | WorkspaceClientServerException e) {
-            LOGGER.error("VitamClientInternalException: ", e);
-            throw new VitamClientException(e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-
-    }
-
-    @Override
     public void initVitamProcess(String contextId, String container, String workFlow)
         throws InternalServerException, VitamClientException, BadRequestException {
 
