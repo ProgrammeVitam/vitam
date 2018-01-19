@@ -96,7 +96,7 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 
 public class AgenciesServiceTest {
 
-    public static final String STP_AGENCIES_REPORT = "STP_AGENCIES_REPORT";
+    public static final String STP_AGENCIES_REPORT = "AGENCIES_REPORT";
     private static VitamCounterService vitamCounterService;
 
     @Rule
@@ -292,7 +292,7 @@ public class AgenciesServiceTest {
         instantiateAgencyService();
 
         agencyService.findAllAgenciesUsedByAccessContracts();
-        verify(manager).logEventSuccess("STP_IMPORT_AGENCIES.USED_CONTRACT");
+        verify(manager).logEventSuccess("IMPORT_AGENCIES.USED_CONTRACT");
 
         AgenciesModel agModel = new AgenciesModel().setIdentifier("Test");
         agenciesToUpdate.add(agModel);
@@ -300,7 +300,7 @@ public class AgenciesServiceTest {
         instantiateAgencyService();
 
         agencyService.findAllAgenciesUsedByAccessContracts();
-        verify(manager).logEventWarning("STP_IMPORT_AGENCIES.USED_CONTRACT");
+        verify(manager).logEventWarning("IMPORT_AGENCIES.USED_CONTRACT");
 
     }
 

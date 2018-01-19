@@ -2006,7 +2006,7 @@ public class IngestInternalIT {
         select.setLimitFilter(0, 1);
         select.addOrderByDescFilter(LogbookMongoDbName.eventDateTime.getDbname());
         select.setQuery(eq(LogbookMongoDbName.eventType.getDbname(),
-            "STP_IMPORT_AGENCIES"));
+            "IMPORT_AGENCIES"));
 
         JsonNode logbookResult = operationsClient.selectOperation(select.getFinalSelect());
         assertThat(logbookResult).isNotNull();
