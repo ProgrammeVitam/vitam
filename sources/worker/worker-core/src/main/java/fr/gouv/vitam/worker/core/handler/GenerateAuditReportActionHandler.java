@@ -227,7 +227,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
         ArrayNode source = JsonHandler.createArrayNode();
         Select selectQuery = new Select();
         selectQuery.setQuery(
-            and().add(
+            and().add(QueryHelper.eq("evTypeProc", "INGEST"),
                 QueryHelper.or().add(
                     QueryHelper.eq("events.outDetail", "PROCESS_SIP_UNITARY.OK"),
                     QueryHelper.eq("events.outDetail", "PROCESS_SIP_UNITARY.WARNING")),
