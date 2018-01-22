@@ -35,7 +35,6 @@ import org.junit.Test;
 public class GlobalDatasDbTest {
     @Test
     public void givenGlobalDatasDbWhenGetStaticValueThenReturnCorrectly() {
-        assertEquals(new HashSet<>(), GlobalDatasDb.ROOTS);
         assertEquals(false, GlobalDatasDb.USE_NEW_NODE);
         assertEquals(true, GlobalDatasDb.USE_FILTER);
         assertEquals(true, GlobalDatasDb.USE_FILTERED_REQUEST);

@@ -41,10 +41,6 @@ import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
  */
 public class GlobalDatasDb extends GlobalDatasParser {
     /**
-     * set of Roots Domain : must be updated each time a new Domain is created
-     */
-    public static final Set<String> ROOTS = new HashSet<>();
-    /**
      * Should we use filter to select from graph parents, or within request (filtering seems better)
      */
     public static final boolean USE_FILTER = true;

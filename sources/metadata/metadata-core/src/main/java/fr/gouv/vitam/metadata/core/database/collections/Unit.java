@@ -277,13 +277,6 @@ public class Unit extends MetadataDocument<Unit> {
         return MetadataCollections.UNIT;
     }
 
-    /**
-     * This (Unit) is a root
-     */
-    public final void setRoot() {
-        GlobalDatasDb.ROOTS.add(getId());
-    }
-
     @Override
     public Unit save() throws MetaDataExecutionException {
         putBeforeSave();

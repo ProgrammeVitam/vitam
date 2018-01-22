@@ -75,16 +75,6 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
 
         MetadataCollections.UNIT.initialize(getMongoDatabase(), recreate);
         MetadataCollections.OBJECTGROUP.initialize(getMongoDatabase(), recreate);
-        // Compute roots
-        @SuppressWarnings("unchecked")
-        final FindIterable<Unit> iterable =
-            MetadataCollections.UNIT.getCollection().find(new Document(MetadataDocument.UP, null));
-        iterable.forEach(new Block<Unit>() {
-            @Override
-            public void apply(Unit t) {
-                t.setRoot();
-            }
-        });
 
         // init Unit Mapping for ES
         MetadataCollections.UNIT.initialize(this.esClient);
