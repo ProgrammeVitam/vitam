@@ -183,7 +183,7 @@
 </p-dialog>
 
 <p-dialog header="Sauvegarde: Echec" [(visible)]="displayKO">
-  Echec lors de la mise à jour des règles.
+  {{errorMessage}}
   <p-footer>
     <button pButton type="button" (click)="displayKO = false" label="OK"></button>
   </p-footer>

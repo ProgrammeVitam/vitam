@@ -27,6 +27,7 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
   public saveRunning = false;
   public displayOK = false;
   public displayKO = false;
+  public errorMessage = '';
   public messageToDisplay: string;
 
   frLocale = {
@@ -260,6 +261,7 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
             },
             (error) => {
               this.saveRunning = false;
+              this.buildErrorMessage(error.error.description);
               this.displayKO = true;
             }
           );
@@ -269,6 +271,26 @@ export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
       this.switchUpdateMode();
     }
 
+  }
+
+  buildErrorMessage(error) {
+   switch (error) {
+     case 'ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_EXIST':
+     case 'ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_EXIST':
+      this.errorMessage='La règle ajoutée n\'existe pas dans le référentiel.';
+      break;
+     case 'ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_CATEGORY':
+     case 'ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_CATEGORY':
+      this.errorMessage='La règle de gestion ajoutée n\'est pas de la bonne catégorie.';
+      break;
+     case 'ACCESS_INTERNAL_UPDATE_UNIT_UPDATE_RULE_START_DATE':
+     case 'ACCESS_INTERNAL_UPDATE_UNIT_CREATE_RULE_START_DATE':
+      this.errorMessage='La date de départ de la règle de gestion est supérieure ou égale à 9000.';
+      break;
+     default:
+      this.errorMessage='Echec lors de la mise à jour des règles.';
+      break;
+   }
   }
 
   removeRule(category, index, rule) {
