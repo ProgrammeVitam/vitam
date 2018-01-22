@@ -26,26 +26,8 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mongodb.bulk.BulkWriteResult;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.in;
-import com.mongodb.client.model.InsertOneModel;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.administration.AgenciesModel;
-import org.bson.Document;
-import org.bson.conversions.Bson;
-import org.elasticsearch.action.bulk.BulkRequestBuilder;
-import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.xcontent.XContentType;
+import static com.mongodb.client.model.Filters.eq;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,7 +37,23 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.mongodb.client.model.Filters.eq;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.bulk.BulkWriteResult;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.BulkWriteOptions;
+import com.mongodb.client.model.InsertOneModel;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.xcontent.XContentType;
 
 /**
  * insert into metadata in bulk mode
@@ -74,9 +72,9 @@ public class MetadataRepository {
     private ObjectMapper objectMapper;
 
     private Map<VitamDataType, MongoCollection<Document>> mongoCollections = new HashMap<>();
-    private static final String RULE_TEMPLATE = "{\"_id\" : \"" + GUID +"\"," +
-        "    \"RuleId\" : \"" + RULE_ID +"\"," +
-        "    \"RuleType\" : \"" + RULE_CATEGORY +"\"," +
+    private static final String RULE_TEMPLATE = "{\"_id\" : \"" + GUID + "\"," +
+        "    \"RuleId\" : \"" + RULE_ID + "\"," +
+        "    \"RuleType\" : \"" + RULE_CATEGORY + "\"," +
         "    \"RuleValue\" : \"Dossier individuel d’agent civil\"," +
         "    \"RuleDescription\" : \"Durée de conservation des dossiers\"," +
         "    \"RuleDuration\" : \"80\"," +
@@ -87,10 +85,10 @@ public class MetadataRepository {
         "    \"_tenant\" : " + TENANT_ID +
         "}";
 
-    private static final String AGENCY_TEMPLATE = "{\"_id\" : \"" + GUID +"\"," +
-        "    \"Identifier\" : \"" + AGENCY_NAME +"\"," +
-        "    \"Name\" : \"" + AGENCY_NAME +"\"," +
-        "    \"Description\" : \"" + AGENCY_NAME +"\"," +
+    private static final String AGENCY_TEMPLATE = "{\"_id\" : \"" + GUID + "\"," +
+        "    \"Identifier\" : \"" + AGENCY_NAME + "\"," +
+        "    \"Name\" : \"" + AGENCY_NAME + "\"," +
+        "    \"Description\" : \"" + AGENCY_NAME + "\"," +
         "    \"_v\" : 0," +
         "    \"_tenant\" : " + TENANT_ID +
         "}";
@@ -128,8 +126,8 @@ public class MetadataRepository {
     /**
      * Find a document by key-value
      *
-     * @param  documentType to fetch
-     * @param  options to fetch
+     * @param documentType to fetch
+     * @param options to fetch
      * @return Document if found
      */
     public Optional<Document> findDocumentByMap(VitamDataType documentType,
@@ -184,39 +182,40 @@ public class MetadataRepository {
     /**
      * Store unit and got in database and es
      *
-     * @param tenant      tenant identifier
-     * @param storeInDb   if true documents will be saved in DB
-     * @param indexInEs   if true documents will be indexed in ES
+     * @param tenant tenant identifier
+     * @param storeInDb if true documents will be saved in DB
+     * @param indexInEs if true documents will be indexed in ES
      * @param unitGotList data list of (unit,got) to store
      */
-    public void store(int tenant, List<UnitGotModel> unitGotList, boolean storeInDb, boolean indexInEs) {
+    public boolean store(int tenant, List<UnitGotModel> unitGotList, boolean storeInDb, boolean indexInEs) {
         List<Document> gots = unitGotList.stream().filter(unitGot -> unitGot.getGot() != null).map(unitGot ->
-                getDocument(unitGot.getGot())).collect(Collectors.toList());
+            getDocument(unitGot.getGot())).collect(Collectors.toList());
 
         if (!gots.isEmpty()) {
             this.storeAndIndex(tenant, gots, VitamDataType.GOT, storeInDb, indexInEs);
         }
 
         List<Document> units = unitGotList.stream().map(unitGot ->
-                getDocument(unitGot.getUnit())).collect(Collectors.toList());
+            getDocument(unitGot.getUnit())).collect(Collectors.toList());
         this.storeAndIndex(tenant, units, VitamDataType.UNIT, storeInDb, indexInEs);
+        return true;
     }
 
     /**
-     * Store and index a document list 
-     * 
-     * @param tenant        tenant identifier
-     * @param documents     documents to store and index
-     * @param vitamDataType  dataType of documents
-     * @param storeInDb     if true documents will be saved in DB
-     * @param indexInEs     if true documents will be indexed in ES
+     * Store and index a document list
+     *
+     * @param tenant tenant identifier
+     * @param documents documents to store and index
+     * @param vitamDataType dataType of documents
+     * @param storeInDb if true documents will be saved in DB
+     * @param indexInEs if true documents will be indexed in ES
      */
     private void storeAndIndex(int tenant, List<Document> documents, VitamDataType vitamDataType,
-                               boolean storeInDb, boolean indexInEs){
-        if(storeInDb){
+        boolean storeInDb, boolean indexInEs) {
+        if (storeInDb) {
             storeDocuments(documents, vitamDataType);
         }
-        if(indexInEs) {
+        if (indexInEs) {
             indexDocuments(documents, vitamDataType, tenant);
         }
     }
@@ -224,23 +223,26 @@ public class MetadataRepository {
     /**
      * store a list of documents in db
      *
-     * @param documents    to store
+     * @param documents to store
      * @param vitamDataType of the documents to store
      */
     private void storeDocuments(List<Document> documents, VitamDataType vitamDataType) {
         List<InsertOneModel<Document>> collect =
-                documents.stream().map(InsertOneModel::new).collect(Collectors.toList());
+            documents.stream().map(InsertOneModel::new).collect(Collectors.toList());
 
-        BulkWriteResult bulkWriteResult = this.getCollection(vitamDataType).bulkWrite(collect);
+        BulkWriteOptions options = new BulkWriteOptions();
+        options.ordered(false);
+
+        BulkWriteResult bulkWriteResult = this.getCollection(vitamDataType).bulkWrite(collect, options);
         LOGGER.info("{}", bulkWriteResult.getInsertedCount());
     }
 
     /**
      * index a list of documents
      *
-     * @param documents    to index
+     * @param documents to index
      * @param vitamDataType of the documents
-     * @param tenant       related tenant
+     * @param tenant related tenant
      */
     private void indexDocuments(List<Document> documents, VitamDataType vitamDataType, int tenant) {
         BulkRequestBuilder bulkRequestBuilder = transportClient.prepareBulk();
@@ -249,8 +251,8 @@ public class MetadataRepository {
             String id = (String) document.remove("_id");
             String source = document.toJson();
             bulkRequestBuilder
-                    .add(transportClient.prepareIndex(vitamDataType.getIndexName(tenant), "type_unique", id)
-                            .setSource(source, XContentType.JSON));
+                .add(transportClient.prepareIndex(vitamDataType.getIndexName(tenant), "type_unique", id)
+                    .setSource(source, XContentType.JSON));
         });
 
         BulkResponse bulkRes = bulkRequestBuilder.execute().actionGet();
@@ -279,7 +281,7 @@ public class MetadataRepository {
      */
     private MongoCollection<Document> getCollection(VitamDataType vitamDataType) {
         return mongoCollections.getOrDefault(vitamDataType,
-                metadataDb.getCollection(VitamDataType.UNIT.getCollectionName()));
+            metadataDb.getCollection(VitamDataType.UNIT.getCollectionName()));
     }
 
     /**
@@ -289,7 +291,7 @@ public class MetadataRepository {
      * @return new document
      */
     private Document getDocument(Object obj) {
-        String source = null;
+        String source;
         try {
             source = objectMapper.writeValueAsString(obj);
         } catch (final JsonProcessingException | IllegalArgumentException e) {

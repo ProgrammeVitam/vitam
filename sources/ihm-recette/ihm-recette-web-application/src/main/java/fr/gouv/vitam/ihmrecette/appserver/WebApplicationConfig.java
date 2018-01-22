@@ -28,7 +28,6 @@
 package fr.gouv.vitam.ihmrecette.appserver;
 
 import java.util.List;
-import java.util.Set;
 
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
@@ -53,6 +52,7 @@ public class WebApplicationConfig extends MetaDataConfiguration {
     private String metadataDbName;
     private String testSystemSipDirectory;
     private String testSystemReportDirectory;
+    private int ingestMaxThread;
 
     /**
      * Constructor for tests
@@ -88,7 +88,7 @@ public class WebApplicationConfig extends MetaDataConfiguration {
         this.baseUrl = baseUrl;
         return this;
     }
-    
+
     public String getBaseUri() {
         return baseUri;
     }
@@ -212,7 +212,6 @@ public class WebApplicationConfig extends MetaDataConfiguration {
     }
 
     /**
-     *
      * @return folder to store integration test
      */
     public String getTestSystemSipDirectory() {
@@ -220,7 +219,6 @@ public class WebApplicationConfig extends MetaDataConfiguration {
     }
 
     /**
-     *
      * @param testSystemSipDirectory folder to store integration test
      */
     public void setTestSystemSipDirectory(String testSystemSipDirectory) {
@@ -228,7 +226,6 @@ public class WebApplicationConfig extends MetaDataConfiguration {
     }
 
     /**
-     *
      * @return folder to store report of system test
      */
     public String getTestSystemReportDirectory() {
@@ -236,7 +233,6 @@ public class WebApplicationConfig extends MetaDataConfiguration {
     }
 
     /**
-     *
      * @param testSystemReportDirectory folder to store report of system test
      */
     public void setTestSystemReportDirectory(String testSystemReportDirectory) {
@@ -244,7 +240,6 @@ public class WebApplicationConfig extends MetaDataConfiguration {
     }
 
     /**
-     *
      * @return performance report directory
      */
     public String getPerformanceReportDirectory() {
@@ -252,7 +247,6 @@ public class WebApplicationConfig extends MetaDataConfiguration {
     }
 
     /**
-     *
      * @param performanceReportDirectory performance report directory
      */
     public void setPerformanceReportDirectory(String performanceReportDirectory) {
@@ -261,6 +255,7 @@ public class WebApplicationConfig extends MetaDataConfiguration {
 
     /**
      * get secure mode
+     *
      * @return secure mode
      */
     public List<String> getSecureMode() {
@@ -272,6 +267,14 @@ public class WebApplicationConfig extends MetaDataConfiguration {
      */
     public void setSecureMode(List<String> secureMode) {
         this.secureMode = secureMode;
+    }
+
+    public int getIngestMaxThread() {
+        return ingestMaxThread;
+    }
+
+    public void setIngestMaxThread(int ingestMaxThread) {
+        this.ingestMaxThread = ingestMaxThread;
     }
 
 }

@@ -51,7 +51,7 @@ public class PopulateServiceTest {
 
         this.metadataRepository = new MetadataRepository(mongoRule.getMongoDatabase(), client);
         UnitGraph unitGraph = new UnitGraph(metadataRepository);
-        populateService = new PopulateService(metadataRepository, new DescriptiveMetadataGenerator(), unitGraph);
+        populateService = new PopulateService(metadataRepository, unitGraph, 4);
     }
 
     @Test

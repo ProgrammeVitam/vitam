@@ -17,6 +17,7 @@ performanceReportDirectory: {{ vitam_folder_data }}/report/performance
 
 testSystemSipDirectory: {{ vitam_folder_data }}/test-data/system
 testSystemReportDirectory: {{ vitam_folder_data }}/report/system
+ingestMaxThread: {{ ansible_processor_cores * ansible_processor_threads_per_core + 1 }}
 
 # Configuration MongoDB
 mongoDbNodes:

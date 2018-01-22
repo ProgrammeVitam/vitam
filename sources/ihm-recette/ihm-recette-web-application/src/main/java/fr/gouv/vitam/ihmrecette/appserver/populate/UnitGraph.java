@@ -46,13 +46,13 @@ public class UnitGraph {
         final boolean withGot = populateModel.isWithGots();
         // id of the unit.
         String uuid = GUIDFactory.newUnitGUID(tenantId).toString();
-        
+
         // create unitModel
         UnitModel unitModel = createUnitModel(uuid, DescriptiveMetadataGenerator.generateDescriptiveMetadataModel(i),
             populateModel, i);
         
         if(!withGot) {
-            return new UnitGotModel(unitModel);  
+            return new UnitGotModel(unitModel);
         }
 
         // id of the got.
