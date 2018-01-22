@@ -26,10 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rules.core;
 
-import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static fr.gouv.vitam.functional.administration.common.ReportConstants.ADDITIONAL_INFORMATION;
 import static fr.gouv.vitam.functional.administration.common.ReportConstants.CODE;
 import static fr.gouv.vitam.functional.administration.common.ReportConstants.ERROR;
@@ -43,7 +40,6 @@ import static fr.gouv.vitam.functional.administration.common.ReportConstants.OUT
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -142,7 +138,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
@@ -208,7 +203,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     private final String UPDATE_RULES_ARCHIVE_UNITS = "UPDATE_RULES_ARCHIVE_UNITS";
     private static final String STP_IMPORT_RULES_BACKUP = "STP_IMPORT_RULES_BACKUP";
     private static final String STP_IMPORT_RULES_BACKUP_CSV = "STP_IMPORT_RULES_BACKUP_CSV";
-
     private static final String STP_IMPORT_RULES = "STP_IMPORT_RULES";
 
     private static final String CHECK_RULES = "CHECK_RULES";

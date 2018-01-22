@@ -178,6 +178,7 @@ public class TransferThread implements Callable<ThreadResponseData> {
                 case MANIFEST:
                 case REPORT:
                 case PROFILE:
+                case BACKUP:
                     LOGGER.error(VitamCodeHelper
                         .getLogMessage(VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS, request.getGuid()));
                     throw new StorageAlreadyExistsException(VitamCodeHelper

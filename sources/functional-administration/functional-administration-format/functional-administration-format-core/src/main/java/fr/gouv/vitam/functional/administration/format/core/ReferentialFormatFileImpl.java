@@ -27,7 +27,6 @@
 package fr.gouv.vitam.functional.administration.format.core;
 
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,9 +35,11 @@ import java.util.Set;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
@@ -52,13 +53,13 @@ import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.common.ErrorReport;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.ReferentialFile;
 import fr.gouv.vitam.functional.administration.common.ReferentialFileUtils;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
-import fr.gouv.vitam.functional.administration.common.exception.FileFormatNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -70,101 +71,143 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 
+import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.FORMATS;
+
 /**
  * ReferentialFormatFileImpl implementing the ReferentialFormatFile interface
  */
 public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, VitamAutoCloseable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReferentialFormatFileImpl.class);
+    private static final String BACKUP_FORMAT_EVENT = "STP_BACKUP_REFERENTIAL_FORMAT";
     private final MongoDbAccessAdminImpl mongoAccess;
     private static final String COLLECTION_NAME = "FileFormat";
 
     private static final String STP_REFERENTIAL_FORMAT_IMPORT = "STP_REFERENTIAL_FORMAT_IMPORT";
     private static final String VERSION = " version ";
     private static final String FILE_PRONOM = " du fichier de signature PRONOM (DROID_SignatureFile)";
+    private final FunctionalBackupService backupService;
+    private LogbookOperationsClient logbookOperationsClient;
 
     /**
      * Constructor
      *
-     * @param dbConfiguration the mongo access for reference format configuration
+     * @param dbConfiguration     the mongo access for reference format configuration
+     * @param vitamCounterService
      */
-    public ReferentialFormatFileImpl(MongoDbAccessAdminImpl dbConfiguration) {
+    public ReferentialFormatFileImpl(MongoDbAccessAdminImpl dbConfiguration, VitamCounterService vitamCounterService) {
         mongoAccess = dbConfiguration;
+        backupService = new FunctionalBackupService(vitamCounterService);
+        logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient();
+    }
+
+    @VisibleForTesting ReferentialFormatFileImpl(MongoDbAccessAdminImpl dbConfiguration,
+        FunctionalBackupService backupService, LogbookOperationsClient logbookOperationsClient) {
+        this.mongoAccess = dbConfiguration;
+        this.logbookOperationsClient = logbookOperationsClient;
+        this.backupService = backupService;
+
     }
 
     @Override
     public void importFile(InputStream xmlPronom, String filename)
-        throws ReferentialException, DatabaseConflictException, InvalidParseOperationException {
+        throws VitamException {
         Map<Integer, List<ErrorReport>> errors = new HashMap<>();
         ParametersChecker.checkParameter("Pronom file is a mandatory parameter", xmlPronom);
         final ArrayNode pronomList = checkFile(xmlPronom, errors, null, null, null, null);
-        try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
-            final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-            final LogbookOperationParameters logbookParametersStart = LogbookParametersFactory
-                .newLogbookOperationParameters(eip, STP_REFERENTIAL_FORMAT_IMPORT, eip,
-                    LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-                    VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.STARTED), eip);
-            try {
-                client.create(logbookParametersStart);
-            } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
-                LogbookClientServerException e) {
-                LOGGER.error(e);
-                throw new ReferentialException(e);
+
+        final GUID eip = createLogbook();
+
+        final GUID eip1 = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+        try {
+
+            if (mongoAccess.getMongoDatabase().getCollection(COLLECTION_NAME).count() == 0) {
+
+
+                mongoAccess.insertDocuments(pronomList, FORMATS).close();
+
+                backupService.saveCollectionAndSequence(eip, BACKUP_FORMAT_EVENT, FORMATS);
+                //store collection
+
+                final LogbookOperationParameters logbookParametersEnd =
+                    crateLogbookOperationParametersImport(filename, pronomList, eip, eip1);
+
+                updateLogbook(logbookParametersEnd);
+
+            } else {
+
+                final LogbookOperationParameters logbookParametersEnd = createLogbookOperationParametersKo(eip, eip1);
+
+                ReferentialFileUtils.addFilenameInLogbookOperation(filename, logbookParametersEnd);
+
+                updateLogbook(logbookParametersEnd);
+
+                throw new DatabaseConflictException("File format collection is not empty");
             }
 
-            final GUID eip1 = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-            try {
-                if (mongoAccess.getMongoDatabase().getCollection(COLLECTION_NAME).count() == 0) {
-                    mongoAccess.insertDocuments(pronomList, FunctionalAdminCollections.FORMATS).close();
+        } catch (final ReferentialException e) {
 
-                    final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
-                        .newLogbookOperationParameters(eip1, STP_REFERENTIAL_FORMAT_IMPORT, eip,
-                            LogbookTypeProcess.MASTERDATA, StatusCode.OK,
-                            VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.OK) + VERSION +
-                                pronomList.get(0).get("VersionPronom").textValue() + FILE_PRONOM,
-                            eip1);
-                    ReferentialFileUtils.addFilenameInLogbookOperation(filename, logbookParametersEnd);
+            LOGGER.error(e.getMessage());
 
-                    try {
-                        client.update(logbookParametersEnd);
-                    } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-                        LogbookClientServerException e) {
-                        LOGGER.error(e);
-                        throw new ReferentialException(e);
-                    }
-                } else {
-                    final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
-                        .newLogbookOperationParameters(eip1, STP_REFERENTIAL_FORMAT_IMPORT, eip,
-                            LogbookTypeProcess.MASTERDATA, StatusCode.KO,
-                            VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.KO), eip1);
-                    ReferentialFileUtils.addFilenameInLogbookOperation(filename, logbookParametersEnd);
+            LogbookOperationParameters logbookParametersEnd = createLogbookOperationParametersKo(eip1, eip);
 
-                    try {
-                        client.update(logbookParametersEnd);
-                    } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-                        LogbookClientServerException e) {
-                        LOGGER.error(e);
-                        throw new ReferentialException(e);
-                    }
+            updateLogbook(logbookParametersEnd);
 
-                    throw new DatabaseConflictException("File format collection is not empty");
-                }
-            } catch (final ReferentialException e) {
-                LOGGER.error(e.getMessage());
-                final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
-                    .newLogbookOperationParameters(eip1, STP_REFERENTIAL_FORMAT_IMPORT, eip,
-                        LogbookTypeProcess.MASTERDATA, StatusCode.KO,
-                        VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.KO), eip1);
-                try {
-                    client.update(logbookParametersEnd);
-                } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-                    LogbookClientServerException e1) {
-                    LOGGER.error(e1);
-                    throw new ReferentialException(e1);
-                }
-                throw new ReferentialException(e);
-            }
+            throw new ReferentialException(e);
         }
+    }
+
+    private LogbookOperationParameters createLogbookOperationParametersKo(GUID eip, GUID eip1) {
+
+        final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
+            .newLogbookOperationParameters(eip1, STP_REFERENTIAL_FORMAT_IMPORT, eip,
+                LogbookTypeProcess.MASTERDATA, StatusCode.KO,
+                VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.KO), eip1);
+        return logbookParametersEnd;
+    }
+
+    private void updateLogbook(LogbookOperationParameters logbookParametersEnd) throws ReferentialException {
+        try {
+            logbookOperationsClient.update(logbookParametersEnd);
+        } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
+            LogbookClientServerException e) {
+            LOGGER.error(e);
+            throw new ReferentialException(e);
+        }
+    }
+
+    private LogbookOperationParameters crateLogbookOperationParametersImport(String filename, ArrayNode pronomList,
+        GUID eip, GUID eip1) throws InvalidParseOperationException {
+
+        final LogbookOperationParameters logbookParametersEnd = LogbookParametersFactory
+            .newLogbookOperationParameters(eip1, STP_REFERENTIAL_FORMAT_IMPORT, eip,
+                LogbookTypeProcess.MASTERDATA, StatusCode.OK,
+                VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.OK) + VERSION +
+                    pronomList.get(0).get("VersionPronom").textValue() + FILE_PRONOM,
+                eip1);
+        ReferentialFileUtils.addFilenameInLogbookOperation(filename, logbookParametersEnd);
+
+        return logbookParametersEnd;
+    }
+
+    private GUID createLogbook() throws ReferentialException {
+
+        final GUID eip = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+
+        final LogbookOperationParameters logbookParametersStart = LogbookParametersFactory
+            .newLogbookOperationParameters(eip, STP_REFERENTIAL_FORMAT_IMPORT, eip,
+                LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
+                VitamLogbookMessages.getCodeOp(STP_REFERENTIAL_FORMAT_IMPORT, StatusCode.STARTED), eip);
+        try {
+
+            logbookOperationsClient.create(logbookParametersStart);
+
+        } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
+            LogbookClientServerException e) {
+            LOGGER.error(e);
+            throw new ReferentialException(e);
+        }
+        return eip;
     }
 
     @Override
@@ -186,7 +229,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     public FileFormat findDocumentById(String id) throws ReferentialException {
         try {
             FileFormat fileFormat =
-                (FileFormat) mongoAccess.getDocumentByUniqueId(id, FunctionalAdminCollections.FORMATS, FileFormat.PUID);
+                (FileFormat) mongoAccess.getDocumentByUniqueId(id, FORMATS, FileFormat.PUID);
             if (fileFormat == null) {
                 throw new FileFormatException("FileFormat Not Found");
             }
@@ -201,7 +244,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     public RequestResponseOK<FileFormat> findDocuments(JsonNode select)
         throws ReferentialException {
         try (DbRequestResult result =
-            mongoAccess.findDocuments(select, FunctionalAdminCollections.FORMATS)) {
+            mongoAccess.findDocuments(select, FORMATS)) {
             final RequestResponseOK<FileFormat> list = result.getRequestResponseOK(select, FileFormat.class);
             return list;
         } catch (final ReferentialException e) {
@@ -213,5 +256,6 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
     @Override
     public void close() {
         // Empty
+        logbookOperationsClient.close();
     }
 }

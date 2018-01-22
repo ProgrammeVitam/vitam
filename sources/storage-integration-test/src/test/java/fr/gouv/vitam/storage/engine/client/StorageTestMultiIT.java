@@ -111,13 +111,8 @@ public class StorageTestMultiIT {
     private static int workspacePort = 8987;
     private static final String WORKSPACE_CONF = "storage-test/workspace.conf";
     private static final String WORKSPACE_FOLDER = "workspace";
-    private static final String TMP_FOLDER = "tmp";
-
-    private static final String logbookSecurisation = "RULES_SECURISATION";
-    private static final String logbookSecurisation_agencies = "RULES_SECURISATION";
 
     private static final String FILE_NAME = "RULES";
-    private static final String file_name_agencies = "AGENCIES";
 
     private static final String CONTAINER = "object";
     private static String OBJECT_ID;

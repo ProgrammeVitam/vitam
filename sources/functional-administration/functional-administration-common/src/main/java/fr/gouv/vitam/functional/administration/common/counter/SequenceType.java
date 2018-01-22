@@ -66,7 +66,11 @@ public enum SequenceType {
     /**
      * Security profile collection
      */
-    SECURITY_PROFILE_SEQUENCE(FunctionalAdminCollections.SECURITY_PROFILE, "SEC_PROFILE");
+    SECURITY_PROFILE_SEQUENCE(FunctionalAdminCollections.SECURITY_PROFILE, "SEC_PROFILE"),
+    /**
+     * Formats sequence type
+     */
+    FORMATS(FunctionalAdminCollections.FORMATS, "FORMATS");
 
     public static final String BACK_UP_SEQUENCE_PREFIX = "BACKUP_";
 

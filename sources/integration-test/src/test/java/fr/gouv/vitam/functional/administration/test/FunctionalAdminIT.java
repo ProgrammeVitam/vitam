@@ -253,7 +253,7 @@ public class FunctionalAdminIT {
                 vitamCounterService);
 
         referentialFormatFile = new ReferentialFormatFileImpl(
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)));
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)), vitamCounterService);
 
         ingestContract = new IngestContractImpl(
             MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
