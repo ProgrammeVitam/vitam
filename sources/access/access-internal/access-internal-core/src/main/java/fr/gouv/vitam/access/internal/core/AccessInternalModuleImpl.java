@@ -26,6 +26,24 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.core;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -43,7 +61,6 @@ import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
@@ -119,23 +136,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 
 
@@ -829,7 +829,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     UNIT_CHECK_RULES, false);
             logbookOpParamEnd.putParameterValue(LogbookParameterName.eventDetailData, evDetData);
             logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
-            logbookOpParamEnd.putParameterValue(LogbookParameterName.parentEventIdentifier, parentEventGuid.getId());
             logbookOperationClient.update(logbookOpParamEnd);
         } else {
             // last step STEP UNIT_CHECK_RULES OK
@@ -838,7 +837,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_CHECK_RULES, StatusCode.OK), idRequest,
                     UNIT_CHECK_RULES, false);
             logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
-            logbookOpParamEnd.putParameterValue(LogbookParameterName.parentEventIdentifier, parentEventGuid.getId());
             logbookOperationClient.update(logbookOpParamEnd);
 
             if (!stepMetadataUpdate) {
@@ -849,8 +847,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                         StatusCode.KO, VitamLogbookMessages.getCodeOp(UNIT_METADATA_UPDATE, StatusCode.KO), idRequest,
                         UNIT_METADATA_UPDATE, false);
                 logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
-                logbookOpParamEnd.putParameterValue(LogbookParameterName.parentEventIdentifier,
-                    parentEventGuid.getId());
                 logbookOperationClient.update(logbookOpParamEnd);
             } else {
                 // last step UNIT_METADATA_UPDATE OK
@@ -860,8 +856,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                         StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_METADATA_UPDATE, StatusCode.OK), idRequest,
                         UNIT_METADATA_UPDATE, false);
                 logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
-                logbookOpParamEnd.putParameterValue(LogbookParameterName.parentEventIdentifier,
-                    parentEventGuid.getId());
                 logbookOperationClient.update(logbookOpParamEnd);
 
                 if (!stepStorageUpdate) {
@@ -873,8 +867,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                             idRequest,
                             UNIT_METADATA_STORAGE, false);
                     logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
-                    logbookOpParamEnd.putParameterValue(LogbookParameterName.parentEventIdentifier,
-                        parentEventGuid.getId());
                     logbookOperationClient.update(logbookOpParamEnd);
                 } else {
                     // STEP UNIT_METADATA_STORAGE OK
@@ -883,8 +875,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                         StatusCode.OK, VitamLogbookMessages.getCodeOp(UNIT_METADATA_STORAGE, StatusCode.OK), idRequest,
                         UNIT_METADATA_STORAGE, false);
                     logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
-                    logbookOpParamEnd.putParameterValue(LogbookParameterName.parentEventIdentifier,
-                        parentEventGuid.getId());
                     logbookOperationClient.update(logbookOpParamEnd);
 
                     if (!stepLFCCommit) {
@@ -896,8 +886,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                                 idRequest,
                                 COMMIT_LIFE_CYCLE_UNIT, false);
                         logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
-                        logbookOpParamEnd.putParameterValue(LogbookParameterName.parentEventIdentifier,
-                            parentEventGuid.getId());
                         logbookOperationClient.update(logbookOpParamEnd);
                     } else {
                         // STEP COMMIT_LIFE_CYCLE_UNIT OK
@@ -907,8 +895,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                                 VitamLogbookMessages.getCodeOp(COMMIT_LIFE_CYCLE_UNIT, StatusCode.OK),
                                 idRequest, COMMIT_LIFE_CYCLE_UNIT, false);
                         logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
-                        logbookOpParamEnd.putParameterValue(LogbookParameterName.parentEventIdentifier,
-                            parentEventGuid.getId());
                         logbookOperationClient.update(logbookOpParamEnd);
                     }
                 }

@@ -20,12 +20,12 @@ export class EventDisplayComponent implements OnInit {
   constructor() { }
 
   ngOnInit() {
-    if (this.event.end) {
-      if (this.event.end.evType.toUpperCase().indexOf('.STARTED') > -1) {
+    if (this.event.eventData) {
+      if (this.event.eventData.evType.toUpperCase().indexOf('.STARTED') > -1) {
         this.stepStatusIcon = 'fa-circle-o-notch fa-spin';
         this.logbookRowStyle = 'okRow';
       } else {
-        this.setStepStatusIcon(this.event.end.outcome);
+        this.setStepStatusIcon(this.event.eventData.outcome);
       }
     } else {
       this.stepStatusIcon = 'fa-circle-o-notch fa-spin';
@@ -36,13 +36,9 @@ export class EventDisplayComponent implements OnInit {
       if (this.event.subEvents.length > 0) {
         this.isParent = true;
       }
-    } else {
-      if (!this.event.end) {
-        this.event.end = this.event.start;
-      }
     }
 
-    if (this.event.end.outcome === 'KO') {
+    if (this.event.eventData.outcome === 'KO') {
       this.hideChildren = false;
     }
 
