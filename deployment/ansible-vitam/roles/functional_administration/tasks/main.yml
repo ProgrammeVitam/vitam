@@ -1,0 +1,8 @@
+---
+
+- name: Ensure vitam-rule-management-audit timer is started
+  systemd:
+    name: "vitam-rule-management-audit.timer"
+    daemon_reload: "yes"
+    enabled: "yes"
+    state: "started"
